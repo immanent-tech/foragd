@@ -47,7 +47,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
+			<div class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
@@ -77,7 +77,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			}
 			// Add summarised description if article has one.
 			if article.GetDescription() != "" {
-				<div class="prose-summary">
+				<div class="prose-summary line-clamp-3">
 					@templ.Raw(article.GetDescription())
 				</div>
 			}
@@ -304,7 +304,7 @@ templ ArticleContent(article *models.Article) {
 									"subscription_name": article.GetFeedTitle(),
 									"subscription_id": article.GetSubscriptionID(),
 								}) }
-							class="flex-1 link link-hover"
+							class="flex-none link link-hover"
 						>
 							{  article.GetFeedTitle() }
 						</a>
@@ -314,7 +314,7 @@ templ ArticleContent(article *models.Article) {
 								datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
 							>
-								{ article.GetUpdatedDate().Format("ANSIC") }
+								{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
 						</span>
 					</div>
