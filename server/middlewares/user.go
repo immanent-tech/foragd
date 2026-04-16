@@ -25,6 +25,7 @@ import (
 func RequireUserAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if strings.HasPrefix(req.URL.Path, "/updates") {
+			slogctx.FromCtx(req.Context()).Debug("Ignoring auth for updates route.")
 			next.ServeHTTP(res, req)
 			return
 		}

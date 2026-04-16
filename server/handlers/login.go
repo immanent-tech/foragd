@@ -48,6 +48,15 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Renew session token before writing to prevent session fixation.
+	if err := session.Renew(req.Context()); err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("renew session token: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
+	}
+
 	// Retrieve existing stored state or generate new state.
 	var state string
 	state, err := session.Restore[string](req.Context(), "state")
@@ -85,6 +94,17 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 
 // HandleLoginCallback handles processing the response from the login provider.
 func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
+	// Check for errors returned by Auth0.
+	if errCode := req.FormValue("error"); errCode != "" {
+		errDesc := req.FormValue("error_description")
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
+	}
+
+	// Validate state to prevent CSRF.
 	state, err := session.Restore[string](req.Context(), "state")
 	if err != nil {
 		HandleExternalError(&models.APIError{
@@ -128,6 +148,16 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		}).ServeHTTP(res, req)
 		return
 	}
+
+	// Renew session token before writing to prevent session fixation.
+	if err := session.Renew(req.Context()); err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("renew session token: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
+	}
+
 	// Save token details to session
 	session.Save(req.Context(), "token", *token)
 
