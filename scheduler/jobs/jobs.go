@@ -87,7 +87,7 @@ func (job *ScheduledJob) Execute(ctx context.Context) error {
 	switch job.JobType {
 	case jobTypeGetNewFeeds:
 		err = executeGetNewFeedsJob(ctx, job)
-	case jobTypeUpdateFeed:
+	case JobTypeUpdateFeed:
 		err = executeUpdateFeedJob(ctx, job)
 	case jobTypeClearDeletedFeeds:
 		err = executeClearDeletedFeeds(ctx, job)
@@ -113,12 +113,12 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 		if job.JobOptions != nil {
 			return quartz.NewJobDetailWithOptions(
 				job,
-				job.generateJobKey(string(job.JobType), ""),
+				job.GenerateJobKey(string(job.JobType), ""),
 				job.JobOptions,
 			)
 		}
-		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
-	case jobTypeUpdateFeed:
+		return quartz.NewJobDetail(job, job.GenerateJobKey(string(job.JobType), ""))
+	case JobTypeUpdateFeed:
 		var data UpdateFeedJobData
 		if err := json.Unmarshal(job.JobData, &data); err != nil {
 			return nil
@@ -126,16 +126,16 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 		if job.JobOptions != nil {
 			return quartz.NewJobDetailWithOptions(
 				job,
-				job.generateJobKey(data.FeedID, string(job.JobType)),
+				job.GenerateJobKey(data.FeedID, string(job.JobType)),
 				job.JobOptions,
 			)
 		}
-		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, string(job.JobType)))
+		return quartz.NewJobDetail(job, job.GenerateJobKey(data.FeedID, string(job.JobType)))
 	case jobTypeUserTips:
 		j := &userTipsJob{ScheduledJob: job}
 		return j.JobDetail()
 	default:
-		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
+		return quartz.NewJobDetail(job, job.GenerateJobKey(string(job.JobType), ""))
 	}
 }
 
@@ -187,8 +187,8 @@ func (job *ScheduledJob) AsScheduledJob() *ScheduledJob {
 	return job
 }
 
-// generateJobKey generates an appropriate job key based on the type of job.
-func (job *ScheduledJob) generateJobKey(jobID, group string) *quartz.JobKey {
+// GenerateJobKey generates an appropriate job key based on the type of job.
+func (job *ScheduledJob) GenerateJobKey(jobID, group string) *quartz.JobKey {
 	if group != "" {
 		return quartz.NewJobKeyWithGroup(jobID, string(job.JobType))
 	}

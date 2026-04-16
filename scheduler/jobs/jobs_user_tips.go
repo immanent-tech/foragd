@@ -125,7 +125,7 @@ func (j *userTipsJob) JobDetail() *quartz.JobDetail {
 		tip = data.EmailID
 	}
 
-	return quartz.NewJobDetail(j, j.generateJobKey(jobTypeUserTips+"_"+id+"_"+tip, jobTypeUserTips))
+	return quartz.NewJobDetail(j, j.GenerateJobKey(jobTypeUserTips+"_"+id+"_"+tip, jobTypeUserTips))
 }
 
 func (j *userTipsJob) AsScheduledJob() *ScheduledJob {

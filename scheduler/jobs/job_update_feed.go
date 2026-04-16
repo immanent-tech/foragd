@@ -25,7 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
-const jobTypeUpdateFeed jobType = "update_feed"
+const JobTypeUpdateFeed jobType = "update_feed"
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
@@ -40,7 +40,7 @@ func NewUpdateFeedJob(id models.FeedID, trigger *pollTrigger) (*ScheduledJob, er
 	job := &ScheduledJob{
 		CreatedAt:      time.Now().UTC(),
 		JobTriggerType: jobTriggerTypePoll,
-		JobType:        jobTypeUpdateFeed,
+		JobType:        JobTypeUpdateFeed,
 		JobDescription: "Get new items for " + id,
 	}
 

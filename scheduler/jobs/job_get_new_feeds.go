@@ -96,7 +96,20 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	allFeeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
 		schema.FeedsIndexRO,
-		query.Since("created_at", state.Checkpoint),
+		// query.Since("created_at", state.Checkpoint),
+		// Consider a feed new if it has either:
+		// - last_fetched value of the unix epoch
+		// - missing last_fetched field
+		query.Bool(
+			query.Should(
+				query.Before("last_fetched", models.UnixEpoch),
+				query.Bool(
+					query.MustNot(
+						query.Exists("last_fetched"),
+					),
+				),
+			),
+		),
 		defaultPaginationSize,
 	)
 	if err != nil {
@@ -117,7 +130,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 
 		wg.Go(func() {
-			jobKey := job.generateJobKey(feed.GetID(), string(job.JobType))
+			jobKey := job.GenerateJobKey(feed.GetID(), string(job.JobType))
 			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
 			switch {
 			case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
