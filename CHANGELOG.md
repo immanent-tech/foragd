@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.102.0](https://github.com/immanent-tech/foragd/compare/v0.101.2...v0.102.0) (2026-04-16)
+
+
+### Features
+
+* **cli:** :sparkles: new cli commands ([6ccab2f](https://github.com/immanent-tech/foragd/commit/6ccab2fd90e779a8727dd996edf068841bb2d64b))
+
+
+### Bug Fixes
+
+* **models:** :bug: catch and return a title placeholder for items without any title ([9851afe](https://github.com/immanent-tech/foragd/commit/9851afeb4a97e2aa88ebba3569a773b4180b84df))
+* **scheduler:** :bug: switch back to using last_fetched field on feeds to determine whether an update_feed hjob needs to be created ([e5cb311](https://github.com/immanent-tech/foragd/commit/e5cb311744d262cc1581ee9d702ceaf8ab2cb4f9))
+
 ## [0.101.2](https://github.com/immanent-tech/foragd/compare/v0.101.1...v0.101.2) (2026-04-16)
 
 
