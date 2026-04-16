@@ -14,12 +14,20 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/reugn/go-quartz/quartz"
+
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/scheduler"
+	"github.com/immanent-tech/foragd/scheduler/jobs"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // FeedCmd contains sub commands for interacting with feeds.
 type FeedCmd struct {
-	Fetch FetchFeedCmd `cmd:"fetch" help:"fetch a feed (by either URL or ID)"`
+	Fetch        FetchFeedCmd        `cmd:"fetch"         help:"fetch a feed (by either URL or ID)"`
+	ResetUpdates ResetFeedUpdatesCmd `cmd:"reset-updates" help:"reset the feed updates job"`
 }
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
@@ -29,6 +37,7 @@ type FetchFeedCmd struct {
 	Validate bool          `help:"validate the feed" default:"false"`
 }
 
+// Run performs the operations for fetching feed details.
 func (c *FetchFeedCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -124,4 +133,40 @@ func showFeedDetails(feed *models.Feed) {
 	}
 
 	fmt.Fprintf(os.Stdout, "%s", str.String())
+}
+
+// ResetFeedUpdatesCmd is a cli command to reset the updates for a feed. It will reset the last_fetched timestamp on the
+// feed and delete any scheduled job for feed updates.
+type ResetFeedUpdatesCmd struct {
+	FeedID models.FeedID `help:"ID of feed"`
+}
+
+// Run performs the operations for resetting feed updates.
+func (c *ResetFeedUpdatesCmd) Run() error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_id"); err != nil {
+		return fmt.Errorf("invalid feed: %w", err)
+	}
+
+	// Reset the last_fetched timestamp on the feed.
+	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, c.FeedID, map[string]any{
+		"last_fetched": models.UnixEpoch,
+	}); err != nil {
+		return fmt.Errorf("reset feed last_fetched: %w", err)
+	}
+
+	// Delete scheduled job for feed.
+	if err := scheduler.NewManager(ctx); err != nil {
+		return fmt.Errorf("could not run scheduler: %w", err)
+	}
+	if err := scheduler.Manager.DeleteJob(
+		quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
+	); err != nil {
+		return fmt.Errorf("delete feed job: %w", err)
+	}
+
+	return nil
 }
