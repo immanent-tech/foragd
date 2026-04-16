@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
 	"github.com/realclientip/realclientip-go"
@@ -55,6 +56,11 @@ func RateLimit(next http.Handler) http.Handler {
 		ratelimiter := NewRateLimiter()
 		// Ignore rate-limiting in for health probes in GCP.
 		if slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
+			next.ServeHTTP(res, req)
+			return
+		}
+		// Ignore htmx requests.
+		if htmx.IsHTMX(req) {
 			next.ServeHTTP(res, req)
 			return
 		}
