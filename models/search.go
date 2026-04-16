@@ -24,7 +24,7 @@ func NewSearchRequest() *SearchRequest {
 	return &SearchRequest{
 		PublishedWithin: SearchRequestPublishedWithinLastWeek,
 		View:            ViewAll,
-		Sort:            SortMostRelevant,
+		Sort:            SortNewestFirst,
 	}
 }
 
