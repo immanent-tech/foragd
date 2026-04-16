@@ -53,7 +53,6 @@ templ Search() {
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
 				hx-trigger="keydown[key=='Enter'] consume"
-				hx-sync="#search-suggestions-popover:drop"
 				id="global-search"
 				type="search"
 				name="text"
@@ -62,7 +61,6 @@ templ Search() {
 				autocomplete="off"
 				aria-label="Search"
 				_="
-					on keydown from body if the event's key is 'q' and event.altKey then focus() me end
 					on toggle from #search-advanced-popover
        					if event.newState is 'open'
        					  set me.disabled to true
@@ -70,28 +68,24 @@ templ Search() {
        					  set me.disabled to false
        					end
 					on change set #search-text's value to my value
-				"
+					on htmx:afterRequest
+					  wait 500ms
+					  set window._searchSubmitted to false
+					  call #search-suggestions-popover.hidePopover()
+					on keydown[key=='Enter']
+					  set window._searchSubmitted to true
+					  call #search-suggestions-popover.hidePopover()
+  				"
 			/>
-			// _="
-			//   on keydown
-			// 	set items to the <[tabindex='-1']/>  in #search-suggestions-popover
-			// 	if items's length is 0 then exit end
-			// 	if event.key is 'ArrowDown'
-			// 	  halt the event
-			// 	  call items[0].focus()
-			// 	end
-			// 	if event.key is 'Escape'
-			// 	  call #search-suggestions-popover.hidePopover()
-			// 	  call me.focus()
-			// 	end
-			//   "
+			// on keydown[key=='q']
+			// 	if the event's altKey is true
+			// 	  call focus() on me
 			<button
 				hx-post="/search/suggestions"
 				hx-target="#search-suggestions-popover"
 				hx-include="#search-filters,[id='timezone'],[id='global-search']"
 				hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#global-search"
-				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
-				_="on htmx:trigger if event.detail.triggeringEvent.key == 'Enter' then halt the event end"
+				hx-on::after-request="if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()"
 				popovertarget="search-suggestions-popover"
 				type="button"
 				aria-label="Search suggestions"
@@ -101,39 +95,6 @@ templ Search() {
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 				</svg>
 			</button>
-			// _="on keydown
-			// set items to the <[role='option']/>  in me
-			// log items
-			// set active to document.activeElement
-			// log active
-			// if active is not null and items is not null
-			// 	set idx to indexOf(items, active)
-			// end
-			// if event.key is 'ArrowDown'
-			//   halt the event
-			//   if idx < (items's length - 1)
-			//   	log 'next element' + items[idx + 1]
-			// 	call items[idx + 1].focus()
-			//   else
-			//     call items[0].focus()
-			//   end
-			// end
-			// if event.key is 'ArrowUp'
-			//   halt the event
-			//   if idx is 0
-			//     call #global-search.focus()
-			//   else
-			//     call items[idx - 1].focus()
-			//   end
-			// end
-			// if event.key is 'Escape'
-			//   call me.hidePopover()
-			//   call #global-search.focus()
-			// end
-			// if event.key is 'Enter'
-			//   halt the event
-			//   call document.activeElement.click()
-			// end"
 			<el-popover
 				id="search-suggestions-popover"
 				anchor="bottom end"
