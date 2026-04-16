@@ -291,23 +291,23 @@ templ ArticleContent(article *models.Article) {
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6">
-						<form>
-							{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
-							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-							<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-							<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
-							<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamSubscriptionName } value={ article.GetFeedTitle() }/>
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-							<a
-								hx-post="/list/articles"
-								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML show:window:top transition:true"
-								class="flex-1 link link-hover"
-							>
-								{  article.GetFeedTitle() }
-							</a>
-						</form>
+						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
+						<a
+							hx-get="/list/articles"
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML show:window:top transition:true"
+							hx-vals={ templ.JSONString(map[string]any{
+									"view": filters.GetView(),
+									"count": filters.GetCount(),
+									"sort": filters.GetSort(),
+									"subscriptions": article.GetSubscriptionID(),
+									"subscription_name": article.GetFeedTitle(),
+									"subscription_id": article.GetSubscriptionID(),
+								}) }
+							class="flex-1 link link-hover"
+						>
+							{  article.GetFeedTitle() }
+						</a>
 						<span class="flex-none px-4">·</span>
 						<span class="flex-1 capitalize">
 							<relative-time
@@ -372,13 +372,15 @@ templ ArticleContent(article *models.Article) {
 						}
 						// Actions.
 						<div class="flex shrink-0 items-center">
-							<form class="btn btn-square p-2 btn-ghost">
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
+							<button class="btn btn-square p-2 btn-ghost">
 								<label class="swap" _="on click halt the event's bubbling">
 									<input
 										hx-post={ "/favorite/article/" + article.GetID() }
 										hx-swap="none"
+										hx-vals={ templ.JSONString(map[string]any{
+											"subscription_id": article.GetSubscriptionID(),
+											"item_id": article.GetID(),
+										}) }
 										id={ article.GetID() + "-favorite-state" }
 										type="checkbox"
 										if article.IsFavorite() {
@@ -394,23 +396,25 @@ templ ArticleContent(article *models.Article) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
 									</svg>
 								</label>
-							</form>
-							<form class="btn btn-square p-2 btn-ghost">
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
-								<input
-									type="hidden"
-									name={ models.ParamMark }
-									if article.IsUnread() {
-										value={ models.MarkRead }
-									} else {
-										value={ models.MarkUnread }
-									}
-								/>
+							</button>
+							<button class="btn btn-square p-2 btn-ghost">
 								<label class="swap" _="on click halt the event's bubbling">
+									{{
+										var mark models.Mark
+										if article.IsUnread() {
+											mark = models.MarkRead
+										} else {
+											mark = models.MarkUnread
+										}
+									}}
 									<input
 										hx-post={ "/mark/article/" + article.GetID() }
 										hx-swap="none"
+										hx-vals={ templ.JSONString(map[string]any{
+											"subscription_id": article.GetSubscriptionID(),
+											"item_id": article.GetID(),
+											"mark": mark,
+										}) }
 										id={ article.GetID() + "-read-state" }
 										type="checkbox"
 										if !article.IsUnread() {
@@ -436,57 +440,55 @@ templ ArticleContent(article *models.Article) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
 									</svg>
 								</label>
-							</form>
-							<div class="flex items-center justify-end">
-								<el-dropdown>
-									<button
-										class="btn btn-square btn-ghost"
-									>
-										<span class="sr-only">Article Actions</span>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
-										</svg>
-									</button>
-									<el-menu
-										anchor="bottom end"
-										popover
-										_="on htmx:afterRequest(successful) hidePopover() on me"
-										class="w-fit"
-									>
-										<ul class="menu">
-											// Find similar action.
-											<li>
-												<a
-													hx-get={ "/view/article/" + article.GetID() + "/similar" }
-													hx-target={ ContentID.Target() }
-													hx-trigger="click consume"
-													role="menuitem"
-												>
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
-													</svg>
-													Find similar...
-												</a>
-											</li>
-											// Report article issue action.
-											<li>
-												<a
-													hx-get={ "/issue/article/" + article.GetID() }
-													hx-target={ ContentID.Target() }
-													hx-replace-url="true"
-													hx-trigger="click consume"
-													role="menuitem"
-												>
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
-													</svg>
-													Report an issue
-												</a>
-											</li>
-										</ul>
-									</el-menu>
-								</el-dropdown>
-							</div>
+							</button>
+							<el-dropdown>
+								<button
+									class="btn btn-square btn-ghost"
+								>
+									<span class="sr-only">Article Actions</span>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+									</svg>
+								</button>
+								<el-menu
+									anchor="bottom end"
+									popover
+									_="on htmx:afterRequest(successful) hidePopover() on me"
+									class="w-fit"
+								>
+									<ul class="menu">
+										// Find similar action.
+										<li>
+											<a
+												hx-get={ "/view/article/" + article.GetID() + "/similar" }
+												hx-target={ ContentID.Target() }
+												hx-trigger="click consume"
+												role="menuitem"
+											>
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
+												</svg>
+												Find similar...
+											</a>
+										</li>
+										// Report article issue action.
+										<li>
+											<a
+												hx-get={ "/issue/article/" + article.GetID() }
+												hx-target={ ContentID.Target() }
+												hx-replace-url="true"
+												hx-trigger="click consume"
+												role="menuitem"
+											>
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
+												</svg>
+												Report an issue
+											</a>
+										</li>
+									</ul>
+								</el-menu>
+							</el-dropdown>
 						</div>
 					</div>
 					// Content.
@@ -594,19 +596,20 @@ templ ArticleContent(article *models.Article) {
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
 				if article.IsUnread() && article.MarkArticleReadOnView {
-					<form
+					<div
 						id="auto-mark-read"
 						hx-target="#auto-mark-read"
 						hx-post={ "/mark/article/" + article.GetID() }
 						hx-swap="delete transition:false"
+						hx-vals={ templ.JSONString(map[string]any{
+							"subscription_id": article.GetSubscriptionID(),
+							"item_id": article.GetID(),
+							"mark": models.MarkRead,
+						}) }
 						hx-trigger="intersect once delay:5s,load delay:5s"
 						aria-hidden="true"
 						_={ "on htmx:afterRequest(successful) toggle @checked on #" + article.GetID() + "-read-state" }
-					>
-						<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-					</form>
+					></div>
 				}
 			}
 		}
