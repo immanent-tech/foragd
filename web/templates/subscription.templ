@@ -115,7 +115,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 					}
 				</div>
 				<div>
-					<h2 class="card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+					<h2 class="card-title line-clamp-2 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 						{ s.GetTitle() }
 					</h2>
 				</div>
@@ -151,12 +151,30 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 		}
 		// Card footer.
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div
-				class="mt-auto flex items-center justify-between border-t border-neutral/15 pt-3 text-xs/4"
-			>
-				if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-					<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
-						<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
+			<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
+				<div class="flex flex-col min-w-0">
+					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
+							<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
+								<relative-time
+									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+									format="relative"
+								>
+									{ s.GetUpdatedDate().Format("Jan _2, 2006") }
+								</relative-time>
+							</span>
+							if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
+								<span class="col-span-1 justify-start text-xs/4 text-neutral">
+									{ s.GetStats().UpdateFrequency() }
+								</span>
+							}
+							<span class="col-span-1 justify-end text-xs/4 text-neutral">
+								{ s.GetStats().UnreadTotal() }
+								Unread
+							</span>
+						</div>
+					} else {
+						<span class="text-xs/4 text-wrap text-neutral capitalize">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
@@ -164,29 +182,9 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
 						</span>
-						if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-							<span class="col-span-1 justify-start text-xs/4 text-neutral">
-								{ s.GetStats().UpdateFrequency() }
-							</span>
-						}
-						<span class="col-span-1 justify-end text-xs/4 text-neutral">
-							{ s.GetStats().UnreadTotal() }
-							Unread
-						</span>
-					</div>
-				} else {
-					<span class="text-xs/4 text-wrap text-neutral capitalize">
-						<relative-time
-							datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-							format="relative"
-						>
-							{ s.GetUpdatedDate().Format("Jan _2, 2006") }
-						</relative-time>
-					</span>
-				}
-			</div>
-			<div class="flex flex-1 justify-end">
-				<div class="flex flex-1 items-center justify-end space-x-2">
+					}
+				</div>
+				<div class="flex items-center gap-1 shrink-0">
 					// Favorite action.
 					<button class="btn btn-square btn-ghost btn-md">
 						<form>
