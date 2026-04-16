@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.101.2](https://github.com/immanent-tech/foragd/compare/v0.101.1...v0.101.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* **templates/articles:** :lipstick: article card layout fixes ([7eb8df6](https://github.com/immanent-tech/foragd/commit/7eb8df642e0d53718979bc35d07b7221d71f7db6))
+* **templates/articles:** :lipstick: fix style bugs on article cards ([2501411](https://github.com/immanent-tech/foragd/commit/2501411ee4c2b089ea7854aa5629c2660b092916))
+* **templates/search:** :bug: don't trigger suggestions popover *after* user hits enter key to search directly ([011be0a](https://github.com/immanent-tech/foragd/commit/011be0a0b740b1f248be79c5cdab629b3aea022a))
+* **templates/settings:** :bug: fix spelling mistake for id ([d564cbf](https://github.com/immanent-tech/foragd/commit/d564cbf07b61798aa0e986d05d19a1241253c5d1))
+* **templates/settings:** :bug: fix tab loading and navigation on settings page ([f52a83c](https://github.com/immanent-tech/foragd/commit/f52a83ca3b03b4423c401a195765be7db1a2d500))
+* **templates/subscriptions:** :lipstick: subscription card layout fixes ([f2aae50](https://github.com/immanent-tech/foragd/commit/f2aae50bd329fead3bced6aa915601aae06dc2d1))
+
 ## [0.101.1](https://github.com/immanent-tech/foragd/compare/v0.101.0...v0.101.1) (2026-04-16)
 
 
