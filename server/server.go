@@ -125,8 +125,12 @@ func Start(logger *slog.Logger) error {
 	// External Pages.
 	router.Group(func(r chi.Router) {
 		r.Use(middlewares.PushCriticalAssets)
-		// Landing.
+		// Landing and features.
 		r.Get("/", handlers.HandleLanding())
+		r.Get("/features", handlers.HandleFeatures())
+		r.With(middlewares.RequireHTMX).Get("/features/collect", handlers.HandleFeaturesCollect())
+		r.With(middlewares.RequireHTMX).Get("/features/curate", handlers.HandleFeaturesCurate())
+		r.With(middlewares.RequireHTMX).Get("/features/consume", handlers.HandleFeaturesConsume())
 		// About.
 		r.Get("/about", handlers.HandleAbout())
 		// Feed Viewer.

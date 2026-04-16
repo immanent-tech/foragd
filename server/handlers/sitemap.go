@@ -24,6 +24,10 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 			Priority: 1.0,
 		},
 		sitemap.URL{
+			Loc:      "https://foragd.app/features",
+			Priority: 1.0,
+		},
+		sitemap.URL{
 			Loc:      "https://foragd.app/viewer",
 			Priority: 0.9,
 		},

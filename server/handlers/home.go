@@ -294,7 +294,6 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	filters.View = models.ViewUnread
 	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
 		query.Filter(
-			// Must match any of the given categories.
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
 				query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
