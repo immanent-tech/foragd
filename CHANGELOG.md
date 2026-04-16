@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.101.1](https://github.com/immanent-tech/foragd/compare/v0.101.0...v0.101.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* **handlers:** :lock: protect against session fixation attacks ([cb3a4c9](https://github.com/immanent-tech/foragd/commit/cb3a4c9014c7219c51a9d294c9da5643015820eb))
+
 ## [0.101.0](https://github.com/immanent-tech/foragd/compare/v0.100.0...v0.101.0) (2026-04-16)
 
 
