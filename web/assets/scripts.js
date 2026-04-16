@@ -12,8 +12,7 @@ import "htmx-ext-sse";
 // import 'idiomorph/htmx'
 
 // hyperscript
-import _hyperscript from "hyperscript.org/dist/_hyperscript.js";
-_hyperscript.browserInit();
+import "hyperscript.org";
 
 // Tailwind Plus.
 // import '@tailwindplus/elements'
