@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.101.0](https://github.com/immanent-tech/foragd/compare/v0.100.0...v0.101.0) (2026-04-16)
+
+
+### Features
+
+* **assets:** :sparkles: add Tex Gyre Pagella as the default serif font ([62bcba4](https://github.com/immanent-tech/foragd/commit/62bcba4ee667026d9870a2af874912fcc764beac))
+* **models:** :sparkles: define an authors object to represent feed/item author data ([e41d74c](https://github.com/immanent-tech/foragd/commit/e41d74c5944bb80b8cac280104fed10604d15bbc))
+* **pkg/text:** :sparkles: add new package text ([4546974](https://github.com/immanent-tech/foragd/commit/45469743df862beb3eb9e8f32b1cfbe16a1185eb))
+* **styles:** :sparkles: improved font and animation settings ([a479ba3](https://github.com/immanent-tech/foragd/commit/a479ba32b2123b3394c40fd615ed2f6dfe6fe80d))
+* **templates:** :recycle: load tex gyre pagella fonts ([40f9045](https://github.com/immanent-tech/foragd/commit/40f9045900ba6aa7a20e8a9851e53c1d180711e8))
+* **templates:** :sparkles: add new features page and lists of features around collect, curate, consume topics ([df68213](https://github.com/immanent-tech/foragd/commit/df68213b26ea2fd67c8156b3ee15d0980d30b63d))
+* **templates/articles:** :lipstick: improved article content layout ([2f3d461](https://github.com/immanent-tech/foragd/commit/2f3d4619979ddaeaccada10555cdee664c320eb5))
+* **templates/settings:** :sparkles: new theme preview layout ([4fffaf9](https://github.com/immanent-tech/foragd/commit/4fffaf9a4b726606de0d63675148d9f99230b32c))
+* **templates/subscriptions:** :recycle: don't clip/truncate latest/top article headlines in subscription cards ([10d605f](https://github.com/immanent-tech/foragd/commit/10d605f5f13b1ae10bde7226f42b044ccc9d6355))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: correctly create opml export with website and feed urls for each entry ([590289a](https://github.com/immanent-tech/foragd/commit/590289a545ed0aea6d63f3bc342a852c74a995e6))
+* **scheduler:** :bug: handle user with unset nickname ([7ab34c5](https://github.com/immanent-tech/foragd/commit/7ab34c5f180637e89acf91e3a0df26efd87def22))
+* **styles:** :bug: fix scrollbar customisation ([56fdd57](https://github.com/immanent-tech/foragd/commit/56fdd57ee6e85e237dec6622fdc840c324a1a986))
+* **templates/search:** :bug: correct link to add search subscription from search results actions menu ([f4ea816](https://github.com/immanent-tech/foragd/commit/f4ea816e803830e8568b88494650f4f97bb8cab3))
+* **templates/subscriptions:** :bug: don't trigger card animation on clicking article links ([651ae72](https://github.com/immanent-tech/foragd/commit/651ae724ca4c3ec64bf27ed9472a7adc1596a499))
+
+
+### Performance Improvements
+
+* :zap: use a sync.Map to store latest items ([62fdfa5](https://github.com/immanent-tech/foragd/commit/62fdfa5c1fc57eca04f8138d91850ccb634bfcdf))
+* **middlewares:** :zap: don't ratelimit own htmx requests ([92405a5](https://github.com/immanent-tech/foragd/commit/92405a55b978c8620e94e43e0470d0fa07bd576e))
+
 ## [0.100.0](https://github.com/immanent-tech/foragd/compare/v0.99.2...v0.100.0) (2026-04-13)
 
 
