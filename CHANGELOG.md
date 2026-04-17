@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.103.0](https://github.com/immanent-tech/foragd/compare/v0.102.0...v0.103.0) (2026-04-17)
+
+
+### Features
+
+* **templates/partials:** :sparkles: support small logo customisation ([7d9ae67](https://github.com/immanent-tech/foragd/commit/7d9ae67ae3fa66d5b19fe36224a5b4faa761fae2))
+
+
+### Bug Fixes
+
+* **cli:** :bug: fix validation of feed_id for reset-updates feed command ([20b9ef8](https://github.com/immanent-tech/foragd/commit/20b9ef8be4972733a5b7138a4f5bbc3f12fdcb71))
+* **templates:** :bug: remove full-stop on feature headings ([40a1452](https://github.com/immanent-tech/foragd/commit/40a1452186cf9ca65bbf2f0f0a73817cb7d57765))
+* **templates/landing:** :bug: fix logo resolution and color ([013f11c](https://github.com/immanent-tech/foragd/commit/013f11ccd2a9984d37b6113a3f8db0dea6ccb39c))
+* **templates/landing:** :bug: update main image popover ([96f8605](https://github.com/immanent-tech/foragd/commit/96f86056ee42a7f8c18ef3f5d7a207c9534ed41f))
+
 ## [0.102.0](https://github.com/immanent-tech/foragd/compare/v0.101.2...v0.102.0) (2026-04-16)
 
 
