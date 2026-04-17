@@ -180,9 +180,9 @@ func Start(logger *slog.Logger) error {
 			middlewares.SetupHTMX,
 			session.LoadAndSave,
 			middlewares.RequireUserAuth,
-			middlewares.RefreshTokenIfNeeded,
 			middlewares.PushCriticalAssets,
 		)
+		r.Get("/login/refresh", handlers.HandleRefreshToken)
 		// Payment routes (Stripe).
 		r.Route("/checkout", func(r chi.Router) {
 			r.Get("/choose-plan", handlers.HandleChooseSubscriptionPlan())

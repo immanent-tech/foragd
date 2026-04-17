@@ -19,8 +19,6 @@ import (
 const (
 	// defaultRequestTimeout is the maximum time a background action can run before its context is cancelled.
 	defaultRequestTimeout = 5 * time.Second
-	// defaultPaginationSize is the default size for paginating through results from elasticsearch.
-	defaultPaginationSize = 5000
 )
 
 // Make sure SessionStore implementation satisfies scs interfaces.
@@ -30,19 +28,24 @@ var (
 )
 
 // Store satisfies the session store interface for storing sessions in a custom backend.
-type Store struct{}
+type Store struct {
+	indexRO string
+	indexRW string
+}
 
 // NewSessionStore sets up a new session store for use by the server.
 func NewSessionStore() (*Store, error) {
-	return &Store{}, nil
+	return &Store{
+		indexRO: schema.SessionsIndexRO,
+		indexRW: schema.SessionsIndexRW,
+	}, nil
 }
 
 // DeleteCtx should remove the session token and corresponding data from the
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	index := schema.SessionsIndexRW
-	if err := elastic.DeleteDoc(ctx, index, token); err != nil {
+	if err := elastic.DeleteDoc(ctx, s.indexRW, token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
 
@@ -61,8 +64,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	index := schema.SessionsIndexRO
-	session, err := elastic.GetDoc[string, models.UserSession](ctx, index, token)
+	session, err := elastic.GetDoc[string, models.UserSession](ctx, s.indexRO, token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
@@ -85,8 +87,7 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry time.Time) error {
-	index := schema.SessionsIndexRW
-	if err := elastic.UpdateDoc(ctx, index,
+	if err := elastic.UpdateDoc(ctx, s.indexRW,
 		token,
 		map[string]any{
 			"token":      token,
@@ -113,10 +114,10 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // token and the map value should be the session data. If no active
 // sessions exist this should return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
-	index := schema.SessionsIndexRO
+	const defaultPaginationSize = 5000
 	sessions, err := elastic.SearchAll[models.UserSession](
 		ctx,
-		index,
+		s.indexRO,
 		query.Since("expiry", time.Now().UTC()),
 		defaultPaginationSize,
 	)

@@ -50,21 +50,14 @@ func Save[T any](ctx context.Context, key string, obj T) {
 	manager.Put(ctx, key, obj)
 }
 
-// Restore retrieves an object from the session storage with the given key. If the object cannot be
-// retrieved, then the defaultFunc is used to generate a new default value.
+// Restore retrieves an object from the session storage with the given key. If there is an error retrieving the object
+// as the given type a non-nill error containing details will be returned.
 func Restore[T any](ctx context.Context, key string) (T, error) {
 	value, ok := manager.Get(ctx, key).(T)
 	if !ok {
-		return value, fmt.Errorf("unable to restore session data as %T (data %v)", value, value)
+		return value, fmt.Errorf("unable to restore %s session data as %T (data %v)", key, value, value)
 	}
 	return value, nil
-}
-
-func Commit(ctx context.Context) error {
-	if _, _, err := manager.Commit(ctx); err != nil {
-		return fmt.Errorf("unable to commit session to store: %w", err)
-	}
-	return nil
 }
 
 // Renew updates the session data to have a new session token while retaining the current session data. The session
@@ -75,6 +68,11 @@ func Renew(ctx context.Context) error {
 		return fmt.Errorf("unable to renew token: %w", err)
 	}
 	return nil
+}
+
+// Remove will remove the value with the given key from the session.
+func Remove(ctx context.Context, key string) {
+	manager.Remove(ctx, key)
 }
 
 // Clear deletes the session data from the session store and sets the session status to Destroyed. Any further

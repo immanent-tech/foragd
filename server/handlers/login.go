@@ -10,11 +10,11 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/a-h/templ"
-	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -39,10 +39,17 @@ func (p *Login) PartialResponse(w http.ResponseWriter, r *http.Request) {
 
 // HandleLogin handles user login or sign-up requests.
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
-	// Init the authenticator backend.
-	if err := auth0.InitAuthenticator(req.Context()); err != nil {
+	// Redirect to home if already authenticated.
+	if auth0.IsAuthenticated(req) {
+		http.Redirect(res, req, "/home", http.StatusFound)
+		return
+	}
+
+	// Generate state, verification and authentication URL.
+	result, err := auth0.GenerateAuthURL(req)
+	if err != nil {
 		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("init authenticator: %w", err),
+			InternalError: fmt.Errorf("generate auth url: %w", err),
 			StatusCode:    http.StatusInternalServerError,
 		}).ServeHTTP(res, req)
 		return
@@ -57,39 +64,15 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Retrieve existing stored state or generate new state.
-	var state string
-	state, err := session.Restore[string](req.Context(), "state")
-	if err != nil || state == "" {
-		slogctx.FromCtx(req.Context()).Debug("No existing or invalid previous state. Using new state.")
-		state, err = auth0.GenerateRandomState()
-		if err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("restore state: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-	}
+	// Store data required for verification.
+	auth0.PutState(req, result.State)
+	auth0.PutCodeVerifier(req, result.CodeVerifier)
 
-	// Redirect the user appropriately.
-	var authURL string
-	switch chi.RouteContext(req.Context()).RoutePattern() {
-	case "/signup":
-		// Retrieve and save the selected plan id into the session for later use.
-		planID := req.URL.Query().Get(models.ParamPlanID)
-		session.Save(req.Context(), models.ParamPlanID, planID)
-		authURL = auth0.AuthClient.AuthCodeURL(state,
-			oauth2.SetAuthURLParam("screen_hint", "signup"),
-		)
-	case "/login":
-		authURL = auth0.AuthClient.AuthCodeURL(state)
-	}
-	session.Save(req.Context(), "state", state)
+	// Redirect for authentication.
 	slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-		slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
+		slog.String("url", result.URL),
 	)
-	http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
+	http.Redirect(res, req, result.URL, http.StatusFound)
 }
 
 // HandleLoginCallback handles processing the response from the login provider.
@@ -99,52 +82,36 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		errDesc := req.FormValue("error_description")
 		HandleExternalError(&models.APIError{
 			InternalError: fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc),
-			StatusCode:    http.StatusInternalServerError,
+			StatusCode:    http.StatusBadRequest,
 		}).ServeHTTP(res, req)
 		return
 	}
 
 	// Validate state to prevent CSRF.
-	state, err := session.Restore[string](req.Context(), "state")
-	if err != nil {
+	if state, err := auth0.GetState(req); err != nil || req.FormValue("state") != state {
 		HandleExternalError(&models.APIError{
 			InternalError: fmt.Errorf("restore state: %w", err),
-			StatusCode:    http.StatusInternalServerError,
-		}).ServeHTTP(res, req)
-		return
-	}
-	if req.FormValue("state") != state {
-		HandleExternalError(&models.APIError{
-			InternalError: errors.New("invalid state"),
-			StatusCode:    http.StatusInternalServerError,
-		}).ServeHTTP(res, req)
-		return
-	}
-
-	if err := auth0.InitAuthenticator(req.Context()); err != nil {
-		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("init authenticator: %w", err),
-			StatusCode:    http.StatusInternalServerError,
+			StatusCode:    http.StatusBadRequest,
 		}).ServeHTTP(res, req)
 		return
 	}
 
 	// Exchange an authorization code for a token.
-	token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
+	code := req.FormValue("code")
+	verifier, err := auth0.GetCodeVerifier(req)
 	if err != nil {
 		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("exchange auth token: %w", err),
-			StatusCode:    http.StatusInternalServerError,
+			InternalError: fmt.Errorf("restore verifier: %w", err),
+			StatusCode:    http.StatusBadRequest,
 		}).ServeHTTP(res, req)
 		return
 	}
 
-	// Verify token.
-	idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
+	token, profile, err := auth0.Exchange(req.Context(), code, verifier)
 	if err != nil {
 		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("verify id token: %w", err),
-			StatusCode:    http.StatusInternalServerError,
+			InternalError: fmt.Errorf("exchange auth token: %w", err),
+			StatusCode:    http.StatusBadRequest,
 		}).ServeHTTP(res, req)
 		return
 	}
@@ -158,18 +125,8 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Save token details to session
-	session.Save(req.Context(), "token", *token)
-
-	// Extract user profile.
-	var profile auth0.UserProfile
-	if err = idToken.Claims(&profile); err != nil {
-		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("extract claims: %w", err),
-			StatusCode:    http.StatusInternalServerError,
-		}).ServeHTTP(res, req)
-		return
-	}
+	// Save tokens to session.
+	auth0.SaveTokens(req.Context(), token)
 	// Save profile to session.
 	session.Save(req.Context(), "profile", profile)
 
@@ -178,7 +135,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user
-		user, err = createNewLocalUser(req.Context(), profile)
+		user, err = createNewLocalUser(req.Context(), *profile)
 		if err != nil {
 			HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("create user: %w", err),
@@ -245,15 +202,15 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(ctx).Info("User logged in.",
 		slog.String("user_id", user.GetID()),
 	)
+	auth0.ClearState(req)
 
-	if appState, err := session.Restore[map[string]string](req.Context(), state); err != nil {
-		http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
+	if returnTo, err := auth0.GetReturnTo(req); err != nil {
+		http.Redirect(res, req.WithContext(ctx), "/home", http.StatusFound)
 	} else {
-		if redirectURL, found := appState["redirectURL"]; found {
-			slogctx.FromCtx(ctx).Info("Previous state found, redirecting user.",
-				slog.String("redirect_url", redirectURL))
-			http.Redirect(res, req.WithContext(ctx), redirectURL, http.StatusTemporaryRedirect)
-		}
+		slogctx.FromCtx(ctx).Debug("Returning to previous page.",
+			slog.String("return_to", returnTo),
+		)
+		http.Redirect(res, req.WithContext(ctx), returnTo, http.StatusFound)
 	}
 }
 
@@ -270,6 +227,51 @@ func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		InternalError: errors.New("login failed"),
 		StatusCode:    http.StatusForbidden,
 	}).ServeHTTP(res, req)
+}
+
+// HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.
+func HandleRefreshToken(res http.ResponseWriter, req *http.Request) {
+	// Retrieve the refresh token and expiry from the session.
+	tkn, err := auth0.GetRefreshToken(req)
+	if err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("get refresh token from session: %w", err),
+			StatusCode:    http.StatusBadRequest,
+		}).ServeHTTP(res, req)
+		return
+	}
+	expiry, err := auth0.GetTokenExpiry(req)
+	if err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("get token expiry from session: %w", err),
+			StatusCode:    http.StatusBadRequest,
+		}).ServeHTTP(res, req)
+		return
+	}
+
+	// If token will expire soon, refresh it.
+	const refreshGracePeriod = time.Hour
+	if expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
+		token, err := auth0.RefreshTokens(req.Context(), tkn)
+		if err != nil {
+			auth0.ClearAuth(req)
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Save tokens to session.
+		auth0.SaveTokens(req.Context(), token)
+
+		// Redirect back to the referrer or home (same-origin only).
+		ref := req.Referer()
+		if ref == "" {
+			ref = "/home"
+		}
+		if u, err := url.Parse(ref); err != nil || (u.Host != "" && u.Host != req.Host) {
+			ref = "/home"
+		}
+		http.Redirect(res, req, ref, http.StatusFound)
+	}
 }
 
 func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models.User, error) {
@@ -324,7 +326,6 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 					slog.Any("error", err),
 				)
 			}
-
 		}
 	}
 

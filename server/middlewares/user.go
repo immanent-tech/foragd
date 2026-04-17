@@ -7,13 +7,11 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -24,53 +22,66 @@ import (
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
 func RequireUserAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Ignore updates route.
 		if strings.HasPrefix(req.URL.Path, "/updates") {
-			slogctx.FromCtx(req.Context()).Debug("Ignoring auth for updates route.")
 			next.ServeHTTP(res, req)
 			return
 		}
 
-		ctx := req.Context()
-
-		// Validate the access token stored in the session.
-		if token, err := session.Restore[oauth2.Token](req.Context(), "token"); err != nil || !token.Valid() {
-			if !strings.HasSuffix(req.URL.Path, "/updates") {
-				slogctx.FromCtx(req.Context()).
-					Error("Invalid session token. Generating new state and redirecting to login.",
-						slog.Any("error", err),
-					)
-				// Generate new state and save url for redirection after login.
-				if state, err := auth0.GenerateRandomState(); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
-						slog.Any("error", err),
-					)
-				} else {
-					session.Save(req.Context(), "state", state)
-					session.Save(req.Context(), state, map[string]string{
-						"redirectURL": req.URL.String(),
-					})
-				}
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
+		// If user isn't authenticated, redirect to authenticate.
+		if !auth0.IsAuthenticated(req) {
+			slogctx.FromCtx(req.Context()).Warn("Unauthenticated; redirecting to login.")
+			auth0.PutReturnTo(req, req.URL.RequestURI())
+			http.Redirect(res, req, "/login", http.StatusFound)
+			return
 		}
 
-		profile, err := session.Restore[auth0.UserProfile](ctx, "profile")
-		switch {
-		case err != nil: // Invalid session profile data.
-			slogctx.FromCtx(ctx).Error("Authentication Error.",
-				slog.String("external_user_id", profile.GetID()),
-				slog.Any("error", err))
-			if htmx.IsHTMX(req) {
-				res.Header().Set(htmx.HeaderRedirect, "/")
-			} else {
-				http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
+		if auth0.IsAccessTokenExpired(req) {
+			slogctx.FromCtx(req.Context()).Debug("Access token expired.")
+			refreshToken, err := auth0.GetRefreshToken(req)
+			if err != nil || refreshToken == "" {
+				slogctx.FromCtx(req.Context()).Warn("Access token expired and no refresh token; redirecting to login.",
+					slog.Any("error", err),
+				)
+				auth0.ClearAuth(req)
+				auth0.PutReturnTo(req, req.URL.RequestURI())
+				http.Redirect(res, req, "/login", http.StatusFound)
+				return
 			}
+
+			slogctx.FromCtx(req.Context()).Debug("Access token expired; attempting refresh.")
+			token, err := auth0.RefreshTokens(req.Context(), refreshToken)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Token refresh failed.",
+					slog.Any("error", err),
+				)
+				auth0.ClearAuth(req)
+				auth0.PutReturnTo(req, req.URL.RequestURI())
+				http.Redirect(res, req, "/login", http.StatusFound)
+				return
+			}
+
+			// Rotate tokens in session.
+			auth0.SaveTokens(req.Context(), token)
+			slogctx.FromCtx(req.Context()).Debug("Token refresh successful.")
+		}
+
+		profile, err := session.Restore[auth0.UserProfile](req.Context(), "profile")
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to retrieve profile from session.",
+				slog.Any("error", err),
+			)
+			auth0.ClearAuth(req)
+			auth0.PutReturnTo(req, req.URL.RequestURI())
+			http.Redirect(res, req, "/login", http.StatusFound)
 			return
-		case profile.Blocked: // Account is blocked.
-			slogctx.FromCtx(ctx).Error("Authentication Error.",
-				slog.String("external_user_id", profile.GetID()),
-				slog.String("error", "account is blocked"))
+		}
+
+		if profile.Blocked {
+			slogctx.FromCtx(req.Context()).
+				Error("Attempted access from blocked user. Redirecting to account issue page.",
+					slog.String("external_user_id", profile.GetID()),
+				)
 			if htmx.IsHTMX(req) {
 				res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
 			} else {
@@ -78,10 +89,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			}
 			return
 		}
+
 		// Fetch the user from the user management API.
-		user, err := models.GetUserByExternalID(ctx, profile.GetID())
+		user, err := models.GetUserByExternalID(req.Context(), profile.GetID())
 		if err != nil {
-			slogctx.FromCtx(ctx).Error("Authentication Error.",
+			slogctx.FromCtx(req.Context()).Error("Get local user data failed.",
 				slog.String("external_user_id", profile.GetID()),
 				slog.Any("error", err))
 			if htmx.IsHTMX(req) {
@@ -97,7 +109,7 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			return
 		}
 		// Add context values.
-		ctx = models.UserToCtx(ctx, user)
+		ctx := models.UserToCtx(req.Context(), user)
 		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
 
 		// Add otel attributes.
@@ -107,72 +119,5 @@ func RequireUserAuth(next http.Handler) http.Handler {
 
 		// Pass to next request.
 		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// RefreshTokenIfNeeded handles refreshing the user's access token (using a refresh token) when it is about to expire.
-func RefreshTokenIfNeeded(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve the refresh token from the session.
-		token, err := session.Restore[oauth2.Token](req.Context(), "token")
-		if err != nil {
-			slogctx.FromCtx(req.Context()).
-				Error("Invalid session token. Unable to refresh. Generating new state and redirecting to login.",
-					slog.Any("error", err),
-				)
-			// Generate new state and save url for redirection after login.
-			if state, err := auth0.GenerateRandomState(); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
-					slog.Any("error", err),
-				)
-			} else {
-				session.Save(req.Context(), "state", state)
-				session.Save(req.Context(), state, map[string]string{
-					"redirectURL": req.URL.String(),
-				})
-			}
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
-		// Check token validity.
-		if !token.Valid() {
-			slogctx.FromCtx(req.Context()).Error("Invalid user token.")
-			res.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		// If token will expire soon, refresh it.
-		const refreshGracePeriod = time.Hour
-		if token.Expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
-			newToken, err := auth0.RefreshAccessToken(res, req, &token)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",
-					slog.Any("error", err),
-				)
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-
-			// Save the new token into the session data.
-			session.Save(req.Context(), "token", *newToken)
-			// Renew the session data.
-			if err := session.Renew(req.Context()); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to renew session data.",
-					slog.Any("error", err),
-				)
-			}
-
-			// Commit the session to the store.
-			if err := session.Commit(req.Context()); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to commit session data.",
-					slog.Any("error", err),
-				)
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-		}
-
-		next.ServeHTTP(res, req)
 	})
 }

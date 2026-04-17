@@ -5,14 +5,15 @@ package auth0
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/foragd/config"
 )
@@ -23,20 +24,30 @@ var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 
 func init() {
 	gob.Register(UserProfile{})
-	gob.Register(oauth2.Token{})
 	gob.Register(time.Time{})
 	gob.Register(map[string]string{})
 }
 
-// GenerateRandomState generates a new nonce that can be used during authentication as a state parameter.
-func GenerateRandomState() (string, error) {
-	const stateSize = 32
-	bytes := make([]byte, stateSize)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("unable to generate random state: %w", err)
+// generateCodeVerifier creates a cryptographically random PKCE code verifier.
+func generateCodeVerifier() (string, error) {
+	b := make([]byte, 64)
+	if _, err := io.ReadFull(rand.Reader, b); err != nil {
+		return "", fmt.Errorf("generating code verifier: %w", err)
 	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
 
-	state := base64.StdEncoding.EncodeToString(bytes)
+// codeChallenge derives the S256 PKCE code challenge from a verifier.
+func codeChallenge(verifier string) string {
+	h := sha256.Sum256([]byte(verifier))
+	return base64.RawURLEncoding.EncodeToString(h[:])
+}
 
-	return state, nil
+// generateState creates a cryptographically random OAuth2 state parameter.
+func generateState() (string, error) {
+	b := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, b); err != nil {
+		return "", fmt.Errorf("generating state: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }
