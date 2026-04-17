@@ -150,7 +150,7 @@ func FeatureAddContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Easily add content from anywhere.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Just enter a URL and Foragd will attempt to find and subscribe to the site's content. Whether its a Youtube channel, Reddit subreddit or Tumblr blog, Foragd will parse and subscribe. No need to worry about finding the right links; Foragd does it for you!</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Easily add content from anywhere</h2><p class=\"mt-6 text-lg/8 text-neutral\">Just enter a URL and Foragd will attempt to find and subscribe to the site's content. Whether its a Youtube channel, Reddit subreddit or Tumblr blog, Foragd will parse and subscribe. No need to worry about finding the right links; Foragd does it for you!</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -261,7 +261,7 @@ func FeatureEmailNewsletters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Sign up for email newsletters.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to sign up to email newsletters. Get your website and email updates in the one place.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Sign up for email newsletters</h2><p class=\"mt-6 text-lg/8 text-neutral\">Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to sign up to email newsletters. Get your website and email updates in the one place.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -350,7 +350,7 @@ func FeatureImport(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Migrate from other services.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Migrate from other services</h2><p class=\"mt-6 text-lg/8 text-neutral\">Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -476,7 +476,7 @@ func FeatureGroupSubscriptions(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Group subscriptions.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Group multiple site subscriptions together to view a unified feed of their articles. Great for combining sites on similar topics into one (e.g., all Android or Apple news).</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Group subscriptions</h2><p class=\"mt-6 text-lg/8 text-neutral\">Group multiple site subscriptions together to view a unified feed of their articles. Great for combining sites on similar topics into one (e.g., all Android or Apple news).</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -565,7 +565,7 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Saved search subscriptions.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Use full text search across articles. Find that thing mentioned in that post on that blog, easily.</p><p class=\"mt-6 text-lg/8 text-neutral\">Save a search as a subscription to always keep up to date with matching articles from any feeds.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Saved search subscriptions</h2><p class=\"mt-6 text-lg/8 text-neutral\">Use full text search across articles. Find that thing mentioned in that post on that blog, easily.</p><p class=\"mt-6 text-lg/8 text-neutral\">Save a search as a subscription to always keep up to date with matching articles from any feeds.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -676,7 +676,7 @@ func FeatureArticleFilters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Article filtering.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and logic.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Article filtering</h2><p class=\"mt-6 text-lg/8 text-neutral\">Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and logic.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -765,7 +765,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Subscription customisation.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Customize any subscription with your own nickname and thumbnail image.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Subscription customisation</h2><p class=\"mt-6 text-lg/8 text-neutral\">Customize any subscription with your own nickname and thumbnail image.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -917,7 +917,7 @@ func FeatureLayout(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Content comes first.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Foragd has an interface that stays out of the way, letting the content shine. Beautiful typography and large images.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Content comes first</h2><p class=\"mt-6 text-lg/8 text-neutral\">Foragd has an interface that stays out of the way, letting the content shine. Beautiful typography and large images.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1028,7 +1028,7 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Get remote content.</h2><p class=\"mt-6 text-lg/8 text-neutral\">For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the remote content. No more tab-switching.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Get remote content</h2><p class=\"mt-6 text-lg/8 text-neutral\">For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the remote content. No more tab-switching.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1139,7 +1139,7 @@ func FeatureFavorites(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Favorites.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Favorite subscriptions to keep them top and center. Favorite articles to easily reference them later.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Favorites</h2><p class=\"mt-6 text-lg/8 text-neutral\">Favorite subscriptions to keep them top and center. Favorite articles to easily reference them later.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1250,7 +1250,7 @@ func FeatureThemes(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Themes.</h2><p class=\"mt-6 text-lg/8 text-neutral\">Choose from a selection of curated light and dark themes to your liking.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"><h2 class=\"text-3xl font-semibold tracking-tight text-balancesm:text-4xl\">Themes</h2><p class=\"mt-6 text-lg/8 text-neutral\">Choose from a selection of curated light and dark themes to your liking.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
