@@ -147,7 +147,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_id"); err != nil {
+	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_"); err != nil {
 		return fmt.Errorf("invalid feed: %w", err)
 	}
 
