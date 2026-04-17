@@ -69,7 +69,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<img src=\"/content/screenshots/screenshot-main-nobg.webp\" width=\"1920\" height=\"1200\" decoding=\"async\" alt=\"Foragd desktop/mobile screenshots\" class=\"mx-auto w-full object-scale-down sm:max-w-360\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<img src=\"/content/screenshots/screenshot-main.webp\" width=\"1920\" height=\"1200\" decoding=\"async\" alt=\"Foragd desktop/mobile screenshots\" class=\"mx-auto w-full object-scale-down sm:max-w-360\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
