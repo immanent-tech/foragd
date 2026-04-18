@@ -15,6 +15,7 @@ import (
 	"syscall"
 
 	"github.com/reugn/go-quartz/quartz"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -157,6 +158,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	}); err != nil {
 		return fmt.Errorf("reset feed last_fetched: %w", err)
 	}
+	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
 
 	// Delete scheduled job for feed.
 	if err := scheduler.NewManager(ctx); err != nil {
@@ -167,6 +169,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	); err != nil {
 		return fmt.Errorf("delete feed job: %w", err)
 	}
+	slogctx.FromCtx(ctx).Info("Deleted existing feed job.")
 
 	return nil
 }
