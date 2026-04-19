@@ -41,7 +41,8 @@
         "nize.oklch-preview",
         "ms-vscode.wordcount",
         "eliostruyf.vscode-front-matter",
-        "cossssmin.posthtml"
+        "cossssmin.posthtml",
+        "ms-azuretools.vscode-containers"
       ]
     }
   }

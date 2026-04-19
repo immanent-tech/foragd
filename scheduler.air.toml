@@ -38,6 +38,7 @@ exclude_dir = [
   "validation",
   "web",
   "email",
+  "extractor",
 ]
 # Ignore these filename extensions or directories.
 include_dir = ["scheduler", "models", "pkg"]

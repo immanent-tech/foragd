@@ -96,7 +96,8 @@
     "templates/settings",
     "templates/comparison",
     "scripts",
-    "pkg/text"
+    "pkg/text",
+    "extractor"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

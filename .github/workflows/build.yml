@@ -59,6 +59,7 @@ jobs:
         include:
           - service: scheduler
           - service: server
+          - service: extractor
 
     env:
       REGISTRY: ghcr.io
