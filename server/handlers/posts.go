@@ -266,7 +266,7 @@ func HandlePostsFeed() http.HandlerFunc {
 		}
 
 		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
-			return a.GetUpdatedDate().Compare(*b.GetUpdatedDate())
+			return a.GetPublishedDate().Compare(*b.GetPublishedDate())
 		})
 		slices.Reverse(rssFile.Channel.Items)
 
