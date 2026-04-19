@@ -104,10 +104,10 @@ func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenR
 		SetError(&errResult).
 		Post(a.Config.Endpoint.TokenURL)
 	switch {
-	case resp.IsError():
-		return nil, fmt.Errorf("post token: %d: %s", resp.StatusCode(), resp.Status())
 	case err != nil:
 		return nil, fmt.Errorf("post token: %w", err)
+	case resp.IsError():
+		return nil, fmt.Errorf("post token: %d: %s", resp.StatusCode(), resp.Status())
 	}
 
 	return &token, nil
