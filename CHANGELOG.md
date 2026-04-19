@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.104.0](https://github.com/immanent-tech/foragd/compare/v0.103.0...v0.104.0) (2026-04-19)
+
+
+### Features
+
+* :recycle: reworked authentication logic ([4be7b62](https://github.com/immanent-tech/foragd/commit/4be7b62e597e31459b28c10d372259091c193612))
+
+
+### Bug Fixes
+
+* **auth0:** :bug: fix error checking logic when posting requests to auth0 api ([820ecfa](https://github.com/immanent-tech/foragd/commit/820ecfaf17c6a28d207ecc6574a7fdfc7402613e))
+* **cli:** :loud_sound: add additional logging of steps of `feed reset-updates` cli command ([00d1e1a](https://github.com/immanent-tech/foragd/commit/00d1e1a489102844720ce20eefbc7bd5009aae08))
+* **models:** :bug: item parsing fixes ([818ab56](https://github.com/immanent-tech/foragd/commit/818ab563b2538cd3116dc2f8014cfff56321719d))
+
 ## [0.103.0](https://github.com/immanent-tech/foragd/compare/v0.102.0...v0.103.0) (2026-04-17)
 
 
