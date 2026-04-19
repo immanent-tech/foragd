@@ -92,6 +92,9 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			if err := models.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
 				return fmt.Errorf("mark job for deletion: %w", err)
 			}
+			slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.",
+				slog.String("feed_id", jobData.FeedID),
+			)
 		} else {
 			return fmt.Errorf("get feed doc: %w", err)
 		}
@@ -139,14 +142,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		break
 	}
 
-	if feed == nil {
-		return fmt.Errorf(
-			"%w: all source URLs returned errors (%s)",
-			ErrFetchFailed,
-			strings.Join(details.GetSourceURLs(), ","),
-		)
-	}
-
+	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	// Create a new FeedStatus for this update.
@@ -162,23 +158,38 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		},
 	}
 
+	// If no feed details were returned, fail the job.
+	if feed == nil {
+		logMsg.StatusCode = http.StatusInternalServerError
+		logMsg.StatusMessage = new("All source URLs for feed returned errors.")
+		if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+				slog.Any("error", err),
+			)
+		}
+		return fmt.Errorf(
+			"%w: all source URLs returned errors (%s)",
+			ErrFetchFailed,
+			strings.Join(details.GetSourceURLs(), ","),
+		)
+	}
+
 	// Add any new items since the last feed update.
 	if len(feed.GetItems()) == 0 {
+		slogctx.FromCtx(ctx).Warn("Feed data did not contain any items.")
 		return nil
 	}
-	slogctx.FromCtx(ctx).Debug("Checking for new items.",
-		slog.Time("since", details.LastFetched),
-		slog.Int("total_items", len(feed.GetItems())),
-		slog.Duration("interval", time.Duration(details.UpdateInterval)),
-	)
 	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+		slogctx.FromCtx(ctx).Debug("Found new items.",
+			slog.Time("since", details.LastFetched),
+			slog.Int("total_items", len(feed.GetItems())),
+			slog.Int("new_items", len(newItems)),
+			slog.Duration("interval", time.Duration(details.UpdateInterval)),
+		)
 		// Add any new items.
 		if err := models.AddItems(ctx, newItems...); err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}
-		slogctx.FromCtx(ctx).Debug("Added new items.",
-			slog.Int("count", len(newItems)),
-		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
 		updates := generateFeedUpdates(feed, details)
