@@ -11,7 +11,7 @@ ARG APPVERSION
 
 # Copy go from official image.
 # https://hub.docker.com/_/golang
-COPY --from=docker.io/golang:1.26.1-alpine3.23@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039 /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.26.2-alpine3.23@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1 /usr/local/go/ /usr/local/go/
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -24,9 +24,9 @@ WORKDIR /build
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
 RUN mkdir -p pkg/go-syndication pkg/slog-elasticsearch pkg/slog-chi
-COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication
-COPY pkg/slog-elasticsearch/go.mod pkg/slog-elasticsearch/go.sum ./pkg/slog-elasticsearch
-COPY pkg/slog-chi/go.mod pkg/slog-chi/go.sum ./pkg/slog-chi
+COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication/
+COPY pkg/slog-elasticsearch/go.mod pkg/slog-elasticsearch/go.sum ./pkg/slog-elasticsearch/
+COPY pkg/slog-chi/go.mod pkg/slog-chi/go.sum ./pkg/slog-chi/
 RUN go mod download
 
 # Copy source.
