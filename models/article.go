@@ -363,7 +363,7 @@ func (a *Article) GetContent() string {
 	switch {
 	case a.ShowFullContent && a.Content != nil:
 		return *a.Content
-	case a.Item.GetContent() != "":
+	case a.Item.HasContent():
 		return a.formatContent()
 	default:
 		return a.Item.GetDescription()

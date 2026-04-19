@@ -437,7 +437,10 @@ func (f *Feed) GetItems() Items {
 
 // GetLanguage returns the language tag of the feed, if any.
 func (f *Feed) GetLanguage() string {
-	return f.Language
+	if f.Language != nil {
+		return *f.Language
+	}
+	return ""
 }
 
 // GetTimestamp returns a timestamp indicating when the feed was last updated. This will be either, the updated
@@ -455,7 +458,10 @@ func (f *Feed) GetTimestamp() time.Time {
 
 // GetRights returns the rights or copyright of the feed content, if any.
 func (f *Feed) GetRights() string {
-	return f.Copyright
+	if f.Copyright != nil {
+		return *f.Copyright
+	}
+	return ""
 }
 
 // SetUpdateInterval will set the update interval of the feed. It fetches the feed details from the source and
@@ -688,8 +694,6 @@ func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),
 		LastFetched:  types.UnixEpoch,
-		Published:    source.GetPublishedDate().UTC(),
-		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
 		Description:  new(source.GetDescription()),
 		SourceType:   SourceType(source.SourceType),
@@ -701,6 +705,15 @@ func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 	}
+	if pubDate := source.GetPublishedDate(); pubDate != nil {
+		feed.Published = pubDate.UTC()
+	} else {
+		feed.Published = UnixEpoch
+	}
+	if updatedDate := source.GetUpdatedDate(); updatedDate != nil {
+		feed.Updated = new(updatedDate.UTC())
+	}
+
 	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
 	// calls to fetch additional information (e.g., images).
 	var wg sync.WaitGroup

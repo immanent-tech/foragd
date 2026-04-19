@@ -134,7 +134,7 @@ func AddItems(ctx context.Context, items ...Item) error {
 		itemPtrs = append(itemPtrs, &i)
 	}
 	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW, itemPtrs...); err != nil {
-		return fmt.Errorf("add email item: %w", err)
+		return fmt.Errorf("bulk add items: %w", err)
 	}
 	return nil
 }
@@ -331,42 +331,68 @@ func (i *Item) GetImage() *RemoteImage {
 
 // GetLanguage returns the language of the item, if set.
 func (i *Item) GetLanguage() string {
-	return i.Language
+	if i.Language != nil {
+		return *i.Language
+	}
+	return ""
 }
 
 // GetRights returns the copyright associated with the item, if any.
 func (i *Item) GetRights() string {
-	return i.Copyright
+	if i.Copyright != nil {
+		return *i.Copyright
+	}
+	return ""
 }
 
 // GetContent returns the full item content, if set.
 func (i *Item) GetContent() string {
+	if i.Content == nil {
+		return ""
+	}
 	switch {
-	case html.IsHTML(i.Content):
-		sanitizedDesc, err := html.SanitizeHTMLString(i.Content)
+	case html.IsHTML(*i.Content):
+		sanitizedDesc, err := html.SanitizeHTMLString(*i.Content)
 		if err != nil {
 			return ""
 		}
 		return sanitizedDesc
 	default:
-		if formatted, err := markdown.ToHTML([]byte(i.Content)); err != nil {
-			return i.Content
+		if formatted, err := markdown.ToHTML([]byte(*i.Content)); err != nil {
+			return *i.Content
 		} else {
 			return string(formatted)
 		}
 	}
 }
 
-// GetTimestamp returns a timestamp indicating when the item was last updated. This will be either, the updated
-// timestamp, or, the published timestamp, or the indexing timestamp, whichever is found and
-// is a valid value, in that order.
+// HasContent returns a boolean indicating whether the item has full or partial content.
+func (i *Item) HasContent() bool {
+	return i.Content != nil && *i.Content != ""
+}
+
+// GetTimestamp returns a timestamp indicating when the item was last updated. This will be either, the published
+// timestamp, or, the updated timestamp, or the indexing timestamp, whichever is found and is a valid value, in that
+// order.
 func (i *Item) GetTimestamp() time.Time {
-	if valid, _ := validateDatetime(i.Updated); valid {
-		return i.Updated.UTC()
-	} else if valid, _ = validateDatetime(i.Published); valid {
+	if i.Updated != nil {
+		if valid, _ := validateDatetime(*i.Updated); valid {
+			return i.Updated.UTC()
+		}
+	}
+	if valid, _ := validateDatetime(i.Published); valid {
 		return i.Published.UTC()
 	}
 	return i.Timestamp.UTC()
+}
+
+// WasUpdated returns a boolean indicating whether the item has been updated since being published.
+func (i *Item) WasUpdated() bool {
+	if i.Updated != nil {
+		upd := *i.Updated
+		return !upd.IsZero()
+	}
+	return false
 }
 
 // IsNewer returns a boolean indicating whether this item has been updated or
@@ -388,8 +414,6 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 		ItemID:       itemID,
 		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
-		Published:    source.GetPublishedDate().UTC(),
-		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
 		Description:  new(source.GetDescription()),
 		SourceType:   feed.SourceType,
@@ -401,6 +425,14 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 		Categories:   source.GetCategories(),
 		Content:      source.GetContent(),
 		FeedTitle:    feed.GetTitle(),
+	}
+	if pubDate := source.GetPublishedDate(); pubDate != nil {
+		item.Published = pubDate.UTC()
+	} else {
+		item.Published = item.Timestamp
+	}
+	if updDate := source.GetUpdatedDate(); updDate != nil {
+		item.Updated = new(updDate.UTC())
 	}
 
 	// Add youtube extension data if found.
@@ -471,11 +503,11 @@ func NewEmailItem(email Email, subscription *Subscription) *Item {
 		FeedID:     subscription.GetFeedID(),
 		Timestamp:  email.Timestamp(),
 		Published:  email.Timestamp(),
-		Updated:    email.Timestamp(),
+		Updated:    new(email.Timestamp()),
 		Title:      email.GetSubject(),
 		SourceType: SourceTypeEmail,
 		Authors:    []string{email.GetFrom().String()},
-		Content:    email.GetBody(),
+		Content:    new(email.GetBody()),
 		FeedTitle:  subscription.GetTitle(),
 	}
 

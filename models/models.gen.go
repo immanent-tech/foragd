@@ -331,11 +331,11 @@ type ArticleArchive struct {
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Content contains the item content.
-	Content string `json:"content,omitempty"`
+	Content *string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    string   `json:"copyright,omitempty"`
+	Copyright    *string  `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
@@ -356,8 +356,8 @@ type ArticleArchive struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-	Language string `json:"language,omitempty"`
+	ItemID   ItemID  `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+	Language *string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -372,7 +372,7 @@ type ArticleArchive struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty"`
+	Updated *time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
@@ -526,7 +526,7 @@ type Feed struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    string   `json:"copyright,omitempty"`
+	Copyright    *string  `json:"copyright,omitempty"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
@@ -541,8 +541,8 @@ type Feed struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// Items contains the list of items in the feed.
-	Items    []Item `json:"-"`
-	Language string `json:"language,omitempty"`
+	Items    []Item  `json:"-"`
+	Language *string `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.
 	LastFetched LastFetched `json:"last_fetched,omitempty"`
@@ -563,7 +563,7 @@ type Feed struct {
 	UpdateInterval int64 `json:"update_interval"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty"`
+	Updated *time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
@@ -679,11 +679,11 @@ type Item struct {
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Content contains the item content.
-	Content string `json:"content,omitempty"`
+	Content *string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    string   `json:"copyright,omitempty"`
+	Copyright    *string  `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
@@ -704,8 +704,8 @@ type Item struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-	Language string `json:"language,omitempty"`
+	ItemID   ItemID  `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+	Language *string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -717,7 +717,7 @@ type Item struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty"`
+	Updated *time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
@@ -904,14 +904,14 @@ type ObjectCommon struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    string   `json:"copyright,omitempty"`
+	Copyright    *string  `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
 	// Image contains details about a remote image.
 	Image    *RemoteImage `json:"image,omitempty"`
-	Language string       `json:"language,omitempty"`
+	Language *string      `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -923,7 +923,7 @@ type ObjectCommon struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty"`
+	Updated *time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`

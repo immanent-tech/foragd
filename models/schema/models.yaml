@@ -540,7 +540,6 @@ components:
           description: >
             is the datetime at which the feed or item was updated.
           x-go-type: time.Time
-          x-go-type-skip-optional-pointer: true
         title:
           description: >
             is the title of the feed or item.
@@ -583,10 +582,8 @@ components:
           x-go-type-skip-optional-pointer: true
         language:
           type: string
-          x-go-type-skip-optional-pointer: true
         copyright:
           type: string
-          x-go-type-skip-optional-pointer: true
         source_type:
           $ref: '#/components/schemas/SourceType'
         image:
@@ -705,7 +702,6 @@ components:
               description: >
                 contains the item content.
               type: string
-              x-go-type-skip-optional-pointer: true
     ItemExtensionYoutube:
       description: >
         is an item extension for Youtube videos.
