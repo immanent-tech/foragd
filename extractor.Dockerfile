@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY extractor/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY extractor/main.py .
+COPY extractor/main.py extractor/logger.py ./
 
 # Add labels.
 LABEL org.opencontainers.image.source https://github.com/immanent-tech/foragd
@@ -31,7 +31,5 @@ RUN addgroup --gid "${GID}" foragd && \
 RUN chown foragd:foragd /app/main.py
 
 USER foragd
-
-EXPOSE 7000
 
 ENTRYPOINT [ "/usr/local/bin/uvicorn", "main:app" ]

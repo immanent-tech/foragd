@@ -33,6 +33,10 @@ import time
 import subprocess
 from typing import Literal
 
+from logger import setup_logging
+import structlog
+from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from structlog.contextvars import bind_contextvars, clear_contextvars
 import trafilatura
 from trafilatura.settings import use_config
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -47,7 +51,7 @@ TOKEN_TTL_SECONDS = int(os.environ.get("EXTRACTOR_TOKEN_TTL_SECONDS", "300"))
 VERSION = os.environ.get("EXTRACTOR_VERSION", "_UNKNOWN_")
 
 if not VERSION or VERSION == "_UNKNOWN_":
-    raise RuntimeError("APPVERSION environment variable is required")
+    raise RuntimeError("EXTRACTOR_VERSION environment variable is required")
 if not SECRET_KEY:
     raise RuntimeError("EXTRACTOR_KEY environment variable is required")
 if not SECRET_SALT:
@@ -56,6 +60,16 @@ if not SECRET_SALT:
 # Trafilatura config
 trafilatura_config = use_config()
 trafilatura_config.set("DEFAULT", "EXTRACTION_TIMEOUT", "30")
+trafilatura_config.set("DEFAULT", "USER_AGENTS", "Foragd "+VERSION+" (+https://foragd.app/policies/bot)")
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+# Set up logging with structlog
+is_production = os.environ.get("FORAGD_ENVIRONMENT") == "production"
+setup_logging(json_logs=is_production)
+
+# Create logger (one per module)
+logger = structlog.get_logger()
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
@@ -255,6 +269,31 @@ def run_extraction(url: str, fmt: str) -> ExtractResponse:
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    # Bind correlation ID to the context
+    clear_contextvars()
+    bind_contextvars(correlation_id=correlation_id.get())
+
+    # Measure response time
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    response_time = time.perf_counter() - start_time
+
+    # Log request details
+    logger.info(
+        "request",
+        method=request.method,
+        path=request.url.path,
+        status=response.status_code,
+        response_time=f"{response_time:.3f}s",
+    )
+
+    return response
+
+# Add CorrelationIdMiddleware after log_requests so it runs first
+app.add_middleware(CorrelationIdMiddleware)
 
 @app.get("/health")
 def health():
