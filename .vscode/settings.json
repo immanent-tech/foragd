@@ -97,7 +97,8 @@
     "templates/comparison",
     "scripts",
     "pkg/text",
-    "extractor"
+    "extractor",
+    "blog"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

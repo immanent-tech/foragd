@@ -35,4 +35,3 @@ USER foragd
 EXPOSE 7000
 
 ENTRYPOINT [ "/usr/local/bin/uvicorn", "main:app" ]
-CMD [ "--host", "0.0.0.0", "--port", "7000" ]

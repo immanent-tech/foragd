@@ -44,7 +44,7 @@ from pydantic import BaseModel
 SECRET_KEY = os.environ.get("EXTRACTOR_KEY", "")
 SECRET_SALT = os.environ.get("EXTRACTOR_SALT", "")
 TOKEN_TTL_SECONDS = int(os.environ.get("EXTRACTOR_TOKEN_TTL_SECONDS", "300"))
-VERSION = os.environ.get("APPVERSION", "_UNKNOWN_")
+VERSION = os.environ.get("EXTRACTOR_VERSION", "_UNKNOWN_")
 
 if not VERSION or VERSION == "_UNKNOWN_":
     raise RuntimeError("APPVERSION environment variable is required")
