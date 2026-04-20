@@ -47,13 +47,13 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<div class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
+			<h2 id="article-title" class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
 					(no title)
 				}
-			</div>
+			</h2>
 		}
 		@partials.CardBody() {
 			if len(article.GetCategories(0)) > 0 {
@@ -289,6 +289,9 @@ templ ArticleContent(article *models.Article) {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
+					<div class="fixed top-16 left-0 h-1 w-full bg-base-100 z-10">
+						<div class="h-full bg-accent origin-left transform-[scaleX(0)] animate-growbar"></div>
+					</div>
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6">
 						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
@@ -671,7 +674,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
+						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
 					</div>
 					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>

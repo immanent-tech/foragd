@@ -28,6 +28,26 @@
     "liga" 1, "ccmp" 1, "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss10" 1,
     "kern" 1;
   --sidebar-width: var(--w-sm);
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  @keyframes grow-bar {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 }
 
 /* Use page view transitions. */
@@ -40,17 +60,6 @@
     :root {
       font-family: InterVariable, sans-serif;
       font-optical-sizing: auto;
-    }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      translate: 0 8px;
-    }
-    to {
-      opacity: 1;
-      translate: 0 0;
     }
   }
 
@@ -327,4 +336,9 @@
   /* Only animate these two — never use transition: all */
   animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
   animation-delay: calc(min(var(--i), 15) * 80ms);
+}
+
+@utility animate-growbar {
+  animation: grow-bar linear both;
+  animation-timeline: scroll(root);
 }
