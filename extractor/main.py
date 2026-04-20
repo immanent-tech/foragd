@@ -190,6 +190,9 @@ def run_extraction(url: str, fmt: str) -> ExtractResponse:
             output_format="html",
             include_comments=False,
             include_tables=True,
+            include_links=True,
+            include_images=True,
+            include_formatting=True,
             config=trafilatura_config,
         )
 
@@ -199,6 +202,9 @@ def run_extraction(url: str, fmt: str) -> ExtractResponse:
             output_format="xmltei",
             include_comments=False,
             include_tables=True,
+            include_links=True,
+            include_images=True,
+            include_formatting=True,
             config=trafilatura_config,
         )
 
