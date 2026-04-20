@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.107.0](https://github.com/immanent-tech/foragd/compare/v0.106.1...v0.107.0) (2026-04-20)
+
+
+### Features
+
+* **extractor:** :sparkles: add structured logging ([40eb01f](https://github.com/immanent-tech/foragd/commit/40eb01fd30570c8c7d5fea20d33ebc472a09cc67))
+
+
+### Bug Fixes
+
+* **extractor:** :wrench: for some output formats, preserve images, links and formatting ([c437407](https://github.com/immanent-tech/foragd/commit/c4374076c96dea326b296344e1d0363933102568))
+
 ## [0.106.1](https://github.com/immanent-tech/foragd/compare/v0.106.0...v0.106.1) (2026-04-20)
 
 
