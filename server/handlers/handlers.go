@@ -5,7 +5,6 @@
 package handlers
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -15,7 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -24,8 +22,6 @@ import (
 
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 
-	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -132,175 +128,5 @@ func noCache(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
 		next.ServeHTTP(res, req)
-	})
-}
-
-// WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
-func WatchList() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Extract request filters.
-		var filters *models.ListFilters
-		switch {
-		case strings.Contains(req.URL.Path, "subscriptions"):
-			filters = getListSubscriptionsFilters(req)
-		case strings.Contains(req.URL.Path, "articles"):
-			filters = getListArticleFilters(req)
-		default:
-			res.WriteHeader(http.StatusNotAcceptable)
-			return
-		}
-
-		// Create a query to find new items.
-		query, err := models.BuildItemsQuery(req.Context(), filters)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Watch list for updates.
-		watchForUpdates(query).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
-//nolint:gocognit
-func watchForUpdates(watch query.Option) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if user := models.UserFromCtx(req.Context()); user == nil {
-			res.WriteHeader(http.StatusNoContent)
-			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			return
-		}
-
-		// Set headers for SSE.
-		res.Header().Set("Content-Type", "text/event-stream")
-		res.Header().Set("Cache-Control", "no-cache")
-		res.Header().Set("Connection", "keep-alive")
-		// res.Header().Set("X-Accel-Buffering", "no")
-		if f, ok := res.(http.Flusher); ok {
-			f.Flush()
-		} else {
-			slogctx.FromCtx(req.Context()).Error("Cannot write SSE headers.")
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Set up counters.
-		var (
-			currentCount int64
-			prevCount    int64
-			err          error
-		)
-
-		// Get an initial count.
-		prevCount, err = models.CountItems(req.Context(), watch)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Create a ticker for checking and sending updates.
-		updatesTicker := time.NewTicker(time.Minute)
-		defer updatesTicker.Stop()
-		// Create a ticker for sending keepalive packets.
-		keepAliveTicker := time.NewTicker(25 * time.Second)
-		defer keepAliveTicker.Stop()
-		// keepAliveTicker := time.NewTicker(20 * time.Second)
-		// defer keepAliveTicker.Stop()
-		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
-			slog.Duration("interval", time.Minute),
-			slog.Group("request",
-				slog.String("path", req.URL.Path),
-			),
-		)
-
-		// Watch for updates.
-		for {
-			select {
-			case <-req.Context().Done():
-				slogctx.FromCtx(req.Context()).Debug("Closing SSE connection.",
-					slog.Group("request",
-						slog.String("path", req.URL.Path),
-					),
-				)
-				res.WriteHeader(http.StatusOK)
-				res.Header().Set("Connection", "close")
-				if f, ok := res.(http.Flusher); ok {
-					f.Flush()
-				}
-				keepAliveTicker.Stop()
-				updatesTicker.Stop()
-				return
-			case <-keepAliveTicker.C:
-				if _, err = fmt.Fprintf(res, ": keepalive\n\n"); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to send keepalive SSE message.",
-						slog.Any("error", err))
-				}
-				if f, ok := res.(http.Flusher); ok {
-					f.Flush()
-				}
-			case <-updatesTicker.C:
-				currentCount, err = models.CountItems(req.Context(), watch)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
-						slog.Any("error", err))
-					continue
-				}
-				// Show updates toast if new items found.
-				if currentCount > prevCount {
-					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					respBuf, ok := bufPool.Get().(*bytes.Buffer)
-					if !ok {
-						res.WriteHeader(http.StatusNoContent)
-						slogctx.FromCtx(req.Context()).Error("Get response buffer failed.")
-						continue
-					}
-					respBuf.Reset()
-					defer bufPool.Put(respBuf)
-
-					template := bufio.NewWriter(respBuf)
-					if err := templates.UpdatesToast().Render(req.Context(), template); err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-						continue
-					}
-					if err = template.Flush(); err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
-							slog.Any("error", err))
-					}
-					if _, err = fmt.Fprintf(res, "event: updates\ndata: %s\n\n", respBuf.String()); err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
-							slog.Any("error", err))
-					}
-					if f, ok := res.(http.Flusher); ok {
-						f.Flush()
-					}
-				}
-
-				slogctx.FromCtx(req.Context()).Debug("No updates")
-				prevCount = currentCount
-				// case <-keepAliveTicker.C:
-				// 	slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.",
-				// 		slog.Group("request",
-				// 			slog.String("path", req.URL.Path),
-				// 		),
-				// 	)
-				// 	if _, err = fmt.Fprint(res, ": keep-alive\n\n"); err != nil {
-				// 		slogctx.FromCtx(req.Context()).Error("Failed to send keep-alive SSE message.",
-				// 			slog.Any("error", err),
-				// 			slog.Group("request",
-				// 				slog.String("path", req.URL.Path),
-				// 			),
-				// 		)
-				// 	}
-				// 	if f, ok := res.(http.Flusher); ok {
-				// 		f.Flush()
-				// 	}
-			}
-		}
 	})
 }

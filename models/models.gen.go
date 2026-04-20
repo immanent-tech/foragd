@@ -80,36 +80,6 @@ func (e ObjectType) Valid() bool {
 	}
 }
 
-// Defines values for SearchRequestPublishedWithin.
-const (
-	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
-	SearchRequestPublishedWithinLast12hours SearchRequestPublishedWithin = "last_12hours"
-	SearchRequestPublishedWithinLastDay     SearchRequestPublishedWithin = "last_day"
-	SearchRequestPublishedWithinLastHour    SearchRequestPublishedWithin = "last_hour"
-	SearchRequestPublishedWithinLastMonth   SearchRequestPublishedWithin = "last_month"
-	SearchRequestPublishedWithinLastWeek    SearchRequestPublishedWithin = "last_week"
-)
-
-// Valid indicates whether the value is a known member of the SearchRequestPublishedWithin enum.
-func (e SearchRequestPublishedWithin) Valid() bool {
-	switch e {
-	case SearchRequestPublishedWithinAllTime:
-		return true
-	case SearchRequestPublishedWithinLast12hours:
-		return true
-	case SearchRequestPublishedWithinLastDay:
-		return true
-	case SearchRequestPublishedWithinLastHour:
-		return true
-	case SearchRequestPublishedWithinLastMonth:
-		return true
-	case SearchRequestPublishedWithinLastWeek:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for Sort.
 const (
 	SortLeastUnread  Sort = "least_unread"
@@ -1007,54 +977,6 @@ type ReportObjectIssueRequest struct {
 
 	// UserEmail is the email address the user has entered for getting in touch about the issue.
 	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
-}
-
-// SearchRequest represents a search request by the user.
-type SearchRequest struct {
-	// Authors a list of search terms for authors.
-	Authors *string `form:"authors" json:"authors,omitempty"`
-
-	// Categories a list of search terms for categories.
-	Categories *string `form:"categories" json:"categories,omitempty"`
-
-	// PublishedWithin represents a time range within which the objects should be published
-	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
-
-	// Sort is how a list of objects is sorted.
-	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
-
-	// SubscriptionID will be a subscription ID if the user has created a SearchSubscription for this request.
-	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitzero,startswith=sub_"`
-
-	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions,omitempty" validate:"omitempty,unique,dive,startswith=sub_"`
-
-	// Text is the text to search.
-	Text string `form:"text" json:"text" validate:"omitempty,required"`
-
-	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
-	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
-}
-
-// SearchRequestPublishedWithin represents a time range within which the objects should be published
-type SearchRequestPublishedWithin string
-
-// SearchResults contains the results of a search.
-type SearchResults struct {
-	Articles Articles `json:"articles,omitempty"`
-
-	// Categories is a list of categories.
-	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
-
-	// Pagination contains data for paginating through results.
-	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
-
-	// Search represents a search request by the user.
-	Search        SearchRequest `form:"search" json:"search" validate:"required"`
-	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 
 // SearchSubscription is a custom subscription created from a search request.

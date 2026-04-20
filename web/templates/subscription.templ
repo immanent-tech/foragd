@@ -357,9 +357,11 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Watch for updates.
 				<div
 					id="update-notifications"
-					sse-connect={ "/list/subscriptions/updates?" + response.Filters.QueryParams().Encode() }
-					sse-swap="updates"
-					class="toast toast-center z-50"
+					class="invisible"
+					hx-post="/list/subscriptions/updates"
+					hx-vals={ templ.JSONString(response.Filters.Values()) }
+					hx-trigger="every 5m"
+					hx-target="#notifications"
 				></div>
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
@@ -513,7 +515,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									<form
 										class="invisible"
 										hx-post="/list/subscriptions/paginate"
-										hx-vals={ generateHXVals(response.Filters.Values()) }
+										hx-vals={ templ.JSONString(response.Filters.Values()) }
 										hx-trigger="intersect once"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"

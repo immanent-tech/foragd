@@ -96,7 +96,7 @@ components:
       type: object
       properties:
         request:
-          $ref: '#/components/schemas/FeedSubscriptionRequest'
+          $ref: 'models.yaml#/components/schemas/FeedSubscriptionRequest'
         error:
           $ref: 'models.yaml#/components/schemas/APIError'
         subscription:
@@ -244,9 +244,115 @@ components:
           #   is a list of subscriptions.
           # type: array
           # items:
-          #   $ref: '#/components/schemas/Subscription'
+          #   $ref: 'models.yaml#/components/schemas/Subscription'
           # x-go-type-skip-optional-pointer: true
         filters:
           $ref: 'models.yaml#/components/schemas/ListFilters'
+        pagination:
+          $ref: 'models.yaml#/components/schemas/Pagination'
+    SearchRequest:
+      description: >
+        represents a search request by the user.
+      type: object
+      required:
+        - published_within
+        - timezone
+        - text
+        - view
+        - sort
+      properties:
+        subscription_id:
+          description: >
+            will be a subscription ID if the user has created a SearchSubscription for this request.
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-go-name: SubscriptionID
+          x-oapi-codegen-extra-tags:
+            form: 'subscription_id'
+            validate: 'omitzero,startswith=sub_'
+        text:
+          description: >
+            is the text to search.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'text'
+            validate: 'omitempty,required'
+        categories:
+          description: >
+            a list of search terms for categories.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'categories'
+        authors:
+          description: >
+            a list of search terms for authors.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'authors'
+        view:
+          $ref: 'models.yaml#/components/schemas/View'
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions'
+            validate: 'omitempty,unique,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
+        published_within:
+          description: >
+            represents a time range within which the objects should be published
+          type: string
+          enum:
+            - last_5mins
+            - last_hour
+            - last_12hours
+            - last_day
+            - last_week
+            - last_month
+            - all_time
+          default: all_time
+          x-oapi-codegen-extra-tags:
+            form: 'published_within'
+            validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
+        sort:
+          $ref: 'models.yaml#/components/schemas/Sort'
+        timezone:
+          description: >
+            represents the timezone of the browser (i.e., user), used for calculating published_within offset.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'timezone'
+            validate: 'required,timezone'
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        form: 'search'
+    SearchResults:
+      description: >
+        contains the results of a search.
+      type: object
+      required:
+        - search
+      properties:
+        search:
+          $ref: 'models.yaml#/components/schemas/SearchRequest'
+        articles:
+          x-go-type: Articles
+          x-go-type-skip-optional-pointer: true
+        subscriptions:
+          x-go-type: Subscriptions
+          x-go-type-skip-optional-pointer: true
+        categories:
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories'
+            validate: 'omitnil,unique,dive,url_encoded'
+          x-go-type-skip-optional-pointer: true
         pagination:
           $ref: 'models.yaml#/components/schemas/Pagination'

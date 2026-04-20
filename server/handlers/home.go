@@ -14,7 +14,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -116,23 +115,6 @@ func HandleHome() http.HandlerFunc {
 			RenderInternalPage(page).ServeHTTP(res, req)
 		}).
 		ServeHTTP
-}
-
-// WatchHome handles watching the home page content (namely, latest articles) for updates.
-func WatchHome() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		filters := models.NewListDisplayFilters()
-		query, err := models.BuildItemsQuery(req.Context(), &filters)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Watch for updates to home page articles.
-		watchForUpdates(query).ServeHTTP(res, req)
-	}).ServeHTTP
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.

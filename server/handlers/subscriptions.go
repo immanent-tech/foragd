@@ -207,6 +207,82 @@ func HandleListSubscriptions() http.HandlerFunc {
 	}).ServeHTTP
 }
 
+// HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
+func HandleListSubscriptionsUpdates() http.HandlerFunc {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Parse and process filters.
+		filters := getListSubscriptionsFilters(req)
+
+		// Don't bother calculating updates if user is not viewing unread items.
+		if filters.GetView() != models.ViewUnread {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Build query.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to get user data.",
+				slog.Any("error", models.ErrCtxValueNotFound),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		subscriptions, err := models.GetSubscriptions(req.Context(),
+			models.GetSubscriptionsByIDs(filters.GetSubscriptions()...),
+		)
+		switch {
+		case err != nil:
+			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		case len(subscriptions) == 0:
+			slogctx.FromCtx(req.Context()).Error("No user subscriptions.")
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		updatesQuery := query.Bool(
+			query.WithBoolQueryName("list_subscriptions_updates_"+user.GetID()),
+			query.Filter(
+				// Published/updated within the last 5 minutes.
+				query.Bool(
+					query.Should(
+						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
+						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
+					),
+				),
+				// Must match any of the given feed IDs.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				// Must match any of the given categories.
+				query.Terms("categories.raw", filters.GetCategories()...),
+				// And should match one feed clause.
+				query.Bool(
+					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+				),
+			),
+		)
+
+		// Count items matching.
+		updateCount, err := models.CountItems(req.Context(), updatesQuery)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// If updates found, render a notification.
+		if updateCount > 0 {
+			RenderPartial(&PartialTemplate{template: templates.UpdatesToast()}).ServeHTTP(res, req)
+		} else {
+			res.WriteHeader(http.StatusNoContent)
+		}
+	}).ServeHTTP
+}
+
 func getFeedSubscriptionLatestItems(
 	ctx context.Context,
 	subscriptions models.Subscriptions,

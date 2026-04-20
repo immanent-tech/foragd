@@ -338,38 +338,60 @@ func HandleSearchResults() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
-func WatchSearchResults() http.HandlerFunc {
+// HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
+func HandleSearchUpdates() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get user data.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}).ServeHTTP(res, req)
-		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode search request: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Error("Failed to extract search request.",
+				slog.Any("error", models.ErrCtxValueNotFound),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
 		}
+
 		// Build query.
-		query, err := models.BuildSearchResultsQuery(req.Context(), user, request, models.SearchResultsClause(request))
-		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("build search query: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}).ServeHTTP(res, req)
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to get user data.",
+				slog.Any("error", models.ErrCtxValueNotFound),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
 		}
-		// Watch for updates to search results.
-		watchForUpdates(query).ServeHTTP(res, req)
+		// Override the published within on the search request to last 5 minutes for updates.
+		request.PublishedWithin = models.SearchRequestPublishedWithinLast5mins
+		updatesQuery, err := models.BuildSearchResultsQuery(
+			req.Context(),
+			user,
+			request,
+			models.SearchResultsClause(request),
+		)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot build search query.",
+				slog.Any("error", models.ErrCtxValueNotFound),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Count items matching.
+		updateCount, err := models.CountItems(req.Context(), updatesQuery)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// If updates found, render a notification.
+		if updateCount > 0 {
+			RenderPartial(&PartialTemplate{template: templates.UpdatesToast()}).ServeHTTP(res, req)
+		} else {
+			res.WriteHeader(http.StatusNoContent)
+		}
 	}).ServeHTTP
 }
 

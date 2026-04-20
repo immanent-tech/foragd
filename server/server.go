@@ -200,7 +200,7 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).
 				Post("/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 			r.With(middlewares.RequireHTMX).Post("/subscription", handlers.AddSubscriptionFilter())
-			r.Get("/search/updates", handlers.WatchSearchResults())
+			r.Post("/updates", handlers.HandleSearchUpdates())
 		})
 		r.Route("/action", func(r chi.Router) {
 			r.With(middlewares.RequireHTMX).
@@ -214,7 +214,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
-			r.Get("/updates", handlers.WatchList())
+			r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
@@ -258,7 +258,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
-			r.Get("/updates", handlers.WatchList())
+			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())

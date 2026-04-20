@@ -922,7 +922,7 @@ components:
         - search
       properties:
         search:
-          $ref: '#/components/schemas/SearchRequest'
+          $ref: 'api.yaml#/components/schemas/SearchRequest'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
@@ -976,7 +976,7 @@ components:
         - search
       properties:
         search:
-          $ref: '#/components/schemas/SearchRequest'
+          $ref: 'api.yaml#/components/schemas/SearchRequest'
         customisation:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
@@ -1143,111 +1143,6 @@ components:
         job_data:
           x-go-type: json.RawMessage
           x-go-type-skip-optional-pointer: true
-    SearchRequest:
-      description: >
-        represents a search request by the user.
-      type: object
-      required:
-        - published_within
-        - timezone
-        - text
-        - view
-        - sort
-      properties:
-        subscription_id:
-          description: >
-            will be a subscription ID if the user has created a SearchSubscription for this request.
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionID'
-          x-go-name: SubscriptionID
-          x-oapi-codegen-extra-tags:
-            form: 'subscription_id'
-            validate: 'omitzero,startswith=sub_'
-        text:
-          description: >
-            is the text to search.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'text'
-            validate: 'omitempty,required'
-        categories:
-          description: >
-            a list of search terms for categories.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'categories'
-        authors:
-          description: >
-            a list of search terms for authors.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'authors'
-        view:
-          $ref: '#/components/schemas/View'
-        subscriptions:
-          description: >
-            is a list of subscription IDs.
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionID' #why doesn't this work?!
-          x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
-            validate: 'omitempty,unique,dive,startswith=sub_'
-          x-go-type-skip-optional-pointer: true
-        published_within:
-          description: >
-            represents a time range within which the objects should be published
-          type: string
-          enum:
-            - last_hour
-            - last_12hours
-            - last_day
-            - last_week
-            - last_month
-            - all_time
-          default: all_time
-          x-oapi-codegen-extra-tags:
-            form: 'published_within'
-            validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
-        sort:
-          $ref: '#/components/schemas/Sort'
-        timezone:
-          description: >
-            represents the timezone of the browser (i.e., user), used for calculating published_within offset.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'timezone'
-            validate: 'required,timezone'
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        form: 'search'
-    SearchResults:
-      description: >
-        contains the results of a search.
-      type: object
-      required:
-        - search
-      properties:
-        search:
-          $ref: '#/components/schemas/SearchRequest'
-        articles:
-          x-go-type: Articles
-          x-go-type-skip-optional-pointer: true
-        subscriptions:
-          x-go-type: Subscriptions
-          x-go-type-skip-optional-pointer: true
-        categories:
-          description: is a list of categories.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            json: 'categories'
-            form: 'categories'
-            validate: 'omitnil,unique,dive,url_encoded'
-          x-go-type-skip-optional-pointer: true
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     AddSubscriptionSearchFilterRequest:
       description: >
         contains the data for adding a new subscription filter to a search request.

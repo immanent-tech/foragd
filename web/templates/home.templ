@@ -50,6 +50,15 @@ templ UserHome(data *models.HomeResponse) {
 										</div>
 									</div>
 								</section>
+								{{ filters := new(models.NewListDisplayFilters()) }}
+								<div
+									id="update-notifications"
+									class="invisible"
+									hx-post="/list/articles/updates"
+									hx-vals={ templ.JSONString(filters.Values()) }
+									hx-trigger="every 5m"
+									hx-target="#notifications"
+								></div>
 							</div>
 							// Right column
 							<div class="grid grid-cols-1 gap-4">
