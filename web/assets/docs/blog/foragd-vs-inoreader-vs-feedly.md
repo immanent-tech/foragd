@@ -4,7 +4,7 @@ description = "An in-depth comparison to help you choose the best RSS reader for
 created_at = "2026-02-18"
 updated_at = "2026-04-09"
 image = "/content/images/blog/scribe-comparing-manuscripts.webp"
-author = "Joshua Rich <joshua.rich@gmail.com>"
+author = "Joshua Rich <joshua@immanent.tech>"
 +++
 
 

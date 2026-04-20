@@ -4,7 +4,7 @@ description = "RSS and Atom are formats that are “hiding in plain sight”. Lo
 created_at = "2026-02-02"
 updated_at = "2026-02-11"
 image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
-author = "Joshua Rich <joshua.rich@gmail.com>"
+author = "Joshua Rich <joshua@immanent.tech>"
 +++
 
 

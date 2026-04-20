@@ -4,6 +4,7 @@ description = "Social Media dominates where we source our content from. But RSS 
 created_at = "2026-01-27"
 updated_at = "2026-02-11"
 image = "/content/images/blog/Raphaels School of Athens.webp"
+author = "Joshua Rich <joshua@immanent.tech>"
 +++
 
 
