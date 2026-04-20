@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.106.0](https://github.com/immanent-tech/foragd/compare/v0.105.0...v0.106.0) (2026-04-20)
+
+
+### Features
+
+* **templates/articles:** :sparkles: add a reading progress bar at top of article content ([3ecf32d](https://github.com/immanent-tech/foragd/commit/3ecf32d12cafae55f4809010719c47930ead14eb))
+
+
+### Bug Fixes
+
+* **assets:** :wheelchair: fix contrast ratios on themes ([7e2fe98](https://github.com/immanent-tech/foragd/commit/7e2fe984925a8027e7356fdad131af134850ddc3))
+
 ## [0.105.0](https://github.com/immanent-tech/foragd/compare/v0.104.0...v0.105.0) (2026-04-20)
 
 
