@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.106.1](https://github.com/immanent-tech/foragd/compare/v0.106.0...v0.106.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* **extractor:** :bug: fix environment variables and uvicorn startup options ([84b5f0b](https://github.com/immanent-tech/foragd/commit/84b5f0b9ec96e042f4e85e008cda6ca8d932e37c))
+
 ## [0.106.0](https://github.com/immanent-tech/foragd/compare/v0.105.0...v0.106.0) (2026-04-20)
 
 
