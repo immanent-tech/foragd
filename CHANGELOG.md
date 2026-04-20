@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.105.0](https://github.com/immanent-tech/foragd/compare/v0.104.0...v0.105.0) (2026-04-20)
+
+
+### Features
+
+* :recycle: new updates handlings ([23eef27](https://github.com/immanent-tech/foragd/commit/23eef275af15c9b806fc534b87200919498c7139))
+* **extractor:** :sparkles: add content extractor service based on trafilatura app ([bffdfd2](https://github.com/immanent-tech/foragd/commit/bffdfd24bf0ef92402b65bca9356bd2080afa25c))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: use published date for generating site feed ([c69a00b](https://github.com/immanent-tech/foragd/commit/c69a00b5f772ba560fcdcb55bd6ff5e60cb28001))
+
 ## [0.104.0](https://github.com/immanent-tech/foragd/compare/v0.103.0...v0.104.0) (2026-04-19)
 
 
