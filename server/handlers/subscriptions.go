@@ -40,6 +40,7 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
@@ -276,7 +277,15 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
-			RenderPartial(&PartialTemplate{template: templates.UpdatesToast()}).ServeHTTP(res, req)
+			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
+				element.WithHXOptions(
+					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					element.WithHXTarget(templates.ContentID.Target()),
+					element.WithHXSwap("innerHTML window:top transition:true"),
+					element.WithHXPushURL(true),
+					element.WithHXValues(filters.Values()),
+				),
+			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}

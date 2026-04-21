@@ -655,12 +655,12 @@ templ ListArticles(response *models.ListArticlesResponse) {
 			@container() {
 				// Watch for updates.
 				<div
-					id="update-notifications"
-					class="invisible"
+					id="updates"
+					class="toast toast-center"
 					hx-post="/list/articles/updates"
 					hx-vals={ templ.JSONString(response.Filters.Values()) }
 					hx-trigger="every 5m"
-					hx-target="#notifications"
+					hx-target="#updates"
 				></div>
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
