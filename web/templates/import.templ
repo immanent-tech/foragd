@@ -10,7 +10,8 @@ import (
 	"strconv"
 )
 
-// ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
+// ImportSubscriptions renders a form for the user to select or drag and drop an OPML file to import their
+// subscriptions.
 templ ImportSubscriptions() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
@@ -92,11 +93,20 @@ templ ImportSubscriptions() {
 	}
 }
 
-// ImportSubscriptionsResults is a partial template that displays the results of an import.
+// ImportSubscriptionsResults renders the results of importing the users subscriptions.
 templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
-	{{ successfulResults := filterSuccessfulResults(results) }}
-	{{ failedResults := filterUnsuccessfulResults(results) }}
-	{{ warningResults := filterWarningResults(results) }}
+	// Generate seperate lists of successful/failed/warning imports.
+	{{
+		successfulResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+			return result.Error == nil && result.Subscription != nil
+		}))
+		warningResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+			return result.Error != nil && result.Error.UserMessage.IsWarning()
+		}))
+		failedResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+			return result.Error != nil && result.Error.UserMessage.IsError()
+		}))
+	}}
 	<div class="min-w-0 flex-1 pb-8">
 		<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
 			Import Results
@@ -194,22 +204,4 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 		</ul>
 	</div>
 	@partials.ButtonBackToTop()
-}
-
-func filterSuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-		return result.Error == nil && result.Subscription != nil
-	}))
-}
-
-func filterWarningResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-		return result.Error != nil && result.Error.UserMessage.IsWarning()
-	}))
-}
-
-func filterUnsuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-		return result.Error != nil && result.Error.UserMessage.IsError()
-	}))
 }
