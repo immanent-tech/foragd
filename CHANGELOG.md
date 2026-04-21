@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.109.0](https://github.com/immanent-tech/foragd/compare/v0.108.0...v0.109.0) (2026-04-21)
+
+
+### Features
+
+* **templates/subscriptions:** :sparkles: drag and drop opml file import support ([590970a](https://github.com/immanent-tech/foragd/commit/590970a5641046f83d671d6d7574b70a907d0549))
+
+
+### Bug Fixes
+
+* **extractor:** :bug: fix validation of token ttl setting ([335da41](https://github.com/immanent-tech/foragd/commit/335da419a44bcca9679f93405b286553c12b1549))
+
 ## [0.108.0](https://github.com/immanent-tech/foragd/compare/v0.107.0...v0.108.0) (2026-04-21)
 
 
