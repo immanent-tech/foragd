@@ -1,0 +1,215 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
+	"strconv"
+)
+
+// ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
+templ ImportSubscriptions() {
+	@content() {
+		@templ.Fragment(ContentFragment) {
+			@container() {
+				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Import Subscriptions</h1>
+				<p>You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p>
+				<form
+					id="import-subscriptions-form"
+					hx-encoding="multipart/form-data"
+					hx-post="/user/import"
+					hx-target="#import-results"
+					hx-indicator="#processing"
+					hx-push-url="false"
+				>
+					<div class="space-y-12 sm:space-y-16">
+						@partials.FormSection() {
+							@partials.FormField() {
+								<div class="col-span-full justify-self-center">
+									<span class="block text-sm/6 font-medium">OPML File</span>
+									<div
+										id="drop-zone"
+										class="group max-w-md mt-2 flex justify-center rounded-lg border border-dashed border-neutral/25 px-6 py-10"
+										_="
+                                        on dragover
+                                          halt the event
+                                          add .bg-base-300 .border-accent to me
+                                        end
+
+                                        on dragleave
+                                          remove .bg-base-300 .border-accent from me
+                                        end
+
+                                        on drop
+                                          halt the event
+                                          remove .bg-base-300 .border-accent from me
+                                          set files to event.dataTransfer.files
+                                          set #opml-upload's files to files
+                                          set #file-name's textContent to files[0].name
+                                        end
+                                    "
+									>
+										<div class="text-center">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="mx-auto size-12 icon icon-tabler icons-tabler-filled icon-tabler-file-rss group-hover:fill-primary group-active:fill-primary">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z"></path>
+											</svg>
+											<span id="file-name"></span>
+											<div class="mt-4 flex items-center text-sm/6">
+												<label for="opml-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
+													<span class="btn btn-neutral btn-dash">Upload a file</span>
+													<input
+														id="opml-upload"
+														type="file"
+														name="source"
+														class="sr-only"
+														_="on change set #file-name's textContent to my files[0].name"
+													/>
+												</label>
+												<p class="pl-1">or drag and drop</p>
+											</div>
+											<p class="text-xs/5">OPML up to 10MB</p>
+										</div>
+									</div>
+								</div>
+							}
+						}
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-md loading-spinner"></span>
+						</div>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary">Import</button>
+					</div>
+				</form>
+				<div id="import-results"></div>
+			}
+		}
+	}
+}
+
+// ImportSubscriptionsResults is a partial template that displays the results of an import.
+templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
+	{{ successfulResults := filterSuccessfulResults(results) }}
+	{{ failedResults := filterUnsuccessfulResults(results) }}
+	{{ warningResults := filterWarningResults(results) }}
+	<div class="min-w-0 flex-1 pb-8">
+		<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+			Import Results
+		</h2>
+	</div>
+	// Import results summary.
+	<ul class="space-y-8 py-4">
+		if len(successfulResults) > 0 {
+			<li class="flex items-center">
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check size-10 text-success">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M9 12l2 2l4 -4"></path>
+				</svg>
+				<p class="font-semibold text-success">{ strconv.Itoa(len(successfulResults)) } Created</p>
+			</li>
+		}
+		if len(failedResults) > 0 {
+			<li class="flex items-center">
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle size-10 text-error">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 9v4"></path><path d="M12 16v.01"></path>
+				</svg>
+				<p class="font-semibold text-error">{ strconv.Itoa(len(failedResults)) } Failed</p>
+			</li>
+		}
+		if len(warningResults) > 0 {
+			<li class="flex items-center">
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-10 text-warning">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path><path d="M12 16h.01"></path>
+				</svg>
+				<p class="font-semibold text-warning">{ strconv.Itoa(len(warningResults)) } Warnings</p>
+			</li>
+		}
+	</ul>
+	<div class="py-4">
+		{{ filters := models.NewListDisplayFilters() }}
+		<button
+			hx-get="/list/subscriptions"
+			hx-target={ ContentID.Target() }
+			hx-vals={ templ.JSONString(filters.Values()) }
+			class="btn-primary"
+		>
+			Go to your subscriptions
+		</button>
+	</div>
+	<div class="space-y-8 py-4">
+		<ul class="list">
+			for result := range slices.Values(successfulResults) {
+				<li class="list-row items-center">
+					<div class="flex items-center space-x-2">
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check size-10 text-success">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M9 12l2 2l4 -4"></path>
+						</svg>
+						<div class="space-y-2">
+							<p>Subscription Created:</p>
+							<p>{ result.Subscription.GetTitle() }</p>
+						</div>
+					</div>
+				</li>
+			}
+			for result := range slices.Values(failedResults) {
+				<li class="list-row items-center">
+					<div class="flex items-center space-x-2">
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle size-10 text-error">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 9v4"></path><path d="M12 16v.01"></path>
+						</svg>
+						{{ msg := result.Error.GetUserMessage() }}
+						<div class="space-y-2">
+							<div>{ msg.Summary }</div>
+							if msg.HasDetails() {
+								<p class="list-col-wrap text-xs">
+									{ *msg.Details }
+								</p>
+							}
+						</div>
+					</div>
+				</li>
+			}
+			for result := range slices.Values(warningResults) {
+				<li class="list-row items-center">
+					<div class="flex items-center space-x-2">
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-10 text-warning">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path><path d="M12 16h.01"></path>
+						</svg>
+						{{ msg := result.Error.GetUserMessage() }}
+						<div class="space-y-2">
+							<div>{ msg.Summary }</div>
+							if msg.HasDetails() {
+								<p class="list-col-wrap text-xs">
+									{ *msg.Details }
+								</p>
+							}
+						</div>
+					</div>
+				</li>
+			}
+		</ul>
+	</div>
+	@partials.ButtonBackToTop()
+}
+
+func filterSuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+		return result.Error == nil && result.Subscription != nil
+	}))
+}
+
+func filterWarningResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+		return result.Error != nil && result.Error.UserMessage.IsWarning()
+	}))
+}
+
+func filterUnsuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
+		return result.Error != nil && result.Error.UserMessage.IsError()
+	}))
+}
