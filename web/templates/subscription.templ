@@ -1453,39 +1453,6 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 	}
 }
 
-// ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
-templ ExportSubscriptions() {
-	@content() {
-		@templ.Fragment(ContentFragment) {
-			@container() {
-				<h1 class="sr-only">Export Subscriptions</h1>
-				<div class="mt-8 md:flex md:items-center md:justify-between">
-					<div class="min-w-0 flex-1">
-						<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
-							Export Subscriptions
-						</h2>
-					</div>
-				</div>
-				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-					You can export your current subscription to an OPML file, which all good feed readers can import.
-				</p>
-				<div class="mt-10 space-y-8">
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						@partials.ButtonBack()
-						<form method="post">
-							<button type="submit" class="btn btn-primary">Export</button>
-						</form>
-					</div>
-				</div>
-				<center id="processing" class="htmx-indicator">
-					Processing, this could take a few minutes...
-					<span class="loading loading-md loading-spinner"></span>
-				</center>
-			}
-		}
-	}
-}
-
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
 templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 	{{ id := request.SubscriptionID + "-unsubscribe-modal" }}
