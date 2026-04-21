@@ -38,7 +38,7 @@ type Config struct {
 	Key      string `koanf:"key"               validate:"required,base64rawurl"`
 	Salt     string `koanf:"salt"              validate:"required,base64rawurl"`
 	BaseURL  string `koanf:"baseurl"           validate:"required,url"`
-	TokenTTL string `koanf:"token_ttl_seconds" validate:"omitempty,duration"`
+	TokenTTL string `koanf:"token_ttl_seconds" validate:"omitempty"`
 }
 
 // LoadConfig loads the content extractor configuration and ensures this is only done one time, no matter how many times
@@ -63,7 +63,7 @@ func GenerateExtractorURL(originalURL, format string) (string, error) {
 
 	ttl, err := time.ParseDuration(cfg.TokenTTL + "s")
 	if err != nil {
-		ttl = 300 * time.Second
+		ttl = 60 * time.Second
 	}
 	expiry := strconv.FormatInt(time.Now().UTC().
 		Add(ttl).
