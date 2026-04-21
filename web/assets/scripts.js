@@ -29,12 +29,17 @@ function initMasonry() {
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
 
+  // Remove any stray text/comment nodes that confuse the ResizeObserver
+  Array.from(grid.childNodes).forEach((node) => {
+    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
+  });
+
   // Force layout recalc before Masonry checks computed style.
   void grid.offsetHeight; // triggers reflow.
 
   const computed = window.getComputedStyle(grid);
   if (computed.display !== "grid") {
-    requestAnimationFrame(updateLayout);
+    requestAnimationFrame(initMasonry);
     return;
   }
 
@@ -51,8 +56,8 @@ htmx.onLoad(function (target) {
   initMasonry();
 });
 
-// After every HTMX swap into #grid-objects (infinite scroll, filter changes)
-htmx.on("htmx:afterSwap", function (event) {
+// After every HTMX settle into #grid-objects (infinite scroll, filter changes)
+htmx.on("htmx:afterSettle", function (event) {
   if (event.detail.target?.id === "grid-objects") initMasonry();
 });
 
