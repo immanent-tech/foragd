@@ -9,6 +9,33 @@ import (
 	"sync"
 )
 
+// Defines values for ExtractorResponseFormat.
+const (
+	ExtractorResponseFormatHtml     ExtractorResponseFormat = "html"
+	ExtractorResponseFormatJson     ExtractorResponseFormat = "json"
+	ExtractorResponseFormatMarkdown ExtractorResponseFormat = "markdown"
+	ExtractorResponseFormatTxt      ExtractorResponseFormat = "txt"
+	ExtractorResponseFormatXml      ExtractorResponseFormat = "xml"
+)
+
+// Valid indicates whether the value is a known member of the ExtractorResponseFormat enum.
+func (e ExtractorResponseFormat) Valid() bool {
+	switch e {
+	case ExtractorResponseFormatHtml:
+		return true
+	case ExtractorResponseFormatJson:
+		return true
+	case ExtractorResponseFormatMarkdown:
+		return true
+	case ExtractorResponseFormatTxt:
+		return true
+	case ExtractorResponseFormatXml:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -84,6 +111,57 @@ type AddSubscriptionToSearchRequest struct {
 	// SuggestedSubscriptions is a list of the subscription suggestions.
 	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
 }
+
+// ExtractedMetadata contains key information about the link/site that was extracted.
+type ExtractedMetadata struct {
+	// Author is an author attributed to the page/link.
+	Author *string `json:"author,omitempty"`
+
+	// Categories is a list of categories associated with the page/link.
+	Categories []string `json:"categories,omitempty"`
+
+	// Date is a datestamp associated with the page/link published/updated time.
+	Date *string `json:"date,omitempty"`
+
+	// Description is a summary of the content of the page/link.
+	Description *string `json:"description,omitempty"`
+
+	// Sitename is the site name.
+	Sitename *string `json:"sitename,omitempty"`
+
+	// Tags is a list of tags associated with the page/link.
+	Tags []string `json:"tags,omitempty"`
+
+	// Title is the title of the page/link
+	Title *string `json:"title,omitempty"`
+}
+
+// ExtractorErrorResponse represents the response from the extractor when an error occurred.
+type ExtractorErrorResponse struct {
+	// Detail is the summary/reason for the error.
+	Detail string `json:"detail"`
+}
+
+// ExtractorResponse represents the response from the extractor component.
+type ExtractorResponse struct {
+	// Content is the extracted data.
+	Content *string `json:"content,omitempty"`
+
+	// ExtractedAt is a timestamp of when the content was extracted
+	ExtractedAt *int `json:"extracted_at,omitempty"`
+
+	// Format is the output format of the content field.
+	Format *ExtractorResponseFormat `json:"format,omitempty" validate:"omitempty,oneof=markdown txt html xml json"`
+
+	// Metadata contains key information about the link/site that was extracted.
+	Metadata *ExtractedMetadata `json:"metadata,omitempty"`
+
+	// URL is a URL.
+	URL URL `json:"url" validate:"omitempty,url"`
+}
+
+// ExtractorResponseFormat is the output format of the content field.
+type ExtractorResponseFormat string
 
 // FeedSubscriptionRequest is a request to add a new feed subscription.
 type FeedSubscriptionRequest struct {

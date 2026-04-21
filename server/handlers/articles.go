@@ -20,9 +20,11 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/client"
+	"github.com/immanent-tech/foragd/extractor"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -363,7 +365,8 @@ func HandleViewArticle() http.HandlerFunc {
 
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			content, err := extractArticleFromURL(article.GetLink())
+			// content, err := extractArticleFromURL(article.GetLink())
+			content, err := getFullContent(req.Context(), article.GetLink())
 			switch {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
@@ -407,6 +410,42 @@ func HandleViewArticle() http.HandlerFunc {
 			template: templates.ArticleContent(article),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
+}
+
+// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
+// it.
+func getFullContent(ctx context.Context, originalURL string) (string, error) {
+	extractorURL, err := extractor.GenerateExtractorURL(originalURL, "html")
+	if err != nil {
+		return "", fmt.Errorf("get full content: %w", err)
+	}
+
+	godump.Dump(extractorURL)
+
+	var resp models.ExtractorResponse
+	var respErr models.ExtractorErrorResponse
+
+	httpClient := client.LoadHTTPClient()
+	rawResp, err := httpClient.R().
+		SetHeader("Accept", "application/json").
+		SetContext(ctx).
+		SetResult(&resp).
+		SetError(&respErr).
+		Get(extractorURL)
+	if err != nil {
+		return "", fmt.Errorf("get url: %w", err)
+	}
+	if rawResp.IsError() {
+		godump.Dump(respErr)
+		return "", fmt.Errorf("%s: %s", rawResp.Status(), respErr.Detail)
+	}
+
+	if resp.Content != nil {
+		content := validation.SanitizeString(*resp.Content)
+		return content, nil
+	}
+
+	return "", nil
 }
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.

@@ -356,3 +356,72 @@ components:
           x-go-type-skip-optional-pointer: true
         pagination:
           $ref: 'models.yaml#/components/schemas/Pagination'
+    ExtractedMetadata:
+      description: >
+        contains key information about the link/site that was extracted.
+      type: object
+      properties:
+        title:
+          description: is the title of the page/link
+          type: string
+        author:
+          description: is an author attributed to the page/link.
+          type: string
+        description:
+          description: is a summary of the content of the page/link.
+          type: string
+        date:
+          description: is a datestamp associated with the page/link published/updated time.
+          type: string
+        sitename:
+          description: is the site name.
+          type: string
+        categories:
+          description: is a list of categories associated with the page/link.
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+        tags:
+          description: is a list of tags associated with the page/link.
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+    ExtractorResponse:
+      description: >
+        represents the response from the extractor component.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          $ref: 'models.yaml#/components/schemas/URL'
+        format:
+          description: >
+            is the output format of the content field.
+          type: string
+          enum: ["markdown", "txt", "html", "xml", "json"]
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,oneof=markdown txt html xml json'
+        content:
+          description: >
+            is the extracted data.
+          type: string
+        extracted_at:
+          description: >
+            is a timestamp of when the content was extracted
+          type: integer
+        metadata:
+          $ref: '#/components/schemas/ExtractedMetadata'
+    ExtractorErrorResponse:
+      description: >
+        represents the response from the extractor when an error occurred.
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          description: >
+            is the summary/reason for the error.
+          type: string
