@@ -98,7 +98,8 @@
     "scripts",
     "pkg/text",
     "extractor",
-    "blog"
+    "blog",
+    "templates/element"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

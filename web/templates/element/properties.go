@@ -168,3 +168,22 @@ func WithHXTarget(target string) HXOption {
 		p.SetAttribute("hx-target", target)
 	}
 }
+
+// WithHXSwap sets a "hx-swap" attribute.
+func WithHXSwap(swap string) HXOption {
+	return func(p *Properties) {
+		p.setAttribute("hx-swap", swap)
+	}
+}
+
+// WithHXPushURL sets a "hx-push-url" attribute.
+func WithHXPushURL(value bool) HXOption {
+	return func(p *Properties) {
+		switch value {
+		case true:
+			p.setAttribute("hx-push-url", "true")
+		case false:
+			p.setAttribute("hx-push-url", "false")
+		}
+	}
+}
