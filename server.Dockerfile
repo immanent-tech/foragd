@@ -3,7 +3,7 @@
 
 # Alpine base.
 # https://hub.docker.com/_/alpine/
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -46,7 +46,7 @@ RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS server
+FROM docker.io/alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS server
 
 ENV FORAGD_CONTAINER=1
 
