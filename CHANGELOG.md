@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.108.0](https://github.com/immanent-tech/foragd/compare/v0.107.0...v0.108.0) (2026-04-21)
+
+
+### Features
+
+* :sparkles: use new extractor service to fetch full article content ([78db271](https://github.com/immanent-tech/foragd/commit/78db27155fef39d67a71a8ec516916f575f8776c))
+* **templates/element:** :sparkles: add additional hx-* functional option setters ([6f2a92d](https://github.com/immanent-tech/foragd/commit/6f2a92dfd21d103b2bbcf987c785e6ad9c16ca96))
+
+
+### Bug Fixes
+
+* **extractor:** :bug: extractor fixes ([e61dc74](https://github.com/immanent-tech/foragd/commit/e61dc74cfc926ad6dd821b49b260aec2b35b8779))
+* **templates:** :bug: fix refresh links on updates available toasts ([a901ec9](https://github.com/immanent-tech/foragd/commit/a901ec9dcbd9d58454bb4d8f08b526cecf23367b))
+
 ## [0.107.0](https://github.com/immanent-tech/foragd/compare/v0.106.1...v0.107.0) (2026-04-20)
 
 
