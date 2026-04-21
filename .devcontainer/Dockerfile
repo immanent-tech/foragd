@@ -4,7 +4,13 @@ FROM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e88
 COPY --from=docker.io/golang:1.26.1-alpine3.23@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039 /usr/local/go/ /usr/local/go/
 
 # Install additional packages
-RUN apk update && apk add sudo openssh curl git bash fish micro graphviz step-cli step-certificates nodejs npm cosign docker buildkit rootlesskit slirp4netns libcap-setcap
+RUN apk update && apk add sudo openssh curl libcurl \
+    bash fish micro \
+    git graphviz step-cli step-certificates cosign \
+    nodejs npm \
+    docker buildkit rootlesskit slirp4netns libcap-setcap \
+    python python3-dev py3-pip \
+    gcc musl-dev
 
 # Install starship
 RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
