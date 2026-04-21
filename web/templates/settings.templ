@@ -37,7 +37,7 @@ templ UserSettings() {
   window.addEventListener('hashchange', activateTabFromHash);
 </script>
 				<el-tab-group id="settings-tabs">
-					<el-tab-list class="flex mt-8 mb-12 gap-x-8 py-2 text-base">
+					<el-tab-list class="mt-8 mb-12 flex gap-x-8 py-2 text-base">
 						<button
 							id="settings-display-button"
 							type="button"
@@ -197,6 +197,7 @@ templ AccountSettings(user *models.User) {
 				hx-encoding="multipart/form-data"
 				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
 			>
+				// Edit nickname.
 				<div class="sm:col-span-full">
 					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
 					<div class="mt-2">
@@ -212,6 +213,7 @@ templ AccountSettings(user *models.User) {
 						<p class="validator-hint">Nickname is required</p>
 					</div>
 				</div>
+				// Edit email.
 				<div class="sm:col-span-full">
 					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
 					<div class="mt-2">
@@ -227,21 +229,73 @@ templ AccountSettings(user *models.User) {
 						<p class="validator-hint">Must be a valid email address</p>
 					</div>
 				</div>
+				// Edit avatar.
 				<div class="sm:col-span-full">
-					<label for="avatar" class="block text-sm/6 font-medium">Avatar</label>
-					<p class="text-sm/6 text-base-content/80">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-					<div class="mt-2 flex items-center space-x-2">
-						@UserAvatar(user, nil)
-						<input
-							id="avatar"
-							type="file"
-							class="file-input flex bg-base-content/10 file-input-primary"
-							name="avatar"
-							accept=".jpg,.png,.webp"
-						/>
+					<span class="block text-sm/6 font-medium">Avatar</span>
+					<div
+						id="drop-zone"
+						class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/25 px-6 py-10 sm:max-w-lg"
+						_="
+                                        on dragover
+                                          halt the event
+                                          add .bg-base-300 .border-accent to me
+                                        end
+
+                                        on dragleave
+                                          remove .bg-base-300 .border-accent from me
+                                        end
+
+                                        on drop
+                                          halt the event
+                                          remove .bg-base-300 .border-accent from me
+                                          set files to event.dataTransfer.files
+                                          set #avatar-upload's files to files
+                                          set #file-name's textContent to files[0].name
+										  set f to event.dataTransfer.files[0]
+									      js(f)
+      										return new Promise(resolve => {
+      										  if (!f.type.startsWith('image/')) { resolve(null); return; }
+      										  const r = new FileReader();
+      										  r.onload = e => resolve(e.target.result);
+      										  r.readAsDataURL(f);
+      										});
+    									  end
+    									  if it
+    									    set #preview-img's src to it
+    									  end
+                                        end
+                                    "
+					>
+						<div class="text-center">
+							<div id="preview-area">
+								@partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
+									"rs:auto:48:48/sh:0.5/ext:webp",
+									element.WithClasses("mask mask-squircle"),
+									element.WithAttribute("width", "48"),
+									element.WithAttribute("height", "48"),
+									element.WithAttribute("id", "preview-img"),
+								)
+								<p id="preview-meta" style="font-size:0.85rem; color:#666;"></p>
+							</div>
+							<span id="file-name"></span>
+							<div class="mt-4 flex items-center justify-center text-sm/6">
+								<label for="avatar-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
+									<span class="btn btn-dash btn-neutral">Upload a file</span>
+									<input
+										id="avatar-upload"
+										type="file"
+										name="source"
+										class="sr-only"
+										_="on change set #file-name's textContent to my files[0].name"
+									/>
+								</label>
+								<p class="pl-1">or drag and drop</p>
+							</div>
+							<p class="text-xs/5">JPG, PNG or WEBP up to 10MB</p>
+						</div>
 					</div>
 				</div>
-				<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
+				// Edit promotional email.
 				<div class="sm:col-span-full">
 					<label for="settings-account-promotional-emails" class="block text-sm/6 font-medium">Promotional Emails</label>
 					<p
@@ -264,7 +318,8 @@ templ AccountSettings(user *models.User) {
 						/>
 					</div>
 				</div>
-				<div class="col-span-full inline-grid grid-flow-col place-self-end items-center gap-x-2">
+				// Buttons.
+				<div class="col-span-full inline-grid grid-flow-col items-center gap-x-2 place-self-end">
 					<div id="processing" class="htmx-indicator">
 						Processing...
 						<span class="loading loading-md loading-spinner"></span>
@@ -557,14 +612,14 @@ templ themePreview(theme string) {
 			<div class="flex items-center">
 				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.1]">
 					<div class="avatar avatar-placeholder" aria-hidden="true">
-						<div class="mask w-12 bg-primary text-primary-content  mask-squircle">
+						<div class="mask w-12 bg-primary mask-squircle text-primary-content">
 							<span class="text-3xl capitalize">{ theme[0:1] }</span>
 						</div>
 					</div>
 				</div>
 				<div>
 					<h2
-						class="card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none capitalize"
+						class="card-title line-clamp-3 tracking-tight text-pretty capitalize transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none"
 						_={ "on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end" }
 					>
 						{ theme }
@@ -577,7 +632,7 @@ templ themePreview(theme string) {
 				<div class="col-start-1 row-span-2 row-start-1 bg-base-200"></div>
 				<div class="col-start-1 row-start-3 bg-base-300"></div>
 				<div class="col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 bg-base-100 p-2">
-					<div class="mb-4 flex flex-row flex-wrap gap-2 self-start items-center">
+					<div class="mb-4 flex flex-row flex-wrap items-center gap-2 self-start">
 						<span class="badge badge-primary">A</span>
 						<span class="badge badge-secondary">B</span>
 						<span class="badge badge-accent">C</span>
