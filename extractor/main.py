@@ -33,12 +33,13 @@ import time
 import subprocess
 from typing import Literal
 
+from copy import deepcopy
 from logger import setup_logging
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
 from structlog.contextvars import bind_contextvars, clear_contextvars
 import trafilatura
-from trafilatura.settings import use_config
+from trafilatura.settings import DEFAULT_CONFIG
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -58,9 +59,9 @@ if not SECRET_SALT:
     raise RuntimeError("EXTRACTOR_SALT environment variable is required")
 
 # Trafilatura config
-trafilatura_config = use_config()
-trafilatura_config.set("DEFAULT", "EXTRACTION_TIMEOUT", "30")
-trafilatura_config.set("DEFAULT", "USER_AGENTS", "Foragd "+VERSION+" (+https://foragd.app/policies/bot)")
+trafilatura_config = deepcopy(DEFAULT_CONFIG)
+trafilatura_config.set("DEFAULT","EXTRACTION_TIMEOUT", "30")
+trafilatura_config.set("DEFAULT","USER_AGENTS", "\nForagd "+VERSION+" (+https://foragd.app/policies/bot)\n")
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 

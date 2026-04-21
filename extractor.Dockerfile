@@ -3,7 +3,7 @@ FROM python:3.14-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxml2-dev libxslt1-dev gcc \
+    libxml2-dev libxslt1-dev gcc g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY extractor/requirements.txt .

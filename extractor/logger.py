@@ -1,5 +1,6 @@
 import logging
 import structlog
+import os
 
 def setup_logging(json_logs: bool = False):
     # Processors run on every log entry in order
@@ -40,7 +41,8 @@ def setup_logging(json_logs: bool = False):
     # Attach the formatter to stdlib's root logger
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
+    level = os.getenv("EXTRACTOR_LOGLEVEL", "info").upper()
+    logging.basicConfig(level=logging.getLevelName(level), handlers=[handler], force=True)
 
     # Let uvicorn's logs propagate so they go through structlog too
     for name in ("uvicorn", "uvicorn.error"):
