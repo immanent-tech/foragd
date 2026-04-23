@@ -48,7 +48,7 @@ templ Comparison(service string) {
 }
 
 templ VsFeedly() {
-	<div class="mx-auto mt-10 max-w-2xl">
+	@container() {
 		<div class="overflow-x-auto">
 			<table class="table w-full">
 				<thead>
@@ -119,14 +119,14 @@ templ VsFeedly() {
 				</tbody>
 			</table>
 		</div>
-	</div>
+	}
 	<div class="mx-auto mt-10 max-w-2xl">
 		<p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p>
 	</div>
 }
 
 templ VsInoreader() {
-	<div class="mx-auto mt-10 max-w-2xl">
+	@container() {
 		<div class="overflow-x-auto">
 			<table class="table w-full">
 				<thead>
@@ -197,7 +197,7 @@ templ VsInoreader() {
 				</tbody>
 			</table>
 		</div>
-	</div>
+	}
 	<div class="mx-auto mt-10 max-w-2xl">
 		<p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p>
 	</div>
