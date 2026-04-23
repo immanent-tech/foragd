@@ -49,6 +49,17 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'customisation.categories'
           x-go-type-skip-optional-pointer: true
+    AddFeedSubscriptionRequest:
+      description: contains request data for adding a new feed subscription.
+      type: object
+      required:
+        - URL
+        - feed_id
+      properties:
+        URL:
+          $ref: 'models.yaml#/components/schemas/URL'
+        feed_id:
+          $ref: 'models.yaml#/components/schemas/FeedID'
     FeedSubscriptionRequest:
       description: >
         is a request to add a new feed subscription.
@@ -425,3 +436,37 @@ components:
           description: >
             is the summary/reason for the error.
           type: string
+    AddSubscriptionFeedSuggestions:
+      description: >
+        contains feed suggestions details.
+      type: object
+      properties:
+        feeds:
+          description: >
+            is a slice of feeds.
+          x-go-type: Feeds
+          x-go-type-skip-optional-pointer: true
+        latest_items:
+          description: >
+            is a map of latest items for each suggested feed.
+          x-go-type: map[FeedID]Items
+          x-go-type-skip-optional-pointer: true
+    AddSubscriptionYoutubeSuggestions:
+      description: >
+        contains Youtube suggestion details.
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+    AddSubscriptionSuggestion:
+      description: >
+        contains data about suggestions for adding a new subscription.
+      type: object
+      properties:
+        feed_suggestions:
+          $ref: '#/components/schemas/AddSubscriptionFeedSuggestions'
+        youtube_suggestions:
+          $ref: '#/components/schemas/AddSubscriptionYoutubeSuggestions'

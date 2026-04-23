@@ -227,8 +227,9 @@ func Start(logger *slog.Logger) error {
 			Delete("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.Route("/subscription", func(r chi.Router) {
 			r.Route("/add", func(r chi.Router) {
-				r.Get("/feed", handlers.HandleAddFeedSubscription())
-				r.With(middlewares.RequireHTMX).Post("/feed", handlers.HandleAddFeedSubscription())
+				r.Get("/", handlers.HandleAddSubscription())
+				r.With(middlewares.RequireHTMX).Post("/suggestions", handlers.HandleAddSubscriptionSuggestions())
+				r.With(middlewares.RequireHTMX).Post("/feed", handlers.HandleAddNewFeedSubscription())
 				// Add search subscription.
 				r.Get("/search", handlers.HandleAddSearchSubscription())
 				r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleAddSearchSubscription())

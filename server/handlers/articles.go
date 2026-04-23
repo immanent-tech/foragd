@@ -429,8 +429,6 @@ func getFullContent(ctx context.Context, originalURL string) (string, error) {
 		return "", fmt.Errorf("get full content: %w", err)
 	}
 
-	godump.Dump(extractorURL)
-
 	var resp models.ExtractorResponse
 	var respErr models.ExtractorErrorResponse
 

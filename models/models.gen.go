@@ -398,7 +398,7 @@ type Author struct {
 	Name string `json:"name"`
 
 	// URL is a URL.
-	URL *URL `json:"url" validate:"omitempty,url"`
+	URL *URL `form:"url" json:"url" validate:"omitempty,url"`
 }
 
 // Category represents a taxonomy applied to an object.
@@ -560,7 +560,7 @@ type FeedStatus struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// URL is a URL.
-	URL URL `json:"url" validate:"omitempty,url"`
+	URL URL `form:"url" json:"url" validate:"omitempty,url"`
 }
 
 // FeedSubscription represents a feed a user has subscribed to.
@@ -923,7 +923,7 @@ type RemoteImage struct {
 	Title *string `json:"title,omitempty"`
 
 	// URL is a URL.
-	URL *URL `json:"url" validate:"omitempty,url"`
+	URL *URL `form:"url" json:"url" validate:"omitempty,url"`
 }
 
 // RemoveSubscriptionRequest contains the parameters for removing a subscription.

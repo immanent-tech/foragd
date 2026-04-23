@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"os"
 	"slices"
 	"strconv"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
@@ -38,6 +40,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/validation"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -1112,33 +1115,73 @@ func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Req
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 }
 
-// HandleAddFeedSubscription handles adding a new subscription to a feed.
-func HandleAddFeedSubscription() http.HandlerFunc {
+// HandleAddSubscription handles showing a form for adding a new subscription.
+func HandleAddSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-		case http.MethodGet:
-			// Get suggested categories from existing subscriptions.
-			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+		// Get suggested categories from existing subscriptions.
+		categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+				slog.Any("error", err),
+			)
+		}
+		suggestedCategories := categoryCounts.Limit(10).GetCategories()
+		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
+		RenderInternalPage(
+			&AddSubscription{
+				title: "Add Feed Subscription",
+				template: templates.AddFeedSubscription(
+					&models.FeedSubscriptionRequest{SuggestedCategories: suggestedCategories},
+				),
+			},
+		).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+// HandleAddNewFeedSubscription handles adding a new feed subscription for a user.
+func HandleAddNewFeedSubscription() http.HandlerFunc {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		request, valid, err := forms.DecodeMultiPartForm[*models.AddFeedSubscriptionRequest](req)
+		if err != nil || !valid {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add feed subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(&models.APIError{
+				InternalError: models.ErrCtxValueNotFound,
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add feed subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		slogctx.FromCtx(req.Context()).Debug("Processing add feed subscription.",
+			slog.String("feed_url", request.URL),
+		)
+
+		// Fetch the feed details from the database.
+		feed, err := elastic.GetDoc[models.FeedID, *models.Feed](req.Context(), schema.FeedsIndexRO, request.FeedID)
+		if err != nil || feed == nil {
+			// Fetch the feed details from the URL.
+			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
+				slog.String("feed_url", request.URL),
+			)
+			feed, err = models.NewFeedFromURL(req.Context(), request.URL, request.FeedID, false)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			suggestedCategories := categoryCounts.Limit(10).GetCategories()
-			res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-			RenderInternalPage(
-				&AddSubscription{
-					title: "Add Feed Subscription",
-					template: templates.AddFeedSubscription(
-						&models.FeedSubscriptionRequest{SuggestedCategories: suggestedCategories},
-					),
-				},
-			).ServeHTTP(res, req)
-		case http.MethodPost:
-			request, valid, err := forms.DecodeMultiPartForm[*models.FeedSubscriptionRequest](req)
-			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
+					InternalError: fmt.Errorf("new feed from URL: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Unable to add feed subscription",
@@ -1147,19 +1190,219 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+			// Add the feed to the database.
+			if err := elastic.CreateDoc(req.Context(), schema.FeedsIndexRW, feed.GetID(), feed); err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("create feed: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add feed subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+			slogctx.FromCtx(req.Context()).Info("Added new feed.",
+				slog.String("feed_url", request.URL),
+				slog.String("feed_id", feed.GetID()),
+				slog.String("feed_title", feed.GetTitle()),
+			)
+		}
 
-			// Process the request.
-			results := models.BulkImportFeeds(req.Context(), *request)
-			if results[0].Error != nil {
-				HandleInternalError(results[0].Error).ServeHTTP(res, req)
+		// Create a new subscription.
+		subscription, err := models.NewFeedSubscription(req.Context(), feed, nil)
+		if err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("create subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add subscription",
+					fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Add subscription to user.
+		if err := user.AddSubscriptions(req.Context(), subscription); err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("add subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add subscription",
+					fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+		slogctx.FromCtx(req.Context()).Info("Added user subscription.",
+			slog.String("feed_id", subscription.GetFeedID()),
+			slog.String("subscription_id", subscription.GetID()),
+			slog.String("subscription_title", subscription.GetTitle()),
+		)
+
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage(
+				"Subscription Created!",
+				subscription.GetTitle(),
+			),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+func HandleAddSubscriptionSuggestions() http.HandlerFunc {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get suggestion text.
+		text := validation.SanitizeString(req.FormValue("suggestion_text"))
+		source := validation.SanitizeString(req.FormValue("suggestion_source"))
+		// Ignore empty text string.
+		if text == "" {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Retrieve the user object.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Get user subscriptions.
+		subscriptions, err := user.GetSubscriptions(req.Context())
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Debug("Unable to get user subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		switch source {
+		case "youtube":
+			// Perform a search on youtube to find a channel that matches the user's query.
+			// Check if the user is already subscribed.
+			// Show the youtube channel.
+
+		case "web":
+			// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
+			var (
+				feeds           models.Feeds
+				feedSearchQuery query.Option
+			)
+			switch {
+			case strings.HasPrefix(text, "http"):
+				feedSearchQuery = query.Bool(
+					query.Must(
+						query.Bool(
+							query.Should(
+								query.Term("source_urls", text),
+								query.Term("url", text),
+							),
+						),
+					),
+					query.MustNot(
+						// Don't match feeds the user is already subscribed to.
+						query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+					),
+				)
+			default:
+				feedSearchQuery = query.Bool(
+					query.Must(
+						query.Bool(
+							query.Should(
+								query.MultiMatch(text, "auto", "title^5", "description"),
+								query.Term("categories", text),
+							),
+						),
+					),
+					query.MustNot(
+						// Don't match feeds the user is already subscribed to.
+						query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+					),
+				)
+			}
+
+			// Try to find existing feeds that match the query.
+			feeds, _, err = elastic.Search[*models.Feed](
+				req.Context(),
+				schema.FeedsIndexRO,
+				feedSearchQuery,
+				5,
+				elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+					models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+				),
+			)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to find feed suggestions.",
+					slog.Any("error", err),
+				)
+			}
+
+			// Handle matching feeds.
+			if len(feeds) > 0 {
+				// Retrieve the latest 3 articles for each feed.
+				latestItems := make(map[models.FeedID]models.Items)
+				latestItems, err = models.GetFeedLatestItems(req.Context(), 3, feeds)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to get latest items for feeds.",
+						slog.Any("error", err),
+					)
+				}
+
+				// Show a list of feed suggestions.
+				RenderPartial(&PartialTemplate{
+					template: templates.ShowFeedSuggestions(
+						&models.AddSubscriptionFeedSuggestions{
+							Feeds:       feeds,
+							LatestItems: latestItems,
+						},
+					),
+				}).ServeHTTP(res, req)
 				return
 			}
 
-			RenderPartial(&Notification{
-				msg: models.NewSuccessMessage(
-					"Subscription Created!",
-					results[0].Subscription.GetTitle(),
-				),
+			// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
+			if strings.HasPrefix(text, "http") {
+				if newFeedURL, err := url.Parse(text); err == nil {
+					newFeed, err := models.NewFeedFromURL(req.Context(), newFeedURL.String(), "", false)
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to find feed at URL.",
+							slog.String("url", newFeedURL.String()),
+							slog.Any("error", err),
+						)
+						RenderPartial(&PartialTemplate{
+							template: templates.ShowNoSuggestions(text),
+						}).ServeHTTP(res, req)
+						return
+					}
+					latestItems := make(map[models.FeedID]models.Items)
+					if items := newFeed.GetItems(); len(items) > 0 {
+						// Truncate to 3 items.
+						if len(items) > 3 {
+							items = items[:3]
+						}
+						latestItems[newFeed.GetID()] = items
+					}
+
+					// Show new feed suggestion.
+					RenderPartial(&PartialTemplate{
+						template: templates.ShowFeedSuggestions(
+							&models.AddSubscriptionFeedSuggestions{
+								Feeds:       models.Feeds{newFeed},
+								LatestItems: latestItems,
+							},
+						),
+					}).ServeHTTP(res, req)
+					return
+				}
+			}
+
+			// No matching new or existing feeds. Show the no results message.
+			RenderPartial(&PartialTemplate{
+				template: templates.ShowNoSuggestions(text),
 			}).ServeHTTP(res, req)
 		}
 	}).ServeHTTP

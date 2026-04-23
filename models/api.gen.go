@@ -91,6 +91,33 @@ type AddCategoryToSubscriptionRequest struct {
 	ExistingCategories []Category `form:"customisation.categories" json:"existing_categories,omitempty"`
 }
 
+// AddFeedSubscriptionRequest contains request data for adding a new feed subscription.
+type AddFeedSubscriptionRequest struct {
+	// URL is a URL.
+	URL URL `form:"url" json:"url" validate:"omitempty,url"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+}
+
+// AddSubscriptionFeedSuggestions contains feed suggestions details.
+type AddSubscriptionFeedSuggestions struct {
+	// Feeds is a slice of feeds.
+	Feeds Feeds `json:"feeds,omitempty"`
+
+	// LatestItems is a map of latest items for each suggested feed.
+	LatestItems map[FeedID]Items `json:"latest_items,omitempty"`
+}
+
+// AddSubscriptionSuggestion contains data about suggestions for adding a new subscription.
+type AddSubscriptionSuggestion struct {
+	// FeedSuggestions contains feed suggestions details.
+	FeedSuggestions *AddSubscriptionFeedSuggestions `json:"feed_suggestions,omitempty"`
+
+	// YoutubeSuggestions contains Youtube suggestion details.
+	YoutubeSuggestions *AddSubscriptionYoutubeSuggestions `json:"youtube_suggestions,omitempty"`
+}
+
 // AddSubscriptionToGroupRequest is a request to add a new subscription to a group subscription.
 type AddSubscriptionToGroupRequest struct {
 	// ExistingSubscriptions is the existing subscriptions in the group.
@@ -110,6 +137,11 @@ type AddSubscriptionToSearchRequest struct {
 
 	// SuggestedSubscriptions is a list of the subscription suggestions.
 	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
+}
+
+// AddSubscriptionYoutubeSuggestions contains Youtube suggestion details.
+type AddSubscriptionYoutubeSuggestions struct {
+	Channels []string `json:"channels,omitempty"`
 }
 
 // ExtractedMetadata contains key information about the link/site that was extracted.
@@ -157,7 +189,7 @@ type ExtractorResponse struct {
 	Metadata *ExtractedMetadata `json:"metadata,omitempty"`
 
 	// URL is a URL.
-	URL URL `json:"url" validate:"omitempty,url"`
+	URL URL `form:"url" json:"url" validate:"omitempty,url"`
 }
 
 // ExtractorResponseFormat is the output format of the content field.

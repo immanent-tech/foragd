@@ -291,7 +291,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 				<li
 					role="option"
 					tabindex="-1"
-					hx-get="/subscription/add/feed"
+					hx-get="/subscription/add"
 					hx-target={ ContentID.Target() }
 					hx-push-url="true"
 					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"

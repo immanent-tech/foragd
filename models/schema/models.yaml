@@ -50,6 +50,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'omitempty,url'
         json: 'url'
+        form: 'url'
     RemoteImage:
       description: >
         contains details about a remote image.

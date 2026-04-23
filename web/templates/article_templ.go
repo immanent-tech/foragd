@@ -101,7 +101,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				templ_7745c5c3_Err = partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
-					element.WithClasses("w-full", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
+					element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -226,6 +227,89 @@ func (u *User) GetSubscriptionPlan() string {
 // returned.
 func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
+}
+
+// GetSubscriptionOptions holds the options for fetching a user's subscriptions.
+type GetSubscriptionOptions struct {
+	OnlyFavorites bool
+	IDs           []SubscriptionID
+	Categories    []Category
+}
+
+type GetSubscriptionOption func(*GetSubscriptionOptions)
+
+func Favorites(value bool) GetSubscriptionOption {
+	return func(opts *GetSubscriptionOptions) {
+		opts.OnlyFavorites = value
+	}
+}
+
+func WithSubscriptionIDs(ids ...SubscriptionID) GetSubscriptionOption {
+	return func(opts *GetSubscriptionOptions) {
+		opts.IDs = ids
+	}
+}
+
+func WithSubscriptionCategories(categories ...Category) GetSubscriptionOption {
+	return func(opts *GetSubscriptionOptions) {
+		opts.Categories = categories
+	}
+}
+
+func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionOption) (Subscriptions, error) {
+	opts := &GetSubscriptionOptions{}
+	for option := range slices.Values(options) {
+		option(opts)
+	}
+
+	// Build query.
+	queries := []query.Option{query.Term("user_id", u.GetID())}
+	if opts.OnlyFavorites {
+		queries = append(queries, query.Term("favorite", true))
+	}
+	if len(opts.IDs) > 0 {
+		queries = append(queries, query.Terms("subscription_id", opts.IDs...))
+	}
+	if len(opts.Categories) > 0 {
+		queries = append(queries, query.Terms("customisation.categories", opts.Categories...))
+	}
+
+	// Execute query.
+	var (
+		subscriptions Subscriptions
+		err           error
+	)
+	subscriptions, err = elastic.SearchAll[*Subscription](
+		ctx,
+		schema.SubscriptionsIndexRO,
+		query.Bool(
+			query.Filter(queries...),
+		),
+		DefaultPaginationSize,
+	)
+	if err != nil {
+		return nil, ElasticsearchToAPIError(err)
+	}
+
+	return subscriptions, nil
+}
+
+// AddSubscriptions adds the given subscriptions to a user.
+func (u *User) AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error {
+	if _, err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
+		return fmt.Errorf("update subscriptions: %w", err)
+	}
+	// Disable onboarding once a subscription has been added.
+	if settings := u.GetSettings(); settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+		// Update the user object.
+		if err := UpdateUser(ctx, u.GetID(), map[string]any{
+			"settings": settings,
+		}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+	}
+	return nil
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

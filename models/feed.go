@@ -29,11 +29,13 @@ import (
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/client"
+
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/reverseproxy"
 )
 
@@ -359,6 +361,110 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 	}
 
 	return stats, nil
+}
+
+// GetFeedLatestItems fetches the most recent count items for each given feed.
+func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID]Items, error) {
+	queryResult, err := ItemsAggregation(ctx,
+		query.Bool(
+			query.Filter(
+				query.Terms("feed_id", feeds.GetIDs()...),
+			),
+		),
+		0,
+		aggregations.Aggs{
+			"feed": estypes.Aggregations{
+				Terms: &estypes.TermsAggregation{
+					Field: new("feed_id"),
+					Size:  new(len(feeds)),
+				},
+				Aggregations: map[string]estypes.Aggregations{
+					"latest_items": {
+						TopHits: &estypes.TopHitsAggregation{
+							Size: &count,
+							Sort: NewItemSortCombinations(new(SortNewestFirst)),
+						},
+					},
+				},
+			},
+		})
+	if err != nil {
+		return nil, fmt.Errorf("fetch latest articles: %w", err)
+	}
+	feedsLatestItems := make(map[FeedID]Items)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	// Extract the feed aggregation.
+	feedsAgg, err := aggregations.ExtractAggregation[*estypes.StringTermsAggregate](
+		queryResult.Aggregations,
+		"feed",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("extract feed aggregation: %w", err)
+	}
+	// Loop over the feed buckets.
+	feedBuckets, err := aggregations.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
+	if err != nil {
+		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
+	}
+	for bucket := range slices.Values(feedBuckets) {
+		if feedID, ok := bucket.Key.(FeedID); ok {
+			wg.Go(func() {
+				// Get the subscription with this feedID.
+				feed := feeds.FindByID(feedID)
+				if feed == nil {
+					slogctx.FromCtx(ctx).
+						Warn("Could not match feed in aggregation result to a subscription.",
+							slog.String("feed_id", feedID),
+						)
+					return
+				}
+				// Extract the latest articles aggregation.
+				latestItemsAggs, err := aggregations.ExtractAggregation[*estypes.TopHitsAggregate](
+					bucket.Aggregations,
+					"latest_items",
+				)
+				if err != nil {
+					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
+						slog.String("aggregation", "latest_items"),
+						slog.Any("error", err),
+					)
+					return
+				}
+				var (
+					items Items
+				)
+
+				// Extract the latest items.
+				//
+				// * Note that the "latest_items" aggregation applies _source filtering,
+				// * so only the given fields will be populated in the models.Item object.
+				items, _, err = results.ExtractSourceFromHits[Item](latestItemsAggs.Hits.Hits)
+				if err != nil {
+					slogctx.FromCtx(ctx).
+						Warn("Unable to extract latest articles from aggregations.",
+							slog.Any("error", err),
+						)
+					return
+				}
+				// // Generate articles.
+				// articles, err := models.GenerateArticles(ctx, items)
+				// if err != nil {
+				// 	slogctx.FromCtx(ctx).
+				// 		Warn("Unable to generate articles from items.",
+				// 			slog.Any("error", err),
+				// 		)
+				// 	return
+				// }
+				mu.Lock()
+				feedsLatestItems[feed.GetID()] = items
+				mu.Unlock()
+			})
+		}
+	}
+
+	wg.Wait()
+	return feedsLatestItems, nil
 }
 
 // Feeds is a slice of Feed objects.
@@ -760,7 +866,7 @@ func (s *FeedSorting) SortCombinationsCaster() *estypes.SortCombinations {
 	return &c
 }
 
-func newFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
+func NewFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	if sort == nil {
 		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
 	}
@@ -799,7 +905,7 @@ func newFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	return opts
 }
 
-func newFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
+func NewFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 	var opts []estypes.SortCombinations
 	switch *sort {
 	case SortNewestFirst:

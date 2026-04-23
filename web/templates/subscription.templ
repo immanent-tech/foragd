@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // ViewAttributes generates a templ.Attributes object containing htmx directives for viewing a subscription.
@@ -357,7 +358,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Watch for updates.
 				<div
 					id="updates"
-					class="toast toast-center"
+					class="toast toast-center z-10"
 					hx-post="/list/subscriptions/updates"
 					hx-vals={ templ.JSONString(response.Filters.Values()) }
 					hx-trigger="every 5m"
@@ -649,8 +650,48 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
-			@container(element.WithClasses("mb-6")) {
-				@manageFeedSubscription("add", request)
+			@container() {
+				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Add a subscription</h1>
+				<div>
+					<form>
+						<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
+						<div class="mt-2 w-full">
+							<div class="w-full sm:max-w-xl flex items-center join">
+								<div class="input input-primary w-full">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary icon icon-tabler icons-tabler-outline icon-tabler-search">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+									</svg>
+									<input
+										id="suggestion-text"
+										type="text"
+										name="suggestion_text"
+										placeholder="Enter a URL or keywords..."
+										class="pl-3 flex-1 min-w-0 text-base sm:text-sm/6 join-item"
+										hx-post="/subscription/add/suggestions"
+										hx-target="#subscription-suggestions"
+										hx-trigger="keyup[key!='Enter'] delay:500ms changed"
+										hx-include="[name='suggestion_source']"
+										hx-indicator="#searching-progress"
+									/>
+									<span id="searching-progress" class="htmx-indicator loading loading-spinner loading-xl join-item"></span>
+								</div>
+								// TODO: remove this hidden input once different sources are implemented.
+								<input type="hidden" name="suggestion_source" value="web"/>
+								// <select
+								// 	id="suggestion-source"
+								// 	name="suggestion_source"
+								// 	aria-label="Source"
+								// 	class="select select-primary w-auto shrink-0 join-item"
+								// >
+								// 	<option value="web">Web</option>
+								// 	<option value="youtube">Youtube</option>
+								// 	<option value="reddit">Reddit</option>
+								// </select>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div id="subscription-suggestions" class="mt-8"></div>
 			}
 		}
 	}
@@ -677,11 +718,12 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ "Editing " + request.Customisation.GetNickname() }</h1>
 		}
 	</div>
-	// hx-on::after-request="if(event.detail.successful) this.reset()"
+	if action == "add" {
+	}
 	<form
 		id="add-subscription"
 		if action == "add" {
-			hx-post="/subscription/add/feed"
+			hx-post="/subscription/add"
 		} else {
 			hx-post={ "/subscription/save/" + request.SubscriptionID }
 		}
@@ -696,28 +738,6 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 		}
 		<div class="space-y-12 sm:space-y-16">
-			// Only show the feed URL when adding a subscription.
-			if action == "add" {
-				<div>
-					@partials.FormSection() {
-						@partials.FormField() {
-							<label for="url" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">URL</label>
-							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input
-									id="url"
-									required
-									type="url"
-									name="url"
-									autocomplete="url"
-									value={ request.URL }
-									placeholder="https://my-favorite-site/feed…"
-									class="input w-full bg-base-300 brightness-95 input-primary"
-								/>
-							</div>
-						}
-					}
-				</div>
-			}
 			// Optional subscription customisation.
 			<div>
 				<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
@@ -860,6 +880,139 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			}
 		</div>
 	</form>
+}
+
+templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
+	<ul id="feed-suggestions" class="divide-y divide-neutral/15">
+		for feed := range slices.Values(request.Feeds) {
+			<li class="group/item py-4">
+				<div class="flex items-center mb-4">
+					<div class="mr-4 shrink-0 self-center">
+						if feed.Image.URL == nil {
+							@subscriptionThumbnail(nil, feed.GetTitle())
+						} else {
+							{{
+								var imgTitle string
+								if feed.Image.Title == nil {
+									imgTitle = feed.GetTitle()
+								} else {
+									imgTitle = *feed.Image.Title
+								}
+							}}
+							@subscriptionThumbnail(models.NewRemoteImage(*feed.Image.URL, imgTitle), feed.GetTitle())
+						}
+					</div>
+					<div class="flex-1">
+						<div class="flex flex-1">
+							<div class="flex-1">
+								<h2 id="subscription-title" class="card-title line-clamp-2 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+									{ feed.GetTitle() }
+								</h2>
+								if feed.GetDescription() != "" {
+									<p class="mt-1 text-neutral"></p>
+								}
+							</div>
+							<div class="ml-4 shrink-0">
+								<form hx-post="/subscription/add/feed" hx-swap="none" hx-encoding="multipart/form-data">
+									<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
+									<input type="hidden" name="feed_id" value={ feed.GetID() }/>
+									<button type="submit" class="btn btn-primary">Subscribe</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				if items, ok := request.LatestItems[feed.GetID()]; ok {
+					<div class="flex gap-x-4 overflow-x-auto">
+						for item := range slices.Values(items) {
+							@partials.Card(
+								element.WithAttribute("hx-get", "/view/article/"+item.GetID()),
+								element.WithAttribute("hx-target", ContentID.Target()),
+								element.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
+								element.WithAttribute("hx-trigger", "click"),
+								element.WithAttribute("hx-push-url", "true"),
+								element.WithAttribute("hx-disinherit", "*"),
+								element.WithAttribute("id", item.GetID()),
+								element.WithClasses("group", "w-[85vw]", "sm:w-sm", "shrink-0", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "p-2"),
+							) {
+								if img := item.GetImage(); img != nil {
+									{{ img := item.GetImage() }}
+									if img.GetTitle() == "" {
+										{{ img.Title = new(item.GetTitle()) }}
+									}
+									<figure class="relative rounded-t-[inherit] overflow-hidden">
+										//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
+										@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
+											element.WithAttribute("width", "400"),
+											element.WithAttribute("height", "300"),
+											element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
+										)
+										<div class="absolute inset-0 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)] rounded-t-[inherit] pointer-events-none"></div>
+									</figure>
+								}
+								@partials.CardHeader() {
+									<h2 id="item-title" class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
+										if item.GetTitle() != "" {
+											{ item.GetTitle() }
+										} else {
+											(no title)
+										}
+									</h2>
+								}
+								// @partials.CardBody() {
+								// 	// Add summarised description if article has one.
+								// 	if item.GetDescription() != "" {
+								// 		<div class="prose-summary line-clamp-3">
+								// 			@templ.Raw(item.GetDescription())
+								// 		</div>
+								// 	}
+								// }
+								@partials.CardFooter(element.WithClasses("items-center")) {
+									<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
+										<div class="flex flex-col min-w-0">
+											if len(item.GetAuthors()) > 0 {
+												{{
+													authors := make([]string, 0)
+													for author := range slices.Values(item.GetAuthors()) {
+														authors = append(authors, author.String())
+													}
+												}}
+												<strong class="truncate text-sm/6">
+													{ strings.Join(authors,",") }
+												</strong>
+											}
+											<relative-time
+												datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
+												format="relative"
+												class="text-xs/4 capitalize text-neutral"
+											>
+												{ item.GetTimestamp().Format("Jan _2, 2006") }
+											</relative-time>
+										</div>
+									</div>
+								}
+							}
+						}
+					</div>
+				}
+			</li>
+		}
+	</ul>
+}
+
+templ ShowNoSuggestions(text string) {
+	<div class="text-center">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="mx-auto size-12 text-primary icon icon-tabler icons-tabler-filled icon-tabler-zoom-question">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3.072a8 8 0 0 1 2.32 11.834l5.387 5.387a1 1 0 0 1 -1.414 1.414l-5.388 -5.387a8 8 0 0 1 -12.905 -6.32l.005 -.285a8 8 0 0 1 11.995 -6.643m-4 8.928a1 1 0 0 0 -.993 .883l-.007 .127a1 1 0 0 0 1.993 .117l.007 -.127a1 1 0 0 0 -1 -1m-1.9 -5.123a1 1 0 0 0 1.433 1.389l.088 -.09a.5 .5 0 1 1 .379 .824a1 1 0 0 0 -.002 2a2.5 2.5 0 1 0 -1.9 -4.123"></path>
+		</svg>
+		<h3 class="mt-2 text-sm font-semibold">No results</h3>
+		<p class="mt-1 text-sm text-neutral">We could not find any good matches for <strong>{ text }</strong>.</p>
+		if !strings.HasPrefix(text,"http") {
+			<p class="mt-1 text-sm text-neutral">Try entering the URL of the website you want to subscribe to and Foragd will try to find its feed.</p>
+		} else {
+			<p class="mt-1 text-sm text-neutral">Double-check the keywords you've entered or add additional ones to focus the search.</p>
+		}
+	</div>
 }
 
 // AddSearchSubscription is a page for adding a new search subscription.

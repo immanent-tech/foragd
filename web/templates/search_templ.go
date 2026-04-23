@@ -365,7 +365,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if (strings.Contains(substr, "add") || strings.Contains(substr, "feed")) && (!strings.Contains(substr, "group") && !strings.Contains(substr, "search")) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<li role=\"option\" tabindex=\"-1\" hx-get=\"/subscription/add/feed\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<li role=\"option\" tabindex=\"-1\" hx-get=\"/subscription/add\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

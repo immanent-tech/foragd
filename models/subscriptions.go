@@ -1965,3 +1965,13 @@ func newSubscriptionSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	}
 	return opts
 }
+
+func (f *AddFeedSubscriptionRequest) Valid() error {
+	return validation.Validate.Struct(f)
+}
+
+func (f *AddFeedSubscriptionRequest) Sanitise() error {
+	f.URL = validation.SanitizeString(f.URL)
+	f.FeedID = validation.SanitizeString(f.FeedID)
+	return nil
+}
