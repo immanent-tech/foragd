@@ -21,12 +21,11 @@
 @theme {
   --font-sans: "Inter", sans-serif;
   --font-sans--font-feature-settings:
-    "liga" 1, "ccmp" 1, "calt" 1, "ss01" 1, "ss02" 1, "ss03" 1, "cv02" 1,
-    "cv03" 1, "cv04" 1, "cv11" 1;
+    "liga" 1, "ccmp" 1, "calt" 1, "ss01" 1, "ss03" 1, "cv02" 1, "cv03" 1,
+    "cv04" 1, "cv11" 1;
   --font-serif: "TexGyrePagella", serif;
   --font-serif--font-feature-settings:
-    "liga" 1, "ccmp" 1, "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss10" 1,
-    "kern" 1;
+    "liga" 1, "ccmp" 1, "ss01" 1, "ss03" 1, "ss04" 1, "ss10" 1, "kern" 1;
   --sidebar-width: var(--w-sm);
 
   @keyframes fadeInUp {
