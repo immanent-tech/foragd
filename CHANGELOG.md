@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.111.0](https://github.com/immanent-tech/foragd/compare/v0.110.0...v0.111.0) (2026-04-23)
+
+
+### Features
+
+* **models:** :recycle: don't sort favorites before other subscriptions ([7082ed8](https://github.com/immanent-tech/foragd/commit/7082ed8e3fbf066ca1c91f682c2614366f61c8b5))
+* **templates/articles:** :sparkles: limit the number of categories shown on article cards to max 10 and hide all but the first 3 behind a show more button ([45bc7a6](https://github.com/immanent-tech/foragd/commit/45bc7a696dbdf6d1ad2890b303b9b853007bd974))
+
+
+### Bug Fixes
+
+* **auth0:** :bug: fix api form submission with resty ([5b476cc](https://github.com/immanent-tech/foragd/commit/5b476cc7b44b18800a1f396ed099cb75de034085))
+
+
+### Performance Improvements
+
+* :zap: switch back to readability for extracting article content ([8fe8ed4](https://github.com/immanent-tech/foragd/commit/8fe8ed41e5ba62dbea9d9f5ca3cc80a5670909f8))
+
 ## [0.110.0](https://github.com/immanent-tech/foragd/compare/v0.109.0...v0.110.0) (2026-04-23)
 
 
