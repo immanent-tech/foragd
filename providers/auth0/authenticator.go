@@ -98,7 +98,7 @@ func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenR
 	var errResult authentication.Error
 	resp, err := client.R().
 		SetContext(ctx).
-		SetBody(form).
+		SetFormDataFromValues(form).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetResult(&token).
 		SetError(&errResult).

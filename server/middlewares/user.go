@@ -37,7 +37,6 @@ func RequireUserAuth(next http.Handler) http.Handler {
 		}
 
 		if auth0.IsAccessTokenExpired(req) {
-			slogctx.FromCtx(req.Context()).Debug("Access token expired.")
 			refreshToken, err := auth0.GetRefreshToken(req)
 			if err != nil || refreshToken == "" {
 				slogctx.FromCtx(req.Context()).Warn("Access token expired and no refresh token; redirecting to login.",
