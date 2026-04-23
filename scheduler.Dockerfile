@@ -44,11 +44,11 @@ FROM docker.io/alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145
 ENV FORAGD_CONTAINER=1
 
 # Add labels.
-LABEL org.opencontainers.image.source https://github.com/immanent-tech/foragd
-LABEL org.opencontainers.image.url https://foragd.app
-LABEL org.opencontainers.image.title "Foragd Scheduler"
-LABEL org.opencontainers.image.description "Scheduler service for Foragd app is responsible for managing and executing background jobs."
-LABEL org.opencontainers.image.licenses AGPL-3.0-or-later
+LABEL org.opencontainers.image.source="https://github.com/immanent-tech/foragd"
+LABEL org.opencontainers.image.url="https://foragd.app"
+LABEL org.opencontainers.image.title="Foragd Scheduler"
+LABEL org.opencontainers.image.description="Scheduler service for Foragd app is responsible for managing and executing background jobs."
+LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
 # Install supporting packages required for certain functionality.
 RUN apk add ca-certificates tzdata
