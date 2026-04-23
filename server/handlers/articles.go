@@ -17,7 +17,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/client"
@@ -373,7 +372,6 @@ func HandleViewArticle() http.HandlerFunc {
 		if article.ShowFullContent {
 			// content, err := extractArticleFromURL(article.GetLink())
 			content, err := client.ExtractMainContent(req.Context(), article.GetLink())
-			godump.Dump(content, err)
 			switch {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
@@ -441,7 +439,6 @@ func getFullContent(ctx context.Context, originalURL string) (string, error) {
 		return "", fmt.Errorf("get url: %w", err)
 	}
 	if rawResp.IsError() {
-		godump.Dump(respErr)
 		return "", fmt.Errorf("%s: %s", rawResp.Status(), respErr.Detail)
 	}
 
