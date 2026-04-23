@@ -681,7 +681,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 		ctx,
 		feedURL.String(),
 		feeds.PerformValidation(validate),
-		feeds.WithClient(client.LoadHTTPClient()),
+		feeds.WithClient(client.Load()),
 	)
 	if err != nil {
 		if validateErrs, ok := errors.AsType[validator.ValidationErrors](err); ok && validate {
@@ -751,7 +751,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 // itself.
 func findFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 	// Retrieve the content from the feed's site page.
-	resp, err := client.LoadHTTPClient().R().SetContext(ctx).Get(feedURL)
+	resp, err := client.Load().R().SetContext(ctx).Get(feedURL)
 	if err != nil {
 		return nil, fmt.Errorf("get url: %w", err)
 	}

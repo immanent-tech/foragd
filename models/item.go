@@ -464,7 +464,7 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 // itself.
 func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
 	// Retrieve the content from the feed's site page.
-	resp, err := client.LoadHTTPClient().R().SetContext(ctx).Get(link)
+	resp, err := client.Load().R().SetContext(ctx).Get(link)
 	if err != nil {
 		return nil, fmt.Errorf("get url: %w", err)
 	}

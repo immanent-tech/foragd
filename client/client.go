@@ -4,18 +4,26 @@
 package client
 
 import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	"codeberg.org/readeck/go-readability/v2"
 	"github.com/go-resty/resty/v2"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 var (
-	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
+	// UserAgent is the string which the `User-Agent` request header will be set to for underlying requests to fetch
+	// feeds and content.
 	UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
 	// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
 	DefaultHTTPRequestTimeout = 45 * time.Second
@@ -25,7 +33,7 @@ var (
 
 var client *resty.Client
 
-var LoadHTTPClient = sync.OnceValue(func() *resty.Client {
+var Load = sync.OnceValue(func() *resty.Client {
 	client = resty.New().
 		SetHeader("User-Agent", UserAgent).
 		SetHeader("Accept", "*/*").
@@ -33,8 +41,8 @@ var LoadHTTPClient = sync.OnceValue(func() *resty.Client {
 	return client
 })
 
-// limitedReader wraps a reader and stops after the </head> tag or a byte limit.
-// This avoids downloading the entire page body.
+// HeadReader wraps a reader and stops after the </head> tag or a byte limit. This avoids downloading the entire page
+// body.
 type HeadReader struct {
 	r       io.Reader
 	buf     []byte
@@ -47,20 +55,81 @@ func NewHeadReader(r io.Reader, maxBytes int) *HeadReader {
 	return &HeadReader{r: r, maxRead: maxBytes}
 }
 
-func (h *HeadReader) Read(p []byte) (int, error) {
+func (h *HeadReader) Read(page []byte) (int, error) {
 	if h.done {
 		return 0, io.EOF
 	}
 	if h.total >= h.maxRead {
 		return 0, io.EOF
 	}
-	n, err := h.r.Read(p)
+	n, err := h.r.Read(page)
 	h.total += n
 	// Look for </head> in what we just read to stop early
-	chunk := strings.ToLower(string(p[:n]))
+	chunk := strings.ToLower(string(page[:n]))
 	if idx := strings.Index(chunk, "</head>"); idx != -1 {
 		h.done = true
 		return idx + len("</head>"), io.EOF
 	}
-	return n, err
+	return n, fmt.Errorf("read header: %w", err)
+}
+
+// ExtractMainContent extracts the main content from the page at the given URL, using the readability package.
+func ExtractMainContent(ctx context.Context, page string) (string, error) {
+	pageURL, err := url.Parse(page)
+	if err != nil {
+		return "", fmt.Errorf("parse page url: %w", err)
+	}
+
+	// Get the page data.
+	resp, err := Load().R().
+		SetContext(ctx).
+		Get(pageURL.String())
+	if err != nil {
+		return "", fmt.Errorf("get page data: %w", err)
+	}
+	if resp.IsError() {
+		return "", fmt.Errorf("get page data: %v", resp.Error())
+	}
+
+	// Write the page data to a buffer.
+	respBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return "", errors.New("unable to allocate resp buffer")
+	}
+	defer func() {
+		respBuf.Reset()
+		bufPool.Put(respBuf)
+	}()
+	_, err = respBuf.Write(resp.Body())
+	if err != nil {
+		return "", fmt.Errorf("write page data to buffer: %w", err)
+	}
+
+	// Attempt to extract main content from the page data.
+	remote, err := readability.FromReader(respBuf, pageURL)
+	if err != nil {
+		return "", fmt.Errorf("extract article from url %s: %w", pageURL, err)
+	}
+	articleBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return "", errors.New("unable to allocate article buffer")
+	}
+	defer func() {
+		articleBuf.Reset()
+		bufPool.Put(articleBuf)
+	}()
+	if err := remote.RenderHTML(articleBuf); err != nil {
+		return "", fmt.Errorf("render article html: %w", err)
+	}
+
+	// Sanitise the result.
+	content := validation.SanitizeString(articleBuf.String())
+	return content, nil
+}
+
+var bufPool = sync.Pool{
+	New: func() any {
+		var buf bytes.Buffer
+		return &buf
+	},
 }

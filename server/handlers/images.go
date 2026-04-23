@@ -224,7 +224,7 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 // getRemoteImage fetches the image at the given url writes it into the image buffer.
 func getRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
 	// Load the http client used for making requests to the image proxy.
-	httpClient := client.LoadHTTPClient()
+	httpClient := client.Load()
 
 	// Fetch the image (either from proxy or direct).
 	resp, err := httpClient.R().

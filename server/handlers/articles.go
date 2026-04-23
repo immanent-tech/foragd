@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -13,10 +12,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"codeberg.org/readeck/go-readability/v2"
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -375,7 +372,8 @@ func HandleViewArticle() http.HandlerFunc {
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
 			// content, err := extractArticleFromURL(article.GetLink())
-			content, err := getFullContent(req.Context(), article.GetLink())
+			content, err := client.ExtractMainContent(req.Context(), article.GetLink())
+			godump.Dump(content, err)
 			switch {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
@@ -432,7 +430,7 @@ func getFullContent(ctx context.Context, originalURL string) (string, error) {
 	var resp models.ExtractorResponse
 	var respErr models.ExtractorErrorResponse
 
-	httpClient := client.LoadHTTPClient()
+	httpClient := client.Load()
 	rawResp, err := httpClient.R().
 		SetHeader("Accept", "application/json").
 		SetContext(ctx).
@@ -675,37 +673,6 @@ func markArticles(
 	}
 
 	return nil
-}
-
-var articleBufPool = sync.Pool{
-	New: func() any {
-		var buf bytes.Buffer
-		return &buf
-	},
-}
-
-// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
-// it.
-func extractArticleFromURL(url string) (string, error) {
-	remote, err := readability.FromURL(url, client.DefaultHTTPRequestTimeout)
-	if err != nil {
-		return "", fmt.Errorf("extract article from url %s: %w", url, err)
-	}
-
-	buf, ok := articleBufPool.Get().(*bytes.Buffer)
-	if !ok {
-		return "", errors.New("unable to allocate article content buffer")
-	}
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
-
-	if err := remote.RenderHTML(buf); err != nil {
-		return "", fmt.Errorf("render article html: %w", err)
-	}
-	content := validation.SanitizeString(buf.String())
-	return content, nil
 }
 
 // archiveArticle will index the given article content to the article archive for permanent storage.
