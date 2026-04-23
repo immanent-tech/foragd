@@ -1620,14 +1620,14 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	switch sort {
 	case SortNewestFirst, SortOldestFirst:
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
-			switch {
-			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
-				return 1
-			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
-				return -1
-			default:
-				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
-			}
+			// switch {
+			// case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
+			// 	return 1
+			// case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
+			// 	return -1
+			// default:
+			return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
+			// }
 		})
 		// Reverse sort for newest first.
 		if sort == SortNewestFirst {
@@ -1636,24 +1636,24 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	case SortMostUnread, SortLeastUnread:
 		// Sort by unread count, with favorite or search subscriptions before non-favorites/non-search subscriptions.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
-			switch {
-			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
-				return 1
-			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
-				return -1
-			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() == SubscriptionTypeFeed: // Non-feed type before feed type.
-				return 1
-			case subscriptionA.GetSubscriptionType() == SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Non-feed type before feed type.
-				return -1
-			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Use title is tiebreaker where both non feed type.
-				return cmp.Compare(subscriptionA.GetTitle(), subscriptionB.GetTitle())
-			default:
-				cmpValue := cmp.Compare(subscriptionA.GetStats().UnreadTotal(), subscriptionB.GetStats().UnreadTotal())
-				if cmpValue == 0 { // Use date as tiebreaker for equal unread counts.
-					return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
-				}
-				return cmpValue
+			// switch {
+			// case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
+			// 	return 1
+			// case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
+			// 	return -1
+			// case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() == SubscriptionTypeFeed: // Non-feed type before feed type.
+			// 	return 1
+			// case subscriptionA.GetSubscriptionType() == SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Non-feed type before feed type.
+			// 	return -1
+			// case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Use title is tiebreaker where both non feed type.
+			// 	return cmp.Compare(subscriptionA.GetTitle(), subscriptionB.GetTitle())
+			// default:
+			cmpValue := cmp.Compare(subscriptionA.GetStats().UnreadTotal(), subscriptionB.GetStats().UnreadTotal())
+			if cmpValue == 0 { // Use date as tiebreaker for equal unread counts.
+				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
 			}
+			return cmpValue
+			// }
 		})
 		// Reverse sort for most unread.
 		if sort == SortMostUnread {
