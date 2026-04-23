@@ -47,7 +47,10 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<h2 id="article-title" class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none">
+			<h2
+				id="article-title"
+				class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none"
+			>
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
@@ -56,12 +59,21 @@ templ ArticleCard(idx int, article *models.Article) {
 			</h2>
 		}
 		@partials.CardBody() {
-			if len(article.GetCategories(0)) > 0 {
-				<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
-					for category := range slices.Values(article.GetCategories(5)) {
+			{{ categoryLimit := 10 }}
+			// Show up to 10 category badges.
+			if len(article.GetCategories(categoryLimit)) > 0 {
+				<div
+					class="mb-4 flex flex-row flex-wrap gap-2 self-start"
+				>
+					for idx, category := range article.GetCategories(categoryLimit) {
 						{{
 							filters := models.NewListDisplayFilters()
 							filters.Categories = append(filters.Categories, category)
+							var extraClasses string
+							// Only show the first three categories, hide all others behind a button toggle.
+							if idx >= 3 {
+								extraClasses = "hidden"
+							}
 						}}
 						@CategoryBadge(category,
 							element.WithHXOptions(
@@ -70,8 +82,27 @@ templ ArticleCard(idx int, article *models.Article) {
 								element.WithHXValues(filters.Values()),
 								element.WithHXParams("not subscription_id"),
 							),
+							element.WithClasses(extraClasses),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						)
+					}
+					// Add a button to reveal all categories when clicked.
+					if len(article.GetCategories(categoryLimit)) > 3 {
+						<button
+							class="toggle-categories-btn btn btn-xs btn-outline"
+							_="
+							on click
+							  halt the event's bubbling
+          					  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
+							  for tag in :tags
+							   remove .hidden from tag
+							  end
+							  remove me
+							end
+							"
+						>
+							{ fmt.Sprintf("+ %d more",len(article.GetCategories(categoryLimit))-3) }
+						</button>
 					}
 				</div>
 			}
