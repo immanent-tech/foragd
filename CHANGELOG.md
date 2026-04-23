@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.110.0](https://github.com/immanent-tech/foragd/compare/v0.109.0...v0.110.0) (2026-04-23)
+
+
+### Features
+
+* :sparkles: new add feed subscription flow ([1ba4ea2](https://github.com/immanent-tech/foragd/commit/1ba4ea2c44348885d23c0d0cdaf4d8f67778f5b8))
+* **templates/settings:** :sparkles: drag and drop avatar editing with image preview ([2cf9b3b](https://github.com/immanent-tech/foragd/commit/2cf9b3be09ab7ac2e0f04071362a392a3f5ec264))
+
+
+### Bug Fixes
+
+* **scripts:** :bug: fix updating masonry layout on htmx swaps ([68b586a](https://github.com/immanent-tech/foragd/commit/68b586aab86e04d09773eeedc5ff3efc9ab3c2e0))
+* **templates:** :bug: fix scrolling smoothly with hyperscript ([2766101](https://github.com/immanent-tech/foragd/commit/2766101697ef8582c61e8775f05fc5215c39efb0))
+
 ## [0.109.0](https://github.com/immanent-tech/foragd/compare/v0.108.0...v0.109.0) (2026-04-21)
 
 
