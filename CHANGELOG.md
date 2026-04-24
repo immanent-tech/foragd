@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.112.0](https://github.com/immanent-tech/foragd/compare/v0.111.0...v0.112.0) (2026-04-24)
+
+
+### Features
+
+* **blog:** :memo: add Kagi Small Web to finding feeds page ([ce68c7d](https://github.com/immanent-tech/foragd/commit/ce68c7df9112027212aa1ebab4b244a7e2caff86))
+* **templates:** :sparkles: allow removing a subscription from its articles list page ([bb66669](https://github.com/immanent-tech/foragd/commit/bb66669865cfa2231607f1159c6e203b380824a6))
+
+
+### Bug Fixes
+
+* **templates/header:** :bug: fix pricing link ([5488eae](https://github.com/immanent-tech/foragd/commit/5488eae57c91cde305a5340d6347ed921f45decf))
+
+
+### Performance Improvements
+
+* **templates:** :zap: try to smooth pagination jumps ([81d9101](https://github.com/immanent-tech/foragd/commit/81d91011b80d62b7c298e48c5eecf98c6e299d36))
+* **templates/home:** :zap: show less articles on home page ([2783550](https://github.com/immanent-tech/foragd/commit/278355049a2c3f02f92f55c4a47de526f8d2cfa8))
+
 ## [0.111.0](https://github.com/immanent-tech/foragd/compare/v0.110.0...v0.111.0) (2026-04-23)
 
 
