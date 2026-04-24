@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/url"
 	"strings"
 	"sync"
@@ -16,8 +17,12 @@ import (
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/go-resty/resty/v2"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -125,6 +130,44 @@ func ExtractMainContent(ctx context.Context, page string) (string, error) {
 	// Sanitise the result.
 	content := validation.SanitizeString(articleBuf.String())
 	return content, nil
+}
+
+// ExtractMainImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
+// itself.
+func ExtractMainImage(ctx context.Context, page string) (string, error) {
+	// Retrieve the content from the feed's site page.
+	resp, err := Load().R().SetContext(ctx).Get(page)
+	if err != nil {
+		return "", fmt.Errorf("get url: %w", err)
+	}
+	if resp.IsError() {
+		return "", fmt.Errorf("%s: %s", resp.Status(), resp.Error())
+	}
+
+	// Try to parse opengraph data out of the page content.
+	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
+			slog.String("url", page),
+			slog.Any("error", err))
+	} else {
+		return og.Image, nil
+	}
+
+	// Try to find the "main" image in the page content.
+	if imgURL, _ := html.FindMainImage(resp.Body(), page); imgURL != "" {
+		return imgURL, nil
+	}
+
+	// Try to find a favicon to use.
+	if _, url, _, err := html.FindFavicon(resp.Body(), page); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not find favicon for URL.",
+			slog.String("url", page),
+			slog.Any("error", err))
+	} else {
+		return url, nil
+	}
+
+	return "", fmt.Errorf("%q: no image found", page)
 }
 
 var bufPool = sync.Pool{

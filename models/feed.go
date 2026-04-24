@@ -23,7 +23,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-playground/validator/v10"
 	feeds "github.com/immanent-tech/go-syndication"
-	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -31,7 +30,6 @@ import (
 	"github.com/immanent-tech/foragd/client"
 
 	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -692,8 +690,10 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			// On validation errors, try again without validation.
 			return NewFeedFromURL(ctx, feedURL.String(), id, false)
 		}
-		parseErr, ok := errors.AsType[feeds.ParseError](err)
-		if ok && (parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
+		if parseErr, ok := errors.AsType[feeds.ParseError](
+			err,
+		); ok &&
+			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
 			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
 			if !strings.HasPrefix(feedURL.String(), os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
 				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
@@ -709,14 +709,14 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 					return nil, err
 				}
 				// Clean up source URLs: remove proxied URL and re-add original URL as needed.
-				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(e string) bool {
-					ok, err := reverseproxy.IsProxiedURL(e)
+				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(sourceURL string) bool {
+					proxied, err := reverseproxy.IsProxiedURL(sourceURL)
 					switch {
-					case ok:
+					case proxied:
 						return true
 					case err != nil:
 						slogctx.FromCtx(ctx).Warn("Unable to determine if URL was proxied.",
-							slog.String("url", e),
+							slog.String("url", sourceURL),
 							slog.Any("error", err))
 					}
 					return false
@@ -724,9 +724,10 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 				feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
 				return feed, err
 			}
-		} else if ok {
+			// If it has already been proxied and there is a parse error, just return the error.
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), parseErr)
 		}
+		// Return the error.
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), err)
 	}
 
@@ -735,60 +736,18 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 	// Try to find an image for the feed if it does not supply one.
 	if feed.GetImage() == nil {
 		// Fetch and extract image from opengraph data (if any).
-		if img, err := findFeedImage(ctx, feed.GetLink()); err != nil {
+		img, err := client.ExtractMainImage(ctx, feed.GetLink())
+		if err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 				slog.String("feed", feed.GetTitle()),
 			)
-		} else {
-			feed.Image = img
+		}
+		if img != "" {
+			feed.Image = &RemoteImage{URL: new(img), Title: new(feed.GetTitle())}
 		}
 	}
 
 	return feed, nil
-}
-
-// findFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
-// itself.
-func findFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
-	// Retrieve the content from the feed's site page.
-	resp, err := client.Load().R().SetContext(ctx).Get(feedURL)
-	if err != nil {
-		return nil, fmt.Errorf("get url: %w", err)
-	}
-	if resp.IsError() {
-		return nil, fmt.Errorf("%s: %s", resp.Status(), resp.Error())
-	}
-
-	// Try to parse opengraph data out of the page content.
-	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
-		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
-			slog.String("url", feedURL),
-			slog.Any("error", err))
-	} else {
-		return &RemoteImage{
-			URL: new(og.Image),
-		}, nil
-	}
-
-	// Try to find the "main" image in the page content.
-	if imgURL, _ := html.FindMainImage(resp.Body(), feedURL); imgURL != "" {
-		return &RemoteImage{
-			URL: new(imgURL),
-		}, nil
-	}
-
-	// Try to find a favicon to use.
-	if _, url, _, err := html.FindFavicon(resp.Body(), feedURL); err != nil {
-		slogctx.FromCtx(ctx).Debug("Could not find favicon for URL.",
-			slog.String("url", feedURL),
-			slog.Any("error", err))
-	} else {
-		return &RemoteImage{
-			URL: new(url),
-		}, nil
-	}
-
-	return nil, errors.New("unable to find an image for feed")
 }
 
 // newSyndicationFeed converts the raw types.FeedSource into a Feed object.

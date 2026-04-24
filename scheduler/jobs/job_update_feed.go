@@ -164,9 +164,9 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			logMsg.StatusCode = http.StatusInternalServerError
 		}
 		if logMsg.StatusMessage != nil {
-			logMsg.StatusMessage = new("No feed data returned by any URL: " + *logMsg.StatusMessage)
+			logMsg.StatusMessage = new("no feed data returned by any URL: " + *logMsg.StatusMessage)
 		} else {
-			logMsg.StatusMessage = new("No feed data returned by any URL.")
+			logMsg.StatusMessage = new("no feed data returned by any URL")
 		}
 		if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
