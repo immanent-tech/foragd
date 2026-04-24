@@ -516,8 +516,8 @@ func NewEmailItem(email Email, subscription *Subscription) *Item {
 
 // ItemSorting contains the sort options for sorting item search results.
 type ItemSorting struct {
-	Updated   string `json:"updated"`
 	Published string `json:"published"`
+	Updated   string `json:"updated"`
 	ItemID    string `json:"item_id"`
 }
 
@@ -535,14 +535,14 @@ func NewItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	switch *sort {
 	case SortNewestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   "desc",
 			Published: "desc",
+			Updated:   "desc",
 			ItemID:    "desc",
 		})
 	case SortOldestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   "asc",
 			Published: "asc",
+			Updated:   "asc",
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
@@ -553,8 +553,8 @@ func NewItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 		})
 		opts = append(opts,
 			&ItemSorting{
-				Updated:   "asc",
 				Published: "asc",
+				Updated:   "asc",
 				ItemID:    "asc",
 			},
 		)
@@ -571,14 +571,14 @@ func NewItemSortCombinations(sort *Sort) []estypes.SortCombinations {
 	switch *sort {
 	case SortNewestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   "desc",
 			Published: "desc",
+			Updated:   "desc",
 			ItemID:    "desc",
 		})
 	case SortOldestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   "asc",
 			Published: "asc",
+			Updated:   "asc",
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
@@ -589,8 +589,8 @@ func NewItemSortCombinations(sort *Sort) []estypes.SortCombinations {
 		})
 		opts = append(opts,
 			&ItemSorting{
-				Updated:   "asc",
 				Published: "asc",
+				Updated:   "asc",
 				ItemID:    "asc",
 			},
 		)

@@ -294,7 +294,12 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", ids...),
 			// Must be published within last month.
-			query.Since("@timestamp", time.Now().UTC().Add(-24*30*time.Hour)),
+			query.Bool(
+				query.Should(
+					query.Since("published", time.Now().UTC().Add(-24*30*time.Hour)),
+					query.Since("updated", time.Now().UTC().Add(-24*30*time.Hour)),
+				),
+			),
 		),
 	)
 	// Build aggregations.

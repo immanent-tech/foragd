@@ -204,8 +204,8 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				// Published/updated within the last 5 minutes.
 				query.Bool(
 					query.Should(
-						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
 						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
+						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
 					),
 				),
 				// Must match any of the given feed IDs.
