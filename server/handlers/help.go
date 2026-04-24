@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -66,6 +67,8 @@ func DocumentationHandler() http.HandlerFunc {
 		page := &Help{
 			template: templates.Document(mdHTML),
 		}
+
+		godump.Dump(models.UserFromCtx(req.Context()))
 
 		if user := models.UserFromCtx(req.Context()); user != nil {
 			RenderInternalPage(page).ServeHTTP(res, req)
