@@ -743,7 +743,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			)
 		}
 		if img != "" {
-			feed.Image = &RemoteImage{URL: new(img), Title: new(feed.GetTitle())}
+			feed.Image = NewRemoteImage(img, feed.GetTitle())
 		}
 	}
 

@@ -226,9 +226,12 @@ func generateFeedUpdates(newData, oldData *models.Feed) map[string]any {
 	// Always update updated timestamp.
 	updates["updated"] = newData.Updated
 	// Update the feed image if it has changed.
-	if oldData.GetImage() == nil {
+	switch {
+	case oldData.GetImage() == nil && newData.GetImage() != nil:
+		// No existing image and new image found.
 		updates["image"] = newData.GetImage()
-	} else if img := oldData.GetImage(); img.GetURL() != newData.GetImage().GetURL() {
+	case oldData.GetImage() != nil && newData.GetImage() != nil && oldData.GetImage().GetURL() != newData.GetImage().GetURL():
+		//  Existing image is not the same as new image.
 		updates["image"] = newData.GetImage()
 	}
 	// Update the title if it has changed.
