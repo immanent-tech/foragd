@@ -2,7 +2,7 @@
 title = "How to Find RSS and Atom Feeds for any website"
 description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
 created_at = "2026-02-02"
-updated_at = "2026-02-11"
+updated_at = "2026-04-24"
 image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
 author = "Joshua Rich <joshua@immanent.tech>"
 +++
@@ -74,10 +74,12 @@ There are a few dedicated search engines for feeds and sites with quality feed l
   itself will return a human-readable list of feeds for a given site.
 - [Feedspot](https://rss.feedspot.com/): A large database of RSS feeds. The categories are a bit dubious and IMO
   SEO-clickbaity but its possible to find some useful feed links among the lists.
-- [RSSHub](rsshub.app): Is both a search engine and tool you can self-host to provide feed links for sites, including
+- [RSSHub](https://rsshub.app): Is both a search engine and tool you can self-host to provide feed links for sites, including
   generating feed links for sites that don’t publish their own. There are [public
   instances](https://docs.rsshub.app/guide/instances) you use to [browse](https://docs.rsshub.app/routes/) all available
   feed links for different sites. Quality can be hit-and-miss, so YMMV.
+- [Kagi Small Web](https://kagi.com/smallweb): is an old-school webring of independent sites. You can search or navigate
+  by site and topics to find independent blogs and sources.
 
 A little bit of search-fu might work if all else fails. In your favorite search engine, try a search like
 `site:my-favorite.site file:rss`. If you are lucky, the results may include the RSS link for the site.
