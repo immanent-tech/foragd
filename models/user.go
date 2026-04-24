@@ -232,6 +232,7 @@ func (u *User) GetSettings() *UserSettings {
 // GetSubscriptionOptions holds the options for fetching a user's subscriptions.
 type GetSubscriptionOptions struct {
 	OnlyFavorites bool
+	DynamicInfo   bool
 	IDs           []SubscriptionID
 	Categories    []Category
 }
@@ -253,6 +254,12 @@ func WithSubscriptionIDs(ids ...SubscriptionID) GetSubscriptionOption {
 func WithSubscriptionCategories(categories ...Category) GetSubscriptionOption {
 	return func(opts *GetSubscriptionOptions) {
 		opts.Categories = categories
+	}
+}
+
+func WithDynamicInfo(value bool) GetSubscriptionOption {
+	return func(opts *GetSubscriptionOptions) {
+		opts.DynamicInfo = value
 	}
 }
 
@@ -289,6 +296,14 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
+	}
+
+	// Add dynamic info if requested.
+	if opts.DynamicInfo {
+		err = addSubscriptionDynamicInfo(ctx, subscriptions)
+		if err != nil {
+			return nil, fmt.Errorf("add dynamic info: %w", err)
+		}
 	}
 
 	return subscriptions, nil

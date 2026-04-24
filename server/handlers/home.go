@@ -149,11 +149,6 @@ func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Artic
 		return nil, nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	// Use default filters.
-	filters := models.NewListDisplayFilters()
-	// Get up to 6 latest articles.
-	filters.Count = 15
-
 	var (
 		subscriptions models.Subscriptions
 		articles      models.Articles
@@ -161,13 +156,11 @@ func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Artic
 	)
 
 	// Fetch unread subscriptions.
-	subscriptions, err = models.GetSubscriptions(ctx,
-		models.GetSubscriptionsDynamicInfo(true),
-	)
+	subscriptions, err = user.GetSubscriptions(ctx, models.WithDynamicInfo(true))
 	if err != nil {
 		return nil, nil, fmt.Errorf("get subscriptions: %w", err)
 	}
-	subscriptions = subscriptions.FilterByView(filters.GetView()).Sort(models.SortNewestFirst)
+	subscriptions = subscriptions.FilterByView(models.ViewUnread).Sort(models.SortNewestFirst)
 
 	// // Fetch articles for unread subscriptions.
 	// if len(subscriptions) > 0 {
@@ -213,7 +206,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	defaultMaxDocsPerValue := 1
 	shardSize := 200
 	topCategoryHitsCount := 3
-	topSampleHitsCount := 15
+	topSampleHitsCount := 6
 	maxDocCount := int64(3)
 	aggs := aggregations.Aggs{
 		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
