@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.113.0](https://github.com/immanent-tech/foragd/compare/v0.112.0...v0.113.0) (2026-04-24)
+
+
+### Features
+
+* :sparkles: new screenshots/screencast for add content feature ([1e1efdb](https://github.com/immanent-tech/foragd/commit/1e1efdb5b9b629c3a5b50521f0b3e2e241df2f8c))
+
+
+### Bug Fixes
+
+* **templates:** :bug: don't override scroll on pagination ([75f2832](https://github.com/immanent-tech/foragd/commit/75f2832d5bfb2166816f16875a9fcab0600e1c79))
+* **templates:** :bug: when clicking the refresh button on the updates toast, scroll back to the top of the page ([3750a60](https://github.com/immanent-tech/foragd/commit/3750a600ee4df09fe345c6f600332c6b0debc14b))
+* **templates/subscriptions:** :bug: ignore hitting enter key when suggestions input is focused for adding subscriptions ([c9011c9](https://github.com/immanent-tech/foragd/commit/c9011c974549157676772ee1150a9605df5eb1dc))
+
 ## [0.112.0](https://github.com/immanent-tech/foragd/compare/v0.111.0...v0.112.0) (2026-04-24)
 
 
