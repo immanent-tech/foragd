@@ -726,11 +726,24 @@ func HandleRemoveSubscription() http.HandlerFunc {
 		}
 		switch req.FormValue("confirmed") {
 		case "false":
-			RenderPartial(
-				&Modal{
-					template: templates.RemoveSubscriptionModal(request),
-				},
-			).ServeHTTP(res, req)
+			if strings.Contains(req.Referer(), "/list/subscriptions") {
+				// On "/list/subscriptions", remove the subscription card.
+				RenderPartial(&Modal{
+					template: templates.RemoveSubscriptionModal(request,
+						element.WithHXOptions(
+							element.WithHXTarget("#"+request.SubscriptionID),
+							element.WithHXSwap("delete transition:true"),
+						),
+					)}).ServeHTTP(res, req)
+			} else {
+				// On "/list/articles", don't do anything to the page (a redirect will be triggered).
+				RenderPartial(&Modal{
+					template: templates.RemoveSubscriptionModal(request,
+						element.WithHXOptions(
+							element.WithHXSwap("none"),
+						),
+					)}).ServeHTTP(res, req)
+			}
 		case "true":
 			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
 				HandleInternalError(&models.APIError{
@@ -742,6 +755,10 @@ func HandleRemoveSubscription() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 				return
+			}
+			// When the current page is "/list/articles", redirect the user to "/list/subscriptions".
+			if strings.Contains(req.Referer(), "/list/articles") {
+				res.Header().Add(htmx.HeaderRedirect, "/list/subscriptions")
 			}
 			// Show success notification.
 			RenderPartial(

@@ -1607,8 +1607,11 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
-	{{ id := request.SubscriptionID + "-unsubscribe-modal" }}
+templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options ...element.PropertiesOption) {
+	{{
+		id := request.SubscriptionID + "-unsubscribe-modal"
+		props := element.NewProperties(options...)
+	}}
 	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
 			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
@@ -1626,8 +1629,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
-				hx-target={ "#" + request.SubscriptionID }
-				hx-swap="delete transition:true"
+				{ props.Attributes()... }
 				class="flex"
 				_={ "on htmx:afterRequest(successful) close() on #" + id }
 			>
