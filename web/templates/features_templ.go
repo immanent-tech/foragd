@@ -174,7 +174,7 @@ func FeatureAddContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><img width=\"2333\" height=\"2160\" src=\"/content/screenshots/screenshot-feature-addcontent.webp\" alt=\"Screenshots showing different add feed URLs\" class=\"relative -z-20\"></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-addcontent.webp\" alt=\"Screenshot of add content page\" class=\"relative -z-20\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play text-accent absolute size-32 top-[30%] left-[35%]\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -190,7 +190,7 @@ func FeatureAddContent(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<img width=\"2333\" height=\"2160\" src=\"/content/screenshots/screenshot-feature-addcontent.webp\" alt=\"Screenshots showing different add feed URLs\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-addcontent.webm\" type=\"video/webm\"></video>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1379,7 +1379,7 @@ func imagePopup(id string) templ.Component {
 		var templ_7745c5c3_Var81 string
 		templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 600, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 608, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 		if templ_7745c5c3_Err != nil {
