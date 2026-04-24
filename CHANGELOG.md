@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.113.2](https://github.com/immanent-tech/foragd/compare/v0.113.1...v0.113.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* :bug: fix incorrect ordering of articles when sorting by date ([afbf6e7](https://github.com/immanent-tech/foragd/commit/afbf6e7841c85f8c5084c7f28855fcd80248c0ed))
+
 ## [0.113.1](https://github.com/immanent-tech/foragd/compare/v0.113.0...v0.113.1) (2026-04-24)
 
 
