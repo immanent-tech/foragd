@@ -138,7 +138,7 @@ func Start(logger *slog.Logger) error {
 		r.Get("/viewer/url/*", handlers.HandleViewer())
 		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
 		// Help documentation.
-		r.Get("/help", handlers.DocumentationHandler())
+		r.Get("/docs", handlers.DocumentationHandler())
 		// Policy documentation (i.e., terms of service, privacy).
 		r.Get("/policies/*", handlers.PolicyDocsHandler())
 		// Posts index.
@@ -182,6 +182,9 @@ func Start(logger *slog.Logger) error {
 			middlewares.RequireUserAuth,
 			middlewares.PushCriticalAssets,
 		)
+		// Help documentation.
+		r.Get("/help", handlers.DocumentationHandler())
+		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
 		// Payment routes (Stripe).
 		r.Route("/checkout", func(r chi.Router) {
