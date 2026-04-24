@@ -519,7 +519,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-vals={ templ.JSONString(response.Filters.Values()) }
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
-										hx-swap="beforeend scroll:false transition:false"
+										hx-swap="beforeend transition:false"
 										hx-indicator="#loading-subscriptions"
 										_="on htmx:afterRequest remove me"
 									>
