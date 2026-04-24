@@ -651,43 +651,42 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 			@container() {
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Add a subscription</h1>
 				<div>
-					<form>
-						<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
-						<div class="mt-2 w-full">
-							<div class="w-full sm:max-w-xl flex items-center join">
-								<div class="input input-primary w-full">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary icon icon-tabler icons-tabler-outline icon-tabler-search">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-									</svg>
-									<input
-										id="suggestion-text"
-										type="text"
-										name="suggestion_text"
-										placeholder="Enter a URL or keywords..."
-										class="pl-3 flex-1 min-w-0 text-base sm:text-sm/6 join-item"
-										hx-post="/subscription/add/suggestions"
-										hx-target="#subscription-suggestions"
-										hx-trigger="keyup[key!='Enter'] delay:500ms changed"
-										hx-include="[name='suggestion_source']"
-										hx-indicator="#searching-progress"
-									/>
-									<span id="searching-progress" class="htmx-indicator loading loading-spinner loading-xl join-item"></span>
-								</div>
-								// TODO: remove this hidden input once different sources are implemented.
-								<input type="hidden" name="suggestion_source" value="web"/>
-								// <select
-								// 	id="suggestion-source"
-								// 	name="suggestion_source"
-								// 	aria-label="Source"
-								// 	class="select select-primary w-auto shrink-0 join-item"
-								// >
-								// 	<option value="web">Web</option>
-								// 	<option value="youtube">Youtube</option>
-								// 	<option value="reddit">Reddit</option>
-								// </select>
+					<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
+					<div class="mt-2 w-full">
+						<div class="w-full sm:max-w-xl flex items-center join">
+							<div class="input input-primary w-full">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary icon icon-tabler icons-tabler-outline icon-tabler-search">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+								</svg>
+								<input
+									id="suggestion-text"
+									type="text"
+									name="suggestion_text"
+									autocomplete="off"
+									placeholder="Enter a URL or keywords..."
+									class="pl-3 flex-1 min-w-0 text-base sm:text-sm/6 join-item"
+									hx-post="/subscription/add/suggestions"
+									hx-target="#subscription-suggestions"
+									hx-trigger="keyup[key!='Enter'] delay:500ms changed"
+									hx-include="[name='suggestion_source']"
+									hx-indicator="#searching-progress"
+								/>
+								<span id="searching-progress" class="htmx-indicator loading loading-spinner loading-xl join-item"></span>
 							</div>
+							// TODO: remove this hidden input once different sources are implemented.
+							<input type="hidden" name="suggestion_source" value="web"/>
+							// <select
+							// 	id="suggestion-source"
+							// 	name="suggestion_source"
+							// 	aria-label="Source"
+							// 	class="select select-primary w-auto shrink-0 join-item"
+							// >
+							// 	<option value="web">Web</option>
+							// 	<option value="youtube">Youtube</option>
+							// 	<option value="reddit">Reddit</option>
+							// </select>
 						</div>
-					</form>
+					</div>
 				</div>
 				<div id="subscription-suggestions" class="mt-8"></div>
 			}
