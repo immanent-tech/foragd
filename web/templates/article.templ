@@ -857,12 +857,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										class="invisible"
 										hx-post="/list/articles/paginate"
 										hx-vals={ generateHXVals(response.Filters.Values()) }
-										hx-trigger="intersect once"
+										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
-										hx-swap="beforeend transition:false"
+										hx-swap="beforeend scroll:false transition:false"
 										hx-indicator="#loading-articles"
-										preload
-										preload-images="true"
 										_="on htmx:afterRequest remove me"
 									>
 										<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
