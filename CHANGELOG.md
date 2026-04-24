@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.113.1](https://github.com/immanent-tech/foragd/compare/v0.113.0...v0.113.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: fix checking and updating feed image ([8d2bce1](https://github.com/immanent-tech/foragd/commit/8d2bce1a5fbab5e03d859c847d7ee148661575db))
+
 ## [0.113.0](https://github.com/immanent-tech/foragd/compare/v0.112.0...v0.113.0) (2026-04-24)
 
 
