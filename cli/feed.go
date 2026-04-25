@@ -129,8 +129,8 @@ func showFeedDetails(feed *models.Feed) {
 			str.WriteString("Content:")
 			str.WriteRune('\n')
 			str.WriteString(article.GetContent())
-			str.WriteRune('\n')
 		}
+		str.WriteRune('\n')
 	}
 
 	fmt.Fprintf(os.Stdout, "%s", str.String())
