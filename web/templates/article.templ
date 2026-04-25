@@ -321,7 +321,7 @@ templ ArticleContent(article *models.Article) {
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					<div class="fixed top-16 left-0 h-1 w-full bg-base-100 z-10">
-						<div class="h-full bg-accent origin-left transform-[scaleX(0)] animate-growbar"></div>
+						<div class="h-full bg-accent origin-left transform-[scaleX(0)] transform-border animate-growbar"></div>
 					</div>
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6">

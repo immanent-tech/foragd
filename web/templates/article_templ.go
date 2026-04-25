@@ -861,7 +861,7 @@ func ArticleContent(article *models.Article) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"fixed top-16 left-0 h-1 w-full bg-base-100 z-10\"><div class=\"h-full bg-accent origin-left transform-[scaleX(0)] animate-growbar\"></div></div><div class=\"my-4 flex items-center text-sm/6\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"fixed top-16 left-0 h-1 w-full bg-base-100 z-10\"><div class=\"h-full bg-accent origin-left transform-[scaleX(0)] transform-border animate-growbar\"></div></div><div class=\"my-4 flex items-center text-sm/6\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
