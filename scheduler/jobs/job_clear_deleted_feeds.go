@@ -93,7 +93,7 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 		return fmt.Errorf("search jobs: %w", err)
 	}
 	if len(jobs) > 0 {
-		slogctx.FromCtx(ctx).DebugContext(ctx, "Found jobs that need to be deleted.",
+		slogctx.FromCtx(ctx).Info("Found feed jobs that need to be deleted.",
 			slog.Int("count", len(jobs)),
 		)
 	}
@@ -115,6 +115,10 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 				slogctx.FromCtx(ctx).Error("Failed to removed deleted feed job.",
 					slog.String("job_id", job.JobDetail().JobKey().String()),
 					slog.Any("error", err),
+				)
+			} else {
+				slogctx.FromCtx(ctx).Info("Removed feed job marked for deletion.",
+					slog.String("job_id", job.JobDetail().JobKey().String()),
 				)
 			}
 		})

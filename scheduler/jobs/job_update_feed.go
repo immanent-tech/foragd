@@ -199,7 +199,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
-		updates := generateFeedUpdates(feed, details)
+		updates := generateFeedUpdates(ctx, feed, details)
 		updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
 		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, updates); err != nil {
 			return fmt.Errorf("update feed: %w", err)
@@ -221,7 +221,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	return nil
 }
 
-func generateFeedUpdates(newData, oldData *models.Feed) map[string]any {
+func generateFeedUpdates(ctx context.Context, newData, oldData *models.Feed) map[string]any {
 	updates := make(map[string]any)
 	// Always update updated timestamp.
 	updates["updated"] = newData.Updated
@@ -230,17 +230,35 @@ func generateFeedUpdates(newData, oldData *models.Feed) map[string]any {
 	case oldData.GetImage() == nil && newData.GetImage() != nil:
 		// No existing image and new image found.
 		updates["image"] = newData.GetImage()
+		slogctx.FromCtx(ctx).Info("Added feed image.",
+			slog.String("feed_id", newData.GetID()),
+		)
 	case oldData.GetImage() != nil && newData.GetImage() != nil && oldData.GetImage().GetURL() != newData.GetImage().GetURL():
 		//  Existing image is not the same as new image.
 		updates["image"] = newData.GetImage()
+		slogctx.FromCtx(ctx).Info("Updated feed image.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_image", oldData.GetImage().GetURL()),
+			slog.String("new_image", newData.GetImage().GetURL()),
+		)
 	}
 	// Update the title if it has changed.
 	if oldData.GetTitle() != newData.GetTitle() {
+		slogctx.FromCtx(ctx).Info("Updated feed title.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_title", oldData.GetTitle()),
+			slog.String("new_title", newData.GetTitle()),
+		)
 		updates["title"] = newData.GetTitle()
 	}
 	// Update the description if it has changed.
 	if oldData.GetDescription() != newData.GetDescription() {
 		updates["description"] = newData.GetDescription()
+		slogctx.FromCtx(ctx).Info("Updated feed description.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_description", oldData.GetDescription()),
+			slog.String("new_description", newData.GetDescription()),
+		)
 	}
 	return updates
 }
