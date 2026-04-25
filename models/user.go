@@ -299,7 +299,7 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 	}
 
 	// Add dynamic info if requested.
-	if opts.DynamicInfo {
+	if len(subscriptions) > 0 && opts.DynamicInfo {
 		err = addSubscriptionDynamicInfo(ctx, subscriptions)
 		if err != nil {
 			return nil, fmt.Errorf("add dynamic info: %w", err)
