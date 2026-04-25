@@ -885,7 +885,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 			<li class="group/item py-4">
 				<div class="flex items-center mb-4">
 					<div class="mr-4 shrink-0 self-center">
-						if feed.Image.URL == nil {
+						if img := feed.GetImage(); img == nil {
 							@subscriptionThumbnail(nil, feed.GetTitle())
 						} else {
 							{{

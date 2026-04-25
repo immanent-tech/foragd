@@ -2219,7 +2219,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if feed.Image.URL == nil {
+			if img := feed.GetImage(); img == nil {
 				templ_7745c5c3_Err = subscriptionThumbnail(nil, feed.GetTitle()).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
