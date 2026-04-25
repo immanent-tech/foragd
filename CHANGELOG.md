@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.114.0](https://github.com/immanent-tech/foragd/compare/v0.113.2...v0.114.0) (2026-04-25)
+
+
+### Features
+
+* **client:** :sparkles: proxy all get main content requests through reverse proxy ([aada877](https://github.com/immanent-tech/foragd/commit/aada87722803c2cb9fec0fd5c1f11be4e512772c))
+
+
+### Bug Fixes
+
+* **cli:** :bug: fix item output formatting ([48ee01c](https://github.com/immanent-tech/foragd/commit/48ee01cd4873173655a8db6c74310b880f062733))
+* **models:** :bug: better detection of item images ([eafa669](https://github.com/immanent-tech/foragd/commit/eafa66933bcdd6fffa26375157af407f998a66e6))
+
 ## [0.113.2](https://github.com/immanent-tech/foragd/compare/v0.113.1...v0.113.2) (2026-04-24)
 
 
