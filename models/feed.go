@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -700,7 +699,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 		); ok &&
 			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
 			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
-			if !strings.HasPrefix(feedURL.String(), os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
+			if proxied, err := reverseproxy.IsProxiedURL(feedURL.String()); err != nil && !proxied {
 				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
 					slog.Int("response_code", parseErr.Code),
 					slog.String("url", feedURL.String()),
