@@ -21,7 +21,7 @@ import (
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "REVERSEPROXY_"
+	ConfigEnvPrefix = "REVERSEPROXY_"
 )
 
 // cfg is the server config with default values.
