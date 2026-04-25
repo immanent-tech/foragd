@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.114.3](https://github.com/immanent-tech/foragd/compare/v0.114.2...v0.114.3) (2026-04-25)
+
+
+### Bug Fixes
+
+* :arrow_up: update go-syndication for url discovery fix ([fad70f0](https://github.com/immanent-tech/foragd/commit/fad70f0e6070a13761265254c47fa76df198389b))
+
 ## [0.114.2](https://github.com/immanent-tech/foragd/compare/v0.114.1...v0.114.2) (2026-04-25)
 
 
