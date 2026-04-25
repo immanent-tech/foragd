@@ -23,6 +23,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/reverseproxy"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -85,15 +86,20 @@ func ExtractMainContent(ctx context.Context, page string) (string, error) {
 		return "", fmt.Errorf("parse page url: %w", err)
 	}
 
+	proxyURL, err := reverseproxy.GenerateProxyURL(pageURL.String())
+	if err != nil {
+		return "", fmt.Errorf("unable to generate proxy url: %w", err)
+	}
+
 	// Get the page data.
 	resp, err := Load().R().
 		SetContext(ctx).
-		Get(pageURL.String())
+		Get(proxyURL)
 	if err != nil {
 		return "", fmt.Errorf("get page data: %w", err)
 	}
 	if resp.IsError() {
-		return "", fmt.Errorf("get page data: %v", resp.Error())
+		return "", fmt.Errorf("get page data: %s", resp.Status())
 	}
 
 	// Write the page data to a buffer.
