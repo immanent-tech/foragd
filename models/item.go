@@ -5,9 +5,7 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
 	"maps"
 	"slices"
 	"strconv"
@@ -15,7 +13,6 @@ import (
 	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -23,7 +20,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
-	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -441,14 +437,11 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	// Set the image.
 	if sourceImg := source.GetImage(); sourceImg != nil {
 		// Source has an image, use that.
-		item.Image = &RemoteImage{
-			URL:   new(sourceImg.GetURL()),
-			Title: new(sourceImg.GetTitle()),
-		}
+		item.Image = NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
 	} else {
 		// Find an appropriate image for the item and use it.
-		if img, err := findItemImage(ctx, source.GetLink()); err == nil && img != nil {
-			item.Image = img
+		if imgURL, err := client.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+			item.Image = NewRemoteImage(imgURL, item.GetTitle())
 		}
 	}
 
@@ -458,40 +451,6 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	}
 
 	return item
-}
-
-// FindItemImage will try to find an image to represent the item. Useful to call if the item does not define an image
-// itself.
-func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
-	// Retrieve the content from the feed's site page.
-	resp, err := client.Load().R().SetContext(ctx).Get(link)
-	if err != nil {
-		return nil, fmt.Errorf("get url: %w", err)
-	}
-	if resp.IsError() {
-		return nil, fmt.Errorf("%s: %s", resp.Status(), resp.Error())
-	}
-
-	// Try to parse opengraph data out of the page content.
-	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
-		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
-			slog.String("url", link),
-			slog.Any("error", err))
-	} else if og.Image != "" {
-		return &RemoteImage{
-			URL: new(og.Image),
-		}, nil
-
-	}
-
-	// Try to find the "main" image in the page content.
-	if imgURL, _ := html.FindMainImage(resp.Body(), link); imgURL != "" {
-		return &RemoteImage{
-			URL: new(imgURL),
-		}, nil
-	}
-
-	return nil, errors.New("unable to find an image for feed")
 }
 
 // NewEmailItem generates a new Item from an email.
