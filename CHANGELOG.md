@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.114.2](https://github.com/immanent-tech/foragd/compare/v0.114.1...v0.114.2) (2026-04-25)
+
+
+### Bug Fixes
+
+* **templates/subscriptions:** :bug: fix checking for feed image when previewing feed for addition ([c1caeed](https://github.com/immanent-tech/foragd/commit/c1caeedfde9e9b6ff0994c56544fffa708c452c5))
+
 ## [0.114.1](https://github.com/immanent-tech/foragd/compare/v0.114.0...v0.114.1) (2026-04-25)
 
 
