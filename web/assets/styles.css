@@ -59,6 +59,7 @@
     :root {
       font-family: InterVariable, sans-serif;
       font-optical-sizing: auto;
+      -webkit-font-smoothing: antialiased;
     }
   }
 
@@ -68,6 +69,35 @@
 
   el-menu {
     @apply origin-top-right rounded-md bg-base-300 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+  }
+
+  /* Animate popovers using the top-layer transition API */
+  el-popover[popover],
+  [popover] {
+    /* @apply scale-1 opacity-1 transition-[opacity,scale,display,overlay] duration-150 ease-in; */
+    transition:
+      opacity 150ms ease,
+      scale 150ms ease,
+      display 150ms ease allow-discrete,
+      overlay 150ms ease allow-discrete;
+    opacity: 1;
+    scale: 1;
+  }
+
+  /* Exit state (when popover is closed) */
+  el-popover[popover]:not(:popover-open),
+  [popover]:not(:popover-open) {
+    opacity: 0;
+    scale: 0.97;
+  }
+
+  /* Starting state for enter animation */
+  @starting-style {
+    el-popover[popover]:popover-open,
+    [popover]:popover-open {
+      opacity: 0;
+      scale: 0.97;
+    }
   }
 
   el-popover {
