@@ -153,7 +153,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 		// Card footer.
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
-				<div class="flex flex-col min-w-0">
+				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
 							<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
@@ -185,7 +185,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 						</span>
 					}
 				</div>
-				<div class="flex items-center gap-1 shrink-0">
+				<div class="flex shrink-0 items-center gap-1">
 					// Favorite action.
 					<button class="btn btn-square btn-ghost btn-md">
 						<form>
@@ -486,14 +486,14 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												{{ items, ok := itemsData.(models.Items) }}
 												if ok {
 													<div class="mt-auto h-full border-t border-neutral/15">
-														<h3 class="mb-2 text-base font-semibold pt-2">
+														<h3 class="mb-2 pt-2 text-base font-semibold">
 															if subscription.Type == models.SubscriptionTypeSearch {
 																Top Results
 															} else {
 																Latest Articles
 															}
 														</h3>
-														<ul role="list" class="latest-items list-disc marker:text-accent pl-5">
+														<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
 															for item := range slices.Values(items) {
 																<li
 																	hx-get={ "/view/article/" + item.GetID() }
@@ -653,9 +653,9 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				<div>
 					<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
 					<div class="mt-2 w-full">
-						<div class="w-full sm:max-w-xl flex items-center join">
-							<div class="input input-primary w-full">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary icon icon-tabler icons-tabler-outline icon-tabler-search">
+						<div class="join flex w-full items-center sm:max-w-xl">
+							<div class="input w-full input-primary">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-primary">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
 								</svg>
 								<input
@@ -664,14 +664,14 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									name="suggestion_text"
 									autocomplete="off"
 									placeholder="Enter a URL or keywords..."
-									class="pl-3 flex-1 min-w-0 text-base sm:text-sm/6 join-item"
+									class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
 									hx-post="/subscription/add/suggestions"
 									hx-target="#subscription-suggestions"
 									hx-trigger="keyup[key!='Enter'] delay:500ms changed"
 									hx-include="[name='suggestion_source']"
 									hx-indicator="#searching-progress"
 								/>
-								<span id="searching-progress" class="htmx-indicator loading loading-spinner loading-xl join-item"></span>
+								<span id="searching-progress" class="htmx-indicator loading join-item loading-xl loading-spinner"></span>
 							</div>
 							// TODO: remove this hidden input once different sources are implemented.
 							<input type="hidden" name="suggestion_source" value="web"/>
@@ -679,7 +679,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							// 	id="suggestion-source"
 							// 	name="suggestion_source"
 							// 	aria-label="Source"
-							// 	class="select select-primary w-auto shrink-0 join-item"
+							// 	class="select join-item w-auto shrink-0 select-primary"
 							// >
 							// 	<option value="web">Web</option>
 							// 	<option value="youtube">Youtube</option>
@@ -883,7 +883,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 	<ul id="feed-suggestions" class="divide-y divide-neutral/15">
 		for feed := range slices.Values(request.Feeds) {
 			<li class="group/item py-4">
-				<div class="flex items-center mb-4">
+				<div class="mb-4 flex items-center">
 					<div class="mr-4 shrink-0 self-center">
 						if img := feed.GetImage(); img == nil {
 							@subscriptionThumbnail(nil, feed.GetTitle())
@@ -937,14 +937,14 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 									if img.GetTitle() == "" {
 										{{ img.Title = new(item.GetTitle()) }}
 									}
-									<figure class="relative rounded-t-[inherit] overflow-hidden">
+									<figure class="relative overflow-hidden rounded-t-[inherit]">
 										//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 										@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 											element.WithAttribute("width", "400"),
 											element.WithAttribute("height", "300"),
 											element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 										)
-										<div class="absolute inset-0 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)] rounded-t-[inherit] pointer-events-none"></div>
+										<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 									</figure>
 								}
 								@partials.CardHeader() {
@@ -966,7 +966,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 								// }
 								@partials.CardFooter(element.WithClasses("items-center")) {
 									<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
-										<div class="flex flex-col min-w-0">
+										<div class="flex min-w-0 flex-col">
 											if len(item.GetAuthors()) > 0 {
 												{{
 													authors := make([]string, 0)
@@ -981,7 +981,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 											<relative-time
 												datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
 												format="relative"
-												class="text-xs/4 capitalize text-neutral"
+												class="text-xs/4 text-neutral capitalize"
 											>
 												{ item.GetTimestamp().Format("Jan _2, 2006") }
 											</relative-time>
@@ -999,7 +999,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 
 templ ShowNoSuggestions(text string) {
 	<div class="text-center">
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="mx-auto size-12 text-primary icon icon-tabler icons-tabler-filled icon-tabler-zoom-question">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-zoom-question mx-auto size-12 text-primary">
 			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3.072a8 8 0 0 1 2.32 11.834l5.387 5.387a1 1 0 0 1 -1.414 1.414l-5.388 -5.387a8 8 0 0 1 -12.905 -6.32l.005 -.285a8 8 0 0 1 11.995 -6.643m-4 8.928a1 1 0 0 0 -.993 .883l-.007 .127a1 1 0 0 0 1.993 .117l.007 -.127a1 1 0 0 0 -1 -1m-1.9 -5.123a1 1 0 0 0 1.433 1.389l.088 -.09a.5 .5 0 1 1 .379 .824a1 1 0 0 0 -.002 2a2.5 2.5 0 1 0 -1.9 -4.123"></path>
 		</svg>
 		<h3 class="mt-2 text-sm font-semibold">No results</h3>

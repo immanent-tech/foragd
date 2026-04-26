@@ -94,7 +94,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if img.GetTitle() == "" {
 					img.Title = new(article.GetTitle())
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"relative rounded-t-[inherit] overflow-hidden\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"relative overflow-hidden rounded-t-[inherit]\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -106,7 +106,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"absolute inset-0 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)] rounded-t-[inherit] pointer-events-none\"></div></figure>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div></figure>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -206,7 +206,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 						}
 					}
 					if len(article.GetCategories(categoryLimit)) > 3 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<button class=\"toggle-categories-btn btn btn-xs btn-outline\" _=\"\n\t\t\t\t\t\t\ton click\n\t\t\t\t\t\t\t  halt the event's bubbling\n          \t\t\t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t\t\t  end\n\t\t\t\t\t\t\t  remove me\n\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<button class=\"toggle-categories-btn btn btn-outline btn-xs\" _=\"\n\t\t\t\t\t\t\ton click\n\t\t\t\t\t\t\t  halt the event's bubbling\n          \t\t\t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t\t\t  end\n\t\t\t\t\t\t\t  remove me\n\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -269,7 +269,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex flex-col min-w-0\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex min-w-0 flex-col\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -309,7 +309,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" format=\"relative\" class=\"text-xs/4 capitalize text-neutral\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" format=\"relative\" class=\"text-xs/4 text-neutral capitalize\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -322,7 +322,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</relative-time></div><div class=\"flex items-center gap-1 shrink-0\"><button class=\"btn btn-square btn-ghost btn-md\"><form><input type=\"hidden\" name=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</relative-time></div><div class=\"flex shrink-0 items-center gap-1\"><button class=\"btn btn-square btn-ghost btn-md\"><form><input type=\"hidden\" name=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -861,7 +861,7 @@ func ArticleContent(article *models.Article) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"fixed top-16 left-0 h-1 w-full bg-base-100 z-10\"><div class=\"h-full bg-accent origin-left transform-[scaleX(0)] transform-border animate-growbar\"></div></div><div class=\"my-4 flex items-center text-sm/6\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"fixed top-16 left-0 z-10 h-1 w-full bg-base-100\"><div class=\"h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border\"></div></div><div class=\"my-4 flex items-center text-sm/6\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

@@ -323,7 +323,7 @@ templ viewOption(layout, path string, view models.View, filters models.ListFilte
 			}
 			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<span class="pl-2 block text-sm/6 font-medium capitalize">{ view }</span>
+		<span class="block pl-2 text-sm/6 font-medium capitalize">{ view }</span>
 	</label>
 }
 
@@ -364,7 +364,7 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 			}
 			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<span class="pl-2 block text-sm/6 font-medium">Favorites</span>
+		<span class="block pl-2 text-sm/6 font-medium">Favorites</span>
 	</label>
 }
 
@@ -442,7 +442,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			}
 			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<span class="pl-2 block text-sm/6 font-medium">{ category }</span>
+		<span class="block pl-2 text-sm/6 font-medium">{ category }</span>
 	</label>
 }
 
@@ -473,7 +473,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 		>
 			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
 		</svg>
-		<span class="pl-2 block text-sm/6 font-medium">Clear</span>
+		<span class="block pl-2 text-sm/6 font-medium">Clear</span>
 	</div>
 }
 
@@ -545,6 +545,6 @@ templ sortOption(layout, path string, sort models.Sort, filters models.ListFilte
 			}
 			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<span class="pl-2 block text-sm/6 font-medium">{ sort.String() }</span>
+		<span class="block pl-2 text-sm/6 font-medium">{ sort.String() }</span>
 	</label>
 }

@@ -36,14 +36,14 @@ templ ArticleCard(idx int, article *models.Article) {
 			if img.GetTitle() == "" {
 				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure class="relative rounded-t-[inherit] overflow-hidden">
+			<figure class="relative overflow-hidden rounded-t-[inherit]">
 				//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
 					element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 				)
-				<div class="absolute inset-0 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)] rounded-t-[inherit] pointer-events-none"></div>
+				<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 			</figure>
 		}
 		@partials.CardHeader() {
@@ -86,7 +86,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					// Add a button to reveal all categories when clicked.
 					if len(article.GetCategories(categoryLimit)) > 3 {
 						<button
-							class="toggle-categories-btn btn btn-xs btn-outline"
+							class="toggle-categories-btn btn btn-outline btn-xs"
 							_="
 							on click
 							  halt the event's bubbling
@@ -112,7 +112,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
-				<div class="flex flex-col min-w-0">
+				<div class="flex min-w-0 flex-col">
 					if len(article.GetAuthors()) > 0 {
 						{{
 							authors := make([]string, 0)
@@ -127,12 +127,12 @@ templ ArticleCard(idx int, article *models.Article) {
 					<relative-time
 						datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 						format="relative"
-						class="text-xs/4 capitalize text-neutral"
+						class="text-xs/4 text-neutral capitalize"
 					>
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>
 				</div>
-				<div class="flex items-center gap-1 shrink-0">
+				<div class="flex shrink-0 items-center gap-1">
 					<button class="btn btn-square btn-ghost btn-md">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
@@ -317,8 +317,8 @@ templ ArticleContent(article *models.Article) {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
-					<div class="fixed top-16 left-0 h-1 w-full bg-base-100 z-10">
-						<div class="h-full bg-accent origin-left transform-[scaleX(0)] transform-border animate-growbar"></div>
+					<div class="fixed top-16 left-0 z-10 h-1 w-full bg-base-100">
+						<div class="h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border"></div>
 					</div>
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6">

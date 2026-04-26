@@ -284,7 +284,7 @@ func SubscriptionCard(idx int, s *models.Subscription) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex flex-col min-w-0\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex min-w-0 flex-col\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -387,7 +387,7 @@ func SubscriptionCard(idx int, s *models.Subscription) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"flex items-center gap-1 shrink-0\"><button class=\"btn btn-square btn-ghost btn-md\"><form><input type=\"hidden\" name=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"flex shrink-0 items-center gap-1\"><button class=\"btn btn-square btn-ghost btn-md\"><form><input type=\"hidden\" name=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1107,7 +1107,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 											if ok {
 												items, ok := itemsData.(models.Items)
 												if ok {
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<div class=\"mt-auto h-full border-t border-neutral/15\"><h3 class=\"mb-2 text-base font-semibold pt-2\">")
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<div class=\"mt-auto h-full border-t border-neutral/15\"><h3 class=\"mb-2 pt-2 text-base font-semibold\">")
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}
@@ -1122,7 +1122,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 															return templ_7745c5c3_Err
 														}
 													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</h3><ul role=\"list\" class=\"latest-items list-disc marker:text-accent pl-5\">")
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</h3><ul role=\"list\" class=\"latest-items list-disc pl-5 marker:text-accent\">")
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}
@@ -1682,7 +1682,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Add a subscription</h1><div><label for=\"suggestion-text\" class=\"block text-sm/6 font-medium text-neutral\">Find sources:</label><div class=\"mt-2 w-full\"><div class=\"w-full sm:max-w-xl flex items-center join\"><div class=\"input input-primary w-full\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"text-primary icon icon-tabler icons-tabler-outline icon-tabler-search\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg> <input id=\"suggestion-text\" type=\"text\" name=\"suggestion_text\" autocomplete=\"off\" placeholder=\"Enter a URL or keywords...\" class=\"pl-3 flex-1 min-w-0 text-base sm:text-sm/6 join-item\" hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed\" hx-include=\"[name='suggestion_source']\" hx-indicator=\"#searching-progress\"> <span id=\"searching-progress\" class=\"htmx-indicator loading loading-spinner loading-xl join-item\"></span></div><input type=\"hidden\" name=\"suggestion_source\" value=\"web\"></div></div></div><div id=\"subscription-suggestions\" class=\"mt-8\"></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Add a subscription</h1><div><label for=\"suggestion-text\" class=\"block text-sm/6 font-medium text-neutral\">Find sources:</label><div class=\"mt-2 w-full\"><div class=\"join flex w-full items-center sm:max-w-xl\"><div class=\"input w-full input-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-search text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg> <input id=\"suggestion-text\" type=\"text\" name=\"suggestion_text\" autocomplete=\"off\" placeholder=\"Enter a URL or keywords...\" class=\"join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6\" hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed\" hx-include=\"[name='suggestion_source']\" hx-indicator=\"#searching-progress\"> <span id=\"searching-progress\" class=\"htmx-indicator loading join-item loading-xl loading-spinner\"></span></div><input type=\"hidden\" name=\"suggestion_source\" value=\"web\"></div></div></div><div id=\"subscription-suggestions\" class=\"mt-8\"></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2215,7 +2215,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 			return templ_7745c5c3_Err
 		}
 		for feed := range slices.Values(request.Feeds) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<li class=\"group/item py-4\"><div class=\"flex items-center mb-4\"><div class=\"mr-4 shrink-0 self-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<li class=\"group/item py-4\"><div class=\"mb-4 flex items-center\"><div class=\"mr-4 shrink-0 self-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2312,7 +2312,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 							if img.GetTitle() == "" {
 								img.Title = new(item.GetTitle())
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, " <figure class=\"relative rounded-t-[inherit] overflow-hidden\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, " <figure class=\"relative overflow-hidden rounded-t-[inherit]\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -2324,7 +2324,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "<div class=\"absolute inset-0 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)] rounded-t-[inherit] pointer-events-none\"></div></figure>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "<div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div></figure>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -2391,7 +2391,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 								}()
 							}
 							ctx = templ.InitializeContext(ctx)
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex flex-col min-w-0\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "<div class=\"flex items-center justify-between border-t border-neutral/15 pt-3\"><div class=\"flex min-w-0 flex-col\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -2431,7 +2431,7 @@ func ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) templ.C
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "\" format=\"relative\" class=\"text-xs/4 capitalize text-neutral\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "\" format=\"relative\" class=\"text-xs/4 text-neutral capitalize\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -2509,7 +2509,7 @@ func ShowNoSuggestions(text string) templ.Component {
 			templ_7745c5c3_Var113 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "<div class=\"text-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"mx-auto size-12 text-primary icon icon-tabler icons-tabler-filled icon-tabler-zoom-question\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 3.072a8 8 0 0 1 2.32 11.834l5.387 5.387a1 1 0 0 1 -1.414 1.414l-5.388 -5.387a8 8 0 0 1 -12.905 -6.32l.005 -.285a8 8 0 0 1 11.995 -6.643m-4 8.928a1 1 0 0 0 -.993 .883l-.007 .127a1 1 0 0 0 1.993 .117l.007 -.127a1 1 0 0 0 -1 -1m-1.9 -5.123a1 1 0 0 0 1.433 1.389l.088 -.09a.5 .5 0 1 1 .379 .824a1 1 0 0 0 -.002 2a2.5 2.5 0 1 0 -1.9 -4.123\"></path></svg><h3 class=\"mt-2 text-sm font-semibold\">No results</h3><p class=\"mt-1 text-sm text-neutral\">We could not find any good matches for <strong>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "<div class=\"text-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-zoom-question mx-auto size-12 text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 3.072a8 8 0 0 1 2.32 11.834l5.387 5.387a1 1 0 0 1 -1.414 1.414l-5.388 -5.387a8 8 0 0 1 -12.905 -6.32l.005 -.285a8 8 0 0 1 11.995 -6.643m-4 8.928a1 1 0 0 0 -.993 .883l-.007 .127a1 1 0 0 0 1.993 .117l.007 -.127a1 1 0 0 0 -1 -1m-1.9 -5.123a1 1 0 0 0 1.433 1.389l.088 -.09a.5 .5 0 1 1 .379 .824a1 1 0 0 0 -.002 2a2.5 2.5 0 1 0 -1.9 -4.123\"></path></svg><h3 class=\"mt-2 text-sm font-semibold\">No results</h3><p class=\"mt-1 text-sm text-neutral\">We could not find any good matches for <strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
