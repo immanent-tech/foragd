@@ -65,30 +65,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"viewer\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Feed Viewer</h1><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\"><span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to <span class=\"font-mono\">https://foragd.app/viewer/url/https://some.site</span>. For example, <a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono\">https://foragd.app/viewer/url/https://foragd.app</a>. You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"join mt-4 w-full justify-center\"><input type=\"url\" inputmode=\"url\" name=\"url\" class=\"input w-full max-w-prose bg-base-300 brightness-95 input-primary\" placeholder=\"https://some.site...\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if feed != nil {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " value=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var4 string
-					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetSourceURLs()[0])
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 60, Col: 39}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " aria-label=\"Feed or Site URL\"> <button class=\"btn join-item\">View</button></div></form></section><div id=\"processing\" class=\"htmx-indicator mx-auto my-4 flex justify-center\"><span class=\"loading flex loading-lg loading-dots\"></span></div><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"viewer\" class=\"mx-auto sm:max-w-2xl\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Feed Viewer</h1><div class=\"mx-auto max-w-prose text-pretty\"><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\"><span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to:</p><pre class=\"mt-4 overflow-x-scroll text-sm\">https://foragd.app/viewer/url/https://some.site</pre><p class=\"mt-4\">As an example, try this link:</p><a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono text-sm\">https://foragd.app/viewer/url/https://foragd.app</a><p class=\"mt-4\">You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\" aria-label=\"Bookmarklet link\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p></div><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"mt-12\"><label for=\"url\" class=\"block text-sm/6 font-medium text-neutral\">Website URL</label><div class=\"join mt-2 flex w-full\"><div class=\"join-item -mr-px grid grow grid-cols-1 focus-within:relative\"><input id=\"url\" type=\"url\" name=\"url\" placeholder=\"https://some.site...\" class=\"input col-start-1 row-start-1 block w-full bg-base-300 py-1.5 pr-3 pl-10 brightness-95 input-primary\"> <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none col-start-1 row-start-1 ml-3 size-5 self-center\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg></div><button type=\"submit\" class=\"btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2\">Search</button></div></div></form></section><div id=\"processing\" class=\"htmx-indicator mx-auto my-4 flex justify-center\"><span class=\"loading flex loading-lg loading-dots\"></span></div><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -104,7 +81,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</section><section><div class=\"lg:grid lg:grid-cols-12 lg:gap-8\"><div class=\"lg:col-span-5\"><h2 class=\"text-3xl font-semibold tracking-tight text-pretty sm:text-4xl\">Frequently asked questions</h2><p class=\"mt-4 text-base/7 text-pretty\">Got more questions? Reach out to us via <a href=\"mailto:hello@immanent.tech\" class=\"link\">email</a>.</p></div><div class=\"mt-10 lg:col-span-7 lg:mt-0\"><dl class=\"space-y-10\"><div><dt class=\"text-base/7 font-semibold\">How does the feed viewer work?</dt><dd class=\"mt-2 text-base/7\">When you enter a URL, the feed viewer will fetch the source of the page, if the source is one of the known feed formats like RSS or Atom, the viewer will format and return the posts contained in the feed. If the source is normal webpage, the viewer will look at links in the page and try to find one that points to feed content, which it will then fetch, format and display.</dd></div><div><dt class=\"text-base/7 font-semibold\">Why did the feed viewer not find content for my URL?</dt><dd class=\"mt-2 text-base/7\">Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find feed content, and uses a few tricks for this, there are still websites that cannot be parsed.</dd></div><div><dt class=\"text-base/7 font-semibold\">Does the feed viewer collect or store any information about me, the URL or the feed content it fetches?</dt><dd class=\"mt-2 text-base/7\">No. Content is fetched and displayed dynamically, and is not stored once you navigate away from the page. We do store webserver logs and use Umami analytics to track minimal, anonymous usage of the feed viewer. No personal information is collected or stored. The feed viewer does not require cookies.</dd></div><div><dt class=\"text-base/7 font-semibold\">Is this open-source?</dt><dd class=\"mt-2 text-base/7\">The underlying library that does most of the heavy lifting, <a href=\"https://github.com/immanent-tech/go-syndication\" class=\"link\">go-syndication</a> is open-source! The site itself is part of <a href=\"https://foragd.app\" class=\"link\">Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.</dd></div></dl></div></div></section>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</section><section class=\"mx-auto max-w-2xl\"><h2 class=\"text-3xl font-semibold tracking-tight text-pretty sm:text-4xl\">Frequently asked questions</h2><div class=\"mt-10\"><dl class=\"space-y-10\"><div><dt class=\"text-base/7 font-semibold\">How does the feed viewer work?</dt><dd class=\"mt-2 text-base/7 text-pretty\">When you enter a URL, the feed viewer will fetch the source of the page, if the source is one of the known feed formats like RSS or Atom, the viewer will format and return the posts contained in the feed. If the source is normal webpage, the viewer will look at links in the page and try to find one that points to feed content, which it will then fetch, format and display.</dd></div><div><dt class=\"text-base/7 font-semibold\">Why did the feed viewer not find content for my URL?</dt><dd class=\"mt-2 text-base/7 text-pretty\">Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find feed content, and uses a few tricks for this, there are still websites that cannot be parsed.</dd></div><div><dt class=\"text-base/7 font-semibold\">Does the feed viewer collect or store any information about me, the URL or the feed content it fetches?</dt><dd class=\"mt-2 text-base/7 text-pretty\">No. Content is fetched and displayed dynamically, and is not stored once you navigate away from the page. We do store webserver logs and use Umami analytics to track minimal, anonymous usage of the feed viewer. No personal information is collected or stored. The feed viewer does not require cookies.</dd></div><div><dt class=\"text-base/7 font-semibold\">Is this open-source?</dt><dd class=\"mt-2 text-base/7 text-pretty\">The underlying library that does most of the heavy lifting, <a href=\"https://github.com/immanent-tech/go-syndication\" class=\"link\">go-syndication</a> is open-source! The site itself is part of <a href=\"https://foragd.app\" class=\"link\">Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.</dd></div></dl></div><p class=\"mt-24 text-base/7 text-pretty\">Got more questions? Reach out to us via <a href=\"mailto:hello@immanent.tech\" class=\"link\">email</a>.</p></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -140,22 +117,22 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div aria-live=\"polite\"><h2 id=\"profile-overview-title\" class=\"sr-only\">Feed Overview</h2><div class=\"p-6\"><div class=\"sm:flex sm:items-center sm:justify-between\"><div class=\"sm:flex sm:space-x-5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div aria-live=\"polite\"><h2 id=\"profile-overview-title\" class=\"sr-only\">Feed Overview</h2><div class=\"p-6\"><div class=\"sm:flex sm:items-center sm:justify-between\"><div class=\"sm:flex sm:space-x-5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if img := feed.GetImage(); img != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if img := feed.GetImage(); img != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"avatar\"><div class=\"mask w-12 mask-squircle\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " <div class=\"avatar\"><div class=\"mask w-12 mask-squircle\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -168,143 +145,143 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"avatar avatar-placeholder\"><div class=\"mask w-12 bg-neutral mask-squircle text-neutral-content\"><span class=\"text-3xl capitalize\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"avatar avatar-placeholder\"><div class=\"mask w-12 bg-neutral mask-squircle text-neutral-content\"><span class=\"text-3xl capitalize\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle()[0:1])
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle()[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 170, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 182, Col: 67}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><div><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle())
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 177, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 189, Col: 26}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if feed.GetDescription() != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 180, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 192, Col: 35}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><div class=\"mt-5 flex justify-center sm:mt-0\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"mt-5 flex justify-center sm:mt-0\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 templ.SafeURL
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(feed.GetLink())
+		var templ_7745c5c3_Var8 templ.SafeURL
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(feed.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 188, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 200, Col: 27}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View Website <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div><div class=\"mx-auto grid grid-cols-1 justify-center sm:grid-cols-3\"><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(len(feed.GetItems()))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 216, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View Website <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div><div class=\"mx-auto grid grid-cols-1 justify-center sm:grid-cols-3\"><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(len(feed.GetItems()))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 204, Col: 41}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> <span class=\"\">Items</span></div><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">Last Updated</span> <span class=\"label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span> <span class=\"\">Items</span></div><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">Last Updated</span> <span class=\"label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if !feed.GetTimestamp().Equal(models.UnixEpoch) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<relative-time datetime=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<relative-time datetime=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 224, Col: 72}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" format=\"relative\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 212, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 227, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" format=\"relative\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("Jan _2, 2006"))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 215, Col: 51}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</relative-time>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</relative-time>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "Unknown")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "Unknown")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(feed.GetItems()) > 0 {
-			templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var12 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -324,11 +301,11 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -357,48 +334,48 @@ func ViewerError(msg *models.UserMessage) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var14 == nil {
-			templ_7745c5c3_Var14 = templ.NopComponent
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"text-center\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"text-center\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 237, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 249, Col: 16}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</h2>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if msg.HasDetails() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 240, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 252, Col: 20}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -423,12 +400,12 @@ func viewerItemCard(item models.Item) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var17 == nil {
-			templ_7745c5c3_Var17 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"card w-full bg-base-200 shadow-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"card w-full bg-base-200 shadow-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -438,64 +415,64 @@ func viewerItemCard(item models.Item) templ.Component {
 			img, _ = models.ExtractImageFromContent(item.GetContent())
 		}
 		if img != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<figure><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<figure><img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 268, Col: 23}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" alt=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 256, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 269, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" alt=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" srcset=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var19 string
-			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 257, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 270, Col: 243}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" srcset=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var20 string
-			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w")
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 258, Col: 243}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" sizes=\"(max-width: 480px) 100vw, 600px\" decoding=\"async\" loading=\"lazy\" class=\"card-img\"></figure>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" sizes=\"(max-width: 480px) 100vw, 600px\" decoding=\"async\" loading=\"lazy\" class=\"card-img\"></figure>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"card-body\"><div class=\"card-title line-clamp-3 tracking-tight text-balance\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"card-body\"><div class=\"card-title line-clamp-3 tracking-tight text-balance\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var21 string
-		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 267, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 279, Col: 85}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div><div class=\"inline-grid flex-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div><div class=\"inline-grid flex-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -504,51 +481,51 @@ func viewerItemCard(item models.Item) templ.Component {
 			for author := range slices.Values(item.GetAuthors()) {
 				authors = append(authors, author.String())
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<strong class=\"truncate text-sm/6\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<strong class=\"truncate text-sm/6\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 string
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
+			var templ_7745c5c3_Var21 string
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 278, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 290, Col: 33}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</strong>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</strong>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<p class=\"col-span-full text-sm/6 capitalize\">Updated&nbsp; <relative-time datetime=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<p class=\"col-span-full text-sm/6 capitalize\">Updated&nbsp; <relative-time datetime=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var22 string
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 296, Col: 71}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" format=\"relative\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
-		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 284, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 299, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" format=\"relative\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var24 string
-		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 287, Col: 50}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</relative-time></p></div><div data-disable-scripting class=\"prose-summary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</relative-time></p></div><div data-disable-scripting class=\"prose-summary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -564,20 +541,20 @@ func viewerItemCard(item models.Item) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div><div class=\"card-actions justify-end\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</div><div class=\"card-actions justify-end\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var25 templ.SafeURL
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinURLErrs(item.GetLink())
+		var templ_7745c5c3_Var24 templ.SafeURL
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(item.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 301, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 313, Col: 26}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
