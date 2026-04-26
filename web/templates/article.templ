@@ -47,10 +47,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<h2
-				id="article-title"
-				class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none"
-			>
+			<h2 class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
