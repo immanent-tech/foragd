@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.115.0](https://github.com/immanent-tech/foragd/compare/v0.114.3...v0.115.0) (2026-04-26)
+
+
+### Features
+
+* **styles:** :lipstick: nice animations for popovers ([7e42f86](https://github.com/immanent-tech/foragd/commit/7e42f8638f7565a83d71eebbdd9c4bfc5cddf606))
+* **templates:** :lipstick: improved list controls styling ([5cfe588](https://github.com/immanent-tech/foragd/commit/5cfe588a80d77daa064cbacc07f82ba9967d49de))
+
+
+### Bug Fixes
+
+* **templates:** :bug: correct size for favorites filter ([9b12930](https://github.com/immanent-tech/foragd/commit/9b12930fdbdfabb749d597d9e1a3a814754974e6))
+* **templates:** :fire: remove duplicate class attribute ([15ba7b8](https://github.com/immanent-tech/foragd/commit/15ba7b8104d61003f1578940d0e79ca9f87d7a55))
+* **templates:** :lipstick: fix a few minor style issues ([05e66dc](https://github.com/immanent-tech/foragd/commit/05e66dc87e30e6e1cae52c6f997c7cc646d70c09))
+* **templates/articles:** :bug: fix reading position indicator in firefox ([3054665](https://github.com/immanent-tech/foragd/commit/30546650ae2a36b2be09e7a3e2e8f23eefe86ef9))
+* **templates/home:** :bug: correct updates toast position ([4bb7040](https://github.com/immanent-tech/foragd/commit/4bb7040a28c3c09a416e91faba18e0efb64999e6))
+* **templates/subscriptions:** :bug: fix closing unsubsribe modal after removal ([ac97345](https://github.com/immanent-tech/foragd/commit/ac973453682f9f2cd2822a790ee36498fd2425ee))
+
 ## [0.114.3](https://github.com/immanent-tech/foragd/compare/v0.114.2...v0.114.3) (2026-04-25)
 
 
