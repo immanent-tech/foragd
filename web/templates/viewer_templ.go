@@ -65,7 +65,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"viewer\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Feed Viewer</h1><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\"><span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to <span class=\"font-mono\">https://foragd.app/viewer/url/https://some.site</span>. For example, <a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono\">https://foragd.app/viewer/url/https://foragd.app</a>. You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"join w-full mt-4\"><input type=\"url\" inputmode=\"url\" name=\"url\" class=\"input input-primary w-full bg-base-300 brightness-95\" placeholder=\"https://some.site...\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"viewer\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Feed Viewer</h1><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\"><span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to <span class=\"font-mono\">https://foragd.app/viewer/url/https://some.site</span>. For example, <a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono\">https://foragd.app/viewer/url/https://foragd.app</a>. You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"join mt-4 w-full justify-center\"><input type=\"url\" inputmode=\"url\" name=\"url\" class=\"input w-full max-w-prose bg-base-300 brightness-95 input-primary\" placeholder=\"https://some.site...\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -88,7 +88,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " aria-label=\"Feed or Site URL\"> <button class=\"btn join-item\">View</button></div></form></section><div id=\"processing\" class=\"htmx-indicator my-4 flex justify-center mx-auto\"><span class=\"flex loading loading-dots loading-lg\"></span></div><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " aria-label=\"Feed or Site URL\"> <button class=\"btn join-item\">View</button></div></form></section><div id=\"processing\" class=\"htmx-indicator mx-auto my-4 flex justify-center\"><span class=\"loading flex loading-lg loading-dots\"></span></div><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -155,7 +155,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if img := feed.GetImage(); img != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"avatar\"><div class=\"mask mask-squircle w-12\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"avatar\"><div class=\"mask w-12 mask-squircle\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -173,7 +173,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"avatar avatar-placeholder\"><div class=\"bg-neutral text-neutral-content w-12 mask mask-squircle\"><span class=\"text-3xl capitalize\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"avatar avatar-placeholder\"><div class=\"mask w-12 bg-neutral mask-squircle text-neutral-content\"><span class=\"text-3xl capitalize\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -245,7 +245,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn btn-primary link link-hover flex items-center\">View Website <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div><div class=\"mx-auto grid grid-cols-1 sm:grid-cols-3 justify-center\"><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View Website <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div><div class=\"mx-auto grid grid-cols-1 justify-center sm:grid-cols-3\"><div class=\"px-6 py-5 text-center text-sm font-medium\"><span class=\"\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -428,7 +428,7 @@ func viewerItemCard(item models.Item) templ.Component {
 			templ_7745c5c3_Var17 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"card bg-base-200 w-full shadow-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"card w-full bg-base-200 shadow-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -482,7 +482,7 @@ func viewerItemCard(item models.Item) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"card-body\"><div class=\"card-title tracking-tight text-balance line-clamp-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"card-body\"><div class=\"card-title line-clamp-3 tracking-tight text-balance\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -495,7 +495,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div><div class=\"flex-1 inline-grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div><div class=\"inline-grid flex-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -577,7 +577,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn btn-primary link link-hover flex items-center\">View <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" target=\"_blank\" rel=\"noopener\" role=\"button\" class=\"btn flex link items-center link-hover btn-primary\">View <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-external-link\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\"></path><path d=\"M11 13l9 -9\"></path><path d=\"M15 4h5v5\"></path></svg></a></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
