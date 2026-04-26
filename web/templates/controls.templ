@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"slices"
-	"strconv"
 	"strings"
 )
 
@@ -50,7 +49,15 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-category-filters-disclosure" hidden class="flex flex-col pt-4">
+						<el-disclosure
+							id="mobile-category-filters-disclosure"
+							hidden
+							class="flex flex-col pt-4"
+							_="
+							  on htmx:beforeRequest add .animate-pulse to me
+							  on htmx:afterRequest remove .animate-pulse from me
+							"
+						>
 							<div
 								id="category-filters-mobile"
 								class="space-y-6 text-sm"
@@ -58,9 +65,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								hx-include="[name='displayed_subscriptions']"
 								hx-vals={ generateHXVals(filters.Values()) }
 								hx-trigger="click from:#filters-mobile-disclosure-button"
-								hx-indicator="#load-categories-mobile"
 							></div>
-							<span id="load-categories-mobile" class="htmx-indicator loading loading-sm loading-spinner"></span>
 						</el-disclosure>
 					</div>
 					// View Filters (mobile).
@@ -79,9 +84,20 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-view-filters-disclosure" hidden class="block pt-4">
+						<el-disclosure
+							id="mobile-view-filters-disclosure"
+							hidden
+							class="block pt-4"
+						>
 							<div class="space-y-6 text-sm">
-								@viewFilters("mobile", path, filters)
+								<fieldset>
+									<div class="space-y-6">
+										@viewOption("mobile", path, models.ViewUnread, *filters)
+										@viewOption("mobile", path, models.ViewRead, *filters)
+										@viewOption("mobile", path, models.ViewAll, *filters)
+										@viewOptionFavorites("mobile", path, filters)
+									</div>
+								</fieldset>
 							</div>
 						</el-disclosure>
 					</div>
@@ -93,6 +109,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								command="--toggle"
 								commandfor="mobile-sort-filters-disclosure"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
+								class="block pt-4"
 							>
 								<span class="sr-only">Show sort filters</span>
 								<span class="font-medium">Sort</span>
@@ -101,8 +118,21 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-sort-filters-disclosure" hidden class="block pt-4">
-							@sortFilters("mobile", path, filters)
+						<el-disclosure
+							id="mobile-sort-filters-disclosure"
+							hidden
+							class="block pt-4"
+						>
+							<fieldset aria-label="Sorting">
+								<div class="space-y-6">
+									@sortOption("mobile", path, models.SortNewestFirst, *filters)
+									@sortOption("mobile", path, models.SortOldestFirst, *filters)
+									if path == "/list/subscriptions" {
+										@sortOption("mobile", path, models.SortMostUnread, *filters)
+										@sortOption("mobile", path, models.SortLeastUnread, *filters)
+									}
+								</div>
+							</fieldset>
 						</el-disclosure>
 					</div>
 				</el-dialog-panel>
@@ -146,11 +176,13 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									hx-include="[name='displayed_subscriptions']"
 									hx-vals={ generateHXVals(filters.Values()) }
 									hx-target="#desktop-category-filters-list"
-									hx-indicator="#load-categories-desktop"
 									hx-trigger="click from:#desktop-category-filters-button"
+									_="
+									  on htmx:beforeRequest add .animate-pulse to me
+									  on htmx:afterRequest remove .animate-pulse from me
+									"
 								>
 									<div id="desktop-category-filters-list" class="space-y-4 text-sm"></div>
-									<span id="load-categories-desktop" class="htmx-indicator loading loading-sm loading-spinner"></span>
 								</el-popover>
 							</div>
 						</div>
@@ -165,7 +197,15 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									</svg>
 								</button>
 								<el-popover id="desktop-view-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
-									@viewFilters("desktop", path, filters)
+									<fieldset>
+										<legend class="sr-only">View</legend>
+										<div class="space-y-6">
+											@viewOption("desktop", path, models.ViewUnread, *filters)
+											@viewOption("desktop", path, models.ViewRead, *filters)
+											@viewOption("desktop", path, models.ViewAll, *filters)
+											@viewOptionFavorites("desktop", path, filters)
+										</div>
+									</fieldset>
 								</el-popover>
 							</div>
 						</div>
@@ -180,7 +220,16 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									</svg>
 								</button>
 								<el-popover id="desktop-sort-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
-									@sortFilters("desktop", path, filters)
+									<fieldset aria-label="Sorting">
+										<div class="space-y-6">
+											@sortOption("desktop", path, models.SortNewestFirst, *filters)
+											@sortOption("desktop", path, models.SortOldestFirst, *filters)
+											if path == "/list/subscriptions" {
+												@sortOption("desktop", path, models.SortMostUnread, *filters)
+												@sortOption("desktop", path, models.SortLeastUnread, *filters)
+											}
+										</div>
+									</fieldset>
 								</el-popover>
 							</div>
 						</div>
@@ -233,82 +282,91 @@ templ FilterControls(path string, filters *models.ListFilters) {
 	</nav>
 }
 
-templ viewFilters(layout, path string, filters *models.ListFilters) {
-	<form
-		id={ layout + "-view-filters" }
+// viewOption renders a checkbox for a view filter.
+templ viewOption(layout, path string, view models.View, filters models.ListFilters) {
+	{{
+		var checked bool
+		if view == filters.GetView() {
+			checked = true
+		}
+		filters.View = view
+	}}
+	<label
+		aria-label={ view }
+		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
-		hx-trigger="change"
+		hx-vals={ templ.JSONString(filters.Values()) }
 	>
-		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-		for subscription := range slices.Values(filters.GetSubscriptions()) {
-			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-		}
-		for category := range slices.Values(filters.GetCategories()) {
-			<input type="hidden" name={ models.ParamCategories } value={ category }/>
-		}
-		<fieldset>
-			<legend class="sr-only">View</legend>
-			<div class="space-y-6">
-				@viewOption(layout, path, models.ViewUnread, filters)
-				@viewOption(layout, path, models.ViewRead, filters)
-				@viewOption(layout, path, models.ViewAll, filters)
-			</div>
-		</fieldset>
-	</form>
-	@viewOptionFavorites(layout, path, filters)
-}
-
-// viewOption renders a checkbox for a view filter.
-templ viewOption(layout, path string, view models.View, filters *models.ListFilters) {
-	<div class="flex items-center">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+		</svg>
 		<input
 			id={ layout + "-view-" + string(view) }
 			type="radio"
 			name="view"
-			value={ string(view) }
-			if view == filters.GetView() {
+			value={ view }
+			if checked {
 				checked
 			}
-			class="radio radio-sm radio-accent"
+			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<label for={ layout + "-view-" + string(view) } class="ml-3 block text-sm/6 font-medium capitalize">{ view }</label>
-	</div>
+		<span class="pl-2 block text-sm/6 font-medium capitalize">{ view }</span>
+	</label>
 }
 
 templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
-	<form
+	{{
+		values := filters.Values()
+		values["only_favorites"] = !filters.OnlyFavorites
+	}}
+	<label
+		aria-label="View favorites"
+		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
-		hx-trigger="change"
-		hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
+		hx-vals={ templ.JSONString(values) }
 	>
-		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-		for subscription := range slices.Values(filters.GetSubscriptions()) {
-			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-		}
-		for category := range slices.Values(filters.GetCategories()) {
-			<input type="hidden" name={ models.ParamCategories } value={ category }/>
-		}
-		<div class="mt-6 flex items-center sm:border-t sm:border-t-base-300">
-			<input
-				id={ layout + "-view-favorites" }
-				type="radio"
-				name="view"
-				if filters.OnlyFavorites {
-					checked
-				}
-				class="radio radio-sm radio-accent"
-			/>
-			<label for={ layout + "-view-favorites" } class="ml-3 block text-sm/6 font-medium">Favorites</label>
-		</div>
-	</form>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",filters.OnlyFavorites), templ.KV("opacity-0",!filters.OnlyFavorites) }
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+		</svg>
+		<input
+			id={ layout + "-view-favorites" }
+			type="radio"
+			name="view"
+			if filters.OnlyFavorites {
+				checked
+			}
+			class="absolute inset-0 appearance-none focus:outline-none"
+		/>
+		<span class="pl-2 block text-sm/6 font-medium">Favorites</span>
+	</label>
 }
 
 templ CategoryFilters(data *models.CategoryFilters) {
@@ -321,38 +379,28 @@ templ CategoryFilters(data *models.CategoryFilters) {
 			</div>
 		</div>
 	} else {
-		<form
-			hx-get={ data.Path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-trigger="change"
-			hx-params="not displayed_subscriptions,subscriptions,subscription_id"
-		>
-			<input type="hidden" name={ models.ParamCount } value={ data.Filters.GetCount() }/>
-			<input type="hidden" name={ models.ParamView } value={ data.Filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSort } value={ string(data.Filters.GetSort()) }/>
-			for subscription := range slices.Values(data.Filters.GetSubscriptions()) {
-				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-			}
-			<fieldset>
-				<legend class="sr-only">Category</legend>
-				<div class="space-y-6">
-					for category := range slices.Values(data.Categories.Limit(10)) {
-						@categoryOption(data.Path, category.Category, &data.Filters)
-					}
-				</div>
-			</fieldset>
-		</form>
-		if len(data.Filters.GetCategories()) > 0 {
-			@clearCategoryFiltersOption(data.Path, &data.Filters)
-		}
+		<fieldset>
+			<legend class="sr-only">Category</legend>
+			<div class="space-y-6">
+				for category := range slices.Values(data.Categories.Limit(10)) {
+					@categoryOption(data.Path, category.Category, data.Filters)
+				}
+				if len(data.Filters.GetCategories()) > 0 {
+					@clearCategoryFiltersOption(data.Path, data.Filters)
+				}
+			</div>
+		</fieldset>
 	}
 }
 
 // categoryFilter renders a checkbox for a category filter.
-templ categoryOption(path string, category models.Category, filters *models.ListFilters) {
+templ categoryOption(path string, category models.Category, filters models.ListFilters) {
 	{{
+		var checked bool
+		if filters.GetCategories().HasCategory(category) {
+			checked = true
+		}
+		filters.Categories = []models.Category{category}
 		var id string
 		id, err := gonanoid.New()
 		if err != nil {
@@ -361,42 +409,73 @@ templ categoryOption(path string, category models.Category, filters *models.List
 			id = id + "-" + strings.ToLower(strings.ReplaceAll(category, " ", "-"))
 		}
 	}}
-	<div class="flex items-center">
+	<label
+		aria-label={ category }
+		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
+		hx-get={ path }
+		hx-target={ ContentID.Target() }
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-vals={ templ.JSONString(filters.Values()) }
+		hx-params="not displayed_subscriptions"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+		</svg>
 		<input
 			id={ id }
 			type="radio"
 			name="categories"
 			value={ category }
-			if filters.GetCategories().HasCategory(category) {
+			if checked {
 				checked
 			}
-			class="radio radio-sm radio-accent"
+			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<label for={ id } class="ml-3 block text-sm/6 font-medium">{ category }</label>
-	</div>
+		<span class="pl-2 block text-sm/6 font-medium">{ category }</span>
+	</label>
 }
 
-templ clearCategoryFiltersOption(path string, filters *models.ListFilters) {
-	<form
+templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
+	// Remove all current category filters.
+	{{ filters.Categories = nil }}
+	<div
+		aria-label="Clear category filters"
+		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
-		hx-params="not categories"
+		hx-vals={ templ.JSONString(filters.Values()) }
+		hx-params="not displayed_subscriptions,categories"
 	>
-		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-		for subscription := range slices.Values(filters.GetSubscriptions()) {
-			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-		}
-		<div class="mt-6 flex items-center sm:border-t sm:border-t-base-300">
-			<button type="submit" class="btn btn-wide btn-ghost">
-				<span class="sr-only">Clear category filters</span>
-				<span class="not-sr-only">Clear</span>
-			</button>
-		</div>
-	</form>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="icon icon-tabler icons-tabler-outline icon-tabler-x size-6 shrink-0 text-secondary"
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+		</svg>
+		<span class="pl-2 block text-sm/6 font-medium">Clear</span>
+	</div>
 }
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
@@ -426,49 +505,47 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 	</div>
 }
 
-templ sortFilters(layout, path string, filters *models.ListFilters) {
-	<form
-		id={ layout + "-sort-filters" }
+templ sortOption(layout, path string, sort models.Sort, filters models.ListFilters) {
+	{{
+		var checked bool
+		if sort == filters.GetSort() {
+			checked = true
+		}
+		filters.Sort = sort
+	}}
+	<label
+		aria-label={ sort.String() }
+		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
-		hx-trigger="change"
+		hx-vals={ templ.JSONString(filters.Values()) }
 	>
-		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		for subscription := range slices.Values(filters.GetSubscriptions()) {
-			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-		}
-		for category := range slices.Values(filters.GetCategories()) {
-			<input type="hidden" name={ models.ParamCategories } value={ category }/>
-		}
-		<fieldset>
-			<legend class="sr-only">Sort</legend>
-			<div class="space-y-6">
-				@sortOption(layout, path, models.SortNewestFirst, filters)
-				@sortOption(layout, path, models.SortOldestFirst, filters)
-				if path == "/list/subscriptions" {
-					@sortOption(layout, path, models.SortMostUnread, filters)
-					@sortOption(layout, path, models.SortLeastUnread, filters)
-				}
-			</div>
-		</fieldset>
-	</form>
-}
-
-templ sortOption(layout, path string, sort models.Sort, filters *models.ListFilters) {
-	<div class="flex items-center">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+		</svg>
 		<input
 			id={ layout + "-sort-" + string(sort) }
 			type="radio"
 			name="sort"
 			value={ string(sort) }
-			if sort == filters.GetSort() {
+			if checked {
 				checked
 			}
-			class="radio radio-sm radio-accent"
+			class="absolute inset-0 appearance-none focus:outline-none"
 		/>
-		<label for={ layout + "-sort-" + string(sort) } class="ml-3 block text-sm/6 font-medium">{ sort.String() }</label>
-	</div>
+		<span class="pl-2 block text-sm/6 font-medium">{ sort.String() }</span>
+	</label>
 }
