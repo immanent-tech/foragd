@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.115.1](https://github.com/immanent-tech/foragd/compare/v0.115.0...v0.115.1) (2026-04-26)
+
+
+### Miscellaneous Chores
+
+* release 0.115.1 ([659523d](https://github.com/immanent-tech/foragd/commit/659523d0350bb161f6a0ecdef0f8a8f2095e89f8))
+
 ## [0.115.0](https://github.com/immanent-tech/foragd/compare/v0.114.3...v0.115.0) (2026-04-26)
 
 
