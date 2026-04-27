@@ -1085,7 +1085,7 @@ func NewFeedSubscription(
 		customisation.Nickname = new(feed.GetTitle())
 	}
 	// Add the feed image if the user has not specified one.
-	if customisation.ImageURL == nil {
+	if customisation.ImageURL == nil && feed.GetImage() != nil {
 		customisation.ImageURL = new(feed.GetImage().GetURL())
 	}
 
