@@ -34,6 +34,8 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 	switch service {
 	case "Feedly":
 		ctx = slots.WithSlot(ctx, slots.Header, templates.VsFeedlyMeta())
+	case "Inoreader", "Innoreader":
+		ctx = slots.WithSlot(ctx, slots.Header, templates.VsInoreaderMeta())
 	}
 
 	// Render appropriate content.
@@ -41,6 +43,7 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 		templates.CreatePage(templates.Comparison(service),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
+			templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
 			templates.WithOpenGraphMetadata(opengraph.New(
 				title,
 				"article",
