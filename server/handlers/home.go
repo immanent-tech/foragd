@@ -14,6 +14,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -199,11 +200,6 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 		return nil
 	}
 
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
 	// Fetch aggregation data.
 	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
@@ -329,11 +325,15 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 			if items, _, err = results.ExtractSourceFromHits[models.Item](
 				latestArticlesSampleAgg.Hits.Hits,
 			); err != nil {
-				slog.Info("could not extract items")
+				slogctx.FromCtx(ctx).Warn("Could not extract latest items from aggregation.",
+					slog.Any("error", err),
+				)
 			}
 			var articles models.Articles
 			if articles, err = models.GenerateArticles(ctx, items); err != nil {
-				slog.Info("could not generate articles")
+				slogctx.FromCtx(ctx).Warn("Could not generate articles from items.",
+					slog.Any("error", err),
+				)
 			}
 			data.LatestArticles = articles
 		}
