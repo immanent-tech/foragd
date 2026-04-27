@@ -194,6 +194,11 @@ func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Artic
 
 // performHomePageAggs performs aggregations to get statistics and samples of the top unread subscriptions and articles.
 func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
+	// Don't run aggregations if there are no feed subscriptions.
+	if len(data.Subscriptions.GetFeedIDs()) == 0 {
+		return nil
+	}
+
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -265,13 +270,11 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	}
 
 	// Perform the request.
-	filters := models.NewListDisplayFilters()
-	filters.View = models.ViewUnread
 	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
 		query.Filter(
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
+				// query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
 				// On the home page, only show articles which have an image (looks nicer).
 				query.Must(
 					query.Exists("image.url"),
