@@ -108,7 +108,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.15.0
-	github.com/auth0/go-auth0/v2 v2.8.0
+	github.com/auth0/go-auth0/v2 v2.9.0
 	github.com/coreos/go-oidc/v3 v3.18.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
@@ -126,7 +126,6 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goforj/godump v1.9.1
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
