@@ -31,11 +31,11 @@ templ Landing() {
 							<p class="mt-6 text-lg/8 text-neutral">
 								Foragd is a web-based feed reader that aggregates RSS and feeds alongside email
 								newsletters into a single interface. Unlike social platforms, it shows only content you
-								choose, with no algorithmic curation, no ads, and full-text search across all articles.
+								choose, with no algorithmic suggestions, no ads, and full-text search across all
+								articles.
 							</p>
 							<div class="mx-auto items-center flow-root my-20">
-								@partials.LogoSmall(element.WithClasses("size-64", "mx-auto"))
-								// <span class="text-3xl sm:text-5xl font-semibold text-primary">Foragd&nbsp;<sup class="text-sm uppercase badge badge-accent">beta</sup></span>
+								@partials.Logo(element.WithClasses("size-64", "mx-auto"))
 							</div>
 							<nav class="mt-10 flex items-center justify-center gap-x-6" aria-label="Primary actions">
 								<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
@@ -187,7 +187,7 @@ templ Landing() {
 						Compare
 					</h2>
 					<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-						See what makes Foragd both affordable and featureful.
+						Affordable and featureful.
 					</p>
 					<p class="mt-6 text-lg/8 text-neutral">
 						See how the features of Foragd compare against some of the most popular feed readers out there.
