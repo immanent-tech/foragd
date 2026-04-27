@@ -21,6 +21,7 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.2
+	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/knadh/koanf/v2 v2.3.4
