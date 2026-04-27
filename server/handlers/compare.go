@@ -5,25 +5,51 @@ package handlers
 
 import (
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
+
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 type ComparisonPage struct{}
 
 func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request) {
+	// Format the service to compare.
 	caser := cases.Title(language.English)
 	service := caser.String(chi.RouteContext(req.Context()).URLParam("service"))
+	// Generate a page title and description.
+	title := "Foragd vs " + service + ": RSS Feed Reader Comparison " + time.Now().Format("2006")
+	description := "A detailed comparison of Foragd and " + service + " covering pricing, features, and which is best for different use cases."
+
+	// Add appropriate additional header metadata.
+	ctx := req.Context()
+	switch service {
+	case "Feedly":
+		ctx = slots.WithSlot(ctx, slots.Header, templates.VsFeedlyMeta())
+	}
+
+	// Render appropriate content.
 	templ.Handler(
 		templates.CreatePage(templates.Comparison(service),
-			templates.WithPageTitle("Compare Foragd vs "+service),
+			templates.WithPageTitle(title),
+			templates.WithPageDescription(description),
+			templates.WithOpenGraphMetadata(opengraph.New(
+				title,
+				"article",
+				os.Getenv("FORAGD_BASEURL")+req.URL.String(),
+				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				opengraph.WithDescription(description),
+			)),
 		),
-	).ServeHTTP(res, req)
+	).ServeHTTP(res, req.WithContext(ctx))
 }
 
 func HandleComparison() http.HandlerFunc {
