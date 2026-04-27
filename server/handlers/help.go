@@ -6,6 +6,7 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/a-h/templ"
@@ -27,6 +28,7 @@ func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
 			templates.WithPageTitle("Documentation"),
+			templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
 		)).ServeHTTP(res, req)
 }
 

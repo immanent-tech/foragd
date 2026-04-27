@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/a-h/templ"
 
@@ -16,15 +17,14 @@ type Features struct {
 }
 
 func HandleFeatures() http.HandlerFunc {
-	return RenderExternalPage(&Features{
-		template: templates.CreatePage(templates.Features(),
-			templates.WithPageTitle("A beautiful web-based feed reader"),
-		),
-	})
+	return RenderExternalPage(&Features{})
 }
 
-func (p *Features) FullResponse(w http.ResponseWriter, r *http.Request) {
-	templ.Handler(p.template).ServeHTTP(w, r)
+func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.CreatePage(templates.Features(),
+		templates.WithPageTitle("A beautiful web-based feed reader"),
+		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
+	)).ServeHTTP(res, req)
 }
 
 func HandleFeaturesCollect() http.HandlerFunc {
