@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.115.2](https://github.com/immanent-tech/foragd/compare/v0.115.1...v0.115.2) (2026-04-27)
+
+
+### Bug Fixes
+
+* **handlers/home:** :bug: don't run aggregations if there are no feed subscriptions unread ([ac6e900](https://github.com/immanent-tech/foragd/commit/ac6e900b2109c4aa0db7efdffc3c7b106ccf92f4))
+* **models:** :bug: fix add subscription logic ([77cfee0](https://github.com/immanent-tech/foragd/commit/77cfee09a527bca3a1bdb5ecb6f3cc7c28e7d95f))
+* **templates:** :bug: fix rss feed link to use https ([d88feb4](https://github.com/immanent-tech/foragd/commit/d88feb4355f2651b4924b8c80ec663f9ef9dfdd9))
+* **templates/landing:** :recycle: landing page fixes ([d271f3f](https://github.com/immanent-tech/foragd/commit/d271f3f39a8604e3e5c6653dc8b5cf1ce598c0ca))
+
 ## [0.115.1](https://github.com/immanent-tech/foragd/compare/v0.115.0...v0.115.1) (2026-04-26)
 
 
