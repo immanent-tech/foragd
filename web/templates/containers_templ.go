@@ -232,7 +232,7 @@ func container(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var9 = []any{"mx-auto max-w-7xl px-4 sm:px-6", props.Classes()}
+		var templ_7745c5c3_Var9 = []any{"mx-auto max-w-5xl px-4 sm:px-6", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

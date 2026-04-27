@@ -63,7 +63,7 @@ templ content(options ...element.PropertiesOption) {
 templ container(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "mx-auto max-w-7xl px-4 sm:px-6", props.Classes() }
+		class={ "mx-auto max-w-5xl px-4 sm:px-6", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
