@@ -25,7 +25,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/knadh/koanf/v2 v2.3.4
 	github.com/lmittmann/tint v1.1.3
-	github.com/magefile/mage v1.17.1
+	github.com/magefile/mage v1.17.2
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/mattn/go-isatty v0.0.21
 	github.com/oapi-codegen/runtime v1.4.0
@@ -126,7 +126,6 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goforj/godump v1.9.1
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
