@@ -34,7 +34,7 @@ templ Landing() {
 								choose, with no algorithmic suggestions, no ads, and full-text search across all
 								articles.
 							</p>
-							<div class="mx-auto items-center flow-root my-16">
+							<div class="mx-auto my-16 flow-root items-center">
 								@partials.Logo(element.WithClasses("size-56", "mx-auto"))
 							</div>
 							<nav class="mt-10 flex items-center justify-center gap-x-6" aria-label="Primary actions">
@@ -95,7 +95,7 @@ templ Landing() {
 					<div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						<dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
 							<div class="flex flex-col">
-								<dt class="text-xl sm:text-2xl font-semibold text-primary">
+								<dt class="text-xl font-semibold text-primary sm:text-2xl">
 									Collect
 								</dt>
 								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
@@ -111,7 +111,7 @@ templ Landing() {
 								</dd>
 							</div>
 							<div class="flex flex-col">
-								<dt class="text-xl sm:text-2xl font-semibold text-primary">
+								<dt class="text-xl font-semibold text-primary sm:text-2xl">
 									Curate
 								</dt>
 								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
@@ -127,7 +127,7 @@ templ Landing() {
 								</dd>
 							</div>
 							<div class="flex flex-col">
-								<dt class="text-xl sm:text-2xl font-semibold text-primary">
+								<dt class="text-xl font-semibold text-primary sm:text-2xl">
 									Consume
 								</dt>
 								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
@@ -193,9 +193,9 @@ templ Landing() {
 						See how the features of Foragd compare against some of the most popular feed readers out there.
 					</p>
 				</div>
-				<div class="mx-auto flex mt-10 max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none">
-					<div class="text-2xl">vs <a class="link link-hover font-semibold" href="/compare/feedly">Feedly</a></div>
-					<div class="text-2xl">vs <a class="link link-hover font-semibold" href="/compare/inoreader">Inoreader</a></div>
+				<div class="mx-auto mt-10 flex max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none">
+					<div class="text-2xl">vs <a class="link font-semibold link-hover" href="/compare/feedly">Feedly</a></div>
+					<div class="text-2xl">vs <a class="link font-semibold link-hover" href="/compare/inoreader">Inoreader</a></div>
 				</div>
 			</div>
 			<div id="faq" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
@@ -507,7 +507,7 @@ templ landingFAQEntry(id, question string) {
 		</dt>
 		<el-disclosure id={ "faq-" + id } hidden class="contents">
 			<dd class="mt-2 pr-12">
-				<div class="text-base/7 prose">
+				<div class="prose text-base/7">
 					{ children... }
 				</div>
 			</dd>

@@ -16,7 +16,7 @@ templ Comparison(service string) {
 				case "Inoreader","Innoreader":
 					@VsInoreader()
 				default:
-					<p class="mt-16 text-center font-semibold text-lg/8">
+					<p class="mt-16 text-center text-lg/8 font-semibold">
 						We don't have a comparison of { service } yet. <a class="link" href="mailto:hello@foragd.app?subject=Service Comparison Request">Email us</a> to request it!
 					</p>
 			}
@@ -45,7 +45,7 @@ templ Comparison(service string) {
 
 templ VsFeedly() {
 	// Introduction.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-lg/7 font-semibold">Foragd vs Feedly: Key Differences</h2>
 		<p>
 			Foragd is a cheaper, higher-limit alternative to Feedly for independent readers who want RSS, newsletter,
@@ -60,7 +60,7 @@ templ VsFeedly() {
 		</p>
 	</div>
 	// Comparsion table.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">Comparison Details</h2>
 		<div class="overflow-x-auto">
 			<table class="table w-full">
@@ -133,9 +133,9 @@ templ VsFeedly() {
 			</table>
 		</div>
 	</div>
-	<p class="text-sm/6 prose">Last updated: <time datetime="2026-04-09">April 9, 2026</time></p>
+	<p class="prose text-sm/6">Last updated: <time datetime="2026-04-09">April 9, 2026</time></p>
 	// Summary and verdict.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">Which RSS Reader Should You Choose: Foragd or Feedly?</h2>
 		<p>
 			Foragd is the stronger choice for most independent readers. At $4.92/month billed annually, it undercuts
@@ -156,7 +156,7 @@ templ VsFeedly() {
 			carries over instantly.
 		</p>
 	</div>
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">How to Switch from Feedly to Foragd</h2>
 		<p>
 			Switching from Feedly to Foragd takes about two minutes and requires no manual work. Every feed you
@@ -228,7 +228,7 @@ templ VsFeedlyMeta() {
 
 templ VsInoreader() {
 	// Introduction.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-lg/7 font-semibold">Foragd vs Inoreader: Key Differences</h2>
 		<p>
 			Foragd is a cheaper, higher-limit alternative to Feedly for independent readers who want RSS, newsletter,
@@ -251,7 +251,7 @@ templ VsInoreader() {
 		</p>
 	</div>
 	// Comparsion table.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">Comparison Details</h2>
 		<div class="overflow-x-auto">
 			<table class="table w-full">
@@ -324,9 +324,9 @@ templ VsInoreader() {
 			</table>
 		</div>
 	</div>
-	<p class="text-sm/6 prose">Last updated: <time datetime="2026-04-09">April 9, 2026</time></p>
+	<p class="prose text-sm/6">Last updated: <time datetime="2026-04-09">April 9, 2026</time></p>
 	// Summary and verdict.
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">Which RSS Reader Should You Choose: Foragd or Inoreader?</h2>
 		<p>
 			Foragd is the better choice for most independent readers comparing the two on value. At USD $4.92/month billed
@@ -344,7 +344,7 @@ templ VsInoreader() {
 			it into Foragd, and every feed you currently follow will be waiting for you.
 		</p>
 	</div>
-	<div class="mt-10 prose">
+	<div class="prose mt-10">
 		<h2 class="text-base font-semibold">How to Switch from Inoreader to Foragd</h2>
 		<p>
 			Switching from Inoreader to Foragd takes about two minutes and requires no manual work. Every feed you
