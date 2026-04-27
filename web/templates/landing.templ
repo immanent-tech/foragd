@@ -23,21 +23,21 @@ templ Landing() {
 								<br/>
 								You scroll.
 							</h1>
-							<h2 class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">
+							<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">
 								Take back control of your reading. Follow any website, blog, or newsletter in one place.
-							</h2>
-							<div class="mx-auto items-center flow-root space-12 my-20">
+							</p>
+							<div class="mx-auto items-center flow-root my-20">
 								@partials.LogoSmall(element.WithClasses("size-64", "mx-auto"))
 								<span class="text-3xl sm:text-5xl font-semibold">Foragd&nbsp;<sup class="text-sm uppercase badge badge-accent">beta</sup></span>
 							</div>
-							<div class="mt-10 flex items-center justify-center gap-x-6">
+							<nav class="mt-10 flex items-center justify-center gap-x-6" aria-label="Primary actions">
 								<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
 									Start a free trial
 								</a>
 								<a href="/features" class="btn text-sm/6 font-semibold btn-outline">
 									See features
 								</a>
-							</div>
+							</nav>
 							<div class="mt-5 text-sm/6 font-semibold">
 								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
 							</div>
@@ -169,7 +169,7 @@ templ Landing() {
 			</div>
 			<div id="compare" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
 				<div class="mx-auto max-w-4xl text-center">
-					<h2 id="compare" class="text-base/7 font-semibold text-primary">
+					<h2 class="text-base/7 font-semibold text-primary">
 						Compare the market.
 					</h2>
 					<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
@@ -178,12 +178,12 @@ templ Landing() {
 				</div>
 				<div class="mx-auto flex mt-10 max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none">
 					<div class="text-2xl">vs <a class="link link-hover font-semibold" href="/compare/feedly">Feedly</a></div>
-					<div class="text-2xl">vs <a class="link link-hover font-semibold" href="/compare/feedly">Inoreader</a></div>
+					<div class="text-2xl">vs <a class="link link-hover font-semibold" href="/compare/inoreader">Inoreader</a></div>
 				</div>
 			</div>
 			<div id="faq" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
 				<div class="mx-auto max-w-4xl text-center">
-					<h2 id="compare" class="text-base/7 font-semibold text-primary">
+					<h2 class="text-base/7 font-semibold text-primary">
 						Frequently asked questions.
 					</h2>
 					<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
@@ -233,11 +233,11 @@ templ Landing() {
 					</div>
 				</div>
 			</div>
+			<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
+				<div class="soft-gradient-bottom"></div>
+			</div>
 		</main>
 		// Footer.
-	</div>
-	<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-		<div class="soft-gradient-bottom"></div>
 	</div>
 	@footer()
 }

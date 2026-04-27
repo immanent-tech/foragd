@@ -5,9 +5,13 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/a-h/templ"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
+
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -19,6 +23,14 @@ func HandleLanding() http.HandlerFunc {
 	return RenderExternalPage(&Landing{
 		template: templates.CreatePage(templates.Landing(),
 			templates.WithPageTitle("A beautiful web-based feed reader"),
+			templates.WithOpenGraphMetadata(opengraph.New(
+				"Foragd",
+				"website",
+				os.Getenv("FORAGD_BASEURL"),
+				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				opengraph.WithDescription(config.AppDescription),
+				opengraph.WithSiteName(config.AppName),
+			)),
 		),
 	})
 }
