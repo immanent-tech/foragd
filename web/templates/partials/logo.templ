@@ -9,7 +9,7 @@ templ LogoSmall(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<svg
 		aria-hidden="true"
-		class={ "flex size-10 text-primary fill-primary stroke-primary", props.Classes() }
+		class={ "flex text-primary fill-primary stroke-primary", props.Classes() }
 		xmlns="http://www.w3.org/2000/svg"
 		width="200mm"
 		height="200mm"

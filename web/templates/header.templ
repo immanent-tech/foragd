@@ -3,8 +3,11 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
-import "github.com/immanent-tech/foragd/web/templates/partials"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
 
 templ header(user *models.User) {
 	<header
@@ -17,7 +20,7 @@ templ header(user *models.User) {
 					<div class="flex lg:flex-1">
 						<a href="/" class="link link-hover">
 							<div class="flex items-center">
-								@partials.LogoSmall()
+								@partials.LogoSmall(element.WithClasses("size-10"))
 								<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 							</div>
 						</a>
@@ -47,7 +50,7 @@ templ header(user *models.User) {
 								<div class="flex items-center justify-between">
 									<a href="/" class="-m-1.5 p-1.5">
 										<div class="flex items-center">
-											@partials.LogoSmall()
+											@partials.LogoSmall(element.WithClasses("size-10"))
 											<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 										</div>
 									</a>
@@ -84,7 +87,7 @@ templ header(user *models.User) {
 						class="flex shrink link link-hover"
 					>
 						<div class="flex shrink-0 flex-row items-center p-2">
-							@partials.LogoSmall()
+							@partials.LogoSmall(element.WithClasses("size-10"))
 							<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 						</div>
 					</a>
@@ -209,7 +212,7 @@ templ HeaderExternal() {
 						<div class="flex items-center justify-between">
 							<a href="/" class="-m-1.5 p-1.5">
 								<div class="flex items-center">
-									@partials.LogoSmall()
+									@partials.LogoSmall(element.WithClasses("size-10"))
 									<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 								</div>
 							</a>
