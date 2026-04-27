@@ -10,7 +10,7 @@ author = "Joshua Rich <joshua@immanent.tech>"
 <figure>
   <img
     src="/content/images/blog/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
-    alt="Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome" />
+    alt="Picture Gallery with Views of Modern Rome - Giovanni Paolo Pannini" />
   <figcaption>
     Picture Gallery with Views of Modern Rome. Giovanni Paolo Panini, 1757. Museum of Fine Arts, Boston
   <figcaption>
