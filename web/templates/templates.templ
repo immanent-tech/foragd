@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/foragd/web/templates/slots"
 	"github.com/immanent-tech/go-syndication/opengraph"
 	"os"
 	"path/filepath"
@@ -113,14 +114,22 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			if p.CanonicalLink != "" {
 				<link rel="canonical" href={ p.CanonicalLink }/>
 			} else {
-				<link rel="canonical" href="https://foragd.app"/>
+				<link rel="canonical" href="https://foragd.app/"/>
 			}
+			//  iOS Safari Full screen.
+			<meta name="apple-mobile-web-app-capable" content="yes"/>
+			//  Chrome Android Full screen.
+			<meta name="mobile-web-app-capable" content="yes"/>
+			//  Web app manifest.
 			<link rel="manifest" href="/content/manifest.json"/>
+			// Favicons.
 			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
 			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
 			<link rel="icon" href="/content/favicon.png" type="image/svg+xml"/>
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
+			// RSS feed.
 			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href="https://foragd.app/feed"/>
+			// Performance.
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
@@ -169,6 +178,10 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				HistoryCacheSize: 10,
 			}) }
 			/>
+			// Insert any additional header, if defined.
+			if slots.HasSlot(ctx,slots.Header) {
+				@slots.GetSlot(ctx, slots.Header)
+			}
 			<title>{ p.Title }</title>
 		</head>
 		<body

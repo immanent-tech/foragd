@@ -13,6 +13,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 type Landing struct {
@@ -35,6 +36,7 @@ func HandleLanding() http.HandlerFunc {
 	})
 }
 
-func (p *Landing) FullResponse(w http.ResponseWriter, r *http.Request) {
-	templ.Handler(p.template).ServeHTTP(w, r)
+func (p *Landing) FullResponse(res http.ResponseWriter, req *http.Request) {
+	ctx := slots.WithSlot(req.Context(), slots.Header, templates.LandingHeaderSlot())
+	templ.Handler(p.template).ServeHTTP(res, req.WithContext(ctx))
 }
