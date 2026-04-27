@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.116.0](https://github.com/immanent-tech/foragd/compare/v0.115.2...v0.116.0) (2026-04-27)
+
+
+### Features
+
+* **templates:** :sparkles: seo and geo optimisation (esp. on landing page) ([f5027aa](https://github.com/immanent-tech/foragd/commit/f5027aa2c2062ddc1d3f48fab875f107a8cf0acd))
+* **templates:** :sparkles: support adding "slots" in templates easily ([114db49](https://github.com/immanent-tech/foragd/commit/114db499dbd6a0cbf4171a20f251f42a01b45d8b))
+
 ## [0.115.2](https://github.com/immanent-tech/foragd/compare/v0.115.1...v0.115.2) (2026-04-27)
 
 
