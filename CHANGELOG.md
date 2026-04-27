@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.117.0](https://github.com/immanent-tech/foragd/compare/v0.116.0...v0.117.0) (2026-04-27)
+
+
+### Features
+
+* **templates/comparison:** :sparkles: improved and expanded Feedly comparison ([694e1c7](https://github.com/immanent-tech/foragd/commit/694e1c78b257d3231913fd20ce2338a2a87e7f79))
+* **templates/comparison:** :sparkles: improved and expanded inoreader comparision ([170b389](https://github.com/immanent-tech/foragd/commit/170b389a3c4cf1d3cb3c282d7eb2a8d85accd2d5))
+* **templates/landing:** :sparkles: landing page improvements ([54663f4](https://github.com/immanent-tech/foragd/commit/54663f4e2e2c57b7bee53d8c03d4a2f77dbbe35c))
+
+
+### Bug Fixes
+
+* :sparkles: add logic for new compare pages ([8b7abc1](https://github.com/immanent-tech/foragd/commit/8b7abc1ae0f1960a4de1c15a60c5c703fb46ca07))
+* **handlers:** :bug: fix canonical links ([a4f801a](https://github.com/immanent-tech/foragd/commit/a4f801a2e4a8f6cb44ff41790d814b3bbcf77976))
+* **styles:** :wheelchair: fix color contrast in greenhouse theme ([be25765](https://github.com/immanent-tech/foragd/commit/be25765363ce3b38964dee0dd02d1ad25315d355))
+* **templates:** :bug: fix features link ([86438d0](https://github.com/immanent-tech/foragd/commit/86438d0670d7c9005c588c0f269a6863b9913051))
+* **templates:** :lipstick: make sure content container has appropriate background color ([2573aac](https://github.com/immanent-tech/foragd/commit/2573aac6e8115aa202dfb0f2daacdd46bece13dc))
+* **templates/partials:** :lipstick: fix text color on back to top button ([442b724](https://github.com/immanent-tech/foragd/commit/442b7241ac3fe66cd45f68655f07b94867491c1e))
+
 ## [0.116.0](https://github.com/immanent-tech/foragd/compare/v0.115.2...v0.116.0) (2026-04-27)
 
 
