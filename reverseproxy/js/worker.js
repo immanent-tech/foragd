@@ -39,6 +39,12 @@ export default {
 
       // Validate required parameters
       if (!targetUrl || !signature || !expires) {
+        console.error(
+          JSON.stringify({
+            message: "Missing required parameters",
+            required: ["url", "signature", "expires"],
+          }),
+        );
         return new Response(
           JSON.stringify({
             error: "Missing required parameters",
@@ -71,6 +77,11 @@ export default {
       );
 
       if (!isValid) {
+        console.error(
+          JSON.stringify({
+            message: "Invalid or expired signature",
+          }),
+        );
         return new Response(
           JSON.stringify({ error: "Invalid or expired signature" }),
           {
@@ -85,6 +96,11 @@ export default {
       const now = Math.floor(Date.now() / 1000);
 
       if (expiresTimestamp < now) {
+        console.error(
+          JSON.stringify({
+            message: "URL has expired",
+          }),
+        );
         return new Response(JSON.stringify({ error: "URL has expired" }), {
           status: 403,
           headers: { "Content-Type": "application/json" },
@@ -93,6 +109,11 @@ export default {
 
       // Check if expires timestamp is too far in the future
       if (expiresTimestamp > now + CONFIG.MAX_AGE) {
+        console.error(
+          JSON.stringify({
+            message: "Expiration time too far in future",
+          }),
+        );
         return new Response(
           JSON.stringify({ error: "Expiration time too far in future" }),
           {
@@ -107,6 +128,12 @@ export default {
       try {
         targetUrlObj = new URL(targetUrl);
       } catch (e) {
+        console.error(
+          JSON.stringify({
+            message: "Invalid target URL",
+            url: targetUrl,
+          }),
+        );
         return new Response(JSON.stringify({ error: "Invalid target URL" }), {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -121,6 +148,12 @@ export default {
         );
 
         if (!isAllowed) {
+          console.error(
+            JSON.stringify({
+              message: "Domain not allowed",
+              domain: hostname,
+            }),
+          );
           return new Response(JSON.stringify({ error: "Domain not allowed" }), {
             status: 403,
             headers: { "Content-Type": "application/json" },
