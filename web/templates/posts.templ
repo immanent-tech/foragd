@@ -18,7 +18,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 			</div>
 			<div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-base-300 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-2">
 				for post := range slices.Values(posts) {
-					<a href={ "/posts/" + post.Details.Path }>
+					<a href={ "/blog/" + post.Details.Path }>
 						<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer touch-manipulation">
 							if post.Frontmatter.Image != nil {
 								<figure>
@@ -56,7 +56,7 @@ templ Post(post *models.MarkdownFile) {
 		@narrowContainer() {
 			<div class="breadcrumbs text-sm">
 				<ul>
-					<li><a href="/posts">Posts</a></li>
+					<li><a href="/blog">Blog</a></li>
 					<li><span>{ post.Frontmatter.Title }</span></li>
 				</ul>
 			</div>
