@@ -3,13 +3,13 @@ title = "Managing Feed Overload"
 description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
-image = "/content/images/blog/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
+image = "/content/images/blog/picture-gallery-with-views-of-modern-rome.webp"
 author = "Joshua Rich <joshua@immanent.tech>"
 +++
 
 <figure>
   <img
-    src="/content/images/blog/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
+    src="/content/images/blog/picture-gallery-with-views-of-modern-rome.webp"
     alt="Picture Gallery with Views of Modern Rome - Giovanni Paolo Pannini" />
   <figcaption>
     Picture Gallery with Views of Modern Rome. Giovanni Paolo Panini, 1757. Museum of Fine Arts, Boston
