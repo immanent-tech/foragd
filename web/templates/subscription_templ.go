@@ -40,7 +40,7 @@ func generateSubscriptionViewArticlesAttributes(s *models.Subscription) templ.At
 		}
 		values := filters.Values()
 		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-vals"], _ = templ.JSONString(values)
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListDisplayFilters()
@@ -52,7 +52,7 @@ func generateSubscriptionViewArticlesAttributes(s *models.Subscription) templ.At
 		}
 		values := filters.Values()
 		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-vals"], _ = templ.JSONString(values)
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
 		attrs["hx-get"] = "/search"
@@ -4452,7 +4452,7 @@ func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes
 		}
 		values := filters.Values()
 		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-vals"], _ = templ.JSONString(values)
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListDisplayFilters()
@@ -4464,7 +4464,7 @@ func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes
 		}
 		values := filters.Values()
 		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-vals"], _ = templ.JSONString(values)
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
 		attrs["hx-post"] = "/search"

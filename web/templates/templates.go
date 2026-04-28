@@ -5,7 +5,6 @@ package templates
 
 import (
 	"context"
-	"encoding/json"
 )
 
 const (
@@ -13,14 +12,6 @@ const (
 )
 
 type contextKey string
-
-func generateHXVals(values map[string]any) string {
-	data, err := json.Marshal(values)
-	if err != nil {
-		return ""
-	}
-	return string(data)
-}
 
 // PathToCtx stores the URL path in the context.
 func PathToCtx(ctx context.Context, path string) context.Context {

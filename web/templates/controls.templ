@@ -63,7 +63,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								class="space-y-6 text-sm"
 								hx-get={ path + "/categories" }
 								hx-include="[name='displayed_subscriptions']"
-								hx-vals={ generateHXVals(filters.Values()) }
+								hx-vals={ templ.JSONString(filters.Values()) }
 								hx-trigger="click from:#filters-mobile-disclosure-button"
 							></div>
 						</el-disclosure>
@@ -173,7 +173,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]"
 									hx-get={ path + "/categories" }
 									hx-include="[name='displayed_subscriptions']"
-									hx-vals={ generateHXVals(filters.Values()) }
+									hx-vals={ templ.JSONString(filters.Values()) }
 									hx-target="#desktop-category-filters-list"
 									hx-trigger="click from:#desktop-category-filters-button"
 									_="

@@ -586,7 +586,7 @@ templ ArticleContent(article *models.Article) {
 									hx-trigger="click consume"
 									hx-indicator="#content-loading"
 									hx-push-url="false"
-									hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}) }
+									hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}) }
 								>
 									// _="on htmx:afterResponse[detail.failed] add @disabled to me"
 									if article.IsRemoteContent() {
@@ -853,7 +853,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									<form
 										class="invisible"
 										hx-post="/list/articles/paginate"
-										hx-vals={ generateHXVals(response.Filters.Values()) }
+										hx-vals={ templ.JSONString(response.Filters.Values()) }
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
