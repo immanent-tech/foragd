@@ -1,10 +1,11 @@
 +++
 title = "How to Find RSS and Atom Feeds for any website"
+page_title = "Tips and tricks to find RSS and Atom pages on the internet"
 description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
 created_at = "2026-02-02"
-updated_at = "2026-04-24"
+updated_at = "2026-04-28"
 image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
-author = "Joshua Rich <joshua@immanent.tech>"
+author = "Joshua Rich"
 +++
 
 
@@ -30,32 +31,32 @@ this article.
 
 ## Technique 1: Use Your Feed Reader
 
-A good feed reader, like [Foragd](/) can utilize the autodiscovery process, along with other sleuthing
-techniques to find feeds for your favorite sites. So in a lot of cases, it may be as simple as just providing the URL of
-the site to the feed reader and let it do its magic. No need to parse the site’s HTML or scan the content or find a site
-directory; just enter the URL, and in most cases, 💥 you have your favorite site’s content streaming to your feed
-reader.
+Modern feed readers, like [Foragd](https://foragd.app), will auto-detect the feed given a website URL.  They utilize the
+autodiscovery process, along with other sleuthing techniques to find feeds for your favorite sites. So in a lot of
+cases, it may be as simple as just providing the URL of the site to the feed reader and let it do its magic. No need to
+parse the site’s HTML or scan the content or find a site directory; just enter the URL, and in most cases, 💥 you have
+your favorite site’s content streaming to your feed reader.
 
 ℹ️ **You can use Foragd’s [Feed Viewer](/viewer) to find and parse the feed content of any website.**
 
 ## Technique 2: Where’s Waldo
 
-A lot of times, the site will stick the feed link in its footer. Sometimes it’ll be literal text such as “Feed”, “RSS”
-or “Atom”. Other times, it’ll be the RSS icon, for example one of the following:
+Many websites display their RSS feed link in the footer as text or an RSS icon — look for the words 'Feed', 'RSS', or
+'Atom', or the orange RSS icon. For example one of the following:
 
-<div class="flex mx-auto space-x-4 justify-center">
-<img class="flex size-8" src="/content/rss-dark.svg" alt="Typical RSS icon"/>
-<img class="flex size-8" src="/content/file-rss-dark.svg" alt="Typical RSS alternative icon"/>
+<div class="flex mx-auto space-x-4 justify-center not-prose">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-8 flex text-orange-500 fill-orange-500 stroke-orange-500"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss size-8 flex  text-orange-500 fill-orange-500 stroke-orange-500""><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M12 17a3 3 0 0 0 -3 -3" /><path d="M15 17a6 6 0 0 0 -6 -6" /><path d="M9 17h.01" /></svg>
 </div>
 
 Such links usually return the raw feed content, so they can be copied and pasted into your feed reader to add them.
 
 ## Technique 3: The Old Appender
 
-Most websites are built with a framework and most websites are built with the same frameworks. Most of these frameworks
-automatically generate feeds for the site. What does this mean? It means most websites have an RSS feed at a canonical
-URL or address. You can then exploit this to find the feed for any site. In most cases add one of the following onto the
-end of the site URL:
+Despite the web being wonderfully diverse, the majority of websites use a handful of frameworks behind the scenes, and
+these have predictable URLs where their feeds are located. What does this mean? It means most websites have an RSS feed
+at a canonical URL or address. You can then utilise this to find the feed for any site. In most cases add one of the
+following onto the end of the site URL:
 
 - `/rss`
 - `/feed`
@@ -64,7 +65,7 @@ end of the site URL:
 [Foragd](https://foragd.app) uses this technique when it can’t find a feed natively, but you can also check yourself. If
 the new URL returns feed content, you’ve found yourself the site’s feed!
 
-## Technique 3: Feed Search Engines/Lists
+## Technique 4: Feed Search Engines/Lists
 
 There are a few dedicated search engines for feeds and sites with quality feed links out there you can peruse:
 
@@ -86,8 +87,13 @@ A little bit of search-fu might work if all else fails. In your favorite search 
 
 ## Conclusion
 
-So there are a number of ways to find feeds. However, the takeaway in most cases is to just enter the site URL into your
-feed reader and let it do the sleuthing for you. Most likely you’ll hit gold and add another source to your reading
-collection.
+To find RSS and Atom feeds for any website, try these approaches in order: paste the site URL directly into your feed
+reader and let it auto-discover the feed; look for RSS or feed links in the site's footer; try appending `/feed`,
+`/rss`, or `/feeds/posts/default` to the site URL; or use a dedicated feed search engine like
+[feedle.world](https://feedle.world/), [feedsearch.dev](https://feedsearch.dev/), or [RSSHub](https://rsshub.app). In
+most cases, a good feed reader like [Foragd](https://foragd.app) will handle discovery automatically.
+
+If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](https://foragd.app) and start
+gathering your own collection of topics, news, and opinions!
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
