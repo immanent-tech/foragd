@@ -54,12 +54,13 @@ type PostsIndex struct {
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Posts from the Foragd Team"
-	description := "Comparisons, opinions and other content from the Foragd team"
+	title := "RSS Feed Reader Blog — Tips, Guides and Comparisons"
+	description := "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms."
 	templ.Handler(templates.CreatePage(
 		templates.PostsIndex(p.posts),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
+		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/blog"),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			title,
 			"website",
@@ -79,7 +80,11 @@ type Post struct {
 
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slots.WithSlot(req.Context(), slots.Header, templates.RenderPostJSONLD(p.JsonLD))
+	ctx := slots.WithSlot(
+		req.Context(),
+		slots.Header,
+		templates.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), p.JsonLD),
+	)
 	templ.Handler(templates.CreatePage(
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.PageTitle),
