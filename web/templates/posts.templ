@@ -4,9 +4,12 @@
 package templates
 
 import (
+	"encoding/json"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
+	"time"
 )
 
 templ PostsIndex(posts []*models.MarkdownFile) {
@@ -61,6 +64,18 @@ templ Post(post *models.MarkdownFile) {
 				</ul>
 			</div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
+				<div class="fixed top-16 left-0 z-10 h-1 w-full bg-base-100">
+					<div class="h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border"></div>
+				</div>
+				<div class="flex flex-1 justify-self-end text-sm/6 text-neutral items-center space-x-2">
+					<time datetime={ post.Frontmatter.CreatedAt }>Created: { post.Frontmatter.CreatedAt }</time>
+					if post.Frontmatter.UpdatedAt != nil {
+						<svg viewBox="0 0 2 2" class="size-0.5 flex-none fill-neutral">
+							<circle r="1" cx="1" cy="1"></circle>
+						</svg>
+						<time datetime={ *post.Frontmatter.UpdatedAt }>Updated: { *post.Frontmatter.UpdatedAt }</time>
+					}
+				</div>
 				<h1
 					class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl"
 					itemprop="headline"
@@ -68,24 +83,35 @@ templ Post(post *models.MarkdownFile) {
 					{ post.Frontmatter.Title }
 				</h1>
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
-				if post.Frontmatter.Author != nil {
-					<span class="label text-sm">{ *post.Frontmatter.Author }</span>
-				}
-				<div class="mx-auto flex flex-1 space-x-2 mb-4 text-sm">
-					<time datetime={ post.Frontmatter.CreatedAt } class="label">
-						Published
-						<span itemprop="datePublished">{ post.Frontmatter.CreatedAt }</span>
-					</time>
-					if post.Frontmatter.UpdatedAt != nil {
-						<time datetime={ *post.Frontmatter.UpdatedAt } class="label">
-							Updated
-							<span itemprop="dateModified">{ *post.Frontmatter.UpdatedAt }</span>
-						</time>
+				<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/15 p-1">
+					// Author.
+					if post.Frontmatter.Author != nil {
+						<strong
+							itemprop="author"
+							itemscope
+							itemtype="https://schema.org/Person"
+							class="label text-sm"
+						>
+							{ *post.Frontmatter.Author }
+						</strong>
 					}
+					// Actions.
+					<div class="flex shrink-0 items-center">
+						<span class="text-sm/6">
+							Reading time:
+							{ text.ReadingTime(string(post.Content)).Round(time.Minute).String() }
+						</span>
+					</div>
 				</div>
 				@templ.Raw(string(post.Content))
 			</article>
 			@partials.ButtonBackToTop()
 		}
+	}
+}
+
+templ RenderPostJSONLD(jsonld *json.RawMessage) {
+	if jsonld != nil {
+		@templ.JSONScript("jsonld-data", jsonld).WithType("application/ld+json")
 	}
 }

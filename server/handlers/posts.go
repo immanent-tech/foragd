@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"log/slog"
@@ -33,6 +34,7 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 var postsPath = "assets/docs/blog"
@@ -77,13 +79,14 @@ type Post struct {
 
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
+	ctx := slots.WithSlot(req.Context(), slots.Header, templates.RenderPostJSONLD(p.JsonLD))
 	templ.Handler(templates.CreatePage(
 		templates.Post(p.MarkdownFile),
-		templates.WithPageTitle(p.Frontmatter.Title),
+		templates.WithPageTitle(p.Frontmatter.PageTitle),
 		templates.WithPageDescription(p.Frontmatter.Description),
 		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path),
 		templates.WithOpenGraphMetadata(opengraph.New(
-			p.Frontmatter.Title,
+			p.Frontmatter.PageTitle,
 			"article",
 			os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path,
 			os.Getenv("FORAGD_BASEURL")+*p.Frontmatter.Image,
@@ -92,7 +95,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.CreatedAt),
 			opengraph.WithAdditionalProperty("article:modified_time", *p.Frontmatter.UpdatedAt),
 		)),
-	)).ServeHTTP(res, req)
+	)).ServeHTTP(res, req.WithContext(ctx))
 }
 
 // HandlePosts handles showing the posts index or individual posts.
@@ -184,11 +187,43 @@ func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
 		return nil, fmt.Errorf("decode frontmatter: %w", err)
 	}
 
+	jsonld, err := generateJSONLD(&frontmatter, &details)
+	if err != nil {
+		return nil, fmt.Errorf("generate json-ld data: %w", err)
+	}
+
 	return &models.MarkdownFile{
 		Frontmatter: frontmatter,
 		Details:     details,
+		JsonLD:      &jsonld,
 		Content:     buf.Bytes(),
 	}, nil
+}
+
+func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails) (json.RawMessage, error) {
+	data := map[string]any{
+		"@context":      "https://schema.org",
+		"@type":         "Article",
+		"headline":      fm.Title,
+		"description":   fm.Description,
+		"image":         os.Getenv("FORAGD_BASEURL") + *fm.Image,
+		"datePublished": fm.CreatedAt,
+		"dateModified":  fm.UpdatedAt,
+		"author": map[string]any{
+			"@type": "Person",
+			"name":  fm.Author,
+		},
+		"publisher": map[string]any{
+			"@type": "Organization",
+			"name":  "Foragd",
+			"url":   os.Getenv("FORAGD_BASEURL"),
+		},
+		"mainEntityOfPage": map[string]any{
+			"@type": "WebPage",
+			"@id":   os.Getenv("FORAGD_BASEURL") + details.Path,
+		},
+	}
+	return json.Marshal(data)
 }
 
 // HandlePostsFeed handles showing an RSS file for posts.
