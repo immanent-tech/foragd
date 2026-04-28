@@ -1644,15 +1644,23 @@ components:
       type: object
       required:
         - title
+        - page_title
         - description
         - created_at
       properties:
         title:
           description: >
-            is the title to display for the document.
+            is the in-page title of the document.
           type: string
           x-oapi-codegen-extra-tags:
             toml: "title"
+            validate: 'required'
+        page_title:
+          description: >
+            is the title rendered in the page header (i.e., <title/>).
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "page_title"
             validate: 'required'
         description:
           description: >
@@ -1699,6 +1707,10 @@ components:
         - details
         - content
       properties:
+        jsonLD:
+          description: >
+            is the JSON-LD format for the file.
+          x-go-type: json.RawMessage
         frontmatter:
           $ref: '#/components/schemas/MarkdownFrontMatter'
         details:

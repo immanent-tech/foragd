@@ -838,6 +838,9 @@ type MarkdownFile struct {
 
 	// Frontmatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
 	Frontmatter MarkdownFrontMatter `json:"frontmatter" toml:"doc_metadata"`
+
+	// JsonLD is the JSON-LD format for the file.
+	JsonLD *json.RawMessage `json:"jsonLD,omitempty"`
 }
 
 // MarkdownFrontMatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
@@ -854,7 +857,10 @@ type MarkdownFrontMatter struct {
 	// Image is a URL to an image to represent the file.
 	Image *string `json:"image,omitempty" toml:"image" validate:"omitempty,url"`
 
-	// Title is the title to display for the document.
+	// PageTitle is the title rendered in the page header (i.e., <title/>).
+	PageTitle string `json:"page_title" toml:"page_title" validate:"required"`
+
+	// Title is the in-page title of the document.
 	Title string `json:"title" toml:"title" validate:"required"`
 
 	// UpdatedAt is when the post was updated.
