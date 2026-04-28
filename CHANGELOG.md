@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.118.0](https://github.com/immanent-tech/foragd/compare/v0.117.0...v0.118.0) (2026-04-28)
+
+
+### Features
+
+* **templates/posts:** :sparkles: post layout improvements ([d77eb22](https://github.com/immanent-tech/foragd/commit/d77eb22755ab657827b87327e686c2eb7b9125c6))
+
+
+### Bug Fixes
+
+* **models:** :bug: add markdown file changes ([9af815b](https://github.com/immanent-tech/foragd/commit/9af815be74a6112faa3a45876bfa1b22d95ff6a8))
+* **posts:** :bug: fix id for json-ld faq data ([5c6988f](https://github.com/immanent-tech/foragd/commit/5c6988f838b228c9ecb25b070f79aa53284a9b1c))
+* **posts:** :bug: fix link to individual blog posts in json-ld data ([c5c60de](https://github.com/immanent-tech/foragd/commit/c5c60de31691201d3171644b90af814de2cb9a30))
+* **posts:** :bug: fix url in json-ld data ([fd7e6dc](https://github.com/immanent-tech/foragd/commit/fd7e6dc9f28153c12ce33a6880643c3725bbf649))
+* **templates:** :lipstick: fix spacing for filter controls on desktop and larger screens ([daa2bab](https://github.com/immanent-tech/foragd/commit/daa2bab03d8058ae70b905f3311aec705c028439))
+* **templates/landing:** :bug: fix missing alt tags on blog post images ([92bf7b7](https://github.com/immanent-tech/foragd/commit/92bf7b7a2225de146f5f7408755b11fd51594d5a))
+* **templates/landing:** :fire: fix missing pricing id ([57dbb41](https://github.com/immanent-tech/foragd/commit/57dbb4182aa88c334057282e6079a8929d39b7a6))
+* **templates/posts:** :bug: fix author itemprop metadata format ([981c061](https://github.com/immanent-tech/foragd/commit/981c061e4d6d072248f24405b557bf71ea5d8749))
+* **templates/posts:** :bug: post page fixes ([0d2c40f](https://github.com/immanent-tech/foragd/commit/0d2c40f31d3a944dca2f860445c7a193dc75811d))
+
 ## [0.117.0](https://github.com/immanent-tech/foragd/compare/v0.116.0...v0.117.0) (2026-04-27)
 
 
