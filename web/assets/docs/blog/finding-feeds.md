@@ -8,6 +8,36 @@ image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ship
 author = "Joshua Rich"
 +++
 
+<script id="jsonld-data" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Find RSS and Atom Feeds for Any Website",
+  "description": "Several techniques for finding RSS and Atom feeds on any website.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Use your feed reader",
+      "text": "Paste the website URL directly into your feed reader. Most good feed readers like Foragd will automatically discover the feed using autodiscovery and other techniques."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Look in the website footer",
+      "text": "Many websites display RSS or Atom feed links in their footer as text ('RSS', 'Feed', 'Atom') or as the orange RSS icon."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Try common feed URL paths",
+      "text": "Append /feed, /rss, or /feeds/posts/default to the website's base URL and check if feed content is returned."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Use a feed search engine",
+      "text": "Try feedle.world, feedsearch.dev, Feedspot, RSSHub, or Kagi Small Web to search for feeds by site or topic."
+    }
+  ]
+}
+</script>
 
 <figure>
   <img
