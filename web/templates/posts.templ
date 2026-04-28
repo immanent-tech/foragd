@@ -103,7 +103,7 @@ templ Post(post *models.MarkdownFile) {
 							itemtype="https://schema.org/Person"
 							class="label text-sm"
 						>
-							{ *post.Frontmatter.Author }
+							<span itemprop="name">{ *post.Frontmatter.Author }</span>
 						</strong>
 					}
 					// Actions.
