@@ -220,7 +220,7 @@ func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails)
 		},
 		"mainEntityOfPage": map[string]any{
 			"@type": "WebPage",
-			"@id":   os.Getenv("FORAGD_BASEURL") + "/" + details.Path,
+			"@id":   os.Getenv("FORAGD_BASEURL") + "/blog/" + details.Path,
 		},
 	}
 	return json.Marshal(data)
