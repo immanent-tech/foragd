@@ -4,7 +4,7 @@ description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
 image = "/content/images/blog/picture-gallery-with-views-of-modern-rome.webp"
-author = "Joshua Rich <joshua@immanent.tech>"
+author = "Joshua Rich"
 +++
 
 <figure>
