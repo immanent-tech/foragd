@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -68,12 +69,22 @@ templ Post(post *models.MarkdownFile) {
 					<div class="h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border"></div>
 				</div>
 				<div class="flex flex-1 justify-self-end text-sm/6 text-neutral items-center space-x-2">
-					<time datetime={ post.Frontmatter.CreatedAt }>Created: { post.Frontmatter.CreatedAt }</time>
+					<time
+						datetime={ post.Frontmatter.CreatedAt }
+						itemprop="datePublished"
+					>
+						Created: { post.Frontmatter.CreatedAt }
+					</time>
 					if post.Frontmatter.UpdatedAt != nil {
 						<svg viewBox="0 0 2 2" class="size-0.5 flex-none fill-neutral">
 							<circle r="1" cx="1" cy="1"></circle>
 						</svg>
-						<time datetime={ *post.Frontmatter.UpdatedAt }>Updated: { *post.Frontmatter.UpdatedAt }</time>
+						<time
+							datetime={ *post.Frontmatter.UpdatedAt }
+							itemprop="dateModified"
+						>
+							Updated: { *post.Frontmatter.UpdatedAt }
+						</time>
 					}
 				</div>
 				<h1
@@ -99,7 +110,7 @@ templ Post(post *models.MarkdownFile) {
 					<div class="flex shrink-0 items-center">
 						<span class="text-sm/6">
 							Reading time:
-							{ text.ReadingTime(string(post.Content)).Round(time.Minute).String() }
+							{ strings.ReplaceAll(text.ReadingTime(string(post.Content)).Round(time.Minute).String(),"0s","") }
 						</span>
 					</div>
 				</div>
