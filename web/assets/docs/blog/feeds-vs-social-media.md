@@ -1,7 +1,7 @@
 +++
 title = "RSS & Atom vs Social Media"
 page_title = "RSS & Atom vs Social Media: Freedom, Control and Privacy"
-description = "Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot."
+description = "Social Media dominates where we source our content from. But unlike Facebook, X, or LinkedIn, RSS and Atom feeds give you complete control over what you see without algorithms or promoted posts controlling what you see, just the sources you choose."
 created_at = "2026-01-27"
 updated_at = "2026-04-28"
 image = "/content/images/blog/raphaels-school-of-athens.webp"

@@ -1,6 +1,6 @@
 +++
 title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
-description = "An in-depth comparison to help you choose the best RSS reader for your needs."
+description = "A detailed feature and pricing comparison of Foragd, Inoreader and Feedly. Covers subscription limits, email newsletter support, article filtering, and which RSS reader offers the best value for independent readers."
 created_at = "2026-02-18"
 updated_at = "2026-04-09"
 image = "/content/images/blog/scribe-comparing-manuscripts.webp"
