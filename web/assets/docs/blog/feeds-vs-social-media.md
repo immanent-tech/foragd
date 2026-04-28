@@ -1,16 +1,23 @@
 +++
 title = "RSS & Atom vs Social Media"
+page_title = "RSS & Atom vs Social Media: Freedom, Control and Privacy"
 description = "Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot."
 created_at = "2026-01-27"
-updated_at = "2026-02-11"
+updated_at = "2026-04-28"
 image = "/content/images/blog/raphaels-school-of-athens.webp"
 author = "Joshua Rich <joshua@immanent.tech>"
 +++
 
+RSS and Atom feeds differ from social media in one fundamental way: you choose every source you see, and no algorithm,
+advertiser, or platform decides what appears in your feed. Social media centralises content under corporate control,
+filtering and promoting based on engagement and revenue. RSS and Atom are distributed, open standards; meaning any
+website can publish one, any feed reader can consume it, and the content arrives in the order it was published, unranked
+and unfiltered.
+
 <figure>
   <img
     src="/content/images/blog/raphaels-school-of-athens.webp"
-    alt="Raphael's School of Athens" />
+    alt="Raphael's School of Athens painting — depicting scholars gathering and sharing knowledge freely, symbolising the open web" />
   <figcaption>
     Raphael's School of Athens (1508–11).
   </figcaption>
@@ -102,17 +109,26 @@ viewers as needs arise, without manual copying of data or potentially even losin
 
 Probably the biggest argument for using RSS and Atom feeds is **freedom**:
 
-- Freedom to choose sources you see.
-- Freedom to filter which bits of the content you see and don’t see.
-- Freedom to control how that content is displayed.
-- Freedom to manage your subscriptions wherever.
-- Freedom to save and archive the content (within copyright and other laws).
+- **Freedom to choose sources you see**: you subscribe only to what you want, with no suggested or promoted content from
+  an algorithm.
+- **Freedom to filter which bits of the content you see and don’t see**: most feed readers let you filter by keyword,
+  category, or source, including any promoted content within feeds..
+- **Freedom to control how that content is displayed**: behind the scenes, feeds are just text, meaning you can easily
+  change how they are displayed.
+- **Freedom to manage your subscriptions wherever**: using the OPML format; an open standard that all major feed readers
+  support.
+- **Freedom to save and archive the content (within copyright and other laws)**: as you get the content directly through
+  the feed, you can store that content easily. Of course this does not change any copyright or other legal protections
+  on the content.
 
 ## Conclusion
 
 RSS and Atom have a lot of similar functionality to Social Media services, so have a lot to offer even today. Further,
 as we observe more control and tighter restrictions on the content available on most Social Media platforms, the freedom
 inherently provided with RSS and Atom is extremely compelling to ensure that diverse content can be heard.
+
+For anyone who wants to read the web on their own terms — without ads, without algorithms, and without a corporation
+deciding what's relevant — RSS and Atom remain the most powerful tools available.
 
 If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](/) and start
 gathering your own collection of topics, news, and opinions!
