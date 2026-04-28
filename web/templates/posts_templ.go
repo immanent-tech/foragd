@@ -85,7 +85,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><article class=\"card card-border bg-base-200 max-w-prose h-fit cursor-pointer touch-manipulation\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><article class=\"card h-fit max-w-prose cursor-pointer touch-manipulation bg-base-200 card-border\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -290,7 +290,7 @@ func Post(post *models.MarkdownFile) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></li></ul></div><article itemscope itemtype=\"https://schema.org/NewsArticle\" class=\"prose sm:prose-lg prose-img:shadow-md my-4 mx-auto\"><div class=\"fixed top-16 left-0 z-10 h-1 w-full bg-base-100\"><div class=\"h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border\"></div></div><div class=\"flex flex-1 justify-self-end text-sm/6 text-neutral items-center space-x-2\"><time datetime=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></li></ul></div><article itemscope itemtype=\"https://schema.org/NewsArticle\" class=\"mx-auto my-4 prose sm:prose-lg prose-img:shadow-md\"><div class=\"fixed top-16 left-0 z-10 h-1 w-full bg-base-100\"><div class=\"h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border\"></div></div><div class=\"flex flex-1 items-center space-x-2 justify-self-end text-sm/6 text-neutral\"><time datetime=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
