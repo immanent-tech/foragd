@@ -8,7 +8,7 @@ image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ship
 author = "Joshua Rich"
 +++
 
-<script id="jsonld-data" type="application/ld+json">
+<script id="finding-feeds-faq" type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "HowTo",
