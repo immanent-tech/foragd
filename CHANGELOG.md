@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.120.0](https://github.com/immanent-tech/foragd/compare/v0.119.0...v0.120.0) (2026-04-29)
+
+
+### Features
+
+* **elastic:** :sparkles: improved and more flexible match and multimatch query options ([522fb17](https://github.com/immanent-tech/foragd/commit/522fb17c959223e4eaea704423fb8b2bc1497bb7))
+* **elastic:** :sparkles: more flexible query option settings ([8696c57](https://github.com/immanent-tech/foragd/commit/8696c57be6632994fc85e58b5762a261f429efa6))
+* **elastic:** :sparkles: support setting boost and query name for terms query ([7255591](https://github.com/immanent-tech/foragd/commit/72555910a4ffec4060d2d05ea9f172e691beb1ef))
+* **handlers:** :sparkles: boost results from favorite subscriptions for latest articles on home page and search suggestions/results ([a107e5a](https://github.com/immanent-tech/foragd/commit/a107e5a5da54978254068ff8f145ab3f4e00081d))
+
+
+### Performance Improvements
+
+* **elastic:** :recycle: improved requests with common functional options ([5eac493](https://github.com/immanent-tech/foragd/commit/5eac49365d2bc7f6a5358b7acd80984a40c8ada6))
+
 ## [0.119.0](https://github.com/immanent-tech/foragd/compare/v0.118.0...v0.119.0) (2026-04-28)
 
 
