@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.119.0](https://github.com/immanent-tech/foragd/compare/v0.118.0...v0.119.0) (2026-04-28)
+
+
+### Features
+
+* **templates:** :sparkles: add function to generate json-ld script from marshaled json data ([ef5869c](https://github.com/immanent-tech/foragd/commit/ef5869cf38f8ea07dd2cb1622461827b0ab0d368))
+* **templates/posts:** :sparkles: improved posts page ([b37bdd1](https://github.com/immanent-tech/foragd/commit/b37bdd1fe0bcc1e07b313b8da74118c4a6025bfa))
+
 ## [0.118.0](https://github.com/immanent-tech/foragd/compare/v0.117.0...v0.118.0) (2026-04-28)
 
 
