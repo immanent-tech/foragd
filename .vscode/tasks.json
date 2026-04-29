@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "run: server",
+      "label": "server: run",
       "type": "shell",
       "command": "air -c server.air.toml",
       "problemMatcher": [],
@@ -18,7 +18,7 @@
       }
     },
     {
-      "label": "run: scheduler",
+      "label": "scheduler: run",
       "type": "shell",
       "command": "air -c scheduler.air.toml",
       "problemMatcher": [],
@@ -32,7 +32,7 @@
       },
     },
     {
-      "label": "run: elastic|indices|update",
+      "label": "elastic: update indices",
       "type": "shell",
       "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
       "problemMatcher": [],
@@ -54,7 +54,7 @@
       }
     },
     {
-      "label": "run: elastic|indices|migrate",
+      "label": "elastic: migrate indices",
       "type": "shell",
       "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
       "problemMatcher": [],
@@ -76,7 +76,7 @@
       }
     },
     {
-      "label": "run: elastic|indices|create",
+      "label": "elastic: create indices",
       "type": "shell",
       "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
       "problemMatcher": [],
@@ -98,7 +98,7 @@
       }
     },
     {
-      "label": "run: elastic|ilm|update",
+      "label": "elastic: update ilm",
       "type": "shell",
       "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
       "problemMatcher": [],
@@ -120,7 +120,7 @@
       }
     },
     {
-      "label": "run: stripe listen",
+      "label": "stripe: run",
       "type": "shell",
       "command": "/usr/local/bin/stripe listen --skip-verify --forward-to localhost:7000/checkout/webhooks",
       "problemMatcher": [],
@@ -142,7 +142,7 @@
       }
     },
     {
-      "label": "email: run server",
+      "label": "email: run",
       "type": "shell",
       "command": "dotenv -e ../.env.${input:environment} -- npx maizzle serve ${input:environment}",
       "problemMatcher": [],
@@ -208,6 +208,29 @@
           ],
         },
         "cwd": "${workspaceFolder}/email"
+      }
+    },
+    {
+      "label": "reverseproxy: deploy",
+      "type": "shell",
+      "command": "wrangler deploy",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-c"
+          ],
+        },
+        "cwd": "${workspaceFolder}/reverseproxy/js"
       }
     }
   ],
