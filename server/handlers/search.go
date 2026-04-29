@@ -291,10 +291,8 @@ func HandleSearchResults() http.HandlerFunc {
 					query.Must(searchQuery),
 					query.MustNot(
 						query.Terms(
-							"match-categories",
 							"categories.raw",
 							slices.Concat(models.CommonCategoryFilters, []string{""}),
-							0,
 						),
 					),
 				)

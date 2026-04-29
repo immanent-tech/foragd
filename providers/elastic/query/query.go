@@ -23,24 +23,59 @@ type Option func(*types.Query)
 // NumberRangeOption is a functional option for a number range query.
 type NumberRangeOption func(*types.NumberRangeQuery)
 
+type MatchAllQuery struct {
+	*types.MatchAllQuery
+}
+
+func (q *MatchAllQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+func (q *MatchAllQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
 // MatchAll adds a "Match All" clause.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
-func MatchAll() Option {
+func MatchAll(options ...func(*MatchAllQuery)) Option {
 	return func(query *types.Query) {
-		query.MatchAll = types.NewMatchAllQuery()
+		q := &MatchAllQuery{
+			MatchAllQuery: types.NewMatchAllQuery(),
+		}
+		for option := range slices.Values(options) {
+			option(q)
+		}
+		query.MatchAll = q.MatchAllQuery
 	}
+}
+
+type ExistsQuery struct {
+	*types.ExistsQuery
+}
+
+func (q *ExistsQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+func (q *ExistsQuery) SetBoost(boost float32) {
+	q.Boost = &boost
 }
 
 // Exists query adds an "Exists" clause.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-exists-query
-func Exists(field string) Option {
-	return func(q *types.Query) {
-		name := "exists-" + field
-		q.Exists = types.NewExistsQuery()
-		q.Exists.Field = field
-		q.Exists.QueryName_ = &name
+func Exists(field string, options ...func(*ExistsQuery)) Option {
+	return func(query *types.Query) {
+		q := &ExistsQuery{
+			&types.ExistsQuery{
+				Field: field,
+			},
+		}
+		for option := range slices.Values(options) {
+			option(q)
+		}
+		query.Exists = q.ExistsQuery
 	}
 }
 
@@ -150,48 +185,77 @@ func (mlt *MoreLikeThisQuery) ToQueryOption() Option {
 	}
 }
 
+type TermQuery struct {
+	*types.TermQuery
+}
+
+func (q *TermQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *TermQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
 // Term adds a "Term" query on the given field with the given value.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
-func Term(field string, value any) Option {
+func Term(field string, value any, options ...func(*TermQuery)) Option {
 	return func(query *types.Query) {
-		name := "term-" + field
-		switch v := value.(type) {
-		case string:
-			if v != "" {
-				query.Term = map[string]types.TermQuery{
-					field: {Value: value, QueryName_: &name},
-				}
-			}
-		default:
-			query.Term = map[string]types.TermQuery{
-				field: {Value: value, QueryName_: &name},
-			}
+		// Create term query clause.
+		termQueryClause := &TermQuery{
+			&types.TermQuery{
+				Value: value,
+			},
 		}
+		// Set options.
+		for option := range slices.Values(options) {
+			option(termQueryClause)
+		}
+		// Apply term query clause to query.
+		if query.Term == nil {
+			query.Term = make(map[string]types.TermQuery)
+		}
+		query.Term[field] = *termQueryClause.TermQuery
 	}
+}
+
+type TermsQuery struct {
+	*types.TermsQuery
+}
+
+func (q *TermsQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *TermsQuery) SetName(name string) {
+	q.QueryName_ = &name
 }
 
 // Terms adds a "Terms" query on the given field with the given string value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query
-func Terms[T any](name, field string, values []T, boost float32) Option {
+func Terms[T any](field string, values []T, options ...func(*TermsQuery)) Option {
 	return func(query *types.Query) {
 		if len(values) > 0 {
 			terms := make([]T, 0, len(values))
 			for value := range slices.Values(values) {
 				terms = append(terms, value)
 			}
-			query.Terms = &types.TermsQuery{
-				TermsQuery: map[string]types.TermsQueryField{
-					field: terms,
+			// Create terms query clause.
+			termsQueryClause := &TermsQuery{
+				&types.TermsQuery{
+					TermsQuery: map[string]types.TermsQueryField{
+						field: terms,
+					},
 				},
 			}
-			if name != "" {
-				query.Terms.QueryName_ = &name
+			// Apply options.
+			for option := range slices.Values(options) {
+				option(termsQueryClause)
 			}
-			if boost != 0 {
-				query.Terms.Boost = &boost
-			}
+			// Apply terms query clause to query.
+			query.Terms = termsQueryClause.TermsQuery
 		}
 	}
 }

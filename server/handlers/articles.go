@@ -209,9 +209,9 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 					),
 				),
 				// Must match any of the given feed IDs.
-				query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				// Must match any of the given categories.
-				query.Terms("match-categories", "categories.raw", filters.GetCategories(), 0),
+				query.Terms("categories.raw", filters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
 					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),

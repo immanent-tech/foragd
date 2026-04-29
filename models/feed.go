@@ -265,7 +265,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 	items, _, err := elastic.Search[*Item](
 		ctx,
 		schema.ItemsIndexRO,
-		query.Terms("match-feed-id", "feed_id", ids, 0),
+		query.Terms("feed_id", ids),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(&sort)...),
@@ -291,7 +291,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 		query.WithBoolQueryName("feed_stats_query"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("match-feed-id", "feed_id", ids, 0),
+			query.Terms("feed_id", ids),
 			// Must be published within last month.
 			query.Bool(
 				query.Should(
@@ -370,7 +370,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 	queryResult, err := ItemsAggregation(ctx,
 		query.Bool(
 			query.Filter(
-				query.Terms("match-feed-id", "feed_id", feeds.GetIDs(), 0),
+				query.Terms("feed_id", feeds.GetIDs()),
 			),
 		),
 		0,

@@ -268,15 +268,15 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	// Perform the request.
 	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
 		query.Filter(
-			query.Terms("match-feed-id", "feed_id", data.Subscriptions.GetFeedIDs(), 0),
+			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()),
 			query.Bool(
 				query.Should(
 					// Boost items that are from a favorite subscription.
 					query.Terms(
-						"boost-favorites",
 						"feed_id",
 						data.Subscriptions.FilterByFavorites(true).GetFeedIDs(),
-						2.0,
+						query.WithQueryName[*query.TermsQuery]("boost-favorites"),
+						query.WithQueryBoost[*query.TermsQuery](2.0),
 					),
 				),
 				// On the home page, only show articles which have an image (looks nicer).

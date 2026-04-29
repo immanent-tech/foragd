@@ -38,7 +38,8 @@ var (
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
 	// Get the user.
-	users, _, err := elastic.Search[*User](ctx, schema.UsersIndexRO, query.Term("external_user_id", externalID), 1,
+	users, _, err := elastic.Search[*User](ctx, schema.UsersIndexRO,
+		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")), 1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		elastic.WithTrackTotalHits(false),
 	)
@@ -79,7 +80,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 	users, _, err := elastic.Search[*User](
 		ctx,
 		schema.UsersIndexRO,
-		query.Terms("subscription-email", "settings.subscription_email", emails, 0),
+		query.Terms("settings.subscription_email", emails),
 		1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		elastic.WithTrackTotalHits(false),
@@ -275,10 +276,10 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 		queries = append(queries, query.Term("favorite", true))
 	}
 	if len(opts.IDs) > 0 {
-		queries = append(queries, query.Terms("subscription-id", "subscription_id", opts.IDs, 0))
+		queries = append(queries, query.Terms("subscription_id", opts.IDs))
 	}
 	if len(opts.Categories) > 0 {
-		queries = append(queries, query.Terms("categories", "customisation.categories", opts.Categories, 0))
+		queries = append(queries, query.Terms("customisation.categories", opts.Categories))
 	}
 
 	// Execute query.

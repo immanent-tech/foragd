@@ -50,8 +50,8 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 				query.Term("user_id", user.GetID()),
 			),
 			query.Should(
-				query.Terms("", "feed_data.feed_id", items.GetFeedIDs(), 0),
-				query.Terms("", "email_data.feed_id", items.GetFeedIDs(), 0),
+				query.Terms("feed_data.feed_id", items.GetFeedIDs()),
+				query.Terms("email_data.feed_id", items.GetFeedIDs()),
 			),
 		),
 		len(items.GetFeedIDs()),
@@ -81,7 +81,7 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		searchQuery = query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("match-subscription-id", "subscription_id", subscriptionIDs, 0),
+				query.Terms("subscription_id", subscriptionIDs),
 			),
 		)
 	}
@@ -159,7 +159,7 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		searchQuery = query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("match-subscription-id", "subscription_id", subscriptions.GetIDs(), 0),
+				query.Terms("subscription_id", subscriptions.GetIDs()),
 			),
 		)
 	}
@@ -385,10 +385,13 @@ func GetSubscriptions(
 		queries = append(queries, query.Term("favorite", true))
 	}
 	if len(req.filterIDs) > 0 {
-		queries = append(queries, query.Terms("match-subscription-id", "subscription_id", req.filterIDs, 0))
+		queries = append(queries, query.Terms("subscription_id", req.filterIDs))
 	}
 	if len(req.filterCategories) > 0 {
-		queries = append(queries, query.Terms("match-categories", "customisation.categories", req.filterCategories, 0))
+		queries = append(
+			queries,
+			query.Terms("customisation.categories", req.filterCategories),
+		)
 	}
 
 	// Construct query.
@@ -504,7 +507,7 @@ func GetSubscriptionSuggestions(
 				),
 			),
 			query.MustNot(
-				query.Terms("match-subscription-id", "subscription_id", req.ignoreIDs, 0),
+				query.Terms("subscription_id", req.ignoreIDs),
 			),
 		),
 		searchSubscriptionsMaxResults(count),
@@ -588,9 +591,9 @@ func FilterSubscriptions(
 	subscriptionQuery := query.Bool(
 		query.Filter(
 			query.Term("user_id", user.GetID()),
-			query.Terms("match-subscription-id", "subscription_id", request.Filters.Subscriptions, 0),
+			query.Terms("subscription_id", request.Filters.Subscriptions),
 			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("match-categories", "customisation.categories.raw", request.Filters.GetCategories(), 0),
+			query.Terms("customisation.categories.raw", request.Filters.GetCategories()),
 		),
 	)
 	subscriptions, err := getAllSubscriptionsByQuery(ctx, subscriptionQuery)
@@ -651,7 +654,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("match-subscription-id", "subscription_id", ids, 0),
+				query.Terms("subscription_id", ids),
 			),
 		),
 	); err != nil {
@@ -986,11 +989,15 @@ func queryReadItems(user *User, source ItemSource) query.Option {
 				query.Should(
 					query.Between("published", user.GetMaxHistory(), source.GetMarkedReadAt()),
 					query.Between("updated", user.GetMaxHistory(), source.GetMarkedReadAt()),
-					query.Terms("read-items", "item_id", source.GetReadItems(), 0),
+					query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
 				),
 				// Must not match any unread items for the feed
 				query.MustNot(
-					query.Terms("unread-items", "item_id", source.GetUnreadItems(), 0),
+					query.Terms(
+						"item_id",
+						source.GetUnreadItems(),
+						query.WithQueryName[*query.TermsQuery]("unread-items"),
+					),
 				),
 			),
 		),
@@ -1010,13 +1017,17 @@ func queryUnreadItems(_ *User, source ItemSource) query.Option {
 				query.Should(
 					query.Since("published", source.GetMarkedReadAt()),
 					query.Since("updated", source.GetMarkedReadAt()),
-					query.Terms("unread-items", "item_id", source.GetUnreadItems(), 0),
+					query.Terms(
+						"item_id",
+						source.GetUnreadItems(),
+						query.WithQueryName[*query.TermsQuery]("unread-items"),
+					),
 				),
 			),
 		),
 		// Must not match any read items for the feed
 		query.MustNot(
-			query.Terms("read-items", "item_id", source.GetReadItems(), 0),
+			query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
 		),
 		// User-specified field-level filtering.
 		ArticleFiltersQueryClause(source),

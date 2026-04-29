@@ -272,7 +272,12 @@ func BuildSearchResultsQuery(
 		),
 		query.Should(
 			// Boost items that are from a favorite subscription.
-			query.Terms("boost-favorites", "feed_id", subscriptions.FilterByFavorites(true).GetFeedIDs(), 2.0),
+			query.Terms(
+				"feed_id",
+				subscriptions.FilterByFavorites(true).GetFeedIDs(),
+				query.WithQueryName[*query.TermsQuery]("boost-favorites"),
+				query.WithQueryBoost[*query.TermsQuery](2.0),
+			),
 			// Boost documents closer to the current time.
 			query.Distance("published", pivot, "now"),
 			query.Distance("updated", pivot, "now"),

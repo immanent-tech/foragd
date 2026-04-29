@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -108,4 +109,41 @@ func ElasticsearchToAPIError(err error) error {
 		InternalError: fmt.Errorf("%w: %w", ErrInvalidAPIResult, err),
 		StatusCode:    http.StatusInternalServerError,
 	}
+}
+
+type ErrorOption func(*APIError)
+
+func WithUserErrorSummary(msg string) ErrorOption {
+	return func(a *APIError) {
+		if a.UserMessage == nil {
+			a.UserMessage = &UserMessage{}
+		}
+		a.UserMessage.Summary = msg
+	}
+}
+
+func WithUserErrorDescription(msg string) ErrorOption {
+	return func(a *APIError) {
+		if a.UserMessage == nil {
+			a.UserMessage = &UserMessage{}
+		}
+		a.UserMessage.Details = &msg
+	}
+}
+
+func NewAPIError(status int, err error, options ...ErrorOption) *APIError {
+	apiErr := &APIError{
+		StatusCode:    status,
+		InternalError: err,
+	}
+	for option := range slices.Values(options) {
+		option(apiErr)
+	}
+	if apiErr.UserMessage == nil {
+		apiErr.UserMessage = NewErrorMessage(
+			"Server could not complete request",
+			"This might be temporary, please try again.",
+		)
+	}
+	return apiErr
 }
