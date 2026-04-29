@@ -174,7 +174,7 @@ func Term(field string, value any) Option {
 // Terms adds a "Terms" query on the given field with the given string value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query
-func Terms[T any](field string, values ...T) Option {
+func Terms[T any](name, field string, values []T, boost float32) Option {
 	return func(query *types.Query) {
 		if len(values) > 0 {
 			terms := make([]T, 0, len(values))
@@ -185,6 +185,12 @@ func Terms[T any](field string, values ...T) Option {
 				TermsQuery: map[string]types.TermsQueryField{
 					field: terms,
 				},
+			}
+			if name != "" {
+				query.Terms.QueryName_ = &name
+			}
+			if boost != 0 {
+				query.Terms.Boost = &boost
 			}
 		}
 	}
