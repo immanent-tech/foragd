@@ -21,6 +21,10 @@ import (
 
 const (
 	elasticConfigEnvPrefix = config.ConfigEnvPrefix + "ELASTIC_"
+
+	// ReqIDHeader is the value that will be used to assign a unique ID to an Elasticsearch API request (that can be
+	// used to associate the API request with a web server request).
+	ReqIDHeader = "X-Opaque-Id"
 )
 
 var defaultTransportConfig = &http.Transport{

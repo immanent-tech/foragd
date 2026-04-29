@@ -17,7 +17,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 
@@ -43,15 +42,12 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option)
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(
-		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
-		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](itemsQueries...),
-		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
-			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
-		),
-		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	resp, err := elastic.NewSearchRequest(ctx,
+		elastic.WithIndex[*elastic.SearchRequest](schema.ItemsIndexRO),
+		elastic.WithQueryOptions[*elastic.SearchRequest](itemsQueries...),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+		elastic.WithAggregations(aggs),
 	).Do(ctx)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
@@ -109,8 +105,8 @@ func SearchItems(
 	}
 	// Perform search.
 	items, newSearchAfter, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query, count,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
+		elastic.WithSort(NewItemSortOptions(sort)...),
+		elastic.WithSearchAfter(searchAfter...),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("search items: %w", err)
@@ -183,15 +179,12 @@ func ItemsAggregation(
 	size int,
 	aggregations aggregations.Aggs,
 ) (*search.Response, error) {
-	req := elastic.NewSearchRequest(
-		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
-		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
-		elastic.WithSize[*search.Search, elastic.SearchRequest](size),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
-			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
-		),
-		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggregations),
+	req := elastic.NewSearchRequest(ctx,
+		elastic.WithIndex[*elastic.SearchRequest](schema.ItemsIndexRO),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query),
+		elastic.WithSize(size),
+		elastic.WithDocSorting(),
+		elastic.WithAggregations(aggregations),
 	)
 	resp, err := req.Do(ctx)
 	if err != nil {

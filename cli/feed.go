@@ -153,9 +153,15 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	}
 
 	// Reset the last_fetched timestamp on the feed.
-	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, c.FeedID, map[string]any{
-		"last_fetched": models.UnixEpoch,
-	}); err != nil {
+	if err := elastic.UpdateDoc(
+		ctx,
+		schema.FeedsIndexRW,
+		c.FeedID,
+		map[string]any{
+			"last_fetched": models.UnixEpoch,
+		},
+		elastic.WithRefresh(true),
+	); err != nil {
 		return fmt.Errorf("reset feed last_fetched: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")

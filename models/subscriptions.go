@@ -16,11 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -98,15 +96,12 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(
-		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
-		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
-		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
-			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
-		),
-		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	resp, err := elastic.NewSearchRequest(ctx,
+		elastic.WithIndex[*elastic.SearchRequest](schema.SubscriptionsIndexRO),
+		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
+		elastic.WithSize[*elastic.SearchRequest](0),
+		elastic.WithDocSorting(),
+		elastic.WithAggregations[*elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
@@ -176,15 +171,12 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(
-		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
-		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
-		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
-			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
-		),
-		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	resp, err := elastic.NewSearchRequest(ctx,
+		elastic.WithIndex[*elastic.SearchRequest](schema.SubscriptionsIndexRO),
+		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
+		elastic.WithSize[*elastic.SearchRequest](0),
+		elastic.WithDocSorting(),
+		elastic.WithAggregations[*elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
@@ -559,8 +551,8 @@ func SearchSubscriptions(
 		schema.SubscriptionsIndexRO,
 		query,
 		req.count,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newSubscriptionSortOptions(req.sort)...),
-		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
+		elastic.WithSort(newSubscriptionSortOptions(req.sort)...),
+		elastic.WithSearchAfter(searchAfter...),
 	)
 	if err != nil {
 		return nil, "", ElasticsearchToAPIError(err)

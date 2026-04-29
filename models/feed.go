@@ -16,7 +16,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
@@ -268,7 +267,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 		query.Terms("feed_id", ids),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(&sort)...),
+		elastic.WithSort(NewItemSortOptions(&sort)...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)

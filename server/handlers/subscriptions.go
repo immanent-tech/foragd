@@ -23,7 +23,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
@@ -1352,7 +1351,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 				schema.FeedsIndexRO,
 				feedSearchQuery,
 				5,
-				elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+				elastic.WithSort(
 					models.NewFeedSortOptions(new(models.SortMostRelevant))...,
 				),
 			)

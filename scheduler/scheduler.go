@@ -53,8 +53,8 @@ func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState,
 func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates,
-		elastic.UpdateDocAsUpsert(),
-		elastic.WithRefresh("true"),
+		elastic.WithDocAsUpsert(true),
+		elastic.WithRefresh(true),
 	); err != nil {
 		return fmt.Errorf("scheduled: update job state: %w", err)
 	}

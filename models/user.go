@@ -10,8 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/stripe/stripe-go/v83"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -40,7 +38,7 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) 
 	// Get the user.
 	users, _, err := elastic.Search[*User](ctx, schema.UsersIndexRO,
 		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")), 1,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 	)
 	switch {
@@ -61,7 +59,7 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 		schema.UsersIndexRO,
 		query.Term("email", email),
 		1,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 	)
 	switch {
@@ -82,7 +80,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 		schema.UsersIndexRO,
 		query.Terms("settings.subscription_email", emails),
 		1,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 	)
 	switch {
@@ -108,7 +106,7 @@ func GetUser(ctx context.Context, id UserID) (*User, error) {
 func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW, userID, updates,
-		elastic.WithRefresh("true"),
+		elastic.WithRefresh(true),
 		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)

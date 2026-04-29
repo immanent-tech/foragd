@@ -10,11 +10,6 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
@@ -150,10 +145,9 @@ func Count(ctx context.Context, index string, queries ...query.Option) (int64, e
 		return 0, fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	resp, err := NewCountRequest(api.TypedClient,
-		WithRequestID[*count.Count, CountRequest](middleware.GetReqID(ctx)),
-		WithIndex[*count.Count, CountRequest](index),
-		WithQueryOptions[*count.Count, CountRequest](queries...),
+	resp, err := NewCountRequest(ctx, api.TypedClient,
+		WithIndex[*CountRequest](index),
+		WithQueryOptions[*CountRequest](queries...),
 	).Do(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("count: %w", err)
@@ -178,10 +172,9 @@ func GetDocs[T ~string, O any](
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
 	}
-	resp, err := NewMGetRequest(api.TypedClient,
-		WithRequestID[*mget.Mget, MgetRequest](middleware.GetReqID(ctx)),
-		WithIndex[*mget.Mget, MgetRequest](index),
-		WithIDs[*mget.Mget, MgetRequest](docIDs...),
+	resp, err := NewMGetRequest(ctx, api.TypedClient,
+		WithIndex[*MGetRequest](index),
+		WithIDs(docIDs...),
 	).Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get docs: %w", err)
@@ -203,9 +196,7 @@ func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error
 		return doc, fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	resp, err := NewGetRequest(api.TypedClient, index, string(id),
-		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
-	).Do(ctx)
+	resp, err := NewGetRequest(ctx, api.TypedClient, index, string(id)).Do(ctx)
 	if err != nil {
 		return doc, fmt.Errorf("get doc: %w", err)
 	}
@@ -250,14 +241,14 @@ func UpdateDoc[T ~string](
 	index string,
 	id T,
 	updates map[string]any,
-	options ...Option[UpdateDocRequest],
+	options ...func(*UpdateRequest),
 ) error {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	resp, err := NewUpdateDocRequest(api.TypedClient, index, string(id), updates, options...).Do(ctx)
+	resp, err := NewUpdateDocRequest(ctx, api.TypedClient, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("update doc: %w", err)
 	}
@@ -301,13 +292,10 @@ func DeleteDocs(ctx context.Context, index string, queries ...query.Option) erro
 		return fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	resp, err := NewDeleteByQueryRequest(
+	resp, err := NewDeleteByQueryRequest(ctx,
 		api.TypedClient,
 		index,
-		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](
-			middleware.GetReqID(ctx),
-		),
-		WithQueryOptions[*deletebyquery.DeleteByQuery, RequestWithQuery[*deletebyquery.DeleteByQuery]](queries...),
+		WithQueryOptions[*DeleteByQueryRequest](queries...),
 	).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("delete docs: %w", err)
@@ -326,21 +314,20 @@ func Search[O any](
 	index string,
 	query query.Option,
 	count int,
-	options ...Option[SearchRequest],
+	options ...func(*SearchRequest),
 ) ([]O, []types.FieldValue, error) {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return nil, nil, fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	defaultOptions := []Option[SearchRequest]{
-		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
-		WithIndex[*search.Search, SearchRequest](index),
-		WithQueryOptions[*search.Search, SearchRequest](query),
-		WithSize[*search.Search, SearchRequest](count),
+	defaultOptions := []func(*SearchRequest){
+		WithIndex[*SearchRequest](index),
+		WithQueryOptions[*SearchRequest](query),
+		WithSize(count),
 	}
 	defaultOptions = append(defaultOptions, options...)
-	req := NewSearchRequest(defaultOptions...)
+	req := NewSearchRequest(ctx, defaultOptions...)
 
 	resp, err := req.Do(ctx)
 	if err != nil {
@@ -366,7 +353,7 @@ func SearchAll[O any](
 	index string,
 	query query.Option,
 	paginationSize int,
-	options ...Option[SearchRequest],
+	options ...func(*SearchRequest),
 ) ([]O, error) {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
@@ -382,13 +369,12 @@ func SearchAll[O any](
 	// Loop until we've paginated through all results.
 	var loops int
 	for {
-		searchOpts := []Option[SearchRequest]{
-			WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
-			WithIndex[*search.Search, SearchRequest](index),
-			WithQueryOptions[*search.Search, SearchRequest](query),
-			WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
-			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
-			WithTrackTotalHits(false),
+		searchOpts := []func(*SearchRequest){
+			WithIndex[*SearchRequest](index),
+			WithQueryOptions[*SearchRequest](query),
+			WithDocSorting[*SearchRequest](),
+			WithSearchAfter[*SearchRequest](searchAfter...),
+			WithTrackTotalHits[*SearchRequest](false),
 		}
 		searchOpts = append(searchOpts, options...)
 		resultsPage, nextSearchAfter, err := Search[O](ctx, index, query, paginationSize, searchOpts...)
@@ -416,36 +402,3 @@ func SearchAll[O any](
 	)
 	return allResults, nil
 }
-
-// // MultiSearch performs an msearch request.
-// func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*models.MultiSearchQuery) (results.MSearchResults, error) {
-// 	// subscriptionsIndex, err := FeedsReadIndexFromCtx(ctx)
-// 	// if err != nil {
-// 	// 	return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
-// 	// }
-// 	// itemsIndex, err := ItemsReadIndexFromCtx(ctx)
-// 	// if err != nil {
-// 	// 	return nil, fmt.Errorf("unable to perform multi-search: %w", err)
-// 	// }
-
-// 	options := make([]Option[MsearchRequest], 0, len(searches)+1)
-// 	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
-// 	for search := range slices.Values(searches) {
-// 		options = append(options, WithSearch(search))
-// 	}
-
-// 	req := NewMSearchRequest(api, options...)
-// 	resp, err := req.Do(ctx)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("multisearch: msearch request failed: %w", err)
-// 	}
-
-// 	results := make(map[string]*types.MultiSearchItem)
-// 	for idx, search := range searches {
-// 		if result, ok := resp.Responses[idx].(*types.MultiSearchItem); ok {
-// 			results[search.Name] = result
-// 		}
-// 	}
-
-// 	return results, nil
-// }
