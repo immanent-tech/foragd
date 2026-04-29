@@ -7,15 +7,12 @@ package query
 import (
 	"reflect"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 )
-
-const FuzzinessAuto = "AUTO"
 
 // Option is a functional option for queries.
 type Option func(*types.Query)
@@ -79,60 +76,92 @@ func Exists(field string, options ...func(*ExistsQuery)) Option {
 	}
 }
 
+type MatchQuery struct {
+	*types.MatchQuery
+}
+
+func (q *MatchQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+func (q *MatchQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *MatchQuery) SetFuzziness(fuzziness FuzzinessValue) {
+	q.Fuzziness = fuzziness
+}
+
+func (q *MatchQuery) SetFuzzyTranspositions(value bool) {
+	q.FuzzyTranspositions = &value
+}
+
 // Match adds a "Match" query on the given field with the given value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query
-func Match(field, fuzziness string, value string) Option {
+func Match(field, value string, options ...func(*MatchQuery)) Option {
 	return func(query *types.Query) {
 		if value != "" {
-			name := "match-" + field
-			matchQuery := types.MatchQuery{
-				Query:      value,
-				QueryName_: &name,
+			q := &MatchQuery{
+				&types.MatchQuery{
+					Query: value,
+				},
 			}
-			if fuzziness != "" {
-				matchQuery.Fuzziness = fuzziness
+			for option := range slices.Values(options) {
+				option(q)
 			}
-			query.Match = map[string]types.MatchQuery{
-				field: matchQuery,
+			if query.Match == nil {
+				query.Match = make(map[string]types.MatchQuery)
 			}
+			query.Match[field] = *q.MatchQuery
 		}
 	}
+}
+
+type MultiMatchQuery struct {
+	*types.MultiMatchQuery
+}
+
+func (q *MultiMatchQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+func (q *MultiMatchQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *MultiMatchQuery) SetFuzziness(fuzziness FuzzinessValue) {
+	q.Fuzziness = fuzziness
+}
+
+func (q *MultiMatchQuery) SetFuzzyTranspositions(value bool) {
+	q.FuzzyTranspositions = &value
+}
+
+func (q *MultiMatchQuery) SetSlop(slop int) {
+	q.Slop = &slop
+}
+
+func (q *MultiMatchQuery) SetTextQueryType(tq TextQueryType) {
+	q.Type = new(textquerytype.TextQueryType(tq))
 }
 
 // MultiMatch adds a "MultiMatch" query on the given field with the given value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query
-func MultiMatch(value, fuzziness string, fields ...string) Option {
+func MultiMatch(value string, fields []string, options ...func(*MultiMatchQuery)) Option {
 	return func(query *types.Query) {
 		if value != "" {
-			name := "multi-match-" + strings.Join(fields, "+")
-			query.MultiMatch = &types.MultiMatchQuery{
-				Fields:     fields,
-				Query:      value,
-				QueryName_: &name,
+			q := &MultiMatchQuery{
+				&types.MultiMatchQuery{
+					Fields: fields,
+					Query:  value,
+				},
 			}
-			if fuzziness != "" {
-				query.MultiMatch.Fuzziness = fuzziness
+			for option := range slices.Values(options) {
+				option(q)
 			}
-		}
-	}
-}
-
-// MultiMatchPrefix adds a "MultiMatch" query on the given field with the given value and performing a phrase_prefix
-// search.
-//
-// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query#type-phrase
-func MultiMatchPrefix(value string, fields ...string) Option {
-	return func(query *types.Query) {
-		if value != "" {
-			name := "multi-match-prefix-" + strings.Join(fields, "+")
-			query.MultiMatch = &types.MultiMatchQuery{
-				Fields:     fields,
-				Query:      value,
-				QueryName_: &name,
-				Type:       &textquerytype.Phraseprefix,
-			}
+			query.MultiMatch = q.MultiMatchQuery
 		}
 	}
 }

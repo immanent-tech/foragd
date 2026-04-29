@@ -1330,7 +1330,11 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 					query.Must(
 						query.Bool(
 							query.Should(
-								query.MultiMatch(text, "auto", "title^5", "description"),
+								query.MultiMatch(
+									text,
+									[]string{"title^5", "description"},
+									query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
+								),
 								query.Term("categories", text),
 							),
 						),
