@@ -290,7 +290,12 @@ func HandleSearchResults() http.HandlerFunc {
 				aggsQuery := query.Bool(
 					query.Must(searchQuery),
 					query.MustNot(
-						query.Terms("categories.raw", slices.Concat(models.CommonCategoryFilters, []string{""})...),
+						query.Terms(
+							"match-categories",
+							"categories.raw",
+							slices.Concat(models.CommonCategoryFilters, []string{""}),
+							0,
+						),
 					),
 				)
 				// Perform aggregation.
