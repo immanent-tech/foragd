@@ -29,7 +29,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/reverseproxy"
@@ -215,10 +214,10 @@ func getFeedUnreadCounts(
 			),
 		),
 	)
-	// Build aggregations.
+	// Build elastic.
 	termsField := "feed_id"
 	termsCount := len(subscriptions)
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"UnreadCounts": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -227,12 +226,18 @@ func getFeedUnreadCounts(
 		},
 	}
 	// Perform aggregation.
-	results, err := ItemsAggregation(ctx, query, 0, aggs)
+	resp, err := elastic.Search[*Item](ctx,
+		schema.ItemsIndexRO,
+		query,
+		elastic.WithAggregations(aggs),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
 	}
 
-	unreadCounts, ok := results.Aggregations["UnreadCounts"].(*estypes.StringTermsAggregate)
+	unreadCounts, ok := resp.Aggregations["UnreadCounts"].(*estypes.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf(
 			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
@@ -261,11 +266,11 @@ func getFeedUnreadCounts(
 
 func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Time, error) {
 	sort := SortNewestFirst
-	items, _, err := elastic.Search[*Item](
+	resp, err := elastic.Search[*Item](
 		ctx,
 		schema.ItemsIndexRO,
 		query.Terms("feed_id", ids),
-		len(ids),
+		elastic.WithSize(len(ids)),
 		elastic.WithCollapseField("feed_id"),
 		elastic.WithSort(NewItemSortOptions(&sort)...),
 	)
@@ -275,7 +280,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 
 	updates := make(map[FeedID]time.Time)
 
-	for item := range slices.Values(items) {
+	for item := range slices.Values(resp.Results) {
 		updates[item.GetFeedID()] = item.GetTimestamp()
 	}
 
@@ -300,12 +305,12 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 			),
 		),
 	)
-	// Build aggregations.
+	// Build elastic.
 	termsField := "feed_id"
 	termsCount := len(ids)
 	dateHistoField := "@timestamp"
 	dateFormat := "yyyy-MM-dd"
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"feed": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -328,11 +333,17 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 		},
 	}
 
-	results, err := ItemsAggregation(ctx, query, len(ids), aggs)
+	resp, err := elastic.Search[*Item](ctx,
+		schema.ItemsIndexRO,
+		query,
+		elastic.WithAggregations(aggs),
+		elastic.WithSize(len(ids)),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", ErrInvalidAPIResult)
 	}
-	feedStats, ok := results.Aggregations["feed"].(*estypes.StringTermsAggregate)
+	feedStats, ok := resp.Aggregations["feed"].(*estypes.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", ErrInvalidAPIResult)
 	}
@@ -366,29 +377,34 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 
 // GetFeedLatestItems fetches the most recent count items for each given feed.
 func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID]Items, error) {
-	queryResult, err := ItemsAggregation(ctx,
+	resp, err := elastic.Search[*Item](ctx,
+		schema.ItemsIndexRO,
 		query.Bool(
 			query.Filter(
 				query.Terms("feed_id", feeds.GetIDs()),
 			),
 		),
-		0,
-		aggregations.Aggs{
-			"feed": estypes.Aggregations{
-				Terms: &estypes.TermsAggregation{
-					Field: new("feed_id"),
-					Size:  new(len(feeds)),
-				},
-				Aggregations: map[string]estypes.Aggregations{
-					"latest_items": {
-						TopHits: &estypes.TopHitsAggregation{
-							Size: &count,
-							Sort: NewItemSortCombinations(new(SortNewestFirst)),
+		elastic.WithAggregations(
+			elastic.Aggs{
+				"feed": estypes.Aggregations{
+					Terms: &estypes.TermsAggregation{
+						Field: new("feed_id"),
+						Size:  new(len(feeds)),
+					},
+					Aggregations: map[string]estypes.Aggregations{
+						"latest_items": {
+							TopHits: &estypes.TopHitsAggregation{
+								Size: &count,
+								Sort: NewItemSortCombinations(new(SortNewestFirst)),
+							},
 						},
 					},
 				},
 			},
-		})
+		),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
 	}
@@ -396,15 +412,15 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	// Extract the feed aggregation.
-	feedsAgg, err := aggregations.ExtractAggregation[*estypes.StringTermsAggregate](
-		queryResult.Aggregations,
+	feedsAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
+		resp.Aggregations,
 		"feed",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
 	// Loop over the feed buckets.
-	feedBuckets, err := aggregations.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
+	feedBuckets, err := elastic.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
 	if err != nil {
 		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
 	}
@@ -421,7 +437,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 					return
 				}
 				// Extract the latest articles aggregation.
-				latestItemsAggs, err := aggregations.ExtractAggregation[*estypes.TopHitsAggregate](
+				latestItemsAggs, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
 					bucket.Aggregations,
 					"latest_items",
 				)
@@ -443,7 +459,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 				items, _, err = results.ExtractSourceFromHits[Item](latestItemsAggs.Hits.Hits)
 				if err != nil {
 					slogctx.FromCtx(ctx).
-						Warn("Unable to extract latest articles from aggregations.",
+						Warn("Unable to extract latest articles from elastic.",
 							slog.Any("error", err),
 						)
 					return
@@ -642,7 +658,7 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*Feed, bool, error) 
 		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
 	}
 	// Find any existing feed.
-	existingFeeds, _, err := elastic.Search[*Feed](ctx,
+	resp, err := elastic.Search[*Feed](ctx,
 		schema.FeedsIndexRO,
 		query.Bool(
 			query.Filter(
@@ -651,14 +667,14 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*Feed, bool, error) 
 				),
 			),
 		),
-		1,
+		elastic.WithSize(1),
 	)
 	if err != nil {
 		return nil, false, fmt.Errorf("search existing feeds: %w", err)
 	}
-	if len(existingFeeds) == 1 {
+	if len(resp.Results) == 1 {
 		// If an existing feed is found, use that feed.
-		return existingFeeds[0], false, nil
+		return resp.Results[0], false, nil
 	}
 	// Otherwise use the new feed.
 	return newFeed, true, nil

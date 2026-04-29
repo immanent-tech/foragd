@@ -27,7 +27,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
@@ -40,7 +39,7 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	// Get user subscription details for the feeds the items belong to.
-	subscriptions, _, err := elastic.Search[*Subscription](
+	resp, err := elastic.Search[*Subscription](
 		ctx,
 		schema.SubscriptionsIndexRO,
 		query.Bool(
@@ -52,12 +51,12 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 				query.Terms("email_data.feed_id", items.GetFeedIDs()),
 			),
 		),
-		len(items.GetFeedIDs()),
+		elastic.WithSize(len(items.GetFeedIDs())),
 	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
-	return subscriptions, nil
+	return resp.Results, nil
 }
 
 func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...SubscriptionID) (CategoryCounts, error) {
@@ -84,10 +83,10 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		)
 	}
 
-	// Build aggregations.
+	// Build elastic.
 	termsField := "customisation.categories.raw"
 	termsCount := 200
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"CategoryCounts": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -96,13 +95,13 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(ctx,
-		elastic.WithIndex[*elastic.SearchRequest](schema.SubscriptionsIndexRO),
-		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
-		elastic.WithSize[*elastic.SearchRequest](0),
+	resp, err := elastic.Search[*Subscription](ctx,
+		schema.SubscriptionsIndexRO,
+		searchQuery,
+		elastic.WithSize(0),
 		elastic.WithDocSorting(),
-		elastic.WithAggregations[*elastic.SearchRequest](aggs),
-	).Do(ctx)
+		elastic.WithAggregations(aggs),
+	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
@@ -159,10 +158,10 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		)
 	}
 
-	// Build aggregations.
+	// Build elastic.
 	termsField := "customisation.categories.raw"
 	termsCount := 200
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"CategoryCounts": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -171,13 +170,13 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(ctx,
-		elastic.WithIndex[*elastic.SearchRequest](schema.SubscriptionsIndexRO),
-		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
-		elastic.WithSize[*elastic.SearchRequest](0),
+	resp, err := elastic.Search[*Subscription](ctx,
+		schema.SubscriptionsIndexRO,
+		searchQuery,
+		elastic.WithSize(0),
 		elastic.WithDocSorting(),
-		elastic.WithAggregations[*elastic.SearchRequest](aggs),
-	).Do(ctx)
+		elastic.WithAggregations(aggs),
+	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
@@ -546,27 +545,27 @@ func SearchSubscriptions(
 	}
 
 	// Perform search.
-	subscriptions, newSearchAfter, err := elastic.Search[*Subscription](
+	resp, err := elastic.Search[*Subscription](
 		ctx,
 		schema.SubscriptionsIndexRO,
 		query,
-		req.count,
 		elastic.WithSort(newSubscriptionSortOptions(req.sort)...),
 		elastic.WithSearchAfter(searchAfter...),
+		elastic.WithSize(req.count),
 	)
 	if err != nil {
 		return nil, "", ElasticsearchToAPIError(err)
 	}
 	// Parse search after into pagination.
 	if req.pagination != "" {
-		req.pagination, err = elastic.EncodePagination[Pagination](newSearchAfter)
+		req.pagination, err = elastic.EncodePagination[Pagination](resp.Pagination)
 		if err != nil {
 			return nil, "", ErrInvalidParams
 		}
-		return subscriptions, req.pagination, nil
+		return resp.Results, req.pagination, nil
 	}
 
-	return subscriptions, "", nil
+	return resp.Results, "", nil
 }
 
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.

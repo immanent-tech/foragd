@@ -19,11 +19,12 @@ import (
 
 	"golang.org/x/net/html/atom"
 
+	"github.com/immanent-tech/foragd/models/schema"
 	htmlparser "github.com/immanent-tech/foragd/pkg/formats/html"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -226,10 +227,10 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 
 // GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
 func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]Category, error) {
-	// Build aggregations.
+	// Build elastic.
 	termsField := "categories.raw"
 	termsCount := 10
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"TopCategories": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -238,12 +239,18 @@ func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]C
 		},
 	}
 	// Perform aggregation.
-	results, err := ItemsAggregation(ctx, searchQuery, 0, aggs)
+	resp, err := elastic.Search[*Item](ctx,
+		schema.ItemsIndexRO,
+		searchQuery,
+		elastic.WithAggregations(aggs),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get top categories: %w", err)
 	}
 
-	topCategoriesAgg, ok := results.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
+	topCategoriesAgg, ok := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
 	}

@@ -140,21 +140,21 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	// Find the next job
-	jobs, _, err := elastic.Search[*jobs.ScheduledJob](
+	resp, err := elastic.Search[*jobs.ScheduledJob](
 		ctx,
 		schema.SchedulerIndexRO,
 		query.Exists("job_type"),
-		1,
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
+		elastic.WithSize(1),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
 	}
-	if len(jobs) == 0 {
+	if len(resp.Results) == 0 {
 		return nil, fmt.Errorf("head: %w", quartz.ErrQueueEmpty)
 	}
 
-	return jobs[0], nil
+	return resp.Results[0], nil
 }
 
 // Get returns the scheduled job with the specified key without removing it

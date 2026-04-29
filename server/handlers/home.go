@@ -17,7 +17,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -209,92 +210,99 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	topCategoryHitsCount := 3
 	topSampleHitsCount := 6
 	maxDocCount := int64(3)
-	aggs := aggregations.Aggs{
-		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
-		// source.
-		"top_categories_sample": types.Aggregations{
-			DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-				Field:           &sampleField,
-				MaxDocsPerValue: &defaultMaxDocsPerValue,
-				ShardSize:       &shardSize,
-			},
-			Aggregations: map[string]types.Aggregations{
-				// top_categories: the top categories across all subscriptions.
-				"top_categories": {
-					Terms: &types.TermsAggregation{
-						Field:   &termsField,
-						Exclude: slices.Concat(models.CommonCategoryFilters, []string{""}),
-					},
-					Aggregations: map[string]types.Aggregations{
-						"top_article_hits": {
-							TopHits: &types.TopHitsAggregation{
-								Size: &topCategoryHitsCount,
-							},
-						},
-						// top_articles: the top scoring article for each top category.
-						// "top_articles": {
-						// 	Filter: query.Build(query.Bool(
-						// 		query.MustNot(
-						// 			query.Terms("item_id", data.LatestArticles.GetIDs()...),
-						// 		),
-						// 	)),
-						// 	Aggregations: map[string]types.Aggregations{
-						// 		"top_article_hits": {
-						// 			TopHits: &types.TopHitsAggregation{
-						// 				Size: &topHitsCount,
-						// 			},
-						// 		},
-						// 	},
-						// },
-					},
-				},
-				"latest_articles_sample": {
-					TopHits: &types.TopHitsAggregation{
-						Size: &topSampleHitsCount,
-					},
-				},
-			},
-		},
-		// Aggregation definition for fetching the rare item categories across all subscriptions.
-		"rare_categories": types.Aggregations{
-			RareTerms: &types.RareTermsAggregation{
-				Field:       &termsField,
-				MaxDocCount: &maxDocCount,
-				Exclude:     models.CommonCategoryFilters,
-			},
-		},
-	}
 
 	// Perform the request.
-	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
-		query.Filter(
-			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()),
-			query.Bool(
-				query.Should(
-					// Boost items that are from a favorite subscription.
-					query.Terms(
-						"feed_id",
-						data.Subscriptions.FilterByFavorites(true).GetFeedIDs(),
-						query.WithQueryName[*query.TermsQuery]("boost-favorites"),
-						query.WithQueryBoost[*query.TermsQuery](2.0),
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO,
+		query.Bool(
+			query.Filter(
+				query.Terms("feed_id", data.Subscriptions.GetFeedIDs()),
+				query.Bool(
+					query.Should(
+						// Boost items that are from a favorite subscription.
+						query.Terms(
+							"feed_id",
+							data.Subscriptions.FilterByFavorites(true).GetFeedIDs(),
+							query.WithQueryName[*query.TermsQuery]("boost-favorites"),
+							query.WithQueryBoost[*query.TermsQuery](2.0),
+						),
 					),
-				),
-				// On the home page, only show articles which have an image (looks nicer).
-				query.Must(
-					query.Exists("image.url"),
-				),
-				query.MustNot(
-					query.Term("image.url", ""),
+					// On the home page, only show articles which have an image (looks nicer).
+					query.Must(
+						query.Exists("image.url"),
+					),
+					query.MustNot(
+						query.Term("image.url", ""),
+					),
 				),
 			),
 		),
-	), 0, aggs)
+		elastic.WithAggregations(
+			elastic.Aggs{
+				// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
+				// source.
+				"top_categories_sample": types.Aggregations{
+					DiversifiedSampler: &types.DiversifiedSamplerAggregation{
+						Field:           &sampleField,
+						MaxDocsPerValue: &defaultMaxDocsPerValue,
+						ShardSize:       &shardSize,
+					},
+					Aggregations: map[string]types.Aggregations{
+						// top_categories: the top categories across all subscriptions.
+						"top_categories": {
+							Terms: &types.TermsAggregation{
+								Field:   &termsField,
+								Exclude: slices.Concat(models.CommonCategoryFilters, []string{""}),
+							},
+							Aggregations: map[string]types.Aggregations{
+								"top_article_hits": {
+									TopHits: &types.TopHitsAggregation{
+										Size: &topCategoryHitsCount,
+									},
+								},
+								// top_articles: the top scoring article for each top category.
+								// "top_articles": {
+								// 	Filter: query.Build(query.Bool(
+								// 		query.MustNot(
+								// 			query.Terms("item_id", data.LatestArticles.GetIDs()...),
+								// 		),
+								// 	)),
+								// 	Aggregations: map[string]types.Aggregations{
+								// 		"top_article_hits": {
+								// 			TopHits: &types.TopHitsAggregation{
+								// 				Size: &topHitsCount,
+								// 			},
+								// 		},
+								// 	},
+								// },
+							},
+						},
+						"latest_articles_sample": {
+							TopHits: &types.TopHitsAggregation{
+								Size: &topSampleHitsCount,
+							},
+						},
+					},
+				},
+				// Aggregation definition for fetching the rare item categories across all subscriptions.
+				"rare_categories": types.Aggregations{
+					RareTerms: &types.RareTermsAggregation{
+						Field:       &termsField,
+						MaxDocCount: &maxDocCount,
+						Exclude:     models.CommonCategoryFilters,
+					},
+				},
+			},
+		),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
 
 	// Get the top categories.
-	if topCategoriesSamplerAgg, ok := queryResult.Aggregations["top_categories_sample"].(*types.SamplerAggregate); ok {
+	if topCategoriesSamplerAgg, ok := resp.Aggregations["top_categories_sample"].(*types.SamplerAggregate); ok {
 		var topCategoriesAgg *types.StringTermsAggregate
 		if topCategoriesAgg, ok = topCategoriesSamplerAgg.Aggregations["top_categories"].(*types.StringTermsAggregate); ok {
 			var categoryBuckets []types.StringTermsBucket
@@ -347,7 +355,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 		}
 	}
 	// Get the rare categories.
-	if rareCategoriesAgg, ok := queryResult.Aggregations["rare_categories"].(*types.StringRareTermsAggregate); ok {
+	if rareCategoriesAgg, ok := resp.Aggregations["rare_categories"].(*types.StringRareTermsAggregate); ok {
 		// Generate category counts from buckets.
 		var rareCategoryBuckets []types.StringRareTermsBucket
 		if rareCategoryBuckets, ok = rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {

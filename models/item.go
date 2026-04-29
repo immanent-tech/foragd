@@ -15,7 +15,6 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/zeebo/xxh3"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
@@ -25,15 +24,14 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option) (CategoryCounts, error) {
-	// Build aggregations.
+func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (CategoryCounts, error) {
+	// Build elastic.
 	termsField := "categories.raw"
 	termsCount := 200
-	aggs := aggregations.Aggs{
+	aggs := elastic.Aggs{
 		"CategoryCounts": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
@@ -42,13 +40,13 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option)
 		},
 	}
 
-	resp, err := elastic.NewSearchRequest(ctx,
-		elastic.WithIndex[*elastic.SearchRequest](schema.ItemsIndexRO),
-		elastic.WithQueryOptions[*elastic.SearchRequest](itemsQueries...),
+	resp, err := elastic.Search[*Item](ctx,
+		schema.ItemsIndexRO,
+		itemsQuery,
+		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),
-		elastic.WithAggregations(aggs),
-	).Do(ctx)
+	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
@@ -104,19 +102,20 @@ func SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query, count,
+	resp, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query,
 		elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
+		elastic.WithSize(count),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("search items: %w", err)
 	}
 	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[Pagination](newSearchAfter)
+	newPagination, err := elastic.EncodePagination[Pagination](resp.Pagination)
 	if err != nil {
 		return nil, "", ErrInvalidParams
 	}
-	return items, newPagination, nil
+	return resp.Results, newPagination, nil
 }
 
 // AddItems wraps an elastic bulk update to index items.
@@ -169,29 +168,6 @@ func BuildItemsQuery(
 			),
 		),
 	), nil
-}
-
-// ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as
-// the set of documents and performing the given aggregations across the documents.
-func ItemsAggregation(
-	ctx context.Context,
-	query query.Option,
-	size int,
-	aggregations aggregations.Aggs,
-) (*search.Response, error) {
-	req := elastic.NewSearchRequest(ctx,
-		elastic.WithIndex[*elastic.SearchRequest](schema.ItemsIndexRO),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query),
-		elastic.WithSize(size),
-		elastic.WithDocSorting(),
-		elastic.WithAggregations(aggregations),
-	)
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-
-	return resp, nil
 }
 
 // Items is a slice of items.

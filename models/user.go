@@ -36,60 +36,61 @@ var (
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
 	// Get the user.
-	users, _, err := elastic.Search[*User](ctx, schema.UsersIndexRO,
-		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")), 1,
+	resp, err := elastic.Search[*User](ctx, schema.UsersIndexRO,
+		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
 	)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("find user by external id: %w", err)
-	case len(users) == 0:
+	case len(resp.Results) == 0:
 		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
 	default:
-		return users[0], nil
+		return resp.Results[0], nil
 	}
 }
 
 // GetUserByEmail will retrieve a user by their email.
 func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	// Get the user.
-	users, _, err := elastic.Search[*User](
+	resp, err := elastic.Search[*User](
 		ctx,
 		schema.UsersIndexRO,
 		query.Term("email", email),
-		1,
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
 	)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("search: %w", err)
-	case len(users) == 0:
+	case len(resp.Results) == 0:
 		return nil, fmt.Errorf("search: %w", ErrNotFound)
 	default:
-		return users[0], nil
+		return resp.Results[0], nil
 	}
 }
 
 // GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
 func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, error) {
 	// Get the user.
-	users, _, err := elastic.Search[*User](
+	resp, err := elastic.Search[*User](
 		ctx,
 		schema.UsersIndexRO,
 		query.Terms("settings.subscription_email", emails),
-		1,
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
 	)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("find user by external id: %w", err)
-	case len(users) == 0:
+	case len(resp.Results) == 0:
 		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
 	default:
-		return users[0], nil
+		return resp.Results[0], nil
 	}
 }
 

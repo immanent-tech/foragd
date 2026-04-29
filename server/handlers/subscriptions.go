@@ -34,7 +34,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/server/forms"
@@ -303,33 +302,39 @@ func getFeedSubscriptionLatestItems(
 	if user == nil {
 		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
 	}
-	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
-		query.Filter(
-			// Must match any of the given categories.
-			query.Terms("feed_id", subscriptions.GetFeedIDs()),
-			query.Bool(
-				query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO,
+		query.Bool(
+			query.Filter(
+				// Must match any of the given categories.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+				query.Bool(
+					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+				),
 			),
 		),
-	),
-		0,
-		aggregations.Aggs{
-			"feed": types.Aggregations{
-				Terms: &types.TermsAggregation{
-					Field: new("feed_id"),
-					Size:  new(len(subscriptions)),
-				},
-				Aggregations: map[string]types.Aggregations{
-					"latest_items": {
-						TopHits: &types.TopHitsAggregation{
-							Size:    new(3),
-							Sort:    models.NewItemSortCombinations(&filters.Sort),
-							Source_: []string{"feed_id", "item_id", "title", "updated", "published"},
+		elastic.WithAggregations(
+			elastic.Aggs{
+				"feed": types.Aggregations{
+					Terms: &types.TermsAggregation{
+						Field: new("feed_id"),
+						Size:  new(len(subscriptions)),
+					},
+					Aggregations: map[string]types.Aggregations{
+						"latest_items": {
+							TopHits: &types.TopHitsAggregation{
+								Size:    new(3),
+								Sort:    models.NewItemSortCombinations(&filters.Sort),
+								Source_: []string{"feed_id", "item_id", "title", "updated", "published"},
+							},
 						},
 					},
 				},
 			},
-		})
+		),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
 	}
@@ -337,15 +342,15 @@ func getFeedSubscriptionLatestItems(
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	// Extract the feed aggregation.
-	feedsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](
-		queryResult.Aggregations,
+	feedsAgg, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
+		resp.Aggregations,
 		"feed",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
 	// Loop over the feed buckets.
-	feedBuckets, err := aggregations.ExtractBuckets[types.StringTermsBucket](feedsAgg.Buckets)
+	feedBuckets, err := elastic.ExtractBuckets[types.StringTermsBucket](feedsAgg.Buckets)
 	if err != nil {
 		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
 	}
@@ -362,7 +367,7 @@ func getFeedSubscriptionLatestItems(
 					return
 				}
 				// Extract the latest articles aggregation.
-				latestItemsAggs, err := aggregations.ExtractAggregation[*types.TopHitsAggregate](
+				latestItemsAggs, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
 					bucket.Aggregations,
 					"latest_items",
 				)
@@ -384,7 +389,7 @@ func getFeedSubscriptionLatestItems(
 				items, _, err = results.ExtractSourceFromHits[models.Item](latestItemsAggs.Hits.Hits)
 				if err != nil {
 					slogctx.FromCtx(ctx).
-						Warn("Unable to extract latest articles from aggregations.",
+						Warn("Unable to extract latest articles from elastic.",
 							slog.Any("error", err),
 						)
 					return
@@ -1305,7 +1310,6 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 		case "web":
 			// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
 			var (
-				feeds           models.Feeds
 				feedSearchQuery query.Option
 			)
 			switch {
@@ -1346,14 +1350,14 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 			}
 
 			// Try to find existing feeds that match the query.
-			feeds, _, err = elastic.Search[*models.Feed](
+			resp, err := elastic.Search[*models.Feed](
 				req.Context(),
 				schema.FeedsIndexRO,
 				feedSearchQuery,
-				5,
 				elastic.WithSort(
 					models.NewFeedSortOptions(new(models.SortMostRelevant))...,
 				),
+				elastic.WithSize(5),
 			)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to find feed suggestions.",
@@ -1362,10 +1366,10 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 			}
 
 			// Handle matching feeds.
-			if len(feeds) > 0 {
+			if len(resp.Results) > 0 {
 				// Retrieve the latest 3 articles for each feed.
 				latestItems := make(map[models.FeedID]models.Items)
-				latestItems, err = models.GetFeedLatestItems(req.Context(), 3, feeds)
+				latestItems, err = models.GetFeedLatestItems(req.Context(), 3, resp.Results)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to get latest items for feeds.",
 						slog.Any("error", err),
@@ -1376,7 +1380,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 				RenderPartial(&PartialTemplate{
 					template: templates.ShowFeedSuggestions(
 						&models.AddSubscriptionFeedSuggestions{
-							Feeds:       feeds,
+							Feeds:       resp.Results,
 							LatestItems: latestItems,
 						},
 					),

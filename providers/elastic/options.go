@@ -4,6 +4,9 @@
 package elastic
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
@@ -79,6 +82,27 @@ func WithSize[T HasSize](size int) func(T) {
 	return func(t T) {
 		t.SetSize(size)
 	}
+}
+
+type FieldValue[T types.FieldValue] struct {
+	value T
+}
+
+func NewFieldValue[T any](value T) *FieldValue[T] {
+	return &FieldValue[T]{value: value}
+}
+
+func (v *FieldValue[T]) FieldValueCaster() *types.FieldValue {
+	casted := types.FieldValue(v)
+	return &casted
+}
+
+func (v *FieldValue[T]) MarshalJSON() ([]byte, error) {
+	data, err := json.Marshal(v.value)
+	if err != nil {
+		return data, fmt.Errorf("failed to marshal pagination value: %w", err)
+	}
+	return data, nil
 }
 
 // HasSearchAfter represents a request that can specify search after data.
@@ -208,47 +232,51 @@ func WithRefresh[T HasRefresh](value any) func(T) {
 	}
 }
 
+// HasRetryOnConflict represents a request that can retry its operation on conflicts.
 type HasRetryOnConflict interface {
 	*UpdateRequest
 
 	SetRetryOnConflict(retries int)
 }
 
+// WithRetryOnConflict option sets the number of retries to perform on a conflict.
 func WithRetryOnConflict[T HasRetryOnConflict](retries int) func(T) {
 	return func(t T) {
 		t.SetRetryOnConflict(retries)
 	}
 }
 
+// HasDocAsUpsert represents a request that can perform an upsert operation on a document.
 type HasDocAsUpsert interface {
 	*UpdateRequest
 
 	SetDocAsUpsert(value bool)
 }
 
+// WithDocAsUpsert option defines whether to perform an upsert operation if the document does not exist.
 func WithDocAsUpsert[T HasDocAsUpsert](value bool) func(T) {
 	return func(t T) {
 		t.SetDocAsUpsert(value)
 	}
 }
 
-// FieldValue represents a value of a field.
-type FieldValue struct {
-	value any
-}
+// // FieldValue represents a value of a field.
+// type FieldValue struct {
+// 	value any
+// }
 
-// NewFieldValue converts any value into a FieldValue.
-func NewFieldValue(value any) FieldValue {
-	return FieldValue{value: value}
-}
+// // NewFieldValue converts any value into a FieldValue.
+// func NewFieldValue(value any) FieldValue {
+// 	return FieldValue{value: value}
+// }
 
-// FieldValueCaster is required to allow FieldValue to be used as an Elasticsearch  field value.
-func (v FieldValue) FieldValueCaster() *types.FieldValue {
-	switch data := v.value.(type) {
-	case types.FieldValue:
-		return &data
-	default:
-		fv := types.FieldValue(data)
-		return &fv
-	}
-}
+// // FieldValueCaster is required to allow FieldValue to be used as an Elasticsearch  field value.
+// func (v FieldValue) FieldValueCaster() *types.FieldValue {
+// 	switch data := v.value.(type) {
+// 	case types.FieldValue:
+// 		return &data
+// 	default:
+// 		fv := types.FieldValue(data)
+// 		return &fv
+// 	}
+// }

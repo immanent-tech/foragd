@@ -18,7 +18,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
@@ -275,34 +276,39 @@ func HandleSearchResults() http.HandlerFunc {
 
 			// Generate top categories for articles.
 			searchJobs.Go(func() error {
-				// Build aggregations.
 				termsField := "categories.raw"
 				termsCount := 10
-				aggs := aggregations.Aggs{
-					"TopCategories": estypes.Aggregations{
-						Terms: &estypes.TermsAggregation{
-							Field: &termsField,
-							Size:  &termsCount,
-						},
-					},
-				}
-				// Use the original search query but filter out common categories.
-				aggsQuery := query.Bool(
-					query.Must(searchQuery),
-					query.MustNot(
-						query.Terms(
-							"categories.raw",
-							slices.Concat(models.CommonCategoryFilters, []string{""}),
+				// Perform aggregation.
+				resp, err := elastic.Search[*models.Item](ctx,
+					schema.ItemsIndexRO,
+					// Use the original search query but filter out common categories.
+					query.Bool(
+						query.Must(searchQuery),
+						query.MustNot(
+							query.Terms(
+								"categories.raw",
+								slices.Concat(models.CommonCategoryFilters, []string{""}),
+							),
 						),
 					),
+					elastic.WithAggregations(
+						elastic.Aggs{
+							"TopCategories": estypes.Aggregations{
+								Terms: &estypes.TermsAggregation{
+									Field: &termsField,
+									Size:  &termsCount,
+								},
+							},
+						},
+					),
+					elastic.WithSize(0),
+					elastic.WithDocSorting(),
 				)
-				// Perform aggregation.
-				results, err := models.ItemsAggregation(ctx, aggsQuery, 0, aggs)
 				if err != nil {
 					return fmt.Errorf("aggregate articles: %w", err)
 				}
 
-				topCategoriesAgg, ok := results.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
+				topCategoriesAgg, ok := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
 				if !ok {
 					return fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
 				}

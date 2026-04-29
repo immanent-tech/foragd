@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"context"
+	"fmt"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
@@ -12,6 +13,24 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
+
+// Count will return the number of docs matching the given queries in the given index.
+func Count(ctx context.Context, index string, queries ...query.Option) (int64, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return 0, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
+	resp, err := NewCountRequest(ctx, api.TypedClient,
+		WithIndex[*CountRequest](index),
+		WithQueryOptions[*CountRequest](queries...),
+	).Do(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("count: %w", err)
+	}
+
+	return resp.Count, nil
+}
 
 type CountRequest struct {
 	*count.Count
