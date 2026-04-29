@@ -265,7 +265,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 	items, _, err := elastic.Search[*Item](
 		ctx,
 		schema.ItemsIndexRO,
-		query.Terms("feed_id", ids...),
+		query.Terms("match-feed-id", "feed_id", ids, 0),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(&sort)...),
@@ -291,7 +291,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 		query.WithBoolQueryName("feed_stats_query"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", ids...),
+			query.Terms("match-feed-id", "feed_id", ids, 0),
 			// Must be published within last month.
 			query.Bool(
 				query.Should(
@@ -370,7 +370,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 	queryResult, err := ItemsAggregation(ctx,
 		query.Bool(
 			query.Filter(
-				query.Terms("feed_id", feeds.GetIDs()...),
+				query.Terms("match-feed-id", "feed_id", feeds.GetIDs(), 0),
 			),
 		),
 		0,
@@ -700,15 +700,14 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
 			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
 			if proxied, err := reverseproxy.IsProxiedURL(feedURL.String()); err != nil && !proxied {
-				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
-					slog.Int("response_code", parseErr.Code),
-					slog.String("url", feedURL.String()),
-				)
 				// Generate a proxied URL.
 				proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
 				if err != nil {
 					return nil, fmt.Errorf("proxy url: %w", err)
 				}
+				slogctx.FromCtx(ctx).Debug("Proxying feed request.",
+					slog.String("url", proxiedURL),
+				)
 				if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
 					return nil, err
 				}

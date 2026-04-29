@@ -162,9 +162,9 @@ func BuildItemsQuery(
 		query.WithBoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
+			query.Terms("match-categories", "categories.raw", filters.GetCategories(), 0),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(BuildItemQueries(user, filters.GetView(), subscriptions)...),

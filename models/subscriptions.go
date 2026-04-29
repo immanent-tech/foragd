@@ -50,8 +50,8 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 				query.Term("user_id", user.GetID()),
 			),
 			query.Should(
-				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
-				query.Terms("email_data.feed_id", items.GetFeedIDs()...),
+				query.Terms("", "feed_data.feed_id", items.GetFeedIDs(), 0),
+				query.Terms("", "email_data.feed_id", items.GetFeedIDs(), 0),
 			),
 		),
 		len(items.GetFeedIDs()),
@@ -81,7 +81,7 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		searchQuery = query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", subscriptionIDs...),
+				query.Terms("match-subscription-id", "subscription_id", subscriptionIDs, 0),
 			),
 		)
 	}
@@ -159,7 +159,7 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		searchQuery = query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", subscriptions.GetIDs()...),
+				query.Terms("match-subscription-id", "subscription_id", subscriptions.GetIDs(), 0),
 			),
 		)
 	}
@@ -385,10 +385,10 @@ func GetSubscriptions(
 		queries = append(queries, query.Term("favorite", true))
 	}
 	if len(req.filterIDs) > 0 {
-		queries = append(queries, query.Terms("subscription_id", req.filterIDs...))
+		queries = append(queries, query.Terms("match-subscription-id", "subscription_id", req.filterIDs, 0))
 	}
 	if len(req.filterCategories) > 0 {
-		queries = append(queries, query.Terms("customisation.categories", req.filterCategories...))
+		queries = append(queries, query.Terms("match-categories", "customisation.categories", req.filterCategories, 0))
 	}
 
 	// Construct query.
@@ -504,7 +504,7 @@ func GetSubscriptionSuggestions(
 				),
 			),
 			query.MustNot(
-				query.Terms("subscription_id", req.ignoreIDs...),
+				query.Terms("match-subscription-id", "subscription_id", req.ignoreIDs, 0),
 			),
 		),
 		searchSubscriptionsMaxResults(count),
@@ -588,9 +588,9 @@ func FilterSubscriptions(
 	subscriptionQuery := query.Bool(
 		query.Filter(
 			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", request.Filters.Subscriptions...),
+			query.Terms("match-subscription-id", "subscription_id", request.Filters.Subscriptions, 0),
 			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("customisation.categories.raw", request.Filters.GetCategories()...),
+			query.Terms("match-categories", "customisation.categories.raw", request.Filters.GetCategories(), 0),
 		),
 	)
 	subscriptions, err := getAllSubscriptionsByQuery(ctx, subscriptionQuery)
@@ -651,7 +651,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", ids...),
+				query.Terms("match-subscription-id", "subscription_id", ids, 0),
 			),
 		),
 	); err != nil {
@@ -986,11 +986,11 @@ func queryReadItems(user *User, source ItemSource) query.Option {
 				query.Should(
 					query.Between("published", user.GetMaxHistory(), source.GetMarkedReadAt()),
 					query.Between("updated", user.GetMaxHistory(), source.GetMarkedReadAt()),
-					query.Terms("item_id", source.GetReadItems()...),
+					query.Terms("read-items", "item_id", source.GetReadItems(), 0),
 				),
 				// Must not match any unread items for the feed
 				query.MustNot(
-					query.Terms("item_id", source.GetUnreadItems()...),
+					query.Terms("unread-items", "item_id", source.GetUnreadItems(), 0),
 				),
 			),
 		),
@@ -1010,13 +1010,13 @@ func queryUnreadItems(_ *User, source ItemSource) query.Option {
 				query.Should(
 					query.Since("published", source.GetMarkedReadAt()),
 					query.Since("updated", source.GetMarkedReadAt()),
-					query.Terms("item_id", source.GetUnreadItems()...),
+					query.Terms("unread-items", "item_id", source.GetUnreadItems(), 0),
 				),
 			),
 		),
 		// Must not match any read items for the feed
 		query.MustNot(
-			query.Terms("item_id", source.GetReadItems()...),
+			query.Terms("read-items", "item_id", source.GetReadItems(), 0),
 		),
 		// User-specified field-level filtering.
 		ArticleFiltersQueryClause(source),

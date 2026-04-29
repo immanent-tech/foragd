@@ -79,7 +79,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 	users, _, err := elastic.Search[*User](
 		ctx,
 		schema.UsersIndexRO,
-		query.Terms("settings.subscription_email", emails...),
+		query.Terms("subscription-email", "settings.subscription_email", emails, 0),
 		1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		elastic.WithTrackTotalHits(false),
@@ -275,10 +275,10 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 		queries = append(queries, query.Term("favorite", true))
 	}
 	if len(opts.IDs) > 0 {
-		queries = append(queries, query.Terms("subscription_id", opts.IDs...))
+		queries = append(queries, query.Terms("subscription-id", "subscription_id", opts.IDs, 0))
 	}
 	if len(opts.Categories) > 0 {
-		queries = append(queries, query.Terms("customisation.categories", opts.Categories...))
+		queries = append(queries, query.Terms("categories", "customisation.categories", opts.Categories, 0))
 	}
 
 	// Execute query.

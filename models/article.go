@@ -35,7 +35,7 @@ func GetArticles(ctx context.Context, itemIDs ...ItemID) (Articles, error) {
 	query := query.Bool(
 		query.Filter(
 			// Must match any of the given item IDs,
-			query.Terms("item_id", itemIDs...),
+			query.Terms("match-item-id", "item_id", itemIDs, 0),
 		),
 	)
 	items, _, err := SearchItems(ctx, query, len(itemIDs), nil, nil)
@@ -76,8 +76,8 @@ func FilterArticles(
 	// Build article query.
 	articleQuery := query.Bool(
 		query.Filter(
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-			query.Terms("categories.raw", request.Filters.GetCategories()...),
+			query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
+			query.Terms("match-categories", "categories.raw", request.Filters.GetCategories(), 0),
 			query.Bool(
 				query.Should(BuildItemQueries(user, request.Filters.GetView(), subscriptions)...),
 			),

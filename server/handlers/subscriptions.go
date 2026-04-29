@@ -258,9 +258,9 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 					),
 				),
 				// Must match any of the given feed IDs.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 				// Must match any of the given categories.
-				query.Terms("categories.raw", filters.GetCategories()...),
+				query.Terms("match-categories", "categories.raw", filters.GetCategories(), 0),
 				// And should match one feed clause.
 				query.Bool(
 					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
@@ -307,7 +307,7 @@ func getFeedSubscriptionLatestItems(
 	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
 		query.Filter(
 			// Must match any of the given categories.
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 			query.Bool(
 				query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 			),
@@ -1322,7 +1322,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 					),
 					query.MustNot(
 						// Don't match feeds the user is already subscribed to.
-						query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+						query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 					),
 				)
 			default:
@@ -1337,7 +1337,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 					),
 					query.MustNot(
 						// Don't match feeds the user is already subscribed to.
-						query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+						query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 					),
 				)
 			}
@@ -1862,7 +1862,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			feeds, err = elastic.SearchAll[*models.Feed](
 				req.Context(),
 				schema.FeedsIndexRO,
-				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				query.Terms("match-feed-id", "feed_id", subscriptions.GetFeedIDs(), 0),
 				models.DefaultPaginationSize,
 				elastic.WithTrackTotalHits(false),
 			)
@@ -1989,12 +1989,14 @@ func getSubscriptionCategorySuggestions(
 	topCategoriesQuery := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", feedIDs...),
+			query.Terms("match-feed-id", "feed_id", feedIDs, 0),
 		),
 		query.MustNot(
 			query.Terms(
+				"match-categories",
 				"categories.raw",
-				slices.Concat(models.CommonCategoryFilters, excludedCategories)...,
+				slices.Concat(models.CommonCategoryFilters, excludedCategories),
+				0,
 			),
 		),
 	)
