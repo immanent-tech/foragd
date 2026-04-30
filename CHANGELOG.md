@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.121.0](https://github.com/immanent-tech/foragd/compare/v0.120.0...v0.121.0) (2026-04-30)
+
+
+### Features
+
+* **elastic:** :sparkles: improved ExtractAggregations method that can recursively extract ([4236e75](https://github.com/immanent-tech/foragd/commit/4236e757c82b1b46a83fe5f1948495ead6efd476))
+* **templates/articles:** :sparkles: show reading time on longer articles ([3265394](https://github.com/immanent-tech/foragd/commit/3265394e6fe3343c441c5d03d5e8442080867540))
+
 ## [0.120.0](https://github.com/immanent-tech/foragd/compare/v0.119.0...v0.120.0) (2026-04-29)
 
 
