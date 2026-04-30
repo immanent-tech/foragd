@@ -39,34 +39,37 @@ const (
 	indexWriteSuffix = "_rw"
 	// indexReadSuffix is the suffix appended to indicies that are used for read (search, get) operations.
 	indexReadSuffix = "_ro"
+)
+
+var (
 	// FeedsIndexRO is the index alias for read-only access to feeds.
-	FeedsIndexRO = feedsIndexPrefix + indexReadSuffix
+	FeedsIndexRO = feedsIndexPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// FeedsIndexRW is the index alias for read-write access to feeds.
-	FeedsIndexRW = feedsIndexPrefix + indexWriteSuffix
+	FeedsIndexRW = feedsIndexPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// ItemsIndexRO is the index alias for read-only access to items.
-	ItemsIndexRO = itemsSchemaPrefix + indexReadSuffix
+	ItemsIndexRO = itemsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// ItemsIndexRW is the index alias for read-write access to items.
-	ItemsIndexRW = itemsSchemaPrefix + indexWriteSuffix
+	ItemsIndexRW = itemsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// SubscriptionsIndexRO is the index alias for read-only access to subscriptions.
-	SubscriptionsIndexRO = subscriptionsSchemaPrefix + indexReadSuffix
+	SubscriptionsIndexRO = subscriptionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// SubscriptionsIndexRW is the index alias for read-write access to subscriptions.
-	SubscriptionsIndexRW = subscriptionsSchemaPrefix + indexWriteSuffix
+	SubscriptionsIndexRW = subscriptionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// FavoritesIndexRO is the index alias for read-only access to subscriptions.
-	FavoritesIndexRO = favoritesSchemaPrefix + indexReadSuffix
+	FavoritesIndexRO = favoritesSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// FavoritesIndexRW is the index alias for read-only access to subscriptions.
-	FavoritesIndexRW = favoritesSchemaPrefix + indexWriteSuffix
+	FavoritesIndexRW = favoritesSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// UsersIndexRO is the index alias for read-only access to users.
-	UsersIndexRO = usersSchemaPrefix + indexReadSuffix
+	UsersIndexRO = usersSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// UsersIndexRW is the index alias for read-write access to users.
-	UsersIndexRW = usersSchemaPrefix + indexWriteSuffix
+	UsersIndexRW = usersSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// SessionsIndexRO is the index alias for read-only access to session data.
-	SessionsIndexRO = sessionsSchemaPrefix + indexReadSuffix
+	SessionsIndexRO = sessionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// SessionsIndexRW is the index alias for read-write access to session data.
-	SessionsIndexRW = sessionsSchemaPrefix + indexWriteSuffix
+	SessionsIndexRW = sessionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 	// SchedulerIndexRO is the index alias for read-only access to scheduler data.
-	SchedulerIndexRO = schedulerIndexPrefix + indexReadSuffix
+	SchedulerIndexRO = schedulerIndexPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 	// SchedulerIndexRW is the index alias for read-write access to scheduler data.
-	SchedulerIndexRW = schedulerIndexPrefix + indexWriteSuffix
+	SchedulerIndexRW = schedulerIndexPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
 )
 
 var feedItemsCommonMappings = withComponentTemplatesMigration(
