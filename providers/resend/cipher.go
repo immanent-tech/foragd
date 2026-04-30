@@ -23,7 +23,11 @@ const (
 // deriveKey uses PBKDF2 with SHA-256 to derive a fixed-length AES key from
 // a passphrase and salt.
 func deriveKey(passphrase, salt string) ([]byte, error) {
-	return pbkdf2.Key(sha256.New, passphrase, []byte(salt), iterations, keyLen)
+	key, err := pbkdf2.Key(sha256.New, passphrase, []byte(salt), iterations, keyLen)
+	if err != nil {
+		return nil, fmt.Errorf("unable to derive key: %w", err)
+	}
+	return key, nil
 }
 
 // EncodeEmail encrypts an email using AES-GCM with a key derived from the
