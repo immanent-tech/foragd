@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.121.3](https://github.com/immanent-tech/foragd/compare/v0.121.2...v0.121.3) (2026-04-30)
+
+
+### Bug Fixes
+
+* :bug: properly return new index aliases ([998055d](https://github.com/immanent-tech/foragd/commit/998055daa677e3e92009d25c1955ae44fd9e70f3))
+* **session:** :bug: init config (noop if already done) when creating session store ([1c23336](https://github.com/immanent-tech/foragd/commit/1c2333608513072188eb58c592f6a98550b2898a))
+
 ## [0.121.2](https://github.com/immanent-tech/foragd/compare/v0.121.1...v0.121.2) (2026-04-30)
 
 
