@@ -412,11 +412,11 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	// Extract the feed aggregation.
-	feedsAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
+	feedsAgg, found, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
 		resp.Aggregations,
 		"feed",
 	)
-	if err != nil {
+	if !found || err != nil {
 		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
 	// Loop over the feed buckets.
@@ -437,11 +437,11 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID
 					return
 				}
 				// Extract the latest articles aggregation.
-				latestItemsAggs, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
+				latestItemsAggs, found, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
 					bucket.Aggregations,
 					"latest_items",
 				)
-				if err != nil {
+				if !found || err != nil {
 					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
 						slog.String("aggregation", "latest_items"),
 						slog.Any("error", err),

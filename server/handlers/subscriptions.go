@@ -342,11 +342,11 @@ func getFeedSubscriptionLatestItems(
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	// Extract the feed aggregation.
-	feedsAgg, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
+	feedsAgg, found, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
 		resp.Aggregations,
 		"feed",
 	)
-	if err != nil {
+	if !found || err != nil {
 		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
 	// Loop over the feed buckets.
@@ -367,11 +367,11 @@ func getFeedSubscriptionLatestItems(
 					return
 				}
 				// Extract the latest articles aggregation.
-				latestItemsAggs, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
+				latestItemsAggs, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
 					bucket.Aggregations,
 					"latest_items",
 				)
-				if err != nil {
+				if !found || err != nil {
 					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
 						slog.String("aggregation", "latest_items"),
 						slog.Any("error", err),

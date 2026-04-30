@@ -301,64 +301,81 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 		return fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
 
+	topCategoriesSamplerAgg, found, err := elastic.ExtractAggregation[*types.SamplerAggregate](
+		resp.Aggregations,
+		"top_categories_sample",
+	)
+	if !found || err != nil {
+		return fmt.Errorf("unable to find required aggregation: %w", err)
+	}
+
 	// Get the top categories.
-	if topCategoriesSamplerAgg, ok := resp.Aggregations["top_categories_sample"].(*types.SamplerAggregate); ok {
-		var topCategoriesAgg *types.StringTermsAggregate
-		if topCategoriesAgg, ok = topCategoriesSamplerAgg.Aggregations["top_categories"].(*types.StringTermsAggregate); ok {
-			var categoryBuckets []types.StringTermsBucket
-			if categoryBuckets, ok = topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
-				// Generate categories from aggregation.
-				for category := range slices.Values(categoryBuckets) {
-					var value string
-					if value, ok = category.Key.(string); !ok {
-						continue
-					}
-					// Get top articles.
-					var topHitsAgg *types.TopHitsAggregate
-					if topHitsAgg, ok = category.Aggregations["top_article_hits"].(*types.TopHitsAggregate); !ok {
-						continue
-					}
-					var items models.Items
-					if items, _, err = results.ExtractSourceFromHits[models.Item](topHitsAgg.Hits.Hits); err != nil {
-						continue
-					}
-					var articles models.Articles
-					if articles, err = models.GenerateArticles(ctx, items); err != nil {
-						continue
-					}
-					newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
-					data.TopCategories[newCategory] = articles
+	if topCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
+		topCategoriesSamplerAgg.Aggregations,
+		"top_categories",
+	); found && err == nil {
+		if categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
+			// Generate categories from aggregation.
+			for category := range slices.Values(categoryBuckets) {
+				var value string
+				if value, ok = category.Key.(string); !ok {
+					continue
 				}
-				// // Remove duplicate articles.
-				// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
-				// 	return strings.Compare(a.GetID(), b.GetID())
-				// })
-			}
-		}
-		var latestArticlesSampleAgg *types.TopHitsAggregate
-		if latestArticlesSampleAgg, ok = topCategoriesSamplerAgg.Aggregations["latest_articles_sample"].(*types.TopHitsAggregate); ok {
-			var items models.Items
-			if items, _, err = results.ExtractSourceFromHits[models.Item](
-				latestArticlesSampleAgg.Hits.Hits,
-			); err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not extract latest items from aggregation.",
-					slog.Any("error", err),
+				// Get top articles.
+				topHitsAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
+					category.Aggregations,
+					"top_article_hits",
 				)
+				if !found || err != nil {
+					continue
+				}
+				var items models.Items
+				if items, _, err = results.ExtractSourceFromHits[models.Item](topHitsAgg.Hits.Hits); err != nil {
+					continue
+				}
+				var articles models.Articles
+				if articles, err = models.GenerateArticles(ctx, items); err != nil {
+					continue
+				}
+				newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
+				data.TopCategories[newCategory] = articles
 			}
-			var articles models.Articles
-			if articles, err = models.GenerateArticles(ctx, items); err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not generate articles from items.",
-					slog.Any("error", err),
-				)
-			}
-			data.LatestArticles = articles
+			// // Remove duplicate articles.
+			// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
+			// 	return strings.Compare(a.GetID(), b.GetID())
+			// })
 		}
 	}
+
+	// Get the latest articles.
+	if latestArticlesSampleAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
+		topCategoriesSamplerAgg.Aggregations,
+		"latest_articles_sample",
+	); found && err == nil {
+		var items models.Items
+		if items, _, err = results.ExtractSourceFromHits[models.Item](
+			latestArticlesSampleAgg.Hits.Hits,
+		); err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not extract latest items from aggregation.",
+				slog.Any("error", err),
+			)
+		}
+		var articles models.Articles
+		if articles, err = models.GenerateArticles(ctx, items); err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate articles from items.",
+				slog.Any("error", err),
+			)
+		}
+		data.LatestArticles = articles
+	}
+
 	// Get the rare categories.
-	if rareCategoriesAgg, ok := resp.Aggregations["rare_categories"].(*types.StringRareTermsAggregate); ok {
+	if rareCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringRareTermsAggregate](
+		resp.Aggregations,
+		"rare_categories",
+	); found && err == nil {
 		// Generate category counts from buckets.
-		var rareCategoryBuckets []types.StringRareTermsBucket
-		if rareCategoryBuckets, ok = rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
+		if rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
 			data.RareCategories = make(models.CategoryCounts, 0)
 			for category := range slices.Values(rareCategoryBuckets) {
 				data.RareCategories = append(
@@ -367,9 +384,8 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 				)
 			}
 			data.RareCategories.Sort()
-			maxRareCategoriesCount := 10
-			if len(data.RareCategories) > maxRareCategoriesCount {
-				data.RareCategories = data.RareCategories[:maxRareCategoriesCount]
+			if len(data.RareCategories) > 10 {
+				data.RareCategories = data.RareCategories[:10]
 			}
 		}
 	}
