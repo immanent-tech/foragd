@@ -231,9 +231,16 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
+			var route string
+			switch {
+			case strings.Contains(req.Referer(), "/home"):
+				route = "/home"
+			default:
+				route = "/list/articles"
+			}
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
 				element.WithHXOptions(
-					element.WithHXMethod(http.MethodGet, "/list/articles"),
+					element.WithHXMethod(http.MethodGet, route),
 					element.WithHXTarget(templates.ContentID.Target()),
 					element.WithHXSwap("innerHTML window:top transition:true"),
 					element.WithHXPushURL(true),
