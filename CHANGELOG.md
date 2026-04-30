@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.121.1](https://github.com/immanent-tech/foragd/compare/v0.121.0...v0.121.1) (2026-04-30)
+
+
+### Bug Fixes
+
+* **config:** :bug: ensure environment has a sane default set ([a84f141](https://github.com/immanent-tech/foragd/commit/a84f141ce7d3287ee2b9e7639152ebd38b416b74))
+* **handlers/articles:** :bug: fix route for refresh in updates toast ([5c572f9](https://github.com/immanent-tech/foragd/commit/5c572f9fd91564e4674318973d282d988b5469f6))
+
 ## [0.121.0](https://github.com/immanent-tech/foragd/compare/v0.120.0...v0.121.0) (2026-04-30)
 
 
