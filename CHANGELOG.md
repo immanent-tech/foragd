@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.121.2](https://github.com/immanent-tech/foragd/compare/v0.121.1...v0.121.2) (2026-04-30)
+
+
+### Bug Fixes
+
+* **schema:** :bug: fix checking elasticsearch error ([ebc804a](https://github.com/immanent-tech/foragd/commit/ebc804a981d90f50689cb2658d138785c8758310))
+* **session:** :bug: don't duplicate index names ([31c45b7](https://github.com/immanent-tech/foragd/commit/31c45b7859088546d37b83b54c8022c489d12a63))
+
 ## [0.121.1](https://github.com/immanent-tech/foragd/compare/v0.121.0...v0.121.1) (2026-04-30)
 
 
