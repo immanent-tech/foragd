@@ -10,6 +10,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -32,6 +33,9 @@ type Store struct{}
 
 // NewSessionStore sets up a new session store for use by the server.
 func NewSessionStore() (*Store, error) {
+	if err := config.Init(); err != nil {
+		return nil, fmt.Errorf("init config: %w", err)
+	}
 	return &Store{}, nil
 }
 
