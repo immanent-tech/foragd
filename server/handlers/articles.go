@@ -681,7 +681,7 @@ func markArticles(
 
 // archiveArticle will index the given article content to the article archive for permanent storage.
 func archiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	if err := elastic.CreateDoc(ctx, schema.FavoritesIndexRW, article.ItemID, article); err != nil {
+	if err := elastic.CreateDoc(ctx, schema.FavoritesIndexRW(), article.ItemID, article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
@@ -696,7 +696,7 @@ func unarchiveArticle(ctx context.Context, userID models.UserID, itemID models.I
 			query.Term("item_id", itemID),
 		),
 	)
-	if err := elastic.DeleteDocs(ctx, schema.FavoritesIndexRW, query); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.FavoritesIndexRW(), query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 	return nil

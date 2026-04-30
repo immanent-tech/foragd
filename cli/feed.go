@@ -155,7 +155,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	// Reset the last_fetched timestamp on the feed.
 	if err := elastic.UpdateDoc(
 		ctx,
-		schema.FeedsIndexRW,
+		schema.FeedsIndexRW(),
 		c.FeedID,
 		map[string]any{
 			"last_fetched": models.UnixEpoch,

@@ -303,7 +303,7 @@ func getFeedSubscriptionLatestItems(
 		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
 	}
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query.Bool(
 			query.Filter(
 				// Must match any of the given categories.
@@ -1193,7 +1193,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		)
 
 		// Fetch the feed details from the database.
-		feed, err := elastic.GetDoc[models.FeedID, *models.Feed](req.Context(), schema.FeedsIndexRO, request.FeedID)
+		feed, err := elastic.GetDoc[models.FeedID, *models.Feed](req.Context(), schema.FeedsIndexRO(), request.FeedID)
 		if err != nil || feed == nil {
 			// Fetch the feed details from the URL.
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
@@ -1212,7 +1212,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 				return
 			}
 			// Add the feed to the database.
-			if err := elastic.CreateDoc(req.Context(), schema.FeedsIndexRW, feed.GetID(), feed); err != nil {
+			if err := elastic.CreateDoc(req.Context(), schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("create feed: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
@@ -1352,7 +1352,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 			// Try to find existing feeds that match the query.
 			resp, err := elastic.Search[*models.Feed](
 				req.Context(),
-				schema.FeedsIndexRO,
+				schema.FeedsIndexRO(),
 				feedSearchQuery,
 				elastic.WithSort(
 					models.NewFeedSortOptions(new(models.SortMostRelevant))...,
@@ -1848,7 +1848,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			// Get all subscriptions.
 			subscriptions, err = elastic.SearchAll[*models.Subscription](
 				req.Context(),
-				schema.SubscriptionsIndexRO,
+				schema.SubscriptionsIndexRO(),
 				query.Term("user_id", user.GetID()),
 				models.DefaultPaginationSize,
 				elastic.WithTrackTotalHits(false),
@@ -1868,7 +1868,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			var feeds models.Feeds
 			feeds, err = elastic.SearchAll[*models.Feed](
 				req.Context(),
-				schema.FeedsIndexRO,
+				schema.FeedsIndexRO(),
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				models.DefaultPaginationSize,
 				elastic.WithTrackTotalHits(false),

@@ -91,7 +91,6 @@ var Init = sync.OnceValue(func() error {
 
 	// Set the environment.
 	CurrentEnvironment = Environment(os.Getenv("FORAGD_ENVIRONMENT"))
-
 	return nil
 })
 

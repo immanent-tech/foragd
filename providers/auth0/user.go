@@ -149,7 +149,7 @@ func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*mode
 		user.Metadata.PoliciesAccepted = accepted
 	}
 
-	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW, user.GetID(), user); err != nil {
+	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW(), user.GetID(), user); err != nil {
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 

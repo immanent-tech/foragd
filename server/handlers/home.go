@@ -213,7 +213,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 
 	// Perform the request.
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query.Bool(
 			query.Filter(
 				query.Terms("feed_id", data.Subscriptions.GetFeedIDs()),

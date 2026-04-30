@@ -378,7 +378,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 			// 	return
 			// }
 			// Delete the user.
-			if err := elastic.DeleteDoc(req.Context(), schema.UsersIndexRW, user.GetID()); err != nil {
+			if err := elastic.DeleteDoc(req.Context(), schema.UsersIndexRW(), user.GetID()); err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("delete user: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -392,7 +392,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 			// Delete the user's subscriptions.
 			if err := elastic.DeleteDocs(
 				req.Context(),
-				schema.SubscriptionsIndexRW,
+				schema.SubscriptionsIndexRW(),
 				query.Term("user_id", user.GetID()),
 			); err != nil {
 				HandleInternalError(&models.APIError{

@@ -41,7 +41,7 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 	// Get user subscription details for the feeds the items belong to.
 	resp, err := elastic.Search[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -96,7 +96,7 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 	}
 
 	resp, err := elastic.Search[*Subscription](ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		searchQuery,
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),
@@ -171,7 +171,7 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 	}
 
 	resp, err := elastic.Search[*Subscription](ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		searchQuery,
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),
@@ -547,7 +547,7 @@ func SearchSubscriptions(
 	// Perform search.
 	resp, err := elastic.Search[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		query,
 		elastic.WithSort(newSubscriptionSortOptions(req.sort)...),
 		elastic.WithSearchAfter(searchAfter...),
@@ -641,7 +641,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 	if user == nil {
 		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW,
+	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(),
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -659,7 +659,7 @@ func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*Subscription,
 ) (map[SubscriptionID]*bulk.OperationResponse, error) {
-	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW, subscriptions...)
+	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
@@ -924,7 +924,7 @@ func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscr
 	)
 	subscriptions, err = elastic.SearchAll[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		query,
 		DefaultPaginationSize,
 	)

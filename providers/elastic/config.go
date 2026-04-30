@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -86,26 +85,26 @@ type ConfigProduction struct {
 // one-time only, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 	var err error
-	switch config.CurrentEnvironment {
-	case config.EnvDevelopment:
-		if err = config.Load(elasticConfigEnvPrefix, &cfg.Development); err != nil {
-			return nil, fmt.Errorf("unable to load development config: %w", err)
-		}
-	case config.EnvProduction:
-		if err = config.Load(elasticConfigEnvPrefix, &cfg.Production); err != nil {
-			return nil, fmt.Errorf("unable to load production config: %w", err)
-		}
+	// switch config.CurrentEnvironment {
+	// case config.EnvDevelopment:
+	// 	if err = config.Load(elasticConfigEnvPrefix, &cfg.Development); err != nil {
+	// 		return nil, fmt.Errorf("unable to load development config: %w", err)
+	// 	}
+	// case config.EnvProduction:
+	if err = config.Load(elasticConfigEnvPrefix, &cfg.Production); err != nil {
+		return nil, fmt.Errorf("unable to load production config: %w", err)
 	}
+	// }
 	clientConfig, err := genConfig(config.CurrentEnvironment)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate config: %w", err)
 	}
-	switch config.CurrentEnvironment {
-	case config.EnvDevelopment:
-		err = validation.Validate.Struct(cfg.Development)
-	case config.EnvProduction:
-		err = validation.Validate.Struct(cfg.Production)
-	}
+	// switch config.CurrentEnvironment {
+	// case config.EnvDevelopment:
+	// 	err = validation.Validate.Struct(cfg.Development)
+	// case config.EnvProduction:
+	err = validation.Validate.Struct(cfg.Production)
+	// }
 	if err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
@@ -118,33 +117,33 @@ var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 func genConfig(environment config.Environment) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
-	switch environment {
-	case config.EnvDevelopment:
-		generated = &elasticsearch.Config{
-			Addresses: cfg.Development.URLs,
-			// Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
-			Username:  cfg.Development.Username,
-			Password:  cfg.Development.Password,
-			Transport: defaultTransportConfig,
-		}
-		if cfg.Development.CAFile != "" {
-			caFileData, err := os.ReadFile(cfg.Development.CAFile)
-			if err != nil {
-				return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
-			}
-			generated.CACert = caFileData
-		}
-	case config.EnvProduction:
-		generated = &elasticsearch.Config{
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			CloudID:   cfg.Production.CloudID,
-			APIKey:    cfg.Production.APIKey,
-			Transport: defaultTransportConfig,
-		}
-	default:
-		return nil, fmt.Errorf("%w: could not determine environment to apply config", config.ErrInvalidConfig)
+	// switch environment {
+	// case config.EnvDevelopment:
+	// 	generated = &elasticsearch.Config{
+	// 		Addresses: cfg.Development.URLs,
+	// 		// Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
+	// 		Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
+	// 		Username:  cfg.Development.Username,
+	// 		Password:  cfg.Development.Password,
+	// 		Transport: defaultTransportConfig,
+	// 	}
+	// 	if cfg.Development.CAFile != "" {
+	// 		caFileData, err := os.ReadFile(cfg.Development.CAFile)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
+	// 		}
+	// 		generated.CACert = caFileData
+	// 	}
+	// case config.EnvProduction:
+	generated = &elasticsearch.Config{
+		Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
+		CloudID:   cfg.Production.CloudID,
+		APIKey:    cfg.Production.APIKey,
+		Transport: defaultTransportConfig,
 	}
+	// default:
+	// 	return nil, fmt.Errorf("%w: could not determine environment to apply config", config.ErrInvalidConfig)
+	// }
 
 	return generated, nil
 }

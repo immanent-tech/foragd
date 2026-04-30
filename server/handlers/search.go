@@ -280,7 +280,7 @@ func HandleSearchResults() http.HandlerFunc {
 				termsCount := 10
 				// Perform aggregation.
 				resp, err := elastic.Search[*models.Item](ctx,
-					schema.ItemsIndexRO,
+					schema.ItemsIndexRO(),
 					// Use the original search query but filter out common categories.
 					query.Bool(
 						query.Must(searchQuery),

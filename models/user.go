@@ -36,7 +36,7 @@ var (
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
 	// Get the user.
-	resp, err := elastic.Search[*User](ctx, schema.UsersIndexRO,
+	resp, err := elastic.Search[*User](ctx, schema.UsersIndexRO(),
 		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
@@ -57,7 +57,7 @@ func GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	// Get the user.
 	resp, err := elastic.Search[*User](
 		ctx,
-		schema.UsersIndexRO,
+		schema.UsersIndexRO(),
 		query.Term("email", email),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
@@ -78,7 +78,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 	// Get the user.
 	resp, err := elastic.Search[*User](
 		ctx,
-		schema.UsersIndexRO,
+		schema.UsersIndexRO(),
 		query.Terms("settings.subscription_email", emails),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
@@ -96,7 +96,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 
 // GetUser retrieves the user doc with the given id.
 func GetUser(ctx context.Context, id UserID) (*User, error) {
-	user, err := elastic.GetDoc[UserID, *User](ctx, schema.UsersIndexRO, id)
+	user, err := elastic.GetDoc[UserID, *User](ctx, schema.UsersIndexRO(), id)
 	if err != nil || user == nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
@@ -106,7 +106,7 @@ func GetUser(ctx context.Context, id UserID) (*User, error) {
 // UpdateUser will apply the given updates to the user.
 func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW, userID, updates,
+	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), userID, updates,
 		elastic.WithRefresh(true),
 		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
 	); err != nil {
@@ -288,7 +288,7 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 	)
 	subscriptions, err = elastic.SearchAll[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO(),
 		query.Bool(
 			query.Filter(queries...),
 		),

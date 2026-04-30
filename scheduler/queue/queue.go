@@ -90,7 +90,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	if err := elastic.UpdateDoc(
 		ctx,
-		schema.SchedulerIndexRW,
+		schema.SchedulerIndexRW(),
 		jobKeyToDocID(job.JobDetail().JobKey().String()),
 		map[string]any{
 			"job_next_run":     data.JobNextRun,
@@ -142,7 +142,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	// Find the next job
 	resp, err := elastic.Search[*jobs.ScheduledJob](
 		ctx,
-		schema.SchedulerIndexRO,
+		schema.SchedulerIndexRO(),
 		query.Exists("job_type"),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
 		elastic.WithSize(1),
@@ -163,7 +163,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	job, err := elastic.GetDoc[string, *jobs.ScheduledJob](ctx, schema.SchedulerIndexRO, jobKeyToDocID(jobKey.String()))
+	job, err := elastic.GetDoc[string, *jobs.ScheduledJob](ctx, schema.SchedulerIndexRO(), jobKeyToDocID(jobKey.String()))
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, quartz.ErrJobNotFound
@@ -201,7 +201,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 	allJobs, err := elastic.SearchAll[jobs.ScheduledJob](
 		ctx,
-		schema.SchedulerIndexRO,
+		schema.SchedulerIndexRO(),
 		query.Exists("job_type"),
 		defaultPaginationSize,
 	)
@@ -227,7 +227,7 @@ func (jq *JobQueue) Size() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	count, err := elastic.Count(ctx, schema.SchedulerIndexRO, query.Exists("job_type"))
+	count, err := elastic.Count(ctx, schema.SchedulerIndexRO(), query.Exists("job_type"))
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -240,7 +240,7 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW, query.Exists("job_type")); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW(), query.Exists("job_type")); err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
 
@@ -253,7 +253,7 @@ func (jq *JobQueue) delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW, id); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), id); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
 

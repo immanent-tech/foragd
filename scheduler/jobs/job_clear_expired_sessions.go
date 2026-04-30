@@ -72,7 +72,7 @@ func executeClearExpiredSessions(ctx context.Context) error {
 	// Delete all sessions with an expiry older than now.
 	if err := elastic.DeleteDocs(
 		ctx,
-		schema.SessionsIndexRW,
+		schema.SessionsIndexRW(),
 		query.Before("expiry", time.Now().UTC()),
 	); err != nil {
 		return fmt.Errorf("delete docs: %w", err)

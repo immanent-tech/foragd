@@ -95,7 +95,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	allFeeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO,
+		schema.FeedsIndexRO(),
 		// query.Since("created_at", state.Checkpoint),
 		// Consider a feed new if it has either:
 		// - last_fetched value of the unix epoch

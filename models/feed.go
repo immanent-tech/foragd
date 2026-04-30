@@ -36,7 +36,7 @@ import (
 
 // GetFeedByID fetches the given Feed by its id.
 func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
-	feed, err := elastic.GetDoc[FeedID, *Feed](ctx, schema.FeedsIndexRO, id)
+	feed, err := elastic.GetDoc[FeedID, *Feed](ctx, schema.FeedsIndexRO(), id)
 	if err != nil {
 		return nil, fmt.Errorf("get feed by id: %w", err)
 	}
@@ -45,7 +45,7 @@ func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
 
 // AddFeed adds the given feed.
 func AddFeed(ctx context.Context, feed *Feed) error {
-	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW, feed.GetID(), feed); err != nil {
+	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
 	return nil
@@ -53,7 +53,7 @@ func AddFeed(ctx context.Context, feed *Feed) error {
 
 // UpdateFeed applies the given updates to a Feed.
 func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
-	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates); err != nil {
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	return nil
@@ -227,7 +227,7 @@ func getFeedUnreadCounts(
 	}
 	// Perform aggregation.
 	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query,
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
@@ -268,7 +268,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 	sort := SortNewestFirst
 	resp, err := elastic.Search[*Item](
 		ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query.Terms("feed_id", ids),
 		elastic.WithSize(len(ids)),
 		elastic.WithCollapseField("feed_id"),
@@ -334,7 +334,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 	}
 
 	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query,
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(len(ids)),
@@ -378,7 +378,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]
 // GetFeedLatestItems fetches the most recent count items for each given feed.
 func GetFeedLatestItems(ctx context.Context, count int, feeds Feeds) (map[FeedID]Items, error) {
 	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		query.Bool(
 			query.Filter(
 				query.Terms("feed_id", feeds.GetIDs()),
@@ -625,7 +625,7 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	}
 
 	// Update the feed with the calculated poll interval for reference.
-	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, f.GetID(), map[string]any{
+	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW(), f.GetID(), map[string]any{
 		"update_interval": f.UpdateInterval,
 	}); err != nil {
 		return fmt.Errorf("set feed update interval: %w", err)
@@ -659,7 +659,7 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*Feed, bool, error) 
 	}
 	// Find any existing feed.
 	resp, err := elastic.Search[*Feed](ctx,
-		schema.FeedsIndexRO,
+		schema.FeedsIndexRO(),
 		query.Bool(
 			query.Filter(
 				query.Bool(

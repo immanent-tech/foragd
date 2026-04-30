@@ -201,7 +201,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		// newer articles where a feed lags behind real-time.
 		updates := generateFeedUpdates(ctx, feed, details)
 		updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
-		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, updates); err != nil {
+		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW(), jobData.FeedID, updates); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Update FeedStatus.

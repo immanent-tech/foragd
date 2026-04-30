@@ -41,7 +41,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (Cat
 	}
 
 	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO,
+		schema.ItemsIndexRO(),
 		itemsQuery,
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
@@ -80,7 +80,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (Cat
 
 // CountItems returns a count of items that match the given query.
 func CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, schema.ItemsIndexRO, query)
+	count, err := elastic.Count(ctx, schema.ItemsIndexRO(), query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -102,7 +102,7 @@ func SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	resp, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query,
+	resp, err := elastic.Search[Item](ctx, schema.ItemsIndexRO(), query,
 		elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
 		elastic.WithSize(count),
@@ -124,7 +124,7 @@ func AddItems(ctx context.Context, items ...Item) error {
 	for i := range slices.Values(items) {
 		itemPtrs = append(itemPtrs, &i)
 	}
-	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW, itemPtrs...); err != nil {
+	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), itemPtrs...); err != nil {
 		return fmt.Errorf("bulk add items: %w", err)
 	}
 	return nil

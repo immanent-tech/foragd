@@ -85,7 +85,7 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 	)
 	jobs, err = elastic.SearchAll[*ScheduledJob](
 		ctx,
-		schema.SchedulerIndexRO,
+		schema.SchedulerIndexRO(),
 		query.Term("job_data.deleted", true),
 		defaultPaginationSize,
 	)

@@ -43,7 +43,7 @@ func NewSessionStore() (*Store, error) {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	if err := elastic.DeleteDoc(ctx, schema.SessionsIndexRW, token); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.SessionsIndexRW(), token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
 
@@ -62,7 +62,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	session, err := elastic.GetDoc[string, models.UserSession](ctx, schema.SessionsIndexRO, token)
+	session, err := elastic.GetDoc[string, models.UserSession](ctx, schema.SessionsIndexRO(), token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
@@ -85,7 +85,7 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry time.Time) error {
-	if err := elastic.UpdateDoc(ctx, schema.SessionsIndexRW,
+	if err := elastic.UpdateDoc(ctx, schema.SessionsIndexRW(),
 		token,
 		map[string]any{
 			"token":      token,
@@ -116,7 +116,7 @@ func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 	const defaultPaginationSize = 5000
 	sessions, err := elastic.SearchAll[models.UserSession](
 		ctx,
-		schema.SessionsIndexRO,
+		schema.SessionsIndexRO(),
 		query.Since("expiry", time.Now().UTC()),
 		defaultPaginationSize,
 	)

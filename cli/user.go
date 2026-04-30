@@ -51,17 +51,17 @@ func (c *DeleteUserCmd) Run() error {
 	}
 
 	// Delete the user.
-	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW, user.GetID()); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW(), user.GetID()); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
 	}
 	// Delete the user's subscriptions.
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW, query.Term("user_id", user.GetID())); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(), query.Term("user_id", user.GetID())); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
 	}
 	// Delete any scheduled jobs for the user.
 	if err := elastic.DeleteDocs(
 		ctx,
-		schema.SchedulerIndexRW,
+		schema.SchedulerIndexRW(),
 		query.Term("job_data.user_id", user.GetID()),
 	); err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not delete scheduled jobs for user.",
