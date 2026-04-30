@@ -32,10 +32,13 @@ const (
 )
 
 const (
+	// EnvDevelopment represents a development environment.
 	EnvDevelopment Environment = "development"
-	EnvProduction  Environment = "production"
+	// EnvProduction represents a production envrionment.
+	EnvProduction Environment = "production"
 )
 
+// Environment is the app running environment.
 type Environment string
 
 func (e Environment) String() string {
@@ -50,8 +53,9 @@ var (
 // Version is the application/stack version.
 var Version = "_UNKNOWN_"
 
-// CurrentEnvironment is the environment in which the app is running (i.e., production, development).
-var CurrentEnvironment Environment
+// CurrentEnvironment is the environment in which the app is running (i.e., production, development). Defaults to
+// "development".
+var CurrentEnvironment = EnvDevelopment
 
 // Init ensures the application will have appropriate Version and Envrionment vars set.
 var Init = sync.OnceValue(func() error {
