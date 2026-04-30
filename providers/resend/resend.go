@@ -16,7 +16,7 @@ import (
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Resend.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "RESEND_"
+	ConfigEnvPrefix = "RESEND_"
 
 	// TagUserID is a tag containing a user ID.
 	TagUserID string = "user_id"
