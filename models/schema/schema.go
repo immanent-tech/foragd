@@ -632,8 +632,8 @@ func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *In
 	}
 	for prefix := range slices.Values(opts.Indices) {
 		index := generateIndexName(prefix)
-		writeAlias := prefix + indexWriteSuffix
-		readAlias := prefix + indexReadSuffix
+		writeAlias := prefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+		readAlias := prefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 		// Create a scheduler index if one doesn't exist.
 		if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
 			return fmt.Errorf("create index: %w", err)
@@ -855,8 +855,8 @@ func migrateIndexData(
 	prefix string,
 ) error {
 	index := generateIndexName(prefix)
-	writeAlias := prefix + indexWriteSuffix
-	readAlias := prefix + indexReadSuffix
+	writeAlias := prefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	readAlias := prefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
 
 	// Create index.
 	if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
@@ -976,7 +976,7 @@ func generateIndexName(prefix string) string {
 }
 
 func getStatusCode(err error) int {
-	if esErr, ok := errors.AsType[types.ElasticsearchError](err); ok {
+	if esErr, ok := errors.AsType[*types.ElasticsearchError](err); ok {
 		return esErr.Status
 	}
 	return http.StatusInternalServerError
