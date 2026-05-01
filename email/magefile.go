@@ -20,7 +20,7 @@ import (
 var templates = map[string][]resend.TemplateOption{
 	"new-user": []resend.TemplateOption{
 		resend.WithTemplateName("New User"),
-		resend.WithTemplateSubject("Your Foragd account is ready"),
+		resend.WithSubject[*resend.Template]("Your Foragd account is ready"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 		resend.WithTemplateVariable("USER_EMAIL", "string", "nickname@foragd.app"),
 		resend.WithTemplateVariable("USER_AVATAR_URL", "string", "https://foragd.app/content/images/placeholder.webp"),
@@ -28,17 +28,23 @@ var templates = map[string][]resend.TemplateOption{
 	},
 	"user-deactivated": []resend.TemplateOption{
 		resend.WithTemplateName("User Deactivated"),
-		resend.WithTemplateSubject("Your Foragd account has been deactivated"),
+		resend.WithSubject[*resend.Template]("Your Foragd account has been deactivated"),
 	},
 	"new-inactive-user": []resend.TemplateOption{
 		resend.WithTemplateName("New Inactive User"),
-		resend.WithTemplateSubject("A quick check-in from Foragd"),
+		resend.WithSubject[*resend.Template]("A quick check-in from Foragd"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "there"),
+		resend.WithTemplateVariable("USER_UNSUBSCRIBE_LINK", "string", "https://foragd.app/unsubscribe"),
+	},
+	"inactive-account-deletion-notice": []resend.TemplateOption{
+		resend.WithTemplateName("Inactive Account Deletion Notice"),
+		resend.WithSubject[*resend.Template]("Your Foragd account will be deleted soon"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "there"),
 		resend.WithTemplateVariable("USER_UNSUBSCRIBE_LINK", "string", "https://foragd.app/unsubscribe"),
 	},
 	"tip-email-newsletters": []resend.TemplateOption{
 		resend.WithTemplateName("Tip: Email Newsletters"),
-		resend.WithTemplateSubject("Foragd Tip: subscribe to email newsletters"),
+		resend.WithSubject[*resend.Template]("Foragd Tip: subscribe to email newsletters"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 		resend.WithTemplateVariable("USER_UNSUBSCRIBE_LINK", "string", "https://foragd.app/unsubscribe"),
 	},
