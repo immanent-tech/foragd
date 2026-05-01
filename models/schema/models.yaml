@@ -364,6 +364,12 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             validate: 'required'
+        pending_deletion:
+          description: >
+            indicates whether the user account is pending deletion.
+          type: boolean
+          x-omitzero: true
+          x-omitempty: true
     UserSubscription:
       description: >
         contains details about the user's paid subscription.

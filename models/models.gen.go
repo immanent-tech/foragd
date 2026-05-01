@@ -1256,6 +1256,9 @@ type UserMetadata struct {
 	// EmailVerified indicates whether the user has verfied their email address.
 	EmailVerified bool `json:"email_verified" validate:"required"`
 
+	// PendingDeletion indicates whether the user account is pending deletion.
+	PendingDeletion *bool `json:"pending_deletion,omitempty,omitzero"`
+
 	// PoliciesAccepted indicates whether the user has accepted the app policies.
 	PoliciesAccepted bool `json:"policies_accepted" validate:"required"`
 
