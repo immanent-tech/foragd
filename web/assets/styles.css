@@ -26,6 +26,7 @@
   --font-serif: "TexGyrePagella", serif;
   --font-serif--font-feature-settings:
     "liga" 1, "ccmp" 1, "ss01" 1, "ss03" 1, "ss04" 1, "ss10" 1, "kern" 1;
+  --font-display: "Nunito", sans-serif;
   --sidebar-width: var(--w-sm);
 
   @keyframes fadeInUp {
