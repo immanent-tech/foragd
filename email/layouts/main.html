@@ -11,36 +11,6 @@
       name="format-detection"
       content="telephone=no, date=no, address=no, email=no, url=no"
     />
-    <!--[if mso]>
-      <noscript>
-        <xml>
-          <o:OfficeDocumentSettings
-            xmlns:o="urn:schemas-microsoft-com:office:office"
-          >
-            <o:PixelsPerInch>96</o:PixelsPerInch>
-          </o:OfficeDocumentSettings>
-        </xml>
-      </noscript>
-      <style>
-        td,
-        th,
-        div,
-        p,
-        a,
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-          font-family: "Segoe UI", sans-serif;
-          mso-line-height-rule: exactly;
-        }
-        .mso-break-all {
-          word-break: break-all;
-        }
-      </style>
-    <![endif]-->
     <if condition="page.title">
       <title>{{{ page.title }}}</title>
     </if>
@@ -68,7 +38,7 @@
     <stack name="head" />
   </head>
   <body
-    class="m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
+    class="font-inter m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
   >
     <if condition="page.preheader">
       <div class="hidden">
@@ -78,6 +48,7 @@
         </each>
       </div>
     </if>
+    <x-header />
     <div
       role="article"
       aria-roledescription="email"
@@ -86,5 +57,6 @@
     >
       <yield />
     </div>
+    <x-footer />
   </body>
 </html>
