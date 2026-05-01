@@ -1,0 +1,60 @@
+<script props>
+  let containerBg = props["container-bg"] || "";
+  let containerClasses = props["container-class"] || "";
+
+  let align = "";
+
+  if (props.align) {
+    align = {
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    }[props.align];
+  }
+
+  let containerBaseStyles = ["background-color: #fffffe", "padding: 24px"];
+
+  module.exports = {
+    align,
+    containerBg,
+    containerClasses: [containerClasses, align].filter(Boolean).join(" "),
+    containerBaseStyles: containerBaseStyles.join(";"),
+    logoSrc: props["logo-src"] || "/favicon.png",
+    logoAlt: props["logo-alt"] || "Foragd Logo",
+    logoWidth: props["logo-width"] || "64",
+    logoHref: props["logo-href"] || "https://foragd.app",
+  };
+</script>
+
+<table class="w-full bg-base-100">
+  <tr>
+    <td>&zwj;</td>
+    <td class="w-[600px] max-w-full">
+      <table class="w-full">
+        <tr>
+          <td class="{{ containerClasses }}" style="{{ containerBaseStyles }}">
+            <if condition="logoHref">
+              <a href="{{{ logoHref }}}">
+                <img
+                  src="{{{ logoSrc }}}"
+                  width="{{ logoWidth }}"
+                  alt="{{{ logoAlt }}}"
+                  class="max-w-full align-middle"
+                />
+              </a>
+            </if>
+            <else>
+              <img
+                src="{{{ logoSrc }}}"
+                width="{{ logoWidth }}"
+                alt="{{{ logoAlt }}}"
+                class="max-w-full align-middle"
+              />
+            </else>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>&zwj;</td>
+  </tr>
+</table>

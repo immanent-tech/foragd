@@ -1,209 +1,77 @@
 <script props>
   let menuItems = props.menu || [
-    { label: "About us", href: "/about" },
-    { label: "Help", href: "/help" },
-  ];
-
-  let policiesMenuItems = props["polices-menu"] || [
-    {
-      label: "Terms of Service",
-      href: "/policies/tos",
-    },
-    {
-      label: "Acceptable Use",
-      href: "/policies/acceptable-use",
-    },
-    {
-      label: "Privacy",
-      href: "/policies/privacy",
-    },
-  ];
+    { "label": "Home", "href": "https://foragd.app" },
+    { "label": "Terms of Service", "href": "https://foragd.app/policies/tos" },
+    { "label": "Acceptable Use", "href": "https://foragd.app/policies/acceptable-use" },
+    { "label": "Privacy", "href": "https://foragd.app/policies/privacy" },
+  ]
 
   module.exports = {
     menuItems,
-    policiesMenuItems,
-    logoPosition: props["logo-position"] || "left",
-    containerClasses: props["container-class"] || "",
-    logoHref: props["logo-href"] || "/",
-    logoSrc: props["logo-src"] || "/content/logo-color.png",
-    logoAlt: props["logo-alt"] || "Foragd",
-    logoWidth: props["logo-width"] || 128,
-  };
+    containerClasses: props['container-class'] || '',
+    logoHref: props['logo-href'] || 'https://foragd.app',
+    logoSrc: props['logo-src'] || '/favicon.png',
+    logoAlt: props['logo-alt'] || 'Foragd Logo',
+    logoWidth: props['logo-width'] || 64,
+  }
 </script>
 
-<table class="w-full" style="background-color: theme(colors.base-200)">
+<table
+  class="w-full bg-base-100"
+>
   <tr>
     <td>&zwj;</td>
     <td
-      style="background-color: theme(colors.base-200)"
       class="w-[600px] pt-11 pb-6 max-w-full {{ containerClasses }}"
     >
-      <table class="w-full">
-        <tr class="{{ logoPosition === 'right' ? 'sm:w-full sm:table' : '' }}">
-          <if condition="logoPosition === 'left'">
-            <!-- Logo left -->
-            <td class="w-5/12 align-top sm:block sm:w-full">
-              <table class="w-full">
-                <tr>
-                  <td class="p-6 pt-0">
-                    <if condition="logoHref">
-                      <a href="{{{ logoHref }}}">
-                        <img
-                          src="{{{ logoSrc }}}"
-                          width="{{ logoWidth }}"
-                          alt="{{{ logoAlt }}}"
-                          class="align-middle"
-                        />
-                      </a>
-                    </if>
-                    <else>
-                      <img
-                        src="{{{ logoSrc }}}"
-                        width="{{ logoWidth }}"
-                        alt="{{{ logoAlt }}}"
-                        class="align-middle"
-                      />
-                    </else>
-                  </td>
-                </tr>
-              </table>
-            </td>
-            <td
-              align="right"
-              class="m-0 ml-auto sm:float-none sm:block sm:w-full sm:text-left"
-            >
-              <table>
-                <tr>
-                  <td class="p-0 px-6 align-top">
-                    <p
-                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
-                    >
-                      Quick Links
-                    </p>
+      <div class="text-center">
+        <if condition="logoHref">
+          <a href="{{{ logoHref }}}">
+            <img src="{{{ logoSrc }}}" width="{{ logoWidth }}" alt="{{{ logoAlt }}}" class="max-w-full align-middle">
+          </a>
+        </if>
+        <else>
+          <img src="{{{ logoSrc }}}" width="{{ logoWidth }}" alt="{{{ logoAlt }}}" class="max-w-full align-middle">
+        </else>
+      </div>
 
-                    <each loop="item, index in menuItems">
-                      <p class="m-0 mb-2">
-                        <a
-                          href="{{{ item.href }}}"
-                          class="text-sm/5 text-base-content no-underline hover:text-accent"
-                        >
-                          {{{ item.label }}}
-                        </a>
-                      </p>
-                    </each>
-                  </td>
-                  <td class="p-0 px-6 align-top">
-                    <p
-                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
-                    >
-                      Policies
-                    </p>
+      <x-spacer height="64px" />
 
-                    <each loop="item, index in policiesMenuItems">
-                      <p class="m-0 mb-2">
-                        <a
-                          href="{{{ item.href }}}"
-                          class="text-sm/5 text-base-content no-underline hover:text-accent"
-                        >
-                          {{{ item.label }}}
-                        </a>
-                      </p>
-                    </each>
-                  </td>
-                </tr>
-              </table>
+      <table align="center" class="m-0 mx-auto">
+        <tr>
+          <each loop="item, index in menuItems">
+            <td class="{{ loop.last ? '' : 'pr-6' }}">
+              <a href="{{{ item.href }}}" class="text-sm/5 text-gray-500 hover:text-gray-950 no-underline">
+                {{{ item.label }}}
+              </a>
             </td>
-          </if>
-          <if condition="logoPosition === 'right'">
-            <!-- Logo right -->
-            <td class="align-top sm:table-footer-group">
-              <table class="sm:ml-auto">
-                <tr>
-                  <td class="p-0 px-6 align-top">
-                    <p
-                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
-                    >
-                      Quick Links
-                    </p>
-
-                    <each loop="item, index in menuItems">
-                      <p class="m-0 mb-2">
-                        <a
-                          href="{{{ item.href }}}"
-                          class="text-sm/5 text-base-content no-underline hover:text-accent"
-                        >
-                          {{{ item.label }}}
-                        </a>
-                      </p>
-                    </each>
-                  </td>
-                  <td class="p-0 px-6 align-top">
-                    <p
-                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
-                    >
-                      Policies
-                    </p>
-
-                    <each loop="item, index in policiesMenuItems">
-                      <p class="m-0 mb-2">
-                        <a
-                          href="{{{ item.href }}}"
-                          class="text-sm/5 text-base-content no-underline hover:text-accent"
-                        >
-                          {{{ item.label }}}
-                        </a>
-                      </p>
-                    </each>
-                  </td>
-                </tr>
-              </table>
-            </td>
-            <td class="w-5/12 align-top sm:table-header-group">
-              <table class="w-full">
-                <tr>
-                  <td class="p-6 pt-0 text-right">
-                    <if condition="logoHref">
-                      <a href="{{{ logoHref }}}">
-                        <img
-                          src="{{{ logoSrc }}}"
-                          width="{{ logoWidth }}"
-                          alt="{{{ logoAlt }}}"
-                          class="align-middle"
-                        />
-                      </a>
-                    </if>
-                    <else>
-                      <img
-                        src="{{{ logoSrc }}}"
-                        width="{{ logoWidth }}"
-                        alt="{{{ logoAlt }}}"
-                        class="align-middle"
-                      />
-                    </else>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </if>
+          </each>
         </tr>
       </table>
 
-      <x-spacer height="96px" />
+      <x-spacer height="36px" />
 
       <table class="w-full">
         <tr>
-          <td
-            class="p-0 px-6 {{ logoPosition === 'right' ? 'sm:text-right' : '' }}"
-          >
+          <td class="p-0 px-6">
             <slot:copyright>
-              <p class="m-0 text-xs text-base-content">
-                &copy; {{ new Date().getFullYear() }}
-                <a href="https://immanent.tech">Immanent Tech</a>.
-              </p>
-              <p class="m-0 text-xs text-base-content">
-                PO Box 528 Hamilton Central QLD 4007 Australia
+              <p class="m-0 text-center text-sm/6 text-neutral">
+                &copy; {{ new Date().getFullYear() }} Immanent Tech
+                <br>
+                Immanent Tech <span>&nbsp;|&nbsp;</span> PO Box 528 Hamilton Central  <span>&nbsp;|&nbsp;</span> QLD 4007 Australia
               </p>
             </slot:copyright>
+
+            <!-- <slot:unsubscribe>
+              <x-spacer height="24px" />
+
+              <p class="m-0 text-center text-base/6 text-gray-300">
+                You're receiving this because you subscribed to updates.
+                <br class="sm:hidden">
+                No longer want to receive emails?
+                <a href="https://example.com/unsub" class="underline hover:no-underline text-gray-300">Unsubscribe</a>
+              </p>
+            </slot:unsubscribe> -->
           </td>
         </tr>
       </table>
@@ -211,3 +79,4 @@
     <td>&zwj;</td>
   </tr>
 </table>
+
