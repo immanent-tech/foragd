@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.122.0](https://github.com/immanent-tech/foragd/compare/v0.121.3...v0.122.0) (2026-05-01)
+
+
+### Features
+
+* **email:** :sparkles: add inactive account deletion notice email template ([fba6c45](https://github.com/immanent-tech/foragd/commit/fba6c454632abac22e49483fc5d4400ef4dff821))
+* **email:** :sparkles: simplified header and footer components ([db1b0ba](https://github.com/immanent-tech/foragd/commit/db1b0baffd2cae51eab7ad3314c5136f409996c6))
+* **models:** :sparkles: add pending_deletion metadata flag to user objects ([08d4511](https://github.com/immanent-tech/foragd/commit/08d4511e7ac5e85566e9716cc5c311f8e351f4a5))
+* **resend:** :sparkles: improved functional options ([645d4a1](https://github.com/immanent-tech/foragd/commit/645d4a1566daf7efc6ee72ea12e0e818169c5d0a))
+* **styles:** :sparkles: add cormorant-garamond font ([7c657a9](https://github.com/immanent-tech/foragd/commit/7c657a961a489d4f13519116868bd4c593fda6b7))
+* **styles:** :sparkles: add nunito font for headings/display ([58916cc](https://github.com/immanent-tech/foragd/commit/58916cc49c78d8f8f97772698d07624f74c07029))
+* **styles:** :wrench: apply font features to display font ([d87103c](https://github.com/immanent-tech/foragd/commit/d87103c439dca421873966d04cfe3adfc9c7548f))
+* **templates:** :lipstick: lots of style improvements ([2ea57a9](https://github.com/immanent-tech/foragd/commit/2ea57a9fe1fd62d2f7238e512540283a935ea54b))
+* **templates:** :lipstick: use display font on more page headings ([7efb624](https://github.com/immanent-tech/foragd/commit/7efb6242894e33b1eacc71641f1ebfd6ec9bf6e9))
+* **templates/landing:** :lipstick: use display font on landing ([7f61460](https://github.com/immanent-tech/foragd/commit/7f6146093a83ce2c19c758ce3509f1f81a32ff2b))
+* **templates/partials:** :lipstick: nicer animation on scroll to top button ([2067ec3](https://github.com/immanent-tech/foragd/commit/2067ec35fae26b41c4d39e34b5acec2f4f02e354))
+
+
+### Bug Fixes
+
+* **client:** :bug: handle non-absolute URLs when searching for images ([8f9600f](https://github.com/immanent-tech/foragd/commit/8f9600f735d7783247dfd3eeb175c92ecfe89943))
+* **client:** :bug: handle non-absolute URLs when searching for images ([def5238](https://github.com/immanent-tech/foragd/commit/def523830a6c1a807382fad82dbad440ed9a65d1))
+* **email:** :lipstick: consistent header and footer usage across email templates ([b4a5d1d](https://github.com/immanent-tech/foragd/commit/b4a5d1dd85f9da39c06f3caf6eb283ee9aaf4c60))
+* **models:** :ambulance: metadata fields should be boolean not binary! ([05447ab](https://github.com/immanent-tech/foragd/commit/05447abe0ade061ae2239b06c798db2cc7c2df69))
+* **styles:** :bug: fix font weight for tex gyre pagella font ([bf0a5a5](https://github.com/immanent-tech/foragd/commit/bf0a5a5c59bf5ffbc0f3220c9cfb65e7b33e734c))
+
 ## [0.121.3](https://github.com/immanent-tech/foragd/compare/v0.121.2...v0.121.3) (2026-04-30)
 
 
