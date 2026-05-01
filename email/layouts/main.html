@@ -38,7 +38,7 @@
     <stack name="head" />
   </head>
   <body
-    class="font-inter m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
+    class="font-inter bg-base-100 m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
   >
     <if condition="page.preheader">
       <div class="hidden">
@@ -54,6 +54,7 @@
       aria-roledescription="email"
       aria-label="{{{ page.title || '' }}}"
       lang="{{ page.language || 'en' }}"
+      class="py-12"
     >
       <yield />
     </div>

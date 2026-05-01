@@ -1,5 +1,4 @@
 <script props>
-  let containerBg = props["container-bg"] || "";
   let containerClasses = props["container-class"] || "";
 
   let align = "";
@@ -12,13 +11,9 @@
     }[props.align];
   }
 
-  let containerBaseStyles = ["background-color: #fffffe", "padding: 24px"];
-
   module.exports = {
     align,
-    containerBg,
     containerClasses: [containerClasses, align].filter(Boolean).join(" "),
-    containerBaseStyles: containerBaseStyles.join(";"),
     logoSrc: props["logo-src"] || "/content/favicon.png",
     logoAlt: props["logo-alt"] || "Foragd Logo",
     logoWidth: props["logo-width"] || "64",
@@ -26,13 +21,13 @@
   };
 </script>
 
-<table class="w-full bg-base-100">
+<table class="w-full bg-base-200 py-8">
   <tr>
     <td>&zwj;</td>
     <td class="w-[600px] max-w-full">
       <table class="w-full">
         <tr>
-          <td class="{{ containerClasses }}" style="{{ containerBaseStyles }}">
+          <td class="{{ containerClasses }}">
             <if condition="logoHref">
               <a href="{{{ logoHref }}}">
                 <img
