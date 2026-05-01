@@ -6,53 +6,71 @@ package resend
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"slices"
 	"sync"
 
 	"github.com/resend/resend-go/v3"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
-type template struct {
+type Template struct {
 	*resend.UpdateTemplateRequest
 
 	mu    sync.Mutex
 	alias string
 }
 
+func (t *Template) SetSubject(subject string) {
+	t.Subject = subject
+}
+
+func (t *Template) SetReplyTo(replyTo any) {
+	switch v := replyTo.(type) {
+	case string:
+		t.ReplyTo = v
+	case *mail.Address:
+		t.ReplyTo = v.String()
+	}
+}
+
+func (t *Template) SetFrom(from any) {
+	switch v := from.(type) {
+	case string:
+		t.From = v
+	case *mail.Address:
+		t.From = v.String()
+	}
+}
+
 // TemplateOption is a functional option applied to a template.
-type TemplateOption func(*template)
+type TemplateOption func(*Template)
 
 // WithTemplateHTML option sets the HTML format of the template.
 func WithTemplateHTML(data []byte) TemplateOption {
-	return func(t *template) {
+	return func(t *Template) {
 		t.Html = string(data)
 	}
 }
 
 // WithTemplateText option sets the text format of the template.
 func WithTemplateText(data []byte) TemplateOption {
-	return func(t *template) {
+	return func(t *Template) {
 		t.Text = string(data)
 	}
 }
 
 // WithTemplateName option sets the name of the template.
 func WithTemplateName(name string) TemplateOption {
-	return func(t *template) {
+	return func(t *Template) {
 		t.Name = name
-	}
-}
-
-// WithTemplateSubject option sets the subject of the template.
-func WithTemplateSubject(subject string) TemplateOption {
-	return func(t *template) {
-		t.Subject = subject
 	}
 }
 
 // WithTemplateVariable option sets a variable for use within the template.
 func WithTemplateVariable(key, dataType, fallback string) TemplateOption {
-	return func(t *template) {
+	return func(t *Template) {
 		t.mu.Lock()
 		defer t.mu.Unlock()
 		t.Variables = append(t.Variables, &resend.TemplateVariable{
@@ -71,14 +89,19 @@ func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption
 		return fmt.Errorf("load client: %w", err)
 	}
 
-	template := &template{
+	template := &Template{
 		alias: alias,
 		UpdateTemplateRequest: &resend.UpdateTemplateRequest{
 			Variables: make([]*resend.TemplateVariable, 0),
 		},
 	}
-	template.From = cfg.ReplyToEmail
 
+	// Generate an email address to use as default from/reply-to.
+	from := &mail.Address{Name: config.AppName, Address: cfg.ReplyToEmail}
+	WithFrom[*Template](from)(template)
+	WithReplyTo[*Template](from)(template)
+
+	// Apply any passed in options.
 	for option := range slices.Values(options) {
 		option(template)
 	}
