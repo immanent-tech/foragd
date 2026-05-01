@@ -12,7 +12,7 @@ import (
 templ header(user *models.User) {
 	<header
 		aria-label="Header"
-		class="fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe"
+		class="fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe shadow-sm"
 	>
 		switch user {
 			case nil:
@@ -21,7 +21,7 @@ templ header(user *models.User) {
 						<a href="/" class="link link-hover">
 							<div class="flex items-center">
 								@partials.Logo(element.WithClasses("size-10"))
-								<p class="hidden font-bold text-primary lg:flex">Foragd</p>
+								<p class="hidden font-display font-bold text-primary lg:flex">Foragd</p>
 							</div>
 						</a>
 					</div>
@@ -88,7 +88,7 @@ templ header(user *models.User) {
 					>
 						<div class="flex shrink-0 flex-row items-center p-2">
 							@partials.Logo(element.WithClasses("size-10"))
-							<p class="hidden font-bold text-primary lg:flex">Foragd</p>
+							<p class="hidden font-display font-bold text-primary lg:flex">Foragd</p>
 						</div>
 					</a>
 					// Global search bar.
@@ -160,12 +160,19 @@ templ header(user *models.User) {
 										</a>
 									</li>
 									// Logout
+									<script type="text/hyperscript">
+  										behavior ClearStorageOnLogout
+  										  on click
+  										    js localStorage.clear() end
+  										    js sessionStorage.clear() end
+  										    then go to url '/logout'
+  										end
+									</script>
 									<li>
 										<a
-											href="/logout"
 											role="menuitem"
 											tabindex="-1"
-											_="on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')"
+											_="on click remove @open from #header-menu then install ClearStorageOnLogout"
 										>
 											<div class="flex flex-1 items-center gap-x-2">
 												<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-logout" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -62,7 +62,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 					}}
 					<article
 						style={ "--i: " + strconv.Itoa(idx) }
-						class="card h-fit max-w-prose bg-base-200 card-border animate-fadeinup"
+						class="card h-fit max-w-prose animate-fadeinup bg-base-200 card-border"
 					>
 						if post.Frontmatter.Image != nil {
 							<figure>
@@ -145,7 +145,7 @@ templ Post(post *models.MarkdownFile) {
 					{ post.Frontmatter.Title }
 				</h1>
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
-				<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/15 p-1">
+				<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/25 p-1">
 					// Author.
 					if post.Frontmatter.Author != nil {
 						<strong

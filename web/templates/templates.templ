@@ -134,11 +134,12 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
 			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin as="font"/>
-			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-regular.woff2" crossorigin as="font"/>
+			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin as="font"/>
 			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
 			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/>
 			<link rel="stylesheet" href={ "/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.Version }/>
+			<link rel="stylesheet" href={ "/content/fonts/nunito/nunito.css?v=" + config.Version }/>
 			// Load style bundles from embedded FS.
 			for styleFile := range slices.Values(web.GetStyleFilenames()) {
 				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>

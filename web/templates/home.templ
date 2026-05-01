@@ -27,7 +27,7 @@ templ UserHome(data *models.HomeResponse) {
 							// Left column
 							<div class="grid grid-cols-1 gap-4 lg:col-span-2">
 								<section aria-labelledby="section-latest-articles">
-									<h2 id="section-latest-articles" class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+									<h2 id="section-latest-articles" class="mt-4 mb-2 scroll-mt-16 font-display text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
 										Latest Articles
 									</h2>
 									<div>
@@ -41,7 +41,7 @@ templ UserHome(data *models.HomeResponse) {
 											}
 										</div>
 										// Carousel of latest articles on small displays.
-										<div class="carousel w-full carousel-center space-x-4 p-4 content-auto sm:hidden items-start">
+										<div class="carousel w-full carousel-center items-start space-x-4 p-4 content-auto sm:hidden">
 											for idx, article := range data.LatestArticles {
 												<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item max-w-9/10">
 													@ArticleCard(idx, article)
@@ -67,7 +67,7 @@ templ UserHome(data *models.HomeResponse) {
 									<section aria-labelledby="section-last-updated-subscriptions">
 										<h2
 											id="section-last-updated-subscriptions"
-											class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
+											class="mt-4 mb-2 scroll-mt-16 font-display text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
 										>
 											Last Updated Subscriptions
 										</h2>
@@ -77,12 +77,12 @@ templ UserHome(data *models.HomeResponse) {
 													{{ break }}
 												}
 												<li
-													class="group hover:hover-shadow flex cursor-pointer touch-manipulation py-4 will-change-[opacity,transform] animate-fadeinup"
+													class="group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation py-4 will-change-[opacity,transform]"
 													style={ "--i: " + strconv.Itoa(idx) }
 													id={ subscription.GetID() }
 													{ generateSubscriptionViewArticlesAttributes(subscription)... }
 												>
-													<div class="mr-4 shrink-0 ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.1]">
+													<div class="ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.05]">
 														if subscription.GetImage() == "" {
 															@subscriptionThumbnail(nil, subscription.GetTitle())
 														} else {
@@ -90,7 +90,7 @@ templ UserHome(data *models.HomeResponse) {
 														}
 													</div>
 													<div>
-														<h4 class="text-lg font-bold">{ subscription.GetTitle() }</h4>
+														<h4 class="font-xl font-serif text-lg font-bold">{ subscription.GetTitle() }</h4>
 														<span class="mt-1 text-sm/6 text-neutral">
 															<relative-time
 																datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
@@ -109,7 +109,7 @@ templ UserHome(data *models.HomeResponse) {
 									<section aria-labelledby="section-top-categories">
 										<h2
 											id="section-top-categories"
-											class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
+											class="mt-4 mb-2 scroll-mt-16 font-display text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
 										>
 											Top Categories
 										</h2>

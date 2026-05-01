@@ -22,41 +22,44 @@ import (
 templ ArticleCard(idx int, article *models.Article) {
 	@partials.Card(
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithAttribute("hx-get", "/view/article/"+article.GetID()),
-		element.WithAttribute("hx-target", ContentID.Target()),
-		element.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
-		element.WithAttribute("hx-trigger", "click"),
-		element.WithAttribute("hx-push-url", "true"),
-		element.WithAttribute("hx-disinherit", "*"),
 		element.WithAttribute("id", article.GetID()),
-		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-		if img := article.GetImage(); img != nil {
-			{{ img := article.GetImage() }}
-			if img.GetTitle() == "" {
-				{{ img.Title = new(article.GetTitle()) }}
-			}
-			<figure class="relative overflow-hidden rounded-t-[inherit]">
-				//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
-				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
-					element.WithAttribute("width", "400"),
-					element.WithAttribute("height", "300"),
-					element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
-				)
-				<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
-			</figure>
-		}
-		@partials.CardHeader() {
-			<h2 class="mt-auto card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
-				} else {
-					(no title)
+		<div
+			hx-get={ "/view/article/" + article.GetID() }
+			hx-target={ ContentID.Target() }
+			hx-swap="innerHTML show:window:top transition:true"
+			hx-trigger="click"
+			hx-push-url="true"
+			class="cursor-pointer touch-manipulation"
+		>
+			if img := article.GetImage(); img != nil {
+				{{ img := article.GetImage() }}
+				if img.GetTitle() == "" {
+					{{ img.Title = new(article.GetTitle()) }}
 				}
-			</h2>
-		}
+				<figure class="relative overflow-hidden rounded-t-[inherit]">
+					//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
+					@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
+						element.WithAttribute("width", "400"),
+						element.WithAttribute("height", "300"),
+						element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
+					)
+					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+				</figure>
+			}
+			@partials.CardHeader() {
+				<h2 class="mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
+					if article.GetTitle() != "" {
+						{ article.GetTitle() }
+					} else {
+						(no title)
+					}
+				</h2>
+			}
+		</div>
 		@partials.CardBody() {
 			{{ categoryLimit := 10 }}
 			// Show up to 10 category badges.
@@ -113,7 +116,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			}
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
+			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
 				<div class="flex min-w-0 flex-col">
 					if len(article.GetAuthors()) > 0 {
 						{{
@@ -387,7 +390,7 @@ templ ArticleContent(article *models.Article) {
 						}
 					</div>
 					// Byline and actions.
-					<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/15 p-1">
+					<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/25 p-1">
 						// Author.
 						if article.SourceType != models.SourceTypeEmail {
 							// Show authors if found.
@@ -585,7 +588,7 @@ templ ArticleContent(article *models.Article) {
 									}
 								</div>
 							}
-							<div class="mt-8 flex flex-wrap justify-center gap-8 border-t border-neutral/15 p-4">
+							<div class="mt-8 flex flex-wrap justify-center gap-8 border-t border-neutral/25 p-4">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
 								<a

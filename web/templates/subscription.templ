@@ -93,22 +93,19 @@ func generateSubscriptionReportIssueAttributes(s *models.Subscription) templ.Att
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, s *models.Subscription) {
-	// Process any options passed in.
-	{{
-		attrs := generateSubscriptionViewArticlesAttributes(s)
-		attrs["style"] = "--i: " + strconv.Itoa(idx)
-		attrs["id"] = s.GetID()
-		attrs["hx-disinherit"] = "*"
-	}}
 	@partials.Card(
-		element.MergeAttributes(attrs),
-		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+		element.WithAttribute("id", s.GetID()),
+		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
 	) {
 		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>
 		// Card header.
 		@partials.CardHeader() {
-			<div class="flex items-center">
-				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.1]">
+			<div
+				class="flex cursor-pointer touch-manipulation items-center"
+				{ generateSubscriptionViewArticlesAttributes(s)... }
+			>
+				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.05]">
 					if s.GetImage() == "" {
 						@subscriptionThumbnail(nil, s.GetTitle())
 					} else {
@@ -116,7 +113,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 					}
 				</div>
 				<div>
-					<h2 class="card-title line-clamp-2 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+					<h2 class="card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 						{ s.GetTitle() }
 					</h2>
 				</div>
@@ -152,7 +149,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 		}
 		// Card footer.
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
+			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
 				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
@@ -485,14 +482,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 											if ok {
 												{{ items, ok := itemsData.(models.Items) }}
 												if ok {
-													<div class="mt-auto h-full border-t border-neutral/15">
-														<h3 class="mb-2 pt-2 text-base font-semibold">
-															if subscription.Type == models.SubscriptionTypeSearch {
-																Top Results
-															} else {
-																Latest Articles
-															}
-														</h3>
+													<div class="mt-auto h-full">
 														<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
 															for item := range slices.Values(items) {
 																<li
@@ -502,7 +492,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																	hx-trigger="click"
 																	hx-push-url="true"
 																	_="on click halt the event's bubbling"
-																	class="my-2 link link-hover"
+																	class="my-2 link text-pretty link-hover"
 																>{ item.GetTitle() }</li>
 															}
 														</ul>
@@ -654,7 +644,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 					<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
 					<div class="mt-2 w-full">
 						<div class="join flex w-full items-center sm:max-w-xl">
-							<div class="input w-full input-primary bg-base-300 brightness-95">
+							<div class="input w-full bg-base-300 brightness-95 input-primary">
 								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-primary">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
 								</svg>
@@ -965,7 +955,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 								// 	}
 								// }
 								@partials.CardFooter(element.WithClasses("items-center")) {
-									<div class="flex items-center justify-between border-t border-neutral/15 pt-3">
+									<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
 										<div class="flex min-w-0 flex-col">
 											if len(item.GetAuthors()) > 0 {
 												{{
@@ -1660,13 +1650,13 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 			@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
 				element.WithAttribute("width", "48"),
 				element.WithAttribute("height", "48"),
-				element.WithClasses("mask mask-squircle size-12", "ring-1", "ring-neutral-content/10"),
+				element.WithClasses("mask mask-squircle size-12", "ring-1", "ring-neutral-content/25"),
 			)
 		</div>
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 		<div class="avatar avatar-placeholder" aria-hidden="true">
-			<div class="mask w-12 bg-neutral mask-squircle text-neutral-content ring-1 ring-neutral-content/10">
+			<div class="mask w-12 bg-neutral mask-squircle text-neutral-content ring-1 ring-neutral-content/25">
 				if name != "" {
 					<span class="text-3xl capitalize">{ name[0:1] }</span>
 				} else {
