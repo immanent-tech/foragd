@@ -10,11 +10,11 @@ type SideBarComponent struct {
 }
 
 templ SideBar(attributes templ.Attributes) {
-	<nav aria-label="Sidebar Navigation" id="page-sidebar" class="mt-16 hidden border-r border-neutral/10 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
+	<nav aria-label="Sidebar Navigation" id="page-sidebar" class="mt-16 hidden border-r border-neutral/25 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
 			<div class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="my-auto flex flex-1 flex-col gap-y-8 py-16">
-					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/home") }>
+					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/home") }>
 						<a
 							hx-trigger="click,globalShortcutHome"
 							hx-get="/home"
@@ -35,7 +35,7 @@ templ SideBar(attributes templ.Attributes) {
 						</a>
 					</li>
 					{{ filters := models.NewListDisplayFilters() }}
-					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/subscriptions") }>
+					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/subscriptions") }>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
@@ -56,7 +56,7 @@ templ SideBar(attributes templ.Attributes) {
 							<span class="not-sr-only font-display text-base font-semibold text-primary">Subscriptions</span>
 						</a>
 					</li>
-					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/articles") }>
+					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles") }>
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
@@ -77,7 +77,7 @@ templ SideBar(attributes templ.Attributes) {
 							<span class="not-sr-only font-display text-base font-semibold text-primary">Articles</span>
 						</a>
 					</li>
-					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/favorites") }>
+					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/favorites") }>
 						<a
 							hx-trigger="click,globalShortcutFavorites"
 							hx-get="/list/favorites"

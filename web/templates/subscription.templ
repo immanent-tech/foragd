@@ -362,9 +362,9 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					hx-target="#updates"
 				></div>
 				// Show a page header.
-				<div class="md:flex md:items-center md:justify-between font-display">
+				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Subscriptions</h1>
+						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-display font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Subscriptions</h1>
 					</div>
 					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
@@ -522,7 +522,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 						<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
 							// Mark all subscriptions action.
 							<button
-								class="btn btn-wide btn-outline"
+								class="btn btn-sm btn-outline"
 								if response.Filters.GetView() == models.ViewUnread {
 									hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
 								} else {

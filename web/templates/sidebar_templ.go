@@ -39,7 +39,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav aria-label=\"Sidebar Navigation\" id=\"page-sidebar\" class=\"mt-16 hidden border-r border-neutral/10 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav aria-label=\"Sidebar Navigation\" id=\"page-sidebar\" class=\"mt-16 hidden border-r border-neutral/25 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +51,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/home")}
+		var templ_7745c5c3_Var2 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/home")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -87,7 +87,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		filters := models.NewListDisplayFilters()
-		var templ_7745c5c3_Var5 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/subscriptions")}
+		var templ_7745c5c3_Var5 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/subscriptions")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -135,7 +135,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/articles")}
+		var templ_7745c5c3_Var9 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -183,7 +183,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/favorites")}
+		var templ_7745c5c3_Var13 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/favorites")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
