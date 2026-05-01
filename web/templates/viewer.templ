@@ -223,6 +223,7 @@ templ ViewerResults(feed *models.Feed) {
 						<relative-time
 							datetime={ feed.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
 							format="relative"
+							class="tabular-nums"
 						>
 							{ feed.GetTimestamp().Format("Jan _2, 2006") }
 						</relative-time>
@@ -295,6 +296,7 @@ templ viewerItemCard(item models.Item) {
 					<relative-time
 						datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
 						format="relative"
+						class="tabular-nums"
 					>
 						{ item.GetTimestamp().Format("Jan _2, 2006") }
 					</relative-time>

@@ -157,6 +157,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 								<relative-time
 									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 									format="relative"
+									class="tabular-nums"
 								>
 									{ s.GetUpdatedDate().Format("Jan _2, 2006") }
 								</relative-time>
@@ -176,6 +177,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
+								class="tabular-nums"
 							>
 								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
@@ -971,7 +973,7 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 											<relative-time
 												datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
 												format="relative"
-												class="text-xs/4 text-neutral capitalize"
+												class="text-xs/4 text-neutral capitalize tabular-nums"
 											>
 												{ item.GetTimestamp().Format("Jan _2, 2006") }
 											</relative-time>

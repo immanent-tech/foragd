@@ -95,6 +95,7 @@ templ UserHome(data *models.HomeResponse) {
 															<relative-time
 																datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 																format="relative"
+																class="tabular-nums"
 															>
 																{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
 															</relative-time>

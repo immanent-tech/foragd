@@ -116,9 +116,8 @@ templ Post(post *models.MarkdownFile) {
 				</ul>
 			</div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
-				<div class="fixed top-16 left-0 z-10 h-1 w-full bg-base-100">
-					<div class="h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border"></div>
-				</div>
+				// Show a subtle reading progress bar across the top of the article.
+				@partials.ReadingProgress()
 				<div class="flex flex-1 items-center space-x-2 justify-self-end text-sm/6 text-neutral">
 					<time
 						datetime={ post.Frontmatter.CreatedAt }

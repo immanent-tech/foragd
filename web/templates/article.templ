@@ -132,7 +132,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					<relative-time
 						datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 						format="relative"
-						class="text-xs/4 text-neutral capitalize"
+						class="text-xs/4 text-neutral capitalize tabular-nums"
 					>
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>
@@ -322,11 +322,10 @@ templ ArticleContent(article *models.Article) {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
-					<div class="fixed top-16 left-0 z-10 h-1 w-full bg-base-100">
-						<div class="h-full origin-left transform-[scaleX(0)] animate-growbar bg-accent transform-border"></div>
-					</div>
+					// Show a subtle reading progress bar across the top of the article.
+					@partials.ReadingProgress()
 					// Subscription and timestamp.
-					<div class="my-4 flex items-center text-sm/6">
+					<div class="my-4 flex items-center text-sm/6 text-neutral font-display">
 						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
 						<a
 							hx-get="/list/articles"
@@ -349,6 +348,7 @@ templ ArticleContent(article *models.Article) {
 							<relative-time
 								datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
+								class="tabular-nums"
 							>
 								{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
@@ -383,14 +383,14 @@ templ ArticleContent(article *models.Article) {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
+								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-serif font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 							</a>
 						} else {
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-serif font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 						}
 					</div>
 					// Byline and actions.
-					<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/25 p-1">
+					<div class="flex items-center justify-between p-1">
 						// Author.
 						if article.SourceType != models.SourceTypeEmail {
 							// Show authors if found.
@@ -528,14 +528,14 @@ templ ArticleContent(article *models.Article) {
 						</div>
 					</div>
 					// Show reading time if content length is greater than around two paragraphs of text...
-					if text.CountWords(article.GetContent()) > 160 {
-						<div class="flex items-center">
+					<div class="flex items-center border-b border-neutral/25 p-1 mb-4">
+						if text.CountWords(article.GetContent()) > 160 {
 							<span class="text-sm/6 text-neutral">
 								Reading time:
 								{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
 							</span>
-						</div>
-					}
+						}
+					</div>
 					// Content.
 					switch  {
 						case article.SourceType == models.SourceTypeEmail:
@@ -590,10 +590,9 @@ templ ArticleContent(article *models.Article) {
 							}
 							<div class="mt-8 flex flex-wrap justify-center gap-8 border-t border-neutral/25 p-4">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
-								// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
 								<a
 									role="button"
-									class="btn btn-wide btn-outline"
+									class="btn btn-wide btn-primary"
 									hx-get={ "/view/article/" + article.GetID() }
 									hx-target={ ContentID.Target() }
 									hx-swap="innerHTML transition:true"
@@ -601,8 +600,8 @@ templ ArticleContent(article *models.Article) {
 									hx-indicator="#content-loading"
 									hx-push-url="false"
 									hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}) }
+									_="on htmx:afterResponse[detail.failed] add @disabled to me"
 								>
-									// _="on htmx:afterResponse[detail.failed] add @disabled to me"
 									if article.IsRemoteContent() {
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
@@ -633,26 +632,28 @@ templ ArticleContent(article *models.Article) {
 							</div>
 					}
 				</article>
-				@partials.LoadingIndicator("")
-				@partials.ButtonBackToTop()
-				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
-				// read and mark it so (when the user has set this option).
-				if article.IsUnread() && article.MarkArticleReadOnView {
-					<div
-						id="auto-mark-read"
-						hx-target="#auto-mark-read"
-						hx-post={ "/mark/article/" + article.GetID() }
-						hx-swap="delete transition:false"
-						hx-vals={ templ.JSONString(map[string]any{
+				<div class="p-4">
+					@partials.LoadingIndicator("")
+					@partials.ButtonBackToTop()
+					// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
+					// read and mark it so (when the user has set this option).
+					if article.IsUnread() && article.MarkArticleReadOnView {
+						<div
+							id="auto-mark-read"
+							hx-target="#auto-mark-read"
+							hx-post={ "/mark/article/" + article.GetID() }
+							hx-swap="delete transition:false"
+							hx-vals={ templ.JSONString(map[string]any{
 							"subscription_id": article.GetSubscriptionID(),
 							"item_id": article.GetID(),
 							"mark": models.MarkRead,
 						}) }
-						hx-trigger="intersect once delay:5s,load delay:5s"
-						aria-hidden="true"
-						_={ "on htmx:afterRequest(successful) toggle @checked on #" + article.GetID() + "-read-state" }
-					></div>
-				}
+							hx-trigger="intersect once delay:5s,load delay:5s"
+							aria-hidden="true"
+							_={ "on htmx:afterRequest(successful) toggle @checked on #" + article.GetID() + "-read-state" }
+						></div>
+					}
+				</div>
 			}
 		}
 	}
