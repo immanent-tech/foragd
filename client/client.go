@@ -155,19 +155,22 @@ func ExtractMainImage(ctx context.Context, page string) (string, error) {
 		return "", fmt.Errorf("%s: %s", resp.Status(), resp.Error())
 	}
 
+	var foundURL string
+
 	// Try to parse opengraph data out of the page content.
 	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
 		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
 			slog.String("url", page),
 			slog.Any("error", err))
 	} else {
-		return og.Image, nil
+		foundURL = og.Image
 	}
 
-	var foundURL string
-
 	// Try to find the "main" image in the page content.
-	foundURL, _ = html.FindMainImage(resp.Body(), page)
+	if foundURL == "" {
+		foundURL, _ = html.FindMainImage(resp.Body(), page)
+	}
+
 	// If no main image found, use any favicon.
 	if foundURL == "" {
 		if _, foundURL, _, err = html.FindFavicon(resp.Body(), page); err != nil {
