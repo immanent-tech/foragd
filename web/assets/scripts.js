@@ -70,17 +70,17 @@ htmx.onLoad(function (target) {
 // });
 
 // After every HTMX settle into #grid-objects (infinite scroll, filter changes)
-htmx.on("htmx:afterSettle", function (event) {
+htmx.on("htmx:afterSwap", function (event) {
   // Remove any stray text/comment nodes that confuse the ResizeObserver
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
   Array.from(grid.childNodes).forEach((node) => {
     if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
   });
-
-  //   if (event.detail.target?.id === "grid-objects") {
-  //     initMasonry();
-  //   }
+  if (grid._masonryInstance) {
+    grid._masonryInstance.destroy();
+  }
+  initMasonry();
 });
 
 // htmx.on("htmx:beforeHistorySave", function () {
