@@ -6,3 +6,15 @@ def fetchAndProxy(remoteUrl, inputID, formID)
   then set inputID's value to it
   then send submit to formID
 end
+
+def loadingButton
+  -- define a reusable behaviour
+  behavior LoadingButton
+    on htmx:beforeRequest from me
+      add .in-flight-request to me
+      set my.disabled to true
+    on htmx:afterRequest from me
+      remove .in-flight-request from me
+      set my.disabled to false
+  end
+end

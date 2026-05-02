@@ -184,15 +184,19 @@
   }
 
   .htmx-indicator {
-    opacity: 0;
-    visibility: hidden;
+    @apply invisible opacity-0;
   }
 
   .htmx-request .htmx-indicator,
-  .htmx-request.htmx-indicator {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 200ms ease-in;
+  .htmx-request .htmx-indicator {
+    @apply visible opacity-100 transition-opacity duration-200 ease-in;
+  }
+
+  .in-flight-request .hide-loading {
+    @apply hidden;
+  }
+  .in-flight-request .show-loading {
+    @apply inline-flex;
   }
 }
 
