@@ -52,7 +52,8 @@ templ Dock(attributes templ.Attributes) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-swap="innerHTML show:window:top transition:true"
-			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")) }
+			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
+			templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/view/article")) }
 			_="
 			on htmx:beforeRequest add .animate-pulse .bg-accent .rounded-lg to me
 			on htmx:afterRequest remove .animate-pulse .bg-accent .rounded-lg from me

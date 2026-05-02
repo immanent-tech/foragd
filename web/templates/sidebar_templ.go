@@ -12,7 +12,10 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"strings"
+)
 
 type SideBarComponent struct {
 	attributes templ.Attributes
@@ -76,7 +79,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 21, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 24, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -112,7 +115,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(filters.Values()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 42, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 45, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -125,7 +128,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 43, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 46, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -135,7 +138,9 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles")}
+		var templ_7745c5c3_Var9 = []any{"transition ease-in-out delay-150 duration-400",
+			templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles"),
+			templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", strings.HasPrefix(PathFromCtx(ctx), "/view/article"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -160,7 +165,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(filters.Values()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 63, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 70, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -173,7 +178,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 64, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 71, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -208,7 +213,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 84, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 91, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {

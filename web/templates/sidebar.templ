@@ -3,7 +3,10 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"strings"
+)
 
 type SideBarComponent struct {
 	attributes templ.Attributes
@@ -56,7 +59,11 @@ templ SideBar(attributes templ.Attributes) {
 							<span class="not-sr-only font-display text-base font-semibold text-primary">Subscriptions</span>
 						</a>
 					</li>
-					<li class={ "transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles") }>
+					<li
+						class={ "transition ease-in-out delay-150 duration-400",
+					templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles"),
+					 templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", strings.HasPrefix(PathFromCtx(ctx), "/view/article")) }
+					>
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
