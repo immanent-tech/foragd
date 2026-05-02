@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.123.0](https://github.com/immanent-tech/foragd/compare/v0.122.0...v0.123.0) (2026-05-02)
+
+
+### Features
+
+* :sparkles: proxy requests for full article content via the user's browser instead of a backend service ([c800826](https://github.com/immanent-tech/foragd/commit/c8008266bd771ad472e873840b5df68d2f7ffdf0))
+* **templates:** :lipstick: more style improvements ([4f65c0e](https://github.com/immanent-tech/foragd/commit/4f65c0e5b957ea7c5d9f8387cc2aa5ad7d819667))
+* **templates:** :lipstick: show dock/sidebar indicator even when on article content pages ([49520ca](https://github.com/immanent-tech/foragd/commit/49520cac71215a73604417dee3f8858cded8dba6))
+
+
+### Bug Fixes
+
+* **config:** :bug: set the version variable based on environment variable if found ([1ff98d3](https://github.com/immanent-tech/foragd/commit/1ff98d3ad76d9acb188ba923eeba3cabb6a1930f))
+* **models:** :lock: sanitise parts of item with potential unsafe content ([84f0004](https://github.com/immanent-tech/foragd/commit/84f0004c9098e88d62635b808053ae560c8c6b74))
+* **styles:** :bug: ensure appropriate font smoothing is applied on osx ([f8705c6](https://github.com/immanent-tech/foragd/commit/f8705c618ebb3663a278654acad3c215d253692e))
+* **styles:** :lipstick: prose article display tweaks ([0bf3553](https://github.com/immanent-tech/foragd/commit/0bf3553022bfac58995571fee78439a2d5945660))
+
 ## [0.122.0](https://github.com/immanent-tech/foragd/compare/v0.121.3...v0.122.0) (2026-05-01)
 
 
