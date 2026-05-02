@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.124.1](https://github.com/immanent-tech/foragd/compare/v0.124.0...v0.124.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* **scripts:** :bug: try to fix masonry grid updates ([559be9a](https://github.com/immanent-tech/foragd/commit/559be9a68e8364c70d13889b454418bd88874a2c))
+
 ## [0.124.0](https://github.com/immanent-tech/foragd/compare/v0.123.0...v0.124.0) (2026-05-02)
 
 
