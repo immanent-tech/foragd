@@ -25,6 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (CategoryCounts, error) {
@@ -382,7 +383,7 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
 		Title:        source.GetTitle(),
-		Description:  new(source.GetDescription()),
+		Description:  new(validation.SanitizeString(source.GetDescription())),
 		SourceType:   feed.SourceType,
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
@@ -390,8 +391,10 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Content:      source.GetContent(),
 		FeedTitle:    feed.GetTitle(),
+	}
+	if content := source.GetContent(); content != nil {
+		item.Content = new(validation.SanitizeString(*content))
 	}
 	if pubDate := source.GetPublishedDate(); pubDate != nil {
 		item.Published = pubDate.UTC()
