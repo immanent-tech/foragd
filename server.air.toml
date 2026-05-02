@@ -47,6 +47,7 @@ include_ext = [
   "html",
   "json",
   "js",
+  "_hs",
   "ts",
   "css",
   "scss",
