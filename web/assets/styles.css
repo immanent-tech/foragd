@@ -198,7 +198,7 @@
 
 /* For formatting articles.  */
 @utility prose-article {
-  @apply prose max-w-none text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
+  @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
 
   /* Forced fixed width for pre and scrollable elements. */
   pre {
@@ -206,6 +206,9 @@
   }
   .scrollable {
     overflow-x: auto;
+  }
+  [style*="white-space-collapse"] {
+    white-space: normal !important;
   }
 
   /* Apply some useful CSS styling for video embeds */
