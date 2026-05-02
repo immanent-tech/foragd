@@ -589,7 +589,8 @@ templ ArticleContent(article *models.Article) {
 									}
 								</div>
 							}
-							<div class="mt-8 flex flex-wrap justify-center gap-8 border-t border-neutral/25 p-4">
+							<div class="mt-8 w-full border-t border-neutral/25"></div>
+							<div class="mt-4 mx-auto w-xs fieldset justify-items-center">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
 									{{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
@@ -610,6 +611,7 @@ templ ArticleContent(article *models.Article) {
 										hx-push-url="false"
 										hx-trigger="submit"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
+										class="invisible"
 									>
 										<input type="hidden" name="article-full-text" id="article-full-text"/>
 									</form>
@@ -631,9 +633,9 @@ templ ArticleContent(article *models.Article) {
 									</button>
 								}
 								// View original article action.
-								<a
+								<button
 									role="button"
-									class="btn btn-wide btn-outline"
+									class="btn btn-wide btn-outline m-2"
 									href={ article.GetLink() }
 									target="_blank"
 									rel="noopener"
@@ -643,7 +645,7 @@ templ ArticleContent(article *models.Article) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
 									</svg>
 									View Remote
-								</a>
+								</button>
 								@shareArticleButton(article)
 							</div>
 					}
@@ -677,34 +679,36 @@ templ ArticleContent(article *models.Article) {
 
 templ shareArticleButton(a *models.Article) {
 	// Mobile share action via navigator API.
-	<div class="flex w-full justify-center" _="init if not navigator.share then hide me">
-		<button
-			class="btn btn-wide btn-outline"
-			_={ "on click " + fmt.Sprintf("navigator.share({title: %q, url: %q})", a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
-		>
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
-			</svg>
-			Share
-		</button>
-	</div>
+	<button
+		class="btn btn-wide btn-outline"
+		_={ `
+			init if not navigator.share then hide me end
+			on click ` + fmt.Sprintf("navigator.share({title: %q, url: %q})", a.GetTitle(), a.GetLink()) + ` then halt the event's bubbling
+			` }
+	>
+		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+		</svg>
+		Share
+	</button>
 	// Desktop share action with modal and options.
-	<form class="flex w-full justify-center" _="init if navigator.share then hide me">
-		<input type="hidden" name="item_id" value={ a.GetID() }/>
-		<input type="hidden" name="title" value={ a.GetTitle() }/>
-		<input type="hidden" name="link" value={ a.GetLink() }/>
-		<button
-			class="btn btn-wide btn-outline"
-			hx-post={ "/share/article/" + a.GetID() }
-			hx-target={ partials.ModalContainerID.Target() }
-			hx-trigger="click consume"
-		>
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
-			</svg>
-			Share
-		</button>
-	</form>
+	<button
+		class="btn btn-wide btn-outline"
+		hx-post={ "/share/article/" + a.GetID() }
+		hx-target={ partials.ModalContainerID.Target() }
+		hx-trigger="click consume"
+		hx-vals={ templ.JSONString(map[string]any{
+				"item_id": a.GetID(),
+				"title": a.GetTitle(),
+				"link": a.GetLink(),
+			}) }
+		_="init if navigator.share then hide me"
+	>
+		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+		</svg>
+		Share
+	</button>
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
