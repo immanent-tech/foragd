@@ -152,6 +152,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
 				<script src={ filepath.Join("/content", scriptFile+"?v="+config.Version) } type="module"></script>
 			}
+			<script type="text/hyperscript" src="/content/scripts._hs"></script>
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
 			if config.CurrentEnvironment == config.EnvProduction {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>

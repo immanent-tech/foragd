@@ -1,0 +1,8 @@
+-- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+-- SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+def fetchAndProxy(remoteUrl, inputID, formID)
+  fetch remoteUrl as HTML
+  then set inputID's value to it
+  then send submit to formID
+end

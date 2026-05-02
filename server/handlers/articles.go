@@ -377,8 +377,10 @@ func HandleViewArticle() http.HandlerFunc {
 
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			// content, err := extractArticleFromURL(article.GetLink())
-			content, err := client.ExtractMainContent(req.Context(), article.GetLink())
+			// Get the full content.
+			data := validation.SanitizeString(req.FormValue("article-full-text"))
+			content, err := client.ExtractMainContent(req.Context(), article.GetLink(), []byte(data))
+			// Respond appropriately.
 			switch {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
+	"github.com/immanent-tech/foragd/reverseproxy"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -590,30 +591,45 @@ templ ArticleContent(article *models.Article) {
 							}
 							<div class="mt-8 flex flex-wrap justify-center gap-8 border-t border-neutral/25 p-4">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
-								<a
-									role="button"
-									class="btn btn-wide btn-primary"
-									hx-get={ "/view/article/" + article.GetID() }
-									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML transition:true"
-									hx-trigger="click consume"
-									hx-indicator="#content-loading"
-									hx-push-url="false"
-									hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}) }
-									_="on htmx:afterResponse[detail.failed] add @disabled to me"
-								>
-									if article.IsRemoteContent() {
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
-										</svg>
-										Show Feed Content
-									} else {
+								if !article.IsRemoteContent() {
+									{{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
+									<button
+										class="btn btn-wide btn-primary"
+										_={ `on click call fetchAndProxy('` + proxyURL + `',#article-full-text,#extract-article)` }
+									>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
 										</svg>
 										Get Remote Content
-									}
-								</a>
+									</button>
+									<form
+										id="extract-article"
+										hx-post={ "/view/article/" + article.GetID() }
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML transition:true"
+										hx-push-url="false"
+										hx-trigger="submit"
+										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
+									>
+										<input type="hidden" name="article-full-text" id="article-full-text"/>
+									</form>
+								} else {
+									<button
+										class="btn btn-wide btn-primary"
+										hx-get={ "/view/article/" + article.GetID() }
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML transition:true"
+										hx-trigger="click consume"
+										hx-indicator="#content-loading"
+										hx-push-url="false"
+										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: false}) }
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
+										</svg>
+										Show Feed Content
+									</button>
+								}
 								// View original article action.
 								<a
 									role="button"

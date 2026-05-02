@@ -20,8 +20,10 @@ import "hyperscript.org";
 // Relative time custom element.
 import "@github/relative-time-element";
 
-// custom element for youtube player.
+// Custom element for youtube player.
 import "./embed-youtube";
+
+// Masonry grid layout.
 
 import { GridRowsMasonry } from "grid-rows-masonry";
 
@@ -34,19 +36,20 @@ function initMasonry() {
     if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
   });
 
-  // Force layout recalc before Masonry checks computed style.
-  void grid.offsetHeight; // triggers reflow.
+  // // Tear down existing instance FIRST to stop its MutationObserver
+  // if (grid._masonryInstance) {
+  //   grid._masonryInstance.destroy();
+  //   grid._masonryInstance = null;
+  // }
 
-  const computed = window.getComputedStyle(grid);
-  if (computed.display !== "grid") {
-    requestAnimationFrame(initMasonry);
-    return;
-  }
+  // // Force layout recalc before Masonry checks computed style.
+  // void grid.offsetHeight; // triggers reflow.
 
-  // Store instance on the element so we can destroy/recreate on HTMX swaps.
-  if (grid._masonryInstance) {
-    grid._masonryInstance.destroy();
-  }
+  // const computed = window.getComputedStyle(grid);
+  // if (computed.display !== "grid") {
+  //   requestAnimationFrame(initMasonry);
+  //   return;
+  // }
 
   // Create instance.
   grid._masonryInstance = new GridRowsMasonry(grid);
@@ -56,20 +59,35 @@ htmx.onLoad(function (target) {
   initMasonry();
 });
 
+// htmx.on("htmx:beforeSwap", function (event) {
+//   if (event.detail.target?.id === "grid-objects") {
+//     const grid = document.getElementById("grid-objects");
+//     if (grid?._masonryInstance) {
+//       grid._masonryInstance.destroy();
+//       grid._masonryInstance = null;
+//     }
+//   }
+// });
+
 // After every HTMX settle into #grid-objects (infinite scroll, filter changes)
 htmx.on("htmx:afterSettle", function (event) {
-  if (event.detail.target?.id === "grid-objects") initMasonry();
+  // Remove any stray text/comment nodes that confuse the ResizeObserver
+  const grid = document.getElementById("grid-objects");
+  if (!grid) return;
+  Array.from(grid.childNodes).forEach((node) => {
+    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
+  });
+
+  //   if (event.detail.target?.id === "grid-objects") {
+  //     initMasonry();
+  //   }
 });
 
 // htmx.on("htmx:beforeHistorySave", function () {
 //   if (grid._masonryInstance) {
 //     grid._masonryInstance.destroy();
 //   }
-// });
-
-// // After every HTMX swap into #grid-objects (infinite scroll, filter changes)
-// document.addEventListener("htmx:afterSwap", (e) => {
-//   if (e.detail.target?.id === "grid-objects") initMasonry();
+//   initMasonry();
 // });
 
 // Make sure back button after logout does not show cached data.
