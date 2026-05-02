@@ -650,7 +650,7 @@ templ ArticleContent(article *models.Article) {
 									</button>
 								}
 								// View original article action.
-								<button
+								<a
 									role="button"
 									class="btn btn-wide btn-outline m-2"
 									href={ article.GetLink() }
@@ -662,7 +662,7 @@ templ ArticleContent(article *models.Article) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
 									</svg>
 									View Remote
-								</button>
+								</a>
 								@shareArticleButton(article)
 							</div>
 					}
