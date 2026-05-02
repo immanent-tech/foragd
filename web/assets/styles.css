@@ -198,103 +198,132 @@
   .in-flight-request .show-loading {
     @apply inline-flex;
   }
-}
 
-/* For formatting articles.  */
-@utility prose-article {
-  @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
+  .prose-article {
+    @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
 
-  /* Forced fixed width for pre and scrollable elements. */
-  pre {
-    overflow-x: auto;
-  }
-  .scrollable {
-    overflow-x: auto;
-  }
-  [style*="white-space-collapse"] {
-    white-space: normal !important;
-  }
+    /* Forced fixed width for pre and scrollable elements. */
+    pre {
+      overflow-x: auto;
+    }
+    .scrollable {
+      overflow-x: auto;
+    }
+    [style*="white-space-collapse"] {
+      white-space: normal !important;
+    }
 
-  /* Apply some useful CSS styling for video embeds */
-  iframe[src*="youtube.com"],
-  iframe[src*="youtu.be"],
-  iframe[src*="vimeo.com"],
-  iframe[allowfullscreen] {
-    @apply relative aspect-video h-auto max-w-full overflow-hidden p-8;
-  }
-}
+    /* Apply some useful CSS styling for video embeds */
+    iframe[src*="youtube.com"],
+    iframe[src*="youtu.be"],
+    iframe[src*="vimeo.com"],
+    iframe[allowfullscreen] {
+      @apply relative aspect-video h-auto max-w-full overflow-hidden p-8;
+    }
 
-@utility hide-media {
-  img {
-    @apply hidden;
-  }
-  figure {
-    @apply hidden;
-  }
-  video {
-    @apply hidden;
-  }
-}
+    /* Hide injected scripts/beacons that render as empty nodes */
+    script,
+    style,
+    link,
+    meta {
+      display: none !important;
+    }
 
-/* For formatting a short summary of article content. */
-@utility prose-summary {
-  @apply prose prose-sm line-clamp-3 hide-media dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
-}
-
-/* For formatting email newsletters. */
-@utility prose-email {
-  @apply prose-article overflow-x-hidden wrap-break-word;
-
-  :where(p) {
-    @apply prose mt-4 mb-6;
+    /* Strip any injected tracking pixels */
+    img[width="1"],
+    img[height="1"] {
+      display: none !important;
+    }
   }
 
-  :where(h1) {
-    @apply mt-4 text-2xl font-semibold tracking-tight text-balance capitalize;
+  .prose-email {
+    @apply overflow-x-hidden text-pretty wrap-break-word;
+
+    /* Bust all hardcoded widths on tables */
+    table,
+    td,
+    tr {
+      max-width: 100% !important;
+      width: auto !important;
+      display: block !important;
+      box-sizing: border-box;
+    }
+
+    /* Restore normal table rows where display:block breaks alignment */
+    tr {
+      display: flex !important;
+      flex-wrap: wrap;
+    }
+
+    /* Images: fluid, never overflow */
+    img {
+      max-width: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      display: block;
+      margin-inline: auto;
+      /* subtle depth per the skill */
+      outline: 1px solid oklch(0% 0 0 / 0.06);
+      border-radius: 0.375rem;
+    }
+
+    /* Captions under images */
+    td[align="center"] > p {
+      font-size: 0.8125rem;
+      opacity: 0.65;
+      margin-top: 0.375rem;
+      text-align: center;
+    }
+
+    /* Tighten paragraph spacing inside table cells */
+    td > p {
+      margin-block: 0.65em;
+      line-height: 1.65;
+    }
+
+    /* Lists */
+    ul {
+      padding-inline-start: 1.25rem;
+      margin-block: 0.75em;
+    }
+    li > p {
+      margin-block: 0.2em;
+    }
+
+    /* Header row: date + read online link */
+    tr#header td {
+      padding-block: 0 0.75rem;
+    }
+
+    /* Strip spacer rows (cells with only &nbsp;) */
+    td:empty,
+    td > *:only-child:empty {
+      display: none !important;
+    }
+
+    /* Paywall CTA block — give it some visual separation */
+    h2:has(+ p) {
+      margin-top: 1.5rem;
+    }
   }
 
-  :where(h2) {
-    @apply text-lg font-bold tracking-tight capitalize;
+  /* For formatting a short summary of article content. */
+  .prose-summary {
+    @apply prose prose-sm line-clamp-3 dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+    img,
+    figure,
+    video {
+      @apply hidden;
+    }
   }
 
-  :where(h3, h4, h5, h6) {
-    @apply text-lg font-medium capitalize;
-  }
-
-  :where(img) {
-    @apply h-auto w-auto max-w-full rounded-box;
-  }
-
-  :where(a) {
-    @apply link;
-  }
-
-  table {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  td {
-    width: auto !important;
-  }
-
-  img {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Kill the preheader overflow */
-  [style*="display:none"],
-  [style*="display: none"] {
-    display: none !important;
-  }
-}
-
-@utility forced-width {
-  :where(pre, code, table) {
-    @apply w-full sm:max-w-prose;
-  }
+  /* .forced-width {
+    pre,
+    code,
+    table {
+      @apply w-full sm:max-w-prose;
+    }
+  } */
 }
 
 @utility soft-gradient-top {
@@ -344,7 +373,7 @@
 @utility link {
   transition-property: scale, color;
   transition-duration: 150ms;
-  :active {
+  link:active {
     @apply scale-[0.96];
   }
 }

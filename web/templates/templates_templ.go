@@ -314,7 +314,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</title></head><body class=\"h-full bg-base-100\" hx-ext=\"preload,sse\" _=\"on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</title></head><body class=\"h-full bg-base-100\" hx-ext=\"preload,sse\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
