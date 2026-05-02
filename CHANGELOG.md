@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.124.0](https://github.com/immanent-tech/foragd/compare/v0.123.0...v0.124.0) (2026-05-02)
+
+
+### Features
+
+* **styles:** :sparkles: add a loading indicator hyperscript behaviour ([11e6940](https://github.com/immanent-tech/foragd/commit/11e6940a73d2923b5ce652b5fad3b281b49f0555))
+
+
+### Bug Fixes
+
+* **templates/articles:** :bug: fix article content buttons layout ([b0c9b0b](https://github.com/immanent-tech/foragd/commit/b0c9b0b1cc6c845e1b3054a844bca6a8baed42bc))
+
 ## [0.123.0](https://github.com/immanent-tech/foragd/compare/v0.122.0...v0.123.0) (2026-05-02)
 
 
