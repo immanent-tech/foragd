@@ -63,8 +63,12 @@
     :root {
       font-family: InterVariable, sans-serif;
       font-optical-sizing: auto;
-      -webkit-font-smoothing: antialiased;
     }
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   [data-loading] {
@@ -232,7 +236,7 @@
 
 /* For formatting email newsletters. */
 @utility prose-email {
-  @apply overflow-x-hidden wrap-break-word;
+  @apply prose-article overflow-x-hidden wrap-break-word;
 
   :where(p) {
     @apply prose mt-4 mb-6;
