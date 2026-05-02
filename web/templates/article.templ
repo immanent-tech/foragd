@@ -595,13 +595,23 @@ templ ArticleContent(article *models.Article) {
 								if !article.IsRemoteContent() {
 									{{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
 									<button
+										id="show-remote-content-button"
 										class="btn btn-wide btn-primary"
-										_={ `on click call fetchAndProxy('` + proxyURL + `',#article-full-text,#extract-article)` }
+										_={ `
+										install LoadingButton
+										on click call fetchAndProxy('` + proxyURL + `',#article-full-text,#extract-article)
+										` }
 									>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
-										</svg>
-										Get Remote Content
+										<span class="show-loading hidden">
+											<span class="loading loading-spinner loading-xs"></span>
+											Loading
+										</span>
+										<span class="hide-loading flex items-center">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+											</svg>
+											Get Remote Content
+										</span>
 									</button>
 									<form
 										id="extract-article"
@@ -617,19 +627,26 @@ templ ArticleContent(article *models.Article) {
 									</form>
 								} else {
 									<button
+										id="show-feed-content-button"
 										class="btn btn-wide btn-primary"
 										hx-get={ "/view/article/" + article.GetID() }
 										hx-target={ ContentID.Target() }
 										hx-swap="innerHTML transition:true"
 										hx-trigger="click consume"
-										hx-indicator="#content-loading"
 										hx-push-url="false"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: false}) }
+										_="install LoadingButton"
 									>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
-										</svg>
-										Show Feed Content
+										<span class="show-loading hidden">
+											<span class="loading loading-spinner loading-xs"></span>
+											Loading
+										</span>
+										<span class="hide-loading flex items-center">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
+											</svg>
+											Show Feed Content
+										</span>
 									</button>
 								}
 								// View original article action.
@@ -651,7 +668,6 @@ templ ArticleContent(article *models.Article) {
 					}
 				</article>
 				<div class="p-4">
-					@partials.LoadingIndicator("")
 					@partials.ButtonBackToTop()
 					// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 					// read and mark it so (when the user has set this option).
