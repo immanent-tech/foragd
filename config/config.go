@@ -59,7 +59,14 @@ var CurrentEnvironment = EnvDevelopment
 
 // Init ensures the application will have appropriate Version and Envrionment vars set.
 var Init = sync.OnceValue(func() error {
-	// Set the version. This *must* be set to a valid value.
+	// Set the environment.
+	CurrentEnvironment = Environment(os.Getenv("FORAGD_ENVIRONMENT"))
+
+	// Set the version from the environment.
+	if version := os.Getenv("FORAGD_VERSION"); version != "" {
+		Version = version
+	}
+	// Set the version using build info.
 	if Version == "_UNKNOWN_" {
 		var vcsRevision string
 		// var vcsTime string
@@ -85,12 +92,11 @@ var Init = sync.OnceValue(func() error {
 			}
 		}
 	}
+	// If the version is unset, bail.
 	if Version == "_UNKNOWN_" {
 		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
 	}
 
-	// Set the environment.
-	CurrentEnvironment = Environment(os.Getenv("FORAGD_ENVIRONMENT"))
 	return nil
 })
 
