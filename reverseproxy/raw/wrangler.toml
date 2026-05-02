@@ -25,3 +25,6 @@ invocation_logs = true
 [observability.traces]
 enabled = true
 head_sampling_rate = 0.01
+
+[vars]
+VERSION = "v0.122.0"

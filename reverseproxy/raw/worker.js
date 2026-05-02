@@ -30,6 +30,8 @@ export default {
         return new Response("Method not allowed", { status: 405 });
       }
 
+      const version = process.env.VERSION ?? "dev";
+
       const url = new URL(request.url);
 
       // Extract query parameters
@@ -161,33 +163,49 @@ export default {
         }
       }
 
+      const userAgent =
+        request.headers.get("User-Agent") ||
+        "Foragd/" + version + " (+https://foragd.app/policies/bot)";
+      const referer = request.headers.get("Referer") || "";
+
       // Proxy the request
       console.log(
         JSON.stringify({
           message: "proxying request for: " + targetUrl,
           method: request.method,
           url: targetUrl,
+          "user-agent": userAgent,
+          referer: referer,
         }),
       );
 
       const proxyResponse = await fetch(targetUrl, {
         method: request.method,
         headers: {
-          "User-Agent": "Foragd (+https://foragd.app/policies/bot)",
+          "User-Agent": userAgent,
           Accept: request.headers.get("Accept") || "*/*",
           "Accept-Encoding":
             request.headers.get("Accept-Encoding") || "gzip, deflate",
+          "Accept-Language":
+            request.headers.get("Accept-Language") || "en-US,en;q=0.9",
+          Referer: referer,
         },
         redirect: "follow",
       });
 
+      console.log(
+        JSON.stringify({
+          message: "received response from: " + targetUrl,
+          status: proxyResponse.status,
+          statusText: proxyResponse.statusText,
+        }),
+      );
+
       // Create response with appropriate headers
       const responseHeaders = new Headers(proxyResponse.headers);
-
       // Add CORS headers if needed
       responseHeaders.set("Access-Control-Allow-Origin", "*");
       responseHeaders.set("X-Proxied-By", "Cloudflare-Worker");
-
       // Remove headers that shouldn't be proxied
       responseHeaders.delete("set-cookie");
       responseHeaders.delete("Set-Cookie");
@@ -200,8 +218,8 @@ export default {
     } catch (error) {
       console.error(
         JSON.stringify({
-          message: "proxy error",
-          error: error,
+          message: "response failed",
+          error: error.message,
         }),
       );
       return new Response(JSON.stringify({ error: "Internal server error" }), {
