@@ -163,7 +163,7 @@ func (job *ScheduledJob) Trigger() quartz.Trigger {
 		}
 		return quartz.NewRunOnceTrigger(body.Delay)
 	}
-	return newPollTrigger(defaultPollInterval, defaultPollJitter)
+	return nil
 }
 
 // NextRunTime returns the next scheduled run time for the job.

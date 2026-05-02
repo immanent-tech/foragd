@@ -158,8 +158,7 @@ func RunStartupTasks(ctx context.Context) error {
 		}
 		_, err = Manager.GetScheduledJob(getNewFeedsJob.JobDetail().JobKey())
 		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-			err = Manager.ScheduleJob(getNewFeedsJob.JobDetail(), getNewFeedsJob.Trigger())
-			if err != nil {
+			if err = Manager.ScheduleJob(getNewFeedsJob.JobDetail(), getNewFeedsJob.Trigger()); err != nil {
 				return fmt.Errorf("check get new feeds job: %w", err)
 			}
 		}
@@ -174,8 +173,7 @@ func RunStartupTasks(ctx context.Context) error {
 		}
 		_, err = Manager.GetScheduledJob(clearDeletedFeedsJob.JobDetail().JobKey())
 		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-			err = Manager.ScheduleJob(clearDeletedFeedsJob.JobDetail(), clearDeletedFeedsJob.Trigger())
-			if err != nil {
+			if err = Manager.ScheduleJob(clearDeletedFeedsJob.JobDetail(), clearDeletedFeedsJob.Trigger()); err != nil {
 				return fmt.Errorf("check clear deleted feeds job: %w", err)
 			}
 		}
@@ -194,8 +192,10 @@ func RunStartupTasks(ctx context.Context) error {
 		}
 		_, err = Manager.GetScheduledJob(clearExpiredSessionsJob.JobDetail().JobKey())
 		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-			err = Manager.ScheduleJob(clearExpiredSessionsJob.JobDetail(), clearExpiredSessionsJob.Trigger())
-			if err != nil {
+			if err = Manager.ScheduleJob(
+				clearExpiredSessionsJob.JobDetail(),
+				clearExpiredSessionsJob.Trigger(),
+			); err != nil {
 				return fmt.Errorf("check get new feeds job: %w", err)
 			}
 		}

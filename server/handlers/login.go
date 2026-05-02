@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
 	"net/http"
 	"net/url"
 	"time"
@@ -312,7 +311,7 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 	} else {
 		// Create a new job, scheduled to run in ~2 days, that checks if the user has logged in yet, and sends them a
 		// ping email if they haven't.
-		for tip := range maps.Keys(jobs.UserTipsJobs) {
+		for tip := range jobs.UserTipsJobs {
 			job, err := jobs.NewUserTipsJob(user.GetID(), tip)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Could not create user tips job.",
