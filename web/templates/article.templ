@@ -603,7 +603,7 @@ templ ArticleContent(article *models.Article) {
 										` }
 									>
 										<span class="show-loading hidden">
-											<span class="loading loading-spinner loading-xs"></span>
+											<span class="loading loading-spinner"></span>
 											Loading
 										</span>
 										<span class="hide-loading flex items-center">
@@ -622,6 +622,7 @@ templ ArticleContent(article *models.Article) {
 										hx-trigger="submit"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
 										class="invisible"
+										_="on htmx:afterRequest(failed) add @disabled to #show-remote-content-button"
 									>
 										<input type="hidden" name="article-full-text" id="article-full-text"/>
 									</form>

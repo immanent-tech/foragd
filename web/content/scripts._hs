@@ -3,8 +3,14 @@
 
 def fetchAndProxy(remoteUrl, inputID, formID)
   fetch remoteUrl as HTML
-  then set inputID's value to it
-  then send submit to formID
+  if the fetch's status >= 200 and the fetch's status < 300
+    set inputID's value to the result
+    send submit to formID
+  else
+    log "fetchAndProxy failed with status: " + the fetch's status
+    set inputID's value to ''
+    send submit to formID
+  end
 end
 
 def loadingButton
