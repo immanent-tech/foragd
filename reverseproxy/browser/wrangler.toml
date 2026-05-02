@@ -1,0 +1,32 @@
+name = "page-extractor"
+main = "worker.js"
+compatibility_date = "2026-02-18"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+preview_urls = true
+
+[[routes]]
+pattern = "page-extractor.foragd.app"
+zone_name = "foragd.app"
+custom_domain = true
+
+[placement]
+mode = "smart"
+
+[browser]
+binding = "BROWSER"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.01
+
+[vars]
+VERSION = "v0.122.0"
