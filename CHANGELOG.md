@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.125.1](https://github.com/immanent-tech/foragd/compare/v0.125.0...v0.125.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **scripts:** :bug: add a client-side event to catch unauthorized htmx requests and redirect to login ([f3f1817](https://github.com/immanent-tech/foragd/commit/f3f18177603b9ad55849cae256064c840226c6d8))
+* **scripts:** :bug: adjust steps for resetting masonry grid after htmx swaps ([8c1232b](https://github.com/immanent-tech/foragd/commit/8c1232b85c27f74913fbd6f2296b61f71a29d57d))
+* **templates/articles:** :bug: fix fetching of full article content from remote with hyperscript ([abdd4c6](https://github.com/immanent-tech/foragd/commit/abdd4c6297ac641fdce3e5db559881e1cb53f5c7))
+* **templates/articles:** :bug: fix layout of byline and actions on article content pages ([120191b](https://github.com/immanent-tech/foragd/commit/120191bc69c3d0ca500a158c773963e89adcc58d))
+
 ## [0.125.0](https://github.com/immanent-tech/foragd/compare/v0.124.1...v0.125.0) (2026-05-03)
 
 
