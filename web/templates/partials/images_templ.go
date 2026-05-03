@@ -50,7 +50,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		}
 		ctx = templ.ClearChildren(ctx)
 		elem := &ProxiedImage{Properties: element.NewProperties(options...)}
-		if !elem.HasAttribute("loading") {
+		if !elem.HasAttribute("loading") && !elem.HasAttribute("fetchpriority") {
 			elem.SetAttribute("loading", "lazy")
 		}
 		if !elem.HasAttribute("decoding") {

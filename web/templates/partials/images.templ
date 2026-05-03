@@ -22,7 +22,7 @@ type ProxiedImage struct {
 templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.PropertiesOption) {
 	{{ elem := &ProxiedImage{Properties: element.NewProperties(options...)} }}
 	// Set some reasonable defaults for important attributes.
-	if !elem.HasAttribute("loading") {
+	if !elem.HasAttribute("loading") && !elem.HasAttribute("fetchpriority") {
 		{{ elem.SetAttribute("loading", "lazy") }}
 	}
 	if !elem.HasAttribute("decoding") {
