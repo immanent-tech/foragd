@@ -67,8 +67,8 @@ jobs:
       - name: Build frontend files
         run: |
           npm install
-          npm run build:js
-          npm run build:css
+          npm run build:prod
+          npm version patch
       - name: Initialize CodeQL
         uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v3.29.5
         with:
