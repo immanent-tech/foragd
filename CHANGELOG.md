@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.125.0](https://github.com/immanent-tech/foragd/compare/v0.124.1...v0.125.0) (2026-05-03)
+
+
+### Features
+
+* **reverseproxy:** :sparkles: add an experimental worker using the cloudflare browser API ([f7e56b4](https://github.com/immanent-tech/foragd/commit/f7e56b42b963ff07767ca02514d0960b7d0d1178))
+
+
+### Bug Fixes
+
+* :bug: improved get article remote content handling ([f56a822](https://github.com/immanent-tech/foragd/commit/f56a8220f3f66e49a6809b287de046be88526314))
+* **middlewares:** :bug: redirect htmx requests where auth has expired appropriately ([10e6124](https://github.com/immanent-tech/foragd/commit/10e61244300933c79de3f94ffa0f9766fb89973e))
+* **templates/articles:** :bug: fix view remote article button ([0aa036b](https://github.com/immanent-tech/foragd/commit/0aa036bb5d5ac6a7fff0f680b795ca829acdfa08))
+* **templates/articles:** :lipstick: make sure actions are right-aligned ([d1b3ec3](https://github.com/immanent-tech/foragd/commit/d1b3ec39cfa3a0f7315b48768253ca01318d5573))
+* **templates/partials:** :bug: don't set loading="lazy" if fetchpriority="high" on proxied images ([d08c727](https://github.com/immanent-tech/foragd/commit/d08c7271cf3f14c3481b7826bc7c291bc86b0899))
+
+
+### Performance Improvements
+
+* **templates/articles:** :zap: set an appropriate loading attribute based on the image index ([87d72bb](https://github.com/immanent-tech/foragd/commit/87d72bb57677408a4294059e0fcf0865432e4b25))
+
 ## [0.124.1](https://github.com/immanent-tech/foragd/compare/v0.124.0...v0.124.1) (2026-05-02)
 
 
