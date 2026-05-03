@@ -34,7 +34,7 @@ COPY . .
 # install and build/bundle frontend assets
 RUN <<EOF
 npm install && \
-    npm run build:production && \
+    npm run build:prod && \
     npm version patch
 EOF
 
