@@ -5,14 +5,19 @@
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "type": "module",
+  "source": [
+    "web/assets/scripts.js",
+    "web/assets/styles.css"
+  ],
+  "targets": {
+    "default": {
+      "distDir": "web/content"
+    }
+  },
   "scripts": {
-    "build:js": "esbuild --bundle --minify ./web/assets/scripts.js --outdir=./web/content/ --format=esm --entry-names=[name]-[hash]",
-    "build:js:dev": "esbuild --bundle --sourcemap ./web/assets/scripts.js --outdir=./web/content/ --format=esm",
-    "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify",
-    "build:css:dev": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --map",
-    "postinstall": "cd email && npm install",
-    "email:serve": "cd email && npx maizzle serve",
-    "email:build": "cd email && npx maizzle build production"
+    "build:prod": "parcel build --no-source-maps",
+    "build:dev": "parcel build --no-optimize",
+    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
   },
   "dependencies": {
     "@github/relative-time-element": "^5.0.0",
@@ -36,6 +41,7 @@
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.2.4",
+    "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "esbuild": "^0.28.0",
     "eslint": "^10.3.0",
@@ -43,11 +49,16 @@
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
     "hono": "^4.12.16",
+    "parcel": "^2.16.4",
+    "postcss": "^8.5.13",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
     "release-please": "^17.6.0",
     "wrangler": "^4.87.0"
+  },
+  "@parcel/resolver-default": {
+    "packageExports": true
   }
 }

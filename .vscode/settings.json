@@ -99,7 +99,9 @@
     "pkg/text",
     "extractor",
     "blog",
-    "templates/element"
+    "templates/element",
+    "handlers/home",
+    "handlers/articles"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
