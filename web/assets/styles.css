@@ -192,11 +192,22 @@
     @apply visible opacity-100 transition-opacity duration-200 ease-in;
   }
 
-  .in-flight-request .hide-loading {
+  /* Default: hide the loading span */
+  .show-loading {
     @apply hidden;
   }
+  /* While in-flight: show it */
   .in-flight-request .show-loading {
     @apply inline-flex;
+  }
+
+  /* Default: show the content span */
+  .hide-loading {
+    @apply inline-flex items-center; /* or flex */
+  }
+  /* While in-flight: hide it */
+  .in-flight-request .hide-loading {
+    @apply hidden;
   }
 
   .prose-article {
