@@ -37,15 +37,14 @@ htmx.onLoad(function (target) {
 
 // After every HTMX settle into #grid-objects (infinite scroll, filter changes)
 htmx.on("htmx:afterSwap", function (event) {
-  // Remove any stray text/comment nodes that confuse the ResizeObserver
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
-  Array.from(grid.childNodes).forEach((node) => {
-    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
-  });
   if (grid._masonryInstance) {
     grid._masonryInstance.destroy();
   }
+  Array.from(grid.childNodes).forEach((node) => {
+    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
+  });
   initMasonry();
 });
 
