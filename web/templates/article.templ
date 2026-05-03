@@ -419,7 +419,7 @@ templ ArticleContent(article *models.Article) {
 							}
 						}
 						// Actions.
-						<div class="flex shrink-0 items-center justify-end">
+						<div class="flex shrink-0 items-center ml-auto">
 							<button class="btn btn-square p-2 btn-ghost">
 								<label class="swap" _="on click halt the event's bubbling">
 									<input
@@ -608,10 +608,18 @@ templ ArticleContent(article *models.Article) {
 									<button
 										id="show-remote-content-button"
 										class="btn btn-wide btn-primary"
-										_={ `
+										data-url={ proxyURL }
+										_="
 										install LoadingButton
-										on click call fetchAndProxy('` + proxyURL + `',#article-full-text,#extract-article)
-										` }
+										on click
+											fetch me.dataset.url
+											put the result into #article-full-text's value then send submit to #extract-article
+											catch e
+  											  log 'fetchAndProxy failed with status: ' + e.status
+  											  set #article-full-text's value to ''
+  											  send submit to #extract-article
+											end
+										"
 									>
 										<span class="show-loading hidden">
 											<span class="loading loading-spinner"></span>
