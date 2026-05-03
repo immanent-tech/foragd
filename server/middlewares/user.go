@@ -32,6 +32,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 		if !auth0.IsAuthenticated(req) {
 			slogctx.FromCtx(req.Context()).Warn("Unauthenticated; redirecting to login.")
 			auth0.PutReturnTo(req, req.URL.RequestURI())
+			if htmx.IsHTMX(req) {
+				res.Header().Add(htmx.HeaderRedirect, "/login")
+				res.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 			http.Redirect(res, req, "/login", http.StatusFound)
 			return
 		}
@@ -44,6 +49,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 				)
 				auth0.ClearAuth(req)
 				auth0.PutReturnTo(req, req.URL.RequestURI())
+				if htmx.IsHTMX(req) {
+					res.Header().Add(htmx.HeaderRedirect, "/login")
+					res.WriteHeader(http.StatusUnauthorized)
+					return
+				}
 				http.Redirect(res, req, "/login", http.StatusFound)
 				return
 			}
@@ -56,6 +66,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 				)
 				auth0.ClearAuth(req)
 				auth0.PutReturnTo(req, req.URL.RequestURI())
+				if htmx.IsHTMX(req) {
+					res.Header().Add(htmx.HeaderRedirect, "/login")
+					res.WriteHeader(http.StatusUnauthorized)
+					return
+				}
 				http.Redirect(res, req, "/login", http.StatusFound)
 				return
 			}
@@ -72,6 +87,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			)
 			auth0.ClearAuth(req)
 			auth0.PutReturnTo(req, req.URL.RequestURI())
+			if htmx.IsHTMX(req) {
+				res.Header().Add(htmx.HeaderRedirect, "/login")
+				res.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 			http.Redirect(res, req, "/login", http.StatusFound)
 			return
 		}
