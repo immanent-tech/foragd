@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.125.2](https://github.com/immanent-tech/foragd/compare/v0.125.1...v0.125.2) (2026-05-03)
+
+
+### Bug Fixes
+
+* **templates/articles:** :lipstick: fix reading time placement ([8ba7d69](https://github.com/immanent-tech/foragd/commit/8ba7d694b1beb934ed00944cf66238a5511cfc3d))
+
 ## [0.125.1](https://github.com/immanent-tech/foragd/compare/v0.125.0...v0.125.1) (2026-05-03)
 
 
