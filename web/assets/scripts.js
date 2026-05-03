@@ -5,8 +5,6 @@
 import htmx from "htmx.org/dist/htmx.esm";
 window.htmx = htmx;
 
-import "htmx-ext-sse";
-
 // hyperscript
 import "hyperscript.org";
 
