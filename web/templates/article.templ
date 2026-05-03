@@ -42,10 +42,21 @@ templ ArticleCard(idx int, article *models.Article) {
 					{{ img.Title = new(article.GetTitle()) }}
 				}
 				<figure class="relative overflow-hidden rounded-t-[inherit]">
+					{{
+						var loadingAttrKey, loadingAttrValue string
+						if idx <= 3 {
+							loadingAttrKey = "fetchpriority"
+							loadingAttrValue = "high"
+						} else {
+							loadingAttrKey = "loading"
+							loadingAttrValue = "lazy"
+						}
+					}}
 					//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 					@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 						element.WithAttribute("width", "400"),
 						element.WithAttribute("height", "300"),
+						element.WithAttribute(loadingAttrKey, loadingAttrValue),
 						element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 					)
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
