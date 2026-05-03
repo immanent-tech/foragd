@@ -402,24 +402,33 @@ templ ArticleContent(article *models.Article) {
 						}
 					</div>
 					// Byline and actions.
-					<div class="flex items-center justify-between p-1">
-						// Author.
-						if article.SourceType != models.SourceTypeEmail {
-							// Show authors if found.
-							if len(article.GetAuthors()) > 0 {
-								{{
-									authors := make([]string, 0)
-									for author := range slices.Values(article.GetAuthors()) {
-										authors = append(authors, author.String())
-									}
-								}}
-								<strong class="truncate text-sm/6">
-									{ strings.Join(authors,",") }
-								</strong>
+					<div class="grid grid-cols-2 items-center justify-between p-1 border-b border-neutral/25">
+						<div class="flex items-center">
+							if article.SourceType != models.SourceTypeEmail {
+								// Show authors if found.
+								if len(article.GetAuthors()) > 0 {
+									{{
+										authors := make([]string, 0)
+										for author := range slices.Values(article.GetAuthors()) {
+											authors = append(authors, author.String())
+										}
+									}}
+									<strong class="truncate text-sm/6">
+										{ strings.Join(authors,",") }
+									</strong>
+									<span class="flex-none px-2">·</span>
+								}
 							}
-						}
+							// Show reading time if content length is greater than around two paragraphs of text...
+							if text.CountWords(article.GetContent()) > 160 {
+								<span class="text-sm/6 text-neutral">
+									Reading time:
+									{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
+								</span>
+							}
+						</div>
 						// Actions.
-						<div class="flex shrink-0 items-center ml-auto">
+						<div class="flex shrink-0 items-center ml-auto col-start-2">
 							<button class="btn btn-square p-2 btn-ghost">
 								<label class="swap" _="on click halt the event's bubbling">
 									<input
@@ -538,15 +547,6 @@ templ ArticleContent(article *models.Article) {
 								</el-menu>
 							</el-dropdown>
 						</div>
-					</div>
-					// Show reading time if content length is greater than around two paragraphs of text...
-					<div class="flex items-center border-b border-neutral/25 p-1 mb-4">
-						if text.CountWords(article.GetContent()) > 160 {
-							<span class="text-sm/6 text-neutral">
-								Reading time:
-								{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
-							</span>
-						}
 					</div>
 					// Content.
 					switch  {
