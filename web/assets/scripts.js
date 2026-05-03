@@ -58,3 +58,10 @@ window.addEventListener("pageshow", (event) => {
     location.reload();
   }
 });
+
+// Redirect to login if server returns a 401 (unauthorized).
+document.body.addEventListener("htmx:responseError", function (evt) {
+  if (evt.detail.xhr.status === 401) {
+    window.location.href = "/login";
+  }
+});
