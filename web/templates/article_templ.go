@@ -1091,7 +1091,7 @@ func ArticleContent(article *models.Article) templ.Component {
 							}
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "<div class=\"flex shrink-0 items-center\"><button class=\"btn btn-square p-2 btn-ghost\"><label class=\"swap\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "<div class=\"flex shrink-0 items-center justify-end\"><button class=\"btn btn-square p-2 btn-ghost\"><label class=\"swap\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
