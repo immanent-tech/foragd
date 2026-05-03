@@ -416,15 +416,7 @@ templ ArticleContent(article *models.Article) {
 									<strong class="truncate text-sm/6">
 										{ strings.Join(authors,",") }
 									</strong>
-									<span class="flex-none px-2">·</span>
 								}
-							}
-							// Show reading time if content length is greater than around two paragraphs of text...
-							if text.CountWords(article.GetContent()) > 160 {
-								<span class="text-sm/6 text-neutral">
-									Reading time:
-									{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
-								</span>
 							}
 						</div>
 						// Actions.
@@ -548,6 +540,15 @@ templ ArticleContent(article *models.Article) {
 							</el-dropdown>
 						</div>
 					</div>
+					// Show reading time if content length is greater than around two paragraphs of text...
+					if text.CountWords(article.GetContent()) > 160 {
+						<div class="flex flex-1 ml-auto justify-end p-1">
+							<span class="text-sm/6 text-neutral">
+								Reading time:
+								{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
+							</span>
+						</div>
+					}
 					// Content.
 					switch  {
 						case article.SourceType == models.SourceTypeEmail:
