@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.126.0](https://github.com/immanent-tech/foragd/compare/v0.125.2...v0.126.0) (2026-05-04)
+
+
+### Features
+
+* :recycle: issue reporting now done through email ([2cabf12](https://github.com/immanent-tech/foragd/commit/2cabf12efc77fdb4a5dce1ba35e87496bfb90ada))
+
+
+### Bug Fixes
+
+* **templates/articles:** :lipstick: fix loading indicator on buttons on article content pages ([c302dab](https://github.com/immanent-tech/foragd/commit/c302dab80f7dbb3504cab03262b110e78aea82ca))
+
 ## [0.125.2](https://github.com/immanent-tech/foragd/compare/v0.125.1...v0.125.2) (2026-05-03)
 
 
