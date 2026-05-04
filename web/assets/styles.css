@@ -184,7 +184,7 @@
   }
 
   .htmx-indicator {
-    @apply invisible opacity-0;
+    @apply hidden opacity-0;
   }
 
   .htmx-request .htmx-indicator,
@@ -200,13 +200,20 @@
   .in-flight-request .show-loading {
     @apply inline-flex;
   }
+  .htmx-request .show-loading {
+    @apply inline-flex;
+  }
 
   /* Default: show the content span */
   .hide-loading {
-    @apply inline-flex items-center; /* or flex */
+    @apply inline-flex;
   }
   /* While in-flight: hide it */
   .in-flight-request .hide-loading {
+    @apply hidden;
+  }
+  /* While in-flight: hide it */
+  .htmx-request .hide-loading {
     @apply hidden;
   }
 
