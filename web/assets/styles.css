@@ -333,14 +333,6 @@
       @apply hidden;
     }
   }
-
-  /* .forced-width {
-    pre,
-    code,
-    table {
-      @apply w-full sm:max-w-prose;
-    }
-  } */
 }
 
 @utility soft-gradient-top {
