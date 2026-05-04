@@ -470,3 +470,46 @@ components:
           $ref: '#/components/schemas/AddSubscriptionFeedSuggestions'
         youtube_suggestions:
           $ref: '#/components/schemas/AddSubscriptionYoutubeSuggestions'
+    ReportIssueRequest:
+      description: >
+        contains details about an issue with the service.
+      type: object
+      required:
+        - user_email
+        - page_url
+      properties:
+        user_email:
+          description: >
+            is the email address the user has entered for getting in touch about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'user_email'
+            validate: 'required,email'
+        page_url:
+          description: >
+            is the URL of the page on which the user selected the report issue action.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'page_url'
+            validate: 'required,url'
+        screenshot_url:
+          description: >
+            is a URL to a screenshot the user has uploaded that is related to or showing the problem.
+          type: string
+          x-go-name: ScreenshotURL
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            validate: 'omitempty,url'
+        details:
+          description: >
+            is the user-submitted text about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'details'
+        object_id:
+          description: >
+            is the object id (i.e., subscription/article id).
+          type: string
+          x-go-name: ObjectID
+          x-oapi-codegen-extra-tags:
+            form: 'object_id'

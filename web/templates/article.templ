@@ -305,8 +305,11 @@ templ ArticleCard(idx int, article *models.Article) {
 										<a
 											role="menuitem"
 											tabindex="-1"
-											hx-get={ "/issue/article/" + article.GetID() }
+											hx-get="/issue"
 											hx-target={ ContentID.Target() }
+											hx-vals={ templ.JSONString(map[string]any{
+												"object_id": article.GetID(),
+											}) }
 											hx-replace-url="true"
 											hx-trigger="click consume"
 										>

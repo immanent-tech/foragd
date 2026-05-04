@@ -940,51 +940,6 @@ type RemoveSubscriptionRequest struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
-// ReportIssueRequest contains details about an issue with the service.
-type ReportIssueRequest struct {
-	// Details is the user-submitted text about the issue.
-	Details *string `form:"details" json:"details,omitempty"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url" validate:"required,url"`
-
-	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
-	ScreenshotURL *string `form:"-" json:"screenshot_url,omitempty" validate:"omitempty,url"`
-
-	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
-}
-
-// ReportObjectIssueRequest defines model for ReportObjectIssueRequest.
-type ReportObjectIssueRequest struct {
-	// Details is the user-submitted text about the issue.
-	Details *string `form:"details" json:"details,omitempty"`
-
-	// Duplicate indicates that the object has a duplicate.
-	Duplicate bool `form:"duplicate" json:"duplicate"`
-
-	// ObjectID represents an ID of any user-facing object.
-	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
-
-	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-	MangledContent bool `form:"mangled_content" json:"mangled_content"`
-
-	// MissingImage indicates the object is expected to have an image, but it is missing.
-	MissingImage bool `form:"missing_image" json:"missing_image"`
-
-	// Object represents the type of any user-facing object.
-	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url" validate:"required,url"`
-
-	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
-	ScreenshotURL *string `form:"-" json:"screenshot_url,omitempty" validate:"omitempty,url"`
-
-	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
-}
-
 // SearchSubscription is a custom subscription created from a search request.
 type SearchSubscription struct {
 	// Search represents a search request by the user.

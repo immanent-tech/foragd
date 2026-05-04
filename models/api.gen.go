@@ -273,6 +273,24 @@ type ListSubscriptionsResponse struct {
 	Subscriptions Subscriptions `json:"subscriptions"`
 }
 
+// ReportIssueRequest contains details about an issue with the service.
+type ReportIssueRequest struct {
+	// Details is the user-submitted text about the issue.
+	Details *string `form:"details" json:"details,omitempty"`
+
+	// ObjectID is the object id (i.e., subscription/article id).
+	ObjectID *string `form:"object_id" json:"object_id,omitempty"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url" validate:"required,url"`
+
+	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
+	ScreenshotURL *string `form:"-" json:"screenshot_url,omitempty" validate:"omitempty,url"`
+
+	// UserEmail is the email address the user has entered for getting in touch about the issue.
+	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
+}
+
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// Authors a list of search terms for authors.

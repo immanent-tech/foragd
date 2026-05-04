@@ -82,10 +82,14 @@ func generateSubscriptionEditAttributes(s *models.Subscription) templ.Attributes
 // ReportIssueAttributes generates a templ.Attributes object containing directives for reporting an issue with the subscription.
 func generateSubscriptionReportIssueAttributes(s *models.Subscription) templ.Attributes {
 	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/issue/subscription/" + s.GetID()
+	attrs["hx-get"] = "/issue"
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-replace-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
+	vals, _ := templ.JSONString(map[string]any{
+		"object_id": s.GetID(),
+	})
+	attrs["hx-vals"] = vals
 	return attrs
 }
 

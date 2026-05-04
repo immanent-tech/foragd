@@ -209,9 +209,6 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).
 				Post("/subscription/suggestions", handlers.GetSubscriptionActionSuggestions())
 		})
-		// Issues.
-		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
-		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Get("/", handlers.HandleListSubscriptions())
@@ -272,8 +269,8 @@ func Start(logger *slog.Logger) error {
 		r.Post("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		// General.
-		r.With(middlewares.RequireHTMX).Get("/issue", handlers.HandleReportPageIssue())
-		r.With(middlewares.RequireHTMX).Post("/issue", handlers.HandleSubmitPageIssue())
+		r.Get("/issue", handlers.HandleReportIssue())
+		r.With(middlewares.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())
 		// Favorite specific.
 		r.Route("/list/favorites", func(r chi.Router) {
 			r.Get("/", handlers.HandleListFavorites())

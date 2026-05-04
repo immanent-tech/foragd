@@ -9,16 +9,17 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/github"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -43,8 +44,8 @@ func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 	templ.Handler(templates.UpdateTitle("Report Page Issue")).ServeHTTP(res, req)
 }
 
-// HandleReportPageIssue handles presenting a form for the user to submit issues about the app.
-func HandleReportPageIssue() http.HandlerFunc {
+// HandleReportIssue handles presenting a form for the user to submit issues about the app.
+func HandleReportIssue() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -63,17 +64,20 @@ func HandleReportPageIssue() http.HandlerFunc {
 		if !found {
 			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
+
+		objectID := req.FormValue("object_id")
+
 		// Display the report issue form.
 		RenderInternalPage(&PageIssue{
 			template: templates.ReportPageIssue(
-				&models.ReportIssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail()},
+				&models.ReportIssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail(), ObjectID: &objectID},
 			),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
-// HandleSubmitPageIssue handles processing the user submitted subscription issues form.
-func HandleSubmitPageIssue() http.HandlerFunc {
+// HandleSubmitIssue handles processing the user submitted subscription issues form.
+func HandleSubmitIssue() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
@@ -83,96 +87,9 @@ func HandleSubmitPageIssue() http.HandlerFunc {
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
 			}).ServeHTTP(res, req)
+			return
 		}
 
-		// Process any uploaded screenshot.
-		screenshotURL, err := processScreenshots(req)
-		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: err,
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
-		}
-		if screenshotURL != "" {
-			request.ScreenshotURL = &screenshotURL
-		}
-
-		// Create the issue in Github.
-		err = github.Connect(req.Context())
-		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to connect to github: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
-		}
-		err = github.CreateIssue(req.Context(), request)
-		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("create github issue: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
-		}
-
-		// Show notification of issue reported.
-		RenderPartial(&Notification{
-			msg: models.NewInfoMessage(
-				"Thanks for reporting the issue!",
-				"We will look into it and implement fixes as appropriate.",
-			),
-		}).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
-type ObjectIssue struct {
-	template templ.Component
-}
-
-// FullResponse renders a full page (headers, footers and content).
-func (t *ObjectIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(t.template,
-			templates.WithPageTitle("Report An Issue"),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
-func (t *ObjectIssue) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Report An Issue")).ServeHTTP(res, req)
-}
-
-// HandleReportObjectIssue presents a form for entering issues about a particular object (subscription/article).
-func HandleReportObjectIssue() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Extract request parameters.
-		params := &models.ObjectParams{
-			ObjectID: chi.URLParam(req, models.ParamObjectID),
-			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
-		}
-		if err := params.Valid(); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode object: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to generate issues form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
-		}
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -184,37 +101,7 @@ func HandleReportObjectIssue() http.HandlerFunc {
 					"There was a problem with the request. Please try again.",
 				),
 			}).ServeHTTP(res, req)
-		}
-
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
-		}
-
-		RenderInternalPage(&ObjectIssue{
-			template: templates.ReportObjectIssues(
-				string(params.Object),
-				params.ObjectID,
-				models.NewObjectIssue(params, user.GetEmail(), currentURL),
-			),
-		}).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
-// HandleSubmitObjectIssue handles processing the issue form and creating a github issue with the details.
-func HandleSubmitObjectIssue() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Extract the issue request details.
-		request, valid, err := forms.DecodeMultiPartForm[*models.ReportObjectIssueRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode object: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to generate issues form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Process any uploaded screenshot.
@@ -228,13 +115,47 @@ func HandleSubmitObjectIssue() http.HandlerFunc {
 					"This might be a temporary issue, please try again.",
 				),
 			}).ServeHTTP(res, req)
+			return
 		}
 		if screenshotURL != "" {
 			request.ScreenshotURL = &screenshotURL
 		}
 
-		err = github.Connect(req.Context())
-		if err != nil {
+		// Build issue body.
+		var bodyBuilder strings.Builder
+		bodyBuilder.WriteString("User ID: " + user.GetID())
+		bodyBuilder.WriteRune('\n')
+		bodyBuilder.WriteString("Contact Email: " + request.UserEmail)
+		bodyBuilder.WriteRune('\n')
+		bodyBuilder.WriteString("Page URL: " + request.PageUrl)
+		bodyBuilder.WriteRune('\n')
+		if request.ObjectID != nil && *request.ObjectID != "" {
+			bodyBuilder.WriteString("Object ID: " + *request.ObjectID)
+			bodyBuilder.WriteRune('\n')
+		}
+		if request.Details != nil {
+			bodyBuilder.WriteRune('\n')
+			bodyBuilder.WriteString("Details:")
+			bodyBuilder.WriteRune('\n')
+			bodyBuilder.WriteString(*request.Details)
+			bodyBuilder.WriteRune('\n')
+		}
+		if request.ScreenshotURL != nil {
+			bodyBuilder.WriteString("![](" + screenshotURL + ")")
+			bodyBuilder.WriteRune('\n')
+		}
+
+		if err := resend.SendEmail(req.Context(),
+			resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
+			resend.WithReplyTo[*resend.Email](request.UserEmail),
+			resend.WithTo("support@immanent.tech"),
+			resend.WithSubject[*resend.Email]("Issue reported by "+user.GetNickname()),
+			resend.WithTextContent(bodyBuilder.String()),
+			resend.WithTag(resend.TagCategory, resend.TagCategorySupport),
+			resend.WithTag(resend.TagUserID, user.GetID()),
+			resend.WithRemoteAttachment(
+				resend.NewRemoteFileAttachment(screenshotURL, filepath.Base(screenshotURL))),
+		); err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("connect to github: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -243,19 +164,11 @@ func HandleSubmitObjectIssue() http.HandlerFunc {
 					"There was a problem with the request. Please try again.",
 				),
 			}).ServeHTTP(res, req)
+			return
 		}
-		// Create the issue in Github.
-		err = github.CreateObjectIssue(req.Context(), request)
-		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("create github issue: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
-		}
+
+		// Redirect back to the referring page.
+		// res.Header().Add(htmx.HeaderRedirect, request.PageUrl)
 
 		// Show notification of issue reported.
 		RenderPartial(&Notification{
