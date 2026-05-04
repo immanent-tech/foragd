@@ -21,7 +21,6 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.2
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/knadh/koanf/v2 v2.3.4
@@ -153,7 +152,7 @@ require (
 	github.com/realclientip/realclientip-go v1.0.0
 	github.com/resend/resend-go/v3 v3.6.0
 	github.com/reugn/go-quartz v0.15.2
-	github.com/riandyrn/otelchi v0.12.2
+	github.com/riandyrn/otelchi v0.12.3
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.3 // indirect
