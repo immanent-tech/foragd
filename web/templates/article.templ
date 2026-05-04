@@ -337,7 +337,7 @@ templ ArticleContent(article *models.Article) {
 					// Show a subtle reading progress bar across the top of the article.
 					@partials.ReadingProgress()
 					// Subscription and timestamp.
-					<div class="my-4 flex items-center text-sm/6 text-neutral font-display">
+					<div class="my-4 flex items-center font-display text-sm/6 text-neutral">
 						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
 						<a
 							hx-get="/list/articles"
@@ -395,14 +395,14 @@ templ ArticleContent(article *models.Article) {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-serif font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
+								<h1 class="mt-4 mb-2 scroll-mt-16 font-serif text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 							</a>
 						} else {
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-serif font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
+							<h1 class="mt-4 mb-2 scroll-mt-16 font-serif text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 						}
 					</div>
 					// Byline and actions.
-					<div class="grid grid-cols-2 items-center justify-between p-1 border-b border-neutral/25">
+					<div class="grid grid-cols-2 items-center justify-between border-b border-neutral/25 p-1">
 						<div class="flex items-center">
 							if article.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
@@ -420,7 +420,7 @@ templ ArticleContent(article *models.Article) {
 							}
 						</div>
 						// Actions.
-						<div class="flex shrink-0 items-center ml-auto col-start-2">
+						<div class="col-start-2 ml-auto flex shrink-0 items-center">
 							<button class="btn btn-square p-2 btn-ghost">
 								<label class="swap" _="on click halt the event's bubbling">
 									<input
@@ -542,7 +542,7 @@ templ ArticleContent(article *models.Article) {
 					</div>
 					// Show reading time if content length is greater than around two paragraphs of text...
 					if text.CountWords(article.GetContent()) > 160 {
-						<div class="flex flex-1 ml-auto justify-end p-1">
+						<div class="ml-auto flex flex-1 justify-end p-1">
 							<span class="text-sm/6 text-neutral">
 								Reading time:
 								{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
@@ -602,7 +602,7 @@ templ ArticleContent(article *models.Article) {
 								</div>
 							}
 							<div class="mt-8 w-full border-t border-neutral/25"></div>
-							<div class="mt-4 mx-auto w-xs fieldset justify-items-center">
+							<div class="mx-auto mt-4 fieldset w-xs justify-items-center">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
 									{{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
@@ -627,10 +627,10 @@ templ ArticleContent(article *models.Article) {
 											Loading
 										</span>
 										<span class="hide-loading">
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download mr-3">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
 											</svg>
-											Get Remote Content
+											<span class="text-sm/6">Get Remote Content</span>
 										</span>
 									</button>
 									<form
@@ -659,30 +659,30 @@ templ ArticleContent(article *models.Article) {
 										_="install LoadingButton"
 									>
 										<span class="show-loading">
-											<span class="loading loading-spinner loading-xs"></span>
+											<span class="loading loading-xs loading-spinner"></span>
 											Loading
 										</span>
 										<span class="hide-loading">
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss mr-3">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
 											</svg>
-											Show Feed Content
+											<span class="text-sm/6">Show Feed Content</span>
 										</span>
 									</button>
 								}
 								// View original article action.
 								<a
 									role="button"
-									class="btn btn-wide btn-outline m-2"
+									class="btn m-2 btn-wide btn-outline"
 									href={ article.GetLink() }
 									target="_blank"
 									rel="noopener"
 									_="on click halt the event's bubbling"
 								>
-									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link mr-3">
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
 									</svg>
-									View Remote
+									<span class="text-sm/6">View Remote</span>
 								</a>
 								@shareArticleButton(article)
 							</div>
@@ -717,7 +717,7 @@ templ ArticleContent(article *models.Article) {
 templ shareArticleButton(a *models.Article) {
 	// Mobile share action via navigator API.
 	<button
-		class="btn btn-wide btn-outline hidden"
+		class="btn hidden btn-wide btn-outline"
 		data-title={ a.GetTitle() }
 		data-url={ a.GetLink() }
 		_="init if navigator.share remove .hidden from me end
@@ -737,15 +737,15 @@ templ shareArticleButton(a *models.Article) {
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"
-			class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4"
+			class="icon icon-tabler icons-tabler-outline icon-tabler-share mr-3"
 		>
 			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
 		</svg>
-		Share
+		<span class="text-sm/6">Share</span>
 	</button>
 	// Desktop share action with modal and options.
 	<button
-		class="btn btn-wide btn-outline hidden"
+		class="btn hidden btn-wide btn-outline"
 		hx-post={ "/share/article/" + a.GetID() }
 		hx-target={ partials.ModalContainerID.Target() }
 		hx-trigger="click consume"
@@ -767,7 +767,7 @@ templ shareArticleButton(a *models.Article) {
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"
-			class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4"
+			class="icon icon-tabler icons-tabler-outline icon-tabler-share mr-3"
 		>
 			<path
 				stroke="none"
@@ -775,7 +775,7 @@ templ shareArticleButton(a *models.Article) {
 				fill="none"
 			></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
 		</svg>
-		Share
+		<span class="text-sm/6">Share</span>
 	</button>
 }
 
@@ -802,7 +802,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-display font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
+						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
 					</div>
 					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
@@ -968,71 +968,91 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								}
 							}
 						}
+						<div id="loading-articles" class="mx-auto flex justify-center">
+							<span class="show-loading">
+								<span class="loading loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Loading content...</p>
+							</span>
+						</div>
 						// Show some actions at the bottom of the list.
-						<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
+						<nav class="mx-auto my-16 flex flex-col items-center justify-center gap-2 sm:flex-row">
 							if response.Subscription == nil {
 								// Mark all articles action.
-								<form class="flex w-full items-center">
-									<li>
-										<a
-											role="button"
-											class="btn btn-sm btn-outline"
-											if response.Filters.GetView() == models.ViewUnread {
-												hx-post="/list/articles/mark/read"
-											} else {
-												hx-post="/list/articles/mark/unread"
-											}
-											hx-target={ ContentID.Target() }
-											hx-include="article > input"
-										>
-											if response.Filters.GetView() == models.ViewUnread {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
-													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
-												</svg>
-												Mark Articles Read
-												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-											} else {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
-													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-												</svg>
-												Mark Articles Unread
-												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-											}
-										</a>
-									</li>
-								</form>
+								<button
+									class="btn btn-outline"
+									if response.Filters.GetView() == models.ViewUnread {
+										hx-post="/list/articles/mark/read"
+										hx-vals={ templ.JSONString(map[string]any{
+														"mark": models.MarkRead,
+													}) }
+									} else {
+										hx-post="/list/articles/mark/unread"
+										hx-vals={ templ.JSONString(map[string]any{
+														"mark": models.MarkUnread,
+													}) }
+									}
+									hx-target={ ContentID.Target() }
+									hx-include="article > input"
+								>
+									<span class="show-loading">
+										<span class="loading loading-spinner"></span>
+										Loading
+									</span>
+									<span class="hide-loading">
+										if response.Filters.GetView() == models.ViewUnread {
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened mr-3">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+											</svg>
+											<span class="text-sm/6">Mark Articles Read</span>
+										} else {
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail mr-3">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+											</svg>
+											<span class="text-sm/6">Mark Articles Unread</span>
+										}
+									</span>
+								</button>
 							} else {
 								// Show mark read/unread action when not viewing all articles.
 								if response.Filters.GetView() != models.ViewAll {
 									// Mark subscription action.
-									<form id={ "mark-" + response.Subscription.GetID() } class="flex w-full items-center justify-center">
-										<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
-										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
-										// MarkURL returns the app URL for marking the subscription.
-										<button
-											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-											class="btn btn-sm btn-outline"
-											type="submit"
-										>
+									{{
+										values := make(map[string]any)
+										values["subscription_id"] = response.Subscription.GetID()
+										values["view"] = response.Filters.GetView()
+										if response.Filters.GetView() == models.ViewUnread {
+											values["mark"] = models.MarkRead
+										} else {
+											values["mark"] = models.MarkUnread
+										}
+									}}
+									<button
+										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+										hx-vals={ templ.JSONString(values) }
+										class="btn btn-outline btn-sm"
+										type="submit"
+									>
+										<span class="show-loading items-center">
+											<span class="loading loading-spinner"></span>
+											Loading
+										</span>
+										<span class="hide-loading items-center">
 											if response.Filters.GetView() == models.ViewUnread {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened mr-3">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
 												</svg>
-												Mark Subscription Read
-												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+												<span class="text-sm/6">Mark Subscription Read</span>
 											} else {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail size-4">
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail mr-3">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z"></path><path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z"></path>
 												</svg>
-												Mark Subscription Unread
-												<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+												<span class="text-sm/6">Mark Subscription Unread</span>
 											}
-										</button>
-									</form>
+										</span>
+									</button>
 								}
 							}
 						</nav>
-						@partials.LoadingIndicator("loading-articles")
 						@partials.ButtonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
