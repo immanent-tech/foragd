@@ -1,6 +1,8 @@
 -- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 -- SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+-- GetQueryParam will fetch the value of the given query parameter. If no query parameter exists with the given name, an
+-- empty string is returned.
 def GetQueryParam(name)
   make a URLSearchParams from the search of the document's location called query
   if query.has(name)
@@ -11,8 +13,8 @@ def GetQueryParam(name)
   end
 end
 
+-- loadingButton defines a behavior that will disable a button while a request it triggered is in process.
 def loadingButton
-  -- define a reusable behaviour
   behavior LoadingButton
     on htmx:beforeRequest from me
       add .in-flight-request to me
@@ -23,6 +25,7 @@ def loadingButton
   end
 end
 
+-- revealAtBottom defines a behavior that will reveal the element when the user scrolls to the bottom of a page.
 def revealAtBottom
  behavior RevealAtBottom
   on load or scroll from window
@@ -33,6 +36,7 @@ def revealAtBottom
   end
 end
 
+-- handleReadStatus defines a behavior that toggles the value of an input that indicates the read status of an object.
 def handleReadStatus
   behavior HandleReadStatus
     on htmx:afterRequest(successful)
