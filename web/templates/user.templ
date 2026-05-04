@@ -100,10 +100,10 @@ templ DeactivateAccountModal() {
 
 templ UserAvatar(user *models.User, attributes templ.Attributes) {
 	@partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
-		"rs:auto:48:48/sh:0.5/ext:webp",
+		"rs:auto:32:32/sh:0.5/ext:webp",
 		element.WithClasses("mask mask-squircle"),
-		element.WithAttribute("width", "48"),
-		element.WithAttribute("height", "48"),
+		element.WithAttribute("width", "32"),
+		element.WithAttribute("height", "32"),
 		element.MergeAttributes(attributes),
 	)
 }

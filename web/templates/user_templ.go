@@ -276,10 +276,10 @@ func UserAvatar(user *models.User, attributes templ.Attributes) templ.Component 
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
-			"rs:auto:48:48/sh:0.5/ext:webp",
+			"rs:auto:32:32/sh:0.5/ext:webp",
 			element.WithClasses("mask mask-squircle"),
-			element.WithAttribute("width", "48"),
-			element.WithAttribute("height", "48"),
+			element.WithAttribute("width", "32"),
+			element.WithAttribute("height", "32"),
 			element.MergeAttributes(attributes),
 		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
