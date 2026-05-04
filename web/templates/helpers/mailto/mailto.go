@@ -5,7 +5,7 @@
 package mailto
 
 import (
-	"html"
+	"net/url"
 	"slices"
 	"strings"
 )
@@ -38,13 +38,13 @@ type Option func(*MailTo)
 // WithSubject option adds a subject to the mailto: link.
 func WithSubject(subject string) Option {
 	return func(mtl *MailTo) {
-		mtl.parts = append(mtl.parts, "subject="+html.EscapeString(subject))
+		mtl.parts = append(mtl.parts, "subject="+url.QueryEscape(subject))
 	}
 }
 
 // WithBody option adds body text to the mailto: link.
 func WithBody(body string) Option {
 	return func(mtl *MailTo) {
-		mtl.parts = append(mtl.parts, "body="+html.EscapeString(body))
+		mtl.parts = append(mtl.parts, "body="+url.QueryEscape(body))
 	}
 }
