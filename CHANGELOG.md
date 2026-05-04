@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.126.1](https://github.com/immanent-tech/foragd/compare/v0.126.0...v0.126.1) (2026-05-04)
+
+
+### Bug Fixes
+
+* **handlers:** :bug: use referer header value (if any) for creating issues ([f44b641](https://github.com/immanent-tech/foragd/commit/f44b641f78c9cef9b7d8eb9336b78dd4aa124187))
+* **handlers:** :fire: remove extractor references ([767bcea](https://github.com/immanent-tech/foragd/commit/767bceaeeef95eeb7314ff10695d3800f4ac6591))
+* **templates:** :bug: fix mailto parts encoding ([ca37e23](https://github.com/immanent-tech/foragd/commit/ca37e234b78336874b85938353f19ff0eefc01cb))
+* **templates/sidebar:** :bug: fix sizing of loading icons in sidebar ([52d2ecc](https://github.com/immanent-tech/foragd/commit/52d2eccce40f451a18529bffbff0155d34a9596d))
+
 ## [0.126.0](https://github.com/immanent-tech/foragd/compare/v0.125.2...v0.126.0) (2026-05-04)
 
 
