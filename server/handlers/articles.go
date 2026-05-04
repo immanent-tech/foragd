@@ -468,7 +468,7 @@ func MarkArticle() http.HandlerFunc {
 		}
 
 		// If we aren't viewing all articles, remove the article.
-		if models.View(req.FormValue("view")) != models.ViewAll {
+		if !strings.Contains(req.Referer(), "/view/article") && models.View(req.FormValue("view")) != models.ViewAll {
 			res.Header().Set(htmx.HeaderReswap, "delete")
 			res.Header().Set(htmx.HeaderRetarget, "#"+request.ItemID)
 		}
