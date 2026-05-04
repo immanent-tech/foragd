@@ -131,10 +131,6 @@
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
-  embed-youtube {
-    @apply relative h-auto max-w-full overflow-hidden p-8;
-  }
-
   /* Skip animation if content was restored from cache */
   [data-htmx-history-restored] .card {
     animation: none;
@@ -231,6 +227,10 @@
     }
 
     /* Apply some useful CSS styling for video embeds */
+    embed-youtube {
+      @apply relative h-auto max-w-full overflow-hidden p-8;
+    }
+
     iframe[src*="youtube.com"],
     iframe[src*="youtu.be"],
     iframe[src*="vimeo.com"],
@@ -421,6 +421,6 @@
 }
 
 @utility animate-growbar {
-  animation: grow-bar linear both;
+  animation: grow-bar 1ms linear both;
   animation-timeline: scroll(root);
 }
