@@ -2321,7 +2321,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, " <div id=\"loading-articles\" class=\"mx-auto flex justify-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mx-auto my-16 flex flex-col items-center justify-center gap-2 sm:flex-row\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, " <div id=\"loading-articles\" class=\"mx-auto my-16 flex justify-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mx-auto my-16 flex flex-col items-center justify-center gap-2 sm:flex-row\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2384,7 +2384,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "\" hx-include=\"article > input\"><span class=\"show-loading\"><span class=\"loading loading-spinner\"></span> Loading</span> <span class=\"hide-loading\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "\" hx-include=\"article > input\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Loading</span></span> <span class=\"hide-loading items-center\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
