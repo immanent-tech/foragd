@@ -524,14 +524,14 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								}
 							}
 						}
-						<div id="loading-subscriptions" class="mx-auto my-16 flex justify-center">
+						<div id="loading-subscriptions" class="fixed bottom-0 left-1/2 mb-4 -translate-x-1/2 lg:pl-36">
 							<span class="show-loading">
 								<span class="loading loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</span>
 						</div>
 						// Show some actions at the bottom of the list.
-						<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
+						<nav class="mt-8 hidden justify-center" _="install RevealAtBottom">
 							// Mark all subscriptions action.
 							<button
 								class="btn btn-outline btn-sm"

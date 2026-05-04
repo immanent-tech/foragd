@@ -12,3 +12,13 @@ def loadingButton
       set my.disabled to false
   end
 end
+
+def revealAtBottom
+ behavior RevealAtBottom
+  on load or scroll from window
+    if (window.scrollY + window.innerHeight) >= document.body.scrollHeight
+      remove .hidden from me
+      add .flex to me
+    end
+  end
+end

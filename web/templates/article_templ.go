@@ -2323,7 +2323,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, " <div id=\"loading-articles\" class=\"mx-auto my-16 flex justify-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mx-auto my-16 flex flex-col items-center justify-center gap-2 sm:flex-row\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, " <div id=\"loading-articles\" class=\"fixed bottom-0 left-1/2 mb-4 -translate-x-1/2 lg:pl-36\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mt-8 hidden justify-center\" _=\"install RevealAtBottom\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
