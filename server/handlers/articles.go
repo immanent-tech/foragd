@@ -20,7 +20,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/client"
-	"github.com/immanent-tech/foragd/extractor"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -424,39 +423,6 @@ func HandleViewArticle() http.HandlerFunc {
 			template: templates.ArticleContent(article),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
-}
-
-// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
-// it.
-func getFullContent(ctx context.Context, originalURL string) (string, error) {
-	extractorURL, err := extractor.GenerateExtractorURL(originalURL, "html")
-	if err != nil {
-		return "", fmt.Errorf("get full content: %w", err)
-	}
-
-	var resp models.ExtractorResponse
-	var respErr models.ExtractorErrorResponse
-
-	httpClient := client.Load()
-	rawResp, err := httpClient.R().
-		SetHeader("Accept", "application/json").
-		SetContext(ctx).
-		SetResult(&resp).
-		SetError(&respErr).
-		Get(extractorURL)
-	if err != nil {
-		return "", fmt.Errorf("get url: %w", err)
-	}
-	if rawResp.IsError() {
-		return "", fmt.Errorf("%s: %s", rawResp.Status(), respErr.Detail)
-	}
-
-	if resp.Content != nil {
-		content := validation.SanitizeString(*resp.Content)
-		return content, nil
-	}
-
-	return "", nil
 }
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
