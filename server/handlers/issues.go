@@ -14,8 +14,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
-	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
@@ -59,18 +57,13 @@ func HandleReportIssue() http.HandlerFunc {
 				),
 			}).ServeHTTP(res, req)
 		}
-		// Get the current URL on which the issue is being reported.
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
-		}
 
 		objectID := req.FormValue("object_id")
 
 		// Display the report issue form.
 		RenderInternalPage(&PageIssue{
 			template: templates.ReportPageIssue(
-				&models.ReportIssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail(), ObjectID: &objectID},
+				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
 			),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
