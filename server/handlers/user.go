@@ -421,7 +421,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 			// Creatre and send deactivation email confirmation.
 			email, err := resend.NewTemplatedEmail(
 				"user-deactivated",
-				resend.To(user.GetEmail()),
+				resend.WithTo(user.GetEmail()),
 				resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
 				resend.WithTag(resend.TagUserID, user.GetID()),
 			)

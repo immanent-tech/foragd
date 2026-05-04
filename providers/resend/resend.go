@@ -26,6 +26,8 @@ const (
 	TagCategoryPromotional string = "promotional"
 	// TagCategoryAccount is the account category.
 	TagCategoryAccount string = "account"
+	// TagCategorySupport is the support category.
+	TagCategorySupport string = "support"
 )
 
 var ErrInvalidEmail = errors.New("email is invalid")

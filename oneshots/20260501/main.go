@@ -58,7 +58,7 @@ func main() {
 		// Create and send email to user.
 		email, err := resend.NewTemplatedEmail(
 			"inactive-account-deletion-notice",
-			resend.To(user.GetEmail()),
+			resend.WithTo(user.GetEmail()),
 			resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
 		)
 		if err != nil {

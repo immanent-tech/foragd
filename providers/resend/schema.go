@@ -9,14 +9,6 @@ type WebhookEmailReceieved struct {
 	Data      EmailRecieved `json:"data,omitempty"`
 }
 
-type Attachment struct {
-	Id                 string `json:"id,omitempty"`
-	Filename           string `json:"filename,omitempty"`
-	ContentType        string `json:"content_type,omitempty"`
-	ContentDisposition string `json:"content_disposition,omitempty"`
-	ContentId          string `json:"content_id,omitempty"`
-}
-
 type EmailRecieved struct {
 	EmailId     string       `json:"email_id,omitempty"`
 	CreatedAt   string       `json:"created_at,omitempty"`

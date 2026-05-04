@@ -283,7 +283,7 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 	// Create and send a welcome email.
 	email, err := resend.NewTemplatedEmail(
 		"new-user",
-		resend.To(user.GetEmail()),
+		resend.WithTo(user.GetEmail()),
 		resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
 		resend.WithTag(resend.TagUserID, user.GetID()),
 		resend.WithVariable("USER_NICKNAME", user.GetNickname()),

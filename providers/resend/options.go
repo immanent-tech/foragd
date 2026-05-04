@@ -6,7 +6,7 @@ package resend
 import "net/mail"
 
 type HasSubject interface {
-	*Template | *ReceivedEmail
+	*Template | *ReceivedEmail | *Email
 
 	SetSubject(subject string)
 }
@@ -19,7 +19,7 @@ func WithSubject[T HasSubject](subject string) func(T) {
 }
 
 type HasReplyTo interface {
-	*Template | *ReceivedEmail
+	*Template | *ReceivedEmail | *Email
 
 	SetReplyTo(replyTo any)
 }
@@ -32,7 +32,7 @@ func WithReplyTo[T HasReplyTo](replyTo any) func(T) {
 }
 
 type HasFrom interface {
-	*Template | *ReceivedEmail
+	*Template | *ReceivedEmail | *Email
 
 	SetFrom(replyTo any)
 }
@@ -41,6 +41,35 @@ type HasFrom interface {
 func WithFrom[T HasFrom](from any) func(T) {
 	return func(t T) {
 		t.SetFrom(from)
+	}
+}
+
+type HasTo interface {
+	*Email
+
+	SetTo(to any)
+}
+
+// WithTo option sets the to field for the email. Can be specified multiple times when sending an email to send to
+// multiple recipients.
+func WithTo[T HasTo](to any) func(T) {
+	return func(t T) {
+		t.SetTo(to)
+	}
+}
+
+type HasAttachment interface {
+	*Email
+
+	SetRemoteAttachment(attachment *Attachment)
+}
+
+// WithRemoteAttachment option defines a remote file attachment to add to the email.
+func WithRemoteAttachment[T HasAttachment](attachment *Attachment) func(T) {
+	return func(t T) {
+		if attachment.Path != "" && attachment.Filename != "" {
+			t.SetRemoteAttachment(attachment)
+		}
 	}
 }
 

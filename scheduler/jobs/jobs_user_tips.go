@@ -96,7 +96,7 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 	// Create and send email to user.
 	email, err := resend.NewTemplatedEmail(
 		data.EmailID,
-		resend.To(user.GetEmail()),
+		resend.WithTo(user.GetEmail()),
 		resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
 		resend.WithVariable("USER_NICKNAME", nickname),
 		resend.WithVariable("USER_UNSUBSCRIBE_LINK", "/unsubscribe/"+unsubscribeToken),

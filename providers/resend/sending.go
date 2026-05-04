@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/mail"
 	"slices"
 	"strconv"
 	"sync"
@@ -21,8 +22,9 @@ import (
 type Email struct {
 	*resend.Email
 
-	template *resend.EmailTemplate
-	tags     []resend.Tag
+	template    *resend.EmailTemplate
+	tags        []resend.Tag
+	attachments []*resend.Attachment
 
 	mu sync.Mutex
 }
@@ -46,6 +48,41 @@ func NewTemplatedEmail(templateID string, options ...EmailOption) (*Email, error
 	}
 
 	return email, nil
+}
+
+func (e *Email) SetSubject(subject string) {
+	e.Subject = subject
+}
+
+func (e *Email) SetReplyTo(replyTo any) {
+	switch v := replyTo.(type) {
+	case string:
+		e.ReplyTo = append(e.ReplyTo, v)
+	case *mail.Address:
+		e.ReplyTo = append(e.ReplyTo, v.String())
+	}
+}
+
+func (e *Email) SetFrom(from any) {
+	switch v := from.(type) {
+	case string:
+		e.From = v
+	case *mail.Address:
+		e.From = v.String()
+	}
+}
+
+func (e *Email) SetTo(to any) {
+	switch v := to.(type) {
+	case string:
+		e.To = append(e.To, v)
+	case *mail.Address:
+		e.To = append(e.To, v.String())
+	}
+}
+
+func (e *Email) SetRemoteAttachment(attachment *Attachment) {
+	e.attachments = append(e.attachments, attachment.Attachment)
 }
 
 func (e *Email) Valid() error {
@@ -74,10 +111,15 @@ func (e *Email) createRequest() (*resend.SendEmailRequest, error) {
 	} else {
 		// Manually fill out required fields.
 		req.From = e.From
-		req.ReplyTo = e.ReplyTo[0]
+		if len(e.ReplyTo) > 0 {
+			req.ReplyTo = e.ReplyTo[0]
+		}
 		req.Subject = e.Subject
 		req.Text = e.Text
 		req.Html = e.Html
+	}
+	if len(e.attachments) > 0 {
+		req.Attachments = e.attachments
 	}
 
 	// If the email has a category tag with the value "promotional" and appropriate unsubscribe headers.
@@ -99,48 +141,6 @@ func (e *Email) createRequest() (*resend.SendEmailRequest, error) {
 
 // EmailOption is a functional option to apply to an email.
 type EmailOption func(*Email)
-
-// From option sets the from address of an email.
-func From(from string) EmailOption {
-	return func(e *Email) {
-		e.From = from
-	}
-}
-
-// ReplyTo option sets the reply-to address of an email.
-func ReplyTo(replyto string) EmailOption {
-	return func(e *Email) {
-		e.ReplyTo = []string{replyto}
-	}
-}
-
-// To option sets the to address of an email.
-func To(to ...string) EmailOption {
-	return func(e *Email) {
-		e.To = append(e.To, to...)
-	}
-}
-
-// Cc option sets the cc address of an email.
-func Cc(cc ...string) EmailOption {
-	return func(e *Email) {
-		e.Cc = append(e.Cc, cc...)
-	}
-}
-
-// Bcc option sets the bcc address of an email.
-func Bcc(bcc ...string) EmailOption {
-	return func(e *Email) {
-		e.Bcc = append(e.Bcc, bcc...)
-	}
-}
-
-// Subject option sets the subject of an email.
-func Subject(subject string) EmailOption {
-	return func(e *Email) {
-		e.Subject = subject
-	}
-}
 
 // WithTextContent option sets the text content of the email (shown in clients that don't support HTML emails).
 func WithTextContent(text string) EmailOption {
