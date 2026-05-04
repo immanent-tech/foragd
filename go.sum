@@ -11,8 +11,8 @@ cloud.google.com/go/billing v1.24.0 h1:N+uNaIUT3XUy/z1x9rc3QX6gS/OkGm7KD+vaIRGEp
 cloud.google.com/go/billing v1.24.0/go.mod h1:axqDO1uHegh7u5qngkTfqN1djAeLGsWAFAblERgmgEk=
 cloud.google.com/go/compute/metadata v0.9.0 h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs=
 cloud.google.com/go/compute/metadata v0.9.0/go.mod h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=
-cloud.google.com/go/errorreporting v0.7.0 h1:X6sVXp7qhJTvfUqaykmGBfy1RrshgFDfG7SXeqXysD8=
-cloud.google.com/go/errorreporting v0.7.0/go.mod h1:V7ojx7z76JITDZNGyDNkIIa9nNEkQzF6Yj+VHl2YF84=
+cloud.google.com/go/errorreporting v0.8.0 h1:aruwRS5dd0dlQ6xT64SYm5YpfDR/DKtRo2WAaKwXrb4=
+cloud.google.com/go/errorreporting v0.8.0/go.mod h1:V7ojx7z76JITDZNGyDNkIIa9nNEkQzF6Yj+VHl2YF84=
 cloud.google.com/go/iam v1.8.0 h1:e5QOdN1zQ3MTWYtXIf2buX+jxqvo2sKqBCOLrteLd1M=
 cloud.google.com/go/iam v1.8.0/go.mod h1:IkWUaEeLK91WQqTKa/fi5xdHJbL49kv2j/vlAZQSJ+k=
 cloud.google.com/go/logging v1.15.0 h1:6ooUEBNT6jdWh2b36+iuPn6b/R9qN/tHCbvGS5255gg=
@@ -161,8 +161,6 @@ github.com/go-viper/mapstructure/v2 v2.5.0 h1:vM5IJoUAy3d7zRSVtIwQgBj7BiWtMPfmPE
 github.com/go-viper/mapstructure/v2 v2.5.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/goccy/go-json v0.10.5 h1:Fq85nIqj+gXn/S5ahsiTlK3TmC85qgirsdTP/+DeaC4=
 github.com/goccy/go-json v0.10.5/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
-github.com/goforj/godump v1.9.1 h1:9OGpb978Ytz3B59d5Yi2PzRYYLid6UkmhYDIDNiF15Y=
-github.com/goforj/godump v1.9.1/go.mod h1:JsuL6AEZfKIU+iR5ewL6iQ2fIuhvLtPmJDH47M9Ptrc=
 github.com/gofri/go-github-ratelimit/v2 v2.0.2 h1:gS8wAS1jTmlWGdTjAM7KIpsLjwY1S0S/gKK5hthfSXM=
 github.com/gofri/go-github-ratelimit/v2 v2.0.2/go.mod h1:YBQt4gTbdcbMjJFT05YFEaECwH78P5b0IwrnbLiHGdE=
 github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f h1:3BSP1Tbs2djlpprl7wCLuiqMaUh5SJkkzI2gDs+FgLs=
