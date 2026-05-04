@@ -183,6 +183,14 @@
     animation-duration: 1s;
   }
 
+  .htmx-indicator {
+    @apply pointer-events-none invisible opacity-0;
+  }
+  .htmx-request .htmx-indicator,
+  .htmx-request.htmx-indicator {
+    @apply pointer-events-auto visible opacity-100 transition-opacity duration-200 ease-in;
+  }
+
   /* Default: hide the loading span */
   .show-loading {
     @apply hidden;
