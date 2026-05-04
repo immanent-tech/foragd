@@ -4,6 +4,7 @@
 package templates
 
 import "github.com/immanent-tech/foragd/models"
+import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.ReportIssueRequest) {
@@ -17,7 +18,7 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 						Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
 					</p>
 					<p class="mt-2 max-w-4xl text-neutral">
-						Alternatively, you can <a class="link" href="mailto:support@immanent.tech&subject=Foragd Issue">email us</a> instead.
+						Alternatively, you can <a class="link" href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Issue")) }>email us</a> instead.
 					</p>
 					<form
 						id="report-app-issue"
