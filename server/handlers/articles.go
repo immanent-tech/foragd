@@ -26,6 +26,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -136,6 +137,7 @@ func HandleListArticles() http.HandlerFunc {
 			title = "Articles"
 		}
 		// Choose rendering method based on method (get = page, post = partial).
+		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListArticles{
@@ -146,7 +148,7 @@ func HandleListArticles() http.HandlerFunc {
 					Filters:      request.Filters,
 					Pagination:   *request.Pagination,
 				}),
-			}).ServeHTTP(res, req)
+			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			RenderPartial(&ListArticles{
 				title: title,
@@ -156,7 +158,7 @@ func HandleListArticles() http.HandlerFunc {
 					Filters:      request.Filters,
 					Pagination:   *request.Pagination,
 				}),
-			}).ServeHTTP(res, req)
+			}).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}).ServeHTTP
 }
@@ -463,6 +465,12 @@ func MarkArticle() http.HandlerFunc {
 				),
 			}).ServeHTTP(res, req)
 			return
+		}
+
+		// If we aren't viewing all articles, remove the article.
+		if models.View(req.FormValue("view")) != models.ViewAll {
+			res.Header().Set(htmx.HeaderReswap, "delete")
+			res.Header().Set(htmx.HeaderRetarget, "#"+request.ItemID)
 		}
 
 		res.WriteHeader(http.StatusOK)

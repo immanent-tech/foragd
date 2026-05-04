@@ -1,6 +1,16 @@
 -- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 -- SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+def GetQueryParam(name)
+  make a URLSearchParams from the search of the document's location called query
+  if query.has(name)
+    set value to the query.get(name)
+    return value
+  else
+    return ''
+  end
+end
+
 def loadingButton
   -- define a reusable behaviour
   behavior LoadingButton
@@ -20,5 +30,19 @@ def revealAtBottom
       remove .hidden from me
       add .flex to me
     end
+  end
+end
+
+def handleReadStatus
+  behavior HandleReadStatus
+    on htmx:afterRequest(successful)
+      tell the previous <input />
+    	get your value
+    	if your value equals 'read'
+    	  set your value to 'unread'
+    	else
+    	  set your value to 'read'
+    	end
+    on htmx:afterRequest(failed) toggle @checked on me
   end
 end

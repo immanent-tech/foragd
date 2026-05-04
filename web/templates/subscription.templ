@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"net/http"
@@ -219,6 +220,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 						<button class="btn btn-square btn-ghost btn-md">
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+								<input type="hidden" name="view" value={ service.ListFiltersFromCtx(ctx).View }/>
 								<input
 									type="hidden"
 									name={ models.ParamMark }
@@ -237,18 +239,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 										if !s.GetStats().IsUnread() {
 											checked
 										}
-										_="
-											on htmx:afterRequest(successful)
-											  tell the previous <input />
-												get your value
-												if your value equals 'read'
-												  set your value to 'unread'
-												else
-												  set your value to 'read'
-												end
-
-											on htmx:afterRequest(failed) toggle @checked on me
-											"
+										_="install HandleReadStatus"
 										aria-label={ "Toggle read status for " + s.GetTitle() }
 									/>
 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
