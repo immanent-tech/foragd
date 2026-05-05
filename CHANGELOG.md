@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.127.0](https://github.com/immanent-tech/foragd/compare/v0.126.1...v0.127.0) (2026-05-05)
+
+
+### Features
+
+* **templates:** :sparkles: remove cards when toggling read status when not viewing all (both read and unread) cards ([5d86add](https://github.com/immanent-tech/foragd/commit/5d86add3085bc9ad7b18fda0ea7374f0699d82ff))
+
+
+### Bug Fixes
+
+* **handlers/articles:** :bug: don't do any swap when auto-marking when viewing article content ([50bb5d1](https://github.com/immanent-tech/foragd/commit/50bb5d11118d2d67b701c437a10ed440154df130))
+
+
+### Performance Improvements
+
+* :recycle: split code into service package and start implementing in-memory caches ([ca67339](https://github.com/immanent-tech/foragd/commit/ca67339ef886106fdff9e69014f355105df0f45b))
+
 ## [0.126.1](https://github.com/immanent-tech/foragd/compare/v0.126.0...v0.126.1) (2026-05-04)
 
 
