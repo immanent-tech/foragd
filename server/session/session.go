@@ -30,7 +30,7 @@ var manager *scs.SessionManager
 // NewSessionManager creates a new session manager.
 func NewSessionManager() error {
 	// Load the session store.
-	sessionStore, err := store.NewSessionStore()
+	sessionStore, err := store.NewSessionStore(sessionLifetime)
 	if err != nil {
 		return fmt.Errorf("failed to start session manager: %w", err)
 	}

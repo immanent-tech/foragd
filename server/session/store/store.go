@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/maypok86/otter/v2"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -29,24 +31,34 @@ var (
 )
 
 // Store satisfies the session store interface for storing sessions in a custom backend.
-type Store struct{}
+type Store struct {
+	cache *otter.Cache[string, []byte]
+}
 
 // NewSessionStore sets up a new session store for use by the server.
-func NewSessionStore() (*Store, error) {
+func NewSessionStore(sessionLifetime time.Duration) (*Store, error) {
 	if err := config.Init(); err != nil {
 		return nil, fmt.Errorf("init config: %w", err)
 	}
-	return &Store{}, nil
+	cache, err := otter.New(&otter.Options[string, []byte]{
+		MaximumSize:      10_000,
+		ExpiryCalculator: otter.ExpiryWriting[string, []byte](sessionLifetime),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create cache: %w", err)
+	}
+
+	return &Store{cache: cache}, nil
 }
 
 // DeleteCtx should remove the session token and corresponding data from the
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
+	s.cache.Invalidate(token)
 	if err := elastic.DeleteDoc(ctx, schema.SessionsIndexRW(), token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
-
 	return nil
 }
 
@@ -62,6 +74,10 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
+	if val, ok := s.cache.GetIfPresent(token); ok {
+		slogctx.FromCtx(ctx).Debug("Session cache hit!")
+		return val, true, nil // cache hit
+	}
 	session, err := elastic.GetDoc[string, models.UserSession](ctx, schema.SessionsIndexRO(), token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
@@ -98,6 +114,11 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 	); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
+	if time.Until(expiry) <= 0 {
+		s.cache.Invalidate(token)
+		return nil
+	}
+	s.cache.Set(token, data)
 
 	return nil
 }
