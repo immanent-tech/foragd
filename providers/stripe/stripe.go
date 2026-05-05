@@ -24,6 +24,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -296,7 +297,7 @@ func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscrip
 	metadata.CancelAt = new(time.Unix(subscription.CancelAt, 0))
 
 	// Update the user object with the new metadata.
-	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = service.UpdateUser(ctx, user, map[string]any{
 		"subscription": metadata,
 	})
 	if err != nil {
@@ -334,7 +335,7 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 	}
 
 	// Update the user object with the new metadata.
-	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = service.UpdateUser(ctx, user, map[string]any{
 		"subscription": metadata,
 	})
 	if err != nil {
@@ -373,7 +374,7 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 	}
 
 	// Update the user object with the new metadata.
-	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = service.UpdateUser(ctx, user, map[string]any{
 		"subscription": metadata,
 	})
 	if err != nil {

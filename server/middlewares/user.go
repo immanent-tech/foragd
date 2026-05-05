@@ -17,6 +17,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
@@ -110,7 +111,7 @@ func RequireUserAuth(next http.Handler) http.Handler {
 		}
 
 		// Fetch the user from the user management API.
-		user, err := models.GetUserByExternalID(req.Context(), profile.GetID())
+		user, err := service.GetUserByExternalID(req.Context(), profile.GetID())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Get local user data failed.",
 				slog.String("external_user_id", profile.GetID()),

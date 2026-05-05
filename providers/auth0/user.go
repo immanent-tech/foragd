@@ -18,6 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // UserProfile represents the data returned from the auth0 backend that represents an authorised user.
@@ -332,7 +333,7 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
-		if err := models.UpdateUser(ctx, localUser.GetID(), updates); err != nil {
+		if err := service.UpdateUser(ctx, localUser, updates); err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.String("user_id", localUser.GetID()),
 				slog.Any("error", err))

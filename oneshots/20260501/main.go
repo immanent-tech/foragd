@@ -13,6 +13,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -69,7 +70,7 @@ func main() {
 		}
 		metadata := user.Metadata
 		metadata.PendingDeletion = new(true)
-		if err := models.UpdateUser(ctx, user.GetID(), map[string]any{
+		if err := service.UpdateUser(ctx, user, map[string]any{
 			"metadata": metadata,
 		}); err != nil {
 			panic(err)

@@ -568,92 +568,6 @@ func SearchSubscriptions(
 	return resp.Results, "", nil
 }
 
-// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
-// Dynamic information for subscriptions will also be added.
-func FilterSubscriptions(
-	ctx context.Context,
-	request *ListRequest,
-) (Subscriptions, Pagination, error) {
-	// Get subscriptions by ID.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, "", fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", request.Filters.Subscriptions),
-			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("customisation.categories.raw", request.Filters.GetCategories()),
-		),
-	)
-	subscriptions, err := getAllSubscriptionsByQuery(ctx, subscriptionQuery)
-	if err != nil {
-		return nil, "", fmt.Errorf("get all subscriptions: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, "", fmt.Errorf("get all subscriptions: %w", ErrNotFound)
-	}
-	// Add dynamic info.
-	err = addSubscriptionDynamicInfo(ctx, subscriptions)
-	if err != nil {
-		return nil, "", fmt.Errorf("add dynamic info: %w", err)
-	}
-	// Sort and paginate.
-	var pagination Pagination
-	if request.Pagination != nil {
-		pagination = *request.Pagination
-	}
-	subscriptions, pagination = subscriptions.
-		FilterByView(request.Filters.GetView()).
-		FilterByFavorites(request.Filters.OnlyFavorites).
-		Sort(request.Filters.Sort).
-		Paginate(pagination, request.Filters.GetCount())
-
-	return subscriptions, pagination, nil
-}
-
-// AddSubscriptions adds the given subscriptions to a user.
-func AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	if _, err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("update subscriptions: %w", err)
-	}
-	// Disable onboarding once a subscription has been added.
-	if settings := user.GetSettings(); settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-		// Update the user object.
-		if err := UpdateUser(ctx, user.GetID(), map[string]any{
-			"settings": settings,
-		}); err != nil {
-			return fmt.Errorf("update user: %w", err)
-		}
-	}
-	return nil
-}
-
-// RemoveSubscriptions removes subscriptions with the given ID from a user.
-func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(),
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", ids),
-			),
-		),
-	); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-	return nil
-}
-
 // UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
 func UpdateSubscriptions(
 	ctx context.Context,
@@ -716,31 +630,6 @@ func MarkSubscriptions(
 		}
 	}
 
-	return nil
-}
-
-// CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
-func CreateSearchSubscriptions(ctx context.Context, requests ...*SearchSubscriptionRequest) error {
-	subscriptions := make(Subscriptions, 0, len(requests))
-	for request := range slices.Values(requests) {
-		slogctx.FromCtx(ctx).Debug("Creating new search subscription.",
-			slog.String("feed", request.Customisation.GetNickname()),
-		)
-		// Generate metadata.
-		subscription, err := NewSearchSubscription(ctx, request)
-		if err != nil {
-			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
-		}
-		err = subscription.Valid()
-		if err != nil {
-			return fmt.Errorf("create search subscription: invalid data: %w", err)
-		}
-		subscriptions = append(subscriptions, subscription)
-	}
-	// Add subscriptions
-	if err := AddSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("create search subscription: add subscriptions failed: %w", err)
-	}
 	return nil
 }
 
@@ -1197,42 +1086,6 @@ func NewEmailSubscription(
 
 	// Generate a "virtual" FeedID.
 	subscription.EmailData.FeedID = strings.ReplaceAll(subscription.GetID(), "sub_", "feed_")
-
-	return subscription, nil
-}
-
-// GetEmailSubscription retrieves an EmailSubscription for the given user ID and email sender.
-func GetEmailSubscription(ctx context.Context, userID UserID, from *mail.Address) (*Subscription, error) {
-	// Check for an existing email subscription for the user.
-	subscriptions, _, err := SearchSubscriptions(ctx,
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", userID),
-				query.Term("email_data.email_sender_id", from.Address),
-			),
-		))
-	if err != nil {
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	}
-
-	var subscription *Subscription
-	switch {
-	case len(subscriptions) > 1:
-		// Ambiguous subscription match for sender.
-		return nil, fmt.Errorf("%w: ambiguous subscription match for sender", ErrInvalidAPIResult)
-	case len(subscriptions) == 0:
-		// Create a new email subscription for this sender.
-		subscription, err = NewEmailSubscription(ctx, userID, from)
-		if err != nil {
-			return nil, fmt.Errorf("create email subscription: %w", err)
-		}
-		if err := AddSubscriptions(ctx, subscription); err != nil {
-			return nil, fmt.Errorf("add email subscription: %w", err)
-		}
-	default:
-		// Use the existing email subscription.
-		subscription = subscriptions[0]
-	}
 
 	return subscription, nil
 }

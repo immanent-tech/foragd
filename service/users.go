@@ -1,0 +1,61 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package service
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/client"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+)
+
+// GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
+func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
+	// Fetch from cache if possible.
+	cacheKey := "cache_" + externalID
+	if user, ok := userCache.GetIfPresent(cacheKey); ok {
+		slogctx.FromCtx(ctx).Debug("User cache hit!")
+		return &user, nil
+	}
+
+	// Get the user from elasticsearch.
+	resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
+		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("find user by external id: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("find user by external id: %w", models.ErrNotFound)
+	default:
+		// Cache the user before returning.
+		userCache.Set(cacheKey, *resp.Results[0])
+		return resp.Results[0], nil
+	}
+}
+
+// UpdateUser will apply the given updates to the user.
+func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error {
+	updates["updated_at"] = time.Now().UTC()
+	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), user.GetID(), updates,
+		elastic.WithRefresh(true),
+		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
+	); err != nil {
+		return fmt.Errorf("update user: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("User object updated.")
+	// Invalidate any cached user data.
+	userCache.Invalidate(user.GetExternalID())
+	return nil
+}

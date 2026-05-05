@@ -713,7 +713,7 @@ func updateFavoriteArticle(
 		}
 		// Update the list of favorites items in the user object
 		user.ItemFavorites = append(user.ItemFavorites, id)
-		err = models.UpdateUser(ctx, user.GetID(), map[string]any{
+		err = service.UpdateUser(ctx, user, map[string]any{
 			"item_favorites": user.ItemFavorites,
 		})
 		if err != nil {
@@ -727,7 +727,7 @@ func updateFavoriteArticle(
 		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
 			return e == id
 		})
-		err = models.UpdateUser(ctx, user.GetID(), map[string]any{
+		err = service.UpdateUser(ctx, user, map[string]any{
 			"item_favorites": newFavorites,
 		})
 		if err != nil {

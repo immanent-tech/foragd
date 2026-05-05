@@ -18,6 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 type UserArgs struct {
@@ -95,7 +96,7 @@ func (c *BlockUserCmd) Run() error {
 	metadata := user.Metadata
 	metadata.Blocked = c.Value
 
-	if err := models.UpdateUser(ctx, c.UserID, map[string]any{
+	if err := service.UpdateUser(ctx, user, map[string]any{
 		"metadata": metadata,
 	}); err != nil {
 		return fmt.Errorf("unable to set blocked status of user %s: %w", user.GetID(), err)

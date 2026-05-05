@@ -18,6 +18,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // HandleWebhook will handle incoming webhook requests from Resend.
@@ -135,7 +136,7 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 	}
 
 	// Retrieve (and/or create) an EmailSubscription for this user and sender.
-	subscription, err := models.GetEmailSubscription(ctx, user.GetID(), from)
+	subscription, err := service.GetEmailSubscription(ctx, user, from)
 	if err != nil {
 		return fmt.Errorf("get email subscription: %w", err)
 	}

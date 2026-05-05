@@ -21,6 +21,7 @@ import (
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -130,7 +131,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	session.Save(req.Context(), "profile", profile)
 
 	var user *models.User
-	user, err = models.GetUserByExternalID(req.Context(), profile.GetID())
+	user, err = service.GetUserByExternalID(req.Context(), profile.GetID())
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user

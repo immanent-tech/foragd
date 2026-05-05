@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
@@ -81,7 +82,8 @@ func (l *Logger) LogRoundTrip(
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	// if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	if req != nil && req.Body != nil &&
 		req.Body != http.NoBody {
 		var buf bytes.Buffer
 		if req.GetBody != nil {
@@ -90,6 +92,8 @@ func (l *Logger) LogRoundTrip(
 		} else {
 			buf.ReadFrom(req.Body) //nolint:errcheck
 		}
+
+		godump.Dump(quoteReplacer.Replace(buf.String()))
 
 		requestAttributes = append(requestAttributes, slog.String("body", quoteReplacer.Replace(buf.String())))
 	}

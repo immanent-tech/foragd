@@ -115,9 +115,18 @@ func HandleListSubscriptions() http.HandlerFunc {
 			request.Filters.Subscriptions = nil
 		}
 
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+
 		// Get subscriptions matching filters.
 		var next models.Pagination
-		subscriptions, next, err = models.FilterSubscriptions(req.Context(), request)
+		subscriptions, next, err = service.FilterUserSubscriptions(req.Context(), user, request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
@@ -757,7 +766,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 					)}).ServeHTTP(res, req)
 			}
 		case "true":
-			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
+			if err := service.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("remove subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -1253,7 +1262,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		}
 
 		// Add subscription to user.
-		if err := user.AddSubscriptions(req.Context(), subscription); err != nil {
+		if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("add subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -1506,7 +1515,7 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			err = models.CreateSearchSubscriptions(req.Context(), request)
+			err = service.CreateSearchSubscriptions(req.Context(), request)
 			if err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("create search subscription: %w", err),
@@ -1660,7 +1669,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 				return
 			}
 			// Add subscriptions
-			if err := models.AddSubscriptions(req.Context(), subscription); err != nil {
+			if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("add subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -1789,7 +1798,7 @@ func HandleImportSubscriptions() http.HandlerFunc {
 			}
 
 			// Perform bulk import.
-			results := models.BulkImportFeeds(req.Context(), requests...)
+			results := service.BulkImportFeeds(req.Context(), requests...)
 
 			// Display all results.
 			RenderPartial(&ImportSubscriptionsResults{

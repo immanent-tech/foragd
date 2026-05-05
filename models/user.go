@@ -11,9 +11,7 @@ import (
 	"time"
 
 	"github.com/stripe/stripe-go/v83"
-	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -32,25 +30,6 @@ const (
 var (
 	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
-
-// GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
-func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
-	// Get the user.
-	resp, err := elastic.Search[*User](ctx, schema.UsersIndexRO(),
-		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("find user by external id: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
-}
 
 // GetUserByEmail will retrieve a user by their email.
 func GetUserByEmail(ctx context.Context, email string) (*User, error) {
@@ -101,19 +80,6 @@ func GetUser(ctx context.Context, id UserID) (*User, error) {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
 	return user, nil
-}
-
-// UpdateUser will apply the given updates to the user.
-func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) error {
-	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), userID, updates,
-		elastic.WithRefresh(true),
-		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
-	); err != nil {
-		return fmt.Errorf("update user: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("User object updated.")
-	return nil
 }
 
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
@@ -307,24 +273,6 @@ func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionO
 	}
 
 	return subscriptions, nil
-}
-
-// AddSubscriptions adds the given subscriptions to a user.
-func (u *User) AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error {
-	if _, err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("update subscriptions: %w", err)
-	}
-	// Disable onboarding once a subscription has been added.
-	if settings := u.GetSettings(); settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-		// Update the user object.
-		if err := UpdateUser(ctx, u.GetID(), map[string]any{
-			"settings": settings,
-		}); err != nil {
-			return fmt.Errorf("update user: %w", err)
-		}
-	}
-	return nil
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

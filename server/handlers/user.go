@@ -32,6 +32,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -135,7 +136,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 			return
 		}
 		// Update local user object.
-		err = models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
+		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": request})
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update data: %w", err),
@@ -286,7 +287,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			return
 		}
 		// Update local user object.
-		err = models.UpdateUser(req.Context(), user.GetID(), updates)
+		err = service.UpdateUser(req.Context(), user, updates)
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update local user: %w", err),
@@ -547,7 +548,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 		}
 
 		// Process requests.
-		results := models.BulkImportFeeds(req.Context(), subscriptionRequests...)
+		results := service.BulkImportFeeds(req.Context(), subscriptionRequests...)
 
 		// Process results
 		for result := range slices.Values(results) {
@@ -747,7 +748,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 			10,
 		) + "@foragd.app")
 
-		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings}); err != nil {
+		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update user: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -874,7 +875,7 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 			// Mark in the user's metadata that they do not want to receive promotional emails.
 			user.Metadata.PromotionalEmail = false
 			// Update the user.
-			if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{
+			if err := service.UpdateUser(req.Context(), user, map[string]any{
 				"metadata": user.Metadata,
 			}); err != nil {
 				displayResults(err)
