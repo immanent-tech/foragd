@@ -192,10 +192,10 @@
     @apply hidden;
   }
   /* While in-flight: show it */
-  .in-flight-request .show-loading {
+  .in-flight-request > .show-loading {
     @apply inline-flex;
   }
-  .htmx-request .show-loading {
+  .htmx-request > .show-loading {
     @apply inline-flex;
   }
 
@@ -204,11 +204,11 @@
     @apply inline-flex;
   }
   /* While in-flight: hide it */
-  .in-flight-request .hide-loading {
+  .in-flight-request > .hide-loading {
     @apply hidden;
   }
   /* While in-flight: hide it */
-  .htmx-request .hide-loading {
+  .htmx-request > .hide-loading {
     @apply hidden;
   }
 
@@ -321,6 +321,10 @@
     /* Paywall CTA block — give it some visual separation */
     h2:has(+ p) {
       margin-top: 1.5rem;
+    }
+
+    a {
+      @apply link link-hover;
     }
   }
 
