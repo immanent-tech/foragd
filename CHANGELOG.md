@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.127.1](https://github.com/immanent-tech/foragd/compare/v0.127.0...v0.127.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **styles:** :bug: only trigger show/hide loading changes when parent element has htmx-request class ([be10dba](https://github.com/immanent-tech/foragd/commit/be10dba0ef2e27fdc4150cbaaa138b240f243cfc))
+
+
+### Performance Improvements
+
+* **server:** :zap: add explicit caching header for hyperscript files ([5cf3be2](https://github.com/immanent-tech/foragd/commit/5cf3be278d92adbc7d11882f3563962c117be516))
+* **session:** :zap: implement a caching on top of session store ([387d0d3](https://github.com/immanent-tech/foragd/commit/387d0d38b77e5bd99ce56225ea549c56d5f30581))
+
 ## [0.127.0](https://github.com/immanent-tech/foragd/compare/v0.126.1...v0.127.0) (2026-05-05)
 
 
