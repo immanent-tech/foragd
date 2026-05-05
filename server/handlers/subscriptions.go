@@ -1309,7 +1309,7 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 		}
 
 		// Get user subscriptions.
-		subscriptions, err := user.GetSubscriptions(req.Context())
+		subscriptions, err := service.GetUserSubscriptions(req.Context(), user)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Debug("Unable to get user subscriptions.",
 				slog.Any("error", err),

@@ -46,7 +46,7 @@ func (c *DeleteUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	user, err := models.GetUser(ctx, c.UserID)
+	user, err := service.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}
@@ -88,7 +88,7 @@ func (c *BlockUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	user, err := models.GetUser(ctx, c.UserID)
+	user, err := service.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}

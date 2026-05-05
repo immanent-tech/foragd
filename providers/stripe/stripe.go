@@ -286,7 +286,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 // handleSubscriptionDeleted will update the user metadata with the new subscription status (i.e., cancelled) and set
 // the cancelAt timestamp.
 func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscription) error {
-	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
+	user, err := service.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("subscription deleted: %w", err)
 	}
@@ -320,7 +320,7 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 		return fmt.Errorf("get product details: %w", err)
 	}
 
-	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
+	user, err := service.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("get user details: %w", err)
 	}
@@ -358,7 +358,7 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 		return fmt.Errorf("get product details: %w", err)
 	}
 
-	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
+	user, err := service.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("get user details: %w", err)
 	}

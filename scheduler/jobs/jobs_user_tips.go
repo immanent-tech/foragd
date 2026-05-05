@@ -14,6 +14,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -72,7 +73,7 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 	}
 
 	// Get user details.
-	user, err := models.GetUser(ctx, data.UserID)
+	user, err := service.GetUser(ctx, data.UserID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}

@@ -114,7 +114,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 // forwarded. All other emails are ignored.
 func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
 	// Match the email to address to a user subscription email
-	user, err := models.GetUserBySubscriptionEmail(ctx, details.To...)
+	user, err := service.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		// If this does not match a user email, process as a non-user email
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {

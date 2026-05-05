@@ -17,6 +17,15 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+// GetUser retrieves the user doc with the given id.
+func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
+	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, schema.UsersIndexRO(), id)
+	if err != nil || user == nil {
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+	return user, nil
+}
+
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	// Fetch from cache if possible.
@@ -41,6 +50,48 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, 
 	default:
 		// Cache the user before returning.
 		userCache.Set(cacheKey, *resp.Results[0])
+		return resp.Results[0], nil
+	}
+}
+
+// GetUserByEmail will retrieve a user by their email.
+func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	// Get the user.
+	resp, err := elastic.Search[*models.User](
+		ctx,
+		schema.UsersIndexRO(),
+		query.Term("email", email),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("search: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("search: %w", models.ErrNotFound)
+	default:
+		return resp.Results[0], nil
+	}
+}
+
+// GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
+func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
+	// Get the user.
+	resp, err := elastic.Search[*models.User](
+		ctx,
+		schema.UsersIndexRO(),
+		query.Terms("settings.subscription_email", emails),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("find user by external id: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("find user by external id: %w", models.ErrNotFound)
+	default:
 		return resp.Results[0], nil
 	}
 }

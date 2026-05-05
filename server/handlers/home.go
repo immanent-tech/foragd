@@ -21,6 +21,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -158,7 +159,7 @@ func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Artic
 	)
 
 	// Fetch unread subscriptions.
-	subscriptions, err = user.GetSubscriptions(ctx, models.WithDynamicInfo(true))
+	subscriptions, err = service.GetUserSubscriptions(ctx, user, service.WithDynamicInfo(true))
 	if err != nil {
 		return nil, nil, fmt.Errorf("get subscriptions: %w", err)
 	}

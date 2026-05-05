@@ -7,14 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/stripe/stripe-go/v83"
 
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -30,57 +26,6 @@ const (
 var (
 	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
-
-// GetUserByEmail will retrieve a user by their email.
-func GetUserByEmail(ctx context.Context, email string) (*User, error) {
-	// Get the user.
-	resp, err := elastic.Search[*User](
-		ctx,
-		schema.UsersIndexRO(),
-		query.Term("email", email),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("search: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("search: %w", ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
-}
-
-// GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
-func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, error) {
-	// Get the user.
-	resp, err := elastic.Search[*User](
-		ctx,
-		schema.UsersIndexRO(),
-		query.Terms("settings.subscription_email", emails),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("find user by external id: %w", err)
-	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
-	default:
-		return resp.Results[0], nil
-	}
-}
-
-// GetUser retrieves the user doc with the given id.
-func GetUser(ctx context.Context, id UserID) (*User, error) {
-	user, err := elastic.GetDoc[UserID, *User](ctx, schema.UsersIndexRO(), id)
-	if err != nil || user == nil {
-		return nil, fmt.Errorf("get user: %w", err)
-	}
-	return user, nil
-}
 
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
@@ -193,86 +138,6 @@ func (u *User) GetSubscriptionPlan() string {
 // returned.
 func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
-}
-
-// GetSubscriptionOptions holds the options for fetching a user's subscriptions.
-type GetSubscriptionOptions struct {
-	OnlyFavorites bool
-	DynamicInfo   bool
-	IDs           []SubscriptionID
-	Categories    []Category
-}
-
-type GetSubscriptionOption func(*GetSubscriptionOptions)
-
-func Favorites(value bool) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.OnlyFavorites = value
-	}
-}
-
-func WithSubscriptionIDs(ids ...SubscriptionID) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.IDs = ids
-	}
-}
-
-func WithSubscriptionCategories(categories ...Category) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.Categories = categories
-	}
-}
-
-func WithDynamicInfo(value bool) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.DynamicInfo = value
-	}
-}
-
-func (u *User) GetSubscriptions(ctx context.Context, options ...GetSubscriptionOption) (Subscriptions, error) {
-	opts := &GetSubscriptionOptions{}
-	for option := range slices.Values(options) {
-		option(opts)
-	}
-
-	// Build query.
-	queries := []query.Option{query.Term("user_id", u.GetID())}
-	if opts.OnlyFavorites {
-		queries = append(queries, query.Term("favorite", true))
-	}
-	if len(opts.IDs) > 0 {
-		queries = append(queries, query.Terms("subscription_id", opts.IDs))
-	}
-	if len(opts.Categories) > 0 {
-		queries = append(queries, query.Terms("customisation.categories", opts.Categories))
-	}
-
-	// Execute query.
-	var (
-		subscriptions Subscriptions
-		err           error
-	)
-	subscriptions, err = elastic.SearchAll[*Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		query.Bool(
-			query.Filter(queries...),
-		),
-		DefaultPaginationSize,
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-
-	// Add dynamic info if requested.
-	if len(subscriptions) > 0 && opts.DynamicInfo {
-		err = addSubscriptionDynamicInfo(ctx, subscriptions)
-		if err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
-	return subscriptions, nil
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

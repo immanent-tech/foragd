@@ -101,7 +101,8 @@
     "blog",
     "templates/element",
     "handlers/home",
-    "handlers/articles"
+    "handlers/articles",
+    "service"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

@@ -866,7 +866,7 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 			}
 
 			// Retrieve the user details.
-			user, err := models.GetUserByEmail(req.Context(), email)
+			user, err := service.GetUserByEmail(req.Context(), email)
 			if err != nil {
 				displayResults(err)
 				return
