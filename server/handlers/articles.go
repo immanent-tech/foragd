@@ -647,7 +647,7 @@ func markArticles(
 	}
 	subscription.MarkItems(mark, itemIDs...)
 
-	_, err = models.UpdateSubscriptions(ctx, subscription)
+	_, err = service.UpdateSubscriptions(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("update subscription data: %w", err)
 	}

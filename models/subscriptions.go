@@ -27,7 +27,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -566,71 +565,6 @@ func SearchSubscriptions(
 	}
 
 	return resp.Results, "", nil
-}
-
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func UpdateSubscriptions(
-	ctx context.Context,
-	subscriptions ...*Subscription,
-) (map[SubscriptionID]*bulk.OperationResponse, error) {
-	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-	return resp, nil
-}
-
-// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
-// subscription as appropriate.
-func UpdateFavoriteSubscription(ctx context.Context, id SubscriptionID, favorite bool) error {
-	subscription, err := GetSubscription(ctx, id)
-	if err != nil {
-		return fmt.Errorf("get subscription: %w", err)
-	}
-
-	subscription.Favorite = favorite
-
-	_, err = UpdateSubscriptions(ctx, subscription)
-	if err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-
-	return nil
-}
-
-// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
-// subscription data in the user object and clearing any individual item states for a subscription.
-func MarkSubscriptions(
-	ctx context.Context,
-	mark Mark,
-	subscriptionIDs ...SubscriptionID,
-) error {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := GetSubscriptions(ctx,
-		GetSubscriptionsByIDs(subscriptionIDs...),
-	)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: %w", err)
-	}
-
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
-			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
-			}
-		} else {
-			subscription.Mark(user, mark)
-			if _, err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
-			}
-		}
-	}
-
-	return nil
 }
 
 // addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.

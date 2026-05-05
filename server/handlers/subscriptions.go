@@ -550,7 +550,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 		}
 
 		// Mark subscription.
-		if err := models.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
+		if err := service.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -648,7 +648,7 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 		}
 
 		// Mark subscriptions.
-		err = models.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
+		err = service.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
@@ -712,7 +712,7 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 		}
 
 		// Get the subscription state.
-		if err := models.UpdateFavoriteSubscription(req.Context(), request.SubscriptionID, favorite); err != nil {
+		if err := service.UpdateFavoriteSubscription(req.Context(), request.SubscriptionID, favorite); err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update favorite subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -1113,7 +1113,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 
 		// Update the subscription object.
 		subscription.UpdatedAt = new(time.Now().UTC())
-		_, err = models.UpdateSubscriptions(req.Context(), subscription)
+		_, err = service.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update subscription: %w", err),
