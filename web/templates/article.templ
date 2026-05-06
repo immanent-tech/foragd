@@ -606,14 +606,19 @@ templ ArticleContent(article *models.Article) {
 										class="btn btn-wide btn-primary"
 										data-url={ proxyURL }
 										_="
-										install LoadingButton
 										on click
+											add .in-flight-request to me
+											set my.disabled to true
 											fetch me.dataset.url
-											put the result into #article-full-text's value then send submit to #extract-article
+											put the result into #article-full-text's value then
+											    remove .in-flight-request from me
+											    set my.disabled to false
+												send submit to #extract-article
 											catch e
   											  log 'fetchAndProxy failed with status: ' + e.status
   											  set #article-full-text's value to ''
   											  send submit to #extract-article
+    										  set my.disabled to true
 											end
 										"
 									>
@@ -637,7 +642,9 @@ templ ArticleContent(article *models.Article) {
 										hx-trigger="submit"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
 										class="invisible"
-										_="on htmx:afterRequest(failed) add @disabled to #show-remote-content-button"
+										_="
+										  on htmx:afterRequest(failed) add @disabled to #show-remote-content-button
+										  "
 									>
 										<input type="hidden" name="article-full-text" id="article-full-text"/>
 									</form>
