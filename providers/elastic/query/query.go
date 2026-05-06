@@ -289,6 +289,41 @@ func Terms[T any](field string, values []T, options ...func(*TermsQuery)) Option
 	}
 }
 
+type WildcardQuery struct {
+	*types.WildcardQuery
+}
+
+func (q *WildcardQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *WildcardQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+// Wildcard adds a "Wildcard" query on the given field with the given value.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-wildcard-query
+func Wildcard(field string, value string, options ...func(*WildcardQuery)) Option {
+	return func(query *types.Query) {
+		// Create term query clause.
+		wildcardQueryClause := &WildcardQuery{
+			&types.WildcardQuery{
+				Value: &value,
+			},
+		}
+		// Set options.
+		for option := range slices.Values(options) {
+			option(wildcardQueryClause)
+		}
+		// Apply term query clause to query.
+		if query.Wildcard == nil {
+			query.Wildcard = make(map[string]types.WildcardQuery)
+		}
+		query.Wildcard[field] = *wildcardQueryClause.WildcardQuery
+	}
+}
+
 // Since adds a "Range" query to find documents newer than the given time.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates

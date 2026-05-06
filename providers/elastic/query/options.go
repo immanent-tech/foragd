@@ -10,7 +10,7 @@ import (
 
 // Boostable represents a query option that supports a boost parameter.
 type Boostable interface {
-	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery
+	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery | *WildcardQuery
 
 	SetBoost(boost float32)
 }
@@ -24,7 +24,7 @@ func WithQueryBoost[T Boostable](boost float32) func(T) {
 
 // Nameable represents a query option that can be named.
 type Nameable interface {
-	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery
+	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery | *WildcardQuery
 
 	SetName(name string)
 }
