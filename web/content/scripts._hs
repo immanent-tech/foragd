@@ -47,6 +47,7 @@ def handleReadStatus
     	else
     	  set your value to 'read'
     	end
+      halt the event's bubbling
     on htmx:afterRequest(failed) toggle @checked on me
   end
 end
