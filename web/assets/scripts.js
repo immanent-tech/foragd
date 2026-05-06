@@ -58,6 +58,13 @@ window.addEventListener("pageshow", (event) => {
   }
 });
 
+// Listen for scroll events and update the progress bar.
+window.addEventListener("scroll", () => {
+  const el = document.documentElement;
+  const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+  document.querySelector(".progress-bar").style.width = pct + "%";
+});
+
 // Redirect to login if server returns a 401 (unauthorized).
 document.body.addEventListener("htmx:responseError", function (evt) {
   if (evt.detail.xhr.status === 401) {
