@@ -6,9 +6,7 @@ package models
 import (
 	"cmp"
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
 	"maps"
 	"net/mail"
 	"slices"
@@ -16,746 +14,14 @@ import (
 	"strings"
 	"time"
 
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-syndication/sanitization"
 
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
-
-// GetSubscriptionsForItems returns the subscriptions that the list of items belong to.
-func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	// Get user subscription details for the feeds the items belong to.
-	resp, err := elastic.Search[*Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-			),
-			query.Should(
-				query.Terms("feed_data.feed_id", items.GetFeedIDs()),
-				query.Terms("email_data.feed_id", items.GetFeedIDs()),
-			),
-		),
-		elastic.WithSize(len(items.GetFeedIDs())),
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-	return resp.Results, nil
-}
-
-func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...SubscriptionID) (CategoryCounts, error) {
-	// Retrieve user object.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	// Build query.
-	var searchQuery query.Option
-	if len(subscriptionIDs) == 0 {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-			),
-		)
-	} else {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", subscriptionIDs),
-			),
-		)
-	}
-
-	// Build elastic.
-	termsField := "customisation.categories.raw"
-	termsCount := 200
-	aggs := elastic.Aggs{
-		"CategoryCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*Subscription](ctx,
-		schema.SubscriptionsIndexRO(),
-		searchQuery,
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-		elastic.WithAggregations(aggs),
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
-		}
-	}
-	return counts, nil
-}
-
-// GetSubscriptionCategories retrieves a map of categories from user subscriptions by count.
-func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions) (CategoryCounts, error) {
-	// Retrieve user object.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	// Build query.
-	var searchQuery query.Option
-	if len(subscriptions) == 0 {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-			),
-		)
-	} else {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", subscriptions.GetIDs()),
-			),
-		)
-	}
-
-	// Build elastic.
-	termsField := "customisation.categories.raw"
-	termsCount := 200
-	aggs := elastic.Aggs{
-		"CategoryCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*Subscription](ctx,
-		schema.SubscriptionsIndexRO(),
-		searchQuery,
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-		elastic.WithAggregations(aggs),
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
-		}
-	}
-	return counts, nil
-}
-
-type subscriptionsRequest struct {
-	filterFavorites  bool
-	filterIDs        []SubscriptionID
-	filterFeedIDs    []FeedID
-	filterCategories []Category
-	ignoreIDs        []SubscriptionID
-	addDynamicInfo   bool
-}
-
-type subscriptionsRequestOption func(*subscriptionsRequest)
-
-// GetSubscriptionsByFavorite option adds a filter to the query to get favorite subscriptions only.
-func GetSubscriptionsByFavorite(value bool) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.filterFavorites = value
-	}
-}
-
-// GetSubscriptionsByIDs option adds a filter to the query to get subscriptions by their ids.
-func GetSubscriptionsByIDs(ids ...SubscriptionID) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.filterIDs = ids
-	}
-}
-
-// GetSubscriptionsByFeedIDs option adds a filter to the query to get subscriptions by their feed ids.
-func GetSubscriptionsByFeedIDs(ids ...FeedID) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.filterFeedIDs = ids
-	}
-}
-
-// GetSubscriptionsByCategories option adds a filter to the query to get subscriptions by category.
-func GetSubscriptionsByCategories(categories ...Category) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.filterCategories = categories
-	}
-}
-
-// GetSubscriptionsDynamicInfo option will fill in the dynamic info (i.e., stats) after fetching.
-func GetSubscriptionsDynamicInfo(value bool) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.addDynamicInfo = value
-	}
-}
-
-func IgnoreSubscriptions(ids ...SubscriptionID) subscriptionsRequestOption {
-	return func(sr *subscriptionsRequest) {
-		sr.ignoreIDs = ids
-	}
-}
-
-type searchSubscriptionsRequest struct {
-	count          int
-	sort           *Sort
-	pagination     Pagination
-	addDynamicInfo bool
-	queries        []query.Option
-}
-
-// searchSubscriptionsOption is a functional option to apply to a search subscriptions request.
-type searchSubscriptionsOption func(*searchSubscriptionsRequest)
-
-// searchSubscriptionsQueries option appends the given queries into the request.
-func searchSubscriptionsQueries(queries ...query.Option) searchSubscriptionsOption {
-	return func(ssr *searchSubscriptionsRequest) {
-		ssr.queries = append(ssr.queries, queries...)
-	}
-}
-
-// searchSubscriptionsMaxResults option controls the max results returned by the request.
-func searchSubscriptionsMaxResults(count int) searchSubscriptionsOption {
-	return func(ssr *searchSubscriptionsRequest) {
-		ssr.count = count
-	}
-}
-
-func searchSubscriptionsSortResults(sort *Sort) searchSubscriptionsOption {
-	return func(ssr *searchSubscriptionsRequest) {
-		ssr.sort = sort
-	}
-}
-
-func searchSubscriptionsPaginate(paginate Pagination) searchSubscriptionsOption {
-	return func(ssr *searchSubscriptionsRequest) {
-		ssr.pagination = paginate
-	}
-}
-
-func searchSubscriptionsAddDynamicInfo(value bool) searchSubscriptionsOption {
-	return func(ssr *searchSubscriptionsRequest) {
-		ssr.addDynamicInfo = value
-	}
-}
-
-// GetSubscription returns the subscription that matches the given ID.
-//
-// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription.
-func GetSubscription(
-	ctx context.Context,
-	id SubscriptionID,
-	options ...subscriptionsRequestOption,
-) (*Subscription, error) {
-	// Parse and apply options.
-	req := &subscriptionsRequest{}
-	for option := range slices.Values(options) {
-		option(req)
-	}
-
-	// Get user data.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	// Find matching subscription.
-	subscriptions, _, err := SearchSubscriptions(ctx,
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Term("subscription_id", id),
-			),
-		),
-		searchSubscriptionsMaxResults(1),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("search subscriptions: %w", ErrNotFound)
-	case len(subscriptions) != 1:
-		return nil, fmt.Errorf("search subscriptions: %w: too many subscriptions", ErrInvalidAPIResult)
-	}
-
-	// Add dynamic info if requested.
-	if req.addDynamicInfo {
-		err = addSubscriptionDynamicInfo(ctx, subscriptions)
-		if err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
-	return subscriptions[0], nil
-}
-
-// GetSubscriptions performs a search request to fetch subscriptions. Accepts all request options to filter/enrich the
-// results.
-func GetSubscriptions(
-	ctx context.Context,
-	options ...subscriptionsRequestOption,
-) (Subscriptions, error) {
-	req := &subscriptionsRequest{}
-	for option := range slices.Values(options) {
-		option(req)
-	}
-
-	// Get user data.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	// Build query optional parts.
-	queries := []query.Option{query.Term("user_id", user.GetID())}
-	if req.filterFavorites {
-		queries = append(queries, query.Term("favorite", true))
-	}
-	if len(req.filterIDs) > 0 {
-		queries = append(queries, query.Terms("subscription_id", req.filterIDs))
-	}
-	if len(req.filterCategories) > 0 {
-		queries = append(
-			queries,
-			query.Terms("customisation.categories", req.filterCategories),
-		)
-	}
-
-	// Construct query.
-	subscriptions, err := getAllSubscriptionsByQuery(ctx,
-		query.Bool(
-			query.Filter(
-				queries...,
-			),
-		))
-	if err != nil {
-		return nil, fmt.Errorf("get all subscriptions: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, fmt.Errorf("get all subscriptions: %w", ErrNotFound)
-	}
-
-	if req.addDynamicInfo {
-		if err = addSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
-	return subscriptions, nil
-}
-
-// GetSubscriptionByFeedID returns the subscription that matches the given feed ID.
-//
-// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription.
-func GetSubscriptionByFeedID(
-	ctx context.Context,
-	id FeedID,
-	options ...subscriptionsRequestOption,
-) (*Subscription, error) {
-	// Parse and apply options.
-	req := &subscriptionsRequest{}
-	for option := range slices.Values(options) {
-		option(req)
-	}
-
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	subscriptions, _, err := SearchSubscriptions(ctx,
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Term("type", SubscriptionTypeFeed),
-				query.Term("feed_data.feed_id", id),
-			),
-		),
-		searchSubscriptionsMaxResults(1),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("search subscriptions: %w", ErrNotFound)
-	case len(subscriptions) != 1:
-		return nil, fmt.Errorf("search subscriptions: %w: too many subscriptions", ErrInvalidAPIResult)
-	}
-
-	// Add dynamic info if requested.
-	if req.addDynamicInfo {
-		err = addSubscriptionDynamicInfo(ctx, subscriptions)
-		if err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
-	return subscriptions[0], nil
-}
-
-// GetSubscriptionSuggestions returns subscriptions that match the given text.
-//
-// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription
-// suggestions.
-func GetSubscriptionSuggestions(
-	ctx context.Context,
-	text string,
-	count int,
-	options ...subscriptionsRequestOption,
-) (Subscriptions, error) {
-	// Parse and apply options.
-	req := &subscriptionsRequest{}
-	for option := range slices.Values(options) {
-		option(req)
-	}
-
-	// Get subscriptions by ID.
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	sort := SortMostRelevant
-	subscriptions, _, err := SearchSubscriptions(ctx,
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Bool(
-					query.Should(
-						query.Term("type", SubscriptionTypeEmail),
-						query.Term("type", SubscriptionTypeFeed),
-					),
-				),
-			),
-			query.Must(
-				query.Bool(
-					query.Should(
-						query.SearchAsYouType(text, "customisation.nickname"),
-					),
-				),
-			),
-			query.MustNot(
-				query.Terms("subscription_id", req.ignoreIDs),
-			),
-		),
-		searchSubscriptionsMaxResults(count),
-		searchSubscriptionsSortResults(&sort),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, fmt.Errorf("search subscriptions: %w", ErrNotFound)
-	}
-
-	// Add dynamic info if requested.
-	if req.addDynamicInfo {
-		err = addSubscriptionDynamicInfo(ctx, subscriptions)
-		if err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
-	return subscriptions, nil
-}
-
-func SearchSubscriptions(
-	ctx context.Context,
-	query query.Option,
-	options ...searchSubscriptionsOption,
-) (Subscriptions, Pagination, error) {
-	req := &searchSubscriptionsRequest{}
-
-	// Build request with options.
-	for option := range slices.Values(options) {
-		option(req)
-	}
-
-	// Add sane values where not supplied.
-	if req.count == 0 {
-		req.count = 10
-	}
-
-	searchAfter, err := elastic.DecodePagination(&req.pagination)
-	if err != nil {
-		return nil, "", ErrInvalidParams
-	}
-
-	// Perform search.
-	resp, err := elastic.Search[*Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		query,
-		elastic.WithSort(newSubscriptionSortOptions(req.sort)...),
-		elastic.WithSearchAfter(searchAfter...),
-		elastic.WithSize(req.count),
-	)
-	if err != nil {
-		return nil, "", ElasticsearchToAPIError(err)
-	}
-	// Parse search after into pagination.
-	if req.pagination != "" {
-		req.pagination, err = elastic.EncodePagination[Pagination](resp.Pagination)
-		if err != nil {
-			return nil, "", ErrInvalidParams
-		}
-		return resp.Results, req.pagination, nil
-	}
-
-	return resp.Results, "", nil
-}
-
-// addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
-// At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
-// generated if the user has set the display option ShowSubscriptionStats in their account settings.
-//
-//nolint:gocognit,funlen
-func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions) error {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	var extraIDs []SubscriptionID
-	for subscription := range slices.Values(subscriptions) {
-		// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
-		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
-			for id := range slices.Values(subscription.GroupData.Subscriptions) {
-				if !slices.ContainsFunc(subscriptions, func(e *Subscription) bool {
-					return e.GetID() == id
-				}) {
-					extraIDs = append(extraIDs, id)
-				}
-			}
-		}
-	}
-	if len(extraIDs) > 0 {
-		extraSubscriptions, err := GetSubscriptions(ctx,
-			GetSubscriptionsByIDs(extraIDs...),
-		)
-		if err != nil && !errors.Is(err, ErrNotFound) {
-			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
-		}
-		subscriptions = append(subscriptions, extraSubscriptions...)
-	}
-
-	fetchJobs, jobCtx := errgroup.WithContext(ctx)
-	defer jobCtx.Done()
-
-	// Get unread count per feed.
-	var unreadCounts map[FeedID]int64
-	fetchJobs.Go(func() error {
-		var err error
-		unreadCounts, err = getFeedUnreadCounts(jobCtx, subscriptions)
-		if err != nil {
-			return fmt.Errorf("get unread counts: %w", err)
-		}
-		return nil
-	})
-
-	// For search subscriptions, run queries directly to add unread count and last update.
-	fetchJobs.Go(func() error {
-		for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeSearch)) {
-			request := subscription.SearchData.Search
-			// Build query to get unread count.
-			query, err := BuildSearchResultsQuery(jobCtx, user, &request, SearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			count, err := CountItems(jobCtx, query)
-			if err == nil {
-				subscription.GetStats().UnreadCount = int(count)
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
-					)
-			}
-			// Update query for getting last updated item (view: all, sort: newest first).
-			request.View = ViewAll
-			sort := SortNewestFirst
-			query, err = BuildSearchResultsQuery(jobCtx, user, &request, SearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
-				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get last update for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
-					)
-			}
-		}
-		return nil
-	})
-
-	// Get last update (latest item timestamp) per feed.
-	var lastUpdate map[FeedID]time.Time
-	fetchJobs.Go(func() error {
-		var err error
-		lastUpdate, err = getFeedLastUpdates(jobCtx, subscriptions.GetFeedIDs()...)
-		if err != nil {
-			return fmt.Errorf("get last update: %w", err)
-		}
-		return nil
-	})
-
-	var avgDailyUpdates map[FeedID]float64
-	if user.GetSettings().ShowSubscriptionStats {
-		// Get average daily updates per feed
-		fetchJobs.Go(func() error {
-			var err error
-			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, subscriptions.GetFeedIDs()...)
-			if err != nil {
-				return fmt.Errorf("get average daily updates: %w", err)
-			}
-			return nil
-		})
-	}
-
-	if err := fetchJobs.Wait(); err != nil {
-		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
-	}
-
-	// For feed subscriptions, add stats.
-	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeFeed)) {
-		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-		if user.GetSettings().ShowSubscriptionStats {
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
-		}
-	}
-
-	// For email subscriptions, add stats.
-	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeEmail)) {
-		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-		if user.GetSettings().ShowSubscriptionStats {
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
-		}
-	}
-
-	// For group subscriptions, calculate stats from other subscriptions.
-	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeGroup)) {
-		var avgDailyUpdates []float64
-		var unreadCount int
-		var lastUpdates []time.Time
-		for groupSubscription := range slices.Values(subscriptions) {
-			if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
-				if user.GetSettings().ShowSubscriptionStats {
-					avgDailyUpdates = append(avgDailyUpdates, groupSubscription.GetStats().AvgDailyUpdates)
-				}
-				unreadCount += groupSubscription.GetStats().UnreadCount
-				lastUpdates = append(lastUpdates, groupSubscription.GetStats().LastUpdate)
-			}
-		}
-		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
-			slices.Sort(avgDailyUpdates)
-			slices.Reverse(avgDailyUpdates)
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
-		}
-		subscription.GetStats().UnreadCount = unreadCount
-		// Sort by date ascending, with favorites before non-favorites.
-		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
-			return timeA.Compare(timeB)
-		})
-		slices.Reverse(lastUpdates)
-		subscription.GetStats().LastUpdate = lastUpdates[0]
-	}
-
-	return nil
-}
-
-// getAllSubscriptionsByQuery returns all subscriptions that match the given query.
-func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscriptions, error) {
-	var (
-		subscriptions Subscriptions
-		err           error
-	)
-	subscriptions, err = elastic.SearchAll[*Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		query,
-		DefaultPaginationSize,
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-	return subscriptions, nil
-}
 
 // BuildItemQueries generates a slices of queries for the given subscriptions, based on the given filters.
 func BuildItemQueries(
@@ -1344,6 +610,16 @@ func (s Subscriptions) GetCategories() Categories {
 	return slices.Compact(categories)
 }
 
+// GetByID will return the subscription that matches the given ID, if any.
+func (s Subscriptions) GetByID(id SubscriptionID) *Subscription {
+	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return s[idx]
+	}
+	return nil
+}
+
 // GetByFeedID will return the subscription that matches the given feed ID, if any.
 func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
 	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
@@ -1352,6 +628,36 @@ func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
 		return s[idx]
 	}
 	return nil
+}
+
+// FilterByIDs returns a new slice containing the subscriptions which have a SubscriptionID matching the given ids.
+func (s Subscriptions) FilterByIDs(ids ...SubscriptionID) Subscriptions {
+	if len(ids) == 0 {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return slices.Contains(ids, subscription.GetID())
+	}))
+}
+
+// FilterByFeedIDs returns a new slice containing the subscriptions which have a FeedID matching the given ids.
+func (s Subscriptions) FilterByFeedIDs(ids ...FeedID) Subscriptions {
+	if len(ids) == 0 {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return slices.Contains(ids, subscription.GetFeedID())
+	}))
+}
+
+// ExcludeIDs returns a new slice containing the subscriptions which DO NOT have an id matching the given IDs.
+func (s Subscriptions) ExcludeIDs(ids ...SubscriptionID) Subscriptions {
+	if len(ids) == 0 {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return !slices.Contains(ids, subscription.GetID())
+	}))
 }
 
 // FilterByCategories returns a new slice containing the subscriptions which have a category matching the given
@@ -1398,6 +704,15 @@ func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 func (s Subscriptions) FilterByType(t ...SubscriptionType) Subscriptions {
 	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
 		return slices.Contains(t, subscription.GetSubscriptionType())
+	}))
+}
+
+func (s Subscriptions) FilterEmailIDs(ids ...string) Subscriptions {
+	if len(ids) == 0 {
+		return s
+	}
+	return slices.Collect(FilterSlice(s.FilterByType(SubscriptionTypeEmail), func(subscription *Subscription) bool {
+		return slices.Contains(ids, subscription.EmailData.EmailSenderID)
 	}))
 }
 
@@ -1704,54 +1019,6 @@ func newSubscriptionSettings() *SubscriptionSettings {
 	return &SubscriptionSettings{
 		ShowFullArticleContent: false,
 	}
-}
-
-// SubscriptionSorting contains the sort options for sorting subscription results.
-type SubscriptionSorting struct {
-	MarkedReadAt   string `json:"marked_read_at"`
-	SubscriptionID string `json:"subscription_id"`
-}
-
-// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
-func (s *SubscriptionSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func newSubscriptionSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
-	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
-	}
-	var opts []estypes.SortCombinationsVariant
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &SubscriptionSorting{
-			MarkedReadAt:   "asc",
-			SubscriptionID: "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &SubscriptionSorting{
-			MarkedReadAt:   "desc",
-			SubscriptionID: "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&SubscriptionSorting{
-				MarkedReadAt:   "asc",
-				SubscriptionID: "asc",
-			},
-		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
-	}
-	return opts
 }
 
 func (f *AddFeedSubscriptionRequest) Valid() error {

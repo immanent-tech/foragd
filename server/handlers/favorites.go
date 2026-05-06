@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -66,7 +67,7 @@ func HandleListFavorites() http.HandlerFunc {
 		wg.Go(func() error {
 			if len(user.ItemFavorites) > 0 {
 				var err error
-				articles, err = models.GetArticles(jobCtx, user.ItemFavorites...)
+				articles, err = service.GetArticles(jobCtx, user.ItemFavorites...)
 				if err != nil {
 					return fmt.Errorf("list favorites: get favorite articles: %w", err)
 				}
@@ -77,13 +78,11 @@ func HandleListFavorites() http.HandlerFunc {
 		// Get favorite subscriptions.
 		wg.Go(func() error {
 			var err error
-			subscriptions, err = models.GetSubscriptions(jobCtx,
-				models.GetSubscriptionsByFavorite(true),
-				models.GetSubscriptionsDynamicInfo(true),
-			)
+			subscriptions, err = service.GetAllSubscriptions(jobCtx, user)
 			if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 				return fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
 			}
+			subscriptions = subscriptions.FilterByFavorites(true)
 			return nil
 		})
 

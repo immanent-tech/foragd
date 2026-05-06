@@ -74,7 +74,16 @@ func HandleListArticles() http.HandlerFunc {
 		}
 		if err := request.Valid(); err != nil {
 			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				InternalError: fmt.Errorf("parse query values: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusUnprocessableEntity,
 			}).ServeHTTP(res, req)
 			return
@@ -99,10 +108,10 @@ func HandleListArticles() http.HandlerFunc {
 
 		// Get the subscription details if the list is for a specific subscription.
 		if subscriptionID := req.FormValue("subscription_id"); subscriptionID != "" {
-			subscription, err = models.GetSubscription(
+			subscription, err = service.GetSubscription(
 				req.Context(),
+				user,
 				subscriptionID,
-				models.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
 				HandleInternalError(&models.APIError{
@@ -118,7 +127,7 @@ func HandleListArticles() http.HandlerFunc {
 
 		// Get articles matching filters.
 		var next models.Pagination
-		articles, next, err = models.FilterArticles(req.Context(), request)
+		articles, next, err = service.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("filter articles: %w", err),
@@ -166,27 +175,29 @@ func HandleListArticles() http.HandlerFunc {
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
 func HandleListArticlesUpdates() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Parse and process filters.
-		filters := getListArticleFilters(req)
+		// Parse and process articleFilters.
+		articleFilters := getListArticleFilters(req)
 
 		// Don't bother calculating updates if user is not viewing unread items.
-		if filters.GetView() != models.ViewUnread {
+		if articleFilters.GetView() != models.ViewUnread {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		// Build query.
+		// Retrieve the user object.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to get user data.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
-		subscriptions, err := models.GetSubscriptions(req.Context(),
-			models.GetSubscriptionsByIDs(filters.GetSubscriptions()...),
-		)
+
+		// Retreive subscription details.
+		subscriptionFilters := models.NewListDisplayFilters()
+		subscriptionFilters.Subscriptions = articleFilters.GetSubscriptions()
+		subscriptionFilters.View = articleFilters.GetView()
+		subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
 		switch {
 		case err != nil:
 			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
@@ -199,6 +210,8 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
+
+		// Generate a query to find updates.
 		updatesQuery := query.Bool(
 			query.WithBoolQueryName("list_articles_updates_"+user.GetID()),
 			query.Filter(
@@ -212,10 +225,10 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				// Must match any of the given feed IDs.
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				// Must match any of the given categories.
-				query.Terms("categories.raw", filters.GetCategories()),
+				query.Terms("categories.raw", articleFilters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+					query.Should(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
 				),
 			),
 		)
@@ -245,7 +258,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 					element.WithHXTarget(templates.ContentID.Target()),
 					element.WithHXSwap("innerHTML window:top transition:true"),
 					element.WithHXPushURL(true),
-					element.WithHXValues(filters.Values()),
+					element.WithHXValues(articleFilters.Values()),
 				),
 			)}).ServeHTTP(res, req)
 		} else {
@@ -294,7 +307,7 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-		articles, err := models.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
+		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("find similar articles: %w", err),
@@ -354,7 +367,7 @@ func HandleViewArticle() http.HandlerFunc {
 		}
 
 		// Fetch article.
-		articles, err := models.GetArticles(req.Context(), itemID)
+		articles, err := service.GetArticles(req.Context(), itemID)
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get article content: %w", err),
@@ -641,7 +654,12 @@ func markArticles(
 	subscriptionID models.SubscriptionID,
 	itemIDs ...models.ItemID,
 ) error {
-	subscription, err := models.GetSubscription(ctx, subscriptionID)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscription, err := service.GetSubscription(ctx, user, subscriptionID)
 	if err != nil {
 		return fmt.Errorf("get subscriptions: %w", err)
 	}
@@ -694,7 +712,7 @@ func updateFavoriteArticle(
 			return models.ErrUserAlreadyFavorited
 		}
 		// Get the article details.
-		articles, err := models.GetArticles(ctx, id)
+		articles, err := service.GetArticles(ctx, id)
 		if err != nil {
 			return fmt.Errorf("unable to add favorite article: %w", err)
 		}

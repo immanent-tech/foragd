@@ -11,6 +11,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -20,7 +21,7 @@ func GetSubscriptionActionSuggestions() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
 		text := validation.SanitizeString(req.FormValue("command-text"))
-		subscriptions, err := models.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount)
+		subscriptions, err := service.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
 				slog.Any("error", err),

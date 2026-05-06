@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/client"
@@ -16,6 +17,17 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
+
+var userCache = otter.Must(&otter.Options[string, models.User]{
+	MaximumSize: 10_000,
+	ExpiryCalculator: otter.ExpiryAccessing[string, models.User](
+		60 * time.Second,
+	), // Reset timer on reads/writes
+	// RefreshCalculator: otter.RefreshWriting[string, models.Subscriptions](
+	// 	500 * time.Millisecond,
+	// ), // Refresh after writes
+	// StatsRecorder: counter, // Attach stats collector
+})
 
 // GetUser retrieves the user doc with the given id.
 func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {

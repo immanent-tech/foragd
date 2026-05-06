@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -77,11 +78,11 @@ func HandleSearchSuggestions() http.HandlerFunc {
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
-			subscriptions, err = models.GetSubscriptionSuggestions(
+			subscriptions, err = service.GetSubscriptionSuggestions(
 				jobCtx,
 				search.Text,
 				defaultSubscriptionSuggestionsCount,
-				models.GetSubscriptionsDynamicInfo(true),
+				nil,
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
@@ -92,7 +93,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 
 		// Generate article suggestions.
 		searchJobs.Go(func() error {
-			searchOption, err := models.BuildSearchResultsQuery(
+			searchOption, err := service.BuildSearchResultsQuery(
 				req.Context(),
 				user,
 				search,
@@ -116,7 +117,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 					slog.Any("error", err))
 			}
 			if len(itemResults) > 0 {
-				articles, err = models.GenerateArticles(jobCtx, itemResults)
+				articles, err = service.GenerateArticles(jobCtx, itemResults)
 				if err != nil {
 					slogctx.FromCtx(jobCtx).Debug("Unable to generate articles.",
 						slog.Any("error", err))
@@ -198,15 +199,24 @@ func HandleSearchResults() http.HandlerFunc {
 			return
 		}
 
+		// Retrieve the user object.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+
 		ctx := req.Context()
 
 		// If the search request has subscription filters, get subscription details.
 		if len(search.Subscriptions) > 0 {
-			var subscriptions models.Subscriptions
-			subscriptions, err = models.GetSubscriptions(req.Context(),
-				models.GetSubscriptionsByIDs(search.Subscriptions...),
-				models.GetSubscriptionsDynamicInfo(true),
-			)
+			subscriptionFilters := models.NewListDisplayFilters()
+			subscriptionFilters.Subscriptions = search.Subscriptions
+			subscriptionFilters.View = search.View
+			subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get subscriptions: %w", err),
@@ -215,16 +225,6 @@ func HandleSearchResults() http.HandlerFunc {
 				return
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-		}
-
-		// Retrieve the user object.
-		user := models.UserFromCtx(ctx)
-		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
 		}
 
 		// Retrieve pagination.
@@ -239,7 +239,7 @@ func HandleSearchResults() http.HandlerFunc {
 		// Find articles that match search request.
 		var articles models.Articles
 		var categories []models.Category
-		searchQuery, err := models.BuildSearchResultsQuery(ctx, user, search, models.SearchResultsClause(search))
+		searchQuery, err := service.BuildSearchResultsQuery(ctx, user, search, models.SearchResultsClause(search))
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("build articles search query: %w", err),
@@ -266,7 +266,7 @@ func HandleSearchResults() http.HandlerFunc {
 					return fmt.Errorf("search articles: %w", err)
 				}
 				if len(items) > 0 {
-					articles, err = models.GenerateArticles(ctx, items)
+					articles, err = service.GenerateArticles(ctx, items)
 					if err != nil {
 						return fmt.Errorf("generate articles: %w", err)
 					}
@@ -372,7 +372,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 		}
 		// Override the published within on the search request to last 5 minutes for updates.
 		request.PublishedWithin = models.SearchRequestPublishedWithinLast5mins
-		updatesQuery, err := models.BuildSearchResultsQuery(
+		updatesQuery, err := service.BuildSearchResultsQuery(
 			req.Context(),
 			user,
 			request,
@@ -445,7 +445,12 @@ func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := models.GetSubscriptionSuggestions(req.Context(), suggestion.Text, defaultSuggestionCount)
+		subscriptions, err := service.GetSubscriptionSuggestions(
+			req.Context(),
+			suggestion.Text,
+			defaultSuggestionCount,
+			nil,
+		)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
 				slog.Any("error", err),

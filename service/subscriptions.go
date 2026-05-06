@@ -10,13 +10,14 @@ import (
 	"log/slog"
 	"net/mail"
 	"slices"
-	"strconv"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/mitchellh/hashstructure/v2"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -25,153 +26,132 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-// GetSubscriptionOptions holds the options for fetching a user's subscriptions.
-type GetSubscriptionOptions struct {
-	OnlyFavorites bool
-	DynamicInfo   bool
-	IDs           []models.SubscriptionID
-	Categories    []models.Category
-	EmailIDs      []string
-}
+var userSubscriptionsCache = otter.Must(
+	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]]{
+		MaximumSize: 5000,
+	},
+)
 
-type GetSubscriptionOption func(*GetSubscriptionOptions)
-
-func Favorites(value bool) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.OnlyFavorites = value
-	}
-}
-
-func WithSubscriptionIDs(ids ...models.SubscriptionID) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		if len(ids) > 0 {
-			opts.IDs = ids
-		}
-	}
-}
-
-func WithSubscriptionCategories(categories ...models.Category) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		if len(categories) > 0 {
-			opts.Categories = categories
-		}
-	}
-}
-
-func WithDynamicInfo(value bool) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		opts.DynamicInfo = value
-	}
-}
-
-func WithEmailSubscriptionEmails(emails ...string) GetSubscriptionOption {
-	return func(opts *GetSubscriptionOptions) {
-		if len(emails) > 0 {
-			opts.EmailIDs = emails
-		}
-	}
-}
-
-func GetUserSubscriptions(
+func cacheAllUserSubscriptions(
 	ctx context.Context,
-	user *models.User,
-	options ...GetSubscriptionOption,
-) (models.Subscriptions, error) {
-	opts := &GetSubscriptionOptions{}
-	for option := range slices.Values(options) {
-		option(opts)
-	}
-
-	hash, err := hashstructure.Hash(opts, hashstructure.FormatV2, nil)
+	userID models.UserID,
+) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
+	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
+		InitialCapacity: 3000,
+		MaximumSize:     3000,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("cannot hash options: %w", err)
+		return nil, fmt.Errorf("create subscriptions cache: %w", err)
 	}
-	cacheKey := user.GetID() + "_sub_" + strconv.FormatUint(hash, 10)
-
-	if subscriptions, ok := subscriptionsCache.GetIfPresent(cacheKey); ok {
-		slogctx.FromCtx(ctx).Debug("Cache hit!")
-		return subscriptions, nil
-	}
-
-	// Build query.
-	queries := []query.Option{query.Term("user_id", user.GetID())}
-	if opts.OnlyFavorites {
-		queries = append(queries, query.Term("favorite", true))
-	}
-	if len(opts.IDs) > 0 {
-		queries = append(queries, query.Terms("subscription_id", opts.IDs))
-	}
-	if len(opts.Categories) > 0 {
-		queries = append(queries, query.Terms("customisation.categories", opts.Categories))
-	}
-	if len(opts.EmailIDs) > 0 {
-		queries = append(queries, query.Terms("email_data.email_sender_id", opts.EmailIDs))
-	}
-
 	// Execute query.
-	var (
-		subscriptions models.Subscriptions
-	)
-	subscriptions, err = elastic.SearchAll[*models.Subscription](
+	subscriptions, err := elastic.SearchAll[*models.Subscription](
 		ctx,
 		schema.SubscriptionsIndexRO(),
-		query.Bool(
-			query.Filter(queries...),
-		),
-		models.DefaultPaginationSize,
+		query.Term("user_id", userID),
+		3000,
 	)
 	if err != nil {
 		return nil, models.ElasticsearchToAPIError(err)
 	}
 
-	// Add dynamic info if requested.
-	if len(subscriptions) > 0 && opts.DynamicInfo {
+	if len(subscriptions) == 0 {
+		return nil, otter.ErrNotFound
+	}
+
+	if len(subscriptions) > 0 {
 		err = addSubscriptionDynamicInfo(ctx, subscriptions)
 		if err != nil {
 			return nil, fmt.Errorf("add dynamic info: %w", err)
 		}
 	}
 
-	subscriptionsCache.Set(cacheKey, subscriptions)
+	for subscription := range slices.Values(subscriptions) {
+		userSubscriptionsCache.Set(subscription.GetID(), subscription)
+	}
 
-	return subscriptions, nil
+	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.")
+
+	return userSubscriptionsCache, nil
 }
 
-// FilterUserSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
-// Dynamic information for subscriptions will also be added.
-func FilterUserSubscriptions(
+// GetAllSubscriptions returns all subscriptions for the given user.
+func GetAllSubscriptions(
 	ctx context.Context,
 	user *models.User,
-	request *models.ListRequest,
+) (models.Subscriptions, error) {
+	subscriptionsCache, err := userSubscriptionsCache.Get(
+		ctx,
+		user.GetID(),
+		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
+			cacheAllUserSubscriptions,
+		),
+	)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
+	case err != nil:
+		return nil, fmt.Errorf("get all subscriptions: %w", err)
+	}
+
+	return slices.Collect(subscriptionsCache.Values()), nil
+}
+
+// GetSubscription returns the subscription that matches the given ID for the given user.
+func GetSubscription(
+	ctx context.Context,
+	user *models.User,
+	id models.SubscriptionID,
+) (*models.Subscription, error) {
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+	return subscriptions.GetByID(id), nil
+}
+
+// GetSubscriptionsByFeedID returns all subscriptions that match the given FeedIDs.
+func GetSubscriptionsByFeedID(
+	ctx context.Context,
+	ids ...models.FeedID,
+) (models.Subscriptions, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+
+	return subscriptions.FilterByFeedIDs(ids...), nil
+}
+
+// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
+func FilterSubscriptions(
+	ctx context.Context,
+	user *models.User,
+	filters *models.ListFilters,
+	pagination models.Pagination,
 ) (models.Subscriptions, models.Pagination, error) {
-	subscriptions, err := GetUserSubscriptions(
+	subscriptions, err := GetAllSubscriptions(
 		ctx,
 		user,
-		WithSubscriptionIDs(request.Filters.Subscriptions...),
-		WithSubscriptionCategories(request.Filters.Categories...),
-		Favorites(request.Filters.OnlyFavorites),
-		WithDynamicInfo(true),
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("get all subscriptions: %w", err)
+		return nil, "", fmt.Errorf("filter subscriptions: %w", err)
 	}
-	if len(subscriptions) == 0 {
-		return nil, "", fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
+
+	subscriptions = subscriptions.
+		FilterByFavorites(filters.OnlyFavorites).
+		FilterByView(filters.GetView()).
+		FilterByCategories(filters.GetCategories()...).
+		FilterByIDs(filters.GetSubscriptions()...).
+		Sort(filters.GetSort())
+
+	if pagination != "" {
+		subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	}
-	// Add dynamic info.
-	err = addSubscriptionDynamicInfo(ctx, subscriptions)
-	if err != nil {
-		return nil, "", fmt.Errorf("add dynamic info: %w", err)
-	}
-	// Sort and paginate.
-	var pagination models.Pagination
-	if request.Pagination != nil {
-		pagination = *request.Pagination
-	}
-	subscriptions, pagination = subscriptions.
-		FilterByView(request.Filters.GetView()).
-		Sort(request.Filters.Sort).
-		Paginate(pagination, request.Filters.GetCount())
 
 	return subscriptions, pagination, nil
 }
@@ -195,6 +175,12 @@ func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription
 			return fmt.Errorf("update user: %w", err)
 		}
 	}
+	// Cache the new subscriptions.
+	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+		for subscription := range slices.Values(subscriptions) {
+			subscriptionsCache.Set(subscription.GetID(), subscription)
+		}
+	}
 	return nil
 }
 
@@ -214,6 +200,93 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 	); err != nil {
 		return models.ElasticsearchToAPIError(err)
 	}
+	// Remove the subscriptions from the cache.
+	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+		for id := range slices.Values(ids) {
+			subscriptionsCache.Invalidate(id)
+		}
+	}
+
+	return nil
+}
+
+// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+func UpdateSubscriptions(
+	ctx context.Context,
+	subscriptions ...*models.Subscription,
+) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
+	if err != nil {
+		return nil, models.ElasticsearchToAPIError(err)
+	}
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	// Invalidate the cache.
+	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+		for subscription := range slices.Values(subscriptions) {
+			subscriptionsCache.Invalidate(subscription.GetID())
+			subscriptionsCache.Set(subscription.GetID(), subscription)
+		}
+	}
+
+	return resp, nil
+}
+
+// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
+// subscription data in the user object and clearing any individual item states for a subscription.
+func MarkSubscriptions(
+	ctx context.Context,
+	mark models.Mark,
+	subscriptionIDs ...models.SubscriptionID,
+) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscriptions, err := GetAllSubscriptions(ctx,
+		user,
+		// WithSubscriptionIDs(subscriptionIDs...),
+	)
+	if err != nil {
+		return fmt.Errorf("mark subscriptions: %w", err)
+	}
+
+	subscriptions = subscriptions.FilterByIDs(subscriptionIDs...)
+
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
+				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
+			}
+		} else {
+			subscription.Mark(user, mark)
+			if _, err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
+				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
+// subscription as appropriate.
+func UpdateFavoriteSubscription(ctx context.Context, user *models.User, id models.SubscriptionID, favorite bool) error {
+	subscription, err := GetSubscription(ctx, user, id)
+	if err != nil {
+		return fmt.Errorf("get subscription: %w", err)
+	}
+
+	subscription.Favorite = favorite
+
+	_, err = UpdateSubscriptions(ctx, subscription)
+	if err != nil {
+		return models.ElasticsearchToAPIError(err)
+	}
+
 	return nil
 }
 
@@ -245,10 +318,16 @@ func CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSu
 // GetEmailSubscription retrieves an EmailSubscription for the given user ID and email sender.
 func GetEmailSubscription(ctx context.Context, user *models.User, from *mail.Address) (*models.Subscription, error) {
 	// Check for an existing email subscription for the user.
-	subscriptions, err := GetUserSubscriptions(ctx, user, WithEmailSubscriptionEmails(from.Address))
+	subscriptions, err := GetAllSubscriptions(
+		ctx,
+		user,
+		// WithEmailSubscriptionEmails(from.Address),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("search subscriptions: %w", err)
 	}
+
+	subscriptions = subscriptions.FilterEmailIDs(from.Address)
 
 	var subscription *models.Subscription
 	switch {
@@ -272,72 +351,141 @@ func GetEmailSubscription(ctx context.Context, user *models.User, from *mail.Add
 	return subscription, nil
 }
 
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func UpdateSubscriptions(
+// GetSubscriptionSuggestions returns subscriptions that match the given text. A set of ids can be optionally passed to
+// ignore those subscriptions.
+func GetSubscriptionSuggestions(
 	ctx context.Context,
-	subscriptions ...*models.Subscription,
-) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
-	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
+	text string,
+	count int,
+	ignoredSubscriptions []models.SubscriptionID,
+) (models.Subscriptions, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	// Perform search.
+	resp, err := elastic.Search[*models.Subscription](
+		ctx,
+		schema.SubscriptionsIndexRO(),
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Bool(
+					query.Should(
+						query.Term("type", models.SubscriptionTypeEmail),
+						query.Term("type", models.SubscriptionTypeFeed),
+					),
+				),
+			),
+			query.Must(
+				query.Bool(
+					query.Should(
+						query.SearchAsYouType(text, "customisation.nickname"),
+					),
+				),
+			),
+			query.MustNot(
+				query.Terms("subscription_id", ignoredSubscriptions),
+			),
+		),
+		elastic.WithSort(newSubscriptionSortOptions(new(models.SortMostRelevant))...),
+		elastic.WithSize(count),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search subscriptions: %w", err)
+	}
+	if len(resp.Results) == 0 {
+		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
+	}
+
+	var subscriptions models.Subscriptions
+	subscriptions = resp.Results
+
+	err = addSubscriptionDynamicInfo(ctx, subscriptions)
+	if err != nil {
+		return nil, fmt.Errorf("add dynamic info: %w", err)
+	}
+
+	return subscriptions, nil
+}
+
+func GetCategoriesForSubscriptions(
+	ctx context.Context,
+	subscriptionIDs ...models.SubscriptionID,
+) (models.CategoryCounts, error) {
+	// Retrieve user object.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	// Build query.
+	var searchQuery query.Option
+	if len(subscriptionIDs) == 0 {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+		)
+	} else {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("subscription_id", subscriptionIDs),
+			),
+		)
+	}
+
+	// Build elastic.
+	termsField := "customisation.categories.raw"
+	termsCount := 200
+	aggs := elastic.Aggs{
+		"CategoryCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := elastic.Search[*models.Subscription](ctx,
+		schema.SubscriptionsIndexRO(),
+		searchQuery,
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+		elastic.WithAggregations(aggs),
+	)
 	if err != nil {
 		return nil, models.ElasticsearchToAPIError(err)
 	}
-	// Invalidate the cache.
-	subscriptionsCache.InvalidateAll()
-	return resp, nil
-}
 
-// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
-// subscription as appropriate.
-func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, favorite bool) error {
-	subscription, err := models.GetSubscription(ctx, id)
-	if err != nil {
-		return fmt.Errorf("get subscription: %w", err)
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
 	}
 
-	subscription.Favorite = favorite
+	counts := make(models.CategoryCounts, 0, len(categoryCountsBuckets))
 
-	_, err = UpdateSubscriptions(ctx, subscription)
-	if err != nil {
-		return models.ElasticsearchToAPIError(err)
-	}
-
-	return nil
-}
-
-// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
-// subscription data in the user object and clearing any individual item states for a subscription.
-func MarkSubscriptions(
-	ctx context.Context,
-	mark models.Mark,
-	subscriptionIDs ...models.SubscriptionID,
-) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := GetUserSubscriptions(ctx,
-		user,
-		WithSubscriptionIDs(subscriptionIDs...),
-	)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: %w", err)
-	}
-
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
-			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
-			}
-		} else {
-			subscription.Mark(user, mark)
-			if _, err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
-			}
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category models.Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
 		}
 	}
-
-	return nil
+	return counts, nil
 }
 
 // addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
@@ -365,12 +513,11 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 		}
 	}
 	if len(extraIDs) > 0 {
-		extraSubscriptions, err := models.GetSubscriptions(ctx,
-			models.GetSubscriptionsByIDs(extraIDs...),
-		)
+		extraSubscriptions, err := GetAllSubscriptions(ctx, user)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
 		}
+		extraSubscriptions = extraSubscriptions.FilterByIDs(extraIDs...)
 		subscriptions = append(subscriptions, extraSubscriptions...)
 	}
 
@@ -393,7 +540,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
 			request := subscription.SearchData.Search
 			// Build query to get unread count.
-			query, err := models.BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
+			query, err := BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -414,7 +561,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 			// Update query for getting last updated item (view: all, sort: newest first).
 			request.View = models.ViewAll
 			sort := models.SortNewestFirst
-			query, err = models.BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
+			query, err = BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -510,4 +657,52 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 	}
 
 	return nil
+}
+
+// SubscriptionSorting contains the sort options for sorting subscription results.
+type SubscriptionSorting struct {
+	MarkedReadAt   string `json:"marked_read_at"`
+	SubscriptionID string `json:"subscription_id"`
+}
+
+// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
+func (s *SubscriptionSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newSubscriptionSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&types.SortOptions{Doc_: types.NewScoreSort()}}
+	}
+	var opts []types.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &SubscriptionSorting{
+			MarkedReadAt:   "asc",
+			SubscriptionID: "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &SubscriptionSorting{
+			MarkedReadAt:   "desc",
+			SubscriptionID: "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&SubscriptionSorting{
+				MarkedReadAt:   "asc",
+				SubscriptionID: "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
+	}
+	return opts
 }

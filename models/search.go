@@ -4,12 +4,10 @@
 package models
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/immanent-tech/go-syndication/sanitization"
@@ -197,91 +195,4 @@ func SearchSuggestionsClause(search *SearchRequest) query.BoolOption {
 		),
 	)
 
-}
-
-// BuildSearchResultsQuery generates a query that can be used to fetch appropriate results for a given SearchRequest
-// criteria.
-func BuildSearchResultsQuery(
-	ctx context.Context,
-	user *User,
-	request *SearchRequest,
-	clause query.BoolOption,
-) (query.Option, error) {
-	// var err error
-	var loc *time.Location
-	var err error
-	if request.Timezone != "" {
-		loc, err = time.LoadLocation(request.Timezone)
-		if err != nil {
-			return nil, fmt.Errorf("build search query: load timezone: %w", err)
-		}
-	} else {
-		loc, err = time.LoadLocation("UTC")
-		if err != nil {
-			return nil, fmt.Errorf("build search query: load timezone: %w", err)
-		}
-	}
-	var since time.Time
-	var pivot string
-	switch request.PublishedWithin {
-	case SearchRequestPublishedWithinLastHour:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
-		pivot = "30m"
-	case SearchRequestPublishedWithinLast12hours:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
-		pivot = "6h"
-	case SearchRequestPublishedWithinLastDay:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
-		pivot = "12h"
-	case SearchRequestPublishedWithinLastWeek:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
-		pivot = "3d"
-	case SearchRequestPublishedWithinLastMonth:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
-		pivot = "14d"
-	default: // default to one week.
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
-		pivot = "3d"
-	}
-
-	subscriptions, err := GetSubscriptions(ctx)
-	// subscriptions, err := GetSubscriptions(ctx,
-	// 	GetSubscriptionsByIDs(request.Subscriptions...),
-	// )
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("build search query: get subscriptions: %w", ErrNotFound)
-	}
-
-	return query.Bool(
-		query.WithBoolQueryName("search-results"),
-		query.Filter(
-			// Must be in the given user subscriptions.
-			query.Bool(
-				query.Should(BuildItemQueries(user, request.View, subscriptions)...),
-			),
-			// Must be published/updated since the given time.
-			query.Bool(
-				query.Should(
-					query.Since("published", since),
-					query.Since("updated", since),
-				),
-			),
-		),
-		query.Should(
-			// Boost items that are from a favorite subscription.
-			query.Terms(
-				"feed_id",
-				subscriptions.FilterByFavorites(true).GetFeedIDs(),
-				query.WithQueryName[*query.TermsQuery]("boost-favorites"),
-				query.WithQueryBoost[*query.TermsQuery](2.0),
-			),
-			// Boost documents closer to the current time.
-			query.Distance("published", pivot, "now"),
-			query.Distance("updated", pivot, "now"),
-		),
-		clause,
-	), nil
 }

@@ -15,13 +15,40 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
+
+// GetFeedByID fetches the given Feed by its id.
+func GetFeedByID(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+	feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), id)
+	if err != nil {
+		return nil, fmt.Errorf("get feed by id: %w", err)
+	}
+	return feed, nil
+}
+
+// AddFeed adds the given feed.
+func AddFeed(ctx context.Context, feed *models.Feed) error {
+	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
+		return fmt.Errorf("add feed: %w", err)
+	}
+	return nil
+}
+
+// UpdateFeed applies the given updates to a Feed.
+func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) error {
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+	return nil
+}
 
 // BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
 func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionRequest) []models.FeedSubscriptionResult {
@@ -49,7 +76,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 			}
 			if isNew {
 				// Add the feed if it is new.
-				if err := models.AddFeed(ctx, feed); err != nil {
+				if err := AddFeed(ctx, feed); err != nil {
 					resultsCh <- models.FeedSubscriptionResult{
 						Request: &request,
 						Error: &models.APIError{
@@ -65,8 +92,8 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 			}
 
-			// Check for an existing subscription.
-			subscription, err := models.GetSubscriptionByFeedID(ctx, feed.GetID())
+			// Check for an existing existingSubscriptions.
+			existingSubscriptions, err := GetSubscriptionsByFeedID(ctx, feed.GetID())
 			if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
@@ -81,7 +108,8 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 				return
 			}
-			if subscription != nil {
+			godump.Dump(existingSubscriptions)
+			if existingSubscriptions != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
 					Error: &models.APIError{
@@ -96,8 +124,8 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				return
 			}
 
-			// Create feed subscription.
-			subscription, err = models.NewFeedSubscription(ctx, feed, nil)
+			// Create feed newSubscription.
+			newSubscription, err := models.NewFeedSubscription(ctx, feed, nil)
 			if err != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
@@ -112,7 +140,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 				return
 			}
-			if err := AddSubscriptions(ctx, subscription); err != nil {
+			if err := AddSubscriptions(ctx, newSubscription); err != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
 					Error: &models.APIError{
@@ -128,7 +156,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 			}
 			resultsCh <- models.FeedSubscriptionResult{
 				Request:      &request,
-				Subscription: subscription,
+				Subscription: newSubscription,
 			}
 		})
 	}
@@ -144,6 +172,115 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 	}
 
 	return results
+}
+
+// GetFeedLatestItems fetches the most recent count items for each given feed.
+func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map[models.FeedID]models.Items, error) {
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO(),
+		query.Bool(
+			query.Filter(
+				query.Terms("feed_id", feeds.GetIDs()),
+			),
+		),
+		elastic.WithAggregations(
+			elastic.Aggs{
+				"feed": estypes.Aggregations{
+					Terms: &estypes.TermsAggregation{
+						Field: new("feed_id"),
+						Size:  new(len(feeds)),
+					},
+					Aggregations: map[string]estypes.Aggregations{
+						"latest_items": {
+							TopHits: &estypes.TopHitsAggregation{
+								Size: &count,
+								Sort: models.NewItemSortCombinations(new(models.SortNewestFirst)),
+							},
+						},
+					},
+				},
+			},
+		),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("fetch latest articles: %w", err)
+	}
+	feedsLatestItems := make(map[models.FeedID]models.Items)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	// Extract the feed aggregation.
+	feedsAgg, found, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
+		resp.Aggregations,
+		"feed",
+	)
+	if !found || err != nil {
+		return nil, fmt.Errorf("extract feed aggregation: %w", err)
+	}
+	// Loop over the feed buckets.
+	feedBuckets, err := elastic.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
+	if err != nil {
+		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
+	}
+	for bucket := range slices.Values(feedBuckets) {
+		if feedID, ok := bucket.Key.(models.FeedID); ok {
+			wg.Go(func() {
+				// Get the subscription with this feedID.
+				feed := feeds.FindByID(feedID)
+				if feed == nil {
+					slogctx.FromCtx(ctx).
+						Warn("Could not match feed in aggregation result to a subscription.",
+							slog.String("feed_id", feedID),
+						)
+					return
+				}
+				// Extract the latest articles aggregation.
+				latestItemsAggs, found, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
+					bucket.Aggregations,
+					"latest_items",
+				)
+				if !found || err != nil {
+					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
+						slog.String("aggregation", "latest_items"),
+						slog.Any("error", err),
+					)
+					return
+				}
+				var (
+					items models.Items
+				)
+
+				// Extract the latest items.
+				//
+				// * Note that the "latest_items" aggregation applies _source filtering,
+				// * so only the given fields will be populated in the models.Item object.
+				items, _, err = results.ExtractSourceFromHits[models.Item](latestItemsAggs.Hits.Hits)
+				if err != nil {
+					slogctx.FromCtx(ctx).
+						Warn("Unable to extract latest articles from elastic.",
+							slog.Any("error", err),
+						)
+					return
+				}
+				// // Generate articles.
+				// articles, err := models.GenerateArticles(ctx, items)
+				// if err != nil {
+				// 	slogctx.FromCtx(ctx).
+				// 		Warn("Unable to generate articles from items.",
+				// 			slog.Any("error", err),
+				// 		)
+				// 	return
+				// }
+				mu.Lock()
+				feedsLatestItems[feed.GetID()] = items
+				mu.Unlock()
+			})
+		}
+	}
+
+	wg.Wait()
+	return feedsLatestItems, nil
 }
 
 func getFeedUnreadCounts(

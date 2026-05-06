@@ -230,7 +230,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 										value={ models.MarkUnread }
 									}
 								/>
-								<label class="swap touch-manipulation" _="on click halt the event's bubbling">
+								<label class="swap touch-manipulation">
 									<input
 										hx-post={ "/mark/subscription/" + s.GetID() }
 										hx-swap="none"

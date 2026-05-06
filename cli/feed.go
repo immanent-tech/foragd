@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -48,7 +49,7 @@ func (c *FetchFeedCmd) Run() error {
 
 	switch {
 	case c.FeedID != "" && strings.HasPrefix(c.FeedID, "feed_"):
-		feed, err := models.GetFeedByID(ctx, c.FeedID)
+		feed, err := service.GetFeedByID(ctx, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}

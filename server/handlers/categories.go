@@ -13,6 +13,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -45,7 +46,7 @@ func ListCategories() http.HandlerFunc {
 				}
 
 				// Get the categories for the subscriptions.
-				counts, err := models.GetCategoriesForSubscriptions(req.Context(), request.Subscriptions...)
+				counts, err := service.GetCategoriesForSubscriptions(req.Context(), request.Subscriptions...)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
 						slog.Any("error", err),
@@ -67,7 +68,7 @@ func ListCategories() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 			case strings.HasPrefix(req.URL.Path, "/list/articles"):
-				filters := getListArticleFilters(req)
+				articleFilters := getListArticleFilters(req)
 				user := models.UserFromCtx(req.Context())
 				if user == nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not get user data.")
@@ -76,10 +77,12 @@ func ListCategories() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 					return
 				}
-				// Get subscriptions based on filters.
-				subscriptions, err := models.GetSubscriptions(req.Context(),
-					models.GetSubscriptionsByIDs(filters.GetSubscriptions()...),
-				)
+
+				// Get subscription details.
+				subscriptionFilters := models.NewListDisplayFilters()
+				subscriptionFilters.Subscriptions = articleFilters.GetSubscriptions()
+				subscriptionFilters.View = articleFilters.GetView()
+				subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 						slog.Any("error", err),
@@ -94,7 +97,7 @@ func ListCategories() http.HandlerFunc {
 				counts, err := models.GetTopCategoriesForItems(
 					req.Context(),
 					query.Bool(
-						query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+						query.Should(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
 					),
 				)
 				if err != nil {
@@ -113,7 +116,7 @@ func ListCategories() http.HandlerFunc {
 						&models.CategoryFilters{
 							Categories: counts,
 							Path:       "/list/articles",
-							Filters:    *filters,
+							Filters:    *articleFilters,
 						},
 					),
 				}).ServeHTTP(res, req)

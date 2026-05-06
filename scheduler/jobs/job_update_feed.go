@@ -23,6 +23,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const JobTypeUpdateFeed jobType = "update_feed"
@@ -85,11 +86,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	ctx = slogctx.With(ctx, "feed_id", jobData.FeedID)
 
 	// Retrieve the feed details.
-	details, err := models.GetFeedByID(ctx, jobData.FeedID)
+	details, err := service.GetFeedByID(ctx, jobData.FeedID)
 	if err != nil {
 		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
 		if errors.Is(err, elastic.ErrNotFound) {
-			if err := models.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
+			if err := service.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
 				return fmt.Errorf("mark job for deletion: %w", err)
 			}
 			slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.",

@@ -131,46 +131,6 @@ func AddItems(ctx context.Context, items ...Item) error {
 	return nil
 }
 
-// BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
-func BuildItemsQuery(
-	ctx context.Context,
-	filters Filters,
-	subscriptionIDs ...SubscriptionID,
-) (query.Option, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := GetSubscriptions(ctx,
-		GetSubscriptionsByIDs(subscriptionIDs...),
-	)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", ErrNotFound)
-	}
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	return query.Bool(
-		query.WithBoolQueryName("get_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", subscriptions.GetFeedIDs(),
-				query.WithQueryName[*query.TermsQuery]("match-feed-id")),
-			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories(),
-				query.WithQueryName[*query.TermsQuery]("match-categories")),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(BuildItemQueries(user, filters.GetView(), subscriptions)...),
-			),
-		),
-	), nil
-}
-
 // Items is a slice of items.
 type Items []Item
 
