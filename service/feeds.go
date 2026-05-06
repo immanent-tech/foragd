@@ -15,7 +15,6 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -108,7 +107,6 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 				return
 			}
-			godump.Dump(existingSubscriptions)
 			if existingSubscriptions != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
