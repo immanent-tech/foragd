@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -260,6 +261,13 @@ func PutCodeVerifier(req *http.Request, verifier string) {
 }
 
 func PutReturnTo(req *http.Request, path string) {
+	// When triggered from updates/paginate, return to the base page.
+	switch {
+	case strings.HasSuffix(path, "/updates"):
+		path = strings.TrimSuffix(path, "/updates")
+	case strings.HasSuffix(path, "/paginate"):
+		path = strings.TrimSuffix(path, "/paginate")
+	}
 	session.Save(req.Context(), sessionKeyReturnTo, path)
 }
 
