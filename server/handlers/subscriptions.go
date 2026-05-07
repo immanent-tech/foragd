@@ -1407,9 +1407,22 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 					query.Must(
 						query.Bool(
 							query.Should(
-								// For URLs, match a wildcard of the base URL minus any trailing slash.
-								query.Wildcard("source_urls", strings.TrimSuffix(text, "/")+"*"),
-								query.Wildcard("url", strings.TrimSuffix(text, "/")+"*"),
+								// For URLs, match with and without a trailing slash. Boost source_urls over url.
+								query.Term(
+									"source_urls",
+									strings.TrimSuffix(text, "/"),
+									query.WithQueryBoost[*query.TermQuery](10.0),
+								),
+								query.Term(
+									"url",
+									strings.TrimSuffix(text, "/"),
+									query.WithQueryBoost[*query.TermQuery](5.0),
+								),
+								query.Term("source_urls", text, query.WithQueryBoost[*query.TermQuery](10.0)),
+								query.Term("url", text, query.WithQueryBoost[*query.TermQuery](5.0)),
+								// Wildcard URL prefix.
+								query.Wildcard("source_urls", text+"*"),
+								query.Wildcard("url", text+"*"),
 							),
 						),
 					),
@@ -1419,11 +1432,18 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 					query.Must(
 						query.Bool(
 							query.Should(
+								// Exact match text on title with significant boost.
+								query.Term(
+									"title", text,
+									query.WithQueryBoost[*query.TermQuery](10.0),
+								),
+								// Title or description contains text, with boost for title.
 								query.MultiMatch(
 									text,
 									[]string{"title^5", "description"},
 									query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
 								),
+								// Match an existing subscription category.
 								query.Term("categories", text),
 							),
 						),
