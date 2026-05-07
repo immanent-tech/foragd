@@ -508,9 +508,16 @@ templ SearchResults(results *models.SearchResults) {
 									</form>
 								}
 							}
-							@partials.ButtonBackToTop()
-							@partials.LoadingIndicator("loading-results")
 						}
+						// Loading results indicator.
+						<div id="loading-results" class="text-center">
+							<span class="show-loading">
+								<span class="loading loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Loading content...</p>
+							</span>
+						</div>
+						// Button to go back to top.
+						@partials.ButtonBackToTop()
 					</section>
 				}
 			}
