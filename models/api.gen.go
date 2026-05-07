@@ -144,6 +144,15 @@ type AddSubscriptionYoutubeSuggestions struct {
 	Channels []string `json:"channels,omitempty"`
 }
 
+// ContactRequest contains details submitted via the contact form on the website.
+type ContactRequest struct {
+	// ContactEmail is the email address the entered for getting in touch about the issue.
+	ContactEmail string `form:"contact_email" json:"contact_email" validate:"required,email"`
+
+	// Details is the text about the issue.
+	Details string `form:"details" json:"details" validate:"required"`
+}
+
 // ExtractedMetadata contains key information about the link/site that was extracted.
 type ExtractedMetadata struct {
 	// Author is an author attributed to the page/link.
@@ -276,7 +285,7 @@ type ListSubscriptionsResponse struct {
 // ReportIssueRequest contains details about an issue with the service.
 type ReportIssueRequest struct {
 	// Details is the user-submitted text about the issue.
-	Details *string `form:"details" json:"details,omitempty"`
+	Details *string `form:"details" json:"details,omitempty" validate:"required"`
 
 	// ObjectID is the object id (i.e., subscription/article id).
 	ObjectID *string `form:"object_id" json:"object_id,omitempty"`

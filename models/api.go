@@ -110,3 +110,16 @@ func (r *AddSubscriptionToGroupRequest) Sanitise() error {
 	r.SuggestionText = sanitization.SanitizeString(r.SuggestionText)
 	return nil
 }
+
+func (r *ContactRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("contact request invalid: %w", err)
+	}
+	return nil
+}
+
+func (r *ContactRequest) Sanitise() error {
+	r.ContactEmail = validation.SanitizeString(r.ContactEmail)
+	r.Details = validation.SanitizeString(r.Details)
+	return nil
+}

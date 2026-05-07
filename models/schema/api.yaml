@@ -506,6 +506,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'details'
+            validate: 'required'
         object_id:
           description: >
             is the object id (i.e., subscription/article id).
@@ -513,3 +514,26 @@ components:
           x-go-name: ObjectID
           x-oapi-codegen-extra-tags:
             form: 'object_id'
+    ContactRequest:
+      description: >
+        contains details submitted via the contact form on the website.
+      type: object
+      required:
+        - contact_email
+        - details
+      properties:
+        contact_email:
+          description: >
+            is the email address the entered for getting in touch about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'contact_email'
+            validate: 'required,email'
+        details:
+          description: >
+            is the text about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'details'
+            validate: 'required'
+

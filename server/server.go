@@ -133,6 +133,9 @@ func Start(logger *slog.Logger) error {
 		r.With(middlewares.RequireHTMX).Get("/features/consume", handlers.HandleFeaturesConsume())
 		// About.
 		r.Get("/about", handlers.HandleAbout())
+		// Contact.
+		r.Get("/contact", handlers.HandleContact())
+		r.With(middlewares.RequireHTMX).Post("/contact", handlers.HandleSubmitContact())
 		// Feed Viewer.
 		r.Get("/viewer", handlers.HandleViewer())
 		r.Get("/viewer/url/*", handlers.HandleViewer())

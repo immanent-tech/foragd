@@ -1,0 +1,77 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
+import "os"
+
+templ Contact() {
+	@content() {
+		@container() {
+			<section id="contact" class="mx-auto sm:max-w-4xl">
+				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Contact Us</h1>
+				<p class="mt-2 max-w-4xl text-neutral">
+					Use this form to report to contact us about Foragd.
+				</p>
+				<p class="mt-2 max-w-4xl text-neutral">
+					Alternatively, you can <a class="link" href={ mailto.Build("hello@immanent.tech", mailto.WithSubject("About Foragd")) }>email us</a> instead.
+				</p>
+				<form
+					hx-post={ "/contact" }
+					hx-target={ ContentID.Target() }
+					hx-target-error={ ContentID.Target() }
+					hx-encoding="multipart/form-data"
+					hx-swap="none"
+					hx-push-url="false"
+					class="mt-12"
+				>
+					<div class="space-y-12">
+						<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+							// User email.
+							<div class="sm:col-span-4">
+								<label for="email" class="block text-sm/6 font-medium text-neutral">Email address</label>
+								<div class="mt-2">
+									<input
+										id="email"
+										type="email"
+										name="contact_email"
+										autocomplete="email"
+										required
+										class="input input-primary bg-base-300 brightness-95"
+									/>
+								</div>
+							</div>
+							// Issue description.
+							<div class="col-span-full">
+								<label for="about" class="block text-sm/6 font-medium">Details</label>
+								<div class="mt-2">
+									<textarea id="details" name="details" rows="5" class="textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95"></textarea>
+								</div>
+								<p class="mt-3 text-sm/6 neutral">Add as much detail as you like.</p>
+							</div>
+						</div>
+						// Cloudflare turnstile.
+						<div class="col-span-full">
+							<div class="cf-turnstile" data-sitekey={ os.Getenv("CLOUDFLARE_TURNSTILE_KEY") }></div>
+						</div>
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl">
+						<button type="button" class="btn btn-secondary hover:btn-error" _="on click call history.back()">
+							<span class="text-sm/6">Back</span>
+						</button>
+						<button type="submit" class="btn btn-primary">
+							<span class="show-loading items-center">
+								<span class="loading mr-3 loading-spinner"></span>
+								<span class="text-sm/6">Processing</span>
+							</span>
+							<span class="hide-loading items-center">
+								<span class="text-sm/6">Submit</span>
+							</span>
+						</button>
+					</div>
+				</form>
+			</section>
+		}
+	}
+}
