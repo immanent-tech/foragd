@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.128.2](https://github.com/immanent-tech/foragd/compare/v0.128.1...v0.128.2) (2026-05-07)
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix scroll on updates ([8ef92e0](https://github.com/immanent-tech/foragd/commit/8ef92e0ec9ae5775b6700515171e77f485d160e6))
+* **scripts:** :bug: ignore updating progress bar when there is no progress bar ([f754932](https://github.com/immanent-tech/foragd/commit/f754932b5d42b4eb7eacb682229632295d01d1eb))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: tweak matching feeds for suggestions when adding new feed subscriptions ([72cc205](https://github.com/immanent-tech/foragd/commit/72cc2051777f66f5b7dc1f7c3f61afbc0bc9f197))
+
 ## [0.128.1](https://github.com/immanent-tech/foragd/compare/v0.128.0...v0.128.1) (2026-05-07)
 
 
