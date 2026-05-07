@@ -27,8 +27,8 @@ type Viewer struct {
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Feed Viewer"
-	description := "Search for and view syndicated content (RSS, Atom, JSONFeed feeds) on any site."
+	title := "Free RSS Feed Viewer: Preview Any Website's Feed"
+	description := "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required."
 	templ.Handler(
 		templates.CreatePage(
 			templates.Viewer(p.feed, p.errMsg),

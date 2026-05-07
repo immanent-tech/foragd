@@ -65,7 +65,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"viewer\" class=\"mx-auto sm:max-w-4xl\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Feed Viewer</h1><div class=\"mx-auto text-pretty\"><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\"><span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to:</p><pre class=\"mt-4 overflow-x-auto text-sm\">https://foragd.app/viewer/url/https://some.site</pre><p class=\"mt-4\">As an example, try this link:</p><a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono text-sm\">https://foragd.app/viewer/url/https://foragd.app</a><p class=\"mt-4\">You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\" aria-label=\"Bookmarklet link\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p></div><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"mt-12\"><label for=\"url\" class=\"block text-sm/6 font-medium text-neutral\">Website URL</label><div class=\"join mt-2 flex w-full\"><input id=\"url\" type=\"url\" name=\"url\" placeholder=\"https://some.site...\" class=\"input w-full join-item bg-base-300 brightness-95 input-primary\"> <button type=\"submit\" class=\"btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2\">Search</button></div></div></form></section><div id=\"processing\" class=\"htmx-indicator mx-auto my-4 flex justify-center\"><span class=\"loading flex loading-lg loading-dots\"></span></div><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": [\"SoftwareApplication\",\"WebApplication\"],\n  \"name\": \"Foragd\",\n  \"applicationCategory\": \"News & RSS Reader\",\n  \"operatingSystem\": \"Web\",\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"59\",\n    \"priceCurrency\": \"USD\",\n    \"priceValidUntil\": \"2026-06-30\"\n  },\n  \"description\": \"A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.\",\n  \"url\": \"https://foragd.app/\"\n}\n</script> <section id=\"viewer\" class=\"mx-auto sm:max-w-5xl\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Free RSS Feed Viewer: Preview Any Website's Feed</h1><div class=\"mx-auto text-pretty\"><p class=\"mt-4\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"mt-4\">Want to keep track of feeds and email newsletters in one place? Search across content and discover topics and interests? Try out <a href=\"https://foragd.app\" class=\"link\">Foragd</a>.</p></div><form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML\"><div class=\"mt-12\"><label for=\"url\" class=\"block text-sm/6 font-medium text-neutral\">Website URL</label><div class=\"join mt-2 flex w-full\"><input id=\"url\" type=\"url\" name=\"url\" placeholder=\"https://some.site...\" class=\"input w-full join-item bg-base-300 brightness-95 input-primary\"> <button type=\"submit\" class=\"btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2\">Search</button></div></div><div class=\"show-loading w-full sm:max-w-5xl\"><div class=\"my-4 w-full\"><div class=\"flex flex-1 p-6\"><div class=\"sm:flex sm:items-center sm:justify-between\"><div class=\"sm:flex sm:space-x-5\"><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"skeleton h-24 w-24\"></div></div><div class=\"space-y-2\"><div class=\"skeleton h-4 w-28\"></div><div class=\"skeleton h-4 w-full sm:w-96\"></div></div></div></div></div></div><div class=\"grid grid-cols-1 justify-center sm:grid-cols-3 gap-4\"><div class=\"flex w-full flex-col gap-4\"><div class=\"skeleton h-32 w-full\"></div><div class=\"skeleton h-4 w-28\"></div><div class=\"skeleton h-4 w-full\"></div><div class=\"skeleton h-4 w-full\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"skeleton h-32 w-full\"></div><div class=\"skeleton h-4 w-28\"></div><div class=\"skeleton h-4 w-full\"></div><div class=\"skeleton h-4 w-full\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"skeleton h-32 w-full\"></div><div class=\"skeleton h-4 w-28\"></div><div class=\"skeleton h-4 w-full\"></div><div class=\"skeleton h-4 w-full\"></div></div></div></div></div></form></section><section id=\"viewer-results\" class=\"mt-8 mb-24 overflow-y-auto mx-auto sm:max-w-5xl\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -81,7 +81,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</section><section id=\"faq\" class=\"mx-auto max-w-4xl\"><h2 class=\"text-3xl font-semibold tracking-tight text-pretty sm:text-4xl\">Frequently asked questions</h2><div class=\"mt-10\"><dl class=\"space-y-10\"><div><dt class=\"text-base/7 font-semibold\">How does the feed viewer work?</dt><dd class=\"mt-2 text-base/7 text-pretty\">When you enter a URL, the feed viewer will fetch the source of the page, if the source is one of the known feed formats like RSS or Atom, the viewer will format and return the posts contained in the feed. If the source is normal webpage, the viewer will look at links in the page and try to find one that points to feed content, which it will then fetch, format and display.</dd></div><div><dt class=\"text-base/7 font-semibold\">Why did the feed viewer not find content for my URL?</dt><dd class=\"mt-2 text-base/7 text-pretty\">Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find feed content, and uses a few tricks for this, there are still websites that cannot be parsed.</dd></div><div><dt class=\"text-base/7 font-semibold\">Does the feed viewer collect or store any information about me, the URL or the feed content it fetches?</dt><dd class=\"mt-2 text-base/7 text-pretty\">No. Content is fetched and displayed dynamically, and is not stored once you navigate away from the page. We do store webserver logs and use Umami analytics to track minimal, anonymous usage of the feed viewer. No personal information is collected or stored. The feed viewer does not require cookies.</dd></div><div><dt class=\"text-base/7 font-semibold\">Is this open-source?</dt><dd class=\"mt-2 text-base/7 text-pretty\">The underlying library that does most of the heavy lifting, <a href=\"https://github.com/immanent-tech/go-syndication\" class=\"link\">go-syndication</a> is open-source! The site itself is part of <a href=\"https://foragd.app\" class=\"link\">Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.</dd></div></dl></div><p class=\"mt-24 text-base/7 text-pretty\">Got more questions? Reach out to us via <a href=\"mailto:hello@immanent.tech\" class=\"link\">email</a>.</p></section>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</section><section id=\"advanced-usage\" class=\"mx-auto mt-8 max-w-5xl\"><button type=\"button\" command=\"--toggle\" commandfor=\"advanced-usage-info\" class=\"flex w-full items-start justify-between text-left\"><h2 class=\"text-3xl font-semibold tracking-tight text-pretty sm:text-4xl\">Advanced Usage</h2><span class=\"ml-6 flex h-7 items-center\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" data-slot=\"icon\" aria-hidden=\"true\" class=\"size-6 in-aria-expanded:hidden\"><path d=\"M12 6v12m6-6H6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" data-slot=\"icon\" aria-hidden=\"true\" class=\"size-6 not-in-aria-expanded:hidden\"><path d=\"M18 12H6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></span></button> <el-disclosure id=\"advanced-usage-info\" class=\"contents\" hidden><div class=\"mt-2 pr-12\"><p class=\"mt-4\">You can directly search for feed content for any website from the browser bar by navigating to:</p><pre class=\"mt-4 overflow-x-auto text-sm\">https://foragd.app/viewer/url/https://some.site</pre><p class=\"mt-4\">As an example, try this link:</p><a href=\"https://foragd.app/viewer/url/https://foragd.app\" class=\"link font-mono text-sm\">https://foragd.app/viewer/url/https://foragd.app</a><p class=\"mt-4\">You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\" aria-label=\"Bookmarklet link\">Bookmarklet</a> (drag to your bookmarks then use on any site).</p></div></el-disclosure></section><section id=\"faq\" class=\"mx-auto mt-8 max-w-5xl\"><h2 class=\"text-3xl font-semibold tracking-tight text-pretty sm:text-4xl\">Frequently asked questions</h2><div class=\"mt-10\"><dl class=\"space-y-10\"><div><dt class=\"text-base/7 font-semibold\">How does the feed viewer work?</dt><dd class=\"mt-2 text-base/7 text-pretty\">When you enter a URL, the feed viewer will fetch the source of the page, if the source is one of the known feed formats like RSS or Atom, the viewer will format and return the posts contained in the feed. If the source is normal webpage, the viewer will look at links in the page and try to find one that points to feed content, which it will then fetch, format and display.</dd></div><div><dt class=\"text-base/7 font-semibold\">Why did the feed viewer not find content for my URL?</dt><dd class=\"mt-2 text-base/7 text-pretty\">Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find feed content, and uses a few tricks for this, there are still websites that cannot be parsed.</dd></div><div><dt class=\"text-base/7 font-semibold\">Does the feed viewer collect or store any information about me, the URL or the feed content it fetches?</dt><dd class=\"mt-2 text-base/7 text-pretty\">No. Content is fetched and displayed dynamically, and is not stored once you navigate away from the page. We do store webserver logs and use Umami analytics to track minimal, anonymous usage of the feed viewer. No personal information is collected or stored. The feed viewer does not require cookies.</dd></div><div><dt class=\"text-base/7 font-semibold\">Is this open-source?</dt><dd class=\"mt-2 text-base/7 text-pretty\">The underlying library that does most of the heavy lifting, <a href=\"https://github.com/immanent-tech/go-syndication\" class=\"link\">go-syndication</a> is open-source! The site itself is part of <a href=\"https://foragd.app\" class=\"link\">Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.</dd></div></dl></div><script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How does the feed viewer work?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"When you enter a URL, the feed viewer will fetch the source of the page, if the source is one of the known feed formats like RSS or Atom, the viewer will format and return the posts contained in the feed. If the source is normal webpage, the viewer will look at links in the page and try to find one that points to feed content, which it will then fetch, format and display.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Why did the feed viewer not find content for my URL?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find feed content, and uses a few tricks for this, there are still websites that cannot be parsed.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Does the feed viewer collect or store any information about me, the URL or the feed content it fetches?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"No. Content is fetched and displayed dynamically, and is not stored once you navigate away from the page. We do store webserver logs and use Umami analytics to track minimal, anonymous usage of the feed viewer. No personal information is collected or stored. The feed viewer does not require cookies.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Is this open-source?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"The underlying library that does most of the heavy lifting, <a href=\\\"https://github.com/immanent-tech/go-syndication\\\" class=\\\"link\\\">go-syndication</a> is open-source! The site itself is part of <a href=\\\"https://foragd.app\\\" class=\\\"link\\\">Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.\"\n      }\n    },\n  ]\n}\n</script></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -157,7 +157,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle()[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 167, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 277, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -175,7 +175,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 174, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 284, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -193,7 +193,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 177, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 287, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -216,7 +216,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 		var templ_7745c5c3_Var8 templ.SafeURL
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(feed.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 185, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 295, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(len(feed.GetItems()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 201, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 311, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -247,7 +247,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 209, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 319, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -260,7 +260,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 213, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 323, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -346,7 +346,7 @@ func ViewerError(msg *models.UserMessage) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 235, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 345, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -364,7 +364,7 @@ func ViewerError(msg *models.UserMessage) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 238, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 348, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func viewerItemCard(item models.Item) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 254, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 364, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -435,7 +435,7 @@ func viewerItemCard(item models.Item) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 255, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 365, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -448,7 +448,7 @@ func viewerItemCard(item models.Item) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 256, Col: 243}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 366, Col: 243}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -466,7 +466,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 265, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 375, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -488,7 +488,7 @@ func viewerItemCard(item models.Item) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 276, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 386, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -506,7 +506,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 282, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 392, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -519,7 +519,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 286, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 396, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -548,7 +548,7 @@ func viewerItemCard(item models.Item) templ.Component {
 		var templ_7745c5c3_Var24 templ.SafeURL
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(item.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 300, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 410, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
