@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.129.0](https://github.com/immanent-tech/foragd/compare/v0.128.2...v0.129.0) (2026-05-07)
+
+
+### Features
+
+* :sparkles: add a contact us page ([3d0ae3a](https://github.com/immanent-tech/foragd/commit/3d0ae3a1bee8fd576aab9d6a3d04b2d537f3d00c))
+* **templates/subscriptions:** :sparkles: improved add subscription form ([0938903](https://github.com/immanent-tech/foragd/commit/09389032a43e683e62c8b24ea579304869e652ae))
+* **templates/viewer:** :sparkles: improved viewer page ([0da880d](https://github.com/immanent-tech/foragd/commit/0da880d1e5d054e40688e8858565cb1dfe29add3))
+
+
+### Bug Fixes
+
+* **assets:** :bug: add sitemap to robots.txt ([c4c8142](https://github.com/immanent-tech/foragd/commit/c4c814289fee62edbf1a04c73e85bee9beffc457))
+* **templates/contact:** :bug: fix placement of cloudflare turnstile widget ([1847b43](https://github.com/immanent-tech/foragd/commit/1847b43536cd5f767220765e6d2882e94f3913bf))
+
 ## [0.128.2](https://github.com/immanent-tech/foragd/compare/v0.128.1...v0.128.2) (2026-05-07)
 
 
