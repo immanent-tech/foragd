@@ -95,6 +95,7 @@ func ExtractMainContent(ctx context.Context, page string, data []byte) (string, 
 		return "", fmt.Errorf("parse page url: %w", err)
 	}
 
+	// Fetch page if not already fetched.
 	if data == nil {
 		proxyURL, err := reverseproxy.GenerateProxyURL(pageURL.String())
 		if err != nil {
@@ -113,13 +114,11 @@ func ExtractMainContent(ctx context.Context, page string, data []byte) (string, 
 		}
 
 		// Write the page data to a buffer.
-		_, err = respBuf.Write(resp.Body())
-		if err != nil {
+		if _, err = respBuf.Write(resp.Body()); err != nil {
 			return "", fmt.Errorf("write page data to buffer: %w", err)
 		}
 	} else {
-		_, err := respBuf.Write(data)
-		if err != nil {
+		if _, err := respBuf.Write(data); err != nil {
 			return "", fmt.Errorf("write page data to buffer: %w", err)
 		}
 	}
