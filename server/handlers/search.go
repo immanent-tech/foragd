@@ -402,7 +402,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 				element.WithHXOptions(
 					element.WithHXMethod(http.MethodGet, "/search"),
 					element.WithHXTarget(templates.ContentID.Target()),
-					element.WithHXSwap("innerHTML window:top transition:true"),
+					element.WithHXSwap("innerHTML scroll:top transition:true"),
 					element.WithHXPushURL(true),
 					element.WithHXValues(request.Values()),
 				),

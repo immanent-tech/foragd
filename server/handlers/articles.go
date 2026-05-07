@@ -256,7 +256,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				element.WithHXOptions(
 					element.WithHXMethod(http.MethodGet, route),
 					element.WithHXTarget(templates.ContentID.Target()),
-					element.WithHXSwap("innerHTML window:top transition:true"),
+					element.WithHXSwap("innerHTML scroll:top transition:true"),
 					element.WithHXPushURL(true),
 					element.WithHXValues(articleFilters.Values()),
 				),
