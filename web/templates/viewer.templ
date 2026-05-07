@@ -14,9 +14,9 @@ import (
 templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@content() {
 		@container() {
-			<section id="viewer" class="mx-auto sm:max-w-2xl">
+			<section id="viewer" class="mx-auto sm:max-w-4xl">
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Feed Viewer</h1>
-				<div class="mx-auto max-w-prose text-pretty">
+				<div class="mx-auto text-pretty">
 					<p class="mt-4">
 						Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 						The feed content, if found, will be displayed below.
@@ -24,7 +24,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<p class="mt-4">
 						<span class="font-semibold text-primary">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to:
 					</p>
-					<pre class="mt-4 overflow-x-scroll text-sm">
+					<pre class="mt-4 overflow-x-auto text-sm">
 						https://foragd.app/viewer/url/https://some.site
 					</pre>
 					<p class="mt-4">As an example, try this link:</p>
@@ -58,22 +58,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<div class="mt-12">
 						<label for="url" class="block text-sm/6 font-medium text-neutral">Website URL</label>
 						<div class="join mt-2 flex w-full">
-							<div class="join-item -mr-px grid grow grid-cols-1 focus-within:relative">
-								<input id="url" type="url" name="url" placeholder="https://some.site..." class="input col-start-1 row-start-1 block w-full bg-base-300 py-1.5 pr-3 pl-10 brightness-95 input-primary"/>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="24"
-									height="24"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none col-start-1 row-start-1 ml-3 size-5 self-center"
-								>
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-								</svg>
-							</div>
+							<input id="url" type="url" name="url" placeholder="https://some.site..." class="input w-full join-item bg-base-300 brightness-95 input-primary"/>
 							<button type="submit" class="btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2">
 								Search
 							</button>
@@ -92,7 +77,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						@ViewerResults(feed)
 				}
 			</section>
-			<section class="mx-auto max-w-2xl">
+			<section id="faq" class="mx-auto max-w-4xl">
 				<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Frequently asked questions</h2>
 				<div class="mt-10">
 					<dl class="space-y-10">
