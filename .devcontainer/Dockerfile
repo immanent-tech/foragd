@@ -1,7 +1,7 @@
-FROM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS builder
+FROM docker.io/alpine:3.23.3 AS builder
 
 # Copy go from official image
-COPY --from=docker.io/golang:1.26.1-alpine3.23@sha256:2389ebfa5b7f43eeafbd6be0c3700cc46690ef842ad962f6c5bd6be49ed82039 /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.26.2-alpine3.23 /usr/local/go/ /usr/local/go/
 
 # Install additional packages
 RUN apk update && apk add sudo openssh curl libcurl \
@@ -9,7 +9,7 @@ RUN apk update && apk add sudo openssh curl libcurl \
     git graphviz step-cli step-certificates cosign \
     nodejs npm \
     docker buildkit rootlesskit slirp4netns libcap-setcap \
-    python python3-dev py3-pip \
+    python3 python3-dev py3-pip \
     gcc musl-dev
 
 # Install starship
