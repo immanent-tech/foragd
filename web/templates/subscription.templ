@@ -651,44 +651,92 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Add a subscription</h1>
-				<div>
-					<label for="suggestion-text" class="block text-sm/6 font-medium text-neutral">Find sources:</label>
-					<div class="mt-2 w-full">
-						<div class="join flex w-full items-center sm:max-w-xl">
-							<div class="input w-full bg-base-300 brightness-95 input-primary">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-primary">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-								</svg>
-								<input
-									id="suggestion-text"
-									type="text"
-									name="suggestion_text"
-									autocomplete="off"
-									placeholder="Enter a URL or keywords..."
-									class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
-									hx-post="/subscription/add/suggestions"
-									hx-target="#subscription-suggestions"
-									hx-trigger="keyup[key!='Enter'] delay:500ms changed"
-									hx-include="[name='suggestion_source']"
-									hx-indicator="#searching-progress"
-								/>
-								<span id="searching-progress" class="htmx-indicator loading join-item loading-xl loading-spinner"></span>
+				<form
+					hx-post="/subscription/add/suggestions"
+					hx-target="#subscription-suggestions"
+					hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
+					_="on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''"
+				>
+					<div>
+						<label for="add-subscription-search" class="block text-sm/6 font-medium text-neutral">Search:</label>
+						<div class="mt-2 w-full">
+							<div class="join flex w-full items-center sm:max-w-xl">
+								<div class="input w-full bg-base-300 brightness-95 input-primary">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-primary">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+									</svg>
+									<input
+										id="add-subscription-search"
+										type="text"
+										name="suggestion_text"
+										autocomplete="off"
+										placeholder="Text, phrase or URL..."
+										class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
+									/>
+								</div>
+								// TODO: remove this hidden input once different sources are implemented.
+								<input type="hidden" name="suggestion_source" value="web"/>
+								// <select
+								// 	id="suggestion-source"
+								// 	name="suggestion_source"
+								// 	aria-label="Source"
+								// 	class="select join-item w-auto shrink-0 select-primary"
+								// >
+								// 	<option value="web">Web</option>
+								// 	<option value="youtube">Youtube</option>
+								// 	<option value="reddit">Reddit</option>
+								// </select>
 							</div>
-							// TODO: remove this hidden input once different sources are implemented.
-							<input type="hidden" name="suggestion_source" value="web"/>
-							// <select
-							// 	id="suggestion-source"
-							// 	name="suggestion_source"
-							// 	aria-label="Source"
-							// 	class="select join-item w-auto shrink-0 select-primary"
-							// >
-							// 	<option value="web">Web</option>
-							// 	<option value="youtube">Youtube</option>
-							// 	<option value="reddit">Reddit</option>
-							// </select>
+						</div>
+						<ul class="block text-sm/6 text-neutral list-inside list-disc mt-4">
+							<li>
+								Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
+							</li>
+							<li>
+								Enter a URL to fetch and parse the website for a suitable feed.
+							</li>
+						</ul>
+					</div>
+					<div class="show-loading w-full sm:max-w-5xl">
+						<div class="my-4 w-full">
+							<div class="flex flex-1 p-6">
+								<div class="sm:flex sm:items-center sm:justify-between">
+									<div class="sm:flex sm:space-x-5">
+										<div class="flex">
+											<div class="mr-4 shrink-0 self-center">
+												<div class="skeleton h-24 w-24"></div>
+											</div>
+											<div class="space-y-2">
+												<div class="skeleton h-4 w-28"></div>
+												<div class="skeleton h-4 w-full sm:w-96"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="grid grid-cols-1 justify-center sm:grid-cols-3 gap-4">
+								<div class="flex w-full flex-col gap-4">
+									<div class="skeleton h-32 w-full"></div>
+									<div class="skeleton h-4 w-28"></div>
+									<div class="skeleton h-4 w-full"></div>
+									<div class="skeleton h-4 w-full"></div>
+								</div>
+								<div class="flex w-full flex-col gap-4">
+									<div class="skeleton h-32 w-full"></div>
+									<div class="skeleton h-4 w-28"></div>
+									<div class="skeleton h-4 w-full"></div>
+									<div class="skeleton h-4 w-full"></div>
+								</div>
+								<div class="flex w-full flex-col gap-4">
+									<div class="skeleton h-32 w-full"></div>
+									<div class="skeleton h-4 w-28"></div>
+									<div class="skeleton h-4 w-full"></div>
+									<div class="skeleton h-4 w-full"></div>
+								</div>
+							</div>
 						</div>
 					</div>
-				</div>
+				</form>
 				<div id="subscription-suggestions" class="mt-8"></div>
 			}
 		}
