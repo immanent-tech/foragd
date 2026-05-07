@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.128.0](https://github.com/immanent-tech/foragd/compare/v0.127.1...v0.128.0) (2026-05-07)
+
+
+### Features
+
+* :recycle: subscriptions handling caching and rewrite ([f004fd1](https://github.com/immanent-tech/foragd/commit/f004fd166c00fcf69d7cee1af7b8a09cd28b9d30))
+* **elastic:** :sparkles: add wildcard query support ([1542f4d](https://github.com/immanent-tech/foragd/commit/1542f4dc8ababc4dc73647699c597290c62cbcf1))
+* **scripts:** :sparkles: always halt event bubbling for HandleReadStatus behaviour ([d28d2fc](https://github.com/immanent-tech/foragd/commit/d28d2fcf5d79827ca5d611ebf8d316bfeb855a71))
+
+
+### Bug Fixes
+
+* **auth0:** :bug: avoid redirecting updates/paginate routes. instead, redirect to base page ([941c4ed](https://github.com/immanent-tech/foragd/commit/941c4ed013a4802bef49ef2755642b48aa0abba4))
+* **templates:** :bug: reading progress indicator working in firefox as well as chrome ([4104847](https://github.com/immanent-tech/foragd/commit/4104847ad01541d3c34783f8eeabe614b41093f4))
+* **templates/articles:** :bug: fix loading indicator when fetching remote article content ([4cc834a](https://github.com/immanent-tech/foragd/commit/4cc834afdbca47e488a4218f73be3645fba45499))
+
 ## [0.127.1](https://github.com/immanent-tech/foragd/compare/v0.127.0...v0.127.1) (2026-05-05)
 
 
