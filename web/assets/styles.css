@@ -213,7 +213,7 @@
   }
 
   .prose-article {
-    @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
+    @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
     /* Forced fixed width for pre and scrollable elements. */
     pre {
@@ -254,77 +254,39 @@
   }
 
   .prose-email {
-    @apply overflow-x-hidden text-pretty wrap-break-word;
+    @apply prose overflow-x-hidden text-pretty wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
     /* Bust all hardcoded widths on tables */
     table,
     td,
     tr {
-      max-width: 100% !important;
-      width: auto !important;
-      display: block !important;
-      box-sizing: border-box;
+      @apply box-border! block! w-auto! max-w-100!;
     }
 
     /* Restore normal table rows where display:block breaks alignment */
     tr {
-      display: flex !important;
-      flex-wrap: wrap;
-    }
-
-    /* Images: fluid, never overflow */
-    img {
-      max-width: 100% !important;
-      width: auto !important;
-      height: auto !important;
-      display: block;
-      margin-inline: auto;
-      /* subtle depth per the skill */
-      outline: 1px solid oklch(0% 0 0 / 0.06);
-      border-radius: 0.375rem;
+      @apply flex! flex-wrap!;
     }
 
     /* Captions under images */
     td[align="center"] > p {
-      font-size: 0.8125rem;
-      opacity: 0.65;
-      margin-top: 0.375rem;
-      text-align: center;
+      @apply mt-1 text-center text-sm/tight opacity-65;
     }
 
     /* Tighten paragraph spacing inside table cells */
     td > p {
-      margin-block: 0.65em;
-      line-height: 1.65;
-    }
-
-    /* Lists */
-    ul {
-      padding-inline-start: 1.25rem;
-      margin-block: 0.75em;
-    }
-    li > p {
-      margin-block: 0.2em;
+      @apply my-1 text-base/tight;
     }
 
     /* Header row: date + read online link */
     tr#header td {
-      padding-block: 0 0.75rem;
+      @apply py-2;
     }
 
     /* Strip spacer rows (cells with only &nbsp;) */
     td:empty,
     td > *:only-child:empty {
-      display: none !important;
-    }
-
-    /* Paywall CTA block — give it some visual separation */
-    h2:has(+ p) {
-      margin-top: 1.5rem;
-    }
-
-    a {
-      @apply link link-hover;
+      @apply hidden!;
     }
   }
 
@@ -334,7 +296,7 @@
     img,
     figure,
     video {
-      @apply hidden;
+      @apply hidden!;
     }
   }
 }
@@ -386,8 +348,9 @@
 @utility link {
   transition-property: scale, color;
   transition-duration: 150ms;
-  link:active {
-    @apply scale-[0.96];
+  .link:active,
+  .link:hover {
+    @apply scale-[0.99];
   }
 }
 
