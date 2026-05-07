@@ -25,6 +25,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -203,6 +204,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
+			godump.Dump(subscriptions)
 			RenderInternalPage(&ListSubscriptions{
 				title: "Subscriptions",
 				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{

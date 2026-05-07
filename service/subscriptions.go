@@ -223,7 +223,15 @@ func UpdateSubscriptions(
 	if user == nil {
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	// Invalidate the cache.
+
+	// Update the subscription dynamic info
+	if err = addSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
+			slog.Any("errro", err),
+		)
+	}
+
+	// Update the cached subscriptions.
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
 		for subscription := range slices.Values(subscriptions) {
 			subscriptionsCache.Invalidate(subscription.GetID())
