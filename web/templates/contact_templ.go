@@ -112,20 +112,20 @@ func Contact() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-push-url=\"false\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input input-primary bg-base-300 brightness-95\"></div></div><div class=\"col-span-full\"><label for=\"about\" class=\"block text-sm/6 font-medium\">Details</label><div class=\"mt-2\"><textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95\"></textarea></div><p class=\"mt-3 text-sm/6 neutral\">Add as much detail as you like.</p></div></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-push-url=\"false\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input input-primary bg-base-300 brightness-95\"></div></div><div class=\"col-span-full\"><label for=\"about\" class=\"block text-sm/6 font-medium\">Details</label><div class=\"mt-2\"><textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95\"></textarea></div><p class=\"mt-3 text-sm/6 neutral\">Add as much detail as you like.</p></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(os.Getenv("CLOUDFLARE_TURNSTILE_KEY"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/contact.templ`, Line: 56, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/contact.templ`, Line: 55, Col: 86}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"></div></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\" _=\"on click call history.back()\"><span class=\"text-sm/6\">Back</span></button> <button type=\"submit\" class=\"btn btn-primary\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"hide-loading items-center\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"></div></div></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\" _=\"on click call history.back()\"><span class=\"text-sm/6\">Back</span></button> <button type=\"submit\" class=\"btn btn-primary\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"hide-loading items-center\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
