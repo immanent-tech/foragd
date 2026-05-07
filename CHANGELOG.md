@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.128.1](https://github.com/immanent-tech/foragd/compare/v0.128.0...v0.128.1) (2026-05-07)
+
+
+### Bug Fixes
+
+* **service:** :bug: after updating subscriptions, recalculate dynamic info before updating in cache ([3f5745e](https://github.com/immanent-tech/foragd/commit/3f5745e1f88d077d8782a9bd39764a9dabe74c15))
+
 ## [0.128.0](https://github.com/immanent-tech/foragd/compare/v0.127.1...v0.128.0) (2026-05-07)
 
 
