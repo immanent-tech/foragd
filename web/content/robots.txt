@@ -4,4 +4,4 @@ Disallow: /list
 Disallow: /signup
 Disallow: /user
 Disallow: /login
-
+Sitemap: https://foragd.app/sitemap.xml
