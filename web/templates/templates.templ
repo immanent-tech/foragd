@@ -54,7 +54,7 @@ type PageOption func(*Page)
 // WithPageTitle option sets the page title (displayed in the browser titlebar).
 func WithPageTitle(title string) PageOption {
 	return func(p *Page) {
-		p.Title = title + " | " + config.AppName
+		p.Title = config.AppName + " | " + title
 	}
 }
 
@@ -213,7 +213,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 }
 
 templ UpdateTitle(title string) {
-	<title>{ title + " | " + config.AppName }</title>
+	<title>{ config.AppName + " | " + title }</title>
 }
 
 // NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a

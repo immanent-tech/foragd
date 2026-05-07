@@ -63,7 +63,7 @@ type PageOption func(*Page)
 // WithPageTitle option sets the page title (displayed in the browser titlebar).
 func WithPageTitle(title string) PageOption {
 	return func(p *Page) {
-		p.Title = title + " | " + config.AppName
+		p.Title = config.AppName + " | " + title
 	}
 }
 
@@ -400,7 +400,7 @@ func UpdateTitle(title string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(title + " | " + config.AppName)
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(config.AppName + " | " + title)
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 216, Col: 40}
 		}
