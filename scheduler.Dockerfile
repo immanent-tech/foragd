@@ -11,7 +11,7 @@ ARG APPVERSION
 
 # Copy go from official image.
 # https://hub.docker.com/_/golang
-COPY --from=docker.io/golang:1.26.2-alpine3.23@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1 /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.26.3-alpine3.23@sha256:3a8f055e02fce9585d5e4ab5135d57f2e1a947a16e2a7e6a71a78e770c169e9b /usr/local/go/ /usr/local/go/
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
