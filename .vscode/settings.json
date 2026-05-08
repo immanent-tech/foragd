@@ -102,7 +102,9 @@
     "templates/element",
     "handlers/home",
     "handlers/articles",
-    "service"
+    "service",
+    "templates/contact",
+    "handlers/subscriptions"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
