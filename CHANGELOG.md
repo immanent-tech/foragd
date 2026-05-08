@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.131.1](https://github.com/immanent-tech/foragd/compare/v0.131.0...v0.131.1) (2026-05-08)
+
+
+### Reverts
+
+* **scripts:** :fire: stop using masonry layout, too buggy ([9d32595](https://github.com/immanent-tech/foragd/commit/9d32595f4dbd0fa1bb9e9f51c69c7ef8bcab287a))
+
 ## [0.131.0](https://github.com/immanent-tech/foragd/compare/v0.130.1...v0.131.0) (2026-05-08)
 
 
