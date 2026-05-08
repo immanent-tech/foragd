@@ -637,7 +637,7 @@ templ ArticleContent(article *models.Article) {
 										id="extract-article"
 										hx-post={ "/view/article/" + article.GetID() }
 										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML transition:true"
+										hx-swap="innerHTML"
 										hx-push-url="false"
 										hx-trigger="submit"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
@@ -654,7 +654,7 @@ templ ArticleContent(article *models.Article) {
 										class="btn btn-wide btn-primary"
 										hx-get={ "/view/article/" + article.GetID() }
 										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML transition:true"
+										hx-swap="innerHTML"
 										hx-trigger="click consume"
 										hx-push-url="false"
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: false}) }
