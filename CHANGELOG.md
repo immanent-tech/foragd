@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.131.0](https://github.com/immanent-tech/foragd/compare/v0.130.1...v0.131.0) (2026-05-08)
+
+
+### Features
+
+* **templates/home:** :sparkles: show more latest subscriptions on home page ([f970ef6](https://github.com/immanent-tech/foragd/commit/f970ef68bf42e5d28653beffe4606bf5b8662bf0))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix logic for feed suggestions when adding a new feed ([f27a98c](https://github.com/immanent-tech/foragd/commit/f27a98c709bf4a007f715c32c049606d72b6abc4))
+* **models:** :bug: use source_url when generating new feed_id ([a98d56b](https://github.com/immanent-tech/foragd/commit/a98d56bc9f3e55583dcc93777c53252c975f0cbc))
+* **service:** :bug: fix handling pagination/count when filtering subscriptions ([5511487](https://github.com/immanent-tech/foragd/commit/55114870abd177cda3310d4f83981bbba77b42db))
+* **styles:** :bug: apply css to remove tracker images for both web and email article content ([9441625](https://github.com/immanent-tech/foragd/commit/9441625de3ca912878db91bf3e8df063b1aeaebf))
+* **templates/articles:** :bug: don't use transitions for swapping between feed and remote article content ([2a5df4e](https://github.com/immanent-tech/foragd/commit/2a5df4eba4356341520374d66f48020d11930503))
+
 ## [0.130.1](https://github.com/immanent-tech/foragd/compare/v0.130.0...v0.130.1) (2026-05-08)
 
 
