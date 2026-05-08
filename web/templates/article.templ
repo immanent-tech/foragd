@@ -981,7 +981,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							if response.Subscription == nil {
 								// Mark all articles action.
 								<button
-									class="btn btn-outline"
+									class="btn btn-outline btn-wide"
 									if response.Filters.GetView() == models.ViewUnread {
 										hx-post="/list/articles/mark/read"
 										hx-vals={ templ.JSONString(map[string]any{
@@ -1031,7 +1031,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									<button
 										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 										hx-vals={ templ.JSONString(values) }
-										class="btn btn-outline btn-sm"
+										class="btn btn-outline btn-wide"
 										type="submit"
 									>
 										<span class="show-loading items-center">

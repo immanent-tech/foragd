@@ -1254,7 +1254,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, " <div id=\"loading-subscriptions\" class=\"text-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mt-8 hidden justify-center\" _=\"install RevealAtBottom\"><button class=\"btn btn-outline btn-sm\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, " <div id=\"loading-subscriptions\" class=\"text-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div> <nav class=\"mt-8 hidden justify-center\" _=\"install RevealAtBottom\"><button class=\"btn btn-outline btn-wide\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

@@ -525,7 +525,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 						<nav class="mt-8 hidden justify-center" _="install RevealAtBottom">
 							// Mark all subscriptions action.
 							<button
-								class="btn btn-outline btn-sm"
+								class="btn btn-outline btn-wide"
 								if response.Filters.GetView() == models.ViewUnread {
 									hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
 									hx-vals={ templ.JSONString(map[string]any{
