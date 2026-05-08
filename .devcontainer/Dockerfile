@@ -1,7 +1,7 @@
-FROM docker.io/alpine:3.23.3 AS builder
+FROM docker.io/alpine:3.23.4 AS builder
 
 # Copy go from official image
-COPY --from=docker.io/golang:1.26.2-alpine3.23 /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.26.3-alpine3.23 /usr/local/go/ /usr/local/go/
 
 # Install additional packages
 RUN apk update && apk add sudo openssh curl libcurl \
