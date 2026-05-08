@@ -274,12 +274,11 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			// On validation errors, try again without validation.
 			return NewFeedFromURL(ctx, feedURL.String(), id, false)
 		}
-		if parseErr, ok := errors.AsType[feeds.ParseError](
-			err,
-		); ok &&
+
+		if parseErr, ok := errors.AsType[feeds.ParseError](err); ok &&
 			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
 			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
-			if proxied, err := reverseproxy.IsProxiedURL(feedURL.String()); err != nil && !proxied {
+			if proxied, _ := reverseproxy.IsProxiedURL(feedURL.String()); !proxied {
 				// Generate a proxied URL.
 				proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
 				if err != nil {
@@ -315,7 +314,6 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 	}
 
 	feed = newSyndicationFeed(ctx, feedURL.String(), id, result)
-
 	// Try to find an image for the feed if it does not supply one.
 	if feed.GetImage() == nil {
 		// Fetch and extract image from opengraph data (if any).
@@ -336,7 +334,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 // newSyndicationFeed converts the raw types.FeedSource into a Feed object.
 func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {
-		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetLink())), 10)
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
 	}
 	feed := &Feed{
 		FeedID:       id,
