@@ -213,7 +213,7 @@
   }
 
   .prose-article {
-    @apply prose max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+    @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
     /* Forced fixed width for pre and scrollable elements. */
     pre {
@@ -237,24 +237,10 @@
     iframe[allowfullscreen] {
       @apply relative aspect-video h-auto max-w-full overflow-hidden p-8;
     }
-
-    /* Hide injected scripts/beacons that render as empty nodes */
-    script,
-    style,
-    link,
-    meta {
-      display: none !important;
-    }
-
-    /* Strip any injected tracking pixels */
-    img[width="1"],
-    img[height="1"] {
-      display: none !important;
-    }
   }
 
   .prose-email {
-    @apply prose overflow-x-hidden text-pretty wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+    @apply prose ugc-remove-trackers overflow-x-hidden text-pretty wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
     /* Bust all hardcoded widths on tables */
     table,
@@ -343,6 +329,22 @@
     76.1% 97.7%,
     74.1% 44.1%
   );
+}
+
+@utility ugc-remove-trackers {
+  /* Hide injected scripts/beacons that render as empty nodes */
+  script,
+  style,
+  link,
+  meta {
+    display: none !important;
+  }
+
+  /* Strip any injected tracking pixels */
+  img[width="1"],
+  img[height="1"] {
+    display: none !important;
+  }
 }
 
 @utility link {
