@@ -16,37 +16,37 @@ import "./embed-youtube";
 
 // Masonry grid layout.
 
-import { GridRowsMasonry } from "grid-rows-masonry";
+// import { GridRowsMasonry } from "grid-rows-masonry";
 
-function initMasonry() {
-  const grid = document.getElementById("grid-objects");
-  if (!grid) return;
+// function initMasonry() {
+//   const grid = document.getElementById("grid-objects");
+//   if (!grid) return;
 
-  // Remove any stray text/comment nodes that confuse the ResizeObserver
-  Array.from(grid.childNodes).forEach((node) => {
-    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
-  });
+//   // Remove any stray text/comment nodes that confuse the ResizeObserver
+//   Array.from(grid.childNodes).forEach((node) => {
+//     if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
+//   });
 
-  // Create instance.
-  grid._masonryInstance = new GridRowsMasonry(grid);
-}
+//   // Create instance.
+//   grid._masonryInstance = new GridRowsMasonry(grid);
+// }
 
-htmx.onLoad(function (target) {
-  initMasonry();
-});
+// htmx.onLoad(function (target) {
+//   initMasonry();
+// });
 
-// After every HTMX settle into #grid-objects (infinite scroll, filter changes)
-htmx.on("htmx:afterSwap", function (event) {
-  const grid = document.getElementById("grid-objects");
-  if (!grid) return;
-  if (grid._masonryInstance) {
-    grid._masonryInstance.destroy();
-  }
-  Array.from(grid.childNodes).forEach((node) => {
-    if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
-  });
-  initMasonry();
-});
+// // After every HTMX settle into #grid-objects (infinite scroll, filter changes)
+// htmx.on("htmx:afterSwap", function (event) {
+//   const grid = document.getElementById("grid-objects");
+//   if (!grid) return;
+//   if (grid._masonryInstance) {
+//     grid._masonryInstance.destroy();
+//   }
+//   Array.from(grid.childNodes).forEach((node) => {
+//     if (node.nodeType !== Node.ELEMENT_NODE) node.remove();
+//   });
+//   initMasonry();
+// });
 
 // Make sure back button after logout does not show cached data.
 //
@@ -68,9 +68,16 @@ if (window.location.pathname.startsWith("/view/article/")) {
   });
 }
 
-// Redirect to login if server returns a 401 (unauthorized).
-document.body.addEventListener("htmx:responseError", function (evt) {
-  if (evt.detail.xhr.status === 401) {
-    window.location.href = "/login";
-  }
-});
+// // Redirect to login if server returns a 401 (unauthorized).
+// document.body.addEventListener("htmx:responseError", function (evt) {
+//   if (evt.detail.xhr.status === 401) {
+//     window.location.href = "/login";
+//   }
+// });
+
+// // Don't use view transitions for pagination.
+// document.body.addEventListener("htmx:beforeTransition", function (evt) {
+//   if (evt.detail.target?.id === "grid-objects") {
+//     evt.preventDefault(); // cancel the view transition for pagination
+//   }
+// });
