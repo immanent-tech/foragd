@@ -126,12 +126,8 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		// Get subscriptions matching filters.
 		var next models.Pagination
-		subscriptions, next, err = service.FilterSubscriptions(
-			req.Context(),
-			user,
-			&request.Filters,
-			*request.Pagination,
-		)
+
+		subscriptions, err = service.GetAllSubscriptions(req.Context(), user)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
@@ -139,6 +135,21 @@ func HandleListSubscriptions() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+
+		// Apply all base filtering and sorting.
+		subscriptions, next = subscriptions.
+			FilterByFavorites(request.Filters.OnlyFavorites).
+			FilterByView(request.Filters.GetView()).
+			FilterByCategories(request.Filters.GetCategories()...).
+			FilterByIDs(request.Filters.GetSubscriptions()...).
+			Sort(request.Filters.GetSort()).
+			Paginate(*request.Pagination, filters.GetCount())
+
+		if len(subscriptions) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		request.Pagination = &next
 
 		var (
@@ -238,7 +249,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			return
 		}
 
-		// Build query.
+		// Get user details.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get user data.",
@@ -247,19 +258,26 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, filters, "")
-		switch {
-		case err != nil:
+
+		subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusNoContent)
 			return
-		case len(subscriptions) == 0:
-			slogctx.FromCtx(req.Context()).Error("No user subscriptions.")
+		}
+		// Apply all base filtering and sorting.
+		subscriptions = subscriptions.
+			FilterByFavorites(filters.OnlyFavorites).
+			FilterByView(filters.GetView()).
+			FilterByCategories(filters.GetCategories()...).
+			FilterByIDs(filters.GetSubscriptions()...)
+		if len(subscriptions) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
+
 		updatesQuery := query.Bool(
 			query.WithBoolQueryName("list_subscriptions_updates_"+user.GetID()),
 			query.Filter(

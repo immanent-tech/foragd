@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -79,17 +80,23 @@ func ListCategories() http.HandlerFunc {
 				}
 
 				// Get subscription details.
-				subscriptionFilters := models.NewListDisplayFilters()
-				subscriptionFilters.Subscriptions = articleFilters.GetSubscriptions()
-				subscriptionFilters.View = articleFilters.GetView()
-				subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
-				if err != nil {
+
+				subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
 						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
+					return
+				}
+				subscriptions = subscriptions.
+					FilterByView(articleFilters.GetView()).
+					FilterByIDs(articleFilters.GetSubscriptions()...)
+
+				if len(subscriptions) == 0 {
+					res.WriteHeader(http.StatusNoContent)
 					return
 				}
 

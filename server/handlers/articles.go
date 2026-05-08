@@ -194,19 +194,18 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		}
 
 		// Retreive subscription details.
-		subscriptionFilters := models.NewListDisplayFilters()
-		subscriptionFilters.Subscriptions = articleFilters.GetSubscriptions()
-		subscriptionFilters.View = articleFilters.GetView()
-		subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
-		switch {
-		case err != nil:
+		subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusNoContent)
 			return
-		case len(subscriptions) == 0:
-			slogctx.FromCtx(req.Context()).Error("No user subscriptions.")
+		}
+		subscriptions = subscriptions.
+			FilterByView(articleFilters.GetView()).
+			FilterByIDs(articleFilters.GetSubscriptions()...)
+		if len(subscriptions) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}

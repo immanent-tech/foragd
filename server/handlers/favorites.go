@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -79,7 +80,7 @@ func HandleListFavorites() http.HandlerFunc {
 		wg.Go(func() error {
 			var err error
 			subscriptions, err = service.GetAllSubscriptions(jobCtx, user)
-			if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				return fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
 			}
 			subscriptions = subscriptions.FilterByFavorites(true)

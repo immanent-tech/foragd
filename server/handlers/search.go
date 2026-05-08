@@ -213,10 +213,8 @@ func HandleSearchResults() http.HandlerFunc {
 
 		// If the search request has subscription filters, get subscription details.
 		if len(search.Subscriptions) > 0 {
-			subscriptionFilters := models.NewListDisplayFilters()
-			subscriptionFilters.Subscriptions = search.Subscriptions
-			subscriptionFilters.View = search.View
-			subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &subscriptionFilters, "")
+			// Get subscriptions.
+			subscriptions, err := service.GetAllSubscriptions(ctx, user)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get subscriptions: %w", err),
@@ -224,6 +222,9 @@ func HandleSearchResults() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+			subscriptions = subscriptions.
+				FilterByView(search.View).
+				FilterByIDs(search.Subscriptions...)
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
 

@@ -47,12 +47,14 @@ func FilterArticles(
 		return nil, "", fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	// Get all user subscriptions.
-	subscriptions, _, err := FilterSubscriptions(ctx, user, &request.Filters, *request.Pagination)
+	// Get subscriptions.
+	subscriptions, err := GetAllSubscriptions(ctx, user)
 	if err != nil {
 		return nil, "", fmt.Errorf("get subscriptions: %w", err)
 	}
-
+	subscriptions = subscriptions.
+		FilterByView(request.Filters.GetView()).
+		FilterByIDs(request.Filters.GetSubscriptions()...)
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
 		return nil, "", models.ErrNotFound

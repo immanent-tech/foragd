@@ -127,38 +127,6 @@ func GetSubscriptionsByFeedID(
 	return subscriptions.FilterByFeedIDs(ids...), nil
 }
 
-// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
-func FilterSubscriptions(
-	ctx context.Context,
-	user *models.User,
-	filters *models.ListFilters,
-	pagination models.Pagination,
-) (models.Subscriptions, models.Pagination, error) {
-	subscriptions, err := GetAllSubscriptions(
-		ctx,
-		user,
-	)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter subscriptions: %w", err)
-	}
-
-	// If subscription filters are applied, set count to the number of subscription filters.
-	if len(filters.Subscriptions) > 0 {
-		filters.Count = len(filters.Subscriptions)
-	}
-
-	// Apply all base filtering and sorting.
-	subscriptions, pagination = subscriptions.
-		FilterByFavorites(filters.OnlyFavorites).
-		FilterByView(filters.GetView()).
-		FilterByCategories(filters.GetCategories()...).
-		FilterByIDs(filters.GetSubscriptions()...).
-		Sort(filters.GetSort()).
-		Paginate(pagination, filters.GetCount())
-
-	return subscriptions, pagination, nil
-}
-
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
 	user := models.UserFromCtx(ctx)

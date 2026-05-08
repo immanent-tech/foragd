@@ -108,9 +108,8 @@ func HandleHome() http.HandlerFunc {
 			}
 
 			// Get the latest updated subscriptions.
-			filters := models.NewListDisplayFilters()
-			filters.Count = 10
-			subscriptions, _, err := service.FilterSubscriptions(req.Context(), user, &filters, "")
+			// Get subscriptions.
+			subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
@@ -120,6 +119,12 @@ func HandleHome() http.HandlerFunc {
 						"This might be temporary, please try again.",
 					),
 				}).ServeHTTP(res, req)
+			}
+			subscriptions = subscriptions.
+				FilterByView(models.ViewUnread).
+				Sort(models.SortNewestFirst)
+			if len(subscriptions) > 10 {
+				subscriptions = subscriptions[:10]
 			}
 
 			// Create an object to hold the data.

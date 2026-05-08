@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -57,15 +58,16 @@ func BuildSearchResultsQuery(
 		pivot = "3d"
 	}
 
-	subscriptionFilters := models.NewListDisplayFilters()
-	subscriptionFilters.Subscriptions = request.Subscriptions
-	subscriptionFilters.View = request.View
-	subscriptions, _, err := FilterSubscriptions(ctx, user, &subscriptionFilters, "")
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("build search query: get subscriptions: %w", models.ErrNotFound)
+	// Get subscriptions.
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+	subscriptions = subscriptions.
+		FilterByView(request.View).
+		FilterByIDs(request.Subscriptions...)
+	if len(subscriptions) == 0 {
+		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
 	}
 
 	return query.Bool(
