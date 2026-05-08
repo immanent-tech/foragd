@@ -73,9 +73,6 @@ templ UserHome(data *models.HomeResponse) {
 										</h2>
 										<ul role="list" class="divide-y divide-neutral/15">
 											for idx, subscription := range data.Subscriptions {
-												if idx >= 6 {
-													{{ break }}
-												}
 												<li
 													class="group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation py-4 will-change-[opacity,transform]"
 													style={ "--i: " + strconv.Itoa(idx) }

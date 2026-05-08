@@ -142,6 +142,7 @@ func FilterSubscriptions(
 		return nil, "", fmt.Errorf("filter subscriptions: %w", err)
 	}
 
+	// Apply all base filtering and sorting.
 	subscriptions = subscriptions.
 		FilterByFavorites(filters.OnlyFavorites).
 		FilterByView(filters.GetView()).
@@ -150,7 +151,13 @@ func FilterSubscriptions(
 		Sort(filters.GetSort())
 
 	if pagination != "" {
+		// Paginate through subscriptions if a paginate value is set.
 		subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
+	} else {
+		// Truncate the list based on the count.
+		if len(subscriptions) > filters.GetCount() {
+			subscriptions = subscriptions[:filters.GetCount()]
+		}
 	}
 
 	return subscriptions, pagination, nil

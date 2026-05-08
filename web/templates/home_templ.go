@@ -162,17 +162,14 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							for idx, subscription := range data.Subscriptions {
-								if idx >= 6 {
-									break
-								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " <li class=\"group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation py-4 will-change-[opacity,transform]\" style=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<li class=\"group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation py-4 will-change-[opacity,transform]\" style=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 								var templ_7745c5c3_Var7 string
 								templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("--i: " + strconv.Itoa(idx))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 81, Col: 48}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 78, Col: 48}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 								if templ_7745c5c3_Err != nil {
@@ -185,7 +182,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var8 string
 								templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetID())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 82, Col: 38}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 79, Col: 38}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 								if templ_7745c5c3_Err != nil {
@@ -221,7 +218,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var9 string
 								templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 93, Col: 88}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 90, Col: 88}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 								if templ_7745c5c3_Err != nil {
@@ -234,7 +231,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var10 string
 								templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 96, Col: 91}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 93, Col: 91}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 								if templ_7745c5c3_Err != nil {
@@ -247,7 +244,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var11 string
 								templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 100, Col: 70}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 97, Col: 70}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 								if templ_7745c5c3_Err != nil {
@@ -388,7 +385,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var16 string
 					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("Welcome to " + config.AppName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 151, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 148, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
@@ -401,7 +398,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var17 string
 					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 173, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 170, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {
@@ -414,7 +411,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var18 string
 					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 197, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 194, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {
