@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.130.0](https://github.com/immanent-tech/foragd/compare/v0.129.0...v0.130.0) (2026-05-08)
+
+
+### Features
+
+* **elastic:** :sparkles: add match_phrase query ([daff4ed](https://github.com/immanent-tech/foragd/commit/daff4edce4f6d9e1467e4018521d57ca321d665a))
+* **search:** :sparkles: search tweaks ([1eac14f](https://github.com/immanent-tech/foragd/commit/1eac14f4653a1fe745ad0b261dab9ec5bf7e9742))
+
+
+### Bug Fixes
+
+* **handlers/subscriptions:** :bug: fix suggestions logic for adding new feed subscription ([77eabd7](https://github.com/immanent-tech/foragd/commit/77eabd7be9db16e5e40ce804dfab99f34745fe0e))
+
 ## [0.129.0](https://github.com/immanent-tech/foragd/compare/v0.128.2...v0.129.0) (2026-05-07)
 
 
