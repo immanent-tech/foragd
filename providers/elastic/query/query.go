@@ -118,6 +118,44 @@ func Match(field, value string, options ...func(*MatchQuery)) Option {
 	}
 }
 
+type MatchPhraseQuery struct {
+	*types.MatchPhraseQuery
+}
+
+func (q *MatchPhraseQuery) SetName(name string) {
+	q.QueryName_ = &name
+}
+
+func (q *MatchPhraseQuery) SetBoost(boost float32) {
+	q.Boost = &boost
+}
+
+func (q *MatchPhraseQuery) SetSlop(slop int) {
+	q.Slop = &slop
+}
+
+// MatchPhrase adds a "MatchPhrase" query on the given field with the given value.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query-phrase
+func MatchPhrase(field, value string, options ...func(*MatchPhraseQuery)) Option {
+	return func(query *types.Query) {
+		if value != "" {
+			q := &MatchPhraseQuery{
+				&types.MatchPhraseQuery{
+					Query: value,
+				},
+			}
+			for option := range slices.Values(options) {
+				option(q)
+			}
+			if query.MatchPhrase == nil {
+				query.MatchPhrase = make(map[string]types.MatchPhraseQuery)
+			}
+			query.MatchPhrase[field] = *q.MatchPhraseQuery
+		}
+	}
+}
+
 type MultiMatchQuery struct {
 	*types.MultiMatchQuery
 }

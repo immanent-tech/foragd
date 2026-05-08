@@ -10,7 +10,7 @@ import (
 
 // Boostable represents a query option that supports a boost parameter.
 type Boostable interface {
-	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery | *WildcardQuery
+	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MatchPhraseQuery | *MultiMatchQuery | *WildcardQuery
 
 	SetBoost(boost float32)
 }
@@ -24,7 +24,7 @@ func WithQueryBoost[T Boostable](boost float32) func(T) {
 
 // Nameable represents a query option that can be named.
 type Nameable interface {
-	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MultiMatchQuery | *WildcardQuery
+	*TermQuery | *TermsQuery | *ExistsQuery | *MatchAllQuery | *MatchQuery | *MatchPhraseQuery | *MultiMatchQuery | *WildcardQuery
 
 	SetName(name string)
 }
@@ -63,7 +63,7 @@ func WithFuzzyTranspositions[T Fuzziness](value bool) func(T) {
 
 // Sloppiness represents a query that can define a slop value.
 type Sloppiness interface {
-	*MultiMatchQuery
+	*MatchPhraseQuery | *MultiMatchQuery
 
 	SetSlop(slop int)
 }
@@ -75,7 +75,7 @@ func WithSlop[T Sloppiness](slop int) func(T) {
 	}
 }
 
-type TextQueryType textquerytype.TextQueryType
+type TextQueryType = textquerytype.TextQueryType
 
 // TextQueryTypes represents a query that has different text query operating modes.
 type TextQueryTypes interface {
