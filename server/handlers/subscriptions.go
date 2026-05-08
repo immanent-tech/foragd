@@ -1466,11 +1466,10 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 			var feeds models.Feeds
 			feeds = resp.Results
 
-			// Handle matching feeds.
 			if len(feeds) > 0 {
+				// Handle matching feeds.
 				// Exclude any feeds the user is already subscribed to.
 				feeds = feeds.ExcludeIDs(subscriptions.GetFeedIDs()...)
-
 				if len(feeds) > 0 {
 					// Retrieve the latest 3 articles for each feed.
 					latestItems := make(map[models.FeedID]models.Items)
@@ -1490,48 +1489,46 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 							},
 						),
 					}).ServeHTTP(res, req)
-				} else {
-					// Show no suggestions.
-					RenderPartial(&PartialTemplate{
-						template: templates.ShowNoSuggestions(text),
-					}).ServeHTTP(res, req)
+					return
 				}
-				return
-			}
-
-			// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
-			if strings.HasPrefix(text, "http") {
-				if newFeedURL, err := url.Parse(text); err == nil {
-					newFeed, err := models.NewFeedFromURL(req.Context(), newFeedURL.String(), "", false)
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to find feed at URL.",
+			} else {
+				// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
+				if strings.HasPrefix(text, "http") {
+					if newFeedURL, err := url.Parse(text); err == nil {
+						slogctx.FromCtx(req.Context()).Debug("Looking for new feed for URL.",
 							slog.String("url", newFeedURL.String()),
-							slog.Any("error", err),
 						)
+						newFeed, err := models.NewFeedFromURL(req.Context(), newFeedURL.String(), "", false)
+						if err != nil {
+							slogctx.FromCtx(req.Context()).Warn("Unable to find feed at URL.",
+								slog.String("url", newFeedURL.String()),
+								slog.Any("error", err),
+							)
+							RenderPartial(&PartialTemplate{
+								template: templates.ShowNoSuggestions(text),
+							}).ServeHTTP(res, req)
+							return
+						}
+						latestItems := make(map[models.FeedID]models.Items)
+						if items := newFeed.GetItems(); len(items) > 0 {
+							// Truncate to 3 items.
+							if len(items) > 3 {
+								items = items[:3]
+							}
+							latestItems[newFeed.GetID()] = items
+						}
+
+						// Show new feed suggestion.
 						RenderPartial(&PartialTemplate{
-							template: templates.ShowNoSuggestions(text),
+							template: templates.ShowFeedSuggestions(
+								&models.AddSubscriptionFeedSuggestions{
+									Feeds:       models.Feeds{newFeed},
+									LatestItems: latestItems,
+								},
+							),
 						}).ServeHTTP(res, req)
 						return
 					}
-					latestItems := make(map[models.FeedID]models.Items)
-					if items := newFeed.GetItems(); len(items) > 0 {
-						// Truncate to 3 items.
-						if len(items) > 3 {
-							items = items[:3]
-						}
-						latestItems[newFeed.GetID()] = items
-					}
-
-					// Show new feed suggestion.
-					RenderPartial(&PartialTemplate{
-						template: templates.ShowFeedSuggestions(
-							&models.AddSubscriptionFeedSuggestions{
-								Feeds:       models.Feeds{newFeed},
-								LatestItems: latestItems,
-							},
-						),
-					}).ServeHTTP(res, req)
-					return
 				}
 			}
 
