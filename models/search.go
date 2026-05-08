@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -157,10 +158,16 @@ func SearchResultsClause(search *SearchRequest) query.BoolOption {
 		// boosting).
 		query.Bool(
 			query.Should(
+				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.SimpleQueryString(
 					query.WithSimpleQueryStringText(&search.Text),
 					query.WithSimpleQueryStringFields("title^6", "description^3", "content"),
 					query.WithSimpleQueryStringOperator(&operator.And),
+				),
+				query.MultiMatch(
+					search.Text,
+					[]string{"description^3", "content"},
+					query.WithTextQueryType(textquerytype.Phrase),
 				),
 			),
 		),
@@ -184,6 +191,7 @@ func SearchSuggestionsClause(search *SearchRequest) query.BoolOption {
 	return query.Must(
 		query.Bool(
 			query.Should(
+				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.SearchAsYouType(search.Text, "title"),
 				query.SearchAsYouType(search.Text, "description"),
 				query.SimpleQueryString(
