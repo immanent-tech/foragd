@@ -7,6 +7,8 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "build(go): ⬆️"
+    cooldown:
+        default-days: 7
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -15,6 +17,8 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "ci(github): ⬆️"
+    cooldown:
+        default-days: 7
 
   # Enable version updates for npm
   - package-ecosystem: "npm"
@@ -25,6 +29,8 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "build(npm): ⬆️"
+    cooldown:
+        default-days: 7
 
   # Enable version updates for Docker
   - package-ecosystem: "docker"
@@ -35,3 +41,5 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "build(container): ⬆️"
+    cooldown:
+        default-days: 7
