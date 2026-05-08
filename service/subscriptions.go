@@ -142,23 +142,19 @@ func FilterSubscriptions(
 		return nil, "", fmt.Errorf("filter subscriptions: %w", err)
 	}
 
+	// If subscription filters are applied, set count to the number of subscription filters.
+	if len(filters.Subscriptions) > 0 {
+		filters.Count = len(filters.Subscriptions)
+	}
+
 	// Apply all base filtering and sorting.
-	subscriptions = subscriptions.
+	subscriptions, pagination = subscriptions.
 		FilterByFavorites(filters.OnlyFavorites).
 		FilterByView(filters.GetView()).
 		FilterByCategories(filters.GetCategories()...).
 		FilterByIDs(filters.GetSubscriptions()...).
-		Sort(filters.GetSort())
-
-	if pagination != "" {
-		// Paginate through subscriptions if a paginate value is set.
-		subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
-	} else {
-		// Truncate the list based on the count.
-		if len(subscriptions) > filters.GetCount() {
-			subscriptions = subscriptions[:filters.GetCount()]
-		}
-	}
+		Sort(filters.GetSort()).
+		Paginate(pagination, filters.GetCount())
 
 	return subscriptions, pagination, nil
 }
@@ -180,12 +176,6 @@ func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription
 			"settings": settings,
 		}); err != nil {
 			return fmt.Errorf("update user: %w", err)
-		}
-	}
-	// Cache the new subscriptions.
-	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
-		for subscription := range slices.Values(subscriptions) {
-			subscriptionsCache.Set(subscription.GetID(), subscription)
 		}
 	}
 	return nil
