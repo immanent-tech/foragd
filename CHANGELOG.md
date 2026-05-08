@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.130.1](https://github.com/immanent-tech/foragd/compare/v0.130.0...v0.130.1) (2026-05-08)
+
+
+### Bug Fixes
+
+* **elastic:** :bug: fix elastic logging ([16aaee6](https://github.com/immanent-tech/foragd/commit/16aaee66a95f3081ea85f24de68db3504257dd02))
+
 ## [0.130.0](https://github.com/immanent-tech/foragd/compare/v0.129.0...v0.130.0) (2026-05-08)
 
 
