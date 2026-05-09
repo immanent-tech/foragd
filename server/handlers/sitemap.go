@@ -81,7 +81,7 @@ func HandleSitemap() http.Handler {
 			http.NotFound(res, req)
 			return
 		}
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200, must-revalidate")
+		res.Header().Set("Cache-Control", "public, max-age=86400, s-maxage=604800")
 		res.Header().Set("Content-Type", "application/xml")
 		res.WriteHeader(http.StatusOK)
 		if _, err := res.Write(sitemap); err != nil {
