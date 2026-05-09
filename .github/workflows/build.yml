@@ -94,7 +94,9 @@ jobs:
 
       - name: Set app version for release
         if: ${{ needs.check_release.outputs.release_created }}
-        run: echo "APPVERSION=${{ needs.check_release.outputs.release_tag }}" >> $GITHUB_ENV
+        run: echo "APPVERSION=${APPVERSION}" >> $GITHUB_ENV
+        env:
+          APPVERSION: ${{ needs.check_release.outputs.release_tag }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
@@ -179,18 +181,20 @@ jobs:
       - name: Attest SBOM with cosign
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          DIGEST: ${{ steps.build.outputs.digest }}
+          CONTAINER: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${{ steps.build.outputs.digest }}
         run: |
           cosign attest --yes --key cosign.key \
             --predicate sbom.cyclonedx.json \
             --type cyclonedx \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}
+            ${CONTAINER}
+
 
       # -----------------------------------------------------------------------
       - name: Print cosign verify command
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
           REPO: ${{ github.repository }}
+          CONTAINER: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}
         run: |
           echo ""
           echo "╔══════════════════════════════════════════════════════════════╗"
@@ -200,6 +204,5 @@ jobs:
           echo "  cosign verify \\"
           echo "    --certificate-identity-regexp=\"https://github.com/${REPO}/\" \\"
           echo "    --certificate-oidc-issuer=\"https://token.actions.githubusercontent.com\" \\"
-          echo "    ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}"
+          echo "    ${CONTAINER}"
           echo ""
-
