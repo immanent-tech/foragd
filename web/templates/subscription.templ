@@ -959,10 +959,24 @@ templ ShowFeedSuggestions(request *models.AddSubscriptionFeedSuggestions) {
 								}
 							</div>
 							<div class="ml-4 shrink-0">
-								<form hx-post="/subscription/add/feed" hx-swap="none" hx-encoding="multipart/form-data">
+								<form hx-encoding="multipart/form-data">
 									<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
 									<input type="hidden" name="feed_id" value={ feed.GetID() }/>
-									<button type="submit" class="btn btn-primary">Subscribe</button>
+									<button
+										type="submit"
+										class="btn btn-primary"
+										hx-post="/subscription/add/feed"
+										hx-swap="none"
+										_="on htmx:afterRequest(successful) remove me"
+									>
+										<span class="show-loading items-center">
+											<span class="loading loading-spinner loading-md text-primary mr-3"></span>
+											Subscribing
+										</span>
+										<span class="hide-loading items-center">
+											Subscribe
+										</span>
+									</button>
 								</form>
 							</div>
 						</div>
