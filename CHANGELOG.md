@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.131.3](https://github.com/immanent-tech/foragd/compare/v0.131.2...v0.131.3) (2026-05-09)
+
+
+### Bug Fixes
+
+* :bug: go back to referring page if clicking back button on report issue form ([147ed6d](https://github.com/immanent-tech/foragd/commit/147ed6df53dfc4778070f97d15bace3014dc97bd))
+* **models:** :bug: trim any trailing slash from image urls ([ba8245d](https://github.com/immanent-tech/foragd/commit/ba8245db9e54bbf28307db61b6ae211952325364))
+* **templates/articles:** :bug: fix number of article images to load with high priority on page ([7c2a581](https://github.com/immanent-tech/foragd/commit/7c2a5812bf0adfa952befb7c29a7432c3e65bbba))
+
 ## [0.131.2](https://github.com/immanent-tech/foragd/compare/v0.131.1...v0.131.2) (2026-05-09)
 
 
