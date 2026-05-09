@@ -16,7 +16,7 @@ func NewRemoteImage(url, title string) *RemoteImage {
 // GetURL returns the URL to the image.
 func (i *RemoteImage) GetURL() string {
 	if i.URL != nil {
-		return *i.URL
+		return strings.TrimSuffix(*i.URL, "/")
 	}
 	return ""
 }
