@@ -129,7 +129,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var loadingAttrKey, loadingAttrValue string
-				if idx <= 3 {
+				if idx < 3 {
 					loadingAttrKey = "fetchpriority"
 					loadingAttrValue = "high"
 				} else {

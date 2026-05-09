@@ -45,7 +45,7 @@ templ ArticleCard(idx int, article *models.Article) {
 				<figure class="relative overflow-hidden rounded-t-[inherit]">
 					{{
 						var loadingAttrKey, loadingAttrValue string
-						if idx <= 3 {
+						if idx < 3 {
 							loadingAttrKey = "fetchpriority"
 							loadingAttrValue = "high"
 						} else {
