@@ -202,6 +202,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
+		// Filter subscriptions.
 		subscriptions = subscriptions.
 			FilterByView(articleFilters.GetView()).
 			FilterByIDs(articleFilters.GetSubscriptions()...)

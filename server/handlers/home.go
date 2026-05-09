@@ -107,7 +107,6 @@ func HandleHome() http.HandlerFunc {
 				return
 			}
 
-			// Get the latest updated subscriptions.
 			// Get subscriptions.
 			subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
@@ -120,6 +119,7 @@ func HandleHome() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 			}
+			// Filter by unread and sort by last update.
 			subscriptions = subscriptions.
 				FilterByView(models.ViewUnread).
 				Sort(models.SortNewestFirst)

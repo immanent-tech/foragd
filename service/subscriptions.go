@@ -58,13 +58,6 @@ func cacheAllUserSubscriptions(
 		return nil, otter.ErrNotFound
 	}
 
-	if len(subscriptions) > 0 {
-		err = addSubscriptionDynamicInfo(ctx, subscriptions)
-		if err != nil {
-			return nil, fmt.Errorf("add dynamic info: %w", err)
-		}
-	}
-
 	for subscription := range slices.Values(subscriptions) {
 		userSubscriptionsCache.Set(subscription.GetID(), subscription)
 	}
@@ -93,7 +86,15 @@ func GetAllSubscriptions(
 		return nil, fmt.Errorf("get all subscriptions: %w", err)
 	}
 
-	return slices.Collect(subscriptionsCache.Values()), nil
+	subscriptions := slices.Collect(subscriptionsCache.Values())
+
+	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to update subscription dynamic info.",
+			slog.Any("error", err),
+		)
+	}
+
+	return subscriptions, nil
 }
 
 // GetSubscription returns the subscription that matches the given ID for the given user.
@@ -107,6 +108,24 @@ func GetSubscription(
 		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}
 	return subscriptions.GetByID(id), nil
+}
+
+// GetSubscriptionsByID returns all subscriptions that match the given SubscriptionIDs.
+func GetSubscriptionsByID(
+	ctx context.Context,
+	ids ...models.SubscriptionID,
+) (models.Subscriptions, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+
+	return subscriptions.FilterByIDs(ids...), nil
 }
 
 // GetSubscriptionsByFeedID returns all subscriptions that match the given FeedIDs.
@@ -189,12 +208,12 @@ func UpdateSubscriptions(
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	// Update the subscription dynamic info
-	if err = addSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
-			slog.Any("errro", err),
-		)
-	}
+	// // Update the subscription dynamic info
+	// if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+	// 	slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
+	// 		slog.Any("errro", err),
+	// 	)
+	// }
 
 	// Update the cached subscriptions.
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
@@ -376,7 +395,7 @@ func GetSubscriptionSuggestions(
 	var subscriptions models.Subscriptions
 	subscriptions = resp.Results
 
-	err = addSubscriptionDynamicInfo(ctx, subscriptions)
+	err = updateSubscriptionDynamicInfo(ctx, subscriptions)
 	if err != nil {
 		return nil, fmt.Errorf("add dynamic info: %w", err)
 	}
@@ -461,12 +480,12 @@ func GetCategoriesForSubscriptions(
 	return counts, nil
 }
 
-// addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// updateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
 //nolint:gocognit,funlen
-func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+func updateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -486,11 +505,10 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 		}
 	}
 	if len(extraIDs) > 0 {
-		extraSubscriptions, err := GetAllSubscriptions(ctx, user)
+		extraSubscriptions, err := GetSubscriptionsByID(ctx, extraIDs...)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
 		}
-		extraSubscriptions = extraSubscriptions.FilterByIDs(extraIDs...)
 		subscriptions = append(subscriptions, extraSubscriptions...)
 	}
 
