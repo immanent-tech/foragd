@@ -79,71 +79,19 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (Cat
 	return counts, nil
 }
 
-// CountItems returns a count of items that match the given query.
-func CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, schema.ItemsIndexRO(), query)
-	if err != nil {
-		return 0, fmt.Errorf("count items: %w", err)
-	}
-
-	return count, nil
-}
-
-// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
-// optional.
-func SearchItems(
-	ctx context.Context,
-	query query.Option,
-	count int,
-	sort *Sort,
-	pagination *Pagination,
-) (Items, Pagination, error) {
-	searchAfter, err := elastic.DecodePagination(pagination)
-	if err != nil {
-		return nil, "", ErrInvalidParams
-	}
-	// Perform search.
-	resp, err := elastic.Search[Item](ctx, schema.ItemsIndexRO(), query,
-		elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter(searchAfter...),
-		elastic.WithSize(count),
-	)
-	if err != nil {
-		return nil, "", fmt.Errorf("search items: %w", err)
-	}
-	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[Pagination](resp.Pagination)
-	if err != nil {
-		return nil, "", ErrInvalidParams
-	}
-	return resp.Results, newPagination, nil
-}
-
-// AddItems wraps an elastic bulk update to index items.
-func AddItems(ctx context.Context, items ...Item) error {
-	itemPtrs := make([]*Item, 0, len(items))
-	for i := range slices.Values(items) {
-		itemPtrs = append(itemPtrs, &i)
-	}
-	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), itemPtrs...); err != nil {
-		return fmt.Errorf("bulk add items: %w", err)
-	}
-	return nil
-}
-
 // Items is a slice of items.
-type Items []Item
+type Items []*Item
 
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
-	return slices.Collect(FilterSlice(i, func(item Item) bool {
+	return slices.Collect(FilterSlice(i, func(item *Item) bool {
 		return item.IsNewer(since)
 	}))
 }
 
 // FilterByFeed filters items to ones which match the given feed ID.
 func (i Items) FilterByFeed(feedID FeedID) Items {
-	return slices.Collect(FilterSlice(i, func(v Item) bool {
+	return slices.Collect(FilterSlice(i, func(v *Item) bool {
 		return v.GetFeedID() == feedID
 	}))
 }
@@ -185,7 +133,7 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 
 // SortByTimestamp sorts the items by their timestamps, in descending order.
 func (i Items) SortByTimestamp() Items {
-	slices.SortFunc(i, func(itemA, itemB Item) int {
+	slices.SortFunc(i, func(itemA, itemB *Item) int {
 		return itemA.GetTimestamp().Compare(itemB.GetTimestamp())
 	})
 	slices.Reverse(i)
@@ -226,11 +174,11 @@ func (i *Item) GetDescription() string {
 			}
 			return sanitizedDesc
 		default:
-			if formatted, err := markdown.ToHTML([]byte(*i.Description)); err != nil {
+			formatted, err := markdown.ToHTML([]byte(*i.Description))
+			if err != nil {
 				return *i.Description
-			} else {
-				return string(formatted)
 			}
+			return string(formatted)
 		}
 	}
 	return ""
@@ -286,11 +234,11 @@ func (i *Item) GetContent() string {
 		}
 		return sanitizedDesc
 	default:
-		if formatted, err := markdown.ToHTML([]byte(*i.Content)); err != nil {
+		formatted, err := markdown.ToHTML([]byte(*i.Content))
+		if err != nil {
 			return *i.Content
-		} else {
-			return string(formatted)
 		}
+		return string(formatted)
 	}
 }
 
@@ -498,12 +446,11 @@ func NewItemSortCombinations(sort *Sort) []estypes.SortCombinations {
 func addYoutubeExtension(source *feeds.Item, item *Item) {
 	// Extract and add additional information for youtube feeds.
 	if strings.Contains(item.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
-		if entry, ok := source.ItemSource.(*atom.Entry); ok {
+		if entry, isValidEntry := source.ItemSource.(*atom.Entry); isValidEntry {
 			if len(entry.MediaGroup.Content) > 0 {
 				width := entry.MediaGroup.Content[0].Width
 				height := entry.MediaGroup.Content[0].Height
-				videoID, ok := strings.CutPrefix(source.GetID(), "yt:video:")
-				if ok {
+				if videoID, isValidVideoID := strings.CutPrefix(source.GetID(), "yt:video:"); isValidVideoID {
 					item.ExtensionType = new(ItemExtensionTypeYoutube)
 					item.ExtensionData = &Item_ExtensionData{}
 					item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{

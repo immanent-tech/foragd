@@ -51,6 +51,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					hx-push-url="true"
 					hx-target="#viewer-results"
 					hx-swap="innerHTML"
+					_="on htmx:beforeRequest set the innerHTML of #viewer-results to ''"
 				>
 					<div class="mt-12">
 						<label for="url" class="block text-sm/6 font-medium text-neutral">Website URL</label>
@@ -351,7 +352,7 @@ templ ViewerError(msg *models.UserMessage) {
 }
 
 // inspectorItemCard renders a feed item in a card.
-templ viewerItemCard(item models.Item) {
+templ viewerItemCard(item *models.Item) {
 	<div class="card w-full bg-base-200 shadow-sm">
 		{{ var img *models.RemoteImage }}
 		{{ img = item.GetImage() }}

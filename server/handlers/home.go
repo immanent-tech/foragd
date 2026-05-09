@@ -280,7 +280,7 @@ func HandleHome() http.HandlerFunc {
 								continue
 							}
 							var items models.Items
-							if items, _, err = results.ExtractSourceFromHits[models.Item](
+							if items, _, err = results.ExtractSourceFromHits[*models.Item](
 								topHitsAgg.Hits.Hits,
 							); err != nil {
 								continue
@@ -305,7 +305,7 @@ func HandleHome() http.HandlerFunc {
 					"latest_articles_sample",
 				); found && err == nil {
 					var items models.Items
-					if items, _, err = results.ExtractSourceFromHits[models.Item](
+					if items, _, err = results.ExtractSourceFromHits[*models.Item](
 						latestArticlesSampleAgg.Hits.Hits,
 					); err != nil {
 						slogctx.FromCtx(req.Context()).Warn("Could not extract latest items from aggregation.",

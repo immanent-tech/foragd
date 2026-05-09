@@ -253,7 +253,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 				//
 				// * Note that the "latest_items" aggregation applies _source filtering,
 				// * so only the given fields will be populated in the models.Item object.
-				items, _, err = results.ExtractSourceFromHits[models.Item](latestItemsAggs.Hits.Hits)
+				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
 				if err != nil {
 					slogctx.FromCtx(ctx).
 						Warn("Unable to extract latest articles from elastic.",

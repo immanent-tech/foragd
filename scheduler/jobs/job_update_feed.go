@@ -195,7 +195,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			slog.Duration("interval", time.Duration(details.UpdateInterval)),
 		)
 		// Add any new items.
-		if err := models.AddItems(ctx, newItems...); err != nil {
+		if err := service.AddItems(ctx, newItems...); err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch

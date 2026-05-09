@@ -511,7 +511,7 @@ type Feed struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// Items contains the list of items in the feed.
-	Items    []Item  `json:"-"`
+	Items    []*Item `json:"-"`
 	Language *string `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.

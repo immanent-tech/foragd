@@ -521,7 +521,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 					err,
 				)
 			}
-			count, err := models.CountItems(jobCtx, query)
+			count, err := CountItems(jobCtx, query)
 			if err == nil {
 				subscription.GetStats().UnreadCount = int(count)
 			} else {
@@ -542,7 +542,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscr
 					err,
 				)
 			}
-			if items, _, err := models.SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
 				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
 			} else {
 				slogctx.FromCtx(jobCtx).

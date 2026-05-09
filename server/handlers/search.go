@@ -105,7 +105,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 				return nil
 			}
 			var itemResults models.Items
-			itemResults, _, err = models.SearchItems(
+			itemResults, _, err = service.SearchItems(
 				jobCtx,
 				searchOption,
 				defaultArticleSuggestionsCount,
@@ -256,7 +256,7 @@ func HandleSearchResults() http.HandlerFunc {
 			// Search for articles.
 			searchJobs.Go(func() error {
 				var items models.Items
-				items, pagination, err = models.SearchItems(
+				items, pagination, err = service.SearchItems(
 					ctx,
 					searchQuery,
 					defaultArticleResultsCount,
@@ -388,7 +388,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 		}
 
 		// Count items matching.
-		updateCount, err := models.CountItems(req.Context(), updatesQuery)
+		updateCount, err := service.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

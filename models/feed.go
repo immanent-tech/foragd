@@ -375,7 +375,7 @@ func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 		wg.Wait()
 	}()
 	for item := range itemCh {
-		feed.Items = append(feed.Items, item)
+		feed.Items = append(feed.Items, &item)
 	}
 
 	// Add the url used to find the feed to the source URLs if needed.

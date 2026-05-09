@@ -4,11 +4,99 @@
 package service
 
 import (
+	"context"
+	"fmt"
 	"slices"
 
+	"github.com/maypok86/otter/v2"
+
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
+
+var itemsCache = otter.Must(&otter.Options[models.ItemID, models.Item]{
+	MaximumSize: 10_000,
+})
+
+// GetItems retrieves the Items matching the given ItemIDs.
+func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
+	var (
+		items    models.Items
+		err      error
+		unCached []models.ItemID
+	)
+
+	// Fetch items from cache.
+	for id := range slices.Values(ids) {
+		if item, found := itemsCache.GetIfPresent(id); found {
+			items = append(items, &item)
+		} else {
+			unCached = append(unCached, id)
+		}
+	}
+	// If there are items missing from the cache, fetch and cache them.
+	if len(unCached) > 0 {
+		items, err = elastic.GetDocs[models.ItemID, *models.Item](ctx, schema.ItemsIndexRO(), ids...)
+		if err != nil {
+			return nil, fmt.Errorf("get items: %w", err)
+		}
+		for item := range slices.Values(items) {
+			items = append(items, item)
+			itemsCache.Set(item.GetID(), *item)
+		}
+	}
+	return items, nil
+}
+
+// CountItems returns a count of items that match the given query.
+func CountItems(ctx context.Context, query query.Option) (int64, error) {
+	count, err := elastic.Count(ctx, schema.ItemsIndexRO(), query)
+	if err != nil {
+		return 0, fmt.Errorf("count items: %w", err)
+	}
+
+	return count, nil
+}
+
+// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
+// optional.
+func SearchItems(
+	ctx context.Context,
+	query query.Option,
+	count int,
+	sort *models.Sort,
+	pagination *models.Pagination,
+) (models.Items, models.Pagination, error) {
+	searchAfter, err := elastic.DecodePagination(pagination)
+	if err != nil {
+		return nil, "", models.ErrInvalidParams
+	}
+	// Perform search.
+	resp, err := elastic.Search[*models.Item](ctx, schema.ItemsIndexRO(), query,
+		elastic.WithSort(models.NewItemSortOptions(sort)...),
+		elastic.WithSearchAfter(searchAfter...),
+		elastic.WithSize(count),
+	)
+	if err != nil {
+		return nil, "", fmt.Errorf("search items: %w", err)
+	}
+	// Parse last search after value into pagination.
+	newPagination, err := elastic.EncodePagination[models.Pagination](resp.Pagination)
+	if err != nil {
+		return nil, "", models.ErrInvalidParams
+	}
+	return resp.Results, newPagination, nil
+}
+
+// AddItems wraps an elastic bulk update to index items.
+func AddItems(ctx context.Context, items ...*models.Item) error {
+	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), items...); err != nil {
+		return fmt.Errorf("bulk add items: %w", err)
+	}
+	return nil
+}
 
 // BuildItemQueries generates a slices of queries for the given subscriptions, based on the given filters.
 func BuildItemQueries(

@@ -17,21 +17,13 @@ import (
 
 // GetArticles generates Article objects from the Items with the given IDs.
 func GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given item IDs,
-			query.Terms("item_id", itemIDs, query.WithQueryName[*query.TermsQuery]("match-item-id")),
-		),
-	)
-	items, _, err := models.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	items, err := GetItems(ctx, itemIDs...)
 	if err != nil {
-		return nil, fmt.Errorf("get articles failed: %w", err)
+		return nil, fmt.Errorf("get items: %w", err)
 	}
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
-		return nil, fmt.Errorf("get articles failed: %w", err)
+		return nil, fmt.Errorf("generate articles: %w", err)
 	}
 
 	return articles, nil
@@ -81,7 +73,7 @@ func FilterArticles(
 	sort := request.Filters.GetSort()
 
 	// Find items matching filters.
-	items, pagination, err := models.SearchItems(
+	items, pagination, err := SearchItems(
 		ctx,
 		articleQuery,
 		request.Filters.GetCount(),
@@ -143,7 +135,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 	)
 	// Query for similar articles.
 	sort := models.SortMostRelevant
-	items, _, err := models.SearchItems(ctx, similarQuery, count, &sort, nil)
+	items, _, err := SearchItems(ctx, similarQuery, count, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
@@ -185,7 +177,7 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 			continue
 		}
 		article := &models.Article{
-			Item:           item,
+			Item:           *item,
 			SubscriptionID: subscription.GetID(),
 			State:          *subscription.GetItemState(item.GetID()),
 			SourceType:     item.SourceType,

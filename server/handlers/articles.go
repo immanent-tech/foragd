@@ -233,7 +233,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		)
 
 		// Count items matching.
-		updateCount, err := models.CountItems(req.Context(), updatesQuery)
+		updateCount, err := service.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

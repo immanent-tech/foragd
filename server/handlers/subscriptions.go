@@ -300,7 +300,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 		)
 
 		// Count items matching.
-		updateCount, err := models.CountItems(req.Context(), updatesQuery)
+		updateCount, err := service.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),
@@ -419,7 +419,7 @@ func getFeedSubscriptionLatestItems(
 				//
 				// * Note that the "latest_items" aggregation applies _source filtering,
 				// * so only the given fields will be populated in the models.Item object.
-				items, _, err = results.ExtractSourceFromHits[models.Item](latestItemsAggs.Hits.Hits)
+				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
 				if err != nil {
 					slogctx.FromCtx(ctx).
 						Warn("Unable to extract latest articles from elastic.",
@@ -529,7 +529,7 @@ func getSearchSubscriptionLatestItems(
 			}
 			// Search for items matching.
 			var items models.Items
-			items, _, err = models.SearchItems(
+			items, _, err = service.SearchItems(
 				ctx,
 				searchQuery,
 				3,
