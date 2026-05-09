@@ -1300,7 +1300,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		)
 
 		// Fetch the feed details from the database.
-		feed, err := elastic.GetDoc[models.FeedID, *models.Feed](req.Context(), schema.FeedsIndexRO(), request.FeedID)
+		feed, err := service.GetFeed(req.Context(), request.FeedID)
 		if err != nil || feed == nil {
 			// Fetch the feed details from the URL.
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
@@ -1319,7 +1319,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 				return
 			}
 			// Add the feed to the database.
-			if err := elastic.CreateDoc(req.Context(), schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
+			if err := service.AddFeed(req.Context(), feed); err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("create feed: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
@@ -2009,13 +2009,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			}
 			// Get all feeds for subscriptions.
 			var feeds models.Feeds
-			feeds, err = elastic.SearchAll[*models.Feed](
-				req.Context(),
-				schema.FeedsIndexRO(),
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-				models.DefaultPaginationSize,
-				elastic.WithTrackTotalHits(false),
-			)
+			feeds, err = service.GetFeeds(req.Context(), subscriptions.GetFeedIDs()...)
 			if err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("filter subscriptions: %w", err),

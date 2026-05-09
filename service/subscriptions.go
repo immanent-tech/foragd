@@ -32,7 +32,7 @@ var userSubscriptionsCache = otter.Must(
 	},
 )
 
-func cacheAllUserSubscriptions(
+func fetchAndCacheSubscriptions(
 	ctx context.Context,
 	userID models.UserID,
 ) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
@@ -76,7 +76,7 @@ func GetAllSubscriptions(
 		ctx,
 		user.GetID(),
 		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
-			cacheAllUserSubscriptions,
+			fetchAndCacheSubscriptions,
 		),
 	)
 	switch {

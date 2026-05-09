@@ -21,7 +21,6 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -86,7 +85,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	ctx = slogctx.With(ctx, "feed_id", jobData.FeedID)
 
 	// Retrieve the feed details.
-	details, err := service.GetFeedByID(ctx, jobData.FeedID)
+	details, err := service.GetFeed(ctx, jobData.FeedID)
 	if err != nil {
 		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
 		if errors.Is(err, elastic.ErrNotFound) {
@@ -202,7 +201,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		// newer articles where a feed lags behind real-time.
 		updates := generateFeedUpdates(ctx, feed, details)
 		updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
-		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW(), jobData.FeedID, updates); err != nil {
+		if err := service.UpdateFeed(ctx, jobData.FeedID, updates); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Update FeedStatus.

@@ -19,7 +19,7 @@ import (
 )
 
 var userCache = otter.Must(&otter.Options[string, models.User]{
-	MaximumSize: 10_000,
+	MaximumSize: 1000,
 	ExpiryCalculator: otter.ExpiryAccessing[string, models.User](
 		60 * time.Second,
 	), // Reset timer on reads/writes

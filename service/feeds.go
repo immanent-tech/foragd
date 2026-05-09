@@ -15,6 +15,7 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -24,28 +25,87 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
-// GetFeedByID fetches the given Feed by its id.
-func GetFeedByID(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), id)
-	if err != nil {
-		return nil, fmt.Errorf("get feed by id: %w", err)
+var feedCache = otter.Must(&otter.Options[models.FeedID, models.Feed]{
+	MaximumSize: 10_000,
+})
+
+// fetchAndCacheFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
+func fetchAndCacheFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
+	feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id)
+	switch {
+	case err != nil && !errors.Is(err, elastic.ErrNotFound):
+		return models.Feed{}, fmt.Errorf("get feed by id: %w", err)
+	case errors.Is(err, elastic.ErrNotFound):
+		return models.Feed{}, otter.ErrNotFound
+	default:
+		if _, ok := feedCache.Set(feed.GetID(), feed); !ok {
+			slogctx.FromCtx(ctx).Warn("Unable to cache feed.",
+				slog.String("feed_id", feed.GetID()),
+			)
+		}
+		return feed, nil
 	}
-	return feed, nil
 }
 
-// AddFeed adds the given feed.
+// GetFeed retrieves a feed with the given FeedID.
+func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+	feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](fetchAndCacheFeed))
+	if err != nil {
+		return nil, fmt.Errorf("get feed: %w", err)
+	}
+	return &feed, nil
+}
+
+// GetFeeds retrieves the Feeds matching the given FeedIDs. It will fetch any cached versions before fetching from
+// Elasticsearch (and then caching those).
+func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	var (
+		feeds    models.Feeds
+		err      error
+		unCached []models.FeedID
+	)
+
+	// Fetch feeds from cache.
+	for id := range slices.Values(ids) {
+		if feed, found := feedCache.GetIfPresent(id); found {
+			feeds = append(feeds, &feed)
+		} else {
+			unCached = append(unCached, id)
+		}
+	}
+	// If there are feeds missing from the cache, fetch and cache them.
+	if len(unCached) > 0 {
+		feeds, err = elastic.GetDocs[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), ids...)
+		if err != nil {
+			return nil, fmt.Errorf("get items: %w", err)
+		}
+		for feed := range slices.Values(feeds) {
+			feeds = append(feeds, feed)
+			feedCache.Set(feed.GetID(), *feed)
+		}
+	}
+	return feeds, nil
+}
+
+// AddFeed adds a new feed to Elasticsearch and the cache.
 func AddFeed(ctx context.Context, feed *models.Feed) error {
 	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
+	if _, ok := feedCache.Set(feed.GetID(), *feed); !ok {
+		slogctx.FromCtx(ctx).Warn("Unable to cache new feed.",
+			slog.String("feed_id", feed.GetID()),
+		)
+	}
 	return nil
 }
 
-// UpdateFeed applies the given updates to a Feed.
+// UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
 func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) error {
-	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates); err != nil {
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates, elastic.WithRefresh(true)); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
+	feedCache.Invalidate(id)
 	return nil
 }
 
@@ -209,11 +269,11 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	// Extract the feed aggregation.
-	feedsAgg, found, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
+	feedsAgg, hasFeedAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
 		resp.Aggregations,
 		"feed",
 	)
-	if !found || err != nil {
+	if !hasFeedAgg || err != nil {
 		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
 	// Loop over the feed buckets.
@@ -234,11 +294,11 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 					return
 				}
 				// Extract the latest articles aggregation.
-				latestItemsAggs, found, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
+				latestItemsAggs, hasLatestItemsAgg, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
 					bucket.Aggregations,
 					"latest_items",
 				)
-				if !found || err != nil {
+				if !hasLatestItemsAgg || err != nil {
 					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
 						slog.String("aggregation", "latest_items"),
 						slog.Any("error", err),

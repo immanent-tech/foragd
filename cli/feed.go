@@ -18,8 +18,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
@@ -49,7 +47,7 @@ func (c *FetchFeedCmd) Run() error {
 
 	switch {
 	case c.FeedID != "" && strings.HasPrefix(c.FeedID, "feed_"):
-		feed, err := service.GetFeedByID(ctx, c.FeedID)
+		feed, err := service.GetFeed(ctx, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
@@ -154,15 +152,9 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	}
 
 	// Reset the last_fetched timestamp on the feed.
-	if err := elastic.UpdateDoc(
-		ctx,
-		schema.FeedsIndexRW(),
-		c.FeedID,
-		map[string]any{
-			"last_fetched": models.UnixEpoch,
-		},
-		elastic.WithRefresh(true),
-	); err != nil {
+	if err := service.UpdateFeed(ctx, c.FeedID, map[string]any{
+		"last_fetched": models.UnixEpoch,
+	}); err != nil {
 		return fmt.Errorf("reset feed last_fetched: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
