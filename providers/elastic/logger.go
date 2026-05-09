@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"bytes"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -81,20 +82,22 @@ func (l *Logger) LogRoundTrip(
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
-		// if req != nil && req.Body != nil &&
+	// if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	if (logging.Level == slog.LevelDebug || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
 		req.Body != http.NoBody {
-		var buf bytes.Buffer
+		var (
+			buf bytes.Buffer
+		)
 		if req.GetBody != nil {
 			b, _ := req.GetBody()
-			buf.ReadFrom(b) //nolint:errcheck
+			_, err = buf.ReadFrom(b)
 		} else {
-			buf.ReadFrom(req.Body) //nolint:errcheck
+			_, err = buf.ReadFrom(req.Body)
 		}
 
 		// godump.Dump(req.URL.Path, quoteReplacer.Replace(buf.String()))
 
-		requestAttributes = append(requestAttributes, slog.String("body", quoteReplacer.Replace(buf.String())))
+		requestAttributes = append(requestAttributes, jsonToSlogAttr("body", buf.Bytes()))
 	}
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
@@ -138,4 +141,25 @@ func (l *Logger) RequestBodyEnabled() bool {
 // ResponseBodyEnabled makes the client pass a copy of response body to the logger.
 func (l *Logger) ResponseBodyEnabled() bool {
 	return l.EnableResponseBody
+}
+
+func jsonToSlogAttr(key string, data []byte) slog.Attr {
+	var m map[string]any
+	if err := json.Unmarshal(data, &m); err != nil {
+		return slog.String(key, string(data)) // fallback
+	}
+	return slog.Group(key, mapToArgs(m)...)
+}
+
+func mapToArgs(m map[string]any) []any {
+	args := make([]any, 0, len(m)*2)
+	for k, v := range m {
+		switch val := v.(type) {
+		case map[string]any:
+			args = append(args, slog.Group(k, mapToArgs(val)...))
+		default:
+			args = append(args, slog.Any(k, v))
+		}
+	}
+	return args
 }
