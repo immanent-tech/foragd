@@ -623,8 +623,8 @@ templ ArticleContent(article *models.Article) {
 											end
 										"
 									>
-										<span class="show-loading">
-											<span class="loading loading-spinner"></span>
+										<span class="show-loading items-center">
+											<span class="loading loading-spinner mr-3"></span>
 											Loading
 										</span>
 										<span class="hide-loading">
@@ -661,8 +661,8 @@ templ ArticleContent(article *models.Article) {
 										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: false}) }
 										_="install LoadingButton"
 									>
-										<span class="show-loading">
-											<span class="loading loading-xs loading-spinner"></span>
+										<span class="show-loading items-center">
+											<span class="loading loading-xs loading-spinner mr-3"></span>
 											Loading
 										</span>
 										<span class="hide-loading">
@@ -972,8 +972,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							}
 						}
 						<div id="loading-articles" class="text-center">
-							<span class="show-loading">
-								<span class="loading loading-xl loading-bars"></span>
+							<span class="show-loading items-center">
+								<span class="loading loading-xl loading-bars mr-3"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</span>
 						</div>
@@ -1036,7 +1036,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										type="submit"
 									>
 										<span class="show-loading items-center">
-											<span class="loading loading-spinner"></span>
+											<span class="loading loading-spinner mr-3"></span>
 											Loading
 										</span>
 										<span class="hide-loading items-center">

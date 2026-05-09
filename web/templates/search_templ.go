@@ -839,7 +839,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<div id=\"loading-results\" class=\"text-center\"><span class=\"show-loading\"><span class=\"loading loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<div id=\"loading-results\" class=\"text-center\"><span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-bars mr-3\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></span></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
