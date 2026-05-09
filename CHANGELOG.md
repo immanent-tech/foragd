@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.131.2](https://github.com/immanent-tech/foragd/compare/v0.131.1...v0.131.2) (2026-05-09)
+
+
+### Bug Fixes
+
+* **service:** :bug: recalculate dynamic info whenever subscriptions are retrieved ([bf5dc8e](https://github.com/immanent-tech/foragd/commit/bf5dc8eccafeb1bfdc33b50fef82ba56bc7e762c))
+* **templates/articles:** :bug: reset display state of button if fetching remote content failed ([8f1e96b](https://github.com/immanent-tech/foragd/commit/8f1e96bfdd18e5f66416b8fbb69099759af22594))
+
+
+### Performance Improvements
+
+* :zap: cache items when generating articles for re-use ([222a5ad](https://github.com/immanent-tech/foragd/commit/222a5ada04b585542cf3698ef95d0b5affd37f92))
+
 ## [0.131.1](https://github.com/immanent-tech/foragd/compare/v0.131.0...v0.131.1) (2026-05-08)
 
 
