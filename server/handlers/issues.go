@@ -62,7 +62,7 @@ func HandleReportIssue() http.HandlerFunc {
 
 		// Display the report issue form.
 		RenderInternalPage(&PageIssue{
-			template: templates.ReportPageIssue(
+			template: templates.ReportIssue(
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
 			),
 		}).ServeHTTP(res, req)

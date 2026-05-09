@@ -6,8 +6,8 @@ package templates
 import "github.com/immanent-tech/foragd/models"
 import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 
-// ReportPageIssue renders a form for reporting issues with the app.
-templ ReportPageIssue(details *models.ReportIssueRequest) {
+// ReportIssue renders a form for reporting issues with the app.
+templ ReportIssue(details *models.ReportIssueRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
@@ -120,7 +120,13 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 							</div>
 						</div>
 						<div class="mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl">
-							<button type="button" class="btn btn-secondary hover:btn-error" _="on click call history.back()">
+							<button
+								type="button"
+								class="btn btn-secondary hover:btn-error"
+								hx-get={ details.PageUrl }
+								hx-target={ ContentID.Target() }
+								hx-swap="innerHTML transition:true"
+							>
 								<span class="text-sm/6">Back</span>
 							</button>
 							<button type="submit" class="btn btn-primary">
