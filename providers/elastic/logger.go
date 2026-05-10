@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
@@ -82,8 +83,7 @@ func (l *Logger) LogRoundTrip(
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	// if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
-	if (logging.Level == slog.LevelDebug || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
 		req.Body != http.NoBody {
 		var (
 			buf bytes.Buffer
@@ -95,10 +95,21 @@ func (l *Logger) LogRoundTrip(
 			_, err = buf.ReadFrom(req.Body)
 		}
 
-		// godump.Dump(req.URL.Path, quoteReplacer.Replace(buf.String()))
-
 		requestAttributes = append(requestAttributes, jsonToSlogAttr("body", buf.Bytes()))
 	}
+	if req != nil && req.Body != nil && req.Body != http.NoBody {
+		var (
+			buf bytes.Buffer
+		)
+		if req.GetBody != nil {
+			b, _ := req.GetBody()
+			_, err = buf.ReadFrom(b)
+		} else {
+			_, err = buf.ReadFrom(req.Body)
+		}
+		godump.Dump(req.URL.Path, quoteReplacer.Replace(buf.String()))
+	}
+
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
 		slog.Int("status", status),

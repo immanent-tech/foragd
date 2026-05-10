@@ -74,9 +74,8 @@ func IsHTML(s string) bool {
 	}
 
 	// Signal 3: <head> + <body> structure
-	hasHead := strings.Contains(lower, "<head")
-	hasBody := strings.Contains(lower, "<body")
-	if hasHead && hasBody {
+
+	if hasHead, hasBody := strings.Contains(lower, "<head"), strings.Contains(lower, "<body"); hasHead && hasBody {
 		score += 20
 	} else if hasHead || hasBody {
 		score += 10
@@ -128,10 +127,8 @@ func IsHTML(s string) bool {
 
 // IsHTMLElement returns a boolean indicating whether the given string is the given HTML element.
 func IsHTMLElement(str, tag string) bool {
-	pattern1 := regexp.MustCompile(`(?i)<(/?)(?:` + tag + `)(?:\s[^>]*)?>`)
-	pattern2 := regexp.MustCompile(`(?i)<(?:` + tag + `)\b[^>]*?/?>`)
-	trimmed := strings.TrimSpace(str)
-	switch {
+
+	switch pattern1, pattern2, trimmed := regexp.MustCompile(`(?i)<(/?)(?:`+tag+`)(?:\s[^>]*)?>`), regexp.MustCompile(`(?i)<(?:`+tag+`)\b[^>]*?/?>`), strings.TrimSpace(str); {
 	case len(trimmed) == 0:
 		return false
 	case strings.HasPrefix(trimmed, "<") && pattern1.MatchString(trimmed[:min(50, len(trimmed))]):
@@ -188,10 +185,8 @@ type Favicon struct {
 func findFaviconCandidates(page []byte) []Favicon {
 	limited := client.NewHeadReader(bytes.NewReader(page), 256*1024)
 
-	tokenizer := html.NewTokenizer(limited)
-
 	var candidates []Favicon
-	for {
+	for tokenizer := html.NewTokenizer(limited); ; {
 		tt := tokenizer.Next()
 		if tt == html.ErrorToken {
 			break
