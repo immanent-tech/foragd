@@ -5,7 +5,7 @@ set -x
 cd /workspace
 
 # Update JS packages with bun.
-npm update || exit -1
+npm clean-install || exit -1
 echo 'set --export PATH "/workspace/node_modules/.bin" $PATH' >> ~/.config/fish/config.fish
 
 # Install Go packages.
