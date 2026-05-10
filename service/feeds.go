@@ -40,8 +40,7 @@ func loadFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
 
 // GetFeed retrieves a feed with the given FeedID.
 func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](loadFeed))
-	switch {
+	switch feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](loadFeed)); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("get feed: %w", err)
 	case errors.Is(err, elastic.ErrNotFound):
@@ -247,7 +246,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 						"latest_items": {
 							TopHits: &estypes.TopHitsAggregation{
 								Size: &count,
-								Sort: models.NewItemSortCombinations(new(models.SortNewestFirst)),
+								Sort: NewItemSortCombinations(new(models.SortNewestFirst)),
 							},
 						},
 					},
@@ -421,7 +420,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.F
 		query.Terms("feed_id", ids),
 		elastic.WithSize(len(ids)),
 		elastic.WithCollapseField("feed_id"),
-		elastic.WithSort(models.NewItemSortOptions(&sort)...),
+		elastic.WithSort(NewItemSortOptions(&sort)...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)

@@ -357,7 +357,7 @@ func getFeedSubscriptionLatestItems(
 						"latest_items": {
 							TopHits: &types.TopHitsAggregation{
 								Size:    new(3),
-								Sort:    models.NewItemSortCombinations(&filters.Sort),
+								Sort:    service.NewItemSortCombinations(&filters.Sort),
 								Source_: []string{"feed_id", "item_id", "title", "updated", "published"},
 							},
 						},

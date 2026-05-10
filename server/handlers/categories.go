@@ -101,7 +101,7 @@ func ListCategories() http.HandlerFunc {
 				}
 
 				// Get categories for items.
-				counts, err := models.GetTopCategoriesForItems(
+				counts, err := service.GetTopCategoriesForItems(
 					req.Context(),
 					query.Bool(
 						query.Should(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),

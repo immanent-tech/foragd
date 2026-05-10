@@ -5,79 +5,22 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"maps"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/zeebo/xxh3"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 
 	"github.com/immanent-tech/foragd/client"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
-
-func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (CategoryCounts, error) {
-	// Build elastic.
-	termsField := "categories.raw"
-	termsCount := 200
-	aggs := elastic.Aggs{
-		"CategoryCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO(),
-		itemsQuery,
-		elastic.WithAggregations(aggs),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
-
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
-		}
-	}
-	return counts, nil
-}
 
 // Items is a slice of items.
 type Items []*Item
@@ -353,94 +296,6 @@ func NewEmailItem(email Email, subscription *Subscription) *Item {
 	}
 
 	return item
-}
-
-// ItemSorting contains the sort options for sorting item search results.
-type ItemSorting struct {
-	Published string `json:"published"`
-	Updated   string `json:"updated"`
-	ItemID    string `json:"item_id"`
-}
-
-// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
-func (s *ItemSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func NewItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
-	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
-	}
-	var opts []estypes.SortCombinationsVariant
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "desc",
-			Updated:   "desc",
-			ItemID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "asc",
-			Updated:   "asc",
-			ItemID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Published: "asc",
-				Updated:   "asc",
-				ItemID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: &estypes.ScoreSort{},
-		})
-	}
-	return opts
-}
-
-func NewItemSortCombinations(sort *Sort) []estypes.SortCombinations {
-	var opts []estypes.SortCombinations
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "desc",
-			Updated:   "desc",
-			ItemID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Published: "asc",
-			Updated:   "asc",
-			ItemID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Published: "asc",
-				Updated:   "asc",
-				ItemID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
-	}
-	return opts
 }
 
 func addYoutubeExtension(source *feeds.Item, item *Item) {

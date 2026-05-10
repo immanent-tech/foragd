@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"slices"
 
+	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 
 	"github.com/immanent-tech/foragd/models"
@@ -75,7 +77,7 @@ func SearchItems(
 	}
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx, schema.ItemsIndexRO(), query,
-		elastic.WithSort(models.NewItemSortOptions(sort)...),
+		elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
 		elastic.WithSize(count),
 	)
@@ -96,6 +98,57 @@ func AddItems(ctx context.Context, items ...*models.Item) error {
 		return fmt.Errorf("bulk add items: %w", err)
 	}
 	return nil
+}
+
+func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error) {
+	// Build elastic.
+	termsField := "categories.raw"
+	termsCount := 200
+	aggs := elastic.Aggs{
+		"CategoryCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO(),
+		itemsQuery,
+		elastic.WithAggregations(aggs),
+		elastic.WithSize(0),
+		elastic.WithDocSorting(),
+	)
+	if err != nil {
+		return nil, ElasticsearchToAPIError(err)
+	}
+
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(models.CategoryCounts, 0, len(categoryCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category models.Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
 }
 
 // BuildItemQueries generates a slices of queries for the given subscriptions, based on the given filters.
@@ -208,4 +261,92 @@ func queryAllItems(user *models.User, source models.ItemSource) query.Option {
 		// User-specified field-level filtering.
 		models.ArticleFiltersQueryClause(source),
 	)
+}
+
+// ItemSorting contains the sort options for sorting item search results.
+type ItemSorting struct {
+	Published string `json:"published"`
+	Updated   string `json:"updated"`
+	ItemID    string `json:"item_id"`
+}
+
+// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
+func (s *ItemSorting) SortCombinationsCaster() *estypes.SortCombinations {
+	c := estypes.SortCombinations(s)
+	return &c
+}
+
+func NewItemSortOptions(sort *models.Sort) []estypes.SortCombinationsVariant {
+	if sort == nil {
+		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+	}
+	var opts []estypes.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Published: "desc",
+			Updated:   "desc",
+			ItemID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Published: "asc",
+			Updated:   "asc",
+			ItemID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Published: "asc",
+				Updated:   "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: &estypes.ScoreSort{},
+		})
+	}
+	return opts
+}
+
+func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
+	var opts []estypes.SortCombinations
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Published: "desc",
+			Updated:   "desc",
+			ItemID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Published: "asc",
+			Updated:   "asc",
+			ItemID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Published: "asc",
+				Updated:   "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: estypes.NewScoreSort(),
+		})
+	}
+	return opts
 }

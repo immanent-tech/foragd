@@ -27,13 +27,12 @@ var userCache = otter.Must(&otter.Options[string, models.User]{
 })
 
 func loadUser(ctx context.Context, id string) (models.User, error) {
-	resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
+	switch resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
 		query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
-	)
-	switch {
+	); {
 	case err != nil:
 		return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
 	case len(resp.Results) == 0:
@@ -54,8 +53,7 @@ func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	user, err := userCache.Get(ctx, externalID, otter.LoaderFunc[string, models.User](loadUser))
-	switch {
+	switch user, err := userCache.Get(ctx, externalID, otter.LoaderFunc[string, models.User](loadUser)); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("find user by external id: %w", err)
 	case errors.Is(err, elastic.ErrNotFound):
@@ -67,8 +65,6 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, 
 
 // GetUserByEmail will retrieve a user by their email.
 func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	// Get the user.
-
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
@@ -88,8 +84,6 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 
 // GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
 func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
-	// Get the user.
-
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),

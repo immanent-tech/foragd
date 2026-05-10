@@ -50,7 +50,7 @@ func loadSubscriptions(
 		3000,
 	)
 	if err != nil {
-		return nil, models.ElasticsearchToAPIError(err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	if len(subscriptions) == 0 {
@@ -184,7 +184,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 			),
 		),
 	); err != nil {
-		return models.ElasticsearchToAPIError(err)
+		return ElasticsearchToAPIError(err)
 	}
 	// Remove the subscriptions from the cache.
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
@@ -203,7 +203,7 @@ func UpdateSubscriptions(
 ) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
 	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
 	if err != nil {
-		return nil, models.ElasticsearchToAPIError(err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 	user := models.UserFromCtx(ctx)
 	if user == nil {
@@ -278,7 +278,7 @@ func UpdateFavoriteSubscription(ctx context.Context, user *models.User, id model
 
 	_, err = UpdateSubscriptions(ctx, subscription)
 	if err != nil {
-		return models.ElasticsearchToAPIError(err)
+		return ElasticsearchToAPIError(err)
 	}
 
 	return nil
@@ -452,7 +452,7 @@ func GetCategoriesForSubscriptions(
 		elastic.WithAggregations(aggs),
 	)
 	if err != nil {
-		return nil, models.ElasticsearchToAPIError(err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
