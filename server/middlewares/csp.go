@@ -97,9 +97,13 @@ func (csp *CSP) String() string {
 	}
 	if len(csp.FormAction) > 0 {
 		policy.WriteString("form-action " + strings.Join(csp.FormAction, " ") + "; ")
+	} else {
+		policy.WriteString("form-action 'self';")
 	}
 	if len(csp.FrameAncestors) > 0 {
 		policy.WriteString("frame-ancestors " + strings.Join(csp.FrameAncestors, " ") + "; ")
+	} else {
+		policy.WriteString("frame-ancestors 'none';")
 	}
 	if len(csp.FrameSrc) > 0 {
 		policy.WriteString("frame-src " + strings.Join(csp.FrameSrc, " ") + "; ")
