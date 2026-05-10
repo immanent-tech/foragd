@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,12 +23,25 @@ var userCache = otter.Must(&otter.Options[string, models.User]{
 	MaximumSize: 1000,
 	ExpiryCalculator: otter.ExpiryAccessing[string, models.User](
 		60 * time.Second,
-	), // Reset timer on reads/writes
-	// RefreshCalculator: otter.RefreshWriting[string, models.Subscriptions](
-	// 	500 * time.Millisecond,
-	// ), // Refresh after writes
-	// StatsRecorder: counter, // Attach stats collector
+	),
 })
+
+func loadUser(ctx context.Context, id string) (models.User, error) {
+	resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
+		query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	)
+	switch {
+	case err != nil:
+		return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
+	case len(resp.Results) == 0:
+		return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, elastic.ErrNotFound)
+	default:
+		return *resp.Results[0], nil
+	}
+}
 
 // GetUser retrieves the user doc with the given id.
 func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
@@ -40,29 +54,14 @@ func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	// Fetch from cache if possible.
-	cacheKey := "cache_" + externalID
-	if user, ok := userCache.GetIfPresent(cacheKey); ok {
-		slogctx.FromCtx(ctx).Debug("User cache hit!")
-		return &user, nil
-	}
-
-	// Get the user from elasticsearch.
-
-	switch resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
-		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	); {
-	case err != nil:
+	user, err := userCache.Get(ctx, externalID, otter.LoaderFunc[string, models.User](loadUser))
+	switch {
+	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("find user by external id: %w", err)
-	case len(resp.Results) == 0:
+	case errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("find user by external id: %w", models.ErrNotFound)
 	default:
-		// Cache the user before returning.
-		userCache.Set(cacheKey, *resp.Results[0])
-		return resp.Results[0], nil
+		return &user, nil
 	}
 }
 

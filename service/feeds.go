@@ -29,30 +29,26 @@ var feedCache = otter.Must(&otter.Options[models.FeedID, models.Feed]{
 	MaximumSize: 10_000,
 })
 
-// fetchAndCacheFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
-func fetchAndCacheFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
-	switch feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id); {
-	case err != nil && !errors.Is(err, elastic.ErrNotFound):
-		return models.Feed{}, fmt.Errorf("get feed by id: %w", err)
-	case errors.Is(err, elastic.ErrNotFound):
-		return models.Feed{}, otter.ErrNotFound
-	default:
-		if _, ok := feedCache.Set(feed.GetID(), feed); !ok {
-			slogctx.FromCtx(ctx).Warn("Unable to cache feed.",
-				slog.String("feed_id", feed.GetID()),
-			)
-		}
-		return feed, nil
+// loadFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
+func loadFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
+	feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id)
+	if err != nil {
+		return models.Feed{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
 	}
+	return feed, nil
 }
 
 // GetFeed retrieves a feed with the given FeedID.
 func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](fetchAndCacheFeed))
-	if err != nil {
+	feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](loadFeed))
+	switch {
+	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("get feed: %w", err)
+	case errors.Is(err, elastic.ErrNotFound):
+		return nil, models.ErrNotFound
+	default:
+		return &feed, nil
 	}
-	return &feed, nil
 }
 
 // GetFeeds retrieves the Feeds matching the given FeedIDs. It will fetch any cached versions before fetching from

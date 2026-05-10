@@ -10,7 +10,6 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/maypok86/otter/v2"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -75,7 +74,6 @@ func (s *Store) Delete(token string) error {
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
 	if val, ok := s.cache.GetIfPresent(token); ok {
-		slogctx.FromCtx(ctx).Debug("Session cache hit!")
 		return val, true, nil // cache hit
 	}
 	session, err := elastic.GetDoc[string, models.UserSession](ctx, schema.SessionsIndexRO(), token)
