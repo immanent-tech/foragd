@@ -27,8 +27,9 @@ func SetCacheControl(next http.Handler) http.Handler {
 // hopefully will speed up first page load.
 func PushCriticalAssets(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		files := []string{"scripts.js", "styles.css", "inter.css"}
+
 		if pusher, ok := res.(http.Pusher); ok {
+			files := []string{"scripts.js", "styles.css", "inter.css"}
 			for file := range slices.Values(files) {
 				route := "/content/" + file + "?v=" + config.Version
 				if err := pusher.Push(route, nil); err != nil {

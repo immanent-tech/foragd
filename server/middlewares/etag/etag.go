@@ -200,14 +200,14 @@ func checkUnmodifedMatch(lastModified, ifUnmodifiedSince string) bool {
 	return false
 }
 
-func parseTimePairs(s1, s2 string) (t1 time.Time, t2 time.Time, ok bool) {
+func parseTimePairs(s1, s2 string) (t1_1 time.Time, t2_1 time.Time, ok bool) {
 	if t1, err := time.Parse(http.TimeFormat, s1); err == nil {
 		if t2, err := time.Parse(http.TimeFormat, s2); err == nil {
 			return t1, t2, true
 		}
 	}
 
-	return t1, t2, false
+	return t1_1, t2_1, false
 }
 
 var hwPool = sync.Pool{

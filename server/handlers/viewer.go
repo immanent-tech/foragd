@@ -68,12 +68,11 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 // HandleViewer handles powering the feed viewer page.
 func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		fetchErr := models.NewErrorMessage(
+
+		switch fetchErr := models.NewErrorMessage(
 			"Unable to find feed at provided URL",
 			"No feed details could be fetched from the given URL. This could be a temporary error.",
-		)
-
-		switch req.Method {
+		); req.Method {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
 				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)

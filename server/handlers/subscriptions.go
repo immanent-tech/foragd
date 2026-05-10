@@ -211,8 +211,8 @@ func HandleListSubscriptions() http.HandlerFunc {
 		wg.Wait()
 
 		// Choose rendering method based on method (get = page, post = partial).
-		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
-		switch req.Method {
+
+		switch ctx := service.ListFiltersToCtx(req.Context(), request.Filters); req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
 				title: "Subscriptions",
@@ -1282,8 +1282,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 			return
 		}
 
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		if user := models.UserFromCtx(req.Context()); user == nil {
 			HandleInternalError(&models.APIError{
 				InternalError: models.ErrCtxValueNotFound,
 				StatusCode:    http.StatusUnprocessableEntity,

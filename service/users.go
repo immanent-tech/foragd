@@ -48,13 +48,13 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, 
 	}
 
 	// Get the user from elasticsearch.
-	resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
+
+	switch resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
 		query.Term("external_user_id", externalID, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
-	)
-	switch {
+	); {
 	case err != nil:
 		return nil, fmt.Errorf("find user by external id: %w", err)
 	case len(resp.Results) == 0:
@@ -69,15 +69,15 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, 
 // GetUserByEmail will retrieve a user by their email.
 func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	// Get the user.
-	resp, err := elastic.Search[*models.User](
+
+	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
 		query.Term("email", email),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
-	)
-	switch {
+	); {
 	case err != nil:
 		return nil, fmt.Errorf("search: %w", err)
 	case len(resp.Results) == 0:
@@ -90,15 +90,15 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 // GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
 func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
 	// Get the user.
-	resp, err := elastic.Search[*models.User](
+
+	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
 		query.Terms("settings.subscription_email", emails),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
-	)
-	switch {
+	); {
 	case err != nil:
 		return nil, fmt.Errorf("find user by external id: %w", err)
 	case len(resp.Results) == 0:

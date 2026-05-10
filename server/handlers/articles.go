@@ -146,8 +146,8 @@ func HandleListArticles() http.HandlerFunc {
 			title = "Articles"
 		}
 		// Choose rendering method based on method (get = page, post = partial).
-		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
-		switch req.Method {
+
+		switch ctx := service.ListFiltersToCtx(req.Context(), request.Filters); req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListArticles{
 				title: title,
@@ -393,9 +393,9 @@ func HandleViewArticle() http.HandlerFunc {
 		if article.ShowFullContent {
 			// Get the full content.
 			data := validation.SanitizeString(req.FormValue("article-full-text"))
-			content, err := client.ExtractMainContent(req.Context(), article.GetLink(), []byte(data))
+
 			// Respond appropriately.
-			switch {
+			switch content, err := client.ExtractMainContent(req.Context(), article.GetLink(), []byte(data)); {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
 				slogctx.FromCtx(req.Context()).Warn("Unable to fetch remote content for article.",

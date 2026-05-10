@@ -176,8 +176,8 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 
 	// For RSS use either the reasonable interval given by the feed or a reasonable default.
 	if details.SourceType == feeds.TypeRSS {
-		interval := details.GetUpdateInterval()
-		switch {
+
+		switch interval := details.GetUpdateInterval(); {
 		case interval < time.Minute:
 			// Set really short update intervals to every 5 minutes.
 			f.UpdateInterval = int64(5 * time.Minute)
@@ -292,8 +292,8 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 				}
 				// Clean up source URLs: remove proxied URL and re-add original URL as needed.
 				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(sourceURL string) bool {
-					proxied, err := reverseproxy.IsProxiedURL(sourceURL)
-					switch {
+
+					switch proxied, err := reverseproxy.IsProxiedURL(sourceURL); {
 					case proxied:
 						return true
 					case err != nil:

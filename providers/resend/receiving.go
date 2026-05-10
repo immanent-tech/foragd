@@ -88,8 +88,8 @@ func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attac
 		return nil, fmt.Errorf("load client: %w", err)
 	}
 	for attachment := range slices.Values(e.Attachments) {
-		a, err := client.Emails.GetAttachmentWithContext(ctx, e.Id, attachment.Id)
-		if err != nil {
+
+		if a, err := client.Emails.GetAttachmentWithContext(ctx, e.Id, attachment.Id); err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not fetch attachment",
 				slog.String("email_id", e.Id),
 				slog.String("attachment_id", attachment.Id),

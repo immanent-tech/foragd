@@ -275,9 +275,8 @@ func NewRequest(
 			}
 		}
 
-		resp, err := req.Do(ctx)
 		// Handle response.
-		switch {
+		switch resp, err := req.Do(ctx); {
 		case err != nil:
 			slogctx.FromCtx(ctx).Error("Bulk request failed.", slog.Any("error", err))
 			respCh <- Response{Err: err}

@@ -33,12 +33,8 @@ var CLI struct {
 func init() {
 	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
 	// ensureNotEUID aborts the program if it is running setuid something, or being invoked by root.
-	euid := syscall.Geteuid()
-	uid := syscall.Getuid()
-	egid := syscall.Getegid()
-	gid := syscall.Getgid()
 
-	if uid != euid || gid != egid || uid == 0 {
+	if euid, uid, egid, gid := syscall.Geteuid(), syscall.Getuid(), syscall.Getegid(), syscall.Getgid(); uid != euid || gid != egid || uid == 0 {
 		slog.Error("foragd should not be run with additional privileges or as root.")
 		os.Exit(-1)
 	}

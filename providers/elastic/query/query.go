@@ -558,8 +558,9 @@ func Filter(queryOptions ...Option) BoolOption {
 		// Create queries for each of the passed in query options and append to
 		// the bool filters list.
 		for _, queryOption := range queryOptions {
-			filterClause := &types.Query{}
+
 			if queryOption != nil {
+				filterClause := &types.Query{}
 				queryOption(filterClause)
 				if !reflect.DeepEqual(filterClause, &types.Query{}) {
 					filters = append(filters, *filterClause)

@@ -31,8 +31,7 @@ var feedCache = otter.Must(&otter.Options[models.FeedID, models.Feed]{
 
 // fetchAndCacheFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
 func fetchAndCacheFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
-	feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id)
-	switch {
+	switch feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return models.Feed{}, fmt.Errorf("get feed by id: %w", err)
 	case errors.Is(err, elastic.ErrNotFound):

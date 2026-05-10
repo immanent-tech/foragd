@@ -230,8 +230,8 @@ func (a *Article) GetImage() *RemoteImage {
 		return a.Item.GetImage()
 	}
 	// Try to extract an image from the content.
-	img, err := ExtractImageFromContent(a.GetContent())
-	switch {
+
+	switch img, err := ExtractImageFromContent(a.GetContent()); {
 	case err != nil:
 		return nil
 	case img != nil:

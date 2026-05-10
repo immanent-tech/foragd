@@ -131,8 +131,8 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 
 		wg.Go(func() {
 			jobKey := job.GenerateJobKey(feed.GetID(), string(job.JobType))
-			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
-			switch {
+
+			switch existingJob, err := schedulerAPI.GetScheduledJob(jobKey); {
 			case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
 				// If we cannot ascertain if there is an existing scheduled job, skip this feed.
 				slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",

@@ -97,14 +97,14 @@ func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenR
 
 	var token TokenResponse
 	var errResult authentication.Error
-	resp, err := client.R().
+
+	switch resp, err := client.R().
 		SetContext(ctx).
 		SetFormDataFromValues(form).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetResult(&token).
 		SetError(&errResult).
-		Post(a.Config.Endpoint.TokenURL)
-	switch {
+		Post(a.Config.Endpoint.TokenURL); {
 	case err != nil:
 		return nil, fmt.Errorf("post token: %w", err)
 	case resp.IsError():

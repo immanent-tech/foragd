@@ -56,9 +56,9 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 			planID,
 		}),
 	}
-	i := price.List(params)
+
 	var subscriptionPrice *stripe.Price
-	for i.Next() {
+	for i := price.List(params); i.Next(); {
 		p := i.Price()
 		subscriptionPrice = p
 	}
