@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.132.2](https://github.com/immanent-tech/foragd/compare/v0.132.1...v0.132.2) (2026-05-10)
+
+
+### Bug Fixes
+
+* **service:** :bug: fix loading logic for users/feeds ([c3a4434](https://github.com/immanent-tech/foragd/commit/c3a4434555e8593ad424985e9c4420a3387b87aa))
+
 ## [0.132.1](https://github.com/immanent-tech/foragd/compare/v0.132.0...v0.132.1) (2026-05-10)
 
 
