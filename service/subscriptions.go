@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
@@ -27,7 +26,7 @@ import (
 )
 
 var userSubscriptionsCache = otter.Must(
-	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]]{
+	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, models.Subscription]]{
 		MaximumSize: 5000,
 	},
 )
@@ -35,8 +34,8 @@ var userSubscriptionsCache = otter.Must(
 func fetchAndCacheSubscriptions(
 	ctx context.Context,
 	userID models.UserID,
-) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
-	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
+) (*otter.Cache[models.SubscriptionID, models.Subscription], error) {
+	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, models.Subscription]{
 		InitialCapacity: 3000,
 		MaximumSize:     3000,
 	})
@@ -59,7 +58,7 @@ func fetchAndCacheSubscriptions(
 	}
 
 	for subscription := range slices.Values(subscriptions) {
-		userSubscriptionsCache.Set(subscription.GetID(), subscription)
+		userSubscriptionsCache.Set(subscription.GetID(), *subscription)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.")
@@ -75,7 +74,7 @@ func GetAllSubscriptions(
 	subscriptionsCache, err := userSubscriptionsCache.Get(
 		ctx,
 		user.GetID(),
-		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
+		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, models.Subscription]](
 			fetchAndCacheSubscriptions,
 		),
 	)
@@ -86,7 +85,10 @@ func GetAllSubscriptions(
 		return nil, fmt.Errorf("get all subscriptions: %w", err)
 	}
 
-	subscriptions := slices.Collect(subscriptionsCache.Values())
+	var subscriptions models.Subscriptions
+	for subscription := range subscriptionsCache.Values() {
+		subscriptions = append(subscriptions, &subscription)
+	}
 
 	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to update subscription dynamic info.",
@@ -219,7 +221,7 @@ func UpdateSubscriptions(
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
 		for subscription := range slices.Values(subscriptions) {
 			subscriptionsCache.Invalidate(subscription.GetID())
-			subscriptionsCache.Set(subscription.GetID(), subscription)
+			subscriptionsCache.Set(subscription.GetID(), *subscription)
 		}
 	}
 
@@ -434,8 +436,8 @@ func GetCategoriesForSubscriptions(
 	termsField := "customisation.categories.raw"
 	termsCount := 200
 	aggs := elastic.Aggs{
-		"CategoryCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
+		"CategoryCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
 				Field: &termsField,
 				Size:  &termsCount,
 			},
@@ -453,14 +455,14 @@ func GetCategoriesForSubscriptions(
 		return nil, models.ElasticsearchToAPIError(err)
 	}
 
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf(
 			"category counts aggregation invalid: %w",
 			models.ErrInvalidAPIResult,
 		)
 	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
 	if !ok {
 		return nil, fmt.Errorf(
 			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
