@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.132.0](https://github.com/immanent-tech/foragd/compare/v0.131.3...v0.132.0) (2026-05-10)
+
+
+### Features
+
+* **templates/subscriptions:** :sparkles: add loading indicator while subscribing to a feed ([ae6301f](https://github.com/immanent-tech/foragd/commit/ae6301f9a4bc39760a3ee4194adbec68a49ee0b4))
+
+
+### Bug Fixes
+
+* :bug: fix scoping of variables ([2eef84c](https://github.com/immanent-tech/foragd/commit/2eef84c177d1a02978134eb4a84733098d8153b2))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: adjust sitemap Cache-Control header ([39e5dd3](https://github.com/immanent-tech/foragd/commit/39e5dd37b86482e3619501486e852ae91935f85d))
+* **service:** :zap: implement caching of feeds ([391c3a6](https://github.com/immanent-tech/foragd/commit/391c3a65638526fb1aed4ff249439cb0db2ea91d))
+
 ## [0.131.3](https://github.com/immanent-tech/foragd/compare/v0.131.2...v0.131.3) (2026-05-09)
 
 
