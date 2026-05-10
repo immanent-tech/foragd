@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.132.1](https://github.com/immanent-tech/foragd/compare/v0.132.0...v0.132.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **middlewares:** :lock: set sane defaults for CSP directives that don't fallback to default-src ([94131ce](https://github.com/immanent-tech/foragd/commit/94131ce60346dfd3dba9962a8f5a6c2c4e833ccb))
+* **pkg/formats/html:** :bug: fix scoping of variables ([3698764](https://github.com/immanent-tech/foragd/commit/369876482fc76f58bc42cace8641b918a91c78e2))
+
 ## [0.132.0](https://github.com/immanent-tech/foragd/compare/v0.131.3...v0.132.0) (2026-05-10)
 
 
