@@ -41,7 +41,7 @@ exclude_dir = [
   "extractor",
 ]
 # Ignore these filename extensions or directories.
-include_dir = ["scheduler", "models", "pkg"]
+include_dir = ["scheduler", "models", "service", "pkg"]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 # Exclude unchanged files.
