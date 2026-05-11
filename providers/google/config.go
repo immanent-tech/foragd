@@ -38,6 +38,8 @@ type Config struct {
 	Revision string
 	// BillingAccountID is the ID of the billing account.
 	BillingAccountID string `koanf:"billingaccountid"`
+	// APIKey is an API key to use with various Google Cloud APIs
+	APIKey string `koanf:"apikey"`
 }
 
 // LoadConfig loads the auth0 configuration and ensures this is only done

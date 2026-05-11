@@ -367,109 +367,27 @@ components:
           x-go-type-skip-optional-pointer: true
         pagination:
           $ref: 'models.yaml#/components/schemas/Pagination'
-    ExtractedMetadata:
+    FeedSuggestionsResults:
       description: >
-        contains key information about the link/site that was extracted.
-      type: object
-      properties:
-        title:
-          description: is the title of the page/link
-          type: string
-        author:
-          description: is an author attributed to the page/link.
-          type: string
-        description:
-          description: is a summary of the content of the page/link.
-          type: string
-        date:
-          description: is a datestamp associated with the page/link published/updated time.
-          type: string
-        sitename:
-          description: is the site name.
-          type: string
-        categories:
-          description: is a list of categories associated with the page/link.
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-        tags:
-          description: is a list of tags associated with the page/link.
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-    ExtractorResponse:
-      description: >
-        represents the response from the extractor component.
+        contains a list of feeds and their latest items, based on the provided text query.
       type: object
       required:
-        - url
+        - text
+        - feeds
+        - latest_items
       properties:
-        url:
-          $ref: 'models.yaml#/components/schemas/URL'
-        format:
+        text:
           description: >
-            is the output format of the content field.
+            is the query text that generated the suggestions.
           type: string
-          enum: ["markdown", "txt", "html", "xml", "json"]
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty,oneof=markdown txt html xml json'
-        content:
-          description: >
-            is the extracted data.
-          type: string
-        extracted_at:
-          description: >
-            is a timestamp of when the content was extracted
-          type: integer
-        metadata:
-          $ref: '#/components/schemas/ExtractedMetadata'
-    ExtractorErrorResponse:
-      description: >
-        represents the response from the extractor when an error occurred.
-      type: object
-      required:
-        - detail
-      properties:
-        detail:
-          description: >
-            is the summary/reason for the error.
-          type: string
-    AddSubscriptionFeedSuggestions:
-      description: >
-        contains feed suggestions details.
-      type: object
-      properties:
         feeds:
           description: >
             is a slice of feeds.
           x-go-type: Feeds
-          x-go-type-skip-optional-pointer: true
         latest_items:
           description: >
             is a map of latest items for each suggested feed.
           x-go-type: map[FeedID]Items
-          x-go-type-skip-optional-pointer: true
-    AddSubscriptionYoutubeSuggestions:
-      description: >
-        contains Youtube suggestion details.
-      type: object
-      properties:
-        channels:
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-    AddSubscriptionSuggestion:
-      description: >
-        contains data about suggestions for adding a new subscription.
-      type: object
-      properties:
-        feed_suggestions:
-          $ref: '#/components/schemas/AddSubscriptionFeedSuggestions'
-        youtube_suggestions:
-          $ref: '#/components/schemas/AddSubscriptionYoutubeSuggestions'
     ReportIssueRequest:
       description: >
         contains details about an issue with the service.

@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/google/youtube"
 )
 
 var feedCache = otter.Must(&otter.Options[models.FeedID, models.Feed]{
@@ -333,6 +336,253 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 
 	wg.Wait()
 	return feedsLatestItems, nil
+}
+
+// SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
+func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+	// Retrieve the user object.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	// Get user subscriptions.
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+
+	// Perform a search on youtube to find a channel that matches the user's query.
+	channelResults, err := youtube.FindChannels(ctx, text)
+	if err != nil {
+		return nil, fmt.Errorf("search youtube channels: %w", err)
+	}
+	// Extract the channel RSS feed urls.
+	urls := make([]string, 0, len(channelResults))
+	for channel := range slices.Values(channelResults) {
+		urls = append(urls, "https://www.youtube.com/feeds/videos.xml?channel_id="+channel.ID)
+	}
+	var feeds models.Feeds
+	// Try to find existing feeds that match the query.
+	resp, err := elastic.Search[*models.Feed](
+		ctx,
+		schema.FeedsIndexRO(),
+		query.Bool(
+			query.MustNot(
+				// User must not already be subscribed.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+			),
+			query.Should(
+				// Match source_urls (preferred) or url.
+				query.Terms(
+					"source_urls",
+					urls,
+					query.WithQueryBoost[*query.TermsQuery](10.0),
+				),
+				query.Terms(
+					"url",
+					urls,
+				),
+			),
+		),
+		elastic.WithSort(
+			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+		),
+		elastic.WithSize(5),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search feeds: %w", err)
+	}
+
+	// If existing feeds are found, return the results
+	if len(resp.Results) > 0 {
+		feeds = resp.Results
+		// Retrieve the latest 3 articles for each feed.
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
+				slog.Any("error", err),
+			)
+		}
+		return &models.FeedSuggestionsResults{
+			Text:        text,
+			Feeds:       feeds,
+			LatestItems: latestItems,
+		}, nil
+	}
+
+	// Try to create new feeds for the urls.
+	latestItems := make(map[models.FeedID]models.Items)
+	for url := range slices.Values(urls) {
+		slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
+			slog.String("url", url),
+		)
+		newFeed, err := models.NewFeedFromURL(ctx, url, "", false)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to find feed at URL.",
+				slog.String("url", url),
+				slog.Any("error", err),
+			)
+			continue
+		}
+		// Retrieve the latest 3 articles for each feed.
+		if items := newFeed.GetItems(); len(items) > 0 {
+			// Truncate to 3 items.
+			if len(items) > 3 {
+				items = items[:3]
+			}
+			latestItems[newFeed.GetID()] = items
+		}
+		feeds = append(feeds, newFeed)
+	}
+	return &models.FeedSuggestionsResults{
+		Text:        text,
+		Feeds:       feeds,
+		LatestItems: latestItems,
+	}, nil
+}
+
+// SuggestFeeds returns a feeds and their latest articles that match the given text. It will search first for existing
+// feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
+func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+	// Retrieve the user object.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	// Get user subscriptions.
+	subscriptions, err := GetAllSubscriptions(ctx, user)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+
+	// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
+	var feedSearchQuery query.Option
+	switch {
+	case strings.HasPrefix(text, "http"):
+		feedSearchQuery = query.Bool(
+			query.MustNot(
+				// User must not already be subscribed.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+			),
+			query.Should(
+				// For URLs, match with and without a trailing slash. Boost source_urls over url.
+				query.Term(
+					"source_urls",
+					strings.TrimSuffix(text, "/"),
+					query.WithQueryBoost[*query.TermQuery](10.0),
+				),
+				query.Term(
+					"url",
+					strings.TrimSuffix(text, "/"),
+					query.WithQueryBoost[*query.TermQuery](5.0),
+				),
+				query.Term("source_urls", text, query.WithQueryBoost[*query.TermQuery](10.0)),
+				query.Term("url", text, query.WithQueryBoost[*query.TermQuery](5.0)),
+				// Wildcard URL prefix.
+				query.Wildcard("source_urls", text+"*"),
+				query.Wildcard("url", text+"*"),
+			),
+		)
+	default:
+		feedSearchQuery = query.Bool(
+			query.MustNot(
+				// User must not already be subscribed.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+			),
+			query.Should(
+				// Exact match text on title with significant boost.
+				query.Term(
+					"title.exact",
+					text,
+					query.WithQueryBoost[*query.TermQuery](10.0),
+				),
+				// Title or description contains text, with boost for title.
+				query.MultiMatch(
+					text,
+					[]string{"title^5", "description"},
+					query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
+				),
+				// Match phrase in description.
+				query.MatchPhrase(
+					"description",
+					text,
+				),
+				// Match an existing subscription category.
+				query.Term("categories", text),
+			),
+		)
+	}
+
+	// Try to find existing feeds that match the query.
+	resp, err := elastic.Search[*models.Feed](
+		ctx,
+		schema.FeedsIndexRO(),
+		feedSearchQuery,
+		elastic.WithSort(
+			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+		),
+		elastic.WithSize(5),
+	)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to find feed suggestions.",
+			slog.Any("error", err),
+		)
+	}
+
+	var feeds models.Feeds
+	feeds = resp.Results
+
+	if len(feeds) > 0 {
+		// Handle matching feeds.
+		if len(feeds) > 0 {
+			// Retrieve the latest 3 articles for each feed.
+			latestItems, err := GetFeedLatestItems(ctx, 3, feeds)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
+					slog.Any("error", err),
+				)
+			}
+			return &models.FeedSuggestionsResults{
+				Text:        text,
+				Feeds:       feeds,
+				LatestItems: latestItems,
+			}, nil
+		}
+	}
+
+	// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
+	if strings.HasPrefix(text, "http") {
+		if newFeedURL, err := url.Parse(text); err == nil {
+			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
+				slog.String("url", newFeedURL.String()),
+			)
+			newFeed, err := models.NewFeedFromURL(ctx, newFeedURL.String(), "", false)
+			if err != nil {
+				return nil, fmt.Errorf("new feed from url: %w", err)
+			}
+			latestItems := make(map[models.FeedID]models.Items)
+			if items := newFeed.GetItems(); len(items) > 0 {
+				// Truncate to 3 items.
+				if len(items) > 3 {
+					items = items[:3]
+				}
+				latestItems[newFeed.GetID()] = items
+			}
+			return &models.FeedSuggestionsResults{
+				Text:        text,
+				Feeds:       models.Feeds{newFeed},
+				LatestItems: latestItems,
+			}, nil
+		}
+	}
+
+	// No results, send empty set.
+	return &models.FeedSuggestionsResults{
+		Text:        text,
+		LatestItems: make(map[models.FeedID]models.Items),
+	}, nil
 }
 
 func getFeedUnreadCounts(

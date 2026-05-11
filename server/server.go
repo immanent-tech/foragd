@@ -231,7 +231,7 @@ func Start(logger *slog.Logger) error {
 		r.Route("/subscription", func(r chi.Router) {
 			r.Route("/add", func(r chi.Router) {
 				r.Get("/", handlers.HandleAddSubscription())
-				r.With(middlewares.RequireHTMX).Post("/suggestions", handlers.HandleAddSubscriptionSuggestions())
+				r.With(middlewares.RequireHTMX).Post("/suggestions", handlers.HandleSuggestFeeds())
 				r.With(middlewares.RequireHTMX).Post("/feed", handlers.HandleAddNewFeedSubscription())
 				// Add search subscription.
 				r.Get("/search", handlers.HandleAddSearchSubscription())

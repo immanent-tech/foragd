@@ -13,7 +13,6 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
-	"net/url"
 	"os"
 	"slices"
 	"strconv"
@@ -1377,7 +1376,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-func HandleAddSubscriptionSuggestions() http.HandlerFunc {
+func HandleSuggestFeeds() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get suggestion text.
 		text := validation.SanitizeString(req.FormValue("suggestion_text"))
@@ -1397,162 +1396,39 @@ func HandleAddSubscriptionSuggestions() http.HandlerFunc {
 			return
 		}
 
-		// Get user subscriptions.
-		subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			slogctx.FromCtx(req.Context()).Warn("Unable to get user subscriptions.",
-				slog.Any("error", err),
-			)
-		}
-
 		switch source {
 		case "youtube":
-			// Perform a search on youtube to find a channel that matches the user's query.
-			// Check if the user is already subscribed.
-			// Show the youtube channel.
-
-		case "web":
-			// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
-			var (
-				feedSearchQuery query.Option
-			)
-			switch {
-			case strings.HasPrefix(text, "http"):
-				feedSearchQuery = query.Bool(
-					query.Should(
-						// For URLs, match with and without a trailing slash. Boost source_urls over url.
-						query.Term(
-							"source_urls",
-							strings.TrimSuffix(text, "/"),
-							query.WithQueryBoost[*query.TermQuery](10.0),
-						),
-						query.Term(
-							"url",
-							strings.TrimSuffix(text, "/"),
-							query.WithQueryBoost[*query.TermQuery](5.0),
-						),
-						query.Term("source_urls", text, query.WithQueryBoost[*query.TermQuery](10.0)),
-						query.Term("url", text, query.WithQueryBoost[*query.TermQuery](5.0)),
-						// Wildcard URL prefix.
-						query.Wildcard("source_urls", text+"*"),
-						query.Wildcard("url", text+"*"),
-					),
-				)
-			default:
-				feedSearchQuery = query.Bool(
-					query.Should(
-						// Exact match text on title with significant boost.
-						query.Term(
-							"title.exact",
-							text,
-							query.WithQueryBoost[*query.TermQuery](10.0),
-						),
-						// Title or description contains text, with boost for title.
-						query.MultiMatch(
-							text,
-							[]string{"title^5", "description"},
-							query.WithFuzziness[*query.MultiMatchQuery]("2"),
-						),
-						// Match phrase in description.
-						query.MatchPhrase(
-							"description",
-							text,
-						),
-						// Match an existing subscription category.
-						query.Term("categories", text),
-					),
-				)
-			}
-
-			// Try to find existing feeds that match the query.
-			resp, err := elastic.Search[*models.Feed](
-				req.Context(),
-				schema.FeedsIndexRO(),
-				feedSearchQuery,
-				elastic.WithSort(
-					models.NewFeedSortOptions(new(models.SortMostRelevant))...,
-				),
-				elastic.WithSize(5),
-			)
+			results, err := service.SuggestYoutubeFeeds(req.Context(), text)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to find feed suggestions.",
+				slogctx.FromCtx(req.Context()).Warn("Unable generate youtube suggestions.",
 					slog.Any("error", err),
 				)
+				RenderPartial(&PartialTemplate{
+					template: templates.ShowNoSuggestions(text),
+				}).ServeHTTP(res, req)
+				return
 			}
-
-			var feeds models.Feeds
-			feeds = resp.Results
-
-			if len(feeds) > 0 {
-				// Handle matching feeds.
-				// Exclude any feeds the user is already subscribed to.
-				feeds = feeds.ExcludeIDs(subscriptions.GetFeedIDs()...)
-				if len(feeds) > 0 {
-					// Retrieve the latest 3 articles for each feed.
-					latestItems := make(map[models.FeedID]models.Items)
-					latestItems, err = service.GetFeedLatestItems(req.Context(), 3, feeds)
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to get latest items for feeds.",
-							slog.Any("error", err),
-						)
-					}
-
-					// Show a list of feed suggestions.
-					RenderPartial(&PartialTemplate{
-						template: templates.ShowFeedSuggestions(
-							&models.AddSubscriptionFeedSuggestions{
-								Feeds:       feeds,
-								LatestItems: latestItems,
-							},
-						),
-					}).ServeHTTP(res, req)
-					return
-				}
-			} else {
-				// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
-				if strings.HasPrefix(text, "http") {
-					if newFeedURL, err := url.Parse(text); err == nil {
-						slogctx.FromCtx(req.Context()).Debug("Looking for new feed for URL.",
-							slog.String("url", newFeedURL.String()),
-						)
-						newFeed, err := models.NewFeedFromURL(req.Context(), newFeedURL.String(), "", false)
-						if err != nil {
-							slogctx.FromCtx(req.Context()).Warn("Unable to find feed at URL.",
-								slog.String("url", newFeedURL.String()),
-								slog.Any("error", err),
-							)
-							RenderPartial(&PartialTemplate{
-								template: templates.ShowNoSuggestions(text),
-							}).ServeHTTP(res, req)
-							return
-						}
-						latestItems := make(map[models.FeedID]models.Items)
-						if items := newFeed.GetItems(); len(items) > 0 {
-							// Truncate to 3 items.
-							if len(items) > 3 {
-								items = items[:3]
-							}
-							latestItems[newFeed.GetID()] = items
-						}
-
-						// Show new feed suggestion.
-						RenderPartial(&PartialTemplate{
-							template: templates.ShowFeedSuggestions(
-								&models.AddSubscriptionFeedSuggestions{
-									Feeds:       models.Feeds{newFeed},
-									LatestItems: latestItems,
-								},
-							),
-						}).ServeHTTP(res, req)
-						return
-					}
-				}
-			}
-
-			// No matching new or existing feeds. Show the no results message.
 			RenderPartial(&PartialTemplate{
-				template: templates.ShowNoSuggestions(text),
+				template: templates.ShowFeedSuggestions(results),
 			}).ServeHTTP(res, req)
+			return
+		case "web":
+			fallthrough
+		default:
+			results, err := service.SuggestFeeds(req.Context(), text)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable generate feed suggestions.",
+					slog.Any("error", err),
+				)
+				RenderPartial(&PartialTemplate{
+					template: templates.ShowNoSuggestions(text),
+				}).ServeHTTP(res, req)
+				return
+			}
+			RenderPartial(&PartialTemplate{
+				template: templates.ShowFeedSuggestions(results),
+			}).ServeHTTP(res, req)
+			return
 		}
 	}).ServeHTTP
 }

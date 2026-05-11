@@ -9,33 +9,6 @@ import (
 	"sync"
 )
 
-// Defines values for ExtractorResponseFormat.
-const (
-	ExtractorResponseFormatHtml     ExtractorResponseFormat = "html"
-	ExtractorResponseFormatJson     ExtractorResponseFormat = "json"
-	ExtractorResponseFormatMarkdown ExtractorResponseFormat = "markdown"
-	ExtractorResponseFormatTxt      ExtractorResponseFormat = "txt"
-	ExtractorResponseFormatXml      ExtractorResponseFormat = "xml"
-)
-
-// Valid indicates whether the value is a known member of the ExtractorResponseFormat enum.
-func (e ExtractorResponseFormat) Valid() bool {
-	switch e {
-	case ExtractorResponseFormatHtml:
-		return true
-	case ExtractorResponseFormatJson:
-		return true
-	case ExtractorResponseFormatMarkdown:
-		return true
-	case ExtractorResponseFormatTxt:
-		return true
-	case ExtractorResponseFormatXml:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -100,24 +73,6 @@ type AddFeedSubscriptionRequest struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
-// AddSubscriptionFeedSuggestions contains feed suggestions details.
-type AddSubscriptionFeedSuggestions struct {
-	// Feeds is a slice of feeds.
-	Feeds Feeds `json:"feeds,omitempty"`
-
-	// LatestItems is a map of latest items for each suggested feed.
-	LatestItems map[FeedID]Items `json:"latest_items,omitempty"`
-}
-
-// AddSubscriptionSuggestion contains data about suggestions for adding a new subscription.
-type AddSubscriptionSuggestion struct {
-	// FeedSuggestions contains feed suggestions details.
-	FeedSuggestions *AddSubscriptionFeedSuggestions `json:"feed_suggestions,omitempty"`
-
-	// YoutubeSuggestions contains Youtube suggestion details.
-	YoutubeSuggestions *AddSubscriptionYoutubeSuggestions `json:"youtube_suggestions,omitempty"`
-}
-
 // AddSubscriptionToGroupRequest is a request to add a new subscription to a group subscription.
 type AddSubscriptionToGroupRequest struct {
 	// ExistingSubscriptions is the existing subscriptions in the group.
@@ -139,11 +94,6 @@ type AddSubscriptionToSearchRequest struct {
 	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
 }
 
-// AddSubscriptionYoutubeSuggestions contains Youtube suggestion details.
-type AddSubscriptionYoutubeSuggestions struct {
-	Channels []string `json:"channels,omitempty"`
-}
-
 // ContactRequest contains details submitted via the contact form on the website.
 type ContactRequest struct {
 	// ContactEmail is the email address the entered for getting in touch about the issue.
@@ -152,57 +102,6 @@ type ContactRequest struct {
 	// Details is the text about the issue.
 	Details string `form:"details" json:"details" validate:"required"`
 }
-
-// ExtractedMetadata contains key information about the link/site that was extracted.
-type ExtractedMetadata struct {
-	// Author is an author attributed to the page/link.
-	Author *string `json:"author,omitempty"`
-
-	// Categories is a list of categories associated with the page/link.
-	Categories []string `json:"categories,omitempty"`
-
-	// Date is a datestamp associated with the page/link published/updated time.
-	Date *string `json:"date,omitempty"`
-
-	// Description is a summary of the content of the page/link.
-	Description *string `json:"description,omitempty"`
-
-	// Sitename is the site name.
-	Sitename *string `json:"sitename,omitempty"`
-
-	// Tags is a list of tags associated with the page/link.
-	Tags []string `json:"tags,omitempty"`
-
-	// Title is the title of the page/link
-	Title *string `json:"title,omitempty"`
-}
-
-// ExtractorErrorResponse represents the response from the extractor when an error occurred.
-type ExtractorErrorResponse struct {
-	// Detail is the summary/reason for the error.
-	Detail string `json:"detail"`
-}
-
-// ExtractorResponse represents the response from the extractor component.
-type ExtractorResponse struct {
-	// Content is the extracted data.
-	Content *string `json:"content,omitempty"`
-
-	// ExtractedAt is a timestamp of when the content was extracted
-	ExtractedAt *int `json:"extracted_at,omitempty"`
-
-	// Format is the output format of the content field.
-	Format *ExtractorResponseFormat `json:"format,omitempty" validate:"omitempty,oneof=markdown txt html xml json"`
-
-	// Metadata contains key information about the link/site that was extracted.
-	Metadata *ExtractedMetadata `json:"metadata,omitempty"`
-
-	// URL is a URL.
-	URL URL `form:"url" json:"url" validate:"omitempty,url"`
-}
-
-// ExtractorResponseFormat is the output format of the content field.
-type ExtractorResponseFormat string
 
 // FeedSubscriptionRequest is a request to add a new feed subscription.
 type FeedSubscriptionRequest struct {
@@ -233,6 +132,18 @@ type FeedSubscriptionResult struct {
 
 	// Subscription represents any kind of subscription.
 	Subscription *Subscription `json:"subscription,omitempty"`
+}
+
+// FeedSuggestionsResults contains a list of feeds and their latest items, based on the provided text query.
+type FeedSuggestionsResults struct {
+	// Feeds is a slice of feeds.
+	Feeds Feeds `json:"feeds"`
+
+	// LatestItems is a map of latest items for each suggested feed.
+	LatestItems map[FeedID]Items `json:"latest_items"`
+
+	// Text is the query text that generated the suggestions.
+	Text string `json:"text"`
 }
 
 // GroupSubscriptionRequest represents a request to create a group subscription.
