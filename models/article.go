@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -215,6 +216,9 @@ func (a *Article) formatContent() string {
 
 			return str.String()
 		}
+	case a.SourceType == SourceTypeEmail:
+		// For emails, perform extra content cleanup.
+		return stripPreheaderPadding(content)
 	}
 	return content
 }
@@ -390,4 +394,10 @@ func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item
 	archive.SubscriptionID = subscriptionID
 	archive.UserID = userID
 	return archive, nil
+}
+
+var preheaderPadding = regexp.MustCompile(`[\x{00A0}\x{200C}\s]{10,}`)
+
+func stripPreheaderPadding(html string) string {
+	return preheaderPadding.ReplaceAllString(html, "")
 }
