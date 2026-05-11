@@ -534,25 +534,19 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		)
 	}
 
-	var feeds models.Feeds
-	feeds = resp.Results
-
-	if len(feeds) > 0 {
-		// Handle matching feeds.
-		if len(feeds) > 0 {
-			// Retrieve the latest 3 articles for each feed.
-			latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs()...)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
-					slog.Any("error", err),
-				)
-			}
-			return &models.FeedSuggestionsResults{
-				Text:        text,
-				Feeds:       feeds,
-				LatestItems: latestItems,
-			}, nil
+	if len(resp.Results) > 0 {
+		// Retrieve the latest 3 articles for each feed.
+		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs()...)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
+				slog.Any("error", err),
+			)
 		}
+		return &models.FeedSuggestionsResults{
+			Text:        text,
+			Feeds:       resp.Results,
+			LatestItems: latestItems,
+		}, nil
 	}
 
 	// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
@@ -607,30 +601,26 @@ func getFeedUnreadCounts(
 		}
 		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, subscription))
 	}
-	// Build query.
-	query := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(subscriptionQueries...),
-			),
-		),
-	)
-	// Build elastic.
-	termsField := "feed_id"
-	termsCount := len(subscriptions)
-	aggs := elastic.Aggs{
-		"UnreadCounts": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
-		query,
-		elastic.WithAggregations(aggs),
+		query.Bool(
+			query.Filter(
+				query.Bool(
+					query.Should(subscriptionQueries...),
+				),
+			),
+		),
+		elastic.WithAggregations(
+			elastic.Aggs{
+				"UnreadCounts": estypes.Aggregations{
+					Terms: &estypes.TermsAggregation{
+						Field: new("feed_id"),
+						Size:  new(len(subscriptions)),
+					},
+				},
+			},
+		),
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),
 	)
