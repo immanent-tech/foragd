@@ -44,15 +44,13 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
-    "hono": "^4.12.16",
     "parcel": "^2.16.4",
     "postcss": "^8.5.13",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
-    "release-please": "^17.6.0",
-    "wrangler": "^4.87.0"
+    "release-please": "^17.6.0"
   },
   "@parcel/resolver-default": {
     "packageExports": true
