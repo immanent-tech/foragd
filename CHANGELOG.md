@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.133.0](https://github.com/immanent-tech/foragd/compare/v0.132.2...v0.133.0) (2026-05-11)
+
+
+### Features
+
+* **templates/subscriptions:** :sparkles: add ability to easily find and add a subscription to a youtube channel ([7170bb8](https://github.com/immanent-tech/foragd/commit/7170bb88fe9b04abaf4c0cb009d575f894fb703a))
+
 ## [0.132.2](https://github.com/immanent-tech/foragd/compare/v0.132.1...v0.132.2) (2026-05-10)
 
 
