@@ -230,12 +230,16 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 }
 
 // GetFeedLatestItems fetches the most recent count items for each given feed.
-func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map[models.FeedID]models.Items, error) {
+func GetFeedLatestItems(
+	ctx context.Context,
+	count int,
+	feedIDs ...models.FeedID,
+) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
 		query.Bool(
 			query.Filter(
-				query.Terms("feed_id", feeds.GetIDs()),
+				query.Terms("feed_id", feedIDs),
 			),
 		),
 		elastic.WithAggregations(
@@ -243,7 +247,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 				"feed": estypes.Aggregations{
 					Terms: &estypes.TermsAggregation{
 						Field: new("feed_id"),
-						Size:  new(len(feeds)),
+						Size:  new(len(feedIDs)),
 					},
 					Aggregations: map[string]estypes.Aggregations{
 						"latest_items": {
@@ -282,8 +286,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 		if feedID, ok := bucket.Key.(models.FeedID); ok {
 			wg.Go(func() {
 				// Get the subscription with this feedID.
-				feed := feeds.FindByID(feedID)
-				if feed == nil {
+				if !slices.Contains(feedIDs, feedID) {
 					slogctx.FromCtx(ctx).
 						Warn("Could not match feed in aggregation result to a subscription.",
 							slog.String("feed_id", feedID),
@@ -328,7 +331,7 @@ func GetFeedLatestItems(ctx context.Context, count int, feeds models.Feeds) (map
 				// 	return
 				// }
 				mu.Lock()
-				feedsLatestItems[feed.GetID()] = items
+				feedsLatestItems[feedID] = items
 				mu.Unlock()
 			})
 		}
@@ -398,7 +401,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds)
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs()...)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -538,7 +541,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		// Handle matching feeds.
 		if len(feeds) > 0 {
 			// Retrieve the latest 3 articles for each feed.
-			latestItems, err := GetFeedLatestItems(ctx, 3, feeds)
+			latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs()...)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 					slog.Any("error", err),

@@ -22,7 +22,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
@@ -34,7 +33,6 @@ import (
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
@@ -157,28 +155,36 @@ func HandleListSubscriptions() http.HandlerFunc {
 		)
 		wg.Go(func() {
 			// For feed/email subscriptions, get the latest 3 items from each.
-			feedsLatestItems, err := getFeedSubscriptionLatestItems(
+			emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail)
+			feedsLatestItems, err := service.GetFeedLatestItems(
 				req.Context(),
-				subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail),
-				filters,
+				3,
+				emailSubscriptions.GetFeedIDs()...,
 			)
+			// feedsLatestItems, err := getFeedSubscriptionLatestItems(
+			// 	req.Context(),
+			// 	subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail),
+			// 	filters,
+			// )
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve latest items for feed subscriptions.",
 					slog.Any("error", err),
 				)
 			}
-			for key, value := range feedsLatestItems {
-				subscriptionsLatestItems.Store(key, value)
+			for subscription := range slices.Values(emailSubscriptions) {
+				if items, found := feedsLatestItems[subscription.GetFeedID()]; found {
+					subscriptionsLatestItems.Store(subscription.GetID(), items)
+				}
 			}
 		})
 
 		wg.Go(func() {
 			// For group subscriptions, get the latest 3 items across each group's members.
-			groupsLatestItems, err := getGroupSubscriptionLatestItems(
+			groupsLatestItems, err := service.GetGroupSubscriptionLatestItems(
 				req.Context(),
 				user,
+				3,
 				subscriptions.FilterByType(models.SubscriptionTypeGroup),
-				filters,
 			)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve latest items for group subscriptions.",
@@ -192,10 +198,10 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		wg.Go(func() {
 			// For search subscription, run each search and get the top 3 results.
-			searchLatestItems, err := getSearchSubscriptionLatestItems(
+			searchLatestItems, err := service.GetSearchSubscriptionLatestItems(
 				req.Context(),
+				3,
 				subscriptions.FilterByType(models.SubscriptionTypeSearch),
-				filters,
 			)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve top items for search subscriptions.",
@@ -323,233 +329,6 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 		}
 	}).ServeHTTP
-}
-
-func getFeedSubscriptionLatestItems(
-	ctx context.Context,
-	subscriptions models.Subscriptions,
-	filters *models.ListFilters,
-) (map[models.SubscriptionID]models.Items, error) {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
-	}
-	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
-		query.Bool(
-			query.Filter(
-				// Must match any of the given categories.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-				query.Bool(
-					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
-				),
-			),
-		),
-		elastic.WithAggregations(
-			elastic.Aggs{
-				"feed": types.Aggregations{
-					Terms: &types.TermsAggregation{
-						Field: new("feed_id"),
-						Size:  new(len(subscriptions)),
-					},
-					Aggregations: map[string]types.Aggregations{
-						"latest_items": {
-							TopHits: &types.TopHitsAggregation{
-								Size:    new(3),
-								Sort:    service.NewItemSortCombinations(&filters.Sort),
-								Source_: []string{"feed_id", "item_id", "title", "updated", "published"},
-							},
-						},
-					},
-				},
-			},
-		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("fetch latest articles: %w", err)
-	}
-	feedsLatestItems := make(map[models.SubscriptionID]models.Items)
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	// Extract the feed aggregation.
-	feedsAgg, found, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
-		resp.Aggregations,
-		"feed",
-	)
-	if !found || err != nil {
-		return nil, fmt.Errorf("extract feed aggregation: %w", err)
-	}
-	// Loop over the feed buckets.
-	feedBuckets, err := elastic.ExtractBuckets[types.StringTermsBucket](feedsAgg.Buckets)
-	if err != nil {
-		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
-	}
-	for bucket := range slices.Values(feedBuckets) {
-		if feedID, ok := bucket.Key.(models.FeedID); ok {
-			wg.Go(func() {
-				// Get the subscription with this feedID.
-				subscription := subscriptions.GetByFeedID(feedID)
-				if subscription == nil {
-					slogctx.FromCtx(ctx).
-						Warn("Could not match feed in aggregation result to a subscription.",
-							slog.String("feed_id", feedID),
-						)
-					return
-				}
-				// Extract the latest articles aggregation.
-				latestItemsAggs, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
-					bucket.Aggregations,
-					"latest_items",
-				)
-				if !found || err != nil {
-					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
-						slog.String("aggregation", "latest_items"),
-						slog.Any("error", err),
-					)
-					return
-				}
-				var (
-					items models.Items
-				)
-
-				// Extract the latest items.
-				//
-				// * Note that the "latest_items" aggregation applies _source filtering,
-				// * so only the given fields will be populated in the models.Item object.
-				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
-				if err != nil {
-					slogctx.FromCtx(ctx).
-						Warn("Unable to extract latest articles from elastic.",
-							slog.Any("error", err),
-						)
-					return
-				}
-				// // Generate articles.
-				// articles, err := models.GenerateArticles(ctx, items)
-				// if err != nil {
-				// 	slogctx.FromCtx(ctx).
-				// 		Warn("Unable to generate articles from items.",
-				// 			slog.Any("error", err),
-				// 		)
-				// 	return
-				// }
-				mu.Lock()
-				feedsLatestItems[subscription.GetID()] = items
-				mu.Unlock()
-			})
-		}
-	}
-
-	wg.Wait()
-	return feedsLatestItems, nil
-}
-
-func getGroupSubscriptionLatestItems(
-	ctx context.Context,
-	user *models.User,
-	subscriptions models.Subscriptions,
-	filters *models.ListFilters,
-) (map[models.SubscriptionID]models.Items, error) {
-	groupLatestItems := make(map[models.SubscriptionID]models.Items)
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
-	)
-	for subscription := range slices.Values(subscriptions) {
-		wg.Go(func() {
-			// Get details of all subscriptions that comprise the group.
-			childSubscriptions, err := service.GetAllSubscriptions(ctx, user)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			childSubscriptions = childSubscriptions.FilterByIDs(subscription.GroupData.Subscriptions...)
-			// Get latest items for these subscriptions.
-			latestItems, err := getFeedSubscriptionLatestItems(ctx, childSubscriptions, filters)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to get latest items for group subscription.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Concat all items from all subscriptions into the group subscription items list.
-			for _, items := range latestItems {
-				mu.Lock()
-				groupLatestItems[subscription.GetID()] = slices.Concat(groupLatestItems[subscription.GetID()], items)
-				// Sort the combined items list.
-				groupLatestItems[subscription.GetID()].SortByTimestamp()
-				// Truncate the list to the first 3 items if greater than 3.
-				if len(groupLatestItems[subscription.GetID()]) > 3 {
-					groupLatestItems[subscription.GetID()] = groupLatestItems[subscription.GetID()][:3]
-				}
-				mu.Unlock()
-			}
-		})
-	}
-	wg.Wait()
-	return groupLatestItems, nil
-}
-
-func getSearchSubscriptionLatestItems(
-	ctx context.Context,
-	subscriptions models.Subscriptions,
-	filters *models.ListFilters,
-) (map[models.SubscriptionID]models.Items, error) {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
-	}
-
-	searchTopItems := make(map[models.SubscriptionID]models.Items)
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
-	)
-
-	for subscription := range slices.Values(subscriptions) {
-		wg.Go(func() {
-			// Generate a search query from the subscription search data.
-			searchQuery, err := service.BuildSearchResultsQuery(
-				ctx,
-				user,
-				&subscription.SearchData.Search,
-				models.SearchResultsClause(&subscription.SearchData.Search),
-			)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				slogctx.FromCtx(ctx).Warn("Could not build search query for search subscription.",
-					slog.String("subscription_id", subscription.GetID()),
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Search for items matching.
-			var items models.Items
-			items, _, err = service.SearchItems(
-				ctx,
-				searchQuery,
-				3,
-				&subscription.SearchData.Search.Sort,
-				nil,
-			)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				slogctx.FromCtx(ctx).Warn("Get search results for search subscription failed.",
-					slog.String("subscription_id", subscription.GetID()),
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Add to the subscription top items.
-			mu.Lock()
-			searchTopItems[subscription.GetID()] = items
-			mu.Unlock()
-		})
-	}
-	wg.Wait()
-	return searchTopItems, nil
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.

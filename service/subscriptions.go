@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/mail"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -282,6 +283,116 @@ func UpdateFavoriteSubscription(ctx context.Context, user *models.User, id model
 	}
 
 	return nil
+}
+
+// GetGroupSubscriptionLatestItems will return a map of latest items per subscription for the given group subscriptions.
+func GetGroupSubscriptionLatestItems(
+	ctx context.Context,
+	user *models.User,
+	count int,
+	subscriptions models.Subscriptions,
+) (map[models.SubscriptionID]models.Items, error) {
+	groupLatestItems := make(map[models.SubscriptionID]models.Items)
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+	)
+	for subscription := range slices.Values(subscriptions) {
+		wg.Go(func() {
+			// Get details of all subscriptions that comprise the group.
+			childSubscriptions, err := GetAllSubscriptions(ctx, user)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			childSubscriptions = childSubscriptions.FilterByIDs(subscription.GroupData.Subscriptions...)
+			// Get latest items for these subscriptions.
+			latestItems, err := GetFeedLatestItems(ctx, count, childSubscriptions.GetFeedIDs()...)
+			// latestItems, err := getFeedSubscriptionLatestItems(ctx, childSubscriptions, filters)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to get latest items for group subscription.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Concat all items from all subscriptions into the group subscription items list.
+			for _, items := range latestItems {
+				mu.Lock()
+				groupLatestItems[subscription.GetID()] = slices.Concat(groupLatestItems[subscription.GetID()], items)
+				// Sort the combined items list.
+				groupLatestItems[subscription.GetID()].SortByTimestamp()
+				// Truncate the list to the first 3 items if greater than 3.
+				if len(groupLatestItems[subscription.GetID()]) > 3 {
+					groupLatestItems[subscription.GetID()] = groupLatestItems[subscription.GetID()][:3]
+				}
+				mu.Unlock()
+			}
+		})
+	}
+	wg.Wait()
+	return groupLatestItems, nil
+}
+
+// GetSearchSubscriptionLatestItems will return a map of latest items per subscription for the given search
+// subscriptions.
+func GetSearchSubscriptionLatestItems(
+	ctx context.Context,
+	count int,
+	subscriptions models.Subscriptions,
+) (map[models.SubscriptionID]models.Items, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("%w: could not find user", models.ErrCtxValueNotFound)
+	}
+
+	searchTopItems := make(map[models.SubscriptionID]models.Items)
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+	)
+
+	for subscription := range slices.Values(subscriptions) {
+		wg.Go(func() {
+			// Generate a search query from the subscription search data.
+			searchQuery, err := BuildSearchResultsQuery(
+				ctx,
+				user,
+				&subscription.SearchData.Search,
+				models.SearchResultsClause(&subscription.SearchData.Search),
+			)
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				slogctx.FromCtx(ctx).Warn("Could not build search query for search subscription.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Search for items matching.
+			var items models.Items
+			items, _, err = SearchItems(
+				ctx,
+				searchQuery,
+				count,
+				&subscription.SearchData.Search.Sort,
+				nil,
+			)
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				slogctx.FromCtx(ctx).Warn("Get search results for search subscription failed.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Add to the subscription top items.
+			mu.Lock()
+			searchTopItems[subscription.GetID()] = items
+			mu.Unlock()
+		})
+	}
+	wg.Wait()
+	return searchTopItems, nil
 }
 
 // CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
