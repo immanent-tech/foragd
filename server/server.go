@@ -85,7 +85,7 @@ func Start(logger *slog.Logger) error {
 	router.Use(
 		middleware.RequestID,
 		middlewares.Logger,
-		middleware.Recoverer,
+		middlewares.Recoverer,
 		middlewares.SetupCORS,
 		middlewares.CrossOriginProtection,
 		middlewares.ContentSecurityPolicy,
