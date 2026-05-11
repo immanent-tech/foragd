@@ -217,13 +217,13 @@
 
     /* Forced fixed width for pre and scrollable elements. */
     pre {
-      overflow-x: auto;
+      @apply overflow-x-auto;
     }
     .scrollable {
-      overflow-x: auto;
+      @apply overflow-x-auto;
     }
     [style*="white-space-collapse"] {
-      white-space: normal !important;
+      @apply whitespace-normal!;
     }
 
     /* Apply some useful CSS styling for video embeds */
@@ -348,8 +348,7 @@
 }
 
 @utility link {
-  transition-property: scale, color;
-  transition-duration: 150ms;
+  @apply transition-[scale,color] duration-150;
   .link:active,
   .link:hover {
     @apply scale-[0.99];
