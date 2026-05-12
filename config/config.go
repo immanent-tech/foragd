@@ -25,7 +25,7 @@ const (
 	// AppID is the application name formatted for use as an ID.
 	AppID = "app.foragd"
 	// AppDescription is the catch-line of the application.
-	AppDescription = "Foragd is a web-based RSS and feed reader. Follow any website, blog or newsletter in one place — no algorithms, no ads, fully searchable."
+	AppDescription = "Foragd is a web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable."
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "FORAGD_"

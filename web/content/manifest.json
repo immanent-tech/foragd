@@ -3,57 +3,126 @@
   "categories": [
     "news",
     "magazines",
-    "social"
+    "social",
+    "productivity",
+    "lifestyle"
   ],
-  "description": "A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.",
+  "description": "Foragd is a free RSS and web feed reader. Follow any website, blog or email newsletter in one place. No algorithms, no ads, no tracking. Just the content you choose, fully searchable and beautifully organised.",
+  "dir": "ltr",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "scope": "/",
+  "file_handlers": [],
   "icons": [
     {
       "sizes": "512x512",
-      "src": "manifest-icon-512.png",
-      "type": "image/png"
+      "src": "/content/icons/icon-512.png",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "sizes": "128x128",
-      "src": "manifest-icon-128.png",
+      "src": "/content/icons/icon-128.png",
       "type": "image/png"
     },
     {
       "sizes": "64x64",
-      "src": "manifest-icon-64.png",
+      "src": "/content/icons/icon-64.png",
       "type": "image/png"
     },
     {
-      "src": "logo-color.webp",
-      "sizes": "1323x1323"
+      "src": "/content/logo-1024.webp",
+      "sizes": "1024x1024"
     }
   ],
   "id": "/home",
-  "lang": "en",
-  "name": "Foragd",
+  "lang": "en-US",
+  "name": "Foragd – RSS & Feed Reader",
   "orientation": "portrait",
   "screenshots": [
     {
       "form_factor": "wide",
-      "label": "Home screen comparison on desktop and mobile",
-      "sizes": "1900x1440",
-      "src": "screenshots/screenshot-main-nobg.webp",
+      "label": "Foragd RSS reader - home screen on desktop",
+      "sizes": "1440x900",
+      "src": "/content/screenshots/screenshot-home-desktop.webp",
       "type": "image/webp"
     },
     {
-      "label": "Home screen on mobile",
-      "sizes": "645x1398",
-      "src": "screenshots/screenshot-home-mobile.webp",
+      "label": "Foragd RSS reader - home screen on mobile",
+      "sizes": "967x2095",
+      "src": "/content/screenshots/screenshot-home-mobile.webp",
       "type": "image/webp"
     },
     {
       "form_factor": "wide",
-      "label": "Home screen on desktop",
+      "label": "Foragd RSS reader - article view on desktop",
       "sizes": "1440x900",
-      "src": "screenshots/screenshot-main-nobg.webp",
+      "src": "/content/screenshots/screenshot-article-desktop.webp",
+      "type": "image/webp"
+    },
+    {
+      "label": "Foragd RSS reader - article view on mobile",
+      "sizes": "967x2095",
+      "src": "/content/screenshots/screenshot-article-mobile.webp",
+      "type": "image/webp"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Foragd RSS reader - subscriptions view on desktop",
+      "sizes": "1440x900",
+      "src": "/content/screenshots/screenshot-subscriptions-desktop.webp",
+      "type": "image/webp"
+    },
+    {
+      "label": "Foragd RSS reader - subscriptions view on mobile",
+      "sizes": "967x2095",
+      "src": "/content/screenshots/screenshot-subscriptions-mobile.webp",
+      "type": "image/webp"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Foragd RSS reader - search on desktop",
+      "sizes": "1440x900",
+      "src": "/content/screenshots/screenshot-search-desktop.webp",
+      "type": "image/webp"
+    },
+    {
+      "label": "Foragd RSS reader - subscriptions search on mobile",
+      "sizes": "967x2095",
+      "src": "/content/screenshots/screenshot-search-mobile.webp",
+      "type": "image/webp"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Foragd RSS reader - theme selection on desktop",
+      "sizes": "1440x900",
+      "src": "/content/screenshots/screenshot-themes-desktop.webp",
+      "type": "image/webp"
+    },
+    {
+      "label": "Foragd RSS reader - theme selection on mobile",
+      "sizes": "967x2095",
+      "src": "/content/screenshots/screenshot-themes-mobile.webp",
       "type": "image/webp"
     }
   ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+feed",
+      "url": "/subscription/add?url=%s"
+    },
+    {
+      "protocol": "feed",
+      "url": "/subscription/add?url=%s"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
   "short_name": "Foragd",
   "shortcuts": [
     {
@@ -90,6 +159,6 @@
       ]
     }
   ],
-  "start_url": "/home",
-  "theme_color": "#7B9984"
+  "start_url": "/home?utm_source=pwa&utm_medium=homescreen",
+  "theme_color": "#4A6653"
 }
