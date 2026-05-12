@@ -16,7 +16,6 @@ deployments/
 .postcssrc
 Dockerfile
 **/*_test.go
-*-lock.json
 *.lockb
 *.config.*
 *.yml

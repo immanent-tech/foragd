@@ -32,11 +32,9 @@ RUN go mod download
 COPY . .
 
 # install and build/bundle frontend assets
-RUN <<EOF
-npm clean-install && \
+RUN npm clean-install && \
     npm run build:prod && \
     npm version patch
-EOF
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
