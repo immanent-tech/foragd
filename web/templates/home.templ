@@ -213,11 +213,7 @@ templ NewUserHome() {
 					<p class="py-2">
 						Or try one or more curated starter sets (you can also add these later in settings).
 					</p>
-					<form
-						hx-post="/user/feedset"
-						hx-swap="none"
-						hx-indicator="#processing"
-					>
+					<form>
 						<fieldset>
 							<div class="mt-6 space-y-6">
 								<div class="flex gap-3">
@@ -283,11 +279,20 @@ templ NewUserHome() {
 							</div>
 						</fieldset>
 						<div class="mt-6 flex max-w-prose items-center justify-end gap-x-6">
-							<div id="processing" class="htmx-indicator">
-								Processing...
-								<span class="loading loading-md loading-spinner"></span>
-							</div>
-							<button type="submit" class="btn btn-primary">Add sets</button>
+							<button
+								hx-post="/user/feedset"
+								hx-swap="none"
+								type="submit"
+								class="btn btn-primary"
+							>
+								<span class="show-loading items-center">
+									<span class="loading loading-spinner mr-3"></span>
+									Processing
+								</span>
+								<span class="hide-loading">
+									<span class="text-sm/6">Add Sets</span>
+								</span>
+							</button>
 						</div>
 					</form>
 				</div>
