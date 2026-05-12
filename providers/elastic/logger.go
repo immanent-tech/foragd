@@ -55,7 +55,7 @@ func (l *Logger) LogRoundTrip(
 		l.EnableResponseBody = true
 	default:
 		// Default TRACE level.
-		level = slog.LevelDebug
+		level = logging.LevelTrace
 	}
 	// Set base/common attributes.
 	baseAttributes := []slog.Attr{}
@@ -82,7 +82,7 @@ func (l *Logger) LogRoundTrip(
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	if (logging.Level == slog.LevelDebug || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
 		req.Body != http.NoBody {
 		var (
 			buf bytes.Buffer
