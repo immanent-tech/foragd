@@ -16,34 +16,79 @@
     "minimal-ui",
     "browser"
   ],
-  "scope": "/",
   "file_handlers": [],
   "icons": [
     {
+      "purpose": "any maskable",
       "sizes": "512x512",
       "src": "/content/icons/icon-512.png",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "/content/icons/icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
       "sizes": "128x128",
       "src": "/content/icons/icon-128.png",
       "type": "image/png"
     },
     {
+      "purpose": "any",
+      "sizes": "96x96",
+      "src": "/content/icons/icon-96.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "72x72",
+      "src": "/content/icons/icon-72.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
       "sizes": "64x64",
       "src": "/content/icons/icon-64.png",
       "type": "image/png"
     },
     {
-      "src": "/content/logo-1024.webp",
-      "sizes": "1024x1024"
+      "purpose": "any",
+      "sizes": "48x48",
+      "src": "/content/icons/icon-48.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any maskable",
+      "sizes": "1024x1024",
+      "src": "/content/logo-1024.webp"
     }
   ],
   "id": "/home",
   "lang": "en-US",
   "name": "Foragd – RSS & Feed Reader",
-  "orientation": "portrait",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "protocol_handlers": [
+    {
+      "protocol": "web+feed",
+      "url": "/subscription/add?url=%s"
+    },
+    {
+      "protocol": "web+rss",
+      "url": "/subscription/add?url=%s"
+    }
+  ],
+  "related_applications": [
+    {
+      "id": "com.foragd.app",
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.foragd.app"
+    }
+  ],
+  "scope": "/",
   "screenshots": [
     {
       "form_factor": "wide",
@@ -111,52 +156,43 @@
       "type": "image/webp"
     }
   ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+feed",
-      "url": "/subscription/add?url=%s"
-    },
-    {
-      "protocol": "feed",
-      "url": "/subscription/add?url=%s"
-    }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": [],
   "short_name": "Foragd",
   "shortcuts": [
     {
       "description": "View your list of subscriptions",
-      "name": "Go to Subscriptions",
-      "url": "/list/subscriptions",
       "icons": [
         {
+          "sizes": "96x96",
           "src": "/content/icons/subscriptions.webp",
-          "sizes": "96x96"
+          "type": "image/webp"
         }
-      ]
+      ],
+      "name": "Go to Subscriptions",
+      "url": "/list/subscriptions"
     },
     {
       "description": "View all articles",
-      "name": "Go to Articles",
-      "url": "/list/articles",
       "icons": [
         {
+          "sizes": "96x96",
           "src": "/content/icons/articles.webp",
-          "sizes": "96x96"
+          "type": "image/webp"
         }
-      ]
+      ],
+      "name": "Go to Articles",
+      "url": "/list/articles"
     },
     {
       "description": "View your list of favorites",
-      "name": "Go to Favorites",
-      "url": "/list/favorites",
       "icons": [
         {
+          "sizes": "96x96",
           "src": "/content/icons/favorites.webp",
-          "sizes": "96x96"
+          "type": "image/webp"
         }
-      ]
+      ],
+      "name": "Go to Favorites",
+      "url": "/list/favorites"
     }
   ],
   "start_url": "/home?utm_source=pwa&utm_medium=homescreen",
