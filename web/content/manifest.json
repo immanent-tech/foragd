@@ -19,7 +19,7 @@
   "file_handlers": [],
   "icons": [
     {
-      "purpose": "any maskable",
+      "purpose": "maskable",
       "sizes": "512x512",
       "src": "/content/icons/icon-512.png",
       "type": "image/png"
@@ -61,9 +61,9 @@
       "type": "image/png"
     },
     {
-      "purpose": "any maskable",
+      "purpose": "maskable",
       "sizes": "1024x1024",
-      "src": "/content/logo-1024.webp"
+      "src": "/content/logo-1024.png"
     }
   ],
   "id": "/home",
@@ -163,8 +163,9 @@
       "icons": [
         {
           "sizes": "96x96",
-          "src": "/content/icons/subscriptions.webp",
-          "type": "image/webp"
+          "src": "/content/icons/subscriptions.png",
+          "type": "image/png",
+          "purpose": "any"
         }
       ],
       "name": "Go to Subscriptions",
@@ -175,8 +176,9 @@
       "icons": [
         {
           "sizes": "96x96",
-          "src": "/content/icons/articles.webp",
-          "type": "image/webp"
+          "src": "/content/icons/articles.png",
+          "type": "image/png",
+          "purpose": "any"
         }
       ],
       "name": "Go to Articles",
@@ -187,8 +189,9 @@
       "icons": [
         {
           "sizes": "96x96",
-          "src": "/content/icons/favorites.webp",
-          "type": "image/webp"
+          "src": "/content/icons/favorites.png",
+          "type": "image/png",
+          "purpose": "any"
         }
       ],
       "name": "Go to Favorites",
