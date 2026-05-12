@@ -445,6 +445,25 @@ func NewFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	return opts
 }
 
+// normaliseURL strips protocol handler schemes and cleans the URL
+func NormaliseFeedURL(raw string) string {
+	// Strip protocol handler prefixes: web+feed://, web+rss://
+	for _, prefix := range []string{"web+feed://", "web+rss://", "web+feed:", "web+rss:"} {
+		if strings.HasPrefix(raw, prefix) {
+			raw = strings.TrimPrefix(raw, prefix)
+			if !strings.HasPrefix(raw, "http") {
+				raw = "https://" + raw
+			}
+			return raw
+		}
+	}
+	// Decode in case the share target URL-encoded it
+	if decoded, err := url.QueryUnescape(raw); err == nil {
+		raw = decoded
+	}
+	return raw
+}
+
 func NewFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 	var opts []estypes.SortCombinations
 	switch *sort {

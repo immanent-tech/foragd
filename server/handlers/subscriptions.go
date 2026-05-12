@@ -1024,6 +1024,16 @@ func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Req
 // HandleAddSubscription handles showing a form for adding a new subscription.
 func HandleAddSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get any pre-entered URL (i.e., incoming share links/protocol handlers).
+		url := req.FormValue("url")
+		if v := req.FormValue("text"); v != "" && url == "" {
+			// If url is empty and text is not empty, use text.
+			url = v
+		}
+		if url != "" {
+			url = models.NormaliseFeedURL(url)
+		}
+
 		// Get suggested categories from existing subscriptions.
 		categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
 		if err != nil {
@@ -1037,7 +1047,9 @@ func HandleAddSubscription() http.HandlerFunc {
 			&AddSubscription{
 				title: "Add Feed Subscription",
 				template: templates.AddFeedSubscription(
-					&models.FeedSubscriptionRequest{SuggestedCategories: suggestedCategories},
+					&models.FeedSubscriptionRequest{
+						URL:                 url,
+						SuggestedCategories: suggestedCategories},
 				),
 			},
 		).ServeHTTP(res, req)

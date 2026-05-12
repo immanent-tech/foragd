@@ -653,10 +653,11 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
 					Add a subscription
 				</h1>
+				// hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
 				<form
 					hx-post="/subscription/add/suggestions"
 					hx-target="#subscription-suggestions"
-					hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
+					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
 					_="
 					on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
 					on keydown[key=='Enter'] halt the event
@@ -676,6 +677,9 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 										id="add-subscription-search"
 										type="text"
 										name="suggestion_text"
+										if request.URL != "" {
+											value={ request.URL }
+										}
 										autocomplete="off"
 										placeholder="Text, phrase or URL..."
 										class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
