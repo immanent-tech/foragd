@@ -53,8 +53,7 @@ func BuildSearchResultsQuery(
 	case models.SearchRequestPublishedWithinLastMonth:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
 		pivot = "14d"
-	default: // default to one week.
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+	default:
 		pivot = "3d"
 	}
 
