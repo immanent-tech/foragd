@@ -4,8 +4,6 @@ go 1.26
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
-replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
-
 replace github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d => github.com/dprotaso/go-yit v0.0.0-20250513224043-18a80f8f6df4
 
 require (
