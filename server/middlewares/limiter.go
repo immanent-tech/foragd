@@ -19,7 +19,7 @@ import (
 
 const (
 	clientIPHeader       = "X-Forwarded-For"
-	maxRequestsPerSecond = 1
+	maxRequestsPerSecond = 2
 )
 
 var rateLimiter RateLimiter
