@@ -369,13 +369,10 @@ func Since(field string, since time.Time) Option {
 	return func(query *types.Query) {
 		var sinceStr string
 		if since.IsZero() {
-			sinceStr = "0"
-		} else {
-			sinceStr = since.UTC().Format(time.RFC3339Nano)
+			return
 		}
-
+		sinceStr = since.UTC().Format(time.RFC3339Nano)
 		name := "since-" + field
-
 		query.Range = map[string]types.RangeQuery{
 			field: types.DateRangeQuery{
 				Gte:        &sinceStr,
