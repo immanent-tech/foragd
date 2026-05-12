@@ -81,7 +81,7 @@ func (csp *CSP) String() string {
 	var policy strings.Builder
 
 	if len(csp.BaseURI) > 0 {
-		policy.WriteString("base-uri " + strings.Join(csp.BaseURI, " ") + "; ")
+		policy.WriteString("base-uri 'self' " + strings.Join(csp.BaseURI, " ") + "; ")
 	}
 	if len(csp.ChildSrc) > 0 {
 		policy.WriteString("child-src " + strings.Join(csp.ChildSrc, " ") + "; ")
@@ -90,26 +90,22 @@ func (csp *CSP) String() string {
 		policy.WriteString("connect-src " + strings.Join(csp.ConnectSrc, " ") + "; ")
 	}
 	if len(csp.DefaultSrc) > 0 {
-		policy.WriteString("default-src " + strings.Join(csp.DefaultSrc, " ") + "; ")
+		policy.WriteString("default-src 'self' " + strings.Join(csp.DefaultSrc, " ") + "; ")
 	}
 	if len(csp.FontSrc) > 0 {
-		policy.WriteString("font-src " + strings.Join(csp.FontSrc, " ") + "; ")
+		policy.WriteString("font-src 'self' " + strings.Join(csp.FontSrc, " ") + "; ")
 	}
 	if len(csp.FormAction) > 0 {
-		policy.WriteString("form-action " + strings.Join(csp.FormAction, " ") + "; ")
-	} else {
-		policy.WriteString("form-action 'self';")
+		policy.WriteString("form-action 'self' " + strings.Join(csp.FormAction, " ") + "; ")
 	}
 	if len(csp.FrameAncestors) > 0 {
-		policy.WriteString("frame-ancestors " + strings.Join(csp.FrameAncestors, " ") + "; ")
-	} else {
-		policy.WriteString("frame-ancestors 'none';")
+		policy.WriteString("frame-ancestors 'none' " + strings.Join(csp.FrameAncestors, " ") + "; ")
 	}
 	if len(csp.FrameSrc) > 0 {
 		policy.WriteString("frame-src " + strings.Join(csp.FrameSrc, " ") + "; ")
 	}
 	if len(csp.ImgSrc) > 0 {
-		policy.WriteString("img-src " + strings.Join(csp.ImgSrc, " ") + "; ")
+		policy.WriteString("img-src * data: " + strings.Join(csp.ImgSrc, " ") + "; ")
 	}
 	if len(csp.ManifestSrc) > 0 {
 		policy.WriteString("manifest-src " + strings.Join(csp.ManifestSrc, " ") + "; ")
@@ -142,7 +138,7 @@ func (csp *CSP) String() string {
 		policy.WriteString("script-src-attr " + strings.Join(csp.ScriptSrcAttr, " ") + "; ")
 	}
 	if len(csp.StyleSrc) > 0 {
-		policy.WriteString("style-src " + strings.Join(csp.StyleSrc, " ") + "; ")
+		policy.WriteString("style-src 'self' 'unsafe-inline' " + strings.Join(csp.StyleSrc, " ") + "; ")
 	}
 	if len(csp.StyleSrcAttr) > 0 {
 		policy.WriteString("style-src-attr " + strings.Join(csp.StyleSrcAttr, " ") + "; ")
