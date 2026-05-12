@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	slogchi "github.com/immanent-tech/slog-chi"
+	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 )
 

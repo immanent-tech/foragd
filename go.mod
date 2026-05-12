@@ -6,8 +6,6 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
 
-replace github.com/immanent-tech/slog-chi v0.0.0 => ./pkg/slog-chi
-
 replace github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d => github.com/dprotaso/go-yit v0.0.0-20250513224043-18a80f8f6df4
 
 require (
@@ -133,7 +131,6 @@ require (
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
-	github.com/immanent-tech/slog-chi v0.0.0
 	github.com/jferrl/go-githubauth v1.6.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
@@ -159,6 +156,7 @@ require (
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
 	github.com/samber/lo v1.53.0 // indirect
+	github.com/samber/slog-chi v1.19.1
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.3 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible

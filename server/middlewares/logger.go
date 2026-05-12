@@ -12,7 +12,7 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5/middleware"
-	slogchi "github.com/immanent-tech/slog-chi"
+	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
@@ -37,7 +37,6 @@ var configureLogging = sync.OnceValue(func() slogchi.Config {
 		cfg.WithRequestHeader = true
 		cfg.WithResponseHeader = true
 	}
-	slogchi.RequestGroupKey = "httpRequest"
 	return cfg
 })
 
