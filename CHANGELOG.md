@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.136.1](https://github.com/immanent-tech/foragd/compare/v0.136.0...v0.136.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* **assets:** :bug: use png for shortcut and icon images in manifest (webp support is flaky for these uses) ([15eb9ac](https://github.com/immanent-tech/foragd/commit/15eb9ac30e65a52489a6cdab29b6d3e8ac9bb200))
+* **resend:** :bug: clean up error logic for batch sending ([e655698](https://github.com/immanent-tech/foragd/commit/e6556983d24a938e48f07a7a53d8663735386d72))
+
+
+### Performance Improvements
+
+* **middlewares:** :zap: increase max request per second for rate-limiting ([740e211](https://github.com/immanent-tech/foragd/commit/740e211a058f5314c721438d4106a093b8a9bab0))
+
 ## [0.136.0](https://github.com/immanent-tech/foragd/compare/v0.135.0...v0.136.0) (2026-05-12)
 
 
