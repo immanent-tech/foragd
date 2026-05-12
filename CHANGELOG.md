@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.135.0](https://github.com/immanent-tech/foragd/compare/v0.134.0...v0.135.0) (2026-05-12)
+
+
+### Features
+
+* **assets:** :sparkles: more pwa manifest improvements ([1e7b5f2](https://github.com/immanent-tech/foragd/commit/1e7b5f2f8fff47043a8803bc94b235b0e38fab4b))
+
+
+### Bug Fixes
+
+* **assets:** :bug: add missing webp version of logo ([8c29295](https://github.com/immanent-tech/foragd/commit/8c292959e714ac9f750c48539cfa77379006f739))
+* **elastic:** :bug: ignore since clause when timestamp is zero value ([19fb115](https://github.com/immanent-tech/foragd/commit/19fb11590f3609483117b8f4db5aafd9f101b792))
+* **search:** :bug: don't set a publishededwithin filter for searches when all time is requested ([fcdc23e](https://github.com/immanent-tech/foragd/commit/fcdc23e6c5004017a94aa1411def8b13e81ee843))
+* **service:** :bug: when getting latest items for subscriptions, actually filter by view status ([2f4ef1f](https://github.com/immanent-tech/foragd/commit/2f4ef1f5d7c9252a3dea12d0da5d7eef30eb8217))
+
+
+### Performance Improvements
+
+* **service:** :zap: stored cached values by reference ([c5bc39a](https://github.com/immanent-tech/foragd/commit/c5bc39a50426311b182ae96691987ebaf4479d9c))
+
 ## [0.134.0](https://github.com/immanent-tech/foragd/compare/v0.133.0...v0.134.0) (2026-05-12)
 
 
