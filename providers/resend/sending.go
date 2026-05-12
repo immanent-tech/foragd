@@ -144,47 +144,47 @@ type EmailOption func(*Email)
 
 // WithTextContent option sets the text content of the email (shown in clients that don't support HTML emails).
 func WithTextContent(text string) EmailOption {
-	return func(e *Email) {
-		e.Text = text
+	return func(email *Email) {
+		email.Text = text
 	}
 }
 
 // WithHTMLContent option sets the html content of the email. When using this option, it is advised to also use the
 // WithTextContent option to set the text content of the email shown to clients that don't support html emails.
 func WithHTMLContent(html string) EmailOption {
-	return func(e *Email) {
-		e.Html = html
+	return func(email *Email) {
+		email.Html = html
 	}
 }
 
 // WithVariable option assigns a value to the given template variable in the email template.
 func WithVariable(key string, value any) EmailOption {
-	return func(e *Email) {
-		e.mu.Lock()
-		defer e.mu.Unlock()
-		e.template.Variables[key] = value
+	return func(email *Email) {
+		email.mu.Lock()
+		defer email.mu.Unlock()
+		email.template.Variables[key] = value
 	}
 }
 
 // WithTag option applies the given tag to the email.
 func WithTag(key string, value string) EmailOption {
-	return func(e *Email) {
-		e.mu.Lock()
-		defer e.mu.Unlock()
-		e.tags = append(e.tags, resend.Tag{Name: key, Value: value})
+	return func(email *Email) {
+		email.mu.Lock()
+		defer email.mu.Unlock()
+		email.tags = append(email.tags, resend.Tag{Name: key, Value: value})
 	}
 }
 
-func WithExistingEmail(email *Email) EmailOption {
-	return func(e *Email) {
-		if email.Email != nil {
-			e.Email = email.Email
+func WithExistingEmail(data *Email) EmailOption {
+	return func(email *Email) {
+		if data.Email != nil {
+			email.Email = data.Email
 		}
-		if email.template != nil {
-			e.template = email.template
+		if data.template != nil {
+			email.template = data.template
 		}
-		if len(email.tags) > 0 {
-			e.tags = email.tags
+		if len(data.tags) > 0 {
+			email.tags = data.tags
 		}
 	}
 }
@@ -302,16 +302,16 @@ func batchOperation(
 			batch,
 			&resend.BatchSendEmailOptions{BatchValidation: resend.BatchValidationPermissive},
 		)
-
+		if err != nil && !errors.Is(err, &resend.RateLimitError{}) {
+			return resp, fmt.Errorf("batch failed: %w", err)
+		}
 		if rateLimitErr, ok := errors.AsType[*resend.RateLimitError](
 			err,
 		); ok &&
 			rateLimitErr.Message == "rate_limit_exceeded" {
-			if seconds, err := strconv.ParseInt(rateLimitErr.RetryAfter, 10, 64); err == nil {
-				return nil, backoff.RetryAfter(int(seconds))
+			if seconds, err := strconv.Atoi(rateLimitErr.RetryAfter); err != nil {
+				return nil, backoff.RetryAfter(seconds)
 			}
-		} else {
-			return resp, fmt.Errorf("batch failed: %w", err)
 		}
 		return resp, nil
 	}
