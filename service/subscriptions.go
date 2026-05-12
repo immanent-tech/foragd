@@ -27,7 +27,7 @@ import (
 )
 
 var userSubscriptionsCache = otter.Must(
-	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, models.Subscription]]{
+	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]]{
 		MaximumSize: 5000,
 	},
 )
@@ -35,8 +35,8 @@ var userSubscriptionsCache = otter.Must(
 func loadSubscriptions(
 	ctx context.Context,
 	userID models.UserID,
-) (*otter.Cache[models.SubscriptionID, models.Subscription], error) {
-	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, models.Subscription]{
+) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
+	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
 		InitialCapacity: 3000,
 		MaximumSize:     3000,
 	})
@@ -59,7 +59,7 @@ func loadSubscriptions(
 	}
 
 	for subscription := range slices.Values(subscriptions) {
-		userSubscriptionsCache.Set(subscription.GetID(), *subscription)
+		userSubscriptionsCache.Set(subscription.GetID(), subscription)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.")
@@ -75,7 +75,7 @@ func GetAllSubscriptions(
 	subscriptionsCache, err := userSubscriptionsCache.Get(
 		ctx,
 		user.GetID(),
-		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, models.Subscription]](
+		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
 			loadSubscriptions,
 		),
 	)
@@ -88,7 +88,7 @@ func GetAllSubscriptions(
 
 	var subscriptions models.Subscriptions
 	for subscription := range subscriptionsCache.Values() {
-		subscriptions = append(subscriptions, &subscription)
+		subscriptions = append(subscriptions, subscription)
 	}
 
 	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
@@ -222,7 +222,7 @@ func UpdateSubscriptions(
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
 		for subscription := range slices.Values(subscriptions) {
 			subscriptionsCache.Invalidate(subscription.GetID())
-			subscriptionsCache.Set(subscription.GetID(), *subscription)
+			subscriptionsCache.Set(subscription.GetID(), subscription)
 		}
 	}
 

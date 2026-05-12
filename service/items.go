@@ -18,7 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-var itemsCache = otter.Must(&otter.Options[models.ItemID, models.Item]{
+var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
 	MaximumSize: 10_000,
 })
 
@@ -33,7 +33,7 @@ func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 	// Fetch items from cache.
 	for id := range slices.Values(ids) {
 		if item, found := itemsCache.GetIfPresent(id); found {
-			items = append(items, &item)
+			items = append(items, item)
 		} else {
 			unCached = append(unCached, id)
 		}
@@ -46,7 +46,7 @@ func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 		}
 		for item := range slices.Values(items) {
 			items = append(items, item)
-			itemsCache.Set(item.GetID(), *item)
+			itemsCache.Set(item.GetID(), item)
 		}
 	}
 	return items, nil

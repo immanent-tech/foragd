@@ -28,28 +28,28 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 )
 
-var feedCache = otter.Must(&otter.Options[models.FeedID, models.Feed]{
+var feedCache = otter.Must(&otter.Options[models.FeedID, *models.Feed]{
 	MaximumSize: 10_000,
 })
 
 // loadFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
-func loadFeed(ctx context.Context, id models.FeedID) (models.Feed, error) {
-	feed, err := elastic.GetDoc[models.FeedID, models.Feed](ctx, schema.FeedsIndexRO(), id)
+func loadFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+	feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), id)
 	if err != nil {
-		return models.Feed{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
+		return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
 	}
 	return feed, nil
 }
 
 // GetFeed retrieves a feed with the given FeedID.
 func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	switch feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, models.Feed](loadFeed)); {
+	switch feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, *models.Feed](loadFeed)); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("get feed: %w", err)
 	case errors.Is(err, elastic.ErrNotFound):
 		return nil, models.ErrNotFound
 	default:
-		return &feed, nil
+		return feed, nil
 	}
 }
 
@@ -65,7 +65,7 @@ func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	// Fetch feeds from cache.
 	for id := range slices.Values(ids) {
 		if feed, found := feedCache.GetIfPresent(id); found {
-			feeds = append(feeds, &feed)
+			feeds = append(feeds, feed)
 		} else {
 			unCached = append(unCached, id)
 		}
@@ -78,7 +78,7 @@ func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 		}
 		for feed := range slices.Values(feeds) {
 			feeds = append(feeds, feed)
-			feedCache.Set(feed.GetID(), *feed)
+			feedCache.Set(feed.GetID(), feed)
 		}
 	}
 	return feeds, nil
@@ -89,7 +89,7 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
-	if _, ok := feedCache.Set(feed.GetID(), *feed); !ok {
+	if _, ok := feedCache.Set(feed.GetID(), feed); !ok {
 		slogctx.FromCtx(ctx).Warn("Unable to cache new feed.",
 			slog.String("feed_id", feed.GetID()),
 		)
