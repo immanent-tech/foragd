@@ -34,6 +34,7 @@
     "tailwindcss-visibility": "^1.0.1"
   },
   "devDependencies": {
+    "@bubblewrap/cli": "^1.24.1",
     "@catppuccin/daisyui": "^2.1.1",
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
