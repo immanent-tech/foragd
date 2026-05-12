@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.134.0](https://github.com/immanent-tech/foragd/compare/v0.133.0...v0.134.0) (2026-05-12)
+
+
+### Features
+
+* **assets:** :sparkles: improved pwa manifest ([24e300c](https://github.com/immanent-tech/foragd/commit/24e300c975005617f6fbc5bdd9f2297b026596d4))
+* **handlers:** :sparkles: support a query parameter for url on add subscription for protocol handling in web app ([7dcf34e](https://github.com/immanent-tech/foragd/commit/7dcf34eb8b35e1310a501a16272d5641784f191f))
+* **models:** :recycle: perform additional cleanups on email subscription articles ([6cd39d5](https://github.com/immanent-tech/foragd/commit/6cd39d5e2f80a05e0763c23f02adadc566c36641))
+* **server:** :goal_net: log server panics to GCP ([c5e4e04](https://github.com/immanent-tech/foragd/commit/c5e4e04e0da43c9b1f6224097f18d399d5a99cee))
+
+
+### Bug Fixes
+
+* **elastic:** :bug: fix logging ([13afb06](https://github.com/immanent-tech/foragd/commit/13afb06714b0269fc930a58d9739deb25f562712))
+
 ## [0.133.0](https://github.com/immanent-tech/foragd/compare/v0.132.2...v0.133.0) (2026-05-11)
 
 
