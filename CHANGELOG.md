@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.136.0](https://github.com/immanent-tech/foragd/compare/v0.135.0...v0.136.0) (2026-05-12)
+
+
+### Features
+
+* **middlewares:** :sparkles: set some default values for various CSP directives ([a0ee7cb](https://github.com/immanent-tech/foragd/commit/a0ee7cb97ad3f8311da068b0859f3ba5f0d6613f))
+
 ## [0.135.0](https://github.com/immanent-tech/foragd/compare/v0.134.0...v0.135.0) (2026-05-12)
 
 
