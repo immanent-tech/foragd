@@ -229,17 +229,21 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 	return results
 }
 
-// GetFeedLatestItems fetches the most recent count items for each given feed.
+// GetFeedLatestItems fetches the most recent count items for each given feed. An optional query clause can be specified
+// that will be added to the bool filter clause of the query to apply additional filtering to the items.
 func GetFeedLatestItems(
 	ctx context.Context,
 	count int,
-	feedIDs ...models.FeedID,
+	feedIDs []models.FeedID,
+	extraQuery query.Option,
 ) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
 		query.Bool(
 			query.Filter(
 				query.Terms("feed_id", feedIDs),
+				// extraQuery is ignored if nil.
+				extraQuery,
 			),
 		),
 		elastic.WithAggregations(
@@ -401,7 +405,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs()...)
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs(), nil)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -536,7 +540,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs()...)
+		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs(), nil)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),

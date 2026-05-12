@@ -285,13 +285,42 @@ func UpdateFavoriteSubscription(ctx context.Context, user *models.User, id model
 	return nil
 }
 
+// GetSubscriptionLatestItems fetches the latest items for subscriptions. This is a wrapper around GetFeedLatestItems
+// that adds an extra filter clause to the search to return items that match the view status (i.e., read/unread).
+func GetSubscriptionLatestItems(
+	ctx context.Context,
+	count int,
+	subscriptions models.Subscriptions,
+	view models.View,
+) (map[models.FeedID]models.Items, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
+	}
+
+	return GetFeedLatestItems(
+		ctx,
+		count,
+		subscriptions.GetFeedIDs(),
+		query.Bool(
+			query.Should(models.BuildItemQueries(user, view, subscriptions)...),
+		),
+	)
+
+}
+
 // GetGroupSubscriptionLatestItems will return a map of latest items per subscription for the given group subscriptions.
 func GetGroupSubscriptionLatestItems(
 	ctx context.Context,
-	user *models.User,
 	count int,
 	subscriptions models.Subscriptions,
+	view models.View,
 ) (map[models.SubscriptionID]models.Items, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
+	}
+
 	groupLatestItems := make(map[models.SubscriptionID]models.Items)
 	var (
 		wg sync.WaitGroup
@@ -309,7 +338,7 @@ func GetGroupSubscriptionLatestItems(
 			}
 			childSubscriptions = childSubscriptions.FilterByIDs(subscription.GroupData.Subscriptions...)
 			// Get latest items for these subscriptions.
-			latestItems, err := GetFeedLatestItems(ctx, count, childSubscriptions.GetFeedIDs()...)
+			latestItems, err := GetSubscriptionLatestItems(ctx, count, childSubscriptions, view)
 			// latestItems, err := getFeedSubscriptionLatestItems(ctx, childSubscriptions, filters)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get latest items for group subscription.",

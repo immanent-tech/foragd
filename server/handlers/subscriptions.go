@@ -156,10 +156,11 @@ func HandleListSubscriptions() http.HandlerFunc {
 		wg.Go(func() {
 			// For feed/email subscriptions, get the latest 3 items from each.
 			emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail)
-			feedsLatestItems, err := service.GetFeedLatestItems(
+			feedsLatestItems, err := service.GetSubscriptionLatestItems(
 				req.Context(),
 				3,
-				emailSubscriptions.GetFeedIDs()...,
+				emailSubscriptions,
+				filters.GetView(),
 			)
 			// feedsLatestItems, err := getFeedSubscriptionLatestItems(
 			// 	req.Context(),
@@ -182,9 +183,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 			// For group subscriptions, get the latest 3 items across each group's members.
 			groupsLatestItems, err := service.GetGroupSubscriptionLatestItems(
 				req.Context(),
-				user,
 				3,
 				subscriptions.FilterByType(models.SubscriptionTypeGroup),
+				filters.GetView(),
 			)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve latest items for group subscriptions.",
