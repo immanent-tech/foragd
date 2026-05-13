@@ -54,6 +54,11 @@ logs/
 *.test
 *.tmp
 *.out
+*.keystore
+*.jks
+**/android.keystore
+**/twa-manifest.json
+**/google-services.json
 
 localhost.crt
 localhost.key

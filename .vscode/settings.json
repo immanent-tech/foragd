@@ -104,7 +104,8 @@
     "handlers/articles",
     "service",
     "templates/contact",
-    "handlers/subscriptions"
+    "handlers/subscriptions",
+    "android"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
