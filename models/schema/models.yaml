@@ -718,17 +718,48 @@ components:
         - video_id
       properties:
         video_id:
-          description: >
-            is the Youtube video ID for the video.
+          description: is the Youtube video ID for the video.
           type: string
         width:
-          description: >
-            is the video width.
+          description: is the video width.
           type: integer
         height:
-          description: >
-            is the video height.
+          description: is the video height.
           type: integer
+        statistics:
+          $ref: '#/components/schemas/YoutubeVideoStatistics'
+        duration:
+          description: is the length of the video.
+          x-go-type: time.Duration
+    YoutubeVideoStatistics:
+      description: >
+        contains statistics about a Youtube video.
+      type: object
+      properties:
+        comment_count:
+          description: is the number of comments for the video.
+          type: integer
+          format: int64
+        dislike_count:
+          description: >
+            is the number of users who have indicated that they disliked the video by giving it a negative rating.
+          type: integer
+          format: int64
+        favorite_count:
+          description: >
+            is the number of users who currently have the video marked as a favorite video.
+          type: integer
+          format: int64
+        like_count:
+          description: >
+            is the number of users who have indicated that they liked the video
+          type: integer
+          format: int64
+        view_count:
+          description: >
+            is the number of times the video has been viewed.
+          type: integer
+          format: int64
     SubscriptionCustomisation:
       description: >
         contains object fields that can be customised (overridden) by a user.

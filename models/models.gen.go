@@ -703,8 +703,14 @@ type ItemExtensionType string
 
 // ItemExtensionYoutube is an item extension for Youtube videos.
 type ItemExtensionYoutube struct {
+	// Duration is the length of the video.
+	Duration *time.Duration `json:"duration,omitempty"`
+
 	// Height is the video height.
 	Height *int `json:"height,omitempty"`
+
+	// Statistics contains statistics about a Youtube video.
+	Statistics *YoutubeVideoStatistics `json:"statistics,omitempty"`
 
 	// VideoId is the Youtube video ID for the video.
 	VideoId string `json:"video_id"`
@@ -1286,6 +1292,24 @@ type UserSubscription struct {
 
 // View The state of objects to view.
 type View string
+
+// YoutubeVideoStatistics contains statistics about a Youtube video.
+type YoutubeVideoStatistics struct {
+	// CommentCount is the number of comments for the video.
+	CommentCount *int64 `json:"comment_count,omitempty"`
+
+	// DislikeCount is the number of users who have indicated that they disliked the video by giving it a negative rating.
+	DislikeCount *int64 `json:"dislike_count,omitempty"`
+
+	// FavoriteCount is the number of users who currently have the video marked as a favorite video.
+	FavoriteCount *int64 `json:"favorite_count,omitempty"`
+
+	// LikeCount is the number of users who have indicated that they liked the video
+	LikeCount *int64 `json:"like_count,omitempty"`
+
+	// ViewCount is the number of times the video has been viewed.
+	ViewCount *int64 `json:"view_count,omitempty"`
+}
 
 // AsItemExtensionYoutube returns the union data inside the ArticleArchive_ExtensionData as a ItemExtensionYoutube
 func (t ArticleArchive_ExtensionData) AsItemExtensionYoutube() (ItemExtensionYoutube, error) {
