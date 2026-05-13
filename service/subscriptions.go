@@ -29,7 +29,7 @@ import (
 
 var userSubscriptionsCache = otter.Must(
 	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]]{
-		MaximumSize: 5000,
+		MaximumSize: 100,
 	},
 )
 
@@ -44,6 +44,7 @@ func loadSubscriptions(
 	if err != nil {
 		return nil, fmt.Errorf("create subscriptions cache: %w", err)
 	}
+	start := time.Now()
 	// Execute query.
 	subscriptions, err := elastic.SearchAll[*models.Subscription](
 		ctx,
@@ -63,7 +64,8 @@ func loadSubscriptions(
 		userSubscriptionsCache.Set(subscription.GetID(), subscription)
 	}
 
-	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.")
+	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
+		slog.Duration("took", time.Since(start)))
 
 	return userSubscriptionsCache, nil
 }
