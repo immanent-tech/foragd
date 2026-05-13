@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/mail"
 	"slices"
 	"sync"
@@ -306,7 +307,6 @@ func GetSubscriptionLatestItems(
 			query.Should(models.BuildItemQueries(user, view, subscriptions)...),
 		),
 	)
-
 }
 
 // GetGroupSubscriptionLatestItems will return a map of latest items per subscription for the given group subscriptions.
@@ -534,11 +534,8 @@ func GetSubscriptionSuggestions(
 		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
 	}
 
-	var subscriptions models.Subscriptions
-	subscriptions = resp.Results
-
-	err = updateSubscriptionDynamicInfo(ctx, subscriptions)
-	if err != nil {
+	subscriptions := resp.Results
+	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		return nil, fmt.Errorf("add dynamic info: %w", err)
 	}
 
@@ -555,70 +552,24 @@ func GetCategoriesForSubscriptions(
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	// Build query.
-	var searchQuery query.Option
-	if len(subscriptionIDs) == 0 {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-			),
-		)
-	} else {
-		searchQuery = query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", subscriptionIDs),
-			),
-		)
-	}
-
-	// Build elastic.
-	termsField := "customisation.categories.raw"
-	termsCount := 200
-	aggs := elastic.Aggs{
-		"CategoryCounts": types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.Search[*models.Subscription](ctx,
-		schema.SubscriptionsIndexRO(),
-		searchQuery,
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-		elastic.WithAggregations(aggs),
-	)
+	subscriptions, err := GetAllSubscriptions(ctx, user)
 	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
+		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}
 
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
-	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
-	}
+	subscriptions = subscriptions.FilterByIDs(subscriptionIDs...)
 
-	counts := make(models.CategoryCounts, 0, len(categoryCountsBuckets))
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category models.Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
+	countsMap := make(map[models.Category]int)
+	for subscription := range slices.Values(subscriptions) {
+		for category := range slices.Values(subscription.GetCategories(0)) {
+			countsMap[category]++
 		}
 	}
+	var counts models.CategoryCounts
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, models.CategoryCount{Category: category, Count: count})
+	}
+
 	return counts, nil
 }
 
