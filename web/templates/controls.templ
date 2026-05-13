@@ -91,12 +91,12 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						>
 							<div class="space-y-6 text-sm">
 								<fieldset>
-									<div class="space-y-6">
+									<ul class="menu">
 										@viewOption("mobile", path, models.ViewUnread, *filters)
 										@viewOption("mobile", path, models.ViewRead, *filters)
 										@viewOption("mobile", path, models.ViewAll, *filters)
 										@viewOptionFavorites("mobile", path, filters)
-									</div>
+									</ul>
 								</fieldset>
 							</div>
 						</el-disclosure>
@@ -123,14 +123,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							class="block pt-4"
 						>
 							<fieldset aria-label="Sorting">
-								<div class="space-y-6">
+								<ul class="menu">
 									@sortOption("mobile", path, models.SortNewestFirst, *filters)
 									@sortOption("mobile", path, models.SortOldestFirst, *filters)
 									if path == "/list/subscriptions" {
 										@sortOption("mobile", path, models.SortMostUnread, *filters)
 										@sortOption("mobile", path, models.SortLeastUnread, *filters)
 									}
-								</div>
+								</ul>
 							</fieldset>
 						</el-disclosure>
 					</div>
@@ -170,7 +170,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									id="desktop-category-filters-menu"
 									anchor="bottom end"
 									popover
-									class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]"
+									class="w-fit rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]"
 									hx-get={ path + "/categories" }
 									hx-include="[name='displayed_subscriptions']"
 									hx-vals={ templ.JSONString(filters.Values()) }
@@ -195,15 +195,15 @@ templ FilterControls(path string, filters *models.ListFilters) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 									</svg>
 								</button>
-								<el-popover id="desktop-view-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
+								<el-popover id="desktop-view-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
 									<fieldset>
 										<legend class="sr-only">View</legend>
-										<div class="space-y-6">
+										<ul class="menu">
 											@viewOption("desktop", path, models.ViewUnread, *filters)
 											@viewOption("desktop", path, models.ViewRead, *filters)
 											@viewOption("desktop", path, models.ViewAll, *filters)
 											@viewOptionFavorites("desktop", path, filters)
-										</div>
+										</ul>
 									</fieldset>
 								</el-popover>
 							</div>
@@ -218,16 +218,16 @@ templ FilterControls(path string, filters *models.ListFilters) {
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 									</svg>
 								</button>
-								<el-popover id="desktop-sort-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
+								<el-popover id="desktop-sort-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
 									<fieldset aria-label="Sorting">
-										<div class="space-y-6">
+										<ul class="menu">
 											@sortOption("desktop", path, models.SortNewestFirst, *filters)
 											@sortOption("desktop", path, models.SortOldestFirst, *filters)
 											if path == "/list/subscriptions" {
 												@sortOption("desktop", path, models.SortMostUnread, *filters)
 												@sortOption("desktop", path, models.SortLeastUnread, *filters)
 											}
-										</div>
+										</ul>
 									</fieldset>
 								</el-popover>
 							</div>
@@ -290,41 +290,43 @@ templ viewOption(layout, path string, view models.View, filters models.ListFilte
 		}
 		filters.View = view
 	}}
-	<label
-		aria-label={ view }
-		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(filters.Values()) }
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+	<li>
+		<label
+			aria-label={ view }
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
 		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
-		</svg>
-		<input
-			id={ layout + "-view-" + string(view) }
-			type="radio"
-			name="view"
-			value={ view }
-			if checked {
-				checked
-			}
-			class="absolute inset-0 appearance-none focus:outline-none"
-		/>
-		<span class="block pl-2 text-sm/6 font-medium capitalize">{ view }</span>
-	</label>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+			</svg>
+			<input
+				id={ layout + "-view-" + string(view) }
+				type="radio"
+				name="view"
+				value={ view }
+				if checked {
+					checked
+				}
+				class="absolute inset-0 appearance-none focus:outline-none"
+			/>
+			<span class="block text-sm/6 font-medium capitalize">{ view }</span>
+		</label>
+	</li>
 }
 
 templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
@@ -332,45 +334,47 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 		values := filters.Values()
 		values["only_favorites"] = !filters.OnlyFavorites
 	}}
-	<label
-		aria-label="View favorites"
-		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(values) }
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",filters.OnlyFavorites), templ.KV("opacity-0",!filters.OnlyFavorites) }
+	<li>
+		<label
+			aria-label="View favorites"
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(values) }
 		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
-		</svg>
-		<input
-			id={ layout + "-view-favorites" }
-			type="radio"
-			name="view"
-			if filters.OnlyFavorites {
-				checked
-			}
-			class="absolute inset-0 appearance-none focus:outline-none"
-		/>
-		<span class="block pl-2 text-sm/6 font-medium">Favorites</span>
-	</label>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",filters.OnlyFavorites), templ.KV("opacity-0",!filters.OnlyFavorites) }
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+			</svg>
+			<input
+				id={ layout + "-view-favorites" }
+				type="radio"
+				name="view"
+				if filters.OnlyFavorites {
+					checked
+				}
+				class="absolute inset-0 appearance-none focus:outline-none"
+			/>
+			<span class="block text-sm/6 font-medium">Favorites</span>
+		</label>
+	</li>
 }
 
 templ CategoryFilters(data *models.CategoryFilters) {
 	if len(data.Categories) == 0 {
-		<div class="flex gap-3">
+		<div class="flex p-4">
 			<div class="flex h-5 shrink-0 items-center">
 				<div class="group grid grid-cols-1">
 					No categories
@@ -380,14 +384,14 @@ templ CategoryFilters(data *models.CategoryFilters) {
 	} else {
 		<fieldset>
 			<legend class="sr-only">Category</legend>
-			<div class="space-y-6">
+			<ul class="menu">
 				for category := range slices.Values(data.Categories.Limit(10)) {
 					@categoryOption(data.Path, category.Category, data.Filters)
 				}
 				if len(data.Filters.GetCategories()) > 0 {
 					@clearCategoryFiltersOption(data.Path, data.Filters)
 				}
-			</div>
+			</ul>
 		</fieldset>
 	}
 }
@@ -408,73 +412,77 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			id = id + "-" + strings.ToLower(strings.ReplaceAll(category, " ", "-"))
 		}
 	}}
-	<label
-		aria-label={ category }
-		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(filters.Values()) }
-		hx-params="not displayed_subscriptions"
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+	<li>
+		<label
+			aria-label={ category }
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-params="not displayed_subscriptions"
 		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
-		</svg>
-		<input
-			id={ id }
-			type="radio"
-			name="categories"
-			value={ category }
-			if checked {
-				checked
-			}
-			class="absolute inset-0 appearance-none focus:outline-none"
-		/>
-		<span class="block pl-2 text-sm/6 font-medium">{ category }</span>
-	</label>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+			</svg>
+			<input
+				id={ id }
+				type="radio"
+				name="categories"
+				value={ category }
+				if checked {
+					checked
+				}
+				class="absolute inset-0 appearance-none focus:outline-none"
+			/>
+			<span class="block text-sm/6 font-medium">{ category }</span>
+		</label>
+	</li>
 }
 
 templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 	// Remove all current category filters.
 	{{ filters.Categories = nil }}
-	<div
-		aria-label="Clear category filters"
-		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(filters.Values()) }
-		hx-params="not displayed_subscriptions,categories"
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="icon icon-tabler icons-tabler-outline icon-tabler-x size-6 shrink-0 text-secondary"
+	<li>
+		<div
+			aria-label="Clear category filters"
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-params="not displayed_subscriptions,categories"
 		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
-		</svg>
-		<span class="block pl-2 text-sm/6 font-medium">Clear</span>
-	</div>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 text-secondary"
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+			</svg>
+			<span class="block text-sm/6 font-medium">Clear</span>
+		</div>
+	</li>
 }
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
@@ -512,39 +520,41 @@ templ sortOption(layout, path string, sort models.Sort, filters models.ListFilte
 		}
 		filters.Sort = sort
 	}}
-	<label
-		aria-label={ sort.String() }
-		class="group relative flex items-center has-focus-visible:outline-3 has-focus-visible:-outline-offset-1"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(filters.Values()) }
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-6 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+	<li>
+		<label
+			aria-label={ sort.String() }
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
 		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
-		</svg>
-		<input
-			id={ layout + "-sort-" + string(sort) }
-			type="radio"
-			name="sort"
-			value={ string(sort) }
-			if checked {
-				checked
-			}
-			class="absolute inset-0 appearance-none focus:outline-none"
-		/>
-		<span class="block pl-2 text-sm/6 font-medium">{ sort.String() }</span>
-	</label>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+			</svg>
+			<input
+				id={ layout + "-sort-" + string(sort) }
+				type="radio"
+				name="sort"
+				value={ string(sort) }
+				if checked {
+					checked
+				}
+				class="absolute inset-0 appearance-none focus:outline-none"
+			/>
+			<span class="block text-sm/6 font-medium">{ sort.String() }</span>
+		</label>
+	</li>
 }
