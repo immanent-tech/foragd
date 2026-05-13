@@ -7,9 +7,6 @@
   exclude: properties;
 }
 
-@plugin "./catppuccinTheme.latte.ts";
-@plugin "./catppuccinTheme.mocha.ts";
-
 @import "./daisyui.css";
 
 :root {

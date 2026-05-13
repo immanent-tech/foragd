@@ -123,7 +123,7 @@
 
 @plugin "daisyui/theme" {
   name: "forest";
-  default: true;
+  default: false;
   prefersdark: false;
   color-scheme: "light";
   --color-base-100: oklch(100% 0 0);
@@ -157,4 +157,104 @@
   --border: 1px;
   --depth: 1;
   --noise: 1;
+}
+
+/* catppuccin-mocha.css */
+@plugin "daisyui/theme" {
+  name: "catppuccin-mocha";
+  default: false;
+  prefersdark: true;
+  color-scheme: dark;
+
+  /* ── Base surfaces ────────────────────────────── */
+  --color-base-100: #1e1e2e; /* Base    — main background pane */
+  --color-base-200: #181825; /* Mantle  — secondary panes */
+  --color-base-300: #11111b; /* Crust   — deepest layer */
+  --color-base-content: #cdd6f4; /* Text    — body copy & headlines */
+
+  /* ── Brand colors ─────────────────────────────── */
+  --color-primary: #cba6f7; /* Mauve — signature Catppuccin purple */
+  --color-primary-content: #1e1e2e;
+
+  --color-secondary: #89b4fa; /* Blue — cool secondary accent */
+  --color-secondary-content: #1e1e2e;
+
+  --color-accent: #f5c2e7; /* Pink — tags, pills, tertiary accent */
+  --color-accent-content: #1e1e2e;
+
+  --color-neutral: #45475a; /* Surface 1 — not-saturated UI chrome */
+  --color-neutral-content: #bac2de; /* Subtext 1 */
+
+  /* ── Semantic states ──────────────────────────── */
+  --color-info: #89b4fa; /* Blue — links & informative */
+  --color-info-content: #1e1e2e;
+
+  --color-success: #a6e3a1; /* Green */
+  --color-success-content: #1e1e2e;
+
+  --color-warning: #f9e2af; /* Yellow */
+  --color-warning-content: #1e1e2e;
+
+  --color-error: #f38ba8; /* Red */
+  --color-error-content: #1e1e2e;
+
+  /* ── Shape ────────────────────────────────────── */
+  --radius-selector: 2rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* catppuccin-latte.css */
+@plugin "daisyui/theme" {
+  name: "catppuccin-latte";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+
+  /* ── Base surfaces ────────────────────────────── */
+  --color-base-100: #eff1f5; /* Base   — main background, warm off-white */
+  --color-base-200: #e6e9ef; /* Mantle — secondary panes */
+  --color-base-300: #dce0e8; /* Crust  — deepest layer / dividers */
+  --color-base-content: #4c4f69; /* Text   — body copy & headlines */
+
+  /* ── Brand colors ─────────────────────────────── */
+  --color-primary: #8839ef; /* Mauve — signature purple, saturated for light bg */
+  --color-primary-content: #eff1f5;
+
+  --color-secondary: #1e66f5; /* Blue — cool secondary accent */
+  --color-secondary-content: #eff1f5;
+
+  --color-accent: #ea76cb; /* Pink — tags, pills, tertiary accent */
+  --color-accent-content: #eff1f5;
+
+  --color-neutral: #acb0be; /* Surface 2 — not-saturated UI chrome */
+  --color-neutral-content: #4c4f69; /* Text */
+
+  /* ── Semantic states ──────────────────────────── */
+  --color-info: #1e66f5; /* Blue — links & informative */
+  --color-info-content: #eff1f5;
+
+  --color-success: #40a02b; /* Green */
+  --color-success-content: #eff1f5;
+
+  --color-warning: #df8e1d; /* Yellow */
+  --color-warning-content: #eff1f5;
+
+  --color-error: #d20f39; /* Red */
+  --color-error-content: #eff1f5;
+
+  /* ── Shape ────────────────────────────────────── */
+  --radius-selector: 2rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
 }
