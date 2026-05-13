@@ -69,6 +69,7 @@ func NewUpdateFeedJob(id models.FeedID, trigger *pollTrigger) (*ScheduledJob, er
 // executeUpdateFeedJob will execute a job that attempts to find new items for a feed and index them into the data
 // backend.
 func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
+	start := time.Now()
 	jobData, ok := updateFeedBufPool.Get().(*UpdateFeedJobData)
 	defer updateFeedBufPool.Put(jobData)
 	if !ok {
@@ -217,6 +218,9 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			slog.Any("error", err),
 		)
 	}
+
+	slogctx.FromCtx(ctx).Debug("Finished update feed job.",
+		slog.Duration("took", time.Since(start)))
 
 	return nil
 }

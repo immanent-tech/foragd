@@ -75,6 +75,7 @@ func NewGetNewFeedsJob(ctx context.Context) (*ScheduledJob, error) {
 // executeGetNewFeedsJob runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
 func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
+	start := time.Now()
 	state, err := fetchGetNewFeedsJobState(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
@@ -204,6 +205,9 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	}); err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
+
+	slogctx.FromCtx(ctx).Debug("Finished get new feeds job.",
+		slog.Duration("took", time.Since(start)))
 
 	return nil
 }
