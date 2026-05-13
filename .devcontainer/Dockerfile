@@ -1,36 +1,32 @@
-FROM docker.io/alpine:3.23.4 AS builder
+ARG CONTAINER_VERSION=dev-ubuntu26.04
 
-# Copy go from official image
-COPY --from=docker.io/golang:1.26.3-alpine3.23 /usr/local/go/ /usr/local/go/
+FROM mcr.microsoft.com/devcontainers/base:${CONTAINER_VERSION} AS builder
+
+ARG NODE_VERSION=v24.15.0
+ARG GO_VERSION=1.26.3
 
 # Install additional packages
-RUN apk update && apk add sudo openssh curl libcurl \
-    bash fish micro \
-    git graphviz step-cli step-certificates cosign \
-    nodejs npm \
-    docker buildkit rootlesskit slirp4netns libcap-setcap \
-    python3 python3-dev py3-pip \
-    gcc musl-dev
+RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
+    apt -y install fish micro graphviz ca-certificates \
+    python3
 
-# Install starship
+# Copy go from official image
+COPY --from=docker.io/golang:${GO_VERSION} /usr/local/go/ /usr/local/go/
+
+# Download and install node:
+RUN sudo curl -L -o- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz \
+    | tar xJvf - --strip-components=1 --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md -C /usr/local
+
+# Download and install docker.
+RUN cd /tmp && curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh ./get-docker.sh && rm /tmp/get-docker.sh
+
+# Dowload and install starship.
 RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 
-# Fix permissions
-RUN chmod 0755 /usr/bin/newuidmap /usr/bin/newgidmap && \
-    setcap cap_setuid=ep /usr/bin/newuidmap && \
-    setcap cap_setgid=ep /usr/bin/newgidmap
-
-# Add non-root user
+# # Add non-root user
 ARG USER_NAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-
-RUN addgroup --gid $USER_GID $USER_NAME \
-    && adduser --uid $USER_UID --ingroup $USER_NAME --shell /usr/bin/fish $USER_NAME \
-    --disabled-password --gecos "" \
-    && mkdir -p /etc/sudoers.d \
-    && echo "$USER_NAME ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER_NAME \
-    && chmod 0440 /etc/sudoers.d/$USER_NAME
 
 RUN echo $USER_UID:100000:65536 > /etc/subuid
 RUN echo $USER_GID:100000:65536 > /etc/subgid
