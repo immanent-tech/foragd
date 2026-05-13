@@ -957,26 +957,23 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								// Add pagination element if pagination is required.
 								if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 									<form
-										class="invisible"
+										class="col-span-full mx-auto"
 										hx-post="/list/articles/paginate"
 										hx-vals={ templ.JSONString(response.Filters.Values()) }
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
-										hx-indicator="#loading-articles"
 										_="on htmx:afterRequest remove me"
 									>
 										<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
+										<div class="show-loading text-center">
+											<span class="loading loading-xl loading-bars mr-3"></span>
+											<p class="text-lg/loose font-semibold">Loading content...</p>
+										</div>
 									</form>
 								}
 							}
 						}
-						<div id="loading-articles" class="text-center">
-							<span class="show-loading items-center">
-								<span class="loading loading-xl loading-bars mr-3"></span>
-								<p class="text-lg/loose font-semibold">Loading content...</p>
-							</span>
-						</div>
 						// Show some actions at the bottom of the list.
 						<nav class="mt-8 hidden justify-center" _="install RevealAtBottom">
 							if response.Subscription == nil {
