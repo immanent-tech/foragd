@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.137.0](https://github.com/immanent-tech/foragd/compare/v0.136.1...v0.137.0) (2026-05-13)
+
+
+### Features
+
+* **templates:** :lipstick: better menu styling for list controls ([2ee5209](https://github.com/immanent-tech/foragd/commit/2ee5209c3a1e70ea6d23cbb379d2c1d10f4cda9a))
+
+
+### Performance Improvements
+
+* **service:** :zap: cache tweaks ([0e9dce4](https://github.com/immanent-tech/foragd/commit/0e9dce412c75f262204fa00c1ed0903aadfbe331))
+* **service:** :zap: generate categories for subscriptions using cached data ([ac69b8c](https://github.com/immanent-tech/foragd/commit/ac69b8c0b67ce40c4aebf63273a2bbf3e3f44ec1))
+
 ## [0.136.1](https://github.com/immanent-tech/foragd/compare/v0.136.0...v0.136.1) (2026-05-12)
 
 
