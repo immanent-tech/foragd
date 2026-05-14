@@ -5,12 +5,19 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"strings"
 )
 
-templ Dock(attributes templ.Attributes) {
+templ Dock(options ...element.PropertiesOption) {
 	{{ pageURL := PathFromCtx(ctx) }}
-	<footer aria-label="Footer Navigation" id="page-dock" class="dock border-t border-base-content/10 bg-base-200 text-primary lg:hidden" { attributes... }>
+	{{ props := element.NewProperties(options...) }}
+	<footer
+		aria-label="Footer Navigation"
+		id="page-dock"
+		class="dock border-t border-base-content/10 bg-base-200 text-primary lg:hidden"
+		{ props.Attributes()... }
+	>
 		<a
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"

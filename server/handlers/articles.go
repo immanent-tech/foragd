@@ -55,8 +55,8 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/list/articles/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
@@ -253,13 +253,11 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				route = "/list/articles"
 			}
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
-				element.WithHXOptions(
-					element.WithHXMethod(http.MethodGet, route),
-					element.WithHXTarget(templates.ContentID.Target()),
-					element.WithHXSwap("innerHTML scroll:top transition:true"),
-					element.WithHXPushURL(true),
-					element.WithHXValues(articleFilters.Values()),
-				),
+				element.WithHXMethod(http.MethodGet, route),
+				element.WithHXTarget(templates.ContentID.Target()),
+				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXPushURL(true),
+				element.WithHXValues(articleFilters.Values()),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -285,8 +283,8 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle("Similar Articles")).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
@@ -344,8 +342,8 @@ func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request
 func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 }
 

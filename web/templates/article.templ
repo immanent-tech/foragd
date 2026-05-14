@@ -91,12 +91,10 @@ templ ArticleCard(idx int, article *models.Article) {
 							}
 						}}
 						@CategoryBadge(category,
-							element.WithHXOptions(
-								element.WithHXMethod(http.MethodGet, "/list/articles"),
-								element.WithHXTarget(ContentID.Target()),
-								element.WithHXValues(filters.Values()),
-								element.WithHXParams("not subscription_id"),
-							),
+							element.WithHXMethod(http.MethodGet, "/list/articles"),
+							element.WithHXTarget(ContentID.Target()),
+							element.WithHXValues(filters.Values()),
+							element.WithHXParams("not subscription_id"),
 							element.WithClasses(extraClasses),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						)
@@ -370,12 +368,10 @@ templ ArticleContent(article *models.Article) {
 									filters.Categories = append(filters.Categories, category)
 								}}
 								@CategoryBadge(category,
-									element.WithHXOptions(
-										element.WithHXMethod(http.MethodGet, "/list/articles"),
-										element.WithHXTarget(ContentID.Target()),
-										element.WithHXValues(filters.Values()),
-										element.WithHXParams("not subscription_id"),
-									),
+									element.WithHXMethod(http.MethodGet, "/list/articles"),
+									element.WithHXTarget(ContentID.Target()),
+									element.WithHXValues(filters.Values()),
+									element.WithHXParams("not subscription_id"),
 									element.WithAttribute("_", "on click halt the event's bubbling"),
 								)
 							}

@@ -170,8 +170,8 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle("Search Results")).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/search/paginate":
 		if len(h.results.Articles) == 0 {
 			res.WriteHeader(http.StatusNoContent)
@@ -400,13 +400,11 @@ func HandleSearchUpdates() http.HandlerFunc {
 		// If updates found, render a notification.
 		if updateCount > 0 {
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
-				element.WithHXOptions(
-					element.WithHXMethod(http.MethodGet, "/search"),
-					element.WithHXTarget(templates.ContentID.Target()),
-					element.WithHXSwap("innerHTML scroll:top transition:true"),
-					element.WithHXPushURL(true),
-					element.WithHXValues(request.Values()),
-				),
+				element.WithHXMethod(http.MethodGet, "/search"),
+				element.WithHXTarget(templates.ContentID.Target()),
+				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXPushURL(true),
+				element.WithHXValues(request.Values()),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)

@@ -473,11 +473,9 @@ templ SearchResults(results *models.SearchResults) {
 									{{ search := results.Search }}
 									{{ search.Categories = &category }}
 									@CategoryBadge(category,
-										element.WithHXOptions(
-											element.WithHXMethod(http.MethodGet, "/search"),
-											element.WithHXTarget(ContentID.Target()),
-											element.WithHXValues(search.Values()),
-										),
+										element.WithHXMethod(http.MethodGet, "/search"),
+										element.WithHXTarget(ContentID.Target()),
+										element.WithHXValues(search.Values()),
 									)
 								}
 							</div>

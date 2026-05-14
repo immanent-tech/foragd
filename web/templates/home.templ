@@ -118,11 +118,9 @@ templ UserHome(data *models.HomeResponse) {
 													filters.Categories = append(filters.Categories, category.Category)
 												}}
 												@CategoryBadge(category.Category,
-													element.WithHXOptions(
-														element.WithHXMethod(http.MethodGet, "/list/articles"),
-														element.WithHXTarget(ContentID.Target()),
-														element.WithHXValues(filters.Values()),
-													),
+													element.WithHXMethod(http.MethodGet, "/list/articles"),
+													element.WithHXTarget(ContentID.Target()),
+													element.WithHXValues(filters.Values()),
 													element.WithAttribute("_", "on click halt the event's bubbling"),
 												)
 											}

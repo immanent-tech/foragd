@@ -27,6 +27,9 @@ func NewProperties(options ...PropertiesOption) *Properties {
 		classes:    make([]string, 0),
 	}
 	for option := range slices.Values(options) {
+		if option == nil {
+			continue
+		}
 		option(props)
 	}
 	return props
@@ -115,20 +118,8 @@ func MergeAttributes(attributes templ.Attributes) PropertiesOption {
 	}
 }
 
-// HXOption is a functional option to set a HTMX attribute.
-type HXOption func(*Properties)
-
-// WithHXOptions option is a way to set all HX options at once.
-func WithHXOptions(options ...HXOption) PropertiesOption {
-	return func(p *Properties) {
-		for option := range slices.Values(options) {
-			option(p)
-		}
-	}
-}
-
 // WithHXMethod sets a "hx-{get,post,put,delete}" attribute.
-func WithHXMethod(method, value string) HXOption {
+func WithHXMethod(method, value string) PropertiesOption {
 	return func(p *Properties) {
 		switch method {
 		case http.MethodGet:
@@ -145,7 +136,7 @@ func WithHXMethod(method, value string) HXOption {
 
 // WithHXValues sets a "hx-vals" attribute. Note that the given map is marshaled to JSON and any marshaling error will
 // silently result in no attribute being set.
-func WithHXValues(values map[string]any) HXOption {
+func WithHXValues(values map[string]any) PropertiesOption {
 	return func(p *Properties) {
 		data, err := json.Marshal(values)
 		if err != nil {
@@ -156,28 +147,35 @@ func WithHXValues(values map[string]any) HXOption {
 }
 
 // WithHXParams sets a "hx-params" attribute.
-func WithHXParams(params string) HXOption {
+func WithHXParams(params string) PropertiesOption {
 	return func(p *Properties) {
 		p.SetAttribute("hx-params", params)
 	}
 }
 
 // WithHXTarget sets a "hx-target" attribute.
-func WithHXTarget(target string) HXOption {
+func WithHXTarget(target string) PropertiesOption {
 	return func(p *Properties) {
 		p.SetAttribute("hx-target", target)
 	}
 }
 
 // WithHXSwap sets a "hx-swap" attribute.
-func WithHXSwap(swap string) HXOption {
+func WithHXSwap(swap string) PropertiesOption {
 	return func(p *Properties) {
 		p.setAttribute("hx-swap", swap)
 	}
 }
 
+// WithHXSwapOOB sets a "hx-swap-oob" attribute.
+func WithHXSwapOOB(swap string) PropertiesOption {
+	return func(p *Properties) {
+		p.setAttribute("hx-swap-oob", swap)
+	}
+}
+
 // WithHXPushURL sets a "hx-push-url" attribute.
-func WithHXPushURL(value bool) HXOption {
+func WithHXPushURL(value bool) PropertiesOption {
 	return func(p *Properties) {
 		switch value {
 		case true:

@@ -281,7 +281,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			InlineScriptNonce:         templ.GetNonce(ctx),
 			IncludeIndicatorStyles:    false,
 			HistoryRestoreAsHxRequest: false,
-			GlobalViewTransitions:     true,
+			GlobalViewTransitions:     false,
 			HistoryCacheSize:          10,
 		}))
 		if templ_7745c5c3_Err != nil {

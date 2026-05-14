@@ -136,12 +136,10 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 							filters.Categories = append(filters.Categories, category)
 						}}
 						@CategoryBadge(category,
-							element.WithHXOptions(
-								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-								element.WithHXTarget(ContentID.Target()),
-								element.WithHXValues(filters.Values()),
-								element.WithHXParams("not subscription_id,subscriptions"),
-							),
+							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+							element.WithHXTarget(ContentID.Target()),
+							element.WithHXValues(filters.Values()),
+							element.WithHXParams("not subscription_id,subscriptions"),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						)
 					}

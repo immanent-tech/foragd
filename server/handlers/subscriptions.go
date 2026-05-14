@@ -65,8 +65,8 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/list/subscriptions/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
@@ -318,13 +318,11 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 		// If updates found, render a notification.
 		if updateCount > 0 {
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
-				element.WithHXOptions(
-					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-					element.WithHXTarget(templates.ContentID.Target()),
-					element.WithHXSwap("innerHTML scroll:top transition:true"),
-					element.WithHXPushURL(true),
-					element.WithHXValues(filters.Values()),
-				),
+				element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+				element.WithHXTarget(templates.ContentID.Target()),
+				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXPushURL(true),
+				element.WithHXValues(filters.Values()),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -569,18 +567,14 @@ func HandleRemoveSubscription() http.HandlerFunc {
 				// On "/list/subscriptions", remove the subscription card.
 				RenderPartial(&Modal{
 					template: templates.RemoveSubscriptionModal(request,
-						element.WithHXOptions(
-							element.WithHXTarget("#"+request.SubscriptionID),
-							element.WithHXSwap("delete transition:true"),
-						),
+						element.WithHXTarget("#"+request.SubscriptionID),
+						element.WithHXSwap("delete transition:true"),
 					)}).ServeHTTP(res, req)
 			} else {
 				// On "/list/articles", don't do anything to the page (a redirect will be triggered).
 				RenderPartial(&Modal{
 					template: templates.RemoveSubscriptionModal(request,
-						element.WithHXOptions(
-							element.WithHXSwap("none"),
-						),
+						element.WithHXSwap("none"),
 					)}).ServeHTTP(res, req)
 			}
 		case "true":
