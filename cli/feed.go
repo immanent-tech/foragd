@@ -51,7 +51,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
-		results, err = models.NewFeedFromURL(ctx, feed.GetLink(), feed.GetID(), c.Validate)
+		results, err = models.NewFeedFromURL(ctx, feed.GetSourceURLs()[0], feed.GetID(), c.Validate)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
