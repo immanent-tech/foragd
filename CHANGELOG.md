@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.138.0](https://github.com/immanent-tech/foragd/compare/v0.137.0...v0.138.0) (2026-05-14)
+
+
+### Features
+
+* **models:** :sparkles: add additional details for youtube videos ([0e0896c](https://github.com/immanent-tech/foragd/commit/0e0896cc2dfc4330ad0c903c8f02beebc10ea075))
+* **templates:** :lipstick: show an animated loading indicator on toast action ([3fd8687](https://github.com/immanent-tech/foragd/commit/3fd86877a79904b71cf5878b294ac733c876ab92))
+
+
+### Bug Fixes
+
+* **assets:** :bug: fix 1024px logo to ensure it has padding for any masks that might be applied (i.e., in pwa/twa) ([c691476](https://github.com/immanent-tech/foragd/commit/c691476dde643eb572f59f7847e88b7534cb7eba))
+* **cli:** fix url used for fetching items for existing feed ([d233a7b](https://github.com/immanent-tech/foragd/commit/d233a7b9056aa22ad285904c0d1c0f95e3662aa6))
+* **feeds:** fix index for feed updates 🫨 ([d15d211](https://github.com/immanent-tech/foragd/commit/d15d211c88100784c2f107709ed54d09b4424ef3))
+* **posts:** :bug: fix path in rss feed to posts ([c26aabb](https://github.com/immanent-tech/foragd/commit/c26aabbd0c4f9864733cefaf150020e61b262f76))
+* **styles:** :bug: indicate greenhouse theme as default ([4acd411](https://github.com/immanent-tech/foragd/commit/4acd411dd1bdbe15e27697e3e021218e8aa96484))
+
+
+### Performance Improvements
+
+* **templates:** :zap: move cloudflare turnstile script to only activate on pages where it is used ([0099841](https://github.com/immanent-tech/foragd/commit/00998418ea74dde325d6c4f639aa77fbde9d7a31))
+
 ## [0.137.0](https://github.com/immanent-tech/foragd/compare/v0.136.1...v0.137.0) (2026-05-13)
 
 
