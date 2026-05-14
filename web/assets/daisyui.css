@@ -12,7 +12,7 @@
 
 @plugin "daisyui/theme" {
   name: "greenhouse";
-  default: false;
+  default: true;
   prefersdark: false;
   color-scheme: light;
   --color-base-100: oklch(0.9858 0.0045 78.3);
@@ -45,6 +45,7 @@
   --depth: 1;
   --noise: 0;
 }
+
 @plugin "daisyui/theme" {
   name: "solarized-dark";
   default: false;
