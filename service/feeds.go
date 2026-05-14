@@ -325,15 +325,8 @@ func GetFeedLatestItems(
 						)
 					return
 				}
-				// // Generate articles.
-				// articles, err := models.GenerateArticles(ctx, items)
-				// if err != nil {
-				// 	slogctx.FromCtx(ctx).
-				// 		Warn("Unable to generate articles from items.",
-				// 			slog.Any("error", err),
-				// 		)
-				// 	return
-				// }
+				// Ensure proper sorting.
+				items = items.SortByTimestamp()
 				mu.Lock()
 				feedsLatestItems[feedID] = items
 				mu.Unlock()
