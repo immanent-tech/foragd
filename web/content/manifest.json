@@ -71,6 +71,18 @@
       "sizes": "1024x853",
       "src": "/content/logo-vertical-dark.png",
       "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "1024x853",
+      "src": "/content/logo-vertical-light.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "1024x853",
+      "src": "/content/logo-vertical-dark.png",
+      "type": "image/png"
     }
   ],
   "id": "/home",
