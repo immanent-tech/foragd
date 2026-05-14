@@ -99,7 +99,7 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 
 // UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
 func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) error {
-	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates, elastic.WithRefresh(true)); err != nil {
+	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW(), id, updates, elastic.WithRefresh(true)); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	feedCache.Invalidate(id)
