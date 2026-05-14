@@ -344,12 +344,12 @@ templ ArticleContent(article *models.Article) {
 									"subscription_name": article.GetFeedTitle(),
 									"subscription_id": article.GetSubscriptionID(),
 								}) }
-							class="flex-none link link-hover"
+							class="flex link link-hover"
 						>
 							{  article.GetFeedTitle() }
 						</a>
 						<span class="flex-none px-4">·</span>
-						<span class="flex-1 capitalize">
+						<span class="flex-none capitalize">
 							<relative-time
 								datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
