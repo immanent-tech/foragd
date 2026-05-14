@@ -293,8 +293,8 @@ func HandlePostsFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(data.Frontmatter.Title),
 				rss.WithItemDescription(data.Frontmatter.Description),
-				rss.WithItemLink(baseURL+"/blog/"+data.Details.Path),
-				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/blog/"+data.Details.Path, true)),
+				rss.WithItemLink(baseURL+"/posts/"+data.Details.Path),
+				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/posts/"+data.Details.Path, true)),
 				rss.WithItemImage(&types.ImageInfo{
 					Title: data.Frontmatter.Title,
 					URL:   baseURL + *data.Frontmatter.Image,
