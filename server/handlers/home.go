@@ -25,6 +25,10 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
+const (
+	RouteHome Route = "/home"
+)
+
 // Home contains data for generating a user home page.
 type Home struct {
 	title string

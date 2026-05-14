@@ -418,12 +418,12 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 		switch request.View {
 		case models.ViewUnread:
 			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/home",
+				Path:   RouteHome,
 				Target: templates.ContentID.Target(),
 			})
 		case models.ViewRead:
 			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/home",
+				Path:   RouteHome,
 				Target: templates.ContentID.Target(),
 			})
 		default:

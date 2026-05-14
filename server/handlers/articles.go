@@ -247,8 +247,8 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		if updateCount > 0 {
 			var route string
 			switch {
-			case strings.Contains(req.Referer(), "/home"):
-				route = "/home"
+			case strings.Contains(req.Referer(), RouteHome):
+				route = RouteHome
 			default:
 				route = "/list/articles"
 			}
@@ -533,7 +533,7 @@ func MarkArticles() http.HandlerFunc {
 
 		if currentURL, found := htmx.GetCurrentURL(req); !found {
 			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/home",
+				Path:   RouteHome,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:window:top transition:true",
 			})

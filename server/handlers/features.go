@@ -12,9 +12,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type Features struct {
-	template templ.Component
-}
+type Features struct{}
 
 func HandleFeatures() http.HandlerFunc {
 	return RenderExternalPage(&Features{})

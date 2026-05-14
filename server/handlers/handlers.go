@@ -25,6 +25,8 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+type Route = string
+
 var (
 	// ErrInvalidContent indicates that the content for rendering is invalid.
 	ErrInvalidContent = errors.New("invalid content")

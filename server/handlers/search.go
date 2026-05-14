@@ -309,17 +309,17 @@ func HandleSearchResults() http.HandlerFunc {
 					return fmt.Errorf("aggregate articles: %w", err)
 				}
 
-				topCategoriesAgg, ok := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
-				if !ok {
+				topCategoriesAgg, isTopCategoriesAgg := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
+				if !isTopCategoriesAgg {
 					return fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
 				}
-				topCategoriesBuckets, ok := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
-				if !ok {
+				topCategoriesBuckets, isTopCategoriesBuckets := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
+				if !isTopCategoriesBuckets {
 					return fmt.Errorf("extract buckets: %w", models.ErrInvalidAPIResult)
 				}
 
 				for bucket := range slices.Values(topCategoriesBuckets) {
-					if category, ok := bucket.Key.(models.Category); ok {
+					if category, isCategoryBucket := bucket.Key.(models.Category); isCategoryBucket {
 						categories = append(categories, category)
 					}
 				}

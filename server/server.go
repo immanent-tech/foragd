@@ -196,7 +196,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/success", handlers.HandleAccountSuccess())
 			r.Get("/cancel", handlers.HandleLanding())
 		})
-		r.Get("/home", handlers.HandleHome())
+		r.Get(handlers.RouteHome, handlers.HandleHome())
 		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
