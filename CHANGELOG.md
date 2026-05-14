@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.139.0](https://github.com/immanent-tech/foragd/compare/v0.138.0...v0.139.0) (2026-05-14)
+
+
+### Features
+
+* ✨ new logo and icon ([1dc3aff](https://github.com/immanent-tech/foragd/commit/1dc3aff8e08ac1207f34778e96aa9e833f4bf503))
+
+
+### Bug Fixes
+
+* **articles:** 🎨 add a small amount of padding to article content on small screens ([8bd60e3](https://github.com/immanent-tech/foragd/commit/8bd60e33e86366927615a176de9ceb74c86fd992))
+* **articles:** 🎨 fix subscription name/last updated wrapping on article view ([84326bf](https://github.com/immanent-tech/foragd/commit/84326bf25f5a268fcd58245369f6bc34afc53e73))
+* **feeds:** 🔧 explicitly sort when retrieving latest items ([164f475](https://github.com/immanent-tech/foragd/commit/164f475457aee1414bb99b34b3d0736a74fca7f7))
+
 ## [0.138.0](https://github.com/immanent-tech/foragd/compare/v0.137.0...v0.138.0) (2026-05-14)
 
 
