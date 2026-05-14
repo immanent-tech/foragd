@@ -36,12 +36,12 @@ func Logo(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"flex text-primary fill-primary stroke-primary", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"flex", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg aria-hidden=\"true\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg width=\"1023.9999\" height=\"1023.9999\" viewBox=\"0 0 270.93331 270.93331\" version=\"1.1\" id=\"svg1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -54,7 +54,7 @@ func Logo(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" xmlns=\"http://www.w3.org/2000/svg\" width=\"200mm\" height=\"200mm\" viewBox=\"0 0 200 200\" xml:space=\"preserve\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -62,7 +62,7 @@ func Logo(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><g transform=\"translate(-118.24 -66.231)\" fill=\"none\"><ellipse cx=\"171.11\" cy=\"230.68\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"10\"></ellipse> <path d=\"M171.11 215.77v-44.72\" stroke-width=\"10.017\"></path></g> <path class=\"st0\" d=\"M480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2L-.01 475.649l36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" style=\"stroke-opacity:1;fill-opacity:1;stroke-width:.998526;stroke-dasharray:none\" transform=\"rotate(12.92 30.11 324.737)scale(.1974 .1873)\"></path> <ellipse cx=\"53.02\" cy=\"94.191\" rx=\"9.253\" ry=\"9.252\" stroke-width=\"10\"></ellipse></svg>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><defs id=\"defs1\"></defs> <g id=\"layer1\"><g transform=\"matrix(4.86927,0,0,4.86927,5.2136937,7.6483287)\" id=\"g3\"><path d=\"M 8,46 Q 8,10 42,10\" class=\"stroke-primary\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" id=\"path1\"></path> <path d=\"M 8,46 Q 8,22 32,22\" class=\"stroke-primary\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" opacity=\"0.7\" id=\"path2\"></path> <path d=\"M 8,46 Q 8,34 22,36\" class=\"stroke-primary\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\" opacity=\"0.42\" id=\"path3\"></path> <circle cx=\"42\" cy=\"10\" r=\"5.5\" class=\"fill-accent\" id=\"circle3\"></circle></g></g></svg>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

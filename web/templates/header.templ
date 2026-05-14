@@ -19,9 +19,9 @@ templ header(user *models.User) {
 				<nav aria-label="Global" class="flex w-full items-center justify-between p-6 lg:px-8">
 					<div class="flex lg:flex-1">
 						<a href="/" class="link link-hover">
-							<div class="flex items-center">
+							<div class="flex sm:flex-row sm:w-36 shrink-0 items-center justify-center p-2">
 								@partials.Logo(element.WithClasses("size-10"))
-								<p class="hidden font-display font-bold text-primary lg:flex">Foragd</p>
+								<span class="hidden sm:flex text-xs sm:text-lg font-serif font-bold text-primary">foragd</span>
 							</div>
 						</a>
 					</div>
@@ -51,7 +51,6 @@ templ header(user *models.User) {
 									<a href="/" class="-m-1.5 p-1.5">
 										<div class="flex items-center">
 											@partials.Logo(element.WithClasses("size-10"))
-											<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 										</div>
 									</a>
 									<button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
@@ -86,9 +85,9 @@ templ header(user *models.User) {
 						hx-swap="innerHTML show:window:top transition:true"
 						class="flex shrink link link-hover"
 					>
-						<div class="flex shrink-0 flex-row items-center p-2">
+						<div class="flex sm:flex-row sm:w-36 shrink-0 items-center justify-center p-2">
 							@partials.Logo(element.WithClasses("size-10"))
-							<p class="hidden font-display font-bold text-primary lg:flex">Foragd</p>
+							<span class="hidden sm:flex font-serif text-xs sm:text-lg font-bold text-primary">foragd</span>
 						</div>
 					</a>
 					// Global search bar.

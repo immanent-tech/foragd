@@ -21,49 +21,56 @@
     {
       "purpose": "maskable",
       "sizes": "512x512",
-      "src": "/content/icons/icon-512.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "192x192",
-      "src": "/content/icons/icon-192.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "128x128",
-      "src": "/content/icons/icon-128.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "96x96",
-      "src": "/content/icons/icon-96.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "72x72",
-      "src": "/content/icons/icon-72.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "64x64",
-      "src": "/content/icons/icon-64.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "48x48",
-      "src": "/content/icons/icon-48.png",
+      "src": "/content/icons/maskable-512.png",
       "type": "image/png"
     },
     {
       "purpose": "maskable",
-      "sizes": "1024x1024",
-      "src": "/content/logo-1024.png"
+      "sizes": "192x192",
+      "src": "/content/icons/maskable-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "128x128",
+      "src": "/content/icons/maskable-128.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "96x96",
+      "src": "/content/icons/maskable-96.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "72x72",
+      "src": "/content/icons/maskable-72.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "64x64",
+      "src": "/content/icons/maskable-64.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "48x48",
+      "src": "/content/icons/maskable-48.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "1024x853",
+      "src": "/content/logo-vertical-light.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "1024x853",
+      "src": "/content/logo-vertical-dark.png",
+      "type": "image/png"
     }
   ],
   "id": "/home",
