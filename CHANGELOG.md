@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.141.0](https://github.com/immanent-tech/foragd/compare/v0.140.0...v0.141.0) (2026-05-15)
+
+
+### Features
+
+* **templates:** ♻️ combine list views categories and view menus into single filters menu on desktop ([b67d655](https://github.com/immanent-tech/foragd/commit/b67d655204ea4e09fe2d31a2b8f2674852ac0209))
+
+
+### Bug Fixes
+
+* **email:** 🎨 lots of fixes to email templates ([ce7118b](https://github.com/immanent-tech/foragd/commit/ce7118b3bcf19e16aa85d8559c495b2f278fa2d9))
+* **email:** 🔧 fix some element layouts in email templates ([187107a](https://github.com/immanent-tech/foragd/commit/187107a38724ec107b109c5747c195051c86f26a))
+
+
+### Performance Improvements
+
+* **handlers:** 🔧 add additional logging for performance metrics ([90092f1](https://github.com/immanent-tech/foragd/commit/90092f1d47ae5d993439bbd2fa0bbf13bd2f3fd9))
+
 ## [0.140.0](https://github.com/immanent-tech/foragd/compare/v0.139.0...v0.140.0) (2026-05-15)
 
 
