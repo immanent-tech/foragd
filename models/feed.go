@@ -318,13 +318,16 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 	if feed.GetImage() == nil {
 		// Fetch and extract image from opengraph data (if any).
 		img, err := client.ExtractMainImage(ctx, feed.GetLink())
-		if err != nil {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
-				slog.String("feed", feed.GetTitle()),
-			)
+		if err != nil || img == "" {
+			img, err = client.ExtractFavicon(ctx, feed.GetLink())
 		}
 		if img != "" {
 			feed.Image = NewRemoteImage(img, feed.GetTitle())
+		} else {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
+				slog.String("feed", feed.GetTitle()),
+				slog.Any("error", err),
+			)
 		}
 	}
 

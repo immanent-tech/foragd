@@ -145,8 +145,8 @@ func ExtractMainContent(ctx context.Context, page string, data []byte) (string, 
 	return content, nil
 }
 
-// ExtractMainImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
-// itself.
+// ExtractMainImage will attempt to extract a URL to what is likely the "main" image of a page (i.e., typically used on
+// article/post pages).
 func ExtractMainImage(ctx context.Context, page string) (string, error) {
 	pageURL, err := url.Parse(page)
 	if err != nil {
@@ -185,6 +185,46 @@ func ExtractMainImage(ctx context.Context, page string) (string, error) {
 				slog.String("url", page),
 				slog.Any("error", err))
 		}
+	}
+
+	// Parse the found URL.
+	imgURL, err := url.Parse(foundURL)
+	if err != nil {
+		return foundURL, fmt.Errorf("parse image URL %q: %w", foundURL, err)
+	}
+
+	// If it is not an absolute URL, resolve it relative to the page URL.
+	if !imgURL.IsAbs() {
+		return pageURL.ResolveReference(imgURL).String(), nil
+	}
+
+	return imgURL.String(), nil
+}
+
+// ExtractFavicon will attempt to extract the favicon link from a page.
+func ExtractFavicon(ctx context.Context, page string) (string, error) {
+	var (
+		foundURL string
+		err      error
+	)
+
+	pageURL, err := url.Parse(page)
+	if err != nil {
+		return "", fmt.Errorf("parse page URL: %w", err)
+	}
+
+	resp, err := Load().R().SetContext(ctx).Get(pageURL.String())
+	if err != nil {
+		return "", fmt.Errorf("get url: %w", err)
+	}
+	if resp.IsError() {
+		return "", fmt.Errorf("%s: %s", resp.Status(), resp.Error())
+	}
+
+	if _, foundURL, _, err = html.FindFavicon(resp.Body(), page); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not find favicon for URL.",
+			slog.String("url", page),
+			slog.Any("error", err))
 	}
 
 	// Parse the found URL.
