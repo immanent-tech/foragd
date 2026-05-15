@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.142.1](https://github.com/immanent-tech/foragd/compare/v0.142.0...v0.142.1) (2026-05-15)
+
+
+### Bug Fixes
+
+* **subscriptions:** 🔧 fix cache issues with subscriptions ([9c22341](https://github.com/immanent-tech/foragd/commit/9c223415faa34506459d88b6e4ebcf607d66ed25))
+* **subscriptions:** 🔧 get subscriptions by id or get all subscriptions in some places ([adf3a00](https://github.com/immanent-tech/foragd/commit/adf3a00ea674a0fd282bfd31434738290b8feff9))
+
 ## [0.142.0](https://github.com/immanent-tech/foragd/compare/v0.141.0...v0.142.0) (2026-05-15)
 
 
