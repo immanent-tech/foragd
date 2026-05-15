@@ -46,7 +46,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -68,7 +68,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -90,7 +90,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -112,7 +112,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -134,7 +134,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -157,7 +157,7 @@
       "options": {
         "cwd": "${workspaceFolder}/email",
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ]
@@ -179,7 +179,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ],
@@ -202,7 +202,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ],
@@ -225,7 +225,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ],
@@ -248,7 +248,7 @@
       },
       "options": {
         "shell": {
-          "executable": "/bin/bash",
+          "executable": "/usr/bin/fish",
           "args": [
             "-c"
           ],
