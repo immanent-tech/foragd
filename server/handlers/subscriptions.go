@@ -84,10 +84,11 @@ func HandleListSubscriptions() http.HandlerFunc {
 			Pagination: new(req.FormValue(models.ParamPagination)),
 		}
 		if err := request.Valid(); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -114,10 +115,11 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -126,10 +128,11 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		subscriptions, err = service.GetAllSubscriptions(req.Context(), user)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -336,27 +339,29 @@ func HandleMarkSubscription() http.HandlerFunc {
 		// Decode request parameters.
 		request, _, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode mark subscriptions request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark articles.",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode mark subscriptions request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark subscription.
 		if err := service.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("mark subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("mark subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -391,25 +396,27 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode mark subscription request: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode mark subscription request: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("validate mark subscription request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("validate mark subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -434,28 +441,30 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("set redirect: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("set redirect: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark subscriptions.
 		err = service.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("mark subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("mark subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -467,51 +476,55 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.FavoriteSubscriptionRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		subscription, err := service.GetSubscription(req.Context(), user, request.SubscriptionID)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -529,14 +542,15 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 			request.SubscriptionID,
 			favorite,
 		); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("update favorite subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite subscription",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update favorite subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add favorite subscription",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
 		}
 
 		res.WriteHeader(http.StatusOK)
@@ -551,14 +565,15 @@ func HandleRemoveSubscription() http.HandlerFunc {
 			Nickname:       req.FormValue("nickname"),
 		}
 		if err := request.Valid(); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("validate remove subscription request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("validate remove subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to remove subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		switch req.FormValue("confirmed") {
@@ -579,14 +594,15 @@ func HandleRemoveSubscription() http.HandlerFunc {
 			}
 		case "true":
 			if err := service.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("remove subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to remove subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("remove subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to remove subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// When the current page is "/list/articles", redirect the user to "/list/subscriptions".
@@ -628,42 +644,45 @@ func HandleEditSubscription() http.HandlerFunc {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if id == "" {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to edit subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to edit subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Get the existingSubscription.
 		existingSubscription, err := service.GetSubscription(req.Context(), user, id)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to edit subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		var template templ.Component
@@ -709,14 +728,15 @@ func HandleEditSubscription() http.HandlerFunc {
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := service.GetAllSubscriptions(ctx, user)
 				if err != nil {
-					HandleInternalError(&models.APIError{
-						InternalError: fmt.Errorf("get subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to edit subscription",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
+					HandleInternalError(req.URL.Path,
+						&models.APIError{
+							InternalError: fmt.Errorf("get subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to edit subscription",
+								"This might be a temporary issue, please try again.",
+							),
+						}).ServeHTTP(res, req)
 					return
 				}
 				subscriptions = subscriptions.FilterByIDs(request.Search.Subscriptions...)
@@ -728,14 +748,15 @@ func HandleEditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			childSubscriptions, err := service.GetAllSubscriptions(ctx, user)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("get subscription: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to edit subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("get subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to edit subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 
 			}
@@ -764,14 +785,15 @@ func HandleEditSubscription() http.HandlerFunc {
 			// Get all subscriptions that are not already in the group as suggestions.
 			suggestedSubscriptions, err := service.GetAllSubscriptions(ctx, user)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("get subscriptions: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to edit group subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("get subscriptions: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to edit group subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			request.SuggestedSubscriptions = suggestedSubscriptions.
@@ -815,42 +837,45 @@ func HandleSaveSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if id == "" {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to edit subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to edit subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Get the subscription.
 		subscription, err := service.GetSubscription(req.Context(), user, id)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get subscription: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to save subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -859,14 +884,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeFeed:
 			request, valid, err := forms.DecodeMultiPartForm[*models.FeedSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			subscription.Customisation = request.Customisation
@@ -890,14 +916,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode search subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode search subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			subscription.Customisation = request.Customisation
@@ -908,14 +935,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			request, valid, err := forms.DecodeMultiPartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode group subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode group subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 
@@ -941,14 +969,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeEmail:
 			request, valid, err := forms.DecodeMultiPartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode email subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode email subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			subscription.Customisation = request.Customisation
@@ -960,14 +989,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		// Process any uploaded thumbnail image.
 		thumbnail, err := processThumbnail(req, subscription.GetID())
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("update subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to save subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if thumbnail != "" {
@@ -978,14 +1008,15 @@ func HandleSaveSubscription() http.HandlerFunc {
 		subscription.UpdatedAt = new(time.Now().UTC())
 		_, err = service.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("update subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to save subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		RenderPartial(
@@ -1056,26 +1087,28 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeMultiPartForm[*models.AddFeedSubscriptionRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add feed subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add feed subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		if user := models.UserFromCtx(req.Context()); user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: models.ErrCtxValueNotFound,
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add feed subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: models.ErrCtxValueNotFound,
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add feed subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -1092,26 +1125,28 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 			)
 			feed, err = models.NewFeedFromURL(req.Context(), request.URL, request.FeedID, false)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("new feed from URL: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add feed subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("new feed from URL: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add feed subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Add the feed to the database.
 			if err := service.AddFeed(req.Context(), feed); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("create feed: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add feed subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("create feed: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add feed subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Info("Added new feed.",
@@ -1124,27 +1159,29 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		// Create a new subscription.
 		subscription, err := models.NewFeedSubscription(req.Context(), feed, nil)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("create subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add subscription",
-					fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("create subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Add subscription to user.
 		if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("add subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add subscription",
-					fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("add subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Info("Added user subscription.",
@@ -1227,14 +1264,15 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			// Get the details.
 			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode add search subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode add search subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 
@@ -1252,14 +1290,15 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			if len(request.Subscriptions) > 0 {
 				subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
 				if err != nil {
-					HandleInternalError(&models.APIError{
-						InternalError: fmt.Errorf("get subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
+					HandleInternalError(req.URL.Path,
+						&models.APIError{
+							InternalError: fmt.Errorf("get subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to add subscription",
+								"This might be a temporary issue, please try again.",
+							),
+						}).ServeHTTP(res, req)
 					return
 				}
 				subscriptions = subscriptions.FilterByIDs(request.Subscriptions...)
@@ -1285,26 +1324,28 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 		case http.MethodPost:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode search subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode search subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			err = service.CreateSearchSubscriptions(req.Context(), request)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("create search subscription: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("create search subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 			}
 			RenderPartial(
 				&Notification{
@@ -1396,14 +1437,15 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			// Get suggested suggested subscriptions.
 			suggestedSubscriptions, err := service.GetAllSubscriptions(req.Context(), user)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("get subscriptions: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add group subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("get subscriptions: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add group subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			suggestedSubscriptions = suggestedSubscriptions.FilterByType(models.SubscriptionTypeFeed)
@@ -1420,51 +1462,55 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			// Decode request.
 			request, valid, err := forms.DecodeMultiPartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode group subscription request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode group subscription request: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Generate subscription metadata from request.
 			subscription, err := models.NewGroupSubscription(req.Context(), request)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("new group subscription: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("new group subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Validate subscription.
 			if err = subscription.Valid(); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("validate group subscription: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("validate group subscription: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Add subscriptions
 			if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("add subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("add subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Render notification.
@@ -1482,26 +1528,28 @@ func HandleAddSubscriptionToGroup() http.HandlerFunc {
 		// Parse add subscription to group request.
 		request, valid, err := forms.DecodeForm[*models.AddSubscriptionToGroupRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("add subscription to group request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add subscription to group",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("add subscription to group request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription to group",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		// Ignore request to add subscription that is already in the group.
 		if slices.Contains(slices.Collect(maps.Values(request.ExistingSubscriptions)), request.SuggestionText) {
-			HandleInternalError(&models.APIError{
-				InternalError: errors.New("subscription already in group"),
-				StatusCode:    http.StatusConflict,
-				UserMessage: models.NewWarningMessage(
-					"Not adding subscription",
-					"Already in group.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: errors.New("subscription already in group"),
+					StatusCode:    http.StatusConflict,
+					UserMessage: models.NewWarningMessage(
+						"Not adding subscription",
+						"Already in group.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		for subscriptionID, subscriptionName := range request.Suggestions {
@@ -1559,28 +1607,30 @@ func HandleImportSubscriptions() http.HandlerFunc {
 			// Extract OPML file.
 			opmlData, err := forms.DecodeMultipartFile(req, "source")
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode opml: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Failed to read OPML file",
-						"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("decode opml: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Failed to read OPML file",
+							"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			opmlFile := &models.OPMLFile{FileUpload: opmlData}
 			// Generate subscription requests from OPML file contents.
 			requests, err := opmlFile.GenerateRequests()
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("generate subscription requests: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Failed to extract subscriptions from OPML file.",
-						"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("generate subscription requests: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Failed to extract subscriptions from OPML file.",
+							"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 
@@ -1626,14 +1676,15 @@ func HandleExportSubscriptions() http.HandlerFunc {
 		// Get the user details.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Failed to export.",
-					"The backend produced an error. This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to export.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		switch req.Method {
@@ -1658,28 +1709,30 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				elastic.WithTrackTotalHits(false),
 			)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("filter subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Failed to export.",
-						"The backend produced an error. This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("filter subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Failed to export.",
+							"The backend produced an error. This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 			// Get all feeds for subscriptions.
 			var feeds models.Feeds
 			feeds, err = service.GetFeeds(req.Context(), subscriptions.GetFeedIDs()...)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("filter subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Failed to export.",
-						"The backend produced an error. This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("filter subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Failed to export.",
+							"The backend produced an error. This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 
@@ -1705,14 +1758,15 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			data, err := xml.Marshal(opmlExport)
 			data = []byte(xml.Header + string(data))
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("create opml: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Failed to export.",
-						"The backend produced an error. This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("create opml: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Failed to export.",
+							"The backend produced an error. This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
@@ -1729,14 +1783,15 @@ func HandleSubscriptionCategories() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.AddCategoryToSubscriptionRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode add subscription category request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to category to subscription",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode add subscription category request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to category to subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 

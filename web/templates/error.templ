@@ -7,7 +7,7 @@ import "github.com/immanent-tech/foragd/models"
 
 const ErrorFragment templFragmentKey = "error"
 
-templ InternalError(user *models.User, msg *models.UserMessage) {
+templ InternalError(user *models.User, referer string, msg *models.UserMessage) {
 	@content() {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
@@ -21,10 +21,21 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 						<p>{ *msg.Details }</p>
 					}
 					<div class="mt-6">
-						<a href="/home" role="button" class="btn btn-primary">
-							Go Back Home
+						<a
+							if referer != "" {
+								href={ referer }
+							} else {
+								href="/home"
+							}
+							role="button"
+							class="btn btn-outline"
+						>
+							Go Back
 						</a>
 						<a href="mailto:support@immanent.tech&subject=Foragd Issue" class="btn btn-primary">
+							Contact Support <span aria-hidden="true">&rarr;</span>
+						</a>
+						<a href="mailto:support@immanent.tech&subject=Foragd Issue" class="btn btn-secondary">
 							Email Support <span aria-hidden="true">&rarr;</span>
 						</a>
 					</div>

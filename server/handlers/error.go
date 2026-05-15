@@ -18,11 +18,12 @@ import (
 
 // InternalError represents errors shown on internal (pages accessible to logged in users) pages.
 type InternalError struct {
-	err *models.APIError
+	err     *models.APIError
+	referer string
 }
 
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users).
-func HandleInternalError(err error) http.HandlerFunc {
+func HandleInternalError(referer string, err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
@@ -35,7 +36,8 @@ func HandleInternalError(err error) http.HandlerFunc {
 				)
 			}
 			page := &InternalError{
-				err: apiErr,
+				err:     apiErr,
+				referer: referer,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		} else {
@@ -50,7 +52,8 @@ func HandleInternalError(err error) http.HandlerFunc {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &InternalError{
-				err: apiErr,
+				err:     apiErr,
+				referer: referer,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		}
@@ -59,7 +62,7 @@ func HandleInternalError(err error) http.HandlerFunc {
 
 // FullResponse renders the error message on a full page.
 func (p *InternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.InternalError(models.UserFromCtx(req.Context()), p.err.UserMessage))).
+	templ.Handler(templates.CreatePage(templates.InternalError(models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage))).
 		ServeHTTP(res, req)
 }
 
@@ -67,7 +70,7 @@ func (p *InternalError) FullResponse(res http.ResponseWriter, req *http.Request)
 func (p *InternalError) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
 		res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-		templ.Handler(templates.InternalError(models.UserFromCtx(req.Context()), p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
+		templ.Handler(templates.InternalError(models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
 			ServeHTTP(res, req)
 	} else {
 		res.Header().Set(htmx.HeaderReswap, "none")

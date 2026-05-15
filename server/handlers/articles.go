@@ -73,19 +73,21 @@ func HandleListArticles() http.HandlerFunc {
 			Pagination: &pagination,
 		}
 		if err := request.Valid(); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("parse query values: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("parse query values: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusUnprocessableEntity,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusUnprocessableEntity,
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -114,10 +116,11 @@ func HandleListArticles() http.HandlerFunc {
 				subscriptionID,
 			)
 			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("filter articles: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("filter articles: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+					}).ServeHTTP(res, req)
 				return
 			}
 			request.Query = query.Bool(
@@ -129,10 +132,11 @@ func HandleListArticles() http.HandlerFunc {
 		var next models.Pagination
 		articles, next, err = service.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("filter articles: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("filter articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
 			return
 		}
 		request.Pagination = &next
@@ -295,26 +299,28 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to find similar",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to find similar",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("find similar articles: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to find similar",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("find similar articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to find similar",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		// Show results.
@@ -353,28 +359,30 @@ func HandleViewArticle() http.HandlerFunc {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to find similar",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to find similar",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Fetch article.
 		articles, err := service.GetArticles(req.Context(), itemID)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get article content: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to view object",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get article content: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to view object",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
@@ -443,38 +451,41 @@ func MarkArticle() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.MarkArticleRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark the article.
 		if err := markArticles(req.Context(), request.Mark, request.SubscriptionID, request.ItemID); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to mark article: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("unable to mark article: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -494,39 +505,42 @@ func MarkArticles() http.HandlerFunc {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("decode mark articles request: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark articles.",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-		if !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("validate mark articles request: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark articles.",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Mark Articles.
-		for subscriptionID, itemIDs := range request.DisplayedArticles {
-			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("mark subscriptions: %w", err),
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode mark articles request: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to mark articles.",
 						"This might be a temporary error, please try again.",
 					),
 				}).ServeHTTP(res, req)
+			return
+		}
+		if !valid {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("validate mark articles request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		// Mark Articles.
+		for subscriptionID, itemIDs := range request.DisplayedArticles {
+			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("mark subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to mark articles.",
+							"This might be a temporary error, please try again.",
+						),
+					}).ServeHTTP(res, req)
 				return
 			}
 		}
@@ -545,14 +559,15 @@ func MarkArticles() http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("mark subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark articles.",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("mark subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -567,38 +582,41 @@ func FavoriteArticle() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.FavoriteArticleRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add favorite article",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -610,14 +628,15 @@ func FavoriteArticle() http.HandlerFunc {
 		}
 
 		if err := updateFavoriteArticle(req.Context(), user, request.ItemID, favorite); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("update favorite article: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update favorite article: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable favorite article",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -630,14 +649,15 @@ func ShareArticle() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, _, err := forms.DecodeForm[*models.ShareArticleRequest](req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to favorite article",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to favorite article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 		}
 
 		RenderPartial(&Modal{

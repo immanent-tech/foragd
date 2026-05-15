@@ -49,14 +49,15 @@ func HandleReportIssue() http.HandlerFunc {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to generate issues form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to generate issues form",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 		}
 
 		objectID := req.FormValue("object_id")
@@ -76,39 +77,42 @@ func HandleSubmitIssue() http.HandlerFunc {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to generate issues form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to generate issues form",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
 		// Process any uploaded screenshot.
 		screenshotURL, err := processScreenshots(req)
 		if err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: err,
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"This might be a temporary issue, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: err,
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to submit issue",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 		if screenshotURL != "" {
@@ -150,14 +154,15 @@ func HandleSubmitIssue() http.HandlerFunc {
 			resend.WithRemoteAttachment(
 				resend.NewRemoteFileAttachment(screenshotURL, filepath.Base(screenshotURL))),
 		); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("connect to github: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to submit issue",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("connect to github: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to submit issue",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 

@@ -51,14 +51,15 @@ func HandleListFavorites() http.HandlerFunc {
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Could not list favorites",
-					"This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list favorites",
+						"This might be temporary, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 
@@ -89,14 +90,15 @@ func HandleListFavorites() http.HandlerFunc {
 		})
 
 		if err := wg.Wait(); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("run data collection: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Could not list favorites",
-					"This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("run data collection: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list favorites",
+						"This might be temporary, please try again.",
+					),
+				}).ServeHTTP(res, req)
 			return
 		}
 

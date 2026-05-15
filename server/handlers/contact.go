@@ -49,11 +49,12 @@ func HandleSubmitContact() http.HandlerFunc {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ContactRequest](req)
 		if err != nil || !valid {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-			}).ServeHTTP(res, req)
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
+				}).ServeHTTP(res, req)
 			return
 		}
 
