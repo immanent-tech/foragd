@@ -9,11 +9,19 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
+type HomeData struct {
+	LatestArticles models.Articles
+	RareCategories models.CategoryCounts
+	Subscriptions  models.Subscriptions
+	TopCategories  models.CategoryCounts
+}
+
 // UserHome is the default user home page.
-templ UserHome(data *models.HomeResponse) {
+templ UserHome(data *HomeData) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
@@ -112,7 +120,7 @@ templ UserHome(data *models.HomeResponse) {
 											Top Categories
 										</h2>
 										<div id="top-categories" class="m-2 flex flex-row flex-wrap justify-center gap-2 p-2">
-											for category := range data.TopCategories {
+											for category := range slices.Values(data.TopCategories) {
 												{{
 													filters := models.NewListDisplayFilters()
 													filters.Categories = append(filters.Categories, category.Category)

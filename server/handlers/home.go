@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"time"
+	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -33,21 +33,22 @@ const (
 // Home contains data for generating a user home page.
 type Home struct {
 	title string
-	data  *models.HomeResponse
+	data  *templates.HomeData
 }
 
 // FullResponse renders a full page (headers, footers and data).
 func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 	user := models.UserFromCtx(req.Context())
 	if user == nil {
-		HandleInternalError(&models.APIError{
-			InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-			StatusCode:    http.StatusInternalServerError,
-			UserMessage: models.NewErrorMessage(
-				"Cannot show home.",
-				"The backend produced an error. This might be temporary, please try again.",
-			),
-		}).ServeHTTP(res, req)
+		HandleInternalError(req.URL.Path,
+			&models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Cannot show home.",
+					"The backend produced an error. This might be temporary, please try again.",
+				),
+			}).ServeHTTP(res, req)
 		return
 	}
 
@@ -69,14 +70,15 @@ func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	user := models.UserFromCtx(req.Context())
 	if user == nil {
-		HandleInternalError(&models.APIError{
-			InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-			StatusCode:    http.StatusInternalServerError,
-			UserMessage: models.NewErrorMessage(
-				"Cannot show home.",
-				"The backend produced an error. This might be temporary, please try again.",
-			),
-		}).ServeHTTP(res, req)
+		HandleInternalError(req.URL.Path,
+			&models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Cannot show home.",
+					"The backend produced an error. This might be temporary, please try again.",
+				),
+			}).ServeHTTP(res, req)
 		return
 	}
 
@@ -104,7 +106,7 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 func HandleHome() http.HandlerFunc {
 	return userContentHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-			start := time.Now()
+			// start := time.Now()
 			// Retrieve the user object.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
@@ -117,14 +119,15 @@ func HandleHome() http.HandlerFunc {
 			// Get subscriptions.
 			subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("run data collection: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not display home page",
-						"This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("run data collection: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Could not display home page",
+							"This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
 			}
 			// Filter by unread and sort by last update.
 			subscriptions = subscriptions.
@@ -133,13 +136,12 @@ func HandleHome() http.HandlerFunc {
 			if len(subscriptions) > 10 {
 				subscriptions = subscriptions[:10]
 			}
-			slogctx.FromCtx(req.Context()).Debug("Retrieved user subscriptions.",
-				slog.Duration("took", time.Since(start)))
+			// slogctx.FromCtx(req.Context()).Debug("Retrieved user subscriptions.",
+			// 	slog.Duration("took", time.Since(start)))
 
 			// Create an object to hold the data.
-			data := &models.HomeResponse{
+			data := &templates.HomeData{
 				Subscriptions: subscriptions,
-				TopCategories: make(map[models.CategoryCount]models.Articles),
 			}
 
 			// Perform some aggregations for the subscriptions.
@@ -252,8 +254,8 @@ func HandleHome() http.HandlerFunc {
 					return
 				}
 
-				slogctx.FromCtx(req.Context()).Debug("Performed home aggregations.",
-					slog.Duration("took", time.Since(start)))
+				// slogctx.FromCtx(req.Context()).Debug("Performed home aggregations.",
+				// 	slog.Duration("took", time.Since(start)))
 
 				topCategoriesSamplerAgg, found, err := elastic.ExtractAggregation[*types.SamplerAggregate](
 					resp.Aggregations,
@@ -271,92 +273,112 @@ func HandleHome() http.HandlerFunc {
 					return
 				}
 
-				// Get the top categories.
-				if topCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
-					topCategoriesSamplerAgg.Aggregations,
-					"top_categories",
-				); found && err == nil {
-					if categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
-						// Generate categories from aggregation.
-						for category := range slices.Values(categoryBuckets) {
-							var value string
-							if value, ok = category.Key.(string); !ok {
-								continue
+				var wg sync.WaitGroup
+
+				wg.Go(func() {
+					// topCategoriesStart := time.Now()
+					// Get the top categories.
+					if topCategoriesAgg, foundTopCategoriesAgg, err := elastic.ExtractAggregation[*types.StringTermsAggregate](
+						topCategoriesSamplerAgg.Aggregations,
+						"top_categories",
+					); foundTopCategoriesAgg &&
+						err == nil {
+						if categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
+							// Generate categories from aggregation.
+							for category := range slices.Values(categoryBuckets) {
+								var value string
+								if value, ok = category.Key.(string); !ok {
+									continue
+								}
+								// // Get top articles.
+								// topHitsAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
+								// 	category.Aggregations,
+								// 	"top_article_hits",
+								// )
+								// if !found || err != nil {
+								// 	continue
+								// }
+								// var items models.Items
+								// if items, _, err = results.ExtractSourceFromHits[*models.Item](
+								// 	topHitsAgg.Hits.Hits,
+								// ); err != nil {
+								// 	continue
+								// }
+								// var articles models.Articles
+								// if articles, err = service.GenerateArticles(req.Context(), items); err != nil {
+								// 	continue
+								// }
+								newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
+								data.TopCategories = append(data.TopCategories, newCategory)
 							}
-							// Get top articles.
-							topHitsAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
-								category.Aggregations,
-								"top_article_hits",
-							)
-							if !found || err != nil {
-								continue
-							}
-							var items models.Items
-							if items, _, err = results.ExtractSourceFromHits[*models.Item](
-								topHitsAgg.Hits.Hits,
-							); err != nil {
-								continue
-							}
-							var articles models.Articles
-							if articles, err = service.GenerateArticles(req.Context(), items); err != nil {
-								continue
-							}
-							newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
-							data.TopCategories[newCategory] = articles
+							// // Remove duplicate articles.
+							// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
+							// 	return strings.Compare(a.GetID(), b.GetID())
+							// })
 						}
-						// // Remove duplicate articles.
-						// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
-						// 	return strings.Compare(a.GetID(), b.GetID())
-						// })
 					}
-				}
+					// slogctx.FromCtx(req.Context()).Debug("Extracted top categories.",
+					// 	slog.Duration("took", time.Since(topCategoriesStart)))
+				})
 
-				// Get the latest articles.
-				if latestArticlesSampleAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
-					topCategoriesSamplerAgg.Aggregations,
-					"latest_articles_sample",
-				); found && err == nil {
-					var items models.Items
-					if items, _, err = results.ExtractSourceFromHits[*models.Item](
-						latestArticlesSampleAgg.Hits.Hits,
-					); err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Could not extract latest items from aggregation.",
-							slog.Any("error", err),
-						)
-					}
-					var articles models.Articles
-					if articles, err = service.GenerateArticles(req.Context(), items); err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Could not generate articles from items.",
-							slog.Any("error", err),
-						)
-					}
-					data.LatestArticles = articles
-				}
-
-				// Get the rare categories.
-				if rareCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringRareTermsAggregate](
-					resp.Aggregations,
-					"rare_categories",
-				); found && err == nil {
-					// Generate category counts from buckets.
-					if rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
-						data.RareCategories = make(models.CategoryCounts, 0)
-						for category := range slices.Values(rareCategoryBuckets) {
-							data.RareCategories = append(
-								data.RareCategories,
-								models.CategoryCount{Category: category.Key, Count: int(category.DocCount)},
+				wg.Go(func() {
+					// latestArticlesStart := time.Now()
+					// Get the latest articles.
+					if latestArticlesSampleAgg, found, err := elastic.ExtractAggregation[*types.TopHitsAggregate](
+						topCategoriesSamplerAgg.Aggregations,
+						"latest_articles_sample",
+					); found && err == nil {
+						var items models.Items
+						if items, _, err = results.ExtractSourceFromHits[*models.Item](
+							latestArticlesSampleAgg.Hits.Hits,
+						); err != nil {
+							slogctx.FromCtx(req.Context()).Warn("Could not extract latest items from aggregation.",
+								slog.Any("error", err),
 							)
 						}
-						data.RareCategories.Sort()
-						if len(data.RareCategories) > 10 {
-							data.RareCategories = data.RareCategories[:10]
+						var articles models.Articles
+						if articles, err = service.GenerateArticles(req.Context(), items); err != nil {
+							slogctx.FromCtx(req.Context()).Warn("Could not generate articles from items.",
+								slog.Any("error", err),
+							)
+						}
+						data.LatestArticles = articles
+					}
+					// slogctx.FromCtx(req.Context()).Debug("Extracted latest articles.",
+					// 	slog.Duration("took", time.Since(latestArticlesStart)))
+				})
+
+				wg.Go(func() {
+					// rareAggsStart := time.Now()
+					// Get the rare categories.
+					if rareCategoriesAgg, found, err := elastic.ExtractAggregation[*types.StringRareTermsAggregate](
+						resp.Aggregations,
+						"rare_categories",
+					); found && err == nil {
+						// Generate category counts from buckets.
+						if rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
+							data.RareCategories = make(models.CategoryCounts, 0)
+							for category := range slices.Values(rareCategoryBuckets) {
+								data.RareCategories = append(
+									data.RareCategories,
+									models.CategoryCount{Category: category.Key, Count: int(category.DocCount)},
+								)
+							}
+							data.RareCategories.Sort()
+							if len(data.RareCategories) > 10 {
+								data.RareCategories = data.RareCategories[:10]
+							}
 						}
 					}
-				}
+					// slogctx.FromCtx(req.Context()).Debug("Extracted rare categories.",
+					// 	slog.Duration("took", time.Since(rareAggsStart)))
+				})
+
+				wg.Wait()
 			}
 
-			slogctx.FromCtx(req.Context()).Debug("Extracted home aggregations data.",
-				slog.Duration("took", time.Since(start)))
+			// slogctx.FromCtx(req.Context()).Debug("Extracted home aggregations data.",
+			// 	slog.Duration("took", time.Since(start)))
 
 			RenderInternalPage(&Home{
 				title: "Home",
