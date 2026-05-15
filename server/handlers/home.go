@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -103,6 +104,7 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 func HandleHome() http.HandlerFunc {
 	return userContentHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+			start := time.Now()
 			// Retrieve the user object.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
@@ -131,6 +133,8 @@ func HandleHome() http.HandlerFunc {
 			if len(subscriptions) > 10 {
 				subscriptions = subscriptions[:10]
 			}
+			slogctx.FromCtx(req.Context()).Debug("Retrieved user subscriptions.",
+				slog.Duration("took", time.Since(start)))
 
 			// Create an object to hold the data.
 			data := &models.HomeResponse{
@@ -248,6 +252,9 @@ func HandleHome() http.HandlerFunc {
 					return
 				}
 
+				slogctx.FromCtx(req.Context()).Debug("Performed home aggregations.",
+					slog.Duration("took", time.Since(start)))
+
 				topCategoriesSamplerAgg, found, err := elastic.ExtractAggregation[*types.SamplerAggregate](
 					resp.Aggregations,
 					"top_categories_sample",
@@ -347,6 +354,9 @@ func HandleHome() http.HandlerFunc {
 					}
 				}
 			}
+
+			slogctx.FromCtx(req.Context()).Debug("Extracted home aggregations data.",
+				slog.Duration("took", time.Since(start)))
 
 			RenderInternalPage(&Home{
 				title: "Home",

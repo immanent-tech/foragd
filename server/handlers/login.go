@@ -205,6 +205,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	auth0.ClearState(req)
 
 	if returnTo, err := auth0.GetReturnTo(req); err != nil {
+		slogctx.FromCtx(ctx).Debug("Redirecting home.")
 		http.Redirect(res, req.WithContext(ctx), "/home", http.StatusFound)
 	} else {
 		slogctx.FromCtx(ctx).Debug("Returning to previous page.",
