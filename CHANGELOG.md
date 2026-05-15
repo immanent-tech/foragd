@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.142.0](https://github.com/immanent-tech/foragd/compare/v0.141.0...v0.142.0) (2026-05-15)
+
+
+### Features
+
+* **handlers:** ✨ add referer to internal error ([5fbe593](https://github.com/immanent-tech/foragd/commit/5fbe5930e1685a161e26657e35e6c5576ef69137))
+
+
+### Bug Fixes
+
+* **styles:** 🔧 don't set any themes other than greenhouse as default for either light or dark preferences ([ad8d3de](https://github.com/immanent-tech/foragd/commit/ad8d3de29cdc589524d192d0547c3d464403e3f8))
+
+
+### Performance Improvements
+
+* **home:** ⚡ greatly increase home page generation ([4f4f593](https://github.com/immanent-tech/foragd/commit/4f4f593264789e7106b8d059119880df811c57ab))
+
 ## [0.141.0](https://github.com/immanent-tech/foragd/compare/v0.140.0...v0.141.0) (2026-05-15)
 
 
