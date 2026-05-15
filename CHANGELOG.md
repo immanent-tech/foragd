@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.140.0](https://github.com/immanent-tech/foragd/compare/v0.139.0...v0.140.0) (2026-05-15)
+
+
+### Features
+
+* ✨ add some more logo/icon variants ([fc8a72b](https://github.com/immanent-tech/foragd/commit/fc8a72b05fe1817626fedafb0c8d0c7f54c865df))
+* **email:** 🎨 update email templates for new theme/style ([2856bab](https://github.com/immanent-tech/foragd/commit/2856bab8b8adc447a906c25a4ee116e980dea4fc))
+
+
+### Bug Fixes
+
+* **email:** 🎨 make email theme consistent with default web theme ([e7635e0](https://github.com/immanent-tech/foragd/commit/e7635e07fa419be28f9e54f54b2d740afefe660a))
+
 ## [0.139.0](https://github.com/immanent-tech/foragd/compare/v0.138.0...v0.139.0) (2026-05-14)
 
 
