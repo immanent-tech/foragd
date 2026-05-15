@@ -20,9 +20,10 @@ func BuildSearchResultsQuery(
 	request *models.SearchRequest,
 	clause query.BoolOption,
 ) (query.Option, error) {
-	// var err error
-	var loc *time.Location
-	var err error
+	var (
+		loc *time.Location
+		err error
+	)
 	if request.Timezone != "" {
 		loc, err = time.LoadLocation(request.Timezone)
 		if err != nil {
@@ -34,8 +35,10 @@ func BuildSearchResultsQuery(
 			return nil, fmt.Errorf("build search query: load timezone: %w", err)
 		}
 	}
-	var since time.Time
-	var pivot string
+	var (
+		since time.Time
+		pivot string
+	)
 	switch request.PublishedWithin {
 	case models.SearchRequestPublishedWithinLastHour:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
@@ -57,12 +60,16 @@ func BuildSearchResultsQuery(
 	}
 
 	// Get subscriptions.
-
-	subscriptions, err := GetSubscriptionsByID(ctx, request.Subscriptions...)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	var subscriptions models.Subscriptions
+	if len(request.Subscriptions) > 0 {
+		subscriptions, err = GetSubscriptionsByID(ctx, request.Subscriptions...)
+	} else {
+		subscriptions, err = GetAllSubscriptions(ctx)
 	}
-	if len(subscriptions) == 0 {
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	case len(subscriptions) == 0:
 		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
 	}
 
