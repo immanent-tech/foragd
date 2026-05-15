@@ -3,49 +3,35 @@ preheader: Auth0 email verification (code)
 ---
 
 <x-main>
-  <div class="font-inter bg-base-100 sm:px-4">
-    <table align="center" class="m-0 mx-auto">
-      <tr>
-        <td class="w-[552px] max-w-full">
-          <x-spacer height="24px" />
-
-          <table class="w-full text-base/6">
-            <tr>
-              <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
-              >
-                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
-                  Verify your identity
-                </h1>
-
-                <p class="m-0 mb-6">
-                  Please use the following code to help verify your identity:
-                </p>
-
-                <p class="m-0 mb-6">Your code is:</p>
-
-                <code class="bg-primary p-4 text-primary-content">
-                  {{ code | escape }}
-                </code>
-
-                <x-spacer height="24px" />
-
-                <p>
-                  Thanks,
-                  <br />
-                  <span class="font-semibold"> Foragd Team </span>
-                </p>
-
-                <x-divider />
-
-                <p class="mso-break-all">
-                  Got any questions? Just reply to this email.
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
+  <x-container container-class="bg-base-200 rounded-lg">
+    <x-title-left-small>
+      <fill:title>
+        <h1 class="m-0 mb-6 text-2xl/8 font-semibold font-display">Verify your
+        identity</h1>
+      </fill:title>
+    </x-title-left-small>
+    <x-paragraph>
+      <fill:text>
+        <p class="m-0 mt-4 mb-6">
+          Please use the following code to help verify your identity:
+        </p>
+        <p class="m-0 mb-6">Your code is:</p>
+        <div class="text-center">
+          <code class="mb-6 bg-primary p-4 text-primary-content">
+            {{ code | escape }}
+          </code>
+        </div>
+      </fill:text>
+    </x-paragraph>
+    <div class="m-0 mx-4">
+      <x-divider />
+    </div>
+    <x-paragraph>
+      <fill:text>
+        <p class="mso-break-all m-0 mt-4 mb-6">
+          Got any questions? Just reply to this email.
+        </p>
+      </fill:text>
+    </x-paragraph>
+  </x-container>
 </x-main>

@@ -7,12 +7,12 @@
    * Calculate column width based on `gap` and `flush` props
    */
   const colWidthClass = () => {
-    if (flush && !gap) return "w-[200px]";
-    if (flush && gap) return "w-[184px]";
-    if (!flush && !gap) return "w-[168px]";
+    if (flush && !gap) return "w-[138px]";
+    if (flush && gap) return "w-[132px]";
+    if (!flush && !gap) return "w-[150px]";
 
     // With gap and not flush
-    return "w-[168px]";
+    return "w-[120px]";
   };
 
   module.exports = {
@@ -24,12 +24,10 @@
   };
 </script>
 
-<table class="w-full"">
+<table class="w-full">
   <tr>
     <td>&zwj;</td>
-    <td
-      class="[[ containerClasses ]] w-[600px] max-w-full"
-    >
+    <td class="[[ containerClasses ]] w-[600px] max-w-full">
       <table class="w-full">
         <tr>
           <td class="[[ flush ? '' : 'p-0 px-6' ]]">
@@ -44,7 +42,7 @@
                 </td>
                 <if condition="gap">
                   <td
-                    class="[[ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' ]] w-6 leading-6"
+                    class="[[ reverse ? 'sm:hidden' : 'sm:w-full sm:block' ]] w-6 leading-6"
                   >
                     &zwj;
                   </td>
@@ -52,11 +50,27 @@
                 <td
                   class="[[ colWidthClass ]] [[ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' ]]"
                 >
-                  <slot:col-2>Column 2</slot:col-2>
+                  <div class="[[ gap ? 'sm:mb-6' : '' ]]">
+                    <slot:col-2>Column 2</slot:col-2>
+                  </div>
                 </td>
                 <if condition="gap">
                   <td
-                    class="[[ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' ]] w-6 leading-6"
+                    class="[[ reverse ? 'sm:hidden' : 'sm:w-full sm:block' ]] w-6 leading-6"
+                  >
+                    &zwj;
+                  </td>
+                </if>
+                <td
+                  class="[[ colWidthClass ]] [[ reverse ? 'sm:table-header-group' : 'sm:w-full sm:block' ]]"
+                >
+                  <div class="[[ gap ? 'sm:mb-6' : '' ]]">
+                    <slot:col-3>Column 3</slot:col-3>
+                  </div>
+                </td>
+                <if condition="gap">
+                  <td
+                    class="[[ reverse ? 'sm:hidden' : 'sm:w-full sm:block' ]] w-6 leading-6"
                   >
                     &zwj;
                   </td>
@@ -64,7 +78,9 @@
                 <td
                   class="[[ colWidthClass ]] [[ reverse ? 'sm:table-caption' : 'sm:block' ]] sm:w-full"
                 >
-                  <slot:col-3>Column 3</slot:col-3>
+                  <div class="[[ gap ? 'sm:mb-6' : '' ]]">
+                    <slot:col-4>Column 4</slot:col-4>
+                  </div>
                 </td>
               </tr>
             </table>

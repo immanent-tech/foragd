@@ -10,8 +10,5 @@
     "dotenv-cli": "^11.0.0",
     "tailwindcss-preset-email": "latest",
     "tailwindcss-safe-area": "^0.8.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19"
   }
 }

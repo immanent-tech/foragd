@@ -1,24 +1,22 @@
 <script props>
   module.exports = {
     containerClasses: props["container-class"] || "",
-    flush: props.flush,
+    padding: props.padding,
   };
 </script>
 
-<table class="w-full">
+<table class="w-full text-base/6 text-neutral">
   <tr>
-    <td class="[[ flush ? '' : 'sm:w-6']]">&zwj;</td>
+    <td>&zwj;</td>
     <td class="[[ containerClasses ]] w-[600px] max-w-full">
       <table class="w-full">
         <tr>
-          <td>
-            <x-spacer height="44px" />
-
-            <yield />
+          <td class="[[ padding == 'lg' ? 'px-16' : 'px-6' ]] p-0">
+            <slot:text> </slot:text>
           </td>
         </tr>
       </table>
     </td>
-    <td class="[[ flush ? '' : 'sm:w-6']]">&zwj;</td>
+    <td>&zwj;</td>
   </tr>
 </table>

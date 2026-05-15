@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  plugins: [
-    require("@tailwindcss/typography"),
-    require("tailwindcss-safe-area"),
-  ],
+  plugins: [require("tailwindcss-safe-area")],
   presets: [require("tailwindcss-preset-email")],
   content: [
     "./components/**/*.html",

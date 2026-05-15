@@ -1,62 +1,90 @@
 <script props>
-  let menuItems = props.menu || [
-    { "label": "Home", "href": "https://foragd.app" },
-    { "label": "Terms of Service", "href": "https://foragd.app/policies/tos" },
-    { "label": "Acceptable Use", "href": "https://foragd.app/policies/acceptable-use" },
-    { "label": "Privacy", "href": "https://foragd.app/policies/privacy" },
-  ]
+  let align = "";
+
+  if (props.align) {
+    align = {
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    }[props.align];
+  }
+
+  let alignMargins =
+    {
+      left: "",
+      center: "m-0 mx-auto",
+      right: "m-0 ml-auto",
+    }[props.align] || "";
 
   module.exports = {
-    menuItems,
-    containerClasses: props['container-class'] || '',
-  }
+    props,
+    align,
+    alignMargins,
+    containerClasses: props["container-class"] || "",
+  };
 </script>
 
-<table
-  class="w-full bg-base-100"
->
+<table class="w-full">
   <tr>
     <td>&zwj;</td>
-    <td
-      class="w-[600px] pt-11 pb-6 max-w-full [[ containerClasses ]]"
-    >
-      <div class="text-center">
-          <a href="/">
-            <img src="/content/icons/icon-light-1024.png" width="64" alt="Foragd Icon" class="max-w-full align-middle">
-          </a>
-      </div>
-
-      <x-spacer height="64px" />
-
-      <div class="flex flex-row lg:flex-col gap-x-4 justify-center">
-          <each loop="item, index in menuItems">
-            <a href="[[[ item.href ]]]" class="text-sm/5 text-neutral hover:text-accent no-underline">[[[ item.label ]]]</a>
-          </each>
-      </div>
-
-      <x-spacer height="36px" />
-
+    <td class="[[ containerClasses ]] w-[600px] max-w-full pt-11 pb-6">
       <table class="w-full">
         <tr>
           <td class="p-0 px-6">
-            <slot:copyright>
-              <p class="m-0 text-center text-sm/6 text-neutral">
-                &copy; [[ new Date().getFullYear() ]] Immanent Tech
-                <br>
-                Immanent Tech <span>&nbsp;|&nbsp;</span> PO Box 528 Hamilton Central  <span>&nbsp;|&nbsp;</span> QLD 4007 Australia
-              </p>
-            </slot:copyright>
+            <if condition="props.align !== 'center'">
+              <div class="[[ align ]]">
+                <a href="/">
+                  <img
+                    src="/content/icons/icon-light-1024.png"
+                    width="64"
+                    alt="Foragd Icon"
+                    class="max-w-full align-middle"
+                  />
+                </a>
+              </div>
 
-            <!-- <slot:unsubscribe>
               <x-spacer height="24px" />
+            </if>
 
-              <p class="m-0 text-center text-base/6 text-gray-300">
-                You're receiving this because you subscribed to updates.
-                <br class="sm:hidden">
-                No longer want to receive emails?
-                <a href="https://example.com/unsub" class="underline hover:no-underline text-gray-300">Unsubscribe</a>
-              </p>
-            </slot:unsubscribe> -->
+            <if condition="props.align === 'center'">
+              <div
+                class="m-0 mb-6 h-px bg-gray-300 leading-px"
+                role="separator"
+              >
+                &zwj;
+              </div>
+            </if>
+
+            <if condition="props.align === 'center'">
+              <table class="w-full">
+                <tr>
+                  <td class="w-4/12 sm:block sm:w-full sm:pb-6 sm:text-center">
+                    <a href="/">
+                      <img
+                        src="/content/icons/icon-light-1024.png"
+                        width="64"
+                        alt="Foragd Icon"
+                        class="max-w-full align-middle"
+                      />
+                    </a>
+                  </td>
+                  <td class="sm:block sm:w-full sm:text-center">
+                    <slot:copyright>
+                      &copy; [[ new Date().getFullYear() ]] Immanent Tech. All
+                      rights reserved.
+                    </slot:copyright>
+                  </td>
+                </tr>
+              </table>
+            </if>
+            <else>
+              <div class="[[ align ]]">
+                <slot:copyright>
+                  &copy; [[ new Date().getFullYear() ]] Immanent Tech. All
+                  rights reserved.
+                </slot:copyright>
+              </div>
+            </else>
           </td>
         </tr>
       </table>
@@ -64,4 +92,3 @@
     <td>&zwj;</td>
   </tr>
 </table>
-

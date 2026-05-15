@@ -3,66 +3,57 @@ preheader: Checking in about Foragd
 ---
 
 <x-main>
-  <div class="font-inter bg-base-100 sm:px-4">
-    <table align="center" class="m-0 mx-auto">
-      <tr>
-        <td class="w-[552px] max-w-full">
-          <x-spacer height="24px" />
+  <x-container container-class="bg-base-200 rounded-lg">
+    <x-title-left-small>
+      <fill:title>
+        <h1 class="m-0 mb-6 text-2xl/8 font-semibold font-display"> Hey
+        {{{USER_NICKNAME}}}. </h1>
+      </fill:title>
+    </x-title-left-small>
+    <x-paragraph>
+      <fill:text>
+        <p class="m-0 mb-6">
+          It looks like you have signed up for a
+          <span class="font-semibold">Foragd</span>
+          account, but haven't yet logged in to the app.
+        </p>
 
-          <table class="w-full text-base/6">
-            <tr>
-              <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
-              >
-                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
-                  Hey {{{USER_NICKNAME}}},
-                </h1>
+        <p class="m-0 mb-6">
+          I just wanted to check in to make sure there are no issues with your
+          account or logging in, or any other troubles. Got any questions or
+          issues, just reply to this email. Otherwise, all good.
+        </p>
 
-                <p class="m-0 mb-6">
-                  It looks like you have signed up for a
-                  <span class="font-semibold">Foragd</span>
-                  account, but haven't yet logged in to the app.
-                </p>
+        <div class="text-center">
+          <x-button
+            href="/login"
+            class="bg-primary text-primary-content hover:bg-accent"
+          >
+            Login
+          </x-button>
+        </div>
 
-                <p class="m-0 mb-6">
-                  I just wanted to check in to make sure there are no issues
-                  with your account or logging in, or any other troubles. Got
-                  any questions or issues, just reply to this email. Otherwise,
-                  all good.
-                </p>
+        <p class="m-0 mt-4">
+          Thanks,
+          <br />
+          <span class="font-semibold">Foragd Team</span>
+        </p>
+      </fill:text>
+    </x-paragraph>
 
-                <x-button
-                  href="/login"
-                  class="bg-primary text-primary-content hover:bg-accent"
-                >
-                  Login
-                </x-button>
+    <div class="m-0 mx-4">
+      <x-divider />
+    </div>
 
-                <x-spacer height="24px" />
-
-                <p class="m-0">
-                  Thanks,
-                  <br />
-                  <span class="font-semibold">Foragd Team</span>
-                </p>
-
-                <x-divider />
-
-                <div class="text-center">
-                  <p class="mso-break-all m-0 mt-2 text-sm">
-                    <a
-                      class="hover:text-accent"
-                      href="{{{USER_UNSUBSCRIBE_LINK}}}"
-                      >Unsubscribe</a
-                    >
-                    from these emails.
-                  </p>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
+    <x-paragraph>
+      <fill:text>
+        <p class="mso-break-all text-center text-sm">
+          <a class="hover:text-accent" href="{{{USER_UNSUBSCRIBE_LINK}}}"
+            >Unsubscribe</a
+          >
+          from these emails.
+        </p>
+      </fill:text>
+    </x-paragraph>
+  </x-container>
 </x-main>

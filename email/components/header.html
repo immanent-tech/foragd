@@ -1,38 +1,231 @@
 <script props>
+  let containerBg = props["container-bg"] || "";
   let containerClasses = props["container-class"] || "";
+  let menuType = props["menu-type"] || "right";
 
-  let align = "";
+  let align = {
+    left: "text-left sm:text-right",
+    right: "text-right sm:text-left",
+  }[menuType || "right"];
 
-  if (props.align) {
-    align = {
-      left: "text-left",
-      center: "text-center",
-      right: "text-right",
-    }[props.align];
-  }
+  let stackedAlign = {
+    "stacked-left": "text-left",
+    "stacked-right": "text-right",
+    "stacked-center": "text-center",
+  }[menuType || "stacked-left"];
+
+  let containerBaseStyles = ["padding: 24px"];
 
   module.exports = {
     align,
-    containerClasses: [containerClasses, align].filter(Boolean).join(" "),
+    stackedAlign,
+    menuType,
+    containerBg,
+    containerClasses,
+    menuItems: props["menu-items"],
+    containerBaseStyles: containerBaseStyles.join(";"),
   };
 </script>
 
-<table class="w-full bg-base-100 py-8">
+<table class="w-full">
   <tr>
     <td>&zwj;</td>
     <td class="w-[600px] max-w-full">
       <table class="w-full">
         <tr>
-          <td class="[[ containerClasses ]]">
-            <a href="/">
-              <img
-                src="/content/logo-horizontal-light.png"
-                width="247"
-                height="64"
-                alt="Foragd Logo"
-                class="max-w-full align-middle"
-              />
-            </a>
+          <td class="[[ containerClasses ]]" style="[[ containerBaseStyles ]]">
+            <table class="w-full">
+              <tr class="sm:table sm:w-full">
+                <if condition="menuType === 'left'">
+                  <!-- Menu left-aligned -->
+                  <td class="[[ align ]] pr-6 sm:table-footer-group">
+                    <div class="text-0 sm:pt-6">
+                      <each loop="item, index in menuItems">
+                        <if condition="index > 0">
+                          <outlook trim>
+                            <span class="mso-font-width-[150%] text-sm"
+                              >&emsp;</span
+                            >
+                          </outlook>
+                        </if>
+                        <a
+                          href="[[[ item.href ]]]"
+                          class="[[ index > 0 ? 'ml-6' : '' ]] inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                        >
+                          <span>[[[ item.label ]]]</span>
+                        </a>
+                      </each>
+                    </div>
+                  </td>
+                  <td
+                    class="[[ align ]] sm:table-header-group"
+                    style="width: 247px"
+                  >
+                    <a href="/">
+                      <img
+                        width="247"
+                        height="64"
+                        src="/content/logo-horizontal-light.png"
+                        alt="Foragd Logo"
+                        class="max-w-full align-middle"
+                      />
+                    </a>
+                  </td>
+                </if>
+                <if condition="menuType === 'right'">
+                  <!-- Menu right-aligned -->
+                  <td class="sm:block sm:w-full" style="width: 247px">
+                    <a href="/">
+                      <img
+                        width="247"
+                        height="64"
+                        src="/content/logo-horizontal-light.png"
+                        alt="Foragd Logo"
+                        class="max-w-full align-middle"
+                      />
+                    </a>
+                  </td>
+                  <td
+                    class="[[ align ]] text-0 pl-6 sm:block sm:w-full sm:p-[24px_0_0]"
+                  >
+                    <each loop="item, index in menuItems">
+                      <if condition="index > 0">
+                        <outlook trim>
+                          <span class="mso-font-width-[150%] text-sm"
+                            >&emsp;</span
+                          >
+                        </outlook>
+                      </if>
+                      <a
+                        href="[[[ item.href ]]]"
+                        class="ml-6 inline-block text-sm/8 font-medium text-gray-500 no-underline sm:mr-6 sm:ml-0"
+                      >
+                        [[[ item.label ]]]
+                      </a>
+                    </each>
+                  </td>
+                </if>
+                <if condition="menuType === 'around'">
+                  <!-- Menu around logo -->
+                  <td class="text-0 text-left sm:hidden">
+                    <!-- First 3 menu items -->
+                    <each loop="item, index in menuItems.slice(0, 3)">
+                      <if condition="index > 0">
+                        <outlook trim>
+                          <span class="mso-font-width-[100%] text-sm"
+                            >&emsp;</span
+                          >
+                        </outlook>
+                      </if>
+                      <a
+                        href="[[[ item.href ]]]"
+                        class="[[ index > 0 ? 'ml-6' : '' ]] inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                      >
+                        [[[ item.label ]]]
+                      </a>
+                    </each>
+                  </td>
+                  <td
+                    class="text-center sm:table-header-group"
+                    style="width: 247px"
+                  >
+                    <a href="/">
+                      <img
+                        width="247"
+                        height="64"
+                        src="/content/logo-horizontal-light.png"
+                        alt="Foragd Logo"
+                        class="max-w-full align-middle"
+                      />
+                    </a>
+                  </td>
+                  <td class="text-0 hidden pt-6 text-center sm:block">
+                    <each loop="item, index in menuItems">
+                      <a
+                        href="[[[ item.href ]]]"
+                        class="m-0 mx-3 inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                      >
+                        [[[ item.label ]]]
+                      </a>
+                    </each>
+                  </td>
+                  <td class="text-0 text-right sm:hidden">
+                    <!-- Last 3 menu items -->
+                    <each loop="item, index in menuItems.slice(3)">
+                      <if condition="index > 0">
+                        <outlook trim>
+                          <span class="mso-font-width-[150%] text-sm"
+                            >&emsp;</span
+                          >
+                        </outlook>
+                      </if>
+                      <a
+                        href="[[[ item.href ]]]"
+                        class="[[ index > 0 ? 'ml-6' : '' ]] inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                      >
+                        [[[ item.label ]]]
+                      </a>
+                    </each>
+                  </td>
+                </if>
+                <if
+                  condition="['stacked-left', 'stacked-right', 'stacked-center'].includes(menuType)"
+                >
+                  <!-- Menu stacked -->
+                  <td class="[[ stackedAlign ]]">
+                    <div>
+                      <a href="/">
+                        <img
+                          width="247"
+                          height="64"
+                          src="/content/logo-horizontal-light.png"
+                          alt="Foragd Logo"
+                          class="max-w-full align-middle"
+                        />
+                      </a>
+                    </div>
+
+                    <x-spacer height="24px" />
+
+                    <div class="text-0">
+                      <each loop="item, index in menuItems">
+                        <if condition="stackedAlign == 'text-left'">
+                          <a
+                            href="[[[ item.href ]]]"
+                            class="mr-6 inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                          >
+                            [[[ item.label ]]]
+                          </a>
+                        </if>
+                        <if condition="stackedAlign == 'text-center'">
+                          <a
+                            href="[[[ item.href ]]]"
+                            class="mx-3 inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                          >
+                            [[[ item.label ]]]
+                          </a>
+                        </if>
+                        <if condition="stackedAlign == 'text-right'">
+                          <a
+                            href="[[[ item.href ]]]"
+                            class="ml-6 inline-block text-sm/8 font-medium text-gray-500 no-underline"
+                          >
+                            [[[ item.label ]]]
+                          </a>
+                        </if>
+                        <if condition="index < menuItems.length - 1">
+                          <outlook trim>
+                            <span class="mso-font-width-[150%] text-sm"
+                              >&emsp;</span
+                            >
+                          </outlook>
+                        </if>
+                      </each>
+                    </div>
+                  </td>
+                </if>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>

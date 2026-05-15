@@ -68,16 +68,27 @@
         </each>
       </div>
     </if>
-    <x-header align="text-left" />
+    <x-header
+      align="text-left"
+      menu-items='[{"href":"/","label":"Home"},{"href":"/list/subscriptions","label":"Subscriptions"},{"href": "/list/favorites","label":"Favorites"}]'
+    />
     <div
       role="article"
       aria-roledescription="email"
       aria-label="[[[ page.title || '' ]]]"
       lang="[[ page.language || 'en' ]]"
-      class="mx-auto prose py-12 text-base-content"
+      class="mx-auto py-12 text-base-content"
     >
       <yield />
     </div>
-    <x-footer />
+    <x-footer align="left" >
+      <fill:copyright>
+                                  <p class="m-0 mb-2 text-sm text-neutral">
+                    &copy; [[ new Date().getFullYear() ]] Immanent Tech. All rights reserved.
+                                   <br>
+         PO Box 528 Hamilton Central  <span>&nbsp;|&nbsp;</span> QLD 4007 Australia
+                  </p>
+      </fill:copyright>
+    </x-footer>
   </body>
 </html>

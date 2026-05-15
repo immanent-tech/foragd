@@ -3,112 +3,101 @@ preheader: Welcome to Foragd
 ---
 
 <x-main>
-  <div class="font-inter bg-base-100 sm:px-4">
-    <table align="center" class="m-0 mx-auto">
-      <tr>
-        <td class="w-[552px] max-w-full">
-          <x-spacer height="24px" />
-
-          <table class="w-full text-base/6">
-            <tr>
-              <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
-              >
-                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
-                  Your're in!
-                </h1>
-
-                <p class="m-0 mb-6">
-                  Welcome to
-                  <span class="font-semibold text-base-content">Foragd</span>,
-                  your one place for all your feed, newsletter, and article
-                  content. All fully searchable, always in sync, never
-                  algorithmic. Get started curating your collection.
-                </p>
-
-                <x-spacer height="24px" />
-
-                <div
-                  class="flex flex-col rounded-lg bg-base-300 p-4 lg:flex-row"
-                >
-                  <p
-                    class="my-4 text-center font-display text-lg/8 font-semibold lg:text-left"
-                  >
-                    Go to your home page<span class="hidden lg:block"> → </span>
-                  </p>
-                  <x-button
-                    align="center"
-                    href="/home"
-                    class="bg-primary text-primary-content hover:bg-accent"
-                  >
-                    Home
-                  </x-button>
-                </div>
-
-                <p class="my-4 text-center text-sm">
-                  Or navigate to
-                  <span class="hover:text-accent">https://foragd.app/home</span>
-                </p>
-
-                <div class="flex justify-center"></div>
-
-                <x-spacer height="24px" />
-
-                <h2 class="m-0 mb-6 text-lg/8 font-semibold">Next Steps</h2>
-
-                <ul class="list-none">
-                  <li class="my-2">
-                    1️⃣
-                    <a
-                      class="font-semibold hover:text-accent"
-                      href="/subscription/add"
-                      >Add</a
-                    >
-                    a feed from a URL or
-                    <a
-                      class="font-semibold hover:text-accent"
-                      href="/user/import"
-                      >Import</a
-                    >
-                    your feeds from another service.
-                  </li>
-                  <li class="my-2">
-                    2️⃣
-                    <a
-                      class="font-semibold hover:text-accent"
-                      href="/subscription/add/group"
-                      >Create a Group Subscription</a
-                    >
-                    to keep track of all articles from a bunch of similar
-                    sources.
-                  </li>
-                  <li class="my-2">
-                    3️⃣ Search and filter to find what you need, then save the
-                    results as a
-                    <a
-                      class="font-semibold hover:text-accent"
-                      href="/subscription/add/search"
-                      >Search Subscription</a
-                    >
-                    to keep up to date as new articles come in.
-                  </li>
-                </ul>
-
-                <x-spacer height="24px" />
-
-                <p class="mso-break-all m-0 mt-2">
-                  Check out the
-                  <a class="hover:text-accent" href="/help"
-                    >help documentation</a
-                  >
-                  for more information. Got any questions? Just reply to this
-                  email.
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
+  <x-container container-class="bg-base-200 rounded-lg">
+    <x-title-left-small>
+      <fill:title>
+        <h1 class="text-2xl/8 font-semibold font-display">You're in!</h1>
+      </fill:title>
+    </x-title-left-small>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          Welcome to
+          <span class="font-semibold text-base-content">Foragd</span>, your one
+          place for all your feed, newsletter, and article content. All fully
+          searchable, always in sync, never algorithmic. Get started curating
+          your collection.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <div class="p-12">
+    <x-grid-3-to-1-split container-class="bg-base-300 rounded-lg">
+      <fill:col-1>
+        <h2 class="text-center font-display text-xl/8 font-semibold">
+          Go to your home page:
+        </p>
+      </fill:col-1>
+      <fill:col-2>
+        <div class="mb-4">
+        <x-button
+          align="center"
+          href="/home"
+          class="bg-primary text-primary-content hover:bg-accent"
+        >
+          Home
+        </x-button>
+        </div>
+      </fill:col-2>
+    </x-grid-3-to-1-split>
+    </div>
+    <x-paragraph>
+      <fill:text>
+        <p class="text-center text-sm">
+          Or navigate to
+          <span class="hover:text-accent">https://foragd.app/home</span>
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <x-title-left-small>
+      <fill:title>
+        <h2 class="text-lg/8 font-semibold">Next Steps:</h2>
+      </fill:title>
+    </x-title-left-small>
+    <div class="p-4">
+    <x-paragraph container-class="bg-base-300 rounded-lg">
+      <fill:text>
+        <div class="my-8">
+        <p class="my-2">
+          1️⃣
+          <a class="font-semibold hover:text-accent" href="/subscription/add"
+            >Add</a
+          >
+          a feed from a URL or
+          <a class="font-semibold hover:text-accent" href="/user/import"
+            >Import</a
+          >
+          your feeds from another service.
+        </p>
+        <p class="my-2">
+          2️⃣
+          <a
+            class="font-semibold hover:text-accent"
+            href="/subscription/add/group"
+            >Create a Group Subscription</a
+          >
+          to keep track of all articles from a bunch of similar sources.
+        </p>
+        <p class="my-2">
+          3️⃣ Search and filter to find what you need, then save the results as a
+          <a
+            class="font-semibold hover:text-accent"
+            href="/subscription/add/search"
+            >Search Subscription</a
+          >
+          to keep up to date as new articles come in.
+        </p>
+        </div>
+      </fill:text>
+    </x-paragraph>
+    </div>
+    <x-paragraph>
+      <fill:text>
+        <p class="mso-break-all mb-4 mt-12">
+          Check out the
+          <a class="hover:text-accent" href="/help">help documentation</a>
+          for more information. Got any questions? Just reply to this email.
+        </p>
+      </fill:text>
+    </x-paragraph>
+  </x-container>
 </x-main>
