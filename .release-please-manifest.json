@@ -1,4 +1,3 @@
 {
-  ".": "0.139.0",
-  "pull-request-title-pattern": "chore${scope}: 🚀 release${component} ${version}"
+  ".": "0.139.0"
 }
