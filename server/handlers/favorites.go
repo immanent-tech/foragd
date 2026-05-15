@@ -72,7 +72,7 @@ func HandleListFavorites() http.HandlerFunc {
 				var err error
 				articles, err = service.GetArticles(jobCtx, user.ItemFavorites...)
 				if err != nil {
-					return fmt.Errorf("list favorites: get favorite articles: %w", err)
+					return fmt.Errorf("get articles: %w", err)
 				}
 			}
 			return nil
@@ -81,11 +81,15 @@ func HandleListFavorites() http.HandlerFunc {
 		// Get favorite subscriptions.
 		wg.Go(func() error {
 			var err error
-			subscriptions, err = service.GetAllSubscriptions(jobCtx, user)
+			subscriptions, err = service.GetAllSubscriptions(jobCtx)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				return fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
+				return fmt.Errorf("get all subscriptions: %w", err)
 			}
 			subscriptions = subscriptions.FilterByFavorites(true)
+			// Update subscription dynamic info.
+			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+				return fmt.Errorf("update subscription dynamic info: %w", err)
+			}
 			return nil
 		})
 

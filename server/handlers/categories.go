@@ -80,8 +80,7 @@ func ListCategories() http.HandlerFunc {
 				}
 
 				// Get subscription details.
-
-				subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+				subscriptions, err := service.GetAllSubscriptions(req.Context())
 				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 						slog.Any("error", err),
@@ -91,6 +90,15 @@ func ListCategories() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 					return
 				}
+				// Update subscription dynamic info.
+				if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
+						slog.Any("error", err),
+					)
+					res.WriteHeader(http.StatusNoContent)
+					return
+				}
+				// Filter subscriptions.
 				subscriptions = subscriptions.
 					FilterByView(articleFilters.GetView()).
 					FilterByIDs(articleFilters.GetSubscriptions()...)

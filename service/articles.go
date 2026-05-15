@@ -40,13 +40,10 @@ func FilterArticles(
 	}
 
 	// Get subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetSubscriptionsByID(ctx, request.Filters.GetSubscriptions()...)
 	if err != nil {
 		return nil, "", fmt.Errorf("get subscriptions: %w", err)
 	}
-	subscriptions = subscriptions.
-		FilterByView(request.Filters.GetView()).
-		FilterByIDs(request.Filters.GetSubscriptions()...)
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
 		return nil, "", models.ErrNotFound
@@ -100,12 +97,12 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 	if user == nil {
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	switch {
 	case err != nil:
-		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", err)
+		return nil, fmt.Errorf("get subscriptions: %w", err)
 	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", models.ErrNotFound)
+		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
 	}
 	// Build the More Like This query.
 	// TODO: tweak values and fields for optimum results matching...

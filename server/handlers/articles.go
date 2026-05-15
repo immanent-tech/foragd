@@ -112,7 +112,6 @@ func HandleListArticles() http.HandlerFunc {
 		if subscriptionID := req.FormValue("subscription_id"); subscriptionID != "" {
 			subscription, err = service.GetSubscription(
 				req.Context(),
-				user,
 				subscriptionID,
 			)
 			if err != nil {
@@ -198,9 +197,17 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		}
 
 		// Retreive subscription details.
-		subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+		subscriptions, err := service.GetAllSubscriptions(req.Context())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		// Update subscription dynamic info.
+		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusNoContent)
@@ -672,19 +679,13 @@ func markArticles(
 	subscriptionID models.SubscriptionID,
 	itemIDs ...models.ItemID,
 ) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
-	}
-
-	subscription, err := service.GetSubscription(ctx, user, subscriptionID)
+	subscription, err := service.GetSubscription(ctx, subscriptionID)
 	if err != nil {
 		return fmt.Errorf("get subscriptions: %w", err)
 	}
 	subscription.MarkItems(mark, itemIDs...)
 
-	_, err = service.UpdateSubscriptions(ctx, subscription)
-	if err != nil {
+	if _, err = service.UpdateSubscriptions(ctx, subscription); err != nil {
 		return fmt.Errorf("update subscription data: %w", err)
 	}
 

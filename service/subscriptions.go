@@ -33,54 +33,96 @@ var userSubscriptionsCache = otter.Must(
 	},
 )
 
-func loadSubscriptions(
-	ctx context.Context,
-	userID models.UserID,
-) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
-	userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
-		InitialCapacity: 3000,
-		MaximumSize:     3000,
+var cacheAllSubscriptions = otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
+	func(
+		ctx context.Context,
+		userID models.UserID,
+	) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
+		userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
+			InitialCapacity: 3000,
+			MaximumSize:     3000,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create subscriptions cache: %w", err)
+		}
+		start := time.Now()
+		// Execute query.
+		subscriptions, err := elastic.SearchAll[*models.Subscription](
+			ctx,
+			schema.SubscriptionsIndexRO(),
+			query.Term("user_id", userID),
+			3000,
+		)
+		if err != nil {
+			return nil, ElasticsearchToAPIError(err)
+		}
+
+		if len(subscriptions) == 0 {
+			return nil, otter.ErrNotFound
+		}
+
+		for subscription := range slices.Values(subscriptions) {
+			userSubscriptionsCache.Set(subscription.GetID(), subscription)
+		}
+
+		slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
+			slog.Duration("took", time.Since(start)))
+
+		return userSubscriptionsCache, nil
 	})
-	if err != nil {
-		return nil, fmt.Errorf("create subscriptions cache: %w", err)
-	}
-	start := time.Now()
-	// Execute query.
-	subscriptions, err := elastic.SearchAll[*models.Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		query.Term("user_id", userID),
-		3000,
-	)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
-	}
 
-	if len(subscriptions) == 0 {
-		return nil, otter.ErrNotFound
-	}
+var cacheSubscriptionsByID = otter.BulkLoaderFunc[models.SubscriptionID, *models.Subscription](
+	func(
+		ctx context.Context,
+		ids []models.SubscriptionID,
+	) (map[models.SubscriptionID]*models.Subscription, error) {
+		subscriptions, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+			ctx,
+			schema.SubscriptionsIndexRO(),
+			ids...,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
+		}
 
-	for subscription := range slices.Values(subscriptions) {
-		userSubscriptionsCache.Set(subscription.GetID(), subscription)
-	}
+		results := make(map[models.SubscriptionID]*models.Subscription, len(subscriptions))
 
-	slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
-		slog.Duration("took", time.Since(start)))
+		for subscription := range slices.Values(subscriptions) {
+			results[subscription.GetID()] = subscription
+		}
 
-	return userSubscriptionsCache, nil
-}
+		return results, nil
+	})
+
+var cacheSubscription = otter.LoaderFunc[models.SubscriptionID, *models.Subscription](
+	func(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
+		subscription, err := elastic.GetDoc[models.SubscriptionID, *models.Subscription](
+			ctx,
+			schema.SubscriptionsIndexRO(),
+			id,
+		)
+		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
+		}
+		if errors.Is(err, elastic.ErrNotFound) {
+			return nil, otter.ErrNotFound
+		}
+		return subscription, nil
+	})
 
 // GetAllSubscriptions returns all subscriptions for the given user.
 func GetAllSubscriptions(
 	ctx context.Context,
-	user *models.User,
 ) (models.Subscriptions, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
+	}
+
 	subscriptionsCache, err := userSubscriptionsCache.Get(
 		ctx,
 		user.GetID(),
-		otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
-			loadSubscriptions,
-		),
+		cacheAllSubscriptions,
 	)
 	switch {
 	case err != nil && errors.Is(err, otter.ErrNotFound):
@@ -94,26 +136,37 @@ func GetAllSubscriptions(
 		subscriptions = append(subscriptions, subscription)
 	}
 
-	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to update subscription dynamic info.",
-			slog.Any("error", err),
-		)
-	}
-
 	return subscriptions, nil
 }
 
 // GetSubscription returns the subscription that matches the given ID for the given user.
 func GetSubscription(
 	ctx context.Context,
-	user *models.User,
 	id models.SubscriptionID,
 ) (*models.Subscription, error) {
-	subscriptions, err := GetAllSubscriptions(ctx, user)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
-	return subscriptions.GetByID(id), nil
+
+	subscriptionsCache, err := userSubscriptionsCache.Get(
+		ctx,
+		user.GetID(),
+		cacheAllSubscriptions,
+	)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
+	case err != nil:
+		return nil, fmt.Errorf("get all subscriptions: %w", err)
+	}
+
+	subscription, err := subscriptionsCache.Get(ctx, id, cacheSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription by id: %w", err)
+	}
+
+	return subscription, nil
 }
 
 // GetSubscriptionsByID returns all subscriptions that match the given SubscriptionIDs.
@@ -126,12 +179,24 @@ func GetSubscriptionsByID(
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptions, err := GetAllSubscriptions(ctx, user)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	subscriptionsCache, err := userSubscriptionsCache.Get(
+		ctx,
+		user.GetID(),
+		cacheAllSubscriptions,
+	)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		return nil, fmt.Errorf("get user subscription cache: %w", models.ErrNotFound)
+	case err != nil:
+		return nil, fmt.Errorf("get user subscription cache: %w", err)
 	}
 
-	return subscriptions.FilterByIDs(ids...), nil
+	results, err := subscriptionsCache.BulkGet(ctx, ids, cacheSubscriptionsByID)
+	if err != nil {
+		return nil, fmt.Errorf("bulk get subscriptions: %w", err)
+	}
+
+	return slices.Collect(maps.Values(results)), nil
 }
 
 // GetSubscriptionsByFeedID returns all subscriptions that match the given FeedIDs.
@@ -139,17 +204,18 @@ func GetSubscriptionsByFeedID(
 	ctx context.Context,
 	ids ...models.FeedID,
 ) (models.Subscriptions, error) {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+		return nil, fmt.Errorf("get all subscriptions: %w", err)
 	}
 
-	return subscriptions.FilterByFeedIDs(ids...), nil
+	subscriptions = subscriptions.FilterByFeedIDs(ids...)
+
+	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		return nil, fmt.Errorf("update dynamic info: %w", err)
+	}
+
+	return subscriptions, nil
 }
 
 // AddSubscriptions adds the given subscriptions to a user.
@@ -244,25 +310,20 @@ func MarkSubscriptions(
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptions, err := GetAllSubscriptions(ctx,
-		user,
-		// WithSubscriptionIDs(subscriptionIDs...),
-	)
+	subscriptions, err := GetSubscriptionsByID(ctx, subscriptionIDs...)
 	if err != nil {
-		return fmt.Errorf("mark subscriptions: %w", err)
+		return fmt.Errorf("get subscription details: %w", err)
 	}
-
-	subscriptions = subscriptions.FilterByIDs(subscriptionIDs...)
 
 	for subscription := range slices.Values(subscriptions) {
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
 			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
+				return fmt.Errorf("mark group subscription: %w", err)
 			}
 		} else {
 			subscription.Mark(user, mark)
 			if _, err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
-				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
+				return fmt.Errorf("update subscription data: %w", err)
 			}
 		}
 	}
@@ -272,8 +333,8 @@ func MarkSubscriptions(
 
 // UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
 // subscription as appropriate.
-func UpdateFavoriteSubscription(ctx context.Context, user *models.User, id models.SubscriptionID, favorite bool) error {
-	subscription, err := GetSubscription(ctx, user, id)
+func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, favorite bool) error {
+	subscription, err := GetSubscription(ctx, id)
 	if err != nil {
 		return fmt.Errorf("get subscription: %w", err)
 	}
@@ -318,11 +379,6 @@ func GetGroupSubscriptionLatestItems(
 	subscriptions models.Subscriptions,
 	view models.View,
 ) (map[models.SubscriptionID]models.Items, error) {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
-	}
-
 	groupLatestItems := make(map[models.SubscriptionID]models.Items)
 	var (
 		wg sync.WaitGroup
@@ -331,14 +387,13 @@ func GetGroupSubscriptionLatestItems(
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
 			// Get details of all subscriptions that comprise the group.
-			childSubscriptions, err := GetAllSubscriptions(ctx, user)
+			childSubscriptions, err := GetSubscriptionsByID(ctx, subscription.GroupData.Subscriptions...)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
 					slog.Any("error", err),
 				)
 				return
 			}
-			childSubscriptions = childSubscriptions.FilterByIDs(subscription.GroupData.Subscriptions...)
 			// Get latest items for these subscriptions.
 			latestItems, err := GetSubscriptionLatestItems(ctx, count, childSubscriptions, view)
 			// latestItems, err := getFeedSubscriptionLatestItems(ctx, childSubscriptions, filters)
@@ -454,11 +509,7 @@ func CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSu
 // GetEmailSubscription retrieves an EmailSubscription for the given user ID and email sender.
 func GetEmailSubscription(ctx context.Context, user *models.User, from *mail.Address) (*models.Subscription, error) {
 	// Check for an existing email subscription for the user.
-	subscriptions, err := GetAllSubscriptions(
-		ctx,
-		user,
-		// WithEmailSubscriptionEmails(from.Address),
-	)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("search subscriptions: %w", err)
 	}
@@ -537,7 +588,7 @@ func GetSubscriptionSuggestions(
 	}
 
 	subscriptions := resp.Results
-	if err = updateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+	if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		return nil, fmt.Errorf("add dynamic info: %w", err)
 	}
 
@@ -548,18 +599,10 @@ func GetCategoriesForSubscriptions(
 	ctx context.Context,
 	subscriptionIDs ...models.SubscriptionID,
 ) (models.CategoryCounts, error) {
-	// Retrieve user object.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetSubscriptionsByID(ctx, subscriptionIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}
-
-	subscriptions = subscriptions.FilterByIDs(subscriptionIDs...)
 
 	countsMap := make(map[models.Category]int)
 	for subscription := range slices.Values(subscriptions) {
@@ -575,36 +618,20 @@ func GetCategoriesForSubscriptions(
 	return counts, nil
 }
 
-// updateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
 //nolint:gocognit,funlen
-func updateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+	// Bail early if given an empty list.
+	if len(subscriptions) == 0 {
+		return nil
+	}
+
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	var extraIDs []models.SubscriptionID
-	for subscription := range slices.Values(subscriptions) {
-		// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
-		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
-			for id := range slices.Values(subscription.GroupData.Subscriptions) {
-				if !slices.ContainsFunc(subscriptions, func(e *models.Subscription) bool {
-					return e.GetID() == id
-				}) {
-					extraIDs = append(extraIDs, id)
-				}
-			}
-		}
-	}
-	if len(extraIDs) > 0 {
-		extraSubscriptions, err := GetSubscriptionsByID(ctx, extraIDs...)
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
-		}
-		subscriptions = append(subscriptions, extraSubscriptions...)
 	}
 
 	fetchJobs, jobCtx := errgroup.WithContext(ctx)

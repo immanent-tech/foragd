@@ -5,7 +5,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -58,13 +57,11 @@ func BuildSearchResultsQuery(
 	}
 
 	// Get subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx, user)
-	if err != nil && !errors.Is(err, models.ErrNotFound) {
+
+	subscriptions, err := GetSubscriptionsByID(ctx, request.Subscriptions...)
+	if err != nil {
 		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}
-	subscriptions = subscriptions.
-		FilterByView(request.View).
-		FilterByIDs(request.Subscriptions...)
 	if len(subscriptions) == 0 {
 		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
 	}

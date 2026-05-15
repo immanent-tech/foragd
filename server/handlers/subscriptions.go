@@ -113,29 +113,27 @@ func HandleListSubscriptions() http.HandlerFunc {
 			request.Filters.Subscriptions = nil
 		}
 
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get subscriptions matching filters.
 		var next models.Pagination
 
-		subscriptions, err = service.GetAllSubscriptions(req.Context(), user)
+		subscriptions, err = service.GetAllSubscriptions(req.Context())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
-					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+					InternalError: fmt.Errorf("get all subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 				}).ServeHTTP(res, req)
 			return
 		}
-
+		// Update subscription dynamic info.
+		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update subscription dynamic info: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
+			return
+		}
 		// Apply all base filtering and sorting.
 		subscriptions, next = subscriptions.
 			FilterByFavorites(request.Filters.OnlyFavorites).
@@ -268,9 +266,17 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			return
 		}
 
-		subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+		subscriptions, err := service.GetAllSubscriptions(req.Context())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
+			slogctx.FromCtx(req.Context()).Error("Get all subscriptions failed.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		// Update subscription dynamic info.
+		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Update subscription dynamic info failed.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusNoContent)
@@ -500,21 +506,7 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to favorite subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
-		subscription, err := service.GetSubscription(req.Context(), user, request.SubscriptionID)
+		subscription, err := service.GetSubscription(req.Context(), request.SubscriptionID)
 		if err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
@@ -538,7 +530,6 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 		// Get the subscription state.
 		if err := service.UpdateFavoriteSubscription(
 			req.Context(),
-			user,
 			request.SubscriptionID,
 			favorite,
 		); err != nil {
@@ -657,22 +648,8 @@ func HandleEditSubscription() http.HandlerFunc {
 
 		}
 
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to edit subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get the existingSubscription.
-		existingSubscription, err := service.GetSubscription(req.Context(), user, id)
+		existingSubscription, err := service.GetSubscription(req.Context(), id)
 		if err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
@@ -726,11 +703,11 @@ func HandleEditSubscription() http.HandlerFunc {
 			request.Search.SubscriptionID = new(existingSubscription.GetID())
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
-				subscriptions, err := service.GetAllSubscriptions(ctx, user)
+				subscriptions, err := service.GetSubscriptionsByID(ctx, request.Search.Subscriptions...)
 				if err != nil {
 					HandleInternalError(req.URL.Path,
 						&models.APIError{
-							InternalError: fmt.Errorf("get subscription: %w", err),
+							InternalError: fmt.Errorf("get search subscription filters: %w", err),
 							StatusCode:    http.StatusInternalServerError,
 							UserMessage: models.NewErrorMessage(
 								"Unable to edit subscription",
@@ -739,14 +716,15 @@ func HandleEditSubscription() http.HandlerFunc {
 						}).ServeHTTP(res, req)
 					return
 				}
-				subscriptions = subscriptions.FilterByIDs(request.Search.Subscriptions...)
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
 			pageTitle = "Editing " + request.Customisation.GetNickname()
 		case models.SubscriptionTypeGroup:
-			childSubscriptions, err := service.GetAllSubscriptions(ctx, user)
+			childSubscriptions, err := service.GetSubscriptionsByID(
+				ctx,
+				existingSubscription.GroupData.Subscriptions...)
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
@@ -758,9 +736,7 @@ func HandleEditSubscription() http.HandlerFunc {
 						),
 					}).ServeHTTP(res, req)
 				return
-
 			}
-			childSubscriptions = childSubscriptions.FilterByIDs(existingSubscription.GroupData.Subscriptions...)
 
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
@@ -783,7 +759,7 @@ func HandleEditSubscription() http.HandlerFunc {
 				childSubscriptions.GetCategories(),
 			)
 			// Get all subscriptions that are not already in the group as suggestions.
-			suggestedSubscriptions, err := service.GetAllSubscriptions(ctx, user)
+			suggestedSubscriptions, err := service.GetAllSubscriptions(ctx)
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
@@ -847,25 +823,10 @@ func HandleSaveSubscription() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 			return
-
-		}
-
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get subscription: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to edit subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
 		}
 
 		// Get the subscription.
-		subscription, err := service.GetSubscription(req.Context(), user, id)
+		subscription, err := service.GetSubscription(req.Context(), id)
 		if err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
@@ -1210,15 +1171,6 @@ func HandleSuggestFeeds() http.HandlerFunc {
 			return
 		}
 
-		// Retrieve the user object.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
 		switch source {
 		case "youtube":
 			results, err := service.SuggestYoutubeFeeds(req.Context(), text)
@@ -1275,20 +1227,10 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
-
-			// Retrieve the user object.
-			user := models.UserFromCtx(req.Context())
-			if user == nil {
-				slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-					slog.Any("error", models.ErrCtxValueNotFound))
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
 			if len(request.Subscriptions) > 0 {
-				subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+				subscriptions, err := service.GetSubscriptionsByID(req.Context(), request.Subscriptions...)
 				if err != nil {
 					HandleInternalError(req.URL.Path,
 						&models.APIError{
@@ -1301,7 +1243,6 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 						}).ServeHTTP(res, req)
 					return
 				}
-				subscriptions = subscriptions.FilterByIDs(request.Subscriptions...)
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			// Get suggested categories from existing subscriptions.
@@ -1416,15 +1357,6 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			// Retrieve the user object.
-			user := models.UserFromCtx(req.Context())
-			if user == nil {
-				slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-					slog.Any("error", models.ErrCtxValueNotFound))
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-
 			// Get suggested categories from existing subscriptions.
 			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
 			if err != nil {
@@ -1435,7 +1367,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			suggestedCategories := categoryCounts.Limit(10).GetCategories()
 
 			// Get suggested suggested subscriptions.
-			suggestedSubscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+			suggestedSubscriptions, err := service.GetAllSubscriptions(req.Context())
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{

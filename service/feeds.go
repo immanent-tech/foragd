@@ -340,14 +340,8 @@ func GetFeedLatestItems(
 
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
 func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
-	// Retrieve the user object.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
 	// Get user subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}
@@ -445,14 +439,8 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 // SuggestFeeds returns a feeds and their latest articles that match the given text. It will search first for existing
 // feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
 func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
-	// Retrieve the user object.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
 	// Get user subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx, user)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return nil, fmt.Errorf("get subscriptions: %w", err)
 	}

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -106,18 +107,9 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 func HandleHome() http.HandlerFunc {
 	return userContentHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-			// start := time.Now()
-			// Retrieve the user object.
-			user := models.UserFromCtx(req.Context())
-			if user == nil {
-				slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-					slog.Any("error", models.ErrCtxValueNotFound))
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-
+			start := time.Now()
 			// Get subscriptions.
-			subscriptions, err := service.GetAllSubscriptions(req.Context(), user)
+			subscriptions, err := service.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
@@ -128,6 +120,20 @@ func HandleHome() http.HandlerFunc {
 							"This might be temporary, please try again.",
 						),
 					}).ServeHTTP(res, req)
+				return
+			}
+			// Update subscription dynamic info.
+			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("run data collection: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Could not display home page",
+							"This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
 			}
 			// Filter by unread and sort by last update.
 			subscriptions = subscriptions.
@@ -136,8 +142,8 @@ func HandleHome() http.HandlerFunc {
 			if len(subscriptions) > 10 {
 				subscriptions = subscriptions[:10]
 			}
-			// slogctx.FromCtx(req.Context()).Debug("Retrieved user subscriptions.",
-			// 	slog.Duration("took", time.Since(start)))
+			slogctx.FromCtx(req.Context()).Debug("Retrieved user subscriptions.",
+				slog.Duration("took", time.Since(start)))
 
 			// Create an object to hold the data.
 			data := &templates.HomeData{
@@ -377,8 +383,8 @@ func HandleHome() http.HandlerFunc {
 				wg.Wait()
 			}
 
-			// slogctx.FromCtx(req.Context()).Debug("Extracted home aggregations data.",
-			// 	slog.Duration("took", time.Since(start)))
+			slogctx.FromCtx(req.Context()).Debug("Extracted home aggregations data.",
+				slog.Duration("took", time.Since(start)))
 
 			RenderInternalPage(&Home{
 				title: "Home",
