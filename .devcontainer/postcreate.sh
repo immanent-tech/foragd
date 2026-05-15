@@ -16,6 +16,7 @@ export PATH="$HOME/go/bin:/go/bin:/usr/local/go/bin:$PATH" && \
     go install github.com/air-verse/air@latest && \
     go install github.com/a-h/templ/cmd/templ@latest && \
     go install github.com/sigstore/cosign/v3/cmd/cosign@latest && \
+    go install github.com/magefile/mage@latest && \
     curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.8.0 && \
     golangci-lint custom && \
     mv /tmp/golangci-lint-v2 $(go env GOPATH)/bin/

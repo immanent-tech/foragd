@@ -9,22 +9,22 @@ preheader: Checking in about Foragd
         <td class="w-[552px] max-w-full">
           <x-spacer height="24px" />
 
-          <table class="w-full">
+          <table class="w-full text-base/6">
             <tr>
               <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
               >
-                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
                   Hey {{{USER_NICKNAME}}},
                 </h1>
 
-                <p class="m-0 mb-6 text-base/6 text-base-content">
+                <p class="m-0 mb-6">
                   It looks like you have signed up for a
-                  <span class="font-semibold text-base-content">Foragd</span>
+                  <span class="font-semibold">Foragd</span>
                   account, but haven't yet logged in to the app.
                 </p>
 
-                <p class="m-0 mb-6 text-base/6 text-base-content">
+                <p class="m-0 mb-6">
                   I just wanted to check in to make sure there are no issues
                   with your account or logging in, or any other troubles. Got
                   any questions or issues, just reply to this email. Otherwise,
@@ -40,22 +40,24 @@ preheader: Checking in about Foragd
 
                 <x-spacer height="24px" />
 
-                <p class="m-0 text-base/6 text-base-content">
+                <p class="m-0">
                   Thanks,
                   <br />
-                  <span class="font-semibold text-base-content">
-                    Foragd Team
-                  </span>
+                  <span class="font-semibold">Foragd Team</span>
                 </p>
 
-                <x-container container-class="bg-base-200">
-                  <div class="text-center">
-                    <p class="mso-break-all m-0 mt-2 text-xs text-base-content">
-                      <a href="{{{USER_UNSUBSCRIBE_LINK}}}">Unsubscribe</a> from
-                      these emails.
-                    </p>
-                  </div>
-                </x-container>
+                <x-divider />
+
+                <div class="text-center">
+                  <p class="mso-break-all m-0 mt-2 text-sm">
+                    <a
+                      class="hover:text-accent"
+                      href="{{{USER_UNSUBSCRIBE_LINK}}}"
+                      >Unsubscribe</a
+                    >
+                    from these emails.
+                  </p>
+                </div>
               </td>
             </tr>
           </table>

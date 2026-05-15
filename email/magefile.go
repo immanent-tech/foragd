@@ -57,7 +57,7 @@ func Build(env string) error {
 	slog.Info("Building...",
 		slog.String("environment", env),
 	)
-	cmd := exec.Command("npx", "maizzle", "build", env)
+	cmd := exec.Command("npx", "maizzle", "build", "--summary", env)
 	return cmd.Run()
 }
 

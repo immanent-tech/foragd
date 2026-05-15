@@ -4,59 +4,59 @@ preheader: Welcome to Foragd
 
 <x-main>
   <div class="font-inter bg-base-100 sm:px-4">
-
     <table align="center" class="m-0 mx-auto">
       <tr>
         <td class="w-[552px] max-w-full">
           <x-spacer height="24px" />
 
-          <table class="w-full">
+          <table class="w-full text-base/6">
             <tr>
               <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
               >
-                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
                   Your're in!
                 </h1>
 
-                <p class="m-0 mb-6 text-base/6 text-base-content">
+                <p class="m-0 mb-6">
                   Welcome to
-                  <span class="font-semibold text-base-content">Foragd</span>, your one place for all your feed,
-                  newsletter, and article content. All fully searchable, always in sync, never algorithmic. Get started
-                  curating your collection.
+                  <span class="font-semibold text-base-content">Foragd</span>,
+                  your one place for all your feed, newsletter, and article
+                  content. All fully searchable, always in sync, never
+                  algorithmic. Get started curating your collection.
                 </p>
 
                 <x-spacer height="24px" />
 
-                <x-three-to-one-grid>
-                  <fill:col-1>
-                    <p class="my-4 text-base/6 font-semibold text-base-content">
-                      Go to your home page →
-                    </p>
-                    <p class="my-4 text-xs text-base-content">
-                      Or navigate to https://foragd.app/home
-                    </p>
-                  </fill:col-1>
-                  <fill:col-2>
-                    <x-button
+                <div
+                  class="flex flex-col rounded-lg bg-base-300 p-4 lg:flex-row"
+                >
+                  <p
+                    class="my-4 text-center font-display text-lg/8 font-semibold lg:text-left"
+                  >
+                    Go to your home page<span class="hidden lg:block"> → </span>
+                  </p>
+                  <x-button
                     align="center"
-                      href="/home"
-                      class="bg-primary text-primary-content hover:bg-accent"
-                    >
-                      Home
-                    </x-button>
-                  </fill:col-2>
-                </x-three-to-one-grid>
+                    href="/home"
+                    class="bg-primary text-primary-content hover:bg-accent"
+                  >
+                    Home
+                  </x-button>
+                </div>
+
+                <p class="my-4 text-center text-sm">
+                  Or navigate to
+                  <span class="hover:text-accent">https://foragd.app/home</span>
+                </p>
 
                 <div class="flex justify-center"></div>
 
                 <x-spacer height="24px" />
 
-                <h2 class="m-0 mb-6 text-lg/8 font-semibold text-base-content">
-                  Next Steps
-                </h2>
+                <h2 class="m-0 mb-6 text-lg/8 font-semibold">Next Steps</h2>
 
-                <ul class="list-none text-base/6">
+                <ul class="list-none">
                   <li class="my-2">
                     1️⃣
                     <a
@@ -74,23 +74,35 @@ preheader: Welcome to Foragd
                   </li>
                   <li class="my-2">
                     2️⃣
-                    <a class=font-semibold hover:text-accent" href="/subscription/add/group"
+                    <a
+                      class="font-semibold hover:text-accent"
+                      href="/subscription/add/group"
                       >Create a Group Subscription</a
                     >
                     to keep track of all articles from a bunch of similar
                     sources.
                   </li>
                   <li class="my-2">
-                    3️⃣ Search and filter to find what you need, then save the results as a  <a class=font-semibold
-                    hover:text-accent" href="/subscription/add/search" >Search Subscription</a> to keep
-                    up to date as new articles come in.</li>
+                    3️⃣ Search and filter to find what you need, then save the
+                    results as a
+                    <a
+                      class="font-semibold hover:text-accent"
+                      href="/subscription/add/search"
+                      >Search Subscription</a
+                    >
+                    to keep up to date as new articles come in.
+                  </li>
                 </ul>
 
                 <x-spacer height="24px" />
 
-                <p class="mso-break-all m-0 mt-2 text-base/6 text-base-content">
-                  Check out the <a class="hover:text-accent" href="/help">help documentation</a> for more information. Got any
-                  questions? Just reply to this email.
+                <p class="mso-break-all m-0 mt-2">
+                  Check out the
+                  <a class="hover:text-accent" href="/help"
+                    >help documentation</a
+                  >
+                  for more information. Got any questions? Just reply to this
+                  email.
                 </p>
               </td>
             </tr>

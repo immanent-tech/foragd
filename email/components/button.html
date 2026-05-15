@@ -40,17 +40,14 @@
   };
 </script>
 
-<div class="{{ align }}">
-  <a attributes href="{{{ href }}}" style="{{ styles }}">
+<div class="[[ align ]]">
+  <a attributes href="[[[ href ]]]" style="[[ styles ]]">
     <outlook trim>
-      <i
-        class="mso-font-width-[150%]"
-        style="mso-text-raise: {{ msoPb }};"
-        hidden
+      <i class="mso-font-width-[150%]" style="mso-text-raise: [[ msoPb]]" hidden
         >&emsp;</i
       >
     </outlook>
-    <span style="mso-text-raise: {{ msoPt }}" trim><yield /></span>
+    <span style="mso-text-raise: [[ msoPt]]" trim><yield /></span>
     <outlook trim>
       <i class="mso-font-width-[150%]" hidden>&emsp;&#8203;</i>
     </outlook>

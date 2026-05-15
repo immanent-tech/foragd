@@ -9,10 +9,6 @@
   module.exports = {
     menuItems,
     containerClasses: props['container-class'] || '',
-    logoHref: props['logo-href'] || 'https://foragd.app',
-    logoSrc: props['logo-src'] || '/content/favicon.png',
-    logoAlt: props['logo-alt'] || 'Foragd Logo',
-    logoWidth: props['logo-width'] || 64,
   }
 </script>
 
@@ -22,17 +18,12 @@
   <tr>
     <td>&zwj;</td>
     <td
-      class="w-[600px] pt-11 pb-6 max-w-full {{ containerClasses }}"
+      class="w-[600px] pt-11 pb-6 max-w-full [[ containerClasses ]]"
     >
       <div class="text-center">
-        <if condition="logoHref">
-          <a href="{{{ logoHref }}}">
-            <img src="{{{ logoSrc }}}" width="{{ logoWidth }}" alt="{{{ logoAlt }}}" class="max-w-full align-middle">
+          <a href="/">
+            <img src="/content/icons/icon-light-1024.png" width="64" alt="Foragd Icon" class="max-w-full align-middle">
           </a>
-        </if>
-        <else>
-          <img src="{{{ logoSrc }}}" width="{{ logoWidth }}" alt="{{{ logoAlt }}}" class="max-w-full align-middle">
-        </else>
       </div>
 
       <x-spacer height="64px" />
@@ -40,9 +31,9 @@
       <table align="center" class="m-0 mx-auto">
         <tr>
           <each loop="item, index in menuItems">
-            <td class="{{ loop.last ? '' : 'pr-6' }}">
-              <a href="{{{ item.href }}}" class="text-sm/5 text-gray-500 hover:text-gray-950 no-underline">
-                {{{ item.label }}}
+            <td class="[[ loop.last ? '' : 'pr-6' ]]">
+              <a href="[[[ item.href ]]]" class="text-sm/5 text-gray-500 hover:text-gray-950 no-underline">
+                [[[ item.label ]]]
               </a>
             </td>
           </each>
@@ -56,7 +47,7 @@
           <td class="p-0 px-6">
             <slot:copyright>
               <p class="m-0 text-center text-sm/6 text-neutral">
-                &copy; {{ new Date().getFullYear() }} Immanent Tech
+                &copy; [[ new Date().getFullYear() ]] Immanent Tech
                 <br>
                 Immanent Tech <span>&nbsp;|&nbsp;</span> PO Box 528 Hamilton Central  <span>&nbsp;|&nbsp;</span> QLD 4007 Australia
               </p>

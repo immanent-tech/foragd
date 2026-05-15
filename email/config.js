@@ -13,9 +13,12 @@
 export default {
   build: {
     content: ["emails/**/*.html"],
-    static: {
-      source: ["../web/content/**/*"],
-      destination: "content",
-    },
+  },
+  server: {
+    reportFileSize: true,
+  },
+  expressions: {
+    delimiters: ["[[", "]]"],
+    unescapeDelimiters: ["[[[", "]]]"],
   },
 };

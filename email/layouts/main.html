@@ -1,10 +1,10 @@
-<!DOCTYPE {{{ page.doctype || 'html' }}}>
+<!DOCTYPE [[[ page.doctype || 'html' ]]]>
 <html
-  lang="{{ page.language || 'en' }}"
+  lang="[[ page.language || 'en' ]]"
   xmlns:v="urn:schemas-microsoft-com:vml"
 >
   <head>
-    <meta charset="{{ page.charset || 'utf-8' }}" />
+    <meta charset="[[ page.charset || 'utf-8' ]]" />
     <meta name="x-apple-disable-message-reformatting" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
@@ -12,15 +12,35 @@
       content="telephone=no, date=no, address=no, email=no, url=no"
     />
     <if condition="page.title">
-      <title>{{{ page.title }}}</title>
+      <title>[[[ page.title ]]]</title>
     </if>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap"
-      rel="stylesheet"
-      media="screen"
+      rel="preload"
+      href="/content/fonts/inter/InterVariable.woff2"
+      crossorigin
+      as="font"
     />
+    <link
+      rel="preload"
+      href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2"
+      crossorigin
+      as="font"
+    />
+    <link
+      rel="preload"
+      href="/content/fonts/nunito/nunito-v32-latin-600.woff2"
+      crossorigin
+      as="font"
+    />
+    <link
+      rel="preload"
+      href="/content/fonts/nunito/nunito-v32-latin-700.woff2"
+      crossorigin
+      as="font"
+    />
+    <link rel="stylesheet" href="/content/fonts/inter/inter.css" />
+    <link rel="stylesheet" href="/content/fonts/tex-gyre/pagella/pagella.css" />
+    <link rel="stylesheet" href="/content/fonts/nunito/nunito.css" />
     <style>
       @tailwind components;
       @tailwind utilities;
@@ -38,23 +58,23 @@
     <stack name="head" />
   </head>
   <body
-    class="font-inter bg-base-100 m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
+    class="font-inter [[ page.bodyClass || '' ]] m-0 w-full bg-base-100 p-0 [word-break:break-word] [-webkit-font-smoothing:antialiased]"
   >
     <if condition="page.preheader">
       <div class="hidden">
-        {{{ page.preheader }}}
+        [[[ page.preheader ]]]
         <each loop="item in Array.from(Array(150))"
           >&#8199;&#65279;&#847;
         </each>
       </div>
     </if>
-    <x-header />
+    <x-header align="text-left" />
     <div
       role="article"
       aria-roledescription="email"
-      aria-label="{{{ page.title || '' }}}"
-      lang="{{ page.language || 'en' }}"
-      class="py-12"
+      aria-label="[[[ page.title || '' ]]]"
+      lang="[[ page.language || 'en' ]]"
+      class="mx-auto prose py-12 text-base-content"
     >
       <yield />
     </div>

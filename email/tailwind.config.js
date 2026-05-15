@@ -1,5 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("tailwindcss-safe-area"),
+  ],
   presets: [require("tailwindcss-preset-email")],
   content: [
     "./components/**/*.html",
@@ -7,6 +11,11 @@ module.exports = {
     "./layouts/**/*.html",
   ],
   theme: {
+    fontFamily: {
+      sans: ["Inter", "sans-serif"],
+      serif: ["TexGyrePagella", "serif"],
+      display: ["Nunito", "sans-serif"],
+    },
     colors: {
       "base-100": "#FCFAF7",
       "base-200": "#EEEAE1",

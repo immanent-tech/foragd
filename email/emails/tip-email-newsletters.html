@@ -9,21 +9,25 @@ preheader: Subscribe to email newsletters with Foragd
         <td class="w-[552px] max-w-full">
           <x-spacer height="24px" />
 
-          <table class="w-full">
+          <table class="w-full text-base/6">
             <tr>
               <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
               >
-                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
                   Hey {{{USER_NICKNAME}}}.
                 </h1>
 
-                <p class="m-0 mb-6 text-base/6 text-base-content">
+                <p class="m-0 mb-6">
                   Did you know you can get your email newsletters delivered to
                   Foragd. This has many advantages:
                 </p>
 
-                <x-three-column-grid flush="true" gap="false">
+                <x-three-column-grid
+                  container-class="bg-base-300 rounded-lg"
+                  flush="true"
+                  gap="false"
+                >
                   <fill:col-1>
                     <div class="p-2 text-center align-top">
                       <img
@@ -33,7 +37,7 @@ preheader: Subscribe to email newsletters with Foragd
                         height="64"
                         class="mx-auto flex align-middle"
                       />
-                      <p class="text-sm/6 font-semibold">
+                      <p class="font-display text-sm/6 font-semibold">
                         Protect your identity.
                       </p>
                       <p class="text-pretty] text-xs">
@@ -50,7 +54,9 @@ preheader: Subscribe to email newsletters with Foragd
                         height="64"
                         class="mx-auto flex align-middle"
                       />
-                      <p class="text-sm/6 font-semibold">Keep organised.</p>
+                      <p class="font-display text-sm/6 font-semibold">
+                        Keep organised.
+                      </p>
                       <p class="text-xs text-pretty">
                         Manage your email newsletters like your feed
                         subscriptions.
@@ -66,7 +72,9 @@ preheader: Subscribe to email newsletters with Foragd
                         height="64"
                         class="mx-auto flex align-middle"
                       />
-                      <p class="text-sm/6 font-semibold">Filter and Search.</p>
+                      <p class="font-display text-sm/6 font-semibold">
+                        Filter and Search.
+                      </p>
                       <p class="text-xs text-pretty">
                         Filter emails and use full-text search on their contents
                         to cut through the noise.
@@ -77,11 +85,11 @@ preheader: Subscribe to email newsletters with Foragd
 
                 <x-spacer height="24px" />
 
-                <x-container>
+                <x-container
+                  container-class="bg-base-300 rounded-lg text-base/6"
+                >
                   <div class="p-2">
-                    <h2
-                      class="m-0 mb-6 text-lg/8 font-semibold text-base-content"
-                    >
+                    <h2 class="m-0 mb-6 font-display text-lg/8 font-semibold">
                       Get started:
                     </h2>
 
@@ -106,17 +114,17 @@ preheader: Subscribe to email newsletters with Foragd
                       <li>Copy the email that is displayed.</li>
                     </ol>
 
-                    <p class="m-0 mb-6 text-base/6 text-base-content">
-                      Use this email when subscribing to newsletters and get all
-                      the benefits of content management in Foragd and protect
-                      your own email.
+                    <p class="m-0 mb-6">
+                      Use the generated email when subscribing to newsletters
+                      and get all the benefits of content management in Foragd
+                      and protect your own email.
                     </p>
                   </div>
                 </x-container>
 
                 <x-spacer height="24px" />
 
-                <p class="mso-break-all m-0 mt-2 text-sm/6 text-base-content">
+                <p class="mso-break-all">
                   Check out the
                   <a class="hover:text-accent" href="/help"
                     >help documentation</a
@@ -125,14 +133,18 @@ preheader: Subscribe to email newsletters with Foragd
                   email.
                 </p>
 
-                <x-container container-class="bg-base-200">
-                  <div class="text-center">
-                    <p class="mso-break-all m-0 mt-2 text-xs text-base-content">
-                      <a href="{{{USER_UNSUBSCRIBE_LINK}}}">Unsubscribe</a> from
-                      these emails.
-                    </p>
-                  </div>
-                </x-container>
+                <x-divider />
+
+                <div class="text-center">
+                  <p class="mso-break-all text-sm">
+                    <a
+                      class="hover:text-accent"
+                      href="{{{USER_UNSUBSCRIBE_LINK}}}"
+                      >Unsubscribe</a
+                    >
+                    from these emails.
+                  </p>
+                </div>
               </td>
             </tr>
           </table>

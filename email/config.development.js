@@ -16,6 +16,10 @@ export default {
     output: {
       path: "build/development/html",
     },
+    static: {
+      source: ["../web/content/**/*"],
+      destination: "content",
+    },
   },
   prettify: true,
 };

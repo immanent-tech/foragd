@@ -14,10 +14,6 @@
   module.exports = {
     align,
     containerClasses: [containerClasses, align].filter(Boolean).join(" "),
-    logoSrc: props["logo-src"] || "/content/favicon.png",
-    logoAlt: props["logo-alt"] || "Foragd Logo",
-    logoWidth: props["logo-width"] || "64",
-    logoHref: props["logo-href"] || "https://foragd.app",
   };
 </script>
 
@@ -27,25 +23,16 @@
     <td class="w-[600px] max-w-full">
       <table class="w-full">
         <tr>
-          <td class="{{ containerClasses }}">
-            <if condition="logoHref">
-              <a href="{{{ logoHref }}}">
-                <img
-                  src="{{{ logoSrc }}}"
-                  width="{{ logoWidth }}"
-                  alt="{{{ logoAlt }}}"
-                  class="max-w-full align-middle"
-                />
-              </a>
-            </if>
-            <else>
+          <td class="[[ containerClasses ]]">
+            <a href="/">
               <img
-                src="{{{ logoSrc }}}"
-                width="{{ logoWidth }}"
-                alt="{{{ logoAlt }}}"
+                src="/content/logo-horizontal-light.png"
+                width="247"
+                height="64"
+                alt="Foragd Logo"
                 class="max-w-full align-middle"
               />
-            </else>
+            </a>
           </td>
         </tr>
       </table>

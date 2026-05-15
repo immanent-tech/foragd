@@ -9,22 +9,22 @@ preheader: Auth0 email verification (link)
         <td class="w-[552px] max-w-full">
           <x-spacer height="24px" />
 
-          <table class="w-full">
+          <table class="w-full text-base/6">
             <tr>
               <td
-                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 sm:p-6"
               >
-                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                <h1 class="m-0 mb-6 font-display text-2xl/8 font-semibold">
                   Hello there!
                 </h1>
 
-                <p class="m-0 mb-6 text-base/6 text-base-content">
+                <p class="m-0 mb-6">
                   We’re happy to have you on board! Please verify your email
                   address in order to activate your account:
                 </p>
 
                 <x-button
-                  href="{{ url | escape }}"
+                  href="[[ url | escape ]]"
                   class="bg-primary text-primary-content hover:bg-accent"
                 >
                   Verify email
@@ -32,26 +32,24 @@ preheader: Auth0 email verification (link)
 
                 <x-spacer height="24px" />
 
-                <p class="m-0 text-base/6 text-base-content">
+                <p class="m-0">
                   Thanks,
                   <br />
-                  <span class="font-semibold text-base-content">
-                    Foragd Team
-                  </span>
+                  <span class="font-semibold"> Foragd Team </span>
                 </p>
 
                 <x-divider />
 
-                <p class="mso-break-all m-0 text-xs/5 text-base-content">
+                <p class="mso-break-all">
                   If you’re having trouble clicking the “Verify email” button,
                   copy and paste the following URL into your web browser:
                   <a
-                    href="{{ url | escape }}"
-                    class="text-base-content underline"
-                    >{{ url | escape }}</a
+                    href="[[ url | escape ]]"
+                    class="text-base-content underline hover:text-accent"
+                    >[[ url | escape ]]</a
                   >
                 </p>
-                <p class="mso-break-all m-0 mt-2 text-xs/5 text-base-content">
+                <p class="mso-break-all">
                   Didn't create an account? Got any questions? Just reply to
                   this email.
                 </p>

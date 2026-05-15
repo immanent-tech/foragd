@@ -42,7 +42,8 @@
         "ms-vscode.wordcount",
         "eliostruyf.vscode-front-matter",
         "cossssmin.posthtml",
-        "ms-azuretools.vscode-containers"
+        "ms-azuretools.vscode-containers",
+        "csstools.postcss"
       ]
     }
   }

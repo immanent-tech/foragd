@@ -42,15 +42,15 @@
     <td>&zwj;</td>
     <td
       style="background-color: theme(colors.base-300)"
-      class="w-[600px] max-w-full {{ containerClasses }}"
+      class="[[ containerClasses ]] w-[600px] max-w-full"
     >
       <table class="w-full">
         <tr>
-          <td class="{{ flush ? '' : 'p-0 px-6' }}">
+          <td class="[[ flush ? '' : 'p-0 px-6' ]]">
             <table class="w-full">
-              <tr class="{{ reverse ? 'sm:w-full sm:table' : '' }}">
+              <tr class="[[ reverse ? 'sm:w-full sm:table' : '' ]]">
                 <td
-                  class="{{ col1WidthClass }} {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                  class="[[ col1WidthClass ]] [[ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' ]]"
                 >
                   <if condition="reverse">
                     <div class="sm:w-full">
@@ -63,13 +63,13 @@
                 </td>
                 <if condition="gap">
                   <td
-                    class="w-6 leading-6 {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                    class="[[ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' ]] w-6 leading-6"
                   >
                     &zwj;
                   </td>
                 </if>
                 <td
-                  class="{{ col2WidthClass }} {{ reverse ? 'sm:table-header-group' : 'sm:w-full sm:block' }}"
+                  class="[[ col2WidthClass ]] [[ reverse ? 'sm:table-header-group' : 'sm:w-full sm:block' ]]"
                 >
                   <if condition="reverse">
                     <div class="sm:w-full">

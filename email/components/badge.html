@@ -1,44 +1,44 @@
 <script props>
   let styles = [
-    'display: inline-block;',
-    'padding: 2px 8px;',
-    'font-size: 12px;',
-    'font-weight: 500;',
-    'line-height: 16px;',
-    'mso-text-raise: 2px;',
-    'border-radius: 9999px;',
-    'border: 1px solid #d1d5db;',
-    'color: #4b5563;',
-    'mso-padding-alt: 0;'
-  ]
+    "display: inline-block;",
+    "padding: 2px 8px;",
+    "font-size: 12px;",
+    "font-weight: 500;",
+    "line-height: 16px;",
+    "mso-text-raise: 2px;",
+    "border-radius: 9999px;",
+    "border: 1px solid #d1d5db;",
+    "color: #4b5563;",
+    "mso-padding-alt: 0;",
+  ];
 
-  let hasBgClass = () => props.class && props.class.split(' ').some(c => c.startsWith('bg-'))
+  let hasBgClass = () =>
+    props.class && props.class.split(" ").some((c) => c.startsWith("bg-"));
 
   if (!hasBgClass()) {
-    styles.push(`background-color: #f9fafb;`)
+    styles.push(`background-color: #f9fafb;`);
   }
 
   module.exports = {
-    styles: styles.join(''),
-    msoBreak: props['mso-break'],
-    msoPx: props['mso-px'] ?? '40%',
-  }
+    styles: styles.join(""),
+    msoBreak: props["mso-break"],
+    msoPx: props["mso-px"] ?? "40%",
+  };
 </script>
 
 <if condition="msoBreak">
   <outlook><x-spacer height="8px" /></outlook>
 </if>
-<span style="{{{ styles }}}">
+<span style="[[{ styles ]]}">
   <span trim>
     <outlook>
-      <i hidden style="mso-font-width: {{ msoPx }}">&emsp;&#8203;</i>
+      <i hidden style="mso-font-width: [[ msoPx]]">&emsp;&#8203;</i>
     </outlook>
   </span>
   <span><yield /></span>
   <span trim>
     <outlook>
-      <i hidden style="mso-font-width: {{ msoPx }}">&emsp;&#8203;</i>
+      <i hidden style="mso-font-width: [[ msoPx]]">&emsp;&#8203;</i>
     </outlook>
   </span>
 </span>
-
