@@ -151,7 +151,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	default: // Existing user.
 		// Sync user data from the backend.
-		auth0.SyncUser(req.Context(), user)
+		service.SyncUser(req.Context(), user)
 		if !user.Metadata.PoliciesAccepted {
 			// User has not accepted policies, redirect to page asking them to contact support.
 			slogctx.FromCtx(req.Context()).Error("User has not accepted policies.",
