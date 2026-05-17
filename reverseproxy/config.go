@@ -90,10 +90,10 @@ func GenerateProxyURL(originalURL string) (string, error) {
 
 // IsProxiedURL returns a boolean indicating whether the given URL is being proxied through the reverse proxy. If this
 // cannot be determined, a non-nil error is also returned and the boolean status should be ignored.
-func IsProxiedURL(value string) (bool, error) {
+func IsProxiedURL(value string) bool {
 	cfg, err := LoadConfig()
 	if err != nil {
-		return false, fmt.Errorf("load config: %w", err)
+		return false
 	}
-	return strings.HasPrefix(value, cfg.BaseURL), nil
+	return strings.HasPrefix(value, cfg.BaseURL)
 }

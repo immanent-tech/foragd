@@ -275,42 +275,31 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			return NewFeedFromURL(ctx, feedURL.String(), id, false)
 		}
 
-		if parseErr, ok := errors.AsType[feeds.ParseError](err); ok &&
-			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
-			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
-			if proxied, _ := reverseproxy.IsProxiedURL(feedURL.String()); !proxied {
-				// Generate a proxied URL.
-				proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
-				if err != nil {
-					return nil, fmt.Errorf("proxy url: %w", err)
-				}
-				slogctx.FromCtx(ctx).Debug("Proxying feed request.",
-					slog.String("url", proxiedURL),
-				)
-				if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
-					return nil, err
-				}
-				// Clean up source URLs: remove proxied URL and re-add original URL as needed.
-				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(sourceURL string) bool {
-
-					switch proxied, err := reverseproxy.IsProxiedURL(sourceURL); {
-					case proxied:
-						return true
-					case err != nil:
-						slogctx.FromCtx(ctx).Warn("Unable to determine if URL was proxied.",
-							slog.String("url", sourceURL),
-							slog.Any("error", err))
-					}
-					return false
-				})
-				feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
-				return feed, err
+		// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
+		if parseErr, ok := errors.AsType[*feeds.ParseError](err); ok &&
+			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) &&
+			!reverseproxy.IsProxiedURL(feedURL.String()) {
+			// Generate a proxied URL.
+			proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
+			if err != nil {
+				return nil, fmt.Errorf("proxy url: %w", err)
 			}
+			slogctx.FromCtx(ctx).Debug("Proxying feed request.",
+				slog.String("url", proxiedURL),
+			)
+			if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
+				return nil, err
+			}
+			// Clean up source URLs: remove proxied URL and re-add original URL as needed.
+			feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(sourceURL string) bool {
+				return reverseproxy.IsProxiedURL(sourceURL)
+			})
+			feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
+			return feed, err
+		} else {
 			// If it has already been proxied and there is a parse error, just return the error.
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), parseErr)
 		}
-		// Return the error.
-		return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), err)
 	}
 
 	feed = newSyndicationFeed(ctx, feedURL.String(), id, result)

@@ -95,17 +95,20 @@ func ExtractMainContent(ctx context.Context, page string, data []byte) (string, 
 		return "", fmt.Errorf("parse page url: %w", err)
 	}
 
-	// Fetch page if not already fetched.
-	if data == nil {
-		proxyURL, err := reverseproxy.GenerateProxyURL(pageURL.String())
-		if err != nil {
-			return "", fmt.Errorf("unable to generate proxy url: %w", err)
+	// Fetch page if not already fetched (and not already proxied).
+	if len(data) == 0 {
+		var fetchURL string
+		if !reverseproxy.IsProxiedURL(pageURL.String()) {
+			fetchURL, err = reverseproxy.GenerateProxyURL(pageURL.String())
+			if err != nil {
+				return "", fmt.Errorf("unable to generate proxy url: %w", err)
+			}
 		}
 
 		// Get the page data.
 		resp, err := Load().R().
 			SetContext(ctx).
-			Get(proxyURL)
+			Get(fetchURL)
 		if err != nil {
 			return "", fmt.Errorf("get page data: %w", err)
 		}

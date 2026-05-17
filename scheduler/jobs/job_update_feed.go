@@ -125,7 +125,6 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 					"type": "feed-status",
 				},
 			}
-
 			if errors.Is(err, &httpErr) {
 				logMsg.StatusCode = httpErr.Code
 				logMsg.StatusMessage = new(httpErr.Error())
