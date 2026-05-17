@@ -223,16 +223,8 @@
       @apply whitespace-normal!;
     }
 
-    /* Apply some useful CSS styling for video embeds */
-    embed-youtube {
-      @apply relative h-auto max-w-full overflow-hidden p-8;
-    }
-
-    iframe[src*="youtube.com"],
-    iframe[src*="youtu.be"],
-    iframe[src*="vimeo.com"],
-    iframe[allowfullscreen] {
-      @apply relative aspect-video h-auto max-w-full overflow-hidden p-8;
+    [id*=author] {
+      @apply text-sm/6;
     }
   }
 

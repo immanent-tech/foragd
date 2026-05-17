@@ -1313,7 +1313,7 @@ func ArticleContent(article *models.Article) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						if youtubeData, err := article.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<div class=\"mt-8\"><embed-youtube video-id=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<div class=\"relative h-auto max-w-full overflow-hidden p-8 aspect-video\"><embed-youtube video-id=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
