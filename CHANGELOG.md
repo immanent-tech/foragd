@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.142.2](https://github.com/immanent-tech/foragd/compare/v0.142.1...v0.142.2) (2026-05-17)
+
+
+### Bug Fixes
+
+* 🔧 clean up code related to fetching feed data ([a35f705](https://github.com/immanent-tech/foragd/commit/a35f7054899850450611e08093e90ef8fdff2a6a))
+* **articles:** 🔧 fix youtube video display ([3829975](https://github.com/immanent-tech/foragd/commit/3829975dbf93067000ae0d65cd99f259c935adbc))
+* **subscriptions:** 🔧 fix pagination triggers going nuts on firefox due to intersection observer API quirks ([c50afbc](https://github.com/immanent-tech/foragd/commit/c50afbc54d3ad1f5130e5e0457a3a13b2f6d7f8c))
+
 ## [0.142.1](https://github.com/immanent-tech/foragd/compare/v0.142.0...v0.142.1) (2026-05-15)
 
 
