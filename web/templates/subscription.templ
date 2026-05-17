@@ -505,7 +505,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
-										_="on htmx:afterRequest remove me"
+										_="on htmx:beforeRequest add @disabled to me then on htmx:afterRequest remove me"
 									>
 										<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
 										<div class="show-loading text-center">
