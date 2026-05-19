@@ -313,17 +313,17 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 	} else {
 		// Create a new job, scheduled to run in ~2 days, that checks if the user has logged in yet, and sends them a
 		// ping email if they haven't.
-		for tip := range jobs.UserTipsJobs {
+		for tip := range jobs.UserTipsJobTriggerTimes {
 			job, err := jobs.NewUserTipsJob(user.GetID(), tip)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Could not create user tips job.",
-					slog.String("tip", tip),
+					slog.String("tip", string(tip)),
 					slog.Any("error", err),
 				)
 			}
 			if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to schedule user tip job.",
-					slog.String("tip", tip),
+					slog.String("tip", string(tip)),
 					slog.Any("error", err),
 				)
 			}

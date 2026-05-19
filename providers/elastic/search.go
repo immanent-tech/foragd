@@ -117,7 +117,7 @@ func SearchAll[O any](
 		loops++
 	}
 	slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Paginated search finished.",
-		slog.Int("loops", loops),
+		slog.Int("loops", loops+1),
 	)
 	return allResults, nil
 }

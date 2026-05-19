@@ -224,6 +224,24 @@ func (e UserMessageStatus) Valid() bool {
 	}
 }
 
+// Defines values for UserTipsEmail.
+const (
+	UserTipsEmailNewInactiveUser     UserTipsEmail = "new-inactive-user"
+	UserTipsEmailTipEmailNewsletters UserTipsEmail = "tip-email-newsletters"
+)
+
+// Valid indicates whether the value is a known member of the UserTipsEmail enum.
+func (e UserTipsEmail) Valid() bool {
+	switch e {
+	case UserTipsEmailNewInactiveUser:
+		return true
+	case UserTipsEmailTipEmailNewsletters:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for View.
 const (
 	ViewAll    View = "all"
@@ -1289,6 +1307,9 @@ type UserSubscription struct {
 	// TrialEnd is the date when the trial for the subscription ended.
 	TrialEnd *time.Time `json:"trial_end,omitempty"`
 }
+
+// UserTipsEmail is the id of the user tips email template.
+type UserTipsEmail string
 
 // View The state of objects to view.
 type View string

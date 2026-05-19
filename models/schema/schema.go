@@ -502,12 +502,17 @@ var (
 			templates.NewTemplate(
 				templates.WithTemplateMapping(
 					templates.WithProperties(
+						templates.WithDatetimeMapping("created_at"),
 						templates.WithDatetimeMapping("updated_at"),
 						templates.WithFlattenedMapping("job_options"),
 						templates.WithFlattenedMapping("job_data"),
 						templates.WithKeywordMapping("job_type"),
-						templates.WithKeywordMapping("job_description"),
-						templates.WithKeywordMapping("job_trigger_type"),
+						templates.WithTextMapping("job_description", &types.TextProperty{
+							Type: "text",
+							Fields: map[string]types.Property{
+								"raw": types.NewKeywordProperty(),
+							},
+						}),
 						templates.WithFlattenedMapping("job_trigger"),
 						templates.WithDatetimeMapping("job_next_run"),
 					),

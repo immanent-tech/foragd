@@ -5,100 +5,98 @@ package jobs
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
 	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/service"
 )
 
-const JobTypeUpdateFeed jobType = "update_feed"
-
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
-type UpdateFeedJobData struct {
-	// FeedID is the unique ID of a feed.
-	FeedID  models.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-	Deleted bool          `json:"deleted"`
-}
+// NewUpdateFeedJob creates a job for updating a feed.
+func NewUpdateFeedJob(ctx context.Context, id models.FeedID) (*SerializedJob, error) {
+	// Get the feed details.
+	feed, err := service.GetFeed(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get feed: %w", err)
+	}
 
-// NewUpdateFeedJob creates a job that can be scheduled from the given feed data.
-func NewUpdateFeedJob(id models.FeedID, trigger *pollTrigger) (*ScheduledJob, error) {
-	job := &ScheduledJob{
+	// Determine and set the feed update interval.
+	if err := feed.SetUpdateInterval(ctx); err != nil {
+		return nil, fmt.Errorf("set update interval: %w", err)
+	}
+	trigger := NewPollTrigger(feed.UpdateInterval, DefaultPollJitter)
+
+	// Create the update feed job.
+	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
-		JobTriggerType: jobTriggerTypePoll,
+		JobDescription: new("Update feed: " + feed.GetTitle() + " (" + id + ")"),
+		JobKey:         quartz.NewJobKeyWithGroup(id, string(JobTypeUpdateFeed)).String(),
 		JobType:        JobTypeUpdateFeed,
-		JobDescription: "Get new items for " + id,
+		JobNextRun:     models.UnixEpoch,
+		JobTriggerType: TriggerTypePoll,
 	}
-
-	var (
-		data []byte
-		err  error
-	)
-
-	// Create trigger.
-	data, err = json.Marshal(trigger)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
+	if err := job.JobData.FromUpdateFeedJob(UpdateFeedJob{FeedID: id, Deleted: false}); err != nil {
+		return nil, fmt.Errorf("create job data: %w", err)
 	}
-	job.JobTrigger = data
-
-	// Create job data.
-	data, err = json.Marshal(UpdateFeedJobData{FeedID: id})
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
+	if err := job.JobTrigger.FromPollTrigger(*trigger); err != nil {
+		return nil, fmt.Errorf("create trigger: %w", err)
 	}
-	job.JobData = data
 
 	return job, nil
 }
 
-// executeUpdateFeedJob will execute a job that attempts to find new items for a feed and index them into the data
-// backend.
-func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
+// ExecuteUpdateFeed will execute a job that attempts to find new items for a feed and index them into the data backend.
+func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
+	data, err := job.JobData.AsUpdateFeedJob()
+	if err != nil {
+		return fmt.Errorf("unable to unmarshal job data: %w", err)
+	}
+
 	start := time.Now()
-	jobData, ok := updateFeedBufPool.Get().(*UpdateFeedJobData)
-	defer updateFeedBufPool.Put(jobData)
-	if !ok {
-		return errors.New("unable to allocate job data buffer")
-	}
-	if err := json.Unmarshal(job.JobData, jobData); err != nil {
-		return fmt.Errorf("unmarshal job data: %w", err)
-	}
 
 	ctx, cancel := context.WithTimeout(ctx, defaultJobTimeout)
 	defer cancel()
 
 	// Add feed id as slog attribute for log tracking.
-	ctx = slogctx.With(ctx, "feed_id", jobData.FeedID)
+	ctx = slogctx.With(ctx, "feed_id", data.FeedID)
 
 	// Retrieve the feed details.
-	details, err := service.GetFeed(ctx, jobData.FeedID)
-	if err != nil {
+	details, err := service.GetFeed(ctx, data.FeedID)
+	switch {
+	case err != nil && errors.Is(err, elastic.ErrNotFound):
 		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
-		if errors.Is(err, elastic.ErrNotFound) {
-			if err := service.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
-				return fmt.Errorf("mark job for deletion: %w", err)
-			}
-			slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.",
-				slog.String("feed_id", jobData.FeedID),
-			)
-		} else {
-			return fmt.Errorf("get feed doc: %w", err)
+		data.Deleted = true
+		if marshalErr := job.JobData.FromUpdateFeedJob(data); marshalErr != nil {
+			return fmt.Errorf("update job data: %w", marshalErr)
 		}
+		if updateErr := elastic.UpdateDoc(
+			ctx,
+			schema.SchedulerIndexRW(),
+			job.JobDetail().JobKey().String(),
+			job,
+			elastic.WithDocAsUpsert(true),
+			elastic.WithRefresh(true),
+		); updateErr != nil {
+			return fmt.Errorf("update job: %w", updateErr)
+		}
+		slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.")
+	case err != nil:
+		return fmt.Errorf("get feed doc: %w", err)
 	}
 
 	// Add additional feed details to logs.
@@ -111,7 +109,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	for feedURL = range slices.Values(details.GetSourceURLs()) {
 		var err error
-		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, false)
+		feed, err = models.NewFeedFromURL(ctx, feedURL, data.FeedID, false)
 		if err != nil {
 			var httpErr feeds.ParseError
 			logMsg := &feedStatusLogMsg{
@@ -199,10 +197,15 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
-		updates := generateFeedUpdates(ctx, feed, details)
-		updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
-		if err := service.UpdateFeed(ctx, jobData.FeedID, updates); err != nil {
-			return fmt.Errorf("update feed: %w", err)
+		if err := service.UpdateFeedDetails(
+			ctx,
+			details,
+			feed,
+			newItems.SortByTimestamp()[0].GetTimestamp(),
+		); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to update feed details.",
+				slog.Any("error", err),
+			)
 		}
 		// Update FeedStatus.
 		logMsg.StatusCode = http.StatusOK
@@ -222,54 +225,6 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		slog.Duration("took", time.Since(start)))
 
 	return nil
-}
-
-func generateFeedUpdates(ctx context.Context, newData, oldData *models.Feed) map[string]any {
-	updates := make(map[string]any)
-	// Always update updated timestamp.
-	updates["updated"] = newData.Updated
-	// Update the feed image if it has changed.
-	switch {
-	case oldData.GetImage() == nil && newData.GetImage() != nil:
-		// No existing image and new image found.
-		updates["image"] = newData.GetImage()
-		slogctx.FromCtx(ctx).Info("Added feed image.",
-			slog.String("feed_id", newData.GetID()),
-		)
-	case oldData.GetImage() != nil && newData.GetImage() != nil && oldData.GetImage().GetURL() != newData.GetImage().GetURL():
-		//  Existing image is not the same as new image.
-		updates["image"] = newData.GetImage()
-		slogctx.FromCtx(ctx).Info("Updated feed image.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_image", oldData.GetImage().GetURL()),
-			slog.String("new_image", newData.GetImage().GetURL()),
-		)
-	}
-	// Update the title if it has changed.
-	if oldData.GetTitle() != newData.GetTitle() {
-		slogctx.FromCtx(ctx).Info("Updated feed title.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_title", oldData.GetTitle()),
-			slog.String("new_title", newData.GetTitle()),
-		)
-		updates["title"] = newData.GetTitle()
-	}
-	// Update the description if it has changed.
-	if oldData.GetDescription() != newData.GetDescription() {
-		updates["description"] = newData.GetDescription()
-		slogctx.FromCtx(ctx).Info("Updated feed description.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_description", oldData.GetDescription()),
-			slog.String("new_description", newData.GetDescription()),
-		)
-	}
-	return updates
-}
-
-var updateFeedBufPool = sync.Pool{
-	New: func() any {
-		return &UpdateFeedJobData{}
-	},
 }
 
 type feedStatusLogMsg struct {

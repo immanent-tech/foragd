@@ -12,52 +12,50 @@ import (
 )
 
 const (
-	defaultCronJobTrigger = "0 */5 * * * *"
-	defaultPollInterval   = time.Minute
-	defaultPollJitter     = 5 * time.Second
-	defaultRunOnceDelay   = time.Hour
-	pollTriggerID         = "PollTrigger"
-
-	jobTriggerTypeCron    = "cron"
-	jobTriggerTypePoll    = "poll"
-	jobTriggerTypeOneShot = "oneshot"
+	DefaultPollInterval = time.Minute
+	DefaultPollJitter   = 5 * time.Second
+	DefaultRunOnceDelay = time.Hour
 )
 
-// cronTrigger represents a trigger that runs on a Cron schedule.
-type cronTrigger struct {
-	Schedule string `json:"schedule" validate:"required,cron"`
-}
+var _ quartz.Trigger = (*PollTrigger)(nil)
 
-// pollTrigger represents a polling trigger for a job.
-type pollTrigger struct {
-	Interval time.Duration `json:"interval" validate:"required"`
-	Jitter   time.Duration `json:"jitter"   validate:"required,len"`
-}
-
-var _ quartz.Trigger = (*pollTrigger)(nil)
-
-type oneShotTrigger struct {
-	Delay time.Duration `json:"delay" validate:"required"`
-}
-
-// newPollTrigger returns a new polling job using the given interval and jitter.
-func newPollTrigger(interval, jitter any) *pollTrigger {
-	return &pollTrigger{
-		Interval: asDuration(interval, defaultPollInterval),
-		Jitter:   asDuration(jitter, defaultPollJitter),
+// NewPollTrigger returns a new polling job using the given interval and jitter.
+func NewPollTrigger(interval, jitter any) *PollTrigger {
+	return &PollTrigger{
+		Interval: asDuration(interval, DefaultPollInterval),
+		Jitter:   asDuration(jitter, DefaultPollJitter),
 	}
 }
 
-// NextFireTime returns the next time at which the PollTriggerWithJitter is scheduled to fire.
-func (t *pollTrigger) NextFireTime(prev int64) (int64, error) {
+func (t *PollTrigger) Description() string {
+	return strings.Join([]string{"poll", t.Interval.String(), t.Jitter.String()}, quartz.Sep)
+}
+
+func (t *PollTrigger) NextFireTime(prev int64) (int64, error) {
 	jitter := rand.NormFloat64()*float64(t.Jitter) + float64(t.Interval) // #nosec: G404
 	next := prev + int64(jitter)
 	return next, nil
 }
 
-// Description returns the description of the PollTriggerWithJitter.
-func (t *pollTrigger) Description() string {
-	return strings.Join([]string{pollTriggerID, t.Interval.String(), t.Jitter.String()}, quartz.Sep)
+var _ quartz.Trigger = (*OneShotTrigger)(nil)
+
+// NewOneShotTrigger returns a new RunOnceTrigger with the given delay time.
+func NewOneShotTrigger(delay time.Duration) *OneShotTrigger {
+	return &OneShotTrigger{
+		Delay: delay,
+	}
+}
+
+func (t *OneShotTrigger) Description() string {
+	return strings.Join([]string{"oneshot", t.Delay.String()}, quartz.Sep)
+}
+
+func (t *OneShotTrigger) NextFireTime(prev int64) (int64, error) {
+	if !t.Expired {
+		next := prev + t.Delay.Nanoseconds()
+		return next, nil
+	}
+	return 0, quartz.ErrTriggerExpired
 }
 
 // asDuration will attempt to parse the given input value as a duration. If the value cannot be parsed, the given

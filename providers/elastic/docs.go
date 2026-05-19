@@ -105,7 +105,7 @@ func UpdateDoc[T ~string](
 	ctx context.Context,
 	index string,
 	id T,
-	updates map[string]any,
+	updates any,
 	options ...func(*UpdateRequest),
 ) error {
 	// Connect to elasticsearch (if not already connected).

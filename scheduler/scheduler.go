@@ -20,7 +20,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
@@ -39,27 +38,6 @@ type manager struct {
 }
 
 var Manager *manager
-
-// GetJobState returns the job state of the job with the given id.
-func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	state, err := elastic.GetDoc[string, *models.JobState](ctx, schema.SchedulerIndexRO(), id)
-	if err != nil {
-		return nil, fmt.Errorf("scheduler: get job state: %w", err)
-	}
-	return state, nil
-}
-
-// UpdateJobState will update the job state for the job with the given id.
-func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW(), id, updates,
-		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(true),
-	); err != nil {
-		return fmt.Errorf("scheduled: update job state: %w", err)
-	}
-	return nil
-}
 
 // Clear will remove all jobs from the queue.
 func (m *manager) Clear(ctx context.Context) error {
@@ -115,9 +93,9 @@ func NewManager(ctx context.Context) error {
 	}
 
 	// Create scheduler instance.
-	// logger := &logger{Logger: slogctx.FromCtx(ctx)}
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
+		quartz.WithRetryInterval(500*time.Millisecond),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
 		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
 	)
@@ -152,14 +130,19 @@ func RunStartupTasks(ctx context.Context) error {
 
 	startupTasks.Go(func() error {
 		// Setup get new feeds getNewFeedsJob.
-		getNewFeedsJob, err := jobs.NewGetNewFeedsJob(ctx)
+		getNewFeedsJob, err := jobs.NewGetNewFeedsJob()
 		if err != nil {
-			return fmt.Errorf("create get new feeds job: %w", err)
+			return fmt.Errorf("create new find new feeds job: %w", err)
 		}
-		_, err = Manager.GetScheduledJob(getNewFeedsJob.JobDetail().JobKey())
-		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
+			ctx,
+			schema.SchedulerIndexRO(),
+			getNewFeedsJob.JobDetail().JobKey().String(),
+		)
+		if err != nil || errors.Is(err, elastic.ErrNotFound) {
+			slogctx.FromCtx(ctx).Info("Adding job to find new feeds.")
 			if err = Manager.ScheduleJob(getNewFeedsJob.JobDetail(), getNewFeedsJob.Trigger()); err != nil {
-				return fmt.Errorf("check get new feeds job: %w", err)
+				return fmt.Errorf("schedule get new feeds job: %w", err)
 			}
 		}
 		return nil
@@ -171,32 +154,37 @@ func RunStartupTasks(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("create clear deleted feeds job: %w", err)
 		}
-		_, err = Manager.GetScheduledJob(clearDeletedFeedsJob.JobDetail().JobKey())
-		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
+			ctx,
+			schema.SchedulerIndexRO(),
+			clearDeletedFeedsJob.JobDetail().JobKey().String(),
+		)
+		if err != nil || errors.Is(err, elastic.ErrNotFound) {
 			if err = Manager.ScheduleJob(clearDeletedFeedsJob.JobDetail(), clearDeletedFeedsJob.Trigger()); err != nil {
-				return fmt.Errorf("check clear deleted feeds job: %w", err)
+				return fmt.Errorf("schedule clear deleted feeds job: %w", err)
 			}
-		}
-		// Check for new feeds on startup.
-		if err = clearDeletedFeedsJob.JobDetail().Job().Execute(ctx); err != nil {
-			return fmt.Errorf("schedule clear deleted feeds job: %w", err)
 		}
 		return nil
 	})
 
 	startupTasks.Go(func() error {
 		// Setup clear expired sessions job.
-		clearExpiredSessionsJob, err := jobs.NewClearExpiredSessionsJob()
+		clearExpiredSessionsJob, err := jobs.NewDeleteExpiredSessionsJob()
 		if err != nil {
-			return fmt.Errorf("create get new feeds job: %w", err)
+			return fmt.Errorf("create delete expired sessions job: %w", err)
 		}
-		_, err = Manager.GetScheduledJob(clearExpiredSessionsJob.JobDetail().JobKey())
-		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
+			ctx,
+			schema.SchedulerIndexRO(),
+			clearExpiredSessionsJob.JobDetail().JobKey().String(),
+		)
+		if err != nil || errors.Is(err, elastic.ErrNotFound) {
+			slogctx.FromCtx(ctx).Info("Adding job to delete expired sessions.")
 			if err = Manager.ScheduleJob(
 				clearExpiredSessionsJob.JobDetail(),
 				clearExpiredSessionsJob.Trigger(),
 			); err != nil {
-				return fmt.Errorf("check get new feeds job: %w", err)
+				return fmt.Errorf("schedule delete expired sessions job: %w", err)
 			}
 		}
 		return nil

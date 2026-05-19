@@ -106,6 +106,62 @@ func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) e
 	return nil
 }
 
+// UpdateFeedDetails takes a copy of a feed that has been recently fetched/refreshed and checks/updates various fields.
+// If there are updates, these are then saved.
+func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+	updates := make(map[string]any)
+
+	// Update the feed image if it has changed.
+	switch {
+	case oldData.GetImage() == nil && newData.GetImage() != nil:
+		// No existing image and new image found.
+		updates["image"] = newData.GetImage()
+		slogctx.FromCtx(ctx).Info("Added feed image.",
+			slog.String("feed_id", newData.GetID()),
+		)
+	case oldData.GetImage() != nil && newData.GetImage() != nil && oldData.GetImage().GetURL() != newData.GetImage().GetURL():
+		//  Existing image is not the same as new image.
+		updates["image"] = newData.GetImage()
+		slogctx.FromCtx(ctx).Info("Updated feed image.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_image", oldData.GetImage().GetURL()),
+			slog.String("new_image", newData.GetImage().GetURL()),
+		)
+	}
+
+	// Update the title if it has changed.
+	if oldData.GetTitle() != newData.GetTitle() {
+		slogctx.FromCtx(ctx).Info("Updated feed title.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_title", oldData.GetTitle()),
+			slog.String("new_title", newData.GetTitle()),
+		)
+		updates["title"] = newData.GetTitle()
+	}
+
+	// Update the description if it has changed.
+	if oldData.GetDescription() != newData.GetDescription() {
+		updates["description"] = newData.GetDescription()
+		slogctx.FromCtx(ctx).Info("Updated feed description.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_description", oldData.GetDescription()),
+			slog.String("new_description", newData.GetDescription()),
+		)
+	}
+
+	if len(updates) > 0 {
+		updates["updated"] = newData.Updated
+		updates["last_fetched"] = lastFetched
+
+		// Save the new details.
+		if err := UpdateFeed(ctx, oldData.GetID(), updates); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
 func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionRequest) []models.FeedSubscriptionResult {
 	// Process requests.

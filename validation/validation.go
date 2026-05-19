@@ -33,10 +33,10 @@ func IsValid[T any](obj T) bool {
 	return err != nil
 }
 
-// parseStructValidationErrors takes the underlying validation errors and
+// ParseStructValidationErrors takes the underlying validation errors and
 // formats them so that each struct field has an array of all validation errors
 // associated with it.
-func parseStructValidationErrors(validationErrors validator.ValidationErrors) *Error {
+func ParseStructValidationErrors(validationErrors validator.ValidationErrors) *Error {
 	fields := make(map[string]string)
 	// Generate details of fields that failed validation.
 	var details strings.Builder

@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Request Objects
+  description: >
+    Request objects used within the service.
+  license:
+    name: AGPL 3.0
+    idenfiier: AGPL-3.0-or-later
+  contact:
+    name: Immanent Tech
+components:
+  schemas:
+    Checkpoint:
+      description: is the last time the job ran.
+      x-go-type: time.Time
+      x-oapi-codegen-extra-tags:
+        validate: 'required,gt=0s'
+    Trigger:
+      description: is a trigger for a job.
+      oneOf:
+        # - $ref: '#/components/schemas/CronTrigger'
+        - $ref: '#/components/schemas/PollTrigger'
+        - $ref: '#/components/schemas/OneShotTrigger'
+    # CronTrigger:
+    #   description: is a cron-based job trigger.
+    #   type: object
+    #   required:
+    #     - schedule
+    #   properties:
+    #     schedule:
+    #       description: is the schedule to run the job, in cron format.
+    #       type: string
+    #       x-oapi-codegen-extra-tags:
+    #         validate: 'required,cron'
+    TriggerType:
+      description: contains a string id for a trigger.
+      type: string
+      enum: ['poll','oneshot']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=poll oneshot'
+    PollTrigger:
+      description: is a trigger based on an interval with a small amount of jitter.
+      type: object
+      required:
+        - interval
+        - jitter
+      properties:
+        interval:
+          description: is the interval on which the job is run.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            validate: 'gt=1m'
+        jitter:
+          description: is a jitter to apply to the interval.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            validate: 'gt=0s,ltfield=Interval'
+    OneShotTrigger:
+      description: is a trigger that runs one time only.
+      type: object
+      required:
+        - delay
+        - expired
+      properties:
+        delay:
+          description: is the duration into the future on which to run the job.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            validate: 'required,gt=0s'
+        expired:
+          description: is true if the job has been run.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    SerializedJob:
+      description: >
+        represents a scheduled job stored in the queue.
+      type: object
+      required:
+        - created_at
+        - updated_at
+        - job_key
+        - job_next_run
+        - job_trigger
+        - job_trigger_type
+        - job_type
+        - job_data
+      properties:
+        created_at:
+          $ref: 'models.yaml#/components/schemas/CreatedAt'
+        updated_at:
+          $ref: 'models.yaml#/components/schemas/UpdatedAt'
+        job_description:
+          description: is a summary of what the job does.
+          type: string
+        job_key:
+          description: is a unique identifier for the job.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        job_options:
+          description: are additional options for the job.
+          x-go-type: quartz.JobDetailOptions
+          x-go-type-import:
+            path: github.com/reugn/go-quartz/quartz
+        job_next_run:
+          description: is the next run time of the job.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        job_trigger:
+          $ref: '#/components/schemas/Trigger'
+        job_trigger_type:
+          $ref: '#/components/schemas/TriggerType'
+        job_type:
+          $ref: '#/components/schemas/JobType'
+        job_data:
+          $ref: '#/components/schemas/JobData'
+    JobType:
+      description: is the type of job
+      type: string
+      enum: ['get_new_feeds','update_feed','delete_expired_sessions','clear_deleted_feeds','user_tips_job','test']
+      x-oapi-codegen-extra-tags:
+        validate: 'required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds'
+    GetNewFeedsJob:
+      description: represents the data needed for a get new feeds job.
+      type: object
+      required:
+        - checkpoint
+      properties:
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+    UpdateFeedJob:
+      description: represents the data needed for a feed update job.
+      type: object
+      required:
+        - feed_id
+        - deleted
+      properties:
+        feed_id:
+          $ref: 'models.yaml#/components/schemas/FeedID'
+        deleted:
+          description: indicates that the feed associated with this job has been deleted since the last run.
+          type: boolean
+    DeleteExpiredSessionsJob:
+      description: represents the data needed for a delete expired sessions job.
+      type: object
+      required:
+        - checkpoint
+      properties:
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+    ClearDeletedFeedsJob:
+      description: represents the data needed for a clear deleted feeds job.
+      type: object
+      required:
+        - checkpoint
+      properties:
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+    UserTipsJob:
+      description: represents the data needed for a user tips job.
+      type: object
+      required:
+        - user_id
+        - email_id
+      properties:
+        user_id:
+          $ref: 'models.yaml#/components/schemas/UserID'
+        email_id:
+          $ref: 'models.yaml#/components/schemas/UserTipsEmail'
+    TestJob:
+      description: represents the data for a test job.
+      type: object
+      additionalProperties: true
+    JobData:
+      description: contains job specific data.
+      oneOf:
+        - $ref: '#/components/schemas/TestJob'
+        - $ref: '#/components/schemas/GetNewFeedsJob'
+        - $ref: '#/components/schemas/UpdateFeedJob'
+        - $ref: '#/components/schemas/DeleteExpiredSessionsJob'
+        - $ref: '#/components/schemas/ClearDeletedFeedsJob'
+        - $ref: '#/components/schemas/UserTipsJob'

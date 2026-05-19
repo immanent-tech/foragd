@@ -5,7 +5,6 @@ package jobs
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,81 +12,69 @@ import (
 	"sync"
 	"time"
 
+	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-const (
-	jobTypeClearDeletedFeeds jobType = "clear_deleted_feeds"
-)
-
-// ClearDeletedFeedsState represents the state required by this job type.
-type ClearDeletedFeedsState struct {
-	// Checkpoint is the timestamp when the job last checked for new feeds.
-	Checkpoint time.Time `json:"checkpoint"`
-}
-
-// NewClearDeletedFeedsJob creates a job for checking for new feeds.
-func NewClearDeletedFeedsJob() (*ScheduledJob, error) {
-	job := &ScheduledJob{
+// NewClearDeletedFeedsJob creates a job for clearing deleted feeds.
+func NewClearDeletedFeedsJob() (*SerializedJob, error) {
+	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
-		JobTriggerType: jobTriggerTypePoll,
-		JobType:        jobTypeClearDeletedFeeds,
-		JobDescription: "Clear update feed jobs marked for deletion.",
+		JobDescription: new("Clear deleted feeds."),
+		JobKey:         quartz.NewJobKey(string(JobTypeClearDeletedFeeds)).String(),
+		JobType:        JobTypeClearDeletedFeeds,
+		JobNextRun:     models.UnixEpoch,
+		JobTriggerType: TriggerTypePoll,
 	}
 
-	var (
-		data []byte
-		err  error
-	)
-
-	data, err = json.Marshal(newPollTrigger(24*time.Hour, time.Hour)) //nolint:mnd // Job trigger is ~every 24 hours.
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
+	if err := job.JobData.FromClearDeletedFeedsJob(
+		ClearDeletedFeedsJob{Checkpoint: models.UnixEpoch},
+	); err != nil {
+		return nil, fmt.Errorf("create job data: %w", err)
 	}
-	job.JobTrigger = data
+
+	if err := job.JobTrigger.FromPollTrigger(*NewPollTrigger(24*time.Hour, 5*time.Minute)); err != nil {
+		return nil, fmt.Errorf("create trigger: %w", err)
+	}
 
 	return job, nil
 }
 
-// executeClearDeletedFeeds runs a job that will look for update feed jobs marked for deletion and remove them from
+// ExecuteClearDeletedFeeds runs a job that will look for update feed jobs marked for deletion and remove them from
 // the scheduler queue. Jobs marked for deletion are marked by the update feed job themselves when they cannot find
 // their feed in the feeds index, which indicates the feed was deleted.
-func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
-	jobStateID := string(jobTypeClearDeletedFeeds) + "_state"
+func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
+	data, err := job.JobData.AsDeleteExpiredSessionsJob()
+	if err != nil {
+		return fmt.Errorf("unable to unmarshal job data: %w", err)
+	}
+
+	start := time.Now()
+
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Clearing deleted feeds.",
+		slog.Time("since", data.Checkpoint),
+	)
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {
 		return errors.New("unable to get scheduler api from context")
 	}
 
-	// state := &ClearDeletedFeedsState{}
-	// if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
-	// 	if !errors.Is(err, elastic.ErrNotFound) {
-	// 		return fmt.Errorf("get job state: %w", err)
-	// 	}
-	// 	state.Checkpoint = time.Time{}
-	// } else {
-	// 	err = json.Unmarshal(lastState.JobData, state)
-	// 	if err != nil {
-	// 		return fmt.Errorf("unmarshal job data: %w", err)
-	// 	}
-	// }
-
 	// Find new feeds. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
 	// don't have a job scheduled for updating their items.
 	var (
-		jobs []*ScheduledJob
-		err  error
+		jobs []*SerializedJob
 	)
-	jobs, err = elastic.SearchAll[*ScheduledJob](
+	jobs, err = elastic.SearchAll[*SerializedJob](
 		ctx,
 		schema.SchedulerIndexRO(),
 		query.Term("job_data.deleted", true),
-		defaultPaginationSize,
+		5000,
 	)
 	if err != nil {
 		return fmt.Errorf("search jobs: %w", err)
@@ -96,15 +83,6 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 		slogctx.FromCtx(ctx).Info("Found feed jobs that need to be deleted.",
 			slog.Int("count", len(jobs)),
 		)
-	}
-	// Update the checkpoint.
-	state := &ClearDeletedFeedsState{
-		Checkpoint: time.Now().UTC(),
-	}
-	if err := schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
-		"job_data": state,
-	}); err != nil {
-		return fmt.Errorf("update job state: %w", err)
 	}
 
 	var wg sync.WaitGroup
@@ -125,6 +103,26 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 	}
 
 	wg.Wait()
+
+	// Update the job data (checkpoint).
+	if err := job.JobData.MergeClearDeletedFeedsJob(
+		ClearDeletedFeedsJob{Checkpoint: time.Now().UTC()},
+	); err != nil {
+		return fmt.Errorf("update job data: %w", err)
+	}
+	if err := elastic.UpdateDoc(
+		ctx,
+		schema.SchedulerIndexRW(),
+		job.JobDetail().JobKey().String(),
+		job,
+		elastic.WithDocAsUpsert(true),
+		elastic.WithRefresh(true),
+	); err != nil {
+		return fmt.Errorf("update job: %w", err)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Finished clearing deleted feeds.",
+		slog.Duration("took", time.Since(start)))
 
 	return nil
 }

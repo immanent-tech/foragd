@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -27,11 +26,7 @@ const (
 	// defaultRequestTimeout is the maximum time a background action can run before its context is cancelled.
 	defaultRequestTimeout = 5 * time.Second
 	// defaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
-	defaultPaginationSize = 5000
 )
-
-// Make sure out jobQueue implementation satisfies quartz.JobQueue.
-var _ quartz.JobQueue = (*JobQueue)(nil)
 
 var (
 	ErrInitQueueFailed      = errors.New("could not initialize job queue")
@@ -53,53 +48,33 @@ type JobQueue struct {
 	logger *slog.Logger
 }
 
-type SerializedJob interface {
-	SetNextRun(nextRun time.Time)
-	SetCreatedAt(createdAt time.Time)
-	SetOptions(opts *quartz.JobDetailOptions)
-	AsScheduledJob() *jobs.ScheduledJob
-}
+// Make sure out jobQueue implementation satisfies quartz.JobQueue.
+var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 	return &JobQueue{logger: slogctx.FromCtx(ctx)}, nil
 }
 
-// Push inserts a new scheduled job to the queue.
-// This method is also used by the Scheduler to reschedule existing jobs that
-// have been dequeued for execution.
+// Push inserts a new scheduled job to the queue. This method is also used by the Scheduler to reschedule existing jobs
+// that have been dequeued for execution.
 func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	serialized, ok := job.JobDetail().Job().(SerializedJob)
+	serialized, ok := job.JobDetail().Job().(*jobs.SerializedJob)
 	if !ok {
-		return fmt.Errorf("%w: could not serialize job", ErrPushJobFailed)
+		return fmt.Errorf("%w: unsupported job type: %T", ErrPushJobFailed, job)
 	}
 
-	// Update job values.
-	serialized.SetNextRun(time.Unix(0, job.NextRunTime()))
-	serialized.SetCreatedAt(time.Now().UTC())
-	serialized.SetOptions(job.JobDetail().Options())
-
-	data := serialized.AsScheduledJob()
-	// data, err := jobs.MarshalJob(job)
-	// if err != nil {
-	// 	return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
-	// }
+	serialized.JobNextRun = time.Unix(0, job.NextRunTime())
+	serialized.UpdatedAt = time.Now().UTC()
 
 	if err := elastic.UpdateDoc(
 		ctx,
 		schema.SchedulerIndexRW(),
-		jobKeyToDocID(job.JobDetail().JobKey().String()),
-		map[string]any{
-			"job_next_run":     data.JobNextRun,
-			"job_data":         data.JobData,
-			"job_trigger_type": data.JobTriggerType,
-			"job_trigger":      data.JobTrigger,
-			"job_type":         data.JobType,
-			"updated_at":       time.Now().UTC(),
-		},
+		job.JobDetail().JobKey().String(),
+		serialized,
 		elastic.WithDocAsUpsert(true),
 		elastic.WithRefresh(true),
 	); err != nil {
@@ -121,7 +96,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrPopJobFailed, err)
 	}
-	id := jobKeyToDocID(job.JobDetail().JobKey().String())
+	id := job.JobDetail().JobKey().String()
 	err = jq.delete(id)
 	if err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
@@ -140,10 +115,10 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	// Find the next job
-	resp, err := elastic.Search[*jobs.ScheduledJob](
+	resp, err := elastic.Search[*jobs.SerializedJob](
 		ctx,
 		schema.SchedulerIndexRO(),
-		query.Exists("job_type"),
+		query.MatchAll(),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
 		elastic.WithSize(1),
 	)
@@ -153,7 +128,6 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	if len(resp.Results) == 0 {
 		return nil, fmt.Errorf("head: %w", quartz.ErrQueueEmpty)
 	}
-
 	return resp.Results[0], nil
 }
 
@@ -163,7 +137,11 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	job, err := elastic.GetDoc[string, *jobs.ScheduledJob](ctx, schema.SchedulerIndexRO(), jobKeyToDocID(jobKey.String()))
+	job, err := elastic.GetDoc[string, *jobs.SerializedJob](
+		ctx,
+		schema.SchedulerIndexRO(),
+		jobKey.String(),
+	)
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, quartz.ErrJobNotFound
@@ -183,7 +161,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
-	id := jobKeyToDocID(jobKey.String())
+	id := jobKey.String()
 	err = jq.delete(id)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
@@ -199,11 +177,11 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	allJobs, err := elastic.SearchAll[jobs.ScheduledJob](
+	allJobs, err := elastic.SearchAll[*jobs.SerializedJob](
 		ctx,
 		schema.SchedulerIndexRO(),
-		query.Exists("job_type"),
-		defaultPaginationSize,
+		query.MatchAll(),
+		5000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
@@ -215,8 +193,8 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 	jobs := make([]quartz.ScheduledJob, 0, len(allJobs))
 	// Filter jobs that to those that match given matchers.
 	for _, job := range allJobs {
-		if isMatch(&job, matchers) {
-			jobs = append(jobs, &job)
+		if isMatch(job, matchers) {
+			jobs = append(jobs, job)
 		}
 	}
 	return jobs, nil
@@ -227,7 +205,7 @@ func (jq *JobQueue) Size() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	count, err := elastic.Count(ctx, schema.SchedulerIndexRO(), query.Exists("job_type"))
+	count, err := elastic.Count(ctx, schema.SchedulerIndexRO(), query.MatchAll())
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -240,7 +218,7 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW(), query.Exists("job_type")); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW(), query.MatchAll()); err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
 
@@ -269,11 +247,6 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 	}
 
 	return true
-}
-
-func jobKeyToDocID(jobkey string) string {
-	parts := strings.Split(jobkey, "::")
-	return parts[1]
 }
 
 type jobSorting struct {
