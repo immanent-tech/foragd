@@ -247,7 +247,7 @@ func SubscriptionCard(idx int, s *models.Subscription) templ.Component {
 							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 							element.WithHXTarget(ContentID.Target()),
 							element.WithHXValues(filters.Values()),
-							element.WithHXParams("not subscription_id,subscriptions"),
+							element.WithHXParams("not subscriptions"),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {

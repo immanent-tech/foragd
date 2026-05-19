@@ -139,7 +139,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 							element.WithHXTarget(ContentID.Target()),
 							element.WithHXValues(filters.Values()),
-							element.WithHXParams("not subscription_id,subscriptions"),
+							element.WithHXParams("not subscriptions"),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						)
 					}
