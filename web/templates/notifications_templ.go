@@ -200,7 +200,7 @@ func UpdatesToast(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div id=\"updates-toast\" role=\"alert\" class=\"alert alert-info alert-outline alert-soft z-10\"><span>New updates available.</span><div><button class=\"btn btn-sm btn-square btn-info btn-soft\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div id=\"updates-toast\" role=\"alert\" class=\"alert alert-info alert-outline alert-soft z-99\"><span>New updates available.</span><div><button class=\"btn btn-sm btn-square btn-info btn-soft\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
