@@ -70,7 +70,7 @@ func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error
 	}
 	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
-		return doc, fmt.Errorf("get doc: extract doc: %w", err)
+		return doc, fmt.Errorf("extract doc source: %w", err)
 	}
 	return doc, nil
 }
