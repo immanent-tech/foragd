@@ -696,8 +696,8 @@ func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, op
 	}
 
 	// Migrate Feed/Items common mappings component template.
-	if err := migrateIndexTemplates(ctx, api, feedItemsCommonMappings); err != nil {
-		return fmt.Errorf("could not migrate feed/items common mappings component template: %w", err)
+	if err := migrateIndexTemplates(ctx, api, feedItemsCommonMappings, noDynamicMappingComponentTemplate); err != nil {
+		return fmt.Errorf("could not migrate shared component templates: %w", err)
 	}
 
 	for index := range slices.Values(opts.Indices) {
