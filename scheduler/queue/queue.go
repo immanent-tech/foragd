@@ -181,7 +181,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 		ctx,
 		schema.SchedulerIndexRO(),
 		query.MatchAll(),
-		5000,
+		1000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
