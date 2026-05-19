@@ -87,7 +87,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		5000,
 	)
 	if err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 	if len(allFeeds) > 0 {
 		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
