@@ -184,6 +184,18 @@ var feedItemsCommonMappings = withComponentTemplatesMigration(
 	),
 )
 
+var noDynamicMappingComponentTemplate = withComponentTemplatesMigration(
+	templates.NewComponentTemplate(
+		"no_dynamic_mapping",
+		templates.NewTemplate(
+			templates.WithTemplateMapping(
+				templates.WithDynamicProperties("strict"),
+			),
+		),
+		templates.WithComponentTemplateMetadata(defaultMetadata),
+	),
+)
+
 var (
 	// itemsComponentTemplate contains the field mappings for Items.
 	itemsComponentTemplate = withComponentTemplatesMigration(
@@ -215,7 +227,6 @@ var (
 						templates.WithKeywordMapping("extension_type"),
 						templates.WithFlattenedMapping("extension_data"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 				templates.WithTemplateSettings(
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
@@ -276,7 +287,6 @@ var (
 						templates.WithKeywordMapping("user_id"),
 						templates.WithKeywordMapping("subscription_id"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 				templates.WithTemplateSettings(
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
@@ -317,7 +327,6 @@ var (
 						templates.WithInt64Mapping("update_interval"),
 						templates.WithKeywordMapping("source_urls"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 				templates.WithTemplateSettings(
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
@@ -374,7 +383,6 @@ var (
 						),
 						templates.WithKeywordMapping("item_favorites"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 			),
 		),
@@ -468,7 +476,6 @@ var (
 							),
 						),
 					),
-					templates.WithDynamicProperties(false),
 				),
 				templates.WithTemplateSettings(
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
@@ -507,16 +514,17 @@ var (
 						templates.WithFlattenedMapping("job_options"),
 						templates.WithFlattenedMapping("job_data"),
 						templates.WithKeywordMapping("job_type"),
+						templates.WithKeywordMapping("job_key"),
 						templates.WithTextMapping("job_description", &types.TextProperty{
 							Type: "text",
 							Fields: map[string]types.Property{
 								"raw": types.NewKeywordProperty(),
 							},
 						}),
+						templates.WithKeywordMapping("job_trigger_type"),
 						templates.WithFlattenedMapping("job_trigger"),
 						templates.WithDatetimeMapping("job_next_run"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 			),
 		),
@@ -525,7 +533,7 @@ var (
 	schedulerIndexTemplate = withIndexTemplateMigration(
 		templates.NewIndexTemplate(
 			"scheduler_index_template",
-			templates.WithComponentTemplates("scheduler_component_template"),
+			templates.WithComponentTemplates("scheduler_component_template", "no_dynamic_mapping"),
 			templates.WithIndexPatterns(schedulerIndexPrefix+"-*"),
 			templates.WithIndexTemplateMetadata(defaultMetadata),
 		),
@@ -544,7 +552,6 @@ var (
 						templates.WithKeywordMapping("token"),
 						templates.WithBinaryMapping("data"),
 					),
-					templates.WithDynamicProperties(false),
 				),
 			),
 		),
