@@ -109,8 +109,6 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 		return ExecuteDeleteExpiredSessions(ctx, j)
 	case JobTypeClearDeletedFeeds:
 		return ExecuteClearDeletedFeeds(ctx, j)
-	case JobTypeTest:
-		return ExecuteTest(ctx, j)
 	}
 
 	// Fail if we can't find an execution method (i.e., not implemented).

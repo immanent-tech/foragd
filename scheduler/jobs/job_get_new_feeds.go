@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goforj/godump"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -103,7 +102,6 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		// Add additional feed details to logs.
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
-		godump.Dump(feed)
 		wg.Go(func() {
 			jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
 			switch existingJob, err := schedulerAPI.GetScheduledJob(jobKey); {
