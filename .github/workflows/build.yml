@@ -90,6 +90,7 @@ jobs:
             storage.googleapis.com:443
             timestamp.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
+            production.cloudfront.docker.com:443
 
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
