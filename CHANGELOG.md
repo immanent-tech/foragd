@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.142.3](https://github.com/immanent-tech/foragd/compare/v0.142.2...v0.142.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* **scheduler:** ♻️ vastly improved scheduler logic ([b245aa2](https://github.com/immanent-tech/foragd/commit/b245aa22a068df3fd848950625319e6a46852f10))
+
 ## [0.142.2](https://github.com/immanent-tech/foragd/compare/v0.142.1...v0.142.2) (2026-05-17)
 
 
