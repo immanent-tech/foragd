@@ -38,7 +38,7 @@
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.3.0",
-    "@tailwindcss/postcss": "^4.2.4",
+    "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
