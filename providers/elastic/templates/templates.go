@@ -140,13 +140,20 @@ func WithMetadata(metadata types.Metadata) MappingsOption {
 }
 
 // WithDynamicProperties option sets whether dynamic properties are allowed.
-func WithDynamicProperties(value bool) MappingsOption {
+func WithDynamicProperties(value any) MappingsOption {
 	return func(m *Mappings) {
-		switch value {
-		case true:
-			m.Dynamic = &dynamicmapping.True
-		case false:
-			m.Dynamic = &dynamicmapping.False
+		switch v := value.(type) {
+		case bool:
+			switch v {
+			case true:
+				m.Dynamic = &dynamicmapping.True
+			case false:
+				m.Dynamic = &dynamicmapping.False
+			}
+		case string:
+			if v == "strict" {
+				m.Dynamic = &dynamicmapping.Strict
+			}
 		}
 	}
 }
