@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.142.4](https://github.com/immanent-tech/foragd/compare/v0.142.3...v0.142.4) (2026-05-19)
+
+
+### Bug Fixes
+
+* **elastic:** 🔧 support more values of dynamic mapping index template setting ([5ee16c0](https://github.com/immanent-tech/foragd/commit/5ee16c09d91ed0483f99bccccaac37b347ef6b61))
+* **scheduler:** 🔧 remove debugging code ([99e51fb](https://github.com/immanent-tech/foragd/commit/99e51fb94974fd9e4116356bf135a89e06478241))
+* **templates:** 🔧 allow category filters to include subscription filters ([846845f](https://github.com/immanent-tech/foragd/commit/846845f695c944749c860f113dfe0635e0d70b35))
+* **templates:** 🔧 make sure notifications toast is above other content ([beba2bc](https://github.com/immanent-tech/foragd/commit/beba2bcfdd51392b144c3b25f8a7b5ef0a242a97))
+
 ## [0.142.3](https://github.com/immanent-tech/foragd/compare/v0.142.2...v0.142.3) (2026-05-19)
 
 
