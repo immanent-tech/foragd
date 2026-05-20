@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.142.5](https://github.com/immanent-tech/foragd/compare/v0.142.4...v0.142.5) (2026-05-20)
+
+
+### Bug Fixes
+
+* **models:** 🐛 add new no dynamic mapping component template ([caf69ee](https://github.com/immanent-tech/foragd/commit/caf69ee88fb29c3058a21b0440f2b75539dcbcef))
+* **scheduler:** 🐛 fix error message arguments ([4731c81](https://github.com/immanent-tech/foragd/commit/4731c8173370d1f078a465739b5775f2ed7ca68d))
+* **service:** 🔧 guard against empty slices when calculating dynamic info for subscription types ([c57f75d](https://github.com/immanent-tech/foragd/commit/c57f75d6cd2dc6b9216c6acf313975788feebefe))
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ tweak pagination for retrieving all jobs from scheduler queue ([e0ab314](https://github.com/immanent-tech/foragd/commit/e0ab31427191bf0c61b95fad5f745ddad3f15826))
+
 ## [0.142.4](https://github.com/immanent-tech/foragd/compare/v0.142.3...v0.142.4) (2026-05-19)
 
 
