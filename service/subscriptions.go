@@ -724,49 +724,55 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 	}
 
 	// For feed subscriptions, add stats.
-	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeFeed)) {
-		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-		if user.GetSettings().ShowSubscriptionStats {
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+	if feedSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed); len(feedSubscriptions) > 0 {
+		for subscription := range slices.Values(feedSubscriptions) {
+			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			}
 		}
 	}
 
 	// For email subscriptions, add stats.
-	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeEmail)) {
-		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-		if user.GetSettings().ShowSubscriptionStats {
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+	if emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeEmail); len(emailSubscriptions) > 0 {
+		for subscription := range slices.Values(emailSubscriptions) {
+			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			}
 		}
 	}
 
 	// For group subscriptions, calculate stats from other subscriptions.
-	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
-		var avgDailyUpdates []float64
-		var unreadCount int
-		var lastUpdates []time.Time
-		for groupSubscription := range slices.Values(subscriptions) {
-			if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
-				if user.GetSettings().ShowSubscriptionStats {
-					avgDailyUpdates = append(avgDailyUpdates, groupSubscription.GetStats().AvgDailyUpdates)
+	if groupSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeGroup); len(groupSubscriptions) > 0 {
+		for subscription := range slices.Values(groupSubscriptions) {
+			var avgDailyUpdates []float64
+			var unreadCount int
+			var lastUpdates []time.Time
+			for groupSubscription := range slices.Values(subscriptions) {
+				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
+					if user.GetSettings().ShowSubscriptionStats {
+						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.GetStats().AvgDailyUpdates)
+					}
+					unreadCount += groupSubscription.GetStats().UnreadCount
+					lastUpdates = append(lastUpdates, groupSubscription.GetStats().LastUpdate)
 				}
-				unreadCount += groupSubscription.GetStats().UnreadCount
-				lastUpdates = append(lastUpdates, groupSubscription.GetStats().LastUpdate)
 			}
+			if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
+				slices.Sort(avgDailyUpdates)
+				slices.Reverse(avgDailyUpdates)
+				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
+			}
+			subscription.GetStats().UnreadCount = unreadCount
+			// Sort by date ascending, with favorites before non-favorites.
+			slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
+				return timeA.Compare(timeB)
+			})
+			slices.Reverse(lastUpdates)
+			subscription.GetStats().LastUpdate = lastUpdates[0]
 		}
-		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
-			slices.Sort(avgDailyUpdates)
-			slices.Reverse(avgDailyUpdates)
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
-		}
-		subscription.GetStats().UnreadCount = unreadCount
-		// Sort by date ascending, with favorites before non-favorites.
-		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
-			return timeA.Compare(timeB)
-		})
-		slices.Reverse(lastUpdates)
-		subscription.GetStats().LastUpdate = lastUpdates[0]
 	}
 
 	return nil
