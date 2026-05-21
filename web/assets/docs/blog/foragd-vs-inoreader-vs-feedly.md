@@ -54,7 +54,7 @@ Most of these services offer a number of different subscription tiers. In this c
 | ------------------------------ | ------------------------------------------------------ | ------------------------ | --------------------------------------------------- |
 | **Pricing and Plans**          |                                                        |                          |                                                     |
 | Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $6.99/mo billed annually | $7.50/mo billed annually or $9.99/mo billed monthly |
-| Trial period?                  | Free access during beta period. 14 days when launched. | None.                    | 15 days                                             |
+| Trial period?                  | 14 free trial.                                         | None.                    | 15 days                                             |
 | **Inclusions and Limits**      |                                                        |                          |                                                     |
 | Subscription limit             | 3000                                                   | 1000                     | 2500                                                |
 | Email newsletter subscriptions | 50                                                     | No.                      | 20                                                  |
