@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.143.0](https://github.com/immanent-tech/foragd/compare/v0.142.5...v0.143.0) (2026-05-21)
+
+
+### Features
+
+* ✨ paddle integration ([8825166](https://github.com/immanent-tech/foragd/commit/882516620116c3cf09eb6d3fdc2f404aff52c80a))
+
 ## [0.142.5](https://github.com/immanent-tech/foragd/compare/v0.142.4...v0.142.5) (2026-05-20)
 
 
