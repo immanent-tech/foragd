@@ -30,8 +30,6 @@ const (
 	ParamSubscriptions      = "subscriptions"
 	ParamFullArticleContent = "show_full_content"
 	ParamOnlyFavorites      = "only_favorites"
-	// ParamPlanID is the ID of the subscription plan the user has chosen.
-	ParamPlanID = "plan_id"
 	// ParamThumbnail is a thumbnail image uploaded by the user.
 	ParamThumbnail = "thumbnail"
 )

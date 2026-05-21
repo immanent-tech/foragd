@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/a-h/templ"
 
@@ -27,8 +26,8 @@ func HandleLanding() http.HandlerFunc {
 			templates.WithOpenGraphMetadata(opengraph.New(
 				"Foragd",
 				"website",
-				os.Getenv("FORAGD_BASEURL"),
-				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				config.GetBaseURL(),
+				config.GetBaseURL()+"/content/logo-color.webp",
 				opengraph.WithDescription(config.AppDescription),
 				opengraph.WithSiteName(config.AppName),
 			)),

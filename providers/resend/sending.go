@@ -191,7 +191,7 @@ func WithExistingEmail(data *Email) EmailOption {
 
 // SendEmail sends the given email.
 func SendEmail(ctx context.Context, options ...EmailOption) error {
-	client, err := loadClient()
+	client, err := LoadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
 	}
@@ -227,7 +227,7 @@ func SendEmail(ctx context.Context, options ...EmailOption) error {
 
 // BatchSendEmails sends the given emails in a batch request.
 func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, error) {
-	client, err := loadClient()
+	client, err := LoadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}

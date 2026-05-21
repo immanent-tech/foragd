@@ -43,7 +43,8 @@
         "eliostruyf.vscode-front-matter",
         "cossssmin.posthtml",
         "ms-azuretools.vscode-containers",
-        "csstools.postcss"
+        "csstools.postcss",
+        "oderwat.indent-rainbow"
       ]
     }
   }

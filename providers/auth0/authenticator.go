@@ -19,7 +19,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session"
 )
 
@@ -211,8 +210,8 @@ func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
 	switch chi.RouteContext(req.Context()).RoutePattern() {
 	case "/signup":
 		// Retrieve and save the selected plan id into the session for later use.
-		planID := req.URL.Query().Get(models.ParamPlanID)
-		session.Save(req.Context(), models.ParamPlanID, planID)
+		planID := req.URL.Query().Get("subscription_plan")
+		session.Save(req.Context(), "subscription_plan", planID)
 		authURL = authClient.AuthCodeURL(state,
 			oauth2.SetAuthURLParam("screen_hint", "signup"),
 			// oauth2.S256ChallengeOption(codeChallenge(verifier)),

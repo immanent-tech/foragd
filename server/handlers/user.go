@@ -10,7 +10,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"slices"
 	"strconv"
 
@@ -23,15 +22,12 @@ import (
 
 	"github.com/immanent-tech/go-syndication/opml"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/auth0"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -256,8 +252,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			}
 			avatarCache.Set(req.Context(), avatarFileID, avatarData)
 			// Construct a new full URL to the uploaded avatar on the local server.
-			baseURL := os.Getenv("FORAGD_BASEURL")
-			request.AvatarURL = new(baseURL + "/img/avatar/" + avatarFileID)
+			request.AvatarURL = new(config.GetBaseURL() + "/img/avatar/" + avatarFileID)
 		}
 
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
@@ -382,129 +377,86 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
-			// ! Uncomment after beta.
-			// // Delete Stripe subscription.
-			// if err := stripe.CancelSubscription(user); err != nil {
-			// 	HandleInternalError(&models.APIError{
-			// 		InternalError: fmt.Errorf("cancel subscription: %w", err),
-			// 		StatusCode:    http.StatusInternalServerError,
-			// 		UserMessage: models.NewErrorMessage(
-			// 			"Unable to deactivate account",
-			// 			"This might be a temporary error, please try again.",
-			// 		),
-			// 	}).ServeHTTP(res, req)
-			// 	return
-			// }
-			// Delete the user.
-			if err := elastic.DeleteDoc(req.Context(), schema.UsersIndexRW(), user.GetID()); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("delete user: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to deactivate account",
-							"If this issue persists, please email support@foragd.app.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
-			// Delete the user's subscriptions.
-			if err := elastic.DeleteDocs(
-				req.Context(),
-				schema.SubscriptionsIndexRW(),
-				query.Term("user_id", user.GetID()),
-			); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("delete user subscriptions: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to deactivate account",
-							"If this issue persists, please email support@foragd.app.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
-			// Delete from Auth0 backend
-			if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("delete auth0 user: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to deactivate account",
-							"If this issue persists, please email support@foragd.app.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
+			switch {
+			case user.InTrial():
+				// Delete from Elasticsearch backend.
+				if err := service.DeleteUser(req.Context(), user); err != nil {
+					HandleInternalError(req.URL.Path,
+						&models.APIError{
+							InternalError: fmt.Errorf("delete user in elasticsearch: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to deactivate account",
+								"If this issue persists, please email support@foragd.app.",
+							),
+						}).ServeHTTP(res, req)
+					return
+				}
 
-			// Creatre and send deactivation email confirmation.
-			email, err := resend.NewTemplatedEmail(
-				"user-deactivated",
-				resend.WithTo(user.GetEmail()),
-				resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
-				resend.WithTag(resend.TagUserID, user.GetID()),
-			)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
-					slog.String("user_id", user.GetID()),
-					slog.Any("error", err),
-				)
-			}
-			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
-					slog.String("user_id", user.GetID()),
-					slog.Any("error", err),
-				)
-			}
+				// Delete from Auth0 backend
+				if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
+					HandleInternalError(req.URL.Path,
+						&models.APIError{
+							InternalError: fmt.Errorf("delete user in auth0: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to deactivate account",
+								"If this issue persists, please email support@foragd.app.",
+							),
+						}).ServeHTTP(res, req)
+					return
+				}
 
-			// Pass to logout handler.
-			Logout(res, req)
+				// Create and send deactivation email confirmation.
+				email, err := resend.NewTemplatedEmail(
+					"user-deactivated",
+					resend.WithTo(user.GetEmail()),
+					resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+					resend.WithTag(resend.TagUserID, user.GetID()),
+				)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
+						slog.String("user_id", user.GetID()),
+						slog.Any("error", err),
+					)
+				}
+				if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
+						slog.String("user_id", user.GetID()),
+						slog.Any("error", err),
+					)
+				}
+
+				slogctx.FromCtx(req.Context()).Info("Deleted trial user.")
+
+				// Pass to logout handler.
+				Logout(res, req)
+			case user.HasActiveSubscription():
+				if err := paddle.CancelSubscription(req.Context(), user); err != nil {
+					HandleInternalError(req.URL.Path,
+						&models.APIError{
+							InternalError: fmt.Errorf("cancel subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to deactivate account",
+								"If this issue persists, please email support@foragd.app.",
+							),
+						}).ServeHTTP(res, req)
+					return
+				}
+				res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
+				res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
+				RenderPartial(&PartialTemplate{
+					template: templates.DeactivateResult(user),
+				}).ServeHTTP(res, req)
+
+				slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
+			}
 		default:
 			RenderPartial(&Modal{
 				template: templates.DeactivateAccountModal(),
 			}).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
-}
-
-// HandleCancelDeactivation handles a user request to stop the pending deactivation of their account. The cancellation
-// will be reversed in Stripe and full account functionality restored.
-func HandleCancelDeactivation() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get user account details.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to reactivate account",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-		// Delete Stripe subscription.
-		if err := stripe.StopPendingCancellation(user); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("cancel pending cancellation: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to reactivate account",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-		RenderPartial(&Notification{
-			msg: models.NewSuccessMessage("Stopped account deactivation", ""),
-		}).ServeHTTP(res, req)
-		// Refresh the page
-		res.Header().Set(htmx.HeaderRefresh, "true")
 	}).ServeHTTP
 }
 
@@ -605,94 +557,79 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// ChooseSubscriptionPlan contains data for rendering a page to present the user with subscription plan options.
-type ChooseSubscriptionPlan struct {
-	user *models.User
-	plan string
-}
+// // HandleChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
+// func HandleChooseSubscriptionPlan() http.HandlerFunc {
+// 	return func(res http.ResponseWriter, req *http.Request) {
+// 		user := models.UserFromCtx(req.Context())
+// 		if user == nil {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
+// 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
+// 		var planID string
+// 		if req.URL.Query().Get(models.ParamPlanID) != "" {
+// 			planID = req.URL.Query().Get(models.ParamPlanID)
+// 		} else if p, err := session.Restore[string](req.Context(), models.ParamPlanID); err != nil {
+// 			planID = p
+// 		} else {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("process checkout: %w", err),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
+// 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
+// 		RenderExternalPage(&ChooseSubscriptionPlan{
+// 			user: user,
+// 			plan: planID,
+// 		}).ServeHTTP(res, req)
+// 	}
+// }
 
-// FullResponse renders the page for the user to choose a subscription plan.
-func (t *ChooseSubscriptionPlan) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			templates.UserChooseSubscriptionPlan(t.user, t.plan),
-			templates.WithPageTitle("Choose Subscription Plan"),
-		)).ServeHTTP(res, req)
-}
+// // HandleSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
+// // processor.
+// func HandleSubscriptionPlanCheckout() http.HandlerFunc {
+// 	return func(res http.ResponseWriter, req *http.Request) {
+// 		// Fetch the user details from context.
+// 		user := models.UserFromCtx(req.Context())
+// 		if user == nil {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
 
-// HandleChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
-func HandleChooseSubscriptionPlan() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-		// Try to find a selected plan id if it exists, from either the request query params or current session data.
-		var planID string
-		if req.URL.Query().Get(models.ParamPlanID) != "" {
-			planID = req.URL.Query().Get(models.ParamPlanID)
-		} else if p, err := session.Restore[string](req.Context(), models.ParamPlanID); err != nil {
-			planID = p
-		} else {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("process checkout: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-		RenderExternalPage(&ChooseSubscriptionPlan{
-			user: user,
-			plan: planID,
-		}).ServeHTTP(res, req)
-	}
-}
+// 		// Retrieve the plan id from the session data.
+// 		planID := req.FormValue(models.ParamPlanID)
+// 		if planID == "" {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("no plan"),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
 
-// HandleSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
-// processor.
-func HandleSubscriptionPlanCheckout() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Fetch the user details from context.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
+// 		// Create a new strip checkout session.
+// 		var session *stripe.Checkout
+// 		var err error
+// 		session, err = stripe.NewCheckoutSession(user, planID)
+// 		if err != nil {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("create checkout session: %w", err),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
 
-		// Retrieve the plan id from the session data.
-		planID := req.FormValue(models.ParamPlanID)
-		if planID == "" {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("no plan"),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Create a new strip checkout session.
-		var session *stripe.Checkout
-		var err error
-		session, err = stripe.NewCheckoutSession(user, planID)
-		if err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("create checkout session: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Redirect to strip processor to complete checkout session.
-		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
-		http.Redirect(res, req, session.URL, http.StatusSeeOther)
-	}
-}
+// 		// Redirect to strip processor to complete checkout session.
+// 		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
+// 		http.Redirect(res, req, session.URL, http.StatusSeeOther)
+// 	}
+// }
 
 func HandleAccountSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -737,17 +674,17 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 			return
 		}
 
-		portalSession, err := stripe.NewPortalSession(sessionID)
-		if err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("new portal session: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
+		// portalSession, err := stripe.NewPortalSession(sessionID)
+		// if err != nil {
+		// 	HandleExternalError(&models.APIError{
+		// 		InternalError: fmt.Errorf("new portal session: %w", err),
+		// 		StatusCode:    http.StatusInternalServerError,
+		// 	}).ServeHTTP(res, req)
+		// 	return
+		// }
 
 		// Redirect to payment processor to complete checkout.
-		http.Redirect(res, req, portalSession.URL, http.StatusSeeOther)
+		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}).ServeHTTP
 }
 

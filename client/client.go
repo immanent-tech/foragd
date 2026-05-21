@@ -30,7 +30,7 @@ import (
 var (
 	// UserAgent is the string which the `User-Agent` request header will be set to for underlying requests to fetch
 	// feeds and content.
-	UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
+	UserAgent = config.AppName + "/" + config.GetVersion() + " (+https://foragd.app/policies/bot)"
 	// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
 	DefaultHTTPRequestTimeout = 45 * time.Second
 	// DefaultRequestRetries is the default number of retries for API requests.

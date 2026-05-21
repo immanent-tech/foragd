@@ -6,70 +6,34 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"os"
 )
 
-// UserChooseSubscriptionPlanPage renders a full page for the user to choose their subscription plan, with any
-// previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
-// redirects the user to Stripe for payment.
-templ UserChooseSubscriptionPlan(user *models.User, planID string) {
-	@container() {
-		if user != nil && user.Active() {
-			// User has an active plan, show them an action to manage it.
-			<div class="mx-auto mb-16 max-w-4xl text-center">
-				<h1 id="pricing" class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">You already have an active plan.</h1>
-				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
-					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
-				} else {
-					<a
-						role="button"
-						href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Subscription Question")) }
-						class="btn btn-primary"
-					>
-						Email support to manage your subscription
-					</a>
-				}
-			</div>
-		} else {
-			// Show the user the plan options.
-			<div class="mx-auto mb-16 max-w-4xl text-center">
-				<h1 id="pricing" class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">Choose your plan.</h1>
-				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
-				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
-			</div>
-			@pricing()
-		}
-	}
-}
-
-// UserAccountIssuePage renders a full page with a message to the user indicating that their account has an issue that
-// needs support to resolve. Usually, this will be displayed when a subscription plan payment has failed and requires
-// manual intervention.
 templ UserAccountIssue() {
 	@container() {
-		<div class="mx-auto mb-16 max-w-4xl text-center">
-			<h1 class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">There is a problem with your account.</h1>
-			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">We cannot log you in as there is a problem with your account details.</p>
-			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Please contact us to resolve all issues.</p>
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@partials.ButtonBack()
-				<a
-					role="button"
-					href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Account Issue")) }
-					class="btn btn-ghost"
-				>
-					Email Support <span aria-hidden="true">&rarr;</span>
-				</a>
+		<main class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+			<div class="text-center">
+				<h1 class="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+					There is a problem with your account
+				</h1>
+				<p class="mt-6 text-lg font-medium text-pretty text-neutral sm:text-xl/8">
+					Sorry, there is problem with your account details that needs to be resolved manually.
+				</p>
+				<div class="mt-10 flex items-center justify-center gap-x-6">
+					<a href="/logout" role="button" class="btn btn-outline">
+						Logout
+					</a>
+					<a href="/contact" role="button" class="btn btn-primary">
+						Contact support <span aria-hidden="true">&rarr;</span>
+					</a>
+				</div>
 			</div>
-		</div>
+		</main>
 	}
 }
 
 templ DeactivateAccountModal() {
-	{{ id := "deactivate-account" }}
-	@partials.Modal(id, true) {
+	@partials.Modal("deactivate-account", true) {
 		<div class="sm:flex sm:items-start">
 			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
 				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-12">
@@ -83,18 +47,86 @@ templ DeactivateAccountModal() {
 				</div>
 			</div>
 		</div>
-		<div class="mt-5 gap-x-2 sm:mt-4 sm:flex sm:justify-end">
+		<div class="mt-5 gap-x-2 sm:mt-4 justify-center sm:flex sm:justify-end">
 			<button
 				type="button"
-				_={ "on click close() on #" + id }
+				_="on click remove @open from  the closest <el-dialog/>"
 				class="btn btn-ghost"
-			>Cancel</button>
+			>
+				<span class="text-sm/6">No</span>
+			</button>
 			<a
 				role="button"
-				href="/user/deactivate?confirmed=yes"
+				hx-get="/user/deactivate?confirmed=yes"
+				hx-swap="none"
+				_="on htmx:afterRequest remove @open from  the closest <el-dialog/>"
 				class="btn btn-error"
-			>Yes</a>
+			>
+				<span class="show-loading items-center">
+					<span class="loading mr-3 loading-spinner"></span>
+					<span class="text-sm/6">Processing</span>
+				</span>
+				<span class="hide-loading items-center">
+					<span class="text-sm/6">Yes</span>
+				</span>
+			</a>
 		</div>
+	}
+}
+
+templ DeactivateResult(user *models.User) {
+	@container() {
+		<main class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+			<div class="text-center mb-12">
+				<h1 class="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+					Your account has been deactivated.
+				</h1>
+			</div>
+			<div class="prose mb-12">
+				<p class="text-sm/6">
+					You can continue to use your account.
+				</p>
+				<p class="text-sm/6">
+					You'll have access until: { user.GetSubscription().CurrentPeriodEnd.Format("Jan _2, 2006") }.
+				</p>
+				<p class="text-sm/6">
+					After that date, your account (including all subscriptions, favorites and settings) will
+					be permanently deleted and you will no longer be able to log in.
+				</p>
+			</div>
+			<div class="redirect-wrap text-center">
+				<p class="redirect-hint">
+					Redirecting in:
+				</p>
+				<div>
+					<span class="countdown font-mono text-4xl">
+						<span
+							style="--value:10;"
+							aria-live="polite"
+							aria-label="10"
+							_="on load
+								set :secs to 10
+								repeat until :secs < 0
+									set my @aria-label to :secs
+									set my @style to '--value:'+:secs+';'
+									wait 1s
+									decrement :secs
+								end
+							"
+						>10</span>
+					</span>
+					sec
+				</div>
+				<a
+					role="button"
+					class="btn btn-primary"
+					hx-get="/home"
+					hx-target={ ContentID.Target() }
+					hx-swap="innerHTML transition:true"
+					hx-trigger="load delay:10s"
+				>Go Home</a>
+			</div>
+		</main>
 	}
 }
 

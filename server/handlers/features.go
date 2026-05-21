@@ -5,10 +5,10 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/a-h/templ"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -21,7 +21,7 @@ func HandleFeatures() http.HandlerFunc {
 func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.CreatePage(templates.Features(),
 		templates.WithPageTitle("A beautiful web-based feed reader"),
-		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
+		templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 	)).ServeHTTP(res, req)
 }
 

@@ -18,6 +18,7 @@ import (
 )
 
 var templates = map[string][]resend.TemplateOption{
+
 	"new-user": []resend.TemplateOption{
 		resend.WithTemplateName("New User"),
 		resend.WithSubject[*resend.Template]("Your Foragd account is ready"),
@@ -47,6 +48,11 @@ var templates = map[string][]resend.TemplateOption{
 		resend.WithSubject[*resend.Template]("Foragd Tip: subscribe to email newsletters"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 		resend.WithTemplateVariable("USER_UNSUBSCRIBE_LINK", "string", "https://foragd.app/unsubscribe"),
+	},
+	"subscription-thank-you": []resend.TemplateOption{
+		resend.WithTemplateName("Subscription Thank You"),
+		resend.WithSubject[*resend.Template]("Thank you for buying a Foragd subscription"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 	},
 }
 

@@ -13,7 +13,6 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -142,11 +141,6 @@ func HandleListSubscriptions() http.HandlerFunc {
 			FilterByIDs(request.Filters.GetSubscriptions()...).
 			Sort(request.Filters.GetSort()).
 			Paginate(*request.Pagination, filters.GetCount())
-
-		if len(subscriptions) == 0 {
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
 
 		request.Pagination = &next
 
@@ -1215,7 +1209,8 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 		case http.MethodGet:
 			// Get the details.
 			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-			if err != nil || !valid {
+			switch {
+			case err != nil && !valid && request != nil:
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
 						InternalError: fmt.Errorf("decode add search subscription request: %w", err),
@@ -1226,6 +1221,8 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 						),
 					}).ServeHTTP(res, req)
 				return
+			default:
+				request = models.NewSearchRequest()
 			}
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
@@ -1763,8 +1760,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 		}
 		thumbnailCache.Set(req.Context(), imageFileID, imageData)
 		// Construct a new full URL to the uploaded avatar on the local server.
-		baseURL := os.Getenv("FORAGD_BASEURL")
-		return baseURL + "/img/subscription/" + imageFileID, nil
+		return config.GetBaseURL() + "/img/subscription/" + imageFileID, nil
 	}
 
 	return "", nil

@@ -11,7 +11,6 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/oapi-codegen/runtime"
-	"github.com/stripe/stripe-go/v83"
 )
 
 // Defines values for ArticleArchiveExtensionType.
@@ -944,6 +943,42 @@ type ObjectParams struct {
 // ObjectType represents the type of any user-facing object.
 type ObjectType string
 
+// PaddleSubscription contains details about the user's paid subscription.
+type PaddleSubscription struct {
+	// CancelledAt is when the user's subscription will cancel. Derived from subscription.scheduled_change.action == "cancel".
+	CancelledAt *time.Time `json:"cancelled_at,omitempty"`
+
+	// CurrentPeriodEnd is when the current billing period for the user's subscription will end. Derived from subscription.current_billing_period.ends_at
+	CurrentPeriodEnd *time.Time `json:"current_period_end,omitempty"`
+
+	// CurrentPeriodStart is when the current billing period for the user's subscription started. Derived from subscription.current_billing_period.starts_at.
+	CurrentPeriodStart *time.Time `json:"current_period_start,omitempty"`
+
+	// CustomerID is the ID of the customer in the Paddle backend.
+	CustomerID string `json:"customer_id" validate:"required"`
+
+	// PriceID is the ID of the price that the customer paid for their subscription.
+	PriceID string `json:"price_id" validate:"required"`
+
+	// PriceName is the name of price for the subscription.
+	PriceName string `json:"price_name" validate:"required"`
+
+	// SubscriptionID is the unique identifier for the user's subscription.
+	SubscriptionID string `json:"subscription_id" validate:"required"`
+
+	// SubscriptionName is the name of the subscription the user purchased.
+	SubscriptionName string `json:"subscription_name" validate:"required"`
+
+	// SubscriptionStatus is the name current status of the subscription plan.
+	SubscriptionStatus string `json:"subscription_status" validate:"required"`
+
+	// TrialEnd is when the user's trial will end. Derived from subscription.next_billed_at.
+	TrialEnd *time.Time `json:"trial_end,omitempty"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
 // Pagination contains data for paginating through results.
 type Pagination = string
 
@@ -1185,7 +1220,7 @@ type User struct {
 	Settings UserSettings `json:"settings"`
 
 	// Subscription contains details about the user's paid subscription.
-	Subscription *UserSubscription `json:"subscription,omitempty"`
+	Subscription *PaddleSubscription `json:"subscription,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -1276,36 +1311,6 @@ type UserSettings struct {
 
 	// UpdatesInterval is the interval on which to check for new updates.
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`
-}
-
-// UserSubscription contains details about the user's paid subscription.
-type UserSubscription struct {
-	// CancelAt is a date in the future at which the subscription will automatically get canceled.
-	CancelAt *time.Time `json:"cancel_at,omitempty"`
-
-	// Plan is the name of the subscription plan that the user is paying for.
-	// Possible values will come from the product defined in Stripe.
-	Plan *string `json:"plan,omitempty" validate:"required"`
-
-	// PlanID is the unique identifier for the plan.
-	// Possible values will come from the product defined in Stripe.
-	PlanID *string `json:"plan_id,omitempty" validate:"required"`
-
-	// PlanStatus is the name current status of the subscription plan.
-	// Possible values come directly from the Stripe API:
-	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
-	PlanStatus *stripe.SubscriptionStatus `json:"plan_status,omitempty" validate:"required"`
-
-	// StripeCustomerID is the stripe customer id of the user.
-	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
-	StripeCustomerID *string `json:"stripe_customer_id,omitempty" validate:"required"`
-
-	// StripeSubscriptionID is the stripe subscription id of the user's plan.
-	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
-	StripeSubscriptionID *string `json:"stripe_subscription_id,omitempty" validate:"required"`
-
-	// TrialEnd is the date when the trial for the subscription ended.
-	TrialEnd *time.Time `json:"trial_end,omitempty"`
 }
 
 // UserTipsEmail is the id of the user tips email template.

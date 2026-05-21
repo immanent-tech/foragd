@@ -22,8 +22,6 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -66,15 +64,6 @@ func Start(logger *slog.Logger) error {
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
-	// pubsub, err := pubsub.New(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("unable to configure pubsub: %w", err)
-	// }
-
-	// marshaler := cqrs.JSONMarshaler{}
-	// topic := marshaler.Name(handlers.UpdatesFound{})
-	// updatesHandler := pubsub.AddSSEHandler(topic, &handlers.UpdatesStream{})
-
 	// Set up a new chi router.
 	router := chi.NewRouter()
 
@@ -91,7 +80,7 @@ func Start(logger *slog.Logger) error {
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
 		middlewares.PreventCSRF,
-		middlewares.RateLimit,
+		// middlewares.RateLimit,
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
@@ -117,10 +106,10 @@ func Start(logger *slog.Logger) error {
 	router.Get("/img/subscription/*", handlers.LoadCachedImage)
 	// User uploaded screenshots
 	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
-	// Handle incoming webhook requests from Stripe.
-	router.Post("/checkout/webhooks", stripe.HandleWebhook)
-	// Handle incoming webhook requests from Resend
-	router.Post("/mail/webhooks", resend.HandleWebhook)
+	// Handle incoming webhooks from Resend
+	router.Post("/mail/webhooks", handlers.HandleResendWebhook)
+	// Handle incoming webhooks from Paddle.
+	router.Post("/webhooks/paddle", handlers.HandlePaddleWebhook)
 
 	// External Pages.
 	router.Group(func(r chi.Router) {
@@ -158,20 +147,30 @@ func Start(logger *slog.Logger) error {
 		r.Group(func(r chi.Router) {
 			r.Use(
 				session.LoadAndSave,
+				middlewares.SetupHTMX,
 			)
-			if !cfg.BlockSignup {
-				r.Get("/signup", handlers.HandleLogin)
-			} else {
-				slogctx.FromCtx(ctx).Warn("Signups have been BLOCKED by configuration.")
-			}
-			if !cfg.BlockLogin {
-				r.Get("/login", handlers.HandleLogin)
-				r.Get("/login/callback", handlers.HandleLoginCallback)
-				r.Get("/login/error", handlers.HandleLoginError)
-			} else {
-				slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
-			}
+			r.Get("/signup", handlers.HandleLogin)
+			r.Get("/login", handlers.HandleLogin)
+			r.Get("/login/callback", handlers.HandleLoginCallback)
+			r.Get("/login/error", handlers.HandleLoginError)
+			r.Get("/logout", handlers.Logout)
+			r.Get("/account-issue", handlers.HandleAccountIssue())
 		})
+		// Payment routes.
+		r.Group(func(r chi.Router) {
+			r.Use(
+				session.LoadAndSave,
+				middlewares.SetupHTMX,
+				middlewares.ExtractUserFromSession,
+			)
+			r.Route("/checkout", func(r chi.Router) {
+				r.Get("/", handlers.HandleChooseSubscription())
+				r.With(middlewares.RequireHTMX).Post("/", handlers.HandlePurchaseSubscription())
+				r.Get("/success", handlers.HandlePurchaseSubscriptionSuccess())
+				// r.Get("/cancel", handlers.HandleLanding())
+			})
+		})
+
 		// User routes that don't required authentication.
 		r.Get("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
 		r.Post("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
@@ -182,20 +181,14 @@ func Start(logger *slog.Logger) error {
 		r.Use(
 			middlewares.SetupHTMX,
 			session.LoadAndSave,
-			middlewares.RequireUserAuth,
+			middlewares.ExtractUserFromSession,
+			middlewares.RequireValidUser,
 			middlewares.PushCriticalAssets,
 		)
 		// Help documentation.
 		r.Get("/help", handlers.DocumentationHandler())
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
-		// Payment routes (Stripe).
-		r.Route("/checkout", func(r chi.Router) {
-			r.Get("/choose-plan", handlers.HandleChooseSubscriptionPlan())
-			r.Post("/", handlers.HandleSubscriptionPlanCheckout())
-			r.Get("/success", handlers.HandleAccountSuccess())
-			r.Get("/cancel", handlers.HandleLanding())
-		})
 		r.Get(handlers.RouteHome, handlers.HandleHome())
 		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
@@ -281,7 +274,6 @@ func Start(logger *slog.Logger) error {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
-			r.Get("/account-issue", handlers.HandleAccountIssue())
 			r.Post("/feedset", handlers.HandleAddFeedset(web.StaticContentFS))
 			// Import/export.
 			r.Get("/import", handlers.HandleImportSubscriptions())
@@ -299,10 +291,8 @@ func Start(logger *slog.Logger) error {
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
 			})
-			r.Get("/deactivate", handlers.HandleDeactivateAccount())
-			r.With(middlewares.RequireHTMX).Post("/deactivate/cancel", handlers.HandleCancelDeactivation())
+			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.HandleDeactivateAccount())
 		})
-		r.Get("/logout", handlers.Logout)
 	})
 
 	h2s := &http2.Server{}
@@ -310,10 +300,9 @@ func Start(logger *slog.Logger) error {
 		Handler:           h2c.NewHandler(router, h2s),
 		Addr:              net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
 		ReadHeaderTimeout: cfg.ReadTimeout.Duration(),
-		// ! Setting timeouts will break SSE.
-		// ReadTimeout:  cfg.ReadTimeout.Duration(),
-		// WriteTimeout: cfg.WriteTimeout.Duration(),
-		// IdleTimeout:  cfg.IdleTimeout.Duration(),
+		ReadTimeout:       cfg.ReadTimeout.Duration(),
+		WriteTimeout:      cfg.WriteTimeout.Duration(),
+		IdleTimeout:       cfg.IdleTimeout.Duration(),
 		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
 		},
@@ -324,27 +313,9 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to configure server for H2C: %w", err)
 	}
 
-	// go func() {
-	// 	err := pubsub.StartEventsRouter(ctx)
-	// 	if err != nil {
-	// 		slogctx.FromCtx(ctx).Error("Unable to start pubsub events router",
-	// 			slog.Any("error", err),
-	// 		)
-	// 	}
-	// }()
-
-	// go func() {
-	// 	err := pubsub.StartSSERouter(ctx)
-	// 	if err != nil {
-	// 		slogctx.FromCtx(ctx).Error("Unable to start pubsub sse router",
-	// 			slog.Any("error", err),
-	// 		)
-	// 	}
-	// }()
-
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),
-		slog.String("version", config.Version),
+		slog.String("version", config.GetVersion()),
 		slog.Time("start_time", time.Now()),
 	)
 

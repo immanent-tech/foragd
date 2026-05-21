@@ -9,14 +9,14 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 	"runtime/debug"
 	"slices"
 	"strings"
-	"sync"
 
 	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/v2"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
@@ -50,55 +50,72 @@ var (
 	ErrInvalidConfig = errors.New("invalid config")
 )
 
-// Version is the application/stack version.
-var Version = "_UNKNOWN_"
+type appConfig struct {
+	// Version is the application/stack version.
+	Version string `koanf:"-" validate:"required,ne=_UNKNOWN_"`
+	// CurrentEnvironment is the environment in which the app is running (i.e., production, development). Defaults to
+	// "development".
+	Environment Environment `koanf:"envrionment" validate:"required,oneof=production development"`
+	// BaseURL is the base url from which the app is being served.
+	BaseURL string `koanf:"baseurl" validate:"required,url"`
+}
 
-// CurrentEnvironment is the environment in which the app is running (i.e., production, development). Defaults to
-// "development".
-var CurrentEnvironment = EnvDevelopment
+var cfg *appConfig
 
 // Init ensures the application will have appropriate Version and Envrionment vars set.
-var Init = sync.OnceValue(func() error {
-	// Set the environment.
-	CurrentEnvironment = Environment(os.Getenv("FORAGD_ENVIRONMENT"))
-
-	// Set the version from the environment.
-	if version := os.Getenv("FORAGD_VERSION"); version != "" {
-		Version = version
+func init() {
+	cfg = &appConfig{
+		Environment: EnvDevelopment,
+		Version:     "_UNKNOWN_",
 	}
-	// Set the version using build info.
-	if Version == "_UNKNOWN_" {
-		var vcsRevision string
-		// var vcsTime string
-		var vcsModified bool
-		var vcsSystem string
 
-		if info, ok := debug.ReadBuildInfo(); ok {
-			for buildInfo := range slices.Values(info.Settings) {
-				switch buildInfo.Key {
-				case "vcs":
-					vcsSystem = buildInfo.Value
-				case "vcs.revision":
-					vcsRevision = buildInfo.Value
-				// case "vcs.time":
-				// 	vcsTime = s.Value
-				case "vcs.modified":
-					vcsModified = buildInfo.Value == "true"
-				}
-			}
-			Version = strings.Join([]string{vcsSystem, vcsRevision}, "-")
-			if vcsModified {
-				Version += "-dirty"
+	var vcsRevision string
+	// var vcsTime string
+	var vcsModified bool
+	var vcsSystem string
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for buildInfo := range slices.Values(info.Settings) {
+			switch buildInfo.Key {
+			case "vcs":
+				vcsSystem = buildInfo.Value
+			case "vcs.revision":
+				vcsRevision = buildInfo.Value
+			// case "vcs.time":
+			// 	vcsTime = s.Value
+			case "vcs.modified":
+				vcsModified = buildInfo.Value == "true"
 			}
 		}
-	}
-	// If the version is unset, bail.
-	if Version == "_UNKNOWN_" {
-		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
+		cfg.Version = strings.Join([]string{vcsSystem, vcsRevision}, "-")
+		if vcsModified {
+			cfg.Version += "-dirty"
+		}
 	}
 
-	return nil
-})
+	if err := Load(ConfigEnvPrefix, cfg); err != nil {
+		panic(fmt.Errorf("load base config: %w", err))
+	}
+
+	if err := validation.Validate.Struct(cfg); err != nil {
+		panic(fmt.Errorf("validate base config: %w", err))
+	}
+}
+
+func GetVersion() string {
+	return cfg.Version
+}
+
+func GetBaseURL() string {
+	return cfg.BaseURL
+}
+
+func GetEnvironment() Environment {
+	return cfg.Environment
+}
+
+func IsProduction() bool {
+	return cfg.Environment == EnvProduction
+}
 
 // Load will load a config via environment variables with the given prefix into an object of the given type.
 func Load[T any](envPrefix string, cfg T) error {

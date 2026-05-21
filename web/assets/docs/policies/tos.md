@@ -5,7 +5,7 @@ description = "Terms of Service for using Foragd"
 
 # Terms of Service
 
-Thank you for using Foragd! We're happy you're here. Please read this Terms of Service agreement carefully before
+Thank you for using Foragd! We’re happy you’re here. Please read this Terms of Service agreement carefully before
 accessing or using Foragd. Because it is such an important contract between us and our users, we have tried to make it
 as clear as possible. For your convenience, we have presented these terms in a short non-binding summary followed by the
 full legal terms.
@@ -23,10 +23,9 @@ full legal terms.
   - [Acceptable Use](#acceptable-use)
   - [Copyright Infringement and DMCA Policy](#copyright-infringement-and-dmca-policy)
   - [Intellectual Property Notice](#intellectual-property-notice)
-    - [1. Foragd's Rights to Content](#1-foragds-rights-to-content)
+    - [1. Foragd’s Rights to Content](#1-foragds-rights-to-content)
     - [2. Foragd Trademarks and Logos](#2-foragd-trademarks-and-logos)
     - [3. License to Foragd Policies](#3-license-to-foragd-policies)
-  - [Foragd Additional Product Terms](#foragd-additional-product-terms)
   - [Beta Previews](#beta-previews)
     - [1. Subject to Change](#1-subject-to-change)
     - [2. Confidentiality](#2-confidentiality)
@@ -34,9 +33,10 @@ full legal terms.
   - [Payment](#payment)
     - [1. Pricing](#1-pricing)
     - [2. Upgrades, Downgrades, and Changes](#2-upgrades-downgrades-and-changes)
-    - [3. Billing Schedule; No Refunds](#3-billing-schedule-no-refunds)
-    - [4. Authorization](#4-authorization)
-    - [5. Responsibility for Payment](#5-responsibility-for-payment)
+    - [3. Billing Schedule](#3-billing-schedule)
+    - [4. Refunds](#4-refunds)
+    - [5. Authorization](#5-authorization)
+    - [6. Responsibility for Payment](#6-responsibility-for-payment)
   - [Cancellation and Termination](#cancellation-and-termination)
     - [1. Account Cancellation](#1-account-cancellation)
     - [2. Upon Cancellation](#2-upon-cancellation)
@@ -63,7 +63,7 @@ Effective date: November 1st, 2025
 ## Definitions
 
 **Short version:** _We use these basic terms throughout the agreement, and they have specific meanings. You should know
-what we mean when we use each of the terms. There's not going to be a test on it, but it's still useful information._
+what we mean when we use each of the terms. There’s not going to be a test on it, but it’s still useful information._
 
 1. An “Account” represents your legal relationship with Foragd.
 2. The “Agreement” refers, collectively, to all the terms, conditions, notices contained or referenced in this document
@@ -107,7 +107,7 @@ entity (in which case we need more information about the legal entity).
 
 ### 3. Account Requirements
 
-We have a few simple rules for Accounts on Foragd's Service.
+We have a few simple rules for Accounts on Foragd’s Service.
 
 - You must be a human to create an Account. Accounts registered by “bots” or other automated methods are not permitted.
 - One person or legal entity may maintain no more than one Account.
@@ -121,7 +121,7 @@ We have a few simple rules for Accounts on Foragd's Service.
 ### 4. Account Security
 
 You are responsible for keeping your Account secure while you use our Service. Our backend authorization service offers
-tools such as two-factor authentication to help you maintain your Account's security, but the content of your Account
+tools such as two-factor authentication to help you maintain your Account’s security, but the content of your Account
 and its security are up to you.
 
 - You are responsible for all content posted and activity that occurs under your Account (even when content is posted by
@@ -156,7 +156,7 @@ We will terminate the Accounts of repeat infringement of this policy.
 **Short version:** _We own the service and all of our content. In order for you to use our content, we give you certain
 rights to it, but you may only use our content in the way we have allowed._
 
-### 1. Foragd's Rights to Content
+### 1. Foragd’s Rights to Content
 
 Foragd and our licensors, vendors, agents, and/or our content providers retain ownership of all intellectual property
 rights of any kind related to the Website and Service. We reserve all rights that are not expressly granted to you under
@@ -171,22 +171,12 @@ If you’d like to use Foragd’s trademarks, you must follow all of our tradema
 ### 3. License to Foragd Policies
 
 This Agreement is licensed under this [Creative Commons Zero
-license](https://creativecommons.org/publicdomain/zero/1.0/). For details, see our [site-policy
-repository](https://Foragd.com/Foragd/site-policy#license).
-
-## Foragd Additional Product Terms
-
-**Short version:** _You need to follow certain specific terms and conditions for Foragd's various features and products,
-and you agree to the Supplemental Terms and Conditions when you agree to this Agreement._
-
-<!-- Some Service features may be subject to additional terms specific to that feature or product as set forth in the Foragd
-Additional Product Terms. By accessing or using the Services, you also agree to the [Foragd Additional Product
-Terms](/site-policy/Foragd-terms/Foragd-terms-for-additional-products-and-features). -->
+license](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## Beta Previews
 
 **Short version:** _Beta Previews may not be supported or may change at any time. You may receive confidential
-information through those programs that must remain confidential while the program is private. We'd love your feedback
+information through those programs that must remain confidential while the program is private. We’d love your feedback
 to make our Beta Previews better._
 
 ### 1. Subject to Change
@@ -233,7 +223,7 @@ communicating those fees to you clearly and accurately, and letting you know wel
 
 ### 1. Pricing
 
-Our pricing and payment terms are available at [foragd.app/pricing](https://foragd.app). If you agree to a
+Our pricing and payment terms are available at [foragd.app/#pricing](https://foragd.app/#pricing). If you agree to a
 subscription price, that will remain your price for the duration of the payment term; however, prices are subject to
 change at the end of a payment term.
 
@@ -243,33 +233,42 @@ change at the end of a payment term.
 - If you change from a monthly billing plan to a yearly billing plan, Foragd will bill you for a full year at the next
   monthly billing date.
 - If you upgrade to a higher level of service, we will bill you for the upgraded plan immediately.
-- You may change your level of service at any time by [choosing a plan option](https://foragd.app) or going into
-  your [Billing settings](https://foragd.app/user/settings). If you choose to downgrade your Account, you may lose
-  access to Content, features, or capacity of your Account. Please see our section on
-  [Cancellation](#cancellation-and-termination) for information on getting a copy of that Content.
+- You may change your level of service at any time by going into your [Billing
+  settings](https://foragd.app/user/settings). If you choose to downgrade your Account, you may lose access to Content,
+  features, or capacity of your Account. Please see our section on [Cancellation](#cancellation-and-termination) for
+  information on getting a copy of that Content.
 
-### 3. Billing Schedule; No Refunds
+### 3. Billing Schedule
 
 **Payment Based on Plan** For monthly or yearly payment plans, the Service is billed in advance on a monthly or yearly
-basis respectively and is non-refundable. There will be no refunds or credits for partial months of service, downgrade
-refunds, or refunds for months unused with an open Account; however, the service will remain active for the length of
-the paid billing period. In order to treat everyone equally, no exceptions will be made.
+basis. There will be no credits for partial months of service, downgrade refunds, or refunds for months unused with an
+open Account; however, the service will remain active for the length of the paid billing period. In order to treat
+everyone equally, no exceptions will be made.
 
-### 4. Authorization
+### 4. Refunds
+
+For Monthly plans: No refunds. Cancel anytime before your next billing date to avoid additional charges.
+
+For Annual plans: a full refund may be issued within 14 days of purchase if you’re not satisfied. After 14 days, no
+refunds are issued for the remaining period.
+
+To request a refund, contact hello[at]immanent[dot]tech with your account email, or use the [contact
+form](https://foragd.app/contact) on the website.
+
+### 5. Authorization
 
 By agreeing to these Terms, you are giving us permission to charge your on-file credit card, PayPal account, or other
 approved methods of payment for fees that you authorize for Foragd.
 
-### 5. Responsibility for Payment
+### 6. Responsibility for Payment
 
 You are responsible for all fees, including taxes, associated with your use of the Service. By using the Service, you
 agree to pay Foragd any charge incurred in connection with your use of the Service. If you dispute the matter,
-support[at]immanent[dot]tech. You are responsible for providing us with a valid means of payment for paid Accounts. Free
-Accounts are not required to provide payment information.
+support[at]immanent[dot]tech. You are responsible for providing us with a valid means of payment for paid Accounts.
 
 ## Cancellation and Termination
 
-**Short version:** _You may close your Account at any time. If you do, we'll treat your information responsibly._
+**Short version:** _You may close your Account at any time. If you do, we’ll treat your information responsibly._
 
 ### 1. Account Cancellation
 
@@ -312,9 +311,9 @@ satisfy if they were on paper. This section does not affect your non-waivable ri
 
 ### 2. Legal Notice to Foragd Must Be in Writing
 
-Communications made through email or Foragd Support's messaging system will not constitute legal notice to Foragd or any
+Communications made through email or Foragd Support’s messaging system will not constitute legal notice to Foragd or any
 of its officers, employees, agents or representatives in any situation where notice to Foragd is required by contract or
-any law or regulation. Legal notice to Foragd must be in writing and served on Foragd's legal
+any law or regulation. Legal notice to Foragd must be in writing and served on Foragd’s legal
 agent.
 
 ### 3. No Phone Support
@@ -380,14 +379,14 @@ Foragd of all liability); and (3) provides to you all reasonable assistance, at 
 
 ## Changes to These Terms
 
-**Short version:** _We want our users to be informed of important changes to our terms, but some changes aren't that
-important — we don't want to bother you every time we fix a typo. So while we may modify this agreement at any time, we
+**Short version:** _We want our users to be informed of important changes to our terms, but some changes aren’t that
+important — we don’t want to bother you every time we fix a typo. So while we may modify this agreement at any time, we
 will notify users of any material changes and give you time to adjust to them._
 
 We reserve the right, at our sole discretion, to amend these Terms of Service at any time and will update these Terms of
 Service in the event of any such amendments. We will notify our Users of material changes to this Agreement, such as
 price increases, at least 30 days prior to the change taking effect by posting a notice on our Website or sending email
-to the primary email address specified in your Foragd account. Customer's continued use of the Service after those 30
+to the primary email address specified in your Foragd account. Customer’s continued use of the Service after those 30
 days constitutes agreement to those revisions of this Agreement. For any other modifications, your continued use of the
 Website constitutes agreement to our revisions of these Terms of Service.
 
@@ -426,12 +425,10 @@ provision. Our rights under this Agreement will survive any termination of this 
 
 ### 5. Amendments; Complete Agreement
 
-This Agreement may only be modified by a written amendment signed by an authorized representative of Foragd, or by the
-posting by Foragd of a revised version in accordance with [Changes to These Terms](#changes-to-these-terms). These Terms
-of Service, together with the Foragd Privacy Statement, represent the complete and exclusive statement of the agreement
-between you and us. This Agreement supersedes any proposal or prior agreement oral or written, and any other
-communications between you and Foragd relating to the subject matter of these terms including any confidentiality or
-nondisclosure agreements.
+This Agreement may be modified by the posting by Foragd of a revised version at any time. These Terms of Service,
+together with the Foragd Privacy Statement, represent the complete and exclusive statement of the agreement between you
+and us. This Agreement supersedes any proposal or prior agreement oral or written, and any other communications between
+you and Foragd relating to the subject matter of these terms including any confidentiality or nondisclosure agreements.
 
 ### 6. Questions
 

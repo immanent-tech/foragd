@@ -83,7 +83,7 @@ func (e *ReceivedEmail) Valid() error {
 // ExtractAttachments will extract and return the attachments on the email, if any.
 func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attachment, error) {
 	attachments := make([]*resend.Attachment, 0, len(e.Attachments))
-	client, err := loadClient()
+	client, err := LoadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
@@ -110,7 +110,7 @@ func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attac
 
 // Forward will forward the recieved email to the given addresses.
 func (e *ReceivedEmail) Forward(ctx context.Context, to ...string) error {
-	client, err := loadClient()
+	client, err := LoadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
 	}
@@ -139,4 +139,22 @@ func (e *ReceivedEmail) Forward(ctx context.Context, to ...string) error {
 		slog.String("id", resp.Id),
 	)
 	return nil
+}
+
+type WebhookEmailReceieved struct {
+	Type      string        `json:"type,omitempty"`
+	CreatedAt string        `json:"created_at,omitempty"`
+	Data      EmailRecieved `json:"data,omitempty"`
+}
+
+type EmailRecieved struct {
+	EmailId     string       `json:"email_id,omitempty"`
+	CreatedAt   string       `json:"created_at,omitempty"`
+	From        string       `json:"from,omitempty"`
+	To          []string     `json:"to,omitempty"`
+	Bcc         []string     `json:"bcc,omitempty"`
+	Cc          []string     `json:"cc,omitempty"`
+	MessageId   string       `json:"message_id,omitempty"`
+	Subject     string       `json:"subject,omitempty"`
+	Attachments []Attachment `json:"attachments,omitempty"`
 }

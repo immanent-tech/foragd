@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stripe/stripe-go/v83"
-
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -21,6 +19,8 @@ const (
 	DefaultUpdateInterval = 5 * time.Minute
 	// MaxSubscriptions is the maxiumum number of subscriptions a user can have.
 	MaxSubscriptions = 3000
+	// DefaultTrialPeriod is the default amount of time a trial runs for.
+	DefaultTrialPeriod = 14 * 24 * time.Hour
 )
 
 var (
@@ -74,6 +74,39 @@ func (u *User) GetMaxHistory() time.Time {
 	return time.Now().Add(-u.GetSettings().MaxViewHistory)
 }
 
+// InTrial returns a boolean indicating whether this user account is in its trial period.
+func (u *User) InTrial() bool {
+	switch u.HasActiveSubscription() {
+	case false:
+		// No current subscription, check against account creation time.
+		if time.Now().UTC().Compare(u.CreatedAt.Add(DefaultTrialPeriod)) == -1 {
+			return true
+		}
+	case true:
+		//  Current subscription, check status.
+		if u.Subscription.IsTrial() {
+			// User is in trial period.
+			return true
+		}
+	}
+
+	return false
+}
+
+// HasActiveSubscription returns a boolean indicating whether this user has an active subscription.
+func (u *User) HasActiveSubscription() bool {
+	switch {
+	case u.Subscription == nil:
+		return false
+	case u.Subscription != nil:
+		if u.Subscription.IsActive() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
 // parsing the value from the user's metdata, it will use the lowest plan updates frequency.
 func (u *User) GetUpdatesFrequency() time.Duration {
@@ -83,55 +116,11 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 	return u.GetSettings().UpdatesInterval
 }
 
-// OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp
-// indicating when the trial will end.
-func (u *User) OnTrial() (bool, time.Time) {
-	if u.Subscription != nil {
-		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusTrialing {
-			return true, *u.Subscription.TrialEnd
-		}
+func (u *User) GetSubscription() *PaddleSubscription {
+	if u.Subscription == nil {
+		u.Subscription = &PaddleSubscription{}
 	}
-	return false, time.Time{}
-}
-
-// Cancelled returns a boolean indicating whether the user has cancelled their subscription plan and if so, a timestamp
-// indicating when the cancellation will apply.
-func (u *User) Cancelled() (bool, time.Time) {
-	if u.Subscription != nil {
-		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusCanceled {
-			if u.Subscription.CancelAt == nil {
-				return true, time.Now().UTC()
-			}
-			if u.Subscription.CancelAt.After(time.Now().UTC()) {
-				return true, *u.Subscription.CancelAt
-			}
-		}
-	}
-	return false, time.Time{}
-}
-
-// Active returns a boolean indicating whether the user is "active", which means a paying customer with no payment
-// issues or customer currently on a trial.
-func (u *User) Active() bool {
-	// ! Uncomment after beta.
-	// if u.Metadata.PlanStatus == stripe.SubscriptionStatusActive {
-	// 	return true
-	// }
-	// if trial, _ := u.OnTrial(); trial {
-	// 	return true
-	// }
-	// return false
-	return true
-}
-
-// GetSubscriptionPlan returns the name of the subscription plan of the user.
-func (u *User) GetSubscriptionPlan() string {
-	if u.Subscription != nil {
-		if u.Subscription.Plan != nil {
-			return *u.Subscription.Plan
-		}
-	}
-	return ""
+	return u.Subscription
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be

@@ -34,7 +34,9 @@ func init() {
 	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
 	// ensureNotEUID aborts the program if it is running setuid something, or being invoked by root.
 
-	if euid, uid, egid, gid := syscall.Geteuid(), syscall.Getuid(), syscall.Getegid(), syscall.Getgid(); uid != euid || gid != egid || uid == 0 {
+	if euid, uid, egid, gid := syscall.Geteuid(), syscall.Getuid(), syscall.Getegid(), syscall.Getgid(); uid != euid ||
+		gid != egid ||
+		uid == 0 {
 		slog.Error("foragd should not be run with additional privileges or as root.")
 		os.Exit(-1)
 	}
@@ -45,12 +47,6 @@ func main() {
 	kong.Description(config.AppDescription)
 
 	cmd := kong.Parse(&CLI, kong.Bind())
-
-	if err := config.Init(); err != nil {
-		slog.Error("Could not initialize config.",
-			slog.Any("error", err))
-		os.Exit(-1)
-	}
 
 	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
 

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,6 +15,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/zeebo/xxh3"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/forms"
@@ -207,8 +207,7 @@ func processScreenshots(req *http.Request) (string, error) {
 		}
 		screenshotCache.Set(req.Context(), imageFileID, imageData)
 		// Construct a new full URL to the uploaded avatar on the local server.
-		baseURL := os.Getenv("FORAGD_BASEURL")
-		return baseURL + "/img/screenshot/" + imageFileID, nil
+		return config.GetBaseURL() + "/img/screenshot/" + imageFileID, nil
 	}
 	return "", nil
 }

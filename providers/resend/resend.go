@@ -4,8 +4,11 @@
 package resend
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"slices"
 	"sync"
 
 	"github.com/resend/resend-go/v3"
@@ -44,8 +47,8 @@ type Config struct {
 	Salt          string `koanf:"salt"          validate:"required"`
 }
 
-// loadClient loads the resend API client and ensures this is only done one time, no matter how many times it is called.
-var loadClient = sync.OnceValues(func() (*resend.Client, error) {
+// LoadClient loads the resend API client and ensures this is only done one time, no matter how many times it is called.
+var LoadClient = sync.OnceValues(func() (*resend.Client, error) {
 	if err := loadConfig(); err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
@@ -65,3 +68,73 @@ var loadConfig = sync.OnceValue(func() error {
 	}
 	return nil
 })
+
+func VerifyWebhook(req *http.Request, body []byte) (bool, error) {
+	client, err := LoadClient()
+	if err != nil {
+		return false, fmt.Errorf("load client: %w", err)
+	}
+
+	// Extract Svix headers
+	headers := resend.WebhookHeaders{
+		Id:        req.Header.Get("svix-id"),
+		Timestamp: req.Header.Get("svix-timestamp"),
+		Signature: req.Header.Get("svix-signature"),
+	}
+
+	// Verify the webhook
+	if err := client.Webhooks.Verify(&resend.VerifyWebhookOptions{
+		Payload:       string(body),
+		Headers:       headers,
+		WebhookSecret: cfg.WebHookSecret,
+	}); err != nil {
+		return false, fmt.Errorf("verfication failed: %w", err)
+	}
+
+	return true, nil
+}
+
+func GetFullEmail(ctx context.Context, id string) (*ReceivedEmail, error) {
+	client, err := LoadClient()
+	if err != nil {
+		return nil, fmt.Errorf("load client: %w", err)
+	}
+
+	// Retrieve the full email content and details.
+	details, err := client.Emails.Receiving.GetWithContext(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get email details: %w", err)
+	}
+
+	return &ReceivedEmail{ReceivedEmail: details}, nil
+}
+
+func IsValidReplyTo(to []string) (bool, error) {
+	if err := loadConfig(); err != nil {
+		return false, fmt.Errorf("load config: %w", err)
+	}
+
+	// Ignore emails not explicitly addressed to our admin/catch-all address.
+	if !slices.Contains(to, cfg.ReplyToEmail) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func ForwardAdminEmail(ctx context.Context, received *EmailRecieved) error {
+	// Retrieve the full email content and details.
+	email, err := GetFullEmail(ctx, received.EmailId)
+	if err != nil {
+		return fmt.Errorf("parse email: %w", err)
+	}
+	if err := email.Valid(); err != nil {
+		return fmt.Errorf("validate email: %w", err)
+	}
+
+	if err := email.Forward(ctx, cfg.AdminEmail); err != nil {
+		return fmt.Errorf("forward non-user email: %w", err)
+	}
+
+	return nil
+}

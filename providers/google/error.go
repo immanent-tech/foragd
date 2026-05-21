@@ -25,7 +25,7 @@ var initErrorClient = func(ctx context.Context) error {
 		}
 		errorClient, err = errorreporting.NewClient(ctx, cfg.ProjectID, errorreporting.Config{
 			ServiceName:    cfg.Service,
-			ServiceVersion: config.Version,
+			ServiceVersion: config.GetVersion(),
 			OnError: func(err error) {
 				slogctx.FromCtx(ctx).Error("Create new error client failed.", slog.Any("error", err))
 			},

@@ -11,7 +11,6 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/maypok86/otter/v2"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -36,9 +35,6 @@ type Store struct {
 
 // NewSessionStore sets up a new session store for use by the server.
 func NewSessionStore(sessionLifetime time.Duration) (*Store, error) {
-	if err := config.Init(); err != nil {
-		return nil, fmt.Errorf("init config: %w", err)
-	}
 	cache, err := otter.New(&otter.Options[string, []byte]{
 		MaximumSize:      10_000,
 		ExpiryCalculator: otter.ExpiryWriting[string, []byte](sessionLifetime),

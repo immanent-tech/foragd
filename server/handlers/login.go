@@ -4,12 +4,12 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/a-h/templ"
@@ -130,75 +130,87 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	// Save profile to session.
 	session.Save(req.Context(), "profile", profile)
 
+	// loginChain := alice.New()
+
 	var user *models.User
 	user, err = service.GetUserByExternalID(req.Context(), profile.GetID())
 	switch {
-	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
-		// Create a new local account for the user
-		user, err = createNewLocalUser(req.Context(), *profile)
-		if err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("create user: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-	case err != nil: // Backend error.
+	case err != nil && models.HTTPStatus(err) != http.StatusNotFound: // Backend error.
 		HandleExternalError(&models.APIError{
 			InternalError: fmt.Errorf("get user: %w", err),
 			StatusCode:    http.StatusForbidden,
 		}).ServeHTTP(res, req)
 		return
+	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
+		// Create a new local account for the user
+		// subscription_plan, err := session.Restore[string](req.Context(), "subscription_plan")
+		// if err != nil {
+		// 	subscription_plan = "annual"
+		// }
+		newUser, err := auth0.CreateUserFromProfileData(req.Context(), profile)
+		if err != nil {
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("create user from profile: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+		user = newUser
+
+		// Create and send a welcome email.
+		email, err := resend.NewTemplatedEmail(
+			"new-user",
+			resend.WithTo(user.GetEmail()),
+			resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+			resend.WithTag(resend.TagUserID, user.GetID()),
+			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+			resend.WithVariable("USER_EMAIL", user.GetEmail()),
+			resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
+		)
+		if err != nil {
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("create welcome email: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+		if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("send welcome email: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+		// Load the scheduler (but don't start it).
+		if err := scheduler.LoadManager(req.Context()); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Could not load scheduler, cannot schedule new user jobs.",
+				slog.Any("error", err),
+			)
+		} else {
+			for email := range slices.Values([]models.UserTipsEmail{models.UserTipsEmailNewInactiveUser, models.UserTipsEmailTipEmailNewsletters}) {
+				job, err := jobs.NewUserTipsJob(user.GetID(), email)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not create user tips job.",
+						slog.String("tip", string(email)),
+						slog.Any("error", err),
+					)
+				}
+				if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to schedule user tip job.",
+						slog.String("tip", string(email)),
+						slog.Any("error", err),
+					)
+				}
+			}
+		}
 	default: // Existing user.
 		// Sync user data from the backend.
 		service.SyncUser(req.Context(), user)
-		if !user.Metadata.PoliciesAccepted {
-			// User has not accepted policies, redirect to page asking them to contact support.
-			slogctx.FromCtx(req.Context()).Error("User has not accepted policies.",
-				slog.String("user_id", user.GetID()),
-				slog.Any("error", err),
-			)
-			http.Redirect(res, req, models.RouteUserAccountIssue, http.StatusSeeOther)
-			return
-		}
 	}
+
 	ctx := models.UserToCtx(req.Context(), user)
-	// Redirect the user appropriately.
-	// ! Uncomment after beta.
-	// if user.Metadata.Plan == "" {
-	// 	// New user or user without a plan; redirect to choose subscription plan.
-	// 	http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
-	// 	return
-	// }
-	// if err := user.Metadata.Valid(); err != nil {
-	// 	// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
-	// 	slogctx.FromCtx(req.Context()).Error("User data is invalid.",
-	// 		slog.String("user_id", user.GetID()),
-	// 		slog.Any("error", err),
-	// 	)
-	// 	http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-	// 	return
-	// }
-	if !user.Active() {
-		slogctx.FromCtx(req.Context()).Error("User is not active.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-		// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
-		http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-		return
-	}
-	// ! Uncomment after beta.
-	// if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
-	// 	slogctx.FromCtx(req.Context()).Error("User has cancelled plan.",
-	// 		slog.String("user_id", user.GetID()),
-	// 		slog.Any("error", err),
-	// 	)
-	// 	// Account has been cancelled and past cancellation date; redirect to home page.
-	// 	http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
-	// 	return
-	// }
-	// Active user; redirect to home page.
+
+	// loginChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(ctx).Info("User logged in.",
 		slog.String("user_id", user.GetID()),
 	)
@@ -213,7 +225,23 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		)
 		http.Redirect(res, req.WithContext(ctx), returnTo, http.StatusFound)
 	}
+	// }).ServeHTTP(res, req)
 }
+
+// func handleNewUser(h http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 		// Create a new local account for the user
+// 		user, err = createNewLocalUser(req.Context(), *profile)
+// 		if err != nil {
+// 			HandleExternalError(&models.APIError{
+// 				InternalError: fmt.Errorf("create user: %w", err),
+// 				StatusCode:    http.StatusInternalServerError,
+// 			}).ServeHTTP(res, req)
+// 			return
+// 		}
+
+// 	})
+// }
 
 // HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password
 // reset links.
@@ -273,62 +301,4 @@ func HandleRefreshToken(res http.ResponseWriter, req *http.Request) {
 		}
 		http.Redirect(res, req, ref, http.StatusFound)
 	}
-}
-
-func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models.User, error) {
-	// Create user object.
-	user, err := auth0.CreateUserFromProfileData(ctx, &profile)
-	if err != nil {
-		return nil, fmt.Errorf("create user from profile: %w", err)
-	}
-
-	// Create and send a welcome email.
-	email, err := resend.NewTemplatedEmail(
-		"new-user",
-		resend.WithTo(user.GetEmail()),
-		resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
-		resend.WithTag(resend.TagUserID, user.GetID()),
-		resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-		resend.WithVariable("USER_EMAIL", user.GetEmail()),
-		resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
-	)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to create welcome email.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-	}
-	if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to send welcome email.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-	}
-
-	// Load the scheduler (but don't start it).
-	if err := scheduler.LoadManager(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not load scheduler, cannot schedule new user jobs.",
-			slog.Any("error", err),
-		)
-	} else {
-		// Create a new job, scheduled to run in ~2 days, that checks if the user has logged in yet, and sends them a
-		// ping email if they haven't.
-		for tip := range jobs.UserTipsJobTriggerTimes {
-			job, err := jobs.NewUserTipsJob(user.GetID(), tip)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not create user tips job.",
-					slog.String("tip", string(tip)),
-					slog.Any("error", err),
-				)
-			}
-			if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to schedule user tip job.",
-					slog.String("tip", string(tip)),
-					slog.Any("error", err),
-				)
-			}
-		}
-	}
-
-	return user, nil
 }

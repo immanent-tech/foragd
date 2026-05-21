@@ -14,10 +14,10 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"encoding/json"
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -94,7 +94,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 					postJSONLD := map[string]any{
 						"@type":         "BlogPosting",
 						"headline":      post.Frontmatter.Title,
-						"url":           os.Getenv("FORAGD_BASEURL") + "/blog/" + post.Details.Path,
+						"url":           config.GetBaseURL() + "/blog/" + post.Details.Path,
 						"datePublished": post.Frontmatter.CreatedAt,
 						"author": map[string]any{
 							"@type": "Person",
@@ -262,7 +262,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 				indexJSONLD["blogPost"] = postsJSONLD
 				if jsonLD, err := json.Marshal(indexJSONLD); err == nil {
 					data := new(json.RawMessage(jsonLD))
-					templ_7745c5c3_Err = RenderJSONLD("posts-index", data).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = partials.RenderJSONLD("posts-index", *data).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

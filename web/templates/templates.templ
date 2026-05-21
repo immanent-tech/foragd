@@ -11,7 +11,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
 	"github.com/immanent-tech/go-syndication/opengraph"
-	"os"
 	"path/filepath"
 	"slices"
 )
@@ -138,24 +137,24 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin as="font"/>
 			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin as="font"/>
 			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin as="font"/>
-			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
-			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/>
-			<link rel="stylesheet" href={ "/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.Version }/>
-			<link rel="stylesheet" href={ "/content/fonts/nunito/nunito.css?v=" + config.Version }/>
+			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/></noscript>
+			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/>
+			<link rel="stylesheet" href={ "/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.GetVersion() }/>
+			<link rel="stylesheet" href={ "/content/fonts/nunito/nunito.css?v=" + config.GetVersion() }/>
 			// Load style bundles from embedded FS.
 			for styleFile := range slices.Values(web.GetStyleFilenames()) {
-				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/></noscript>
-				<link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/>
+				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) }/></noscript>
+				<link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) }/>
 			}
 			// Load script bundles from embedded FS.
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
-				<script src={ filepath.Join("/content", scriptFile+"?v="+config.Version) } type="module"></script>
+				<script src={ filepath.Join("/content", scriptFile+"?v="+config.GetVersion()) } type="module"></script>
 			}
 			<script type="text/hyperscript" src="/content/scripts.hs"></script>
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
-			if config.CurrentEnvironment == config.EnvProduction {
+			if config.IsProduction() {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
 			}
 			<link rel="preconnect" href="https://challenges.cloudflare.com"/>
@@ -219,12 +218,11 @@ templ UpdateTitle(title string) {
 // NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a
 // property is not set by an option, a default value will be used.
 func NewOpenGraphMetadata(options ...opengraph.Option) *opengraph.OpenGraph {
-	baseURL := os.Getenv("FORAGD_BASEURL")
 	og := &opengraph.OpenGraph{
 		Title:       config.AppName,
 		ObjectType:  "website",
-		URL:         baseURL,
-		Image:       baseURL + "/content/logo-color.webp",
+		URL:         config.GetBaseURL(),
+		Image:       config.GetBaseURL() + "/content/logo-color.webp",
 		Description: new(config.AppDescription),
 	}
 	for option := range slices.Values(options) {

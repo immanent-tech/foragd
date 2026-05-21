@@ -295,7 +295,7 @@ func sendImagePlaceholder(ctx context.Context, res http.ResponseWriter, buf *byt
 var imgCache objectCache
 
 var loadImageCache = sync.OnceValue(func() error {
-	switch config.CurrentEnvironment {
+	switch config.GetEnvironment() {
 	case config.EnvProduction:
 		bucketName := os.Getenv("IMAGEPROXY_BUCKET")
 		var err error
@@ -317,7 +317,7 @@ var loadImageCache = sync.OnceValue(func() error {
 var avatarCache objectCache
 
 var loadAvatarCache = sync.OnceValue(func() error {
-	switch config.CurrentEnvironment {
+	switch config.GetEnvironment() {
 	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
@@ -338,7 +338,7 @@ var loadAvatarCache = sync.OnceValue(func() error {
 
 var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
 	var thumbnailCache objectCache
-	switch config.CurrentEnvironment {
+	switch config.GetEnvironment() {
 	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
@@ -359,7 +359,7 @@ var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
 
 var loadScreenshotCache = sync.OnceValues(func() (objectCache, error) {
 	var screenshotCache objectCache
-	switch config.CurrentEnvironment {
+	switch config.GetEnvironment() {
 	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error

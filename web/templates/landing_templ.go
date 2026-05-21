@@ -15,7 +15,142 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
 )
+
+var LandingPageFAQ = []partials.FAQEntry{
+	{
+		ID:       "whatisit",
+		Question: "What is a feed reader? How is it different from X, Facebook, Instagram, etc.?",
+		Answer: `
+				<p>A feed reader is an app that collects content from websites, blogs, and newsletters you choose and
+				displays it in one place without algorithms deciding what you see or ads interrupting your reading.</p>
+
+				<p>Most websites publish their content as an RSS or Atom feed: a standardised file that	lists their
+				latest articles. A feed reader checks these files regularly and shows you new posts as they arrive, in
+				chronological order, from only the sources you've subscribed to.</p>
+
+				<p>This is fundamentally different from social platforms like Facebook, X (Twitter), or LinkedIn, where
+				a proprietary algorithm selects and ranks what you see based on engagement, advertising revenue, and
+				platform goals and not your preferences. It's also different from news aggregators like Apple News or
+				Google News, which curate content editorially and promote sponsored stories.</p>
+
+				<p>With a feed reader, you own your reading list. You can follow any website that publishes a feed, from
+				major newspapers to small independent blogs and everything appears together, unfiltered and in the order
+				it was published.</p>
+				`,
+	},
+	{
+		ID:       "app",
+		Question: "Do you have an app?",
+		Answer: `
+				<p>Foragd is a web app, which means there is nothing to install and no app store required. Open	your
+				browser, log in on any device you already own. Because Foragd runs entirely in the browser, it works on
+				every platform without a separate version for each: Chrome, Safari, Firefox, and Edge on Windows, macOS,
+				Linux, iOS, and Android are all fully supported. Your reading list, bookmarks, and settings are always
+				in sync across every device automatically, with no manual backup or export needed. </p>
+
+				<p>On mobile, Foragd can be added to your home screen directly from your browser (on iOS via Safari's
+				"Add to Home Screen" and on Android via Chrome's "Add to Home Screen"). This gives you a full app-like
+				experience, including offline support, without going through the App Store or Google Play.</p>
+
+				<p>This also means Foragd is always up to date. There are no app updates to approve or install;
+				improvements and new features are available the moment you open the page.</p>
+				`,
+	},
+	{
+		ID:       "import",
+		Question: "Can I import my subscriptions from elsewhere?",
+		Answer: `
+				<p>Yes. Foragd supports importing and exporting subscriptions using the OPML file format; an open
+				standard that all major feed readers support. If you're switching from Feedly, Inoreader, NewsBlur, The
+				Old Reader, or any other RSS reader, you can export your subscriptions as an OPML file and import them
+				into Foragd in seconds, with no manual re-adding of feeds.</p>
+
+				<p>This portability is by design. Your subscriptions are a list of websites and sources you've
+				deliberately chosen to follow. Your data is always yours, not the platform's. Unlike a social media
+				following list that's locked inside a single company's database, an OPML file is a plain, open format
+				you can take anywhere. Foragd treats your reading list as your data, which is why Foragd also supports
+				exporting as well as importing. If you're currently using a platform that doesn't offer OPML export,
+				that's a sign your subscriptions are being held hostage. A feed reader that won't let you leave with
+				your data isn't a tool; it's a trap.</p>
+
+				<p>Switching to Foragd takes just a few minutes: export your OPML from your current reader, import it in
+				Foragd's settings, and every feed you've ever subscribed to will be waiting for you.</p>
+				`,
+	},
+	{
+		ID:       "privacy",
+		Question: "Are my subscriptions private?",
+		Answer: `
+				<p>Yes, completely. Foragd has no social features, no public profiles, and no follower counts. What you
+				read is nobody's business but yours.</p>
+
+				<p>Most free content platforms are built on a simple trade: you get the service, they get your attention
+				and behaviour data to sell to advertisers. Every article you read, every topic you follow, every link
+				you click becomes a data point used to build an advertising profile. Foragd has no advertising business
+				model, so there is no incentive to collect, analyse, or sell your reading behaviour. We don't know what
+				you read, and we don't want to.</p>
+
+				<p>What we do collect is the minimum required to run the service: your email address to log in, and the
+				list of feeds you subscribe to so we can fetch content for you. That's it. We don't share this with
+				marketing third-parties, we don't run behavioural analytics on your reading habits, and we never inject
+				ads or sponsored content into your feed.</p>
+
+				<p>Because Foragd is subscription-funded rather than advertiser-funded, your interests and ours are
+				aligned: we succeed when you find the product valuable enough to pay for, not when we maximise the time
+				you spend staring at a screen. You can read the full details in our <a href="/policies/privacy"
+				class="link">privacy policy</a>.</p>
+
+				<p>Your subscriptions are also portable and exportable at any time (see the previous question on OPML
+				import and export).</p> `,
+	},
+	{
+		ID:       "opensource",
+		Question: "Is Foragd open source?",
+		Answer: `
+				<p>Yes. Foragd's source code is publicly available <a class="link"
+				href="https://github.com/immanent-tech/foragd">on GitHub</a>. But more importantly, here's why that
+				matters to you as a user rather than just as a developer:</p>
+
+				<ul class="space-y-2">
+					<li>
+						<p class="font-semibold">You can verify our privacy claims.</p>
+
+						<p>	We tell you we don't track your reading habits or sell your data. But with closed-source
+						software, that's a promise you have to take on faith. With open source, anyone can read the code
+						and confirm that what we say matches what the software actually does. Independent researchers,
+						security professionals, and privacy advocates can audit Foragd without our permission or
+						involvement. Trust, but verify.</p>
+					</li>
+					<li>
+						<p class="font-semibold">Your data can never be held hostage.</p>
+
+						<p>If Foragd ever shut down, was acquired, or changed direction in a way you disagreed with, the
+						open source code means the community could continue running it independently. Your reading list
+						and the software that powers it can't be locked away. This is the open source guarantee that no
+						proprietary feed reader such as Feedly, Inoreader, or anyone else can offer.</p>
+					</li>
+					<li>
+						<p class="font-semibold">Security is stronger with more eyes on the code.</p>
+
+						<p>Closed-source software relies on a single team to find and fix vulnerabilities. Open source
+						means the entire developer community can spot and report issues, often faster than any internal
+						team could alone.</p>
+					</li>
+					<li>
+						<p class="font-semibold">You're not betting on a black box.</p>
+
+						<p>Many RSS readers have come and gone over the years — Google Reader being the most famous
+						casualty. When a proprietary service shuts down, your subscriptions, your history, and your
+						reading habits can disappear overnight. Open source is a hedge against that risk. You can find
+						the Foragd source code and contribute at <a class="link"
+						href="https://github.com/immanent-tech/foragd">GitHub</a>.</p>
+					</li>
+				</ul>
+				`,
+	},
+}
 
 // Landing is the landing page layout.
 func Landing() templ.Component {
@@ -81,15 +216,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none\"><dl class=\"grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3\"><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Collect</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Subscribe to websites, Youtube channels, Reddit subreddits and even email newletters.</p><p class=\"mt-6\"><a href=\"/features#collect\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Curate</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Group subscriptions into single feeds, search across articles, then save the results as a subscription. Organise and filter by categories.</p><p class=\"mt-6\"><a href=\"/features#curate\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Consume</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Beautiful typography and design. Content comes first. Fetch article content from websites. Save and share your favorites.</p><p class=\"mt-6\"><a href=\"/features#consume\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div></dl></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-secondary\">Pricing</h2><p class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Keep up to date without breaking the bank.</p><p class=\"mt-6 text-lg/8 text-neutral\">Foragd has a simple single subscription with all features included. USD $7/month or $59/year, with a free trial during beta.</p></div><div class=\"mt-4\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = pricing().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"compare\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"text-base/7 font-semibold text-secondary\">Compare</h2><p class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Compare Foragd with Feedly and Inoreader.</p><p class=\"mt-6 text-lg/8 text-neutral\">See how the features of Foragd compare against some of the most popular feed readers out there.</p></div><div class=\"mx-auto mt-10 flex max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none\"><div class=\"text-2xl\">vs <a class=\"link font-semibold link-hover\" href=\"/compare/feedly\">Feedly</a></div><div class=\"text-2xl\">vs <a class=\"link font-semibold link-hover\" href=\"/compare/inoreader\">Inoreader</a></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Frequently Asked Questions</h2></div><div class=\"mx-auto max-w-4xl\"><dl class=\"mt-16 divide-y divide-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none\"><dl class=\"grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3\"><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Collect</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Subscribe to websites, Youtube channels, Reddit subreddits and even email newletters.</p><p class=\"mt-6\"><a href=\"/features#collect\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Curate</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Group subscriptions into single feeds, search across articles, then save the results as a subscription. Organise and filter by categories.</p><p class=\"mt-6\"><a href=\"/features#curate\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div><div class=\"flex flex-col\"><dt class=\"text-xl font-semibold text-primary sm:text-2xl\">Consume</dt><dd class=\"mt-1 flex flex-auto flex-col text-base/7 text-neutral\"><p class=\"flex-auto\">Beautiful typography and design. Content comes first. Fetch article content from websites. Save and share your favorites.</p><p class=\"mt-6\"><a href=\"/features#consume\" class=\"text-sm/6 font-semibold text-secondary\">Learn more <span aria-hidden=\"true\">→</span></a></p></dd></div></dl></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-secondary\">Pricing</h2><p class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Keep up to date without breaking the bank.</p><p class=\"mt-6 text-lg/8 text-neutral\">Foragd has a simple single subscription with all features included. USD $7/month or $59/year, with a 14 day free trial period.</p><p class=\"mt-6 text-lg/8 text-neutral\">Sign up and try it out for free. Cancel before the end of your trial to avoid any charges.</p></div><div class=\"mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -105,185 +232,29 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p>A feed reader is an app that collects content from websites, blogs, and newsletters you choose and displays it in one place without algorithms deciding what you see or ads interrupting your reading.</p><p>Most websites publish their content as an RSS or Atom feed: a standardised file that lists their latest articles. A feed reader checks these files regularly and shows you new posts as they arrive, in chronological order, from only the sources you've subscribed to.</p><p>This is fundamentally different from social platforms like Facebook, X (Twitter), or LinkedIn, where a proprietary algorithm selects and ranks what you see based on engagement, advertising revenue, and platform goals and not your preferences. It's also different from news aggregators like Apple News or Google News, which curate content editorially and promote sponsored stories.</p><p>With a feed reader, you own your reading list. You can follow any website that publishes a feed, from major newspapers to small independent blogs and everything appears together, unfiltered and in the order it was published.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a role=\"button\" aria-label=\"Start a free trial on the One plan\" type=\"submit\" class=\"btn btn-block btn-accent\">Start a free trial</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = landingFAQEntry("whatisit", "What is a feed reader? How is it different from X, Facebook, Instagram, etc.?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = pricing().Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var4 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p>Foragd is a web app, which means there is nothing to install and no app store required. Open your browser, log in on any device you already own. Because Foragd runs entirely in the browser, it works on every platform without a separate version for each: Chrome, Safari, Firefox, and Edge on Windows, macOS, Linux, iOS, and Android are all fully supported. Your reading list, bookmarks, and settings are always in sync across every device automatically, with no manual backup or export needed.</p><p>On mobile, Foragd can be added to your home screen directly from your browser (on iOS via Safari's \"Add to Home Screen\" and on Android via Chrome's \"Add to Home Screen\"). This gives you a full app-like experience, including offline support, without going through the App Store or Google Play.</p><p>This also means Foragd is always up to date. There are no app updates to approve or install; improvements and new features are available the moment you open the page.</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			return nil
-		})
-		templ_7745c5c3_Err = landingFAQEntry("app", "Do you have an app?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div></div><div id=\"compare\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"text-base/7 font-semibold text-secondary\">Compare</h2><p class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Compare Foragd with Feedly and Inoreader.</p><p class=\"mt-6 text-lg/8 text-neutral\">See how the features of Foragd compare against some of the most popular feed readers out there.</p></div><div class=\"mx-auto mt-10 flex max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none\"><div class=\"text-2xl\">vs <a class=\"link font-semibold link-hover\" href=\"/compare/feedly\">Feedly</a></div><div class=\"text-2xl\">vs <a class=\"link font-semibold link-hover\" href=\"/compare/inoreader\">Inoreader</a></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">Frequently Asked Questions</h2></div><div class=\"mx-auto max-w-4xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<p>Yes. Foragd supports importing and exporting subscriptions using the OPML file format; an open standard that all major feed readers support. If you're switching from Feedly, Inoreader, NewsBlur, The Old Reader, or any other RSS reader, you can export your subscriptions as an OPML file and import them into Foragd in seconds, with no manual re-adding of feeds.</p><p>This portability is by design. Your subscriptions are a list of websites and sources you've deliberately chosen to follow. Your data is always yours, not the platform's. Unlike a social media following list that's locked inside a single company's database, an OPML file is a plain, open format you can take anywhere. Foragd treats your reading list as your data, which is why Foragd also supports exporting as well as importing. If you're currently using a platform that doesn't offer OPML export, that's a sign your subscriptions are being held hostage. A feed reader that won't let you leave with your data isn't a tool; it's a trap.</p><p>Switching to Foragd takes just a few minutes: export your OPML from your current reader, import it in Foragd's settings, and every feed you've ever subscribed to will be waiting for you.</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			return nil
-		})
-		templ_7745c5c3_Err = landingFAQEntry("import", "Can I import my subscriptions from elsewhere?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = partials.FAQ(slices.Concat(LandingPageFAQ, BillingFAQ)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var6 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<p>Yes, completely. Foragd has no social features, no public profiles, and no follower counts. What you read is nobody's business but yours.</p><p>Most free content platforms are built on a simple trade: you get the service, they get your attention and behaviour data to sell to advertisers. Every article you read, every topic you follow, every link you click becomes a data point used to build an advertising profile. Foragd has no advertising business model, so there is no incentive to collect, analyse, or sell your reading behaviour. We don't know what you read, and we don't want to.</p><p>What we do collect is the minimum required to run the service: your email address to log in, and the list of feeds you subscribe to so we can fetch content for you. That's it. We don't share this with marketing third-parties, we don't run behavioural analytics on your reading habits, and we never inject ads or sponsored content into your feed.</p><p>Because Foragd is subscription-funded rather than advertiser-funded, your interests and ours are aligned: we succeed when you find the product valuable enough to pay for, not when we maximise the time you spend staring at a screen. You can read the full details in our <a href=\"/policies/privacy\" class=\"link\">privacy policy</a>.</p><p>Your subscriptions are also portable and exportable at any time (see the previous question on OPML import and export).</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			return nil
-		})
-		templ_7745c5c3_Err = landingFAQEntry("privacy", "Are my subscriptions private?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var7 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p>Yes. Foragd's source code is publicly available <a class=\"link\" href=\"https://github.com/immanent-tech/foragd\">on GitHub</a>. But more importantly, here's why that matters to you as a user rather than just as a developer:</p><ul class=\"space-y-2\"><li><p class=\"font-semibold\">You can verify our privacy claims.</p><p>We tell you we don't track your reading habits or sell your data. But with closed-source software, that's a promise you have to take on faith. With open source, anyone can read the code and confirm that what we say matches what the software actually does. Independent researchers, security professionals, and privacy advocates can audit Foragd without our permission or involvement. Trust, but verify.</p></li><li><p class=\"font-semibold\">Your data can never be held hostage.</p><p>If Foragd ever shut down, was acquired, or changed direction in a way you disagreed with, the open source code means the community could continue running it independently. Your reading list and the software that powers it can't be locked away. This is the open source guarantee that no proprietary feed reader such as Feedly, Inoreader, or anyone else can offer.</p></li><li><p class=\"font-semibold\">Security is stronger with more eyes on the code.</p><p>Closed-source software relies on a single team to find and fix vulnerabilities. Open source means the entire developer community can spot and report issues, often faster than any internal team could alone.</p></li><li><p class=\"font-semibold\">You're not betting on a black box.</p><p>Many RSS readers have come and gone over the years — Google Reader being the most famous casualty. When a proprietary service shuts down, your subscriptions, your history, and your reading habits can disappear overnight. Open source is a hedge against that risk. You can find the Foragd source code and contribute at <a class=\"link\" href=\"https://github.com/immanent-tech/foragd\">GitHub</a>.</p></li></ul>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			return nil
-		})
-		templ_7745c5c3_Err = landingFAQEntry("opensource", "Is Foragd open source?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</dl></div></div><div class=\"py-24 sm:py-32\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">From the blog</h2></div><div class=\"mx-auto mt-16 grid max-w-2xl auto-rows-fr grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3\"><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-base-300 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/raphaels-school-of-athens.webp\" alt=\"Raphael's School of Athens (1508–11)\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-neutral-900/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-01-27\" class=\"mr-8\">Jan 27, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/feeds-vs-social-media\"><span class=\"absolute inset-0\"></span> RSS & Atom vs Social Media: Freedom, Control and Privacy</a></h3></article><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp\" alt=\"Ferdinand Magellan's fleet\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-02-02\" class=\"mr-8\">Feb 2, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/finding-feeds\"><span class=\"absolute inset-0\"></span> How to Find RSS and Atom Feeds for any website</a></h3></article><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/picture-gallery-with-views-of-modern-rome.webp\" alt=\"Picture Gallery with Views of Modern Rome - Giovanni Paolo Pannini\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-02-06\" class=\"mr-8\">Feb 6, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/managing-feed-overload\"><span class=\"absolute inset-0\"></span> How to Manage Feed Overload: 6 Strategies for Your RSS Reader</a></h3></article></div></div></div><div><div class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:justify-between lg:px-8\"><h2 class=\"max-w-2xl text-4xl font-display font-semibold tracking-tight text-primary sm:text-5xl\">Escape the algorithm.<br>Start your free trial today.</h2><div class=\"mt-10 flex items-center gap-x-6 lg:mt-0 lg:shrink-0\"><a href=\"/signup\" class=\"btn btn-primary\">Sign up</a> <a href=\"/features\" class=\"btn btn-outline\">Learn more <span aria-hidden=\"true\">→</span></a></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></main></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"py-24 sm:py-32\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:text-center\"><h2 class=\"mt-2 text-4xl font-display font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance\">From the blog</h2></div><div class=\"mx-auto mt-16 grid max-w-2xl auto-rows-fr grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3\"><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-base-300 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/raphaels-school-of-athens.webp\" alt=\"Raphael's School of Athens (1508–11)\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-neutral-900/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-01-27\" class=\"mr-8\">Jan 27, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/feeds-vs-social-media\"><span class=\"absolute inset-0\"></span> RSS & Atom vs Social Media: Freedom, Control and Privacy</a></h3></article><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp\" alt=\"Ferdinand Magellan's fleet\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-02-02\" class=\"mr-8\">Feb 2, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/finding-feeds\"><span class=\"absolute inset-0\"></span> How to Find RSS and Atom Feeds for any website</a></h3></article><article class=\"relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800\"><img src=\"https://foragd-dev.astralcars.com/content/images/blog/picture-gallery-with-views-of-modern-rome.webp\" alt=\"Picture Gallery with Views of Modern Rome - Giovanni Paolo Pannini\" class=\"absolute inset-0 -z-10 size-full object-cover\"><div class=\"absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40\"></div><div class=\"absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10\"></div><div class=\"flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300\"><time datetime=\"2026-02-06\" class=\"mr-8\">Feb 6, 2026</time><div class=\"-ml-4 flex items-center gap-x-4\"><svg viewBox=\"0 0 2 2\" class=\"-ml-0.5 size-0.5 flex-none fill-white/50 dark:fill-gray-300/50\"><circle r=\"1\" cx=\"1\" cy=\"1\"></circle></svg><div class=\"flex gap-x-2.5\">Joshua Rich</div></div></div><h3 class=\"mt-3 text-lg/6 font-semibold text-white\"><a href=\"/posts/managing-feed-overload\"><span class=\"absolute inset-0\"></span> How to Manage Feed Overload: 6 Strategies for Your RSS Reader</a></h3></article></div></div></div><div><div class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:justify-between lg:px-8\"><h2 class=\"max-w-2xl text-4xl font-display font-semibold tracking-tight text-primary sm:text-5xl\">Escape the algorithm.<br>Start your free trial today.</h2><div class=\"mt-10 flex items-center gap-x-6 lg:mt-0 lg:shrink-0\"><a href=\"/signup\" class=\"btn btn-primary\">Sign up</a> <a href=\"/features\" class=\"btn btn-outline\">Learn more <span aria-hidden=\"true\">→</span></a></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></main></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = footer().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func landingFAQEntry(id, question string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue("faq-" + id)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 509, Col: 28}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(question)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 512, Col: 54}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span> <span class=\"ml-6 flex h-7 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0\"></path></svg></span></button></dt><el-disclosure id=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue("faq-" + id)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 520, Col: 33}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><div class=\"prose text-base/7\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var8.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></dd></el-disclosure></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -307,12 +278,12 @@ func LandingHeaderSlot() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": [\"SoftwareApplication\",\"WebApplication\"],\n  \"name\": \"Foragd\",\n  \"applicationCategory\": \"News & RSS Reader\",\n  \"operatingSystem\": \"Web\",\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"59\",\n    \"priceCurrency\": \"USD\",\n    \"priceValidUntil\": \"2026-06-30\"\n  },\n  \"description\": \"A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.\",\n  \"url\": \"https://foragd.app/\"\n}\n</script><script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"What is a feed reader? How is it different from X, Facebook, Instagram, etc.?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"<p>A feed reader is an app that collects content from websites, blogs, and newsletters you\tchoose and displays it in one place without algorithms deciding what you see or ads interrupting your reading.</p><p>Most websites publish their content as an RSS or Atom feed: a standardised file that lists their latest articles. A feed reader checks these files regularly and shows you new posts as they arrive, in chronological order, from only the sources you've subscribed to.</p><p>This is fundamentally different from social platforms like Facebook, X (Twitter), or LinkedIn, where a proprietary algorithm selects and ranks what you see based on engagement, advertising revenue, and platform goals and not your preferences. It's also different from news aggregators like Apple News or Google News, which curate content editorially and promote sponsored stories.</p><p>With a feed reader, you own your reading list. You can follow any website that publishes a feed, from major newspapers to small independent blogs and everything appears together, unfiltered and in the order it was published.</p>\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Do you have an app?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"<p>Foragd is a web app, which means there is nothing to install and no app store required. Open your browser, log in on any device you already own. Because Foragd runs entirely in the browser, it works on every platform without a separate version for each: Chrome, Safari, Firefox, and Edge on Windows, macOS, Linux, iOS, and Android are all fully supported. Your reading list, bookmarks, and settings are always in sync across every device automatically, with no manual backup or export needed.</p><p>On mobile, Foragd can be added to your home screen directly from your browser (on iOS via Safari's \\\"Add to Home Screen\\\" and on Android via Chrome's \\\"Add to Home Screen\\\"). This gives you a full app-like experience, including offline support, without going through the App Store or Google Play.</p><p>This also means Foragd is always up to date. There are no app updates to approve or install; improvements and new features are available the moment you open the page.</p>\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I import my subscriptions from elsewhere?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"<p>Yes. Foragd supports importing and exporting subscriptions using the OPML file format; an open standard that all major feed readers support. If you're switching from Feedly, Inoreader, NewsBlur, The Old Reader, or any other RSS reader, you can export your subscriptions as an OPML file and import them into Foragd in seconds, with no manual re-adding of feeds.</p><p>This portability is by design. Your subscriptions are a list of websites and sources you've deliberately chosen to follow. Your data is always yours, not the platform's. Unlike a social media following list that's locked inside a single company's database, an OPML file is a plain, open format you can take anywhere. Foragd treats your reading list as your data, which is why Foragd also supports exporting as well as importing. If you're currently using a platform that doesn't offer OPML export, that's a sign your subscriptions are being held hostage. A feed reader that won't let you leave with your data isn't a tool; it's a trap.</p><p>Switching to Foragd takes just a few minutes: export your OPML from your current reader, import it in Foragd's settings, and every feed you've ever subscribed to will be waiting for you.</p>\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Are my subscriptions private?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"<p>Yes, completely. Foragd has no social features, no public profiles, and no follower counts. What you read is nobody's business but yours.</p><p>Most free content platforms are built on a simple trade: you get the service, they get your attention and behaviour data to sell to advertisers. Every article you read, every topic you follow, every link you click becomes a data point used to build an advertising profile. Foragd has no advertising business model, so there is no incentive to collect, analyse, or sell your reading behaviour. We don't know what you read, and we don't want to.</p><p>What we do collect is the minimum required to run the service: your email address to log in, and the list of feeds you subscribe to so we can fetch content for you. That's it. We don't share this with marketing third-parties, we don't run behavioural analytics on your reading habits, and we never inject ads or sponsored content into your feed.</p><p>Because Foragd is subscription-funded rather than advertiser-funded, your interests and ours are aligned: we succeed when you find the product valuable enough to pay for, not when we maximise the time you spend staring at a screen. You can read the full details in our <a href=\\\"/policies/privacy\\\" class=\\\"link\\\">privacy policy</a>.</p><p>Your subscriptions are also portable and exportable at any time (see the previous question on OPML import and export).</p>\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Is Foragd open source?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n\t\t\"text\": \"<p>Yes. Foragd's source code is publicly available <a class=\\\"link\\\" href=\\\"https://github.com/immanent-tech/foragd\\\">on GitHub</a>. But more importantly, here's why that matters to you as a user rather than just as a developer:</p><ul class=\\\"space-y-2\\\"><li><p class=\\\"font-semibold\\\">You can verify our privacy claims.</p><p>We tell you we don't track your reading habits or sell your data. But with closed-source software, that's a promise you have to take on faith. With open source, anyone can read the code and confirm that what we say matches what the software actually does. Independent researchers, security professionals, and privacy advocates can audit Foragd without our permission or involvement. Trust, but verify.</p></li><li><p class=\\\"font-semibold\\\">Your data can never be held hostage.</p><p>If Foragd ever shut down, was acquired, or changed direction in a way you\tdisagreed with, the open source code means the community could continue running\tit independently. Your reading list and the software that powers it can't be locked away. This is the open source guarantee that no proprietary feed reader\tsuch as Feedly, Inoreader, or anyone else can offer.</p></li><li><p class=\\\"font-semibold\\\">Security is stronger with more eyes on the code.</p><p>Closed-source software relies on a single team to find and fix vulnerabilities. Open source means the entire developer community can spot and report issues, often faster than any internal team could alone.</p></li><li><p class=\\\"font-semibold\\\">You're not betting on a black box.</p><p>Many RSS readers have come and gone over the years — Google Reader being the most famous casualty. When a proprietary service shuts down, your subscriptions, your history, and your reading habits can disappear overnight. Open source is a hedge against that risk. You can find the Foragd source code and contribute at<a class=\\\"link\\\" href=\\\"https://github.com/immanent-tech/foragd\\\">GitHub</a>.</p></li></ul>\"\n      }\n    }\n  ]\n}\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": [\"SoftwareApplication\",\"WebApplication\"],\n  \"name\": \"Foragd\",\n  \"applicationCategory\": \"News & RSS Reader\",\n  \"operatingSystem\": \"Web\",\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"59\",\n    \"priceCurrency\": \"USD\",\n    \"priceValidUntil\": \"2026-06-30\"\n  },\n  \"description\": \"A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.\",\n  \"url\": \"https://foragd.app/\"\n}\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

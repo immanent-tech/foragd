@@ -39,7 +39,7 @@ Effective date: November 1st, 2025
   - [Changes to Our Privacy Statement](#changes-to-our-privacy-statement)
 
 
-## What is Personal Information and why do we collect it?
+## What is Personal Information, and why do we collect it?
 
 Personal Information is information or an opinion that identifies an individual. Examples of Personal Information we
 collect includes names, addresses, email addresses, phone, and facsimile numbers.
@@ -57,7 +57,7 @@ the information and how we plan to use it (see [below](#how-we-collect-your-info
 ## Sensitive Information
 
 Sensitive information is defined in the Privacy Act to include information or opinion about such things as an
-individual's racial or ethnic origin, political opinions, membership of a political association, religious or
+individual’s racial or ethnic origin, political opinions, membership of a political association, religious or
 philosophical beliefs, membership of a trade union or other professional body, criminal record or health information.
 
 Sensitive information will be used by us only:
@@ -85,7 +85,7 @@ Your Personal Information may be disclosed in a number of circumstances includin
 
 Your Personal Information is stored in a manner that reasonably protects it from misuse and loss and from unauthorized
 access, modification, or disclosure. When your Personal Information is no longer needed for the purpose for which it was
-obtained, we will take reasonable steps to destroy or permanently de-identify your Personal Information.
+obtained, we will take reasonable steps to destroy or permanently anonymize your Personal Information.
 
 ## Access to your Personal Information
 
@@ -100,10 +100,10 @@ information.
 
 ## Maintaining the Quality of your Personal Information
 
-It is an important to us that your Personal Information is up to date. We will take reasonable steps to make sure that
-your Personal Information is accurate, complete and up-to-date. If you find that the information we have is not up to
-date or is inaccurate, please advise us as soon as practicable so we can update our records and ensure we can continue
-to provide quality services to you.
+It is an important to us that your Personal Information is up-to-date. We will take reasonable steps to make sure that
+your Personal Information is accurate, complete, and up-to-date. If you find that the information we have is not
+up-to-date or is inaccurate, please advise us as soon as practicable so we can update our records and ensure we can
+continue to provide quality services to you.
 
 ## How we collect your information
 
@@ -138,11 +138,11 @@ reference unless we disclose other uses in this Privacy Statement or at the time
   non-essential cookies after obtaining your consent.
 - Email Marketing Interactions: Our emails may have web beacons that offer information on your device type, email
   client, email reception, opens, and link clicks.
-- Geolocation Information: Depending on the Service's functionality, we collect regional geolocation data.
+- Geolocation Information: Depending on the Service’s functionality, we collect regional geolocation data.
 - Service Usage Information: We collect data about your interactions with the Services, such as IP address, device
-  information, session details, date and time of requests, device type and ID, operating system and application version,
+  information, session details, date, and time of requests, device type and ID, operating system and application version,
   information related to your contributions to repositories, and performance of specific features or Services.
-- Website Usage Data: We automatically log data about your Website interactions, including the referring site, date and
+- Website Usage Data: We automatically log data about your Website interactions, including the referring site, date, and
   time of visit, pages viewed, and links clicked.
 
 ## Processing Purposes: How We Use Your Personal Data
@@ -166,9 +166,9 @@ the potential ways Foragd may process your Personal Data:
   ongoing personalized experiences and recommendations.
 - Troubleshooting: We use Personal Data to identify and resolve technical issues.
 - Ongoing Service Performance: Personal Data helps us keep the Services up to date and performant, and meet user
-  productivity, reliability, efficacy, quality, privacy, accessibility and security needs.
+  productivity, reliability, efficacy, quality, privacy, accessibility, and security needs.
 - Complying with and resolving legal obligations: including responding to Data Subject Requests for Personal Data
-  processed by Foragd as Controller (for example website data), tax requirements, agreements and disputes.
+  processed by Foragd as Controller (for example website data), tax requirements, agreements, and disputes.
 
 When carrying out these activities, Foragd practices data minimization and uses the minimum amount of Personal
 Information required.
@@ -198,7 +198,7 @@ activities typically fall under these lawful bases:
 
 - Contractual Necessity: Processing is required to fulfill our contractual duties to you, in accordance with the Foragd
   Terms of Service.
-- Legal Obligation: We process data when it's necessary to comply with applicable laws or to protect the rights, safety,
+- Legal Obligation: We process data when it’s necessary to comply with applicable laws or to protect the rights, safety,
   and property of Foragd, our affiliates, users, or third parties.
 - Legitimate Interests: We process data for purposes that are in our legitimate interests, such as securing our
   Services, communicating with you, and improving our Services. This is done only when these interests are not
@@ -212,15 +212,16 @@ activities typically fall under these lawful bases:
 Depending on your residence location, you may have specific legal rights regarding your Personal Data:
 
 - The right to access the data collected about you
-- The right to request detailed information about the specific types of Personal Data we've collected over the past 12
+- The right to request detailed information about the specific types of Personal Data we’ve collected over the past 12
   months, including data disclosed for business purposes
 - The right to rectify or update inaccurate or incomplete Personal Data under certain circumstances
 - The right to erase or limit the processing of your Personal Data under specific conditions
 - The right to object to the processing of your Personal Data, as allowed by applicable law
 - The right to withdraw consent, where processing is based on your consent
-- The right to receive your collected Personal Data in a structured, commonly used, and machine-readable format to facilitate its transfer to another company, where technically feasible
+- The right to receive your collected Personal Data in a structured, commonly used, and machine-readable format to
+  facilitate its transfer to another company, where technically feasible
 
-To exercise these rights, please send an email to privacy[at]immanent[dot]tech and follow the instructions provided. To
+To exercise these rights, please email privacy[at]immanent[dot]tech and follow the instructions provided. To
 verify your identity for security, we may request extra information before addressing your data-related request.
 Depending on your region, you have the right to complain to your local Data Protection Authority. European users can
 find authority contacts on the European Data Protection Board website, and UK users on the Information Commissioner’s
@@ -252,6 +253,24 @@ collection and any legal obligations.
 ## Security
 
 Foragd uses administrative, technical, and physical security controls where appropriate to protect your Personal Data.
+
+## List of third-party Tools, Services, and Software
+
+The following is a list of the third-party tools, services, and software used by Foragd that handles customer data
+directly with links to their privacy policies:
+
+- [Paddle](https://www.paddle.com/legal/privacy): payment processor.
+- [Umami](https://umami.is/privacy): website analytics.
+- [Cloudflare Insights](https://www.cloudflare.com/policies/privacy/): website analytics.
+- [Resend](https://resend.com/legal/privacy-policy): email processor.
+- [Elastic Cloud](https://www.elastic.co/trust/privacy): data store.
+- [Auth0](https://www.elastic.co/trust/privacy): user database.
+- [Google Cloud](https://cloud.google.com/terms/cloud-privacy-notice): static user assets (cached avatar images).
+
+## Open Source
+
+Foragd is open-source software licensed under the GNU Affero General Public License Version 3. You can view the full
+source code on [GitHub](https://github.com/immanent-tech/foragd).
 
 ## Changes to Our Privacy Statement
 

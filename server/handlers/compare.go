@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/a-h/templ"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/immanent-tech/go-syndication/opengraph"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/slots"
 )
@@ -43,12 +43,12 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 		templates.CreatePage(templates.Comparison(service),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
-			templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
+			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 			templates.WithOpenGraphMetadata(opengraph.New(
 				title,
 				"article",
-				os.Getenv("FORAGD_BASEURL")+req.URL.String(),
-				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				config.GetBaseURL()+req.URL.String(),
+				config.GetBaseURL()+"/content/logo-color.webp",
 				opengraph.WithDescription(description),
 			)),
 		),

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -34,6 +33,7 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
@@ -60,12 +60,12 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.PostsIndex(p.posts),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
-		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/blog"),
+		templates.WithCanonicalLink(config.GetBaseURL()+"/blog"),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			title,
 			"website",
-			os.Getenv("FORAGD_BASEURL")+"/blog",
-			os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+			config.GetBaseURL()+"/blog",
+			config.GetBaseURL()+"/content/logo-color.webp",
 			opengraph.WithDescription(description),
 			opengraph.WithSiteName(config.AppName),
 		)),
@@ -83,18 +83,18 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	ctx := slots.WithSlot(
 		req.Context(),
 		slots.Header,
-		templates.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), p.JsonLD),
+		partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), *p.JsonLD),
 	)
 	templ.Handler(templates.CreatePage(
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.PageTitle),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path),
+		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Details.Path),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			p.Frontmatter.PageTitle,
 			"article",
-			os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path,
-			os.Getenv("FORAGD_BASEURL")+*p.Frontmatter.Image,
+			config.GetBaseURL()+"/blog/"+p.Details.Path,
+			config.GetBaseURL()+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithSiteName(config.AppName),
 			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.CreatedAt),
@@ -211,7 +211,7 @@ func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails)
 		"@type":         "Article",
 		"headline":      fm.Title,
 		"description":   fm.Description,
-		"image":         os.Getenv("FORAGD_BASEURL") + *fm.Image,
+		"image":         config.GetBaseURL() + *fm.Image,
 		"datePublished": fm.CreatedAt,
 		"dateModified":  fm.UpdatedAt,
 		"author": map[string]any{
@@ -221,11 +221,11 @@ func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails)
 		"publisher": map[string]any{
 			"@type": "Organization",
 			"name":  "Foragd",
-			"url":   os.Getenv("FORAGD_BASEURL"),
+			"url":   config.GetBaseURL(),
 		},
 		"mainEntityOfPage": map[string]any{
 			"@type": "WebPage",
-			"@id":   os.Getenv("FORAGD_BASEURL") + "/blog/" + details.Path,
+			"@id":   config.GetBaseURL() + "/blog/" + details.Path,
 		},
 	}
 	return json.Marshal(data)
@@ -250,28 +250,18 @@ func HandlePostsFeed() http.HandlerFunc {
 			return
 		}
 
-		baseURL := os.Getenv("FORAGD_BASEURL")
-		if baseURL == "" {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read base URL from env.",
-				slog.Any("error", err),
-			)
-			http.NotFound(res, req)
-			return
-		}
-
 		// Generate RSS file.
 		rssFile := rss.NewRSS(
 			"Posts from the Foragd Team",
 			"Comparisons, opinions and other content from the Foragd team",
-			baseURL,
+			config.GetBaseURL(),
 			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  baseURL,
-				URL:   baseURL + "/content/logo-color.webp",
+				Link:  config.GetBaseURL(),
+				URL:   config.GetBaseURL() + "/content/logo-color.webp",
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("monthly"),
@@ -293,11 +283,11 @@ func HandlePostsFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(data.Frontmatter.Title),
 				rss.WithItemDescription(data.Frontmatter.Description),
-				rss.WithItemLink(baseURL+"/posts/"+data.Details.Path),
-				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/posts/"+data.Details.Path, true)),
+				rss.WithItemLink(config.GetBaseURL()+"/posts/"+data.Details.Path),
+				rss.WithItemGUID(rss.GenerateGUID(config.GetBaseURL()+"/posts/"+data.Details.Path, true)),
 				rss.WithItemImage(&types.ImageInfo{
 					Title: data.Frontmatter.Title,
-					URL:   baseURL + *data.Frontmatter.Image,
+					URL:   config.GetBaseURL() + *data.Frontmatter.Image,
 				}),
 				rss.WithItemContent(data.Content),
 				rss.WithItemPublishedDate(published),

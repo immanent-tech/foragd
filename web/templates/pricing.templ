@@ -3,8 +3,6 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
-
 templ pricing() {
 	<form class="group/tiers">
 		<div class="mt-16 mb-8 flex justify-center">
@@ -32,14 +30,14 @@ templ pricing() {
 								<div class="text-5xl font-semibold">$59</div>
 								<div class="text-sm">
 									<p>USD</p>
-									<p>annually (pay nothing during beta, price on launch)</p>
+									<p>annually (with 14 day free trial)</p>
 								</div>
 							</div>
 							<div class="mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
 								<div class="text-5xl font-semibold">$7</div>
 								<div class="text-sm">
 									<p>USD</p>
-									<p>per month (pay nothing during beta, price on launch)</p>
+									<p>per month (with 14 day free trial)</p>
 								</div>
 							</div>
 							<p class="mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
@@ -101,19 +99,9 @@ templ pricing() {
 							</div>
 							<div class="mt-8">
 								<div class="my-2 text-center font-semibold text-primary">
-									Sign up during the beta, provide feedback and get a year of the subscription for free!
+									Plan includes a 14 day free trial. Sign up now, pay nothing until end of trial period.
 								</div>
-								if user := models.UserFromCtx(ctx); user != nil {
-									<form action="/signup" method="get">
-										<input type="hidden" name={ models.ParamPlanID } value="TheOne-85297d6"/>
-										<button aria-label="Start a free trial on the One plan" id="checkout-theone" type="submit" class="btn btn-block btn-accent">Start a free trial</button>
-									</form>
-								} else {
-									<a
-										class="btn flex place-self-center btn-accent"
-										href="/signup"
-									>Sign up</a>
-								}
+								{ children... }
 							</div>
 						</div>
 					</div>

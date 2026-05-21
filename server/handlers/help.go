@@ -6,13 +6,13 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
@@ -29,7 +29,7 @@ func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
 			templates.WithPageTitle("Documentation"),
-			templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+req.URL.String()),
+			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 		)).ServeHTTP(res, req)
 }
 

@@ -119,7 +119,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 					URL:       feedURL,
 				},
 				Labels: map[string]string{
-					"env":  config.CurrentEnvironment.String(),
+					"env":  config.GetEnvironment().String(),
 					"type": "feed-status",
 				},
 			}
@@ -151,7 +151,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			URL:       feedURL,
 		},
 		Labels: map[string]string{
-			"env":  config.CurrentEnvironment.String(),
+			"env":  config.GetEnvironment().String(),
 			"type": "feed-status",
 		},
 	}

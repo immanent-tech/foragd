@@ -95,7 +95,7 @@ var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 		return nil, fmt.Errorf("unable to load production config: %w", err)
 	}
 	// }
-	clientConfig, err := genConfig(config.CurrentEnvironment)
+	clientConfig, err := genConfig(config.GetEnvironment())
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate config: %w", err)
 	}

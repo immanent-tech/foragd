@@ -31,7 +31,7 @@ func PushCriticalAssets(next http.Handler) http.Handler {
 		if pusher, ok := res.(http.Pusher); ok {
 			files := []string{"scripts.js", "styles.css", "inter.css"}
 			for file := range slices.Values(files) {
-				route := "/content/" + file + "?v=" + config.Version
+				route := "/content/" + file + "?v=" + config.GetVersion()
 				if err := pusher.Push(route, nil); err != nil {
 					slogctx.FromCtx(req.Context()).Error("Push critical asset failed.",
 						slog.Group("request",

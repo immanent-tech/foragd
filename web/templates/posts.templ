@@ -5,10 +5,10 @@ package templates
 
 import (
 	"encoding/json"
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -51,7 +51,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 						postJSONLD := map[string]any{
 							"@type":         "BlogPosting",
 							"headline":      post.Frontmatter.Title,
-							"url":           os.Getenv("FORAGD_BASEURL") + "/blog/" + post.Details.Path,
+							"url":           config.GetBaseURL() + "/blog/" + post.Details.Path,
 							"datePublished": post.Frontmatter.CreatedAt,
 							"author": map[string]any{
 								"@type": "Person",
@@ -95,7 +95,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 				{{ indexJSONLD["blogPost"] = postsJSONLD }}
 				if jsonLD, err := json.Marshal(indexJSONLD); err == nil {
 					{{ data := new(json.RawMessage(jsonLD)) }}
-					@RenderJSONLD("posts-index", data)
+					@partials.RenderJSONLD("posts-index", *data)
 				}
 			</div>
 		}

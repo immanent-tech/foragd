@@ -137,7 +137,7 @@ func InternalError(user *models.User, referer string, msg *models.UserMessage) t
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " role=\"button\" class=\"btn btn-outline\">Go Back</a> <a href=\"mailto:support@immanent.tech&subject=Foragd Issue\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a> <a href=\"mailto:support@immanent.tech&subject=Foragd Issue\" class=\"btn btn-secondary\">Email Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " role=\"button\" class=\"btn btn-outline\">Go Back</a> <a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -231,7 +231,7 @@ func ExternalError(user *models.User, msg *models.UserMessage) templ.Component {
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/error.templ`, Line: 58, Col: 22}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/error.templ`, Line: 55, Col: 22}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -249,7 +249,7 @@ func ExternalError(user *models.User, msg *models.UserMessage) templ.Component {
 						var templ_7745c5c3_Var13 string
 						templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/error.templ`, Line: 60, Col: 24}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/error.templ`, Line: 57, Col: 24}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 						if templ_7745c5c3_Err != nil {

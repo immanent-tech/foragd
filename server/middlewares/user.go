@@ -20,8 +20,9 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
-// RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
-func RequireUserAuth(next http.Handler) http.Handler {
+// ExtractUserFromSession will extract the user data from the session, retrieve the user details from the backend and
+// then store the user object in the context for use by later handlers.
+func ExtractUserFromSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Ignore updates route.
 		if strings.HasPrefix(req.URL.Path, "/updates") {
@@ -103,9 +104,9 @@ func RequireUserAuth(next http.Handler) http.Handler {
 					slog.String("external_user_id", profile.GetID()),
 				)
 			if htmx.IsHTMX(req) {
-				res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
+				res.Header().Set(htmx.HeaderRedirect, "/account-issue")
 			} else {
-				http.Redirect(res, req, models.RouteUserAccountIssue, http.StatusTemporaryRedirect)
+				http.Redirect(res, req, "/account-issue", http.StatusTemporaryRedirect)
 			}
 			return
 		}
@@ -123,11 +124,7 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			}
 			return
 		}
-		// Do not continue if user is blocked.
-		if user.Metadata.Blocked {
-			res.WriteHeader(http.StatusForbidden)
-			return
-		}
+
 		// Add context values.
 		ctx := models.UserToCtx(req.Context(), user)
 		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
@@ -139,5 +136,68 @@ func RequireUserAuth(next http.Handler) http.Handler {
 
 		// Pass to next request.
 		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// RequireValidUser will ensure that protected routes have a valid user status before continuing.
+func RequireValidUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		switch {
+		case user.Metadata.Blocked:
+			// User is blocked. Do not continue.
+			slogctx.FromCtx(req.Context()).Error("Blocked user.")
+			res.WriteHeader(http.StatusForbidden)
+			return
+
+		case !user.Metadata.PoliciesAccepted:
+			// User has not accepted policies, redirect to page asking them to contact support.
+			slogctx.FromCtx(req.Context()).Error("User has not accepted policies.")
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
+
+		case !user.InTrial() && user.Subscription != nil:
+			// User not in trial and has a subscription.
+			switch {
+			case user.Subscription.IsPastDue():
+				// User account is past due or has other payment issues.
+				slogctx.FromCtx(req.Context()).Error("User account is past due.")
+				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+				return
+
+			case user.Subscription.IsPaused():
+				slogctx.FromCtx(req.Context()).Error("User account is paused.")
+				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+				return
+
+			case user.Subscription.IsCancelled():
+				// User subscription is cancelled.
+				slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
+				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+				return
+
+			case !user.Subscription.IsActive():
+				// User subscription is cancelled.
+				slogctx.FromCtx(req.Context()).Error("User account requires activation.")
+				ctx := models.UserToCtx(req.Context(), user)
+				http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
+				return
+			}
+
+		case !user.InTrial():
+			slogctx.FromCtx(req.Context()).Error("User account requires activation.")
+			ctx := models.UserToCtx(req.Context(), user)
+			http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
+			return
+
+		}
+
+		// Account ok.
+		next.ServeHTTP(res, req)
 	})
 }

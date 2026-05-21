@@ -6,7 +6,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -32,8 +31,8 @@ func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.WithOpenGraphMetadata(opengraph.New(
 			title,
 			"website",
-			os.Getenv("FORAGD_BASEURL")+"/contact",
-			os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+			config.GetBaseURL()+"/contact",
+			config.GetBaseURL()+"/content/logo-color.webp",
 			opengraph.WithDescription(description),
 			opengraph.WithSiteName(config.AppName),
 		)),

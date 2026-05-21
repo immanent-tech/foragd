@@ -25,7 +25,6 @@ agreement with us — the [Foragd Terms of Service](/policies/tos).
   - [7. Information Usage Restrictions](#7-information-usage-restrictions)
   - [8. Privacy](#8-privacy)
   - [9. Excessive Bandwidth Use](#9-excessive-bandwidth-use)
-  - [10. Advertising on Foragd](#10-advertising-on-foragd)
   - [11. User Protection](#11-user-protection)
 
 
@@ -72,9 +71,9 @@ We do not allow content or activity on Foragd that:
   period;
 
 - impersonates any person or entity, including any of our employees or representatives, including through false
-  association with Foragd, or by fraudulently misrepresenting your identity or site's purpose; or
+  association with Foragd, or by fraudulently misrepresenting your identity or site’s purpose; or
 
-- violates the privacy of any third party, such as by posting another person's personal information without consent.
+- violates the privacy of any third party, such as by posting another person’s personal information without consent.
 
 ## 4. Spam and Inauthentic Activity on Foragd
 
@@ -139,24 +138,15 @@ Any person, entity, or service collecting data from the Service must comply with
 Statement](/policies/privacy), particularly in regards to the collection of personal information. If you collect any
 personal information from the Service, you agree that you will only use that personal information for the purpose for
 which that User has authorized it. You agree that you will reasonably secure any personal information you have gathered
-from the Service, and you will respond promptly to complaints, removal requests, and "do not contact" requests from us
+from the Service, and you will respond promptly to complaints, removal requests, and “do not contact” requests from us
 or other users.
 
 ## 9. Excessive Bandwidth Use
 
-The Service's bandwidth limitations vary based on the features you use. If we determine your bandwidth usage to be
+The Service’s bandwidth limitations vary based on the features you use. If we determine your bandwidth usage to be
 significantly excessive in relation to other users of similar features, we reserve the right to suspend your Account, or
 otherwise limit your activity until you can reduce your bandwidth consumption. We also reserve the right—after providing
 advance notice—to delete repositories that we determine to be placing undue strain on our infrastructure.
-
-## 10. Advertising on Foragd
-
-**Short version:** _We do not generally prohibit use of Foragd for advertising. However, we expect our users to follow
-certain limitations, so Foragd does not become a spam haven. No one wants that._
-
-You may not promote or distribute content or activity that is illegal or otherwise prohibited by our [Terms of
-Service](/polices/tos), including excessive automated bulk activity (for example, spamming), get-rich-quick schemes, and
-misrepresentation or deception related to your promotion.
 
 ## 11. User Protection
 

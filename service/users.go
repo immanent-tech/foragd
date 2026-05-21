@@ -95,9 +95,28 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.
 		elastic.WithSize(1),
 	); {
 	case err != nil:
-		return nil, fmt.Errorf("find user by external id: %w", err)
+		return nil, fmt.Errorf("search by subscription email: %w", err)
 	case len(resp.Results) == 0:
-		return nil, fmt.Errorf("find user by external id: %w", models.ErrNotFound)
+		return nil, fmt.Errorf("search by subscription email: %w", models.ErrNotFound)
+	default:
+		return resp.Results[0], nil
+	}
+}
+
+// GetUserBySubscriptionID will retrieve a user from their payment subscription ID.
+func GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, error) {
+	switch resp, err := elastic.Search[*models.User](
+		ctx,
+		schema.UsersIndexRO(),
+		query.Term("subscription.subscription_id", id),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	); {
+	case err != nil:
+		return nil, fmt.Errorf("search by subscription id: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("search by subscription id: %w", models.ErrNotFound)
 	default:
 		return resp.Results[0], nil
 	}
@@ -177,4 +196,20 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 			return
 		}
 	}
+}
+
+// DeleteUser deletes the user and the user's subscription objects from Elasticsearch.
+func DeleteUser(ctx context.Context, user *models.User) error {
+	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW(), user.GetID()); err != nil {
+		return fmt.Errorf("delete user object: %w", err)
+	}
+	// Delete the user's subscriptions.
+	if err := elastic.DeleteDocs(
+		ctx,
+		schema.SubscriptionsIndexRW(),
+		query.Term("user_id", user.GetID()),
+	); err != nil {
+		return fmt.Errorf("delete user subscriptions: %w", err)
+	}
+	return nil
 }

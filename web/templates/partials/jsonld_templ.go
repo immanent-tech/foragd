@@ -5,7 +5,7 @@
 
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package templates
+package partials
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
@@ -14,7 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "encoding/json"
 
-func RenderJSONLD(id string, data *json.RawMessage) templ.Component {
+func RenderJSONLD(id string, data json.RawMessage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

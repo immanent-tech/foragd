@@ -42,58 +42,58 @@ const (
 )
 
 func FeedsIndexRO() string {
-	return feedsIndexPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return feedsIndexPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func FeedsIndexRW() string {
-	return feedsIndexPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return feedsIndexPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func ItemsIndexRO() string {
-	return itemsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return itemsSchemaPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func ItemsIndexRW() string {
-	return itemsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return itemsSchemaPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func SubscriptionsIndexRO() string {
-	return subscriptionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return subscriptionsSchemaPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func SubscriptionsIndexRW() string {
-	return subscriptionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return subscriptionsSchemaPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func FavoritesIndexRO() string {
-	return favoritesSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return favoritesSchemaPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func FavoritesIndexRW() string {
-	return favoritesSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return favoritesSchemaPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func UsersIndexRO() string {
-	return usersSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return usersSchemaPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 func UsersIndexRW() string {
-	return usersSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return usersSchemaPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func SessionsIndexRO() string {
-	return sessionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return sessionsSchemaPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func SessionsIndexRW() string {
-	return sessionsSchemaPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return sessionsSchemaPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 func SchedulerIndexRO() string {
-	return schedulerIndexPrefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	return schedulerIndexPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 }
 
 func SchedulerIndexRW() string {
-	return schedulerIndexPrefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
+	return schedulerIndexPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 }
 
 var feedItemsCommonMappings = withComponentTemplatesMigration(
@@ -597,7 +597,7 @@ var (
 	lowercaseNormalizerName  = "keyword_lowercase"
 	// defaultMetadata defines default metadata.
 	defaultMetadata = types.Metadata{
-		"version":    json.RawMessage(fmt.Sprintf("%q", config.Version)),
+		"version":    json.RawMessage(fmt.Sprintf("%q", config.GetVersion())),
 		"created_at": json.RawMessage(fmt.Sprintf("%q", time.Now().UTC().String())),
 	}
 )
@@ -669,8 +669,8 @@ func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *In
 	}
 	for prefix := range slices.Values(opts.Indices) {
 		index := generateIndexName(prefix)
-		writeAlias := prefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
-		readAlias := prefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+		writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
+		readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 		// Create a scheduler index if one doesn't exist.
 		if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
 			return fmt.Errorf("create index: %w", err)
@@ -892,8 +892,8 @@ func migrateIndexData(
 	prefix string,
 ) error {
 	index := generateIndexName(prefix)
-	writeAlias := prefix + "_" + config.CurrentEnvironment.String() + indexWriteSuffix
-	readAlias := prefix + "_" + config.CurrentEnvironment.String() + indexReadSuffix
+	writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
+	readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 
 	// Create index.
 	if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
@@ -1007,7 +1007,7 @@ func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient,
 
 func generateIndexName(prefix string) string {
 	return strings.Join(
-		[]string{prefix, config.CurrentEnvironment.String(), time.Now().Format("20060102150405"), "000000"},
+		[]string{prefix, config.GetEnvironment().String(), time.Now().Format("20060102150405"), "000000"},
 		"-",
 	)
 }

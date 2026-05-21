@@ -1,7 +1,7 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package resend
+package handlers
 
 import (
 	"context"
@@ -12,17 +12,16 @@ import (
 	"log/slog"
 	"net/http"
 	"net/mail"
-	"slices"
 
-	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
 
-// HandleWebhook will handle incoming webhook requests from Resend.
-func HandleWebhook(res http.ResponseWriter, req *http.Request) {
+// HandleResendWebhook will handle incoming webhook requests from Resend.
+func HandleResendWebhook(res http.ResponseWriter, req *http.Request) {
 	const maxBodyBytes = int64(65536)
 	bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
 	body, err := io.ReadAll(bodyReader)
@@ -34,30 +33,8 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client, err := loadClient()
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Error loading resend client.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusServiceUnavailable)
-		return
-	}
-
-	// Extract Svix headers
-	headers := resend.WebhookHeaders{
-		Id:        req.Header.Get("svix-id"),
-		Timestamp: req.Header.Get("svix-timestamp"),
-		Signature: req.Header.Get("svix-signature"),
-	}
-
-	// Verify the webhook
-	err = client.Webhooks.Verify(&resend.VerifyWebhookOptions{
-		Payload:       string(body),
-		Headers:       headers,
-		WebhookSecret: cfg.WebHookSecret,
-	})
-
-	if err != nil {
+	verified, err := resend.VerifyWebhook(req, body)
+	if !verified {
 		slogctx.FromCtx(req.Context()).Error("Webhook verification failed.",
 			slog.Any("error", err),
 		)
@@ -81,7 +58,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 			slog.String("type", payload["type"].(string)),
 			slog.Any("payload", payload),
 		)
-		var email WebhookEmailReceieved
+		var email resend.WebhookEmailReceieved
 		if err := json.Unmarshal(body, &email); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Unable to parse email.recieved webhook body.",
 				slog.Any("error", err),
@@ -90,7 +67,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if err := handleRecievedEmail(req.Context(), client, email.Data); err != nil {
+		if err := handleRecievedEmail(req.Context(), email.Data); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
 				slog.Any("error", err),
 			)
@@ -112,13 +89,13 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 // handleRecievedEmail processes an incoming email. If it is addressed to a user address, the email is extracted and
 // indexed as a new email subscritpion article. Otherwise, if it is addressed to our catch-all/admin address, it is
 // forwarded. All other emails are ignored.
-func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
+func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) error {
 	// Match the email to address to a user subscription email
 	user, err := service.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		// If this does not match a user email, process as a non-user email
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
-			return handleNonUserEmail(ctx, client, details)
+			return handleNonUserEmail(ctx, &details)
 		}
 		return fmt.Errorf("get user by subscription email: %w", err)
 	}
@@ -142,15 +119,12 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 	}
 
 	// Retrieve the full email content and details.
-	rawEmail, err := client.Emails.Receiving.GetWithContext(ctx, details.EmailId)
+	email, err := resend.GetFullEmail(ctx, details.EmailId)
 	if err != nil {
-		return fmt.Errorf("get email details: %w", err)
+		return fmt.Errorf("parse email: %w", err)
 	}
-
-	// Parse into our custom format and ensure its valid.
-	email := &ReceivedEmail{ReceivedEmail: rawEmail}
 	if err := email.Valid(); err != nil {
-		return fmt.Errorf("parse email contents: %w", err)
+		return fmt.Errorf("validate email: %w", err)
 	}
 
 	// Create an Item from the email and index it.
@@ -163,31 +137,15 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 
 // handleNonUserEmail handles emails not addressed to user addresses. If they are addressed to our catch-all/admin
 // address, they are forwarded to that address. Otherwise, they are ignored.
-func handleNonUserEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
-	if err := loadConfig(); err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
-	// Ignore emails not explicitly addressed to our admin/catch-all address.
-	if !slices.Contains(details.To, cfg.ReplyToEmail) {
-		return nil
-	}
-
-	// Retrieve the full email content and details.
-	rawEmail, err := client.Emails.Receiving.GetWithContext(ctx, details.EmailId)
-	if err != nil {
-		return fmt.Errorf("get email details: %w", err)
-	}
-
-	// Parse into our custom format and ensure its valid.
-	email := &ReceivedEmail{ReceivedEmail: rawEmail}
-	if err := email.Valid(); err != nil {
-		return fmt.Errorf("parse email contents: %w", err)
+func handleNonUserEmail(ctx context.Context, details *resend.EmailRecieved) error {
+	valid, err := resend.IsValidReplyTo(details.To)
+	if !valid {
+		return fmt.Errorf("check valid reply to: %w", err)
 	}
 
 	// Forward the email.
-	if err := email.Forward(ctx, cfg.AdminEmail); err != nil {
-		return fmt.Errorf("forward non-user email: %w", err)
+	if err := resend.ForwardAdminEmail(ctx, details); err != nil {
+		return fmt.Errorf("forward admin email: %w", err)
 	}
 
 	return nil

@@ -68,7 +68,7 @@ func Run(ctx context.Context) error {
 	Manager.Start(ctx)
 
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.",
-		slog.String("version", config.Version),
+		slog.String("version", config.GetVersion()),
 		slog.Time("start_time", time.Now()),
 	)
 

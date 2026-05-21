@@ -19,7 +19,7 @@ import (
 )
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
-	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
+	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.GetVersion())
 })
 
 func init() {

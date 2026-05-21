@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -112,8 +111,8 @@ func PolicyDocsHandler() http.HandlerFunc {
 			templates.WithOpenGraphMetadata(opengraph.New(
 				frontmatter.Title,
 				"website",
-				os.Getenv("FORAGD_BASEURL")+"/"+metadata.Path,
-				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				config.GetBaseURL()+"/"+metadata.Path,
+				config.GetBaseURL()+"/content/logo-color.webp",
 				opengraph.WithDescription(frontmatter.Description),
 				opengraph.WithSiteName(config.AppName),
 			)),

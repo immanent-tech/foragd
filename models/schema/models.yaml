@@ -370,66 +370,78 @@ components:
           type: boolean
           x-omitzero: true
           x-omitempty: true
-    UserSubscription:
+    PaddleSubscription:
       description: >
         contains details about the user's paid subscription.
       type: object
+      required:
+        - customer_id
+        - subscription_id
+        - subscription_name
+        - subscription_status
+        - price_id
+        - price_name
+        - updated_at
       properties:
-        stripe_customer_id:
+        customer_id:
           description: >
-            is the stripe customer id of the user.
-
-            https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
+            is the ID of the customer in the Paddle backend.
           type: string
-          x-go-name: StripeCustomerID
+          x-go-name: CustomerID
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        stripe_subscription_id:
+        subscription_id:
           description: >
-            is the stripe subscription id of the user's plan.
-
-            https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
+            is the unique identifier for the user's subscription.
           type: string
-          x-go-name: StripeSubscriptionID
+          x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        plan_status:
+        subscription_name:
+          description: >
+            is the name of the subscription the user purchased.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        subscription_status:
           description: >
             is the name current status of the subscription plan.
-
-            Possible values come directly from the Stripe API:
-
-            https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
-          x-go-type: stripe.SubscriptionStatus
-          x-go-type-import:
-            path: github.com/stripe/stripe-go/v83
+          x-go-type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        plan:
+        price_id:
           description: >
-            is the name of the subscription plan that the user is paying for.
-
-            Possible values will come from the product defined in Stripe.
+            is the ID of the price that the customer paid for their subscription.
+          x-go-name: PriceID
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        plan_id:
+        price_name:
           description: >
-            is the unique identifier for the plan.
-
-            Possible values will come from the product defined in Stripe.
+            is the name of price for the subscription.
           type: string
-          x-go-name: PlanID
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        cancel_at:
+        current_period_start:
           description: >
-            is a date in the future at which the subscription will automatically get canceled.
+            is when the current billing period for the user's subscription started. Derived from
+            subscription.current_billing_period.starts_at.
+          x-go-type: time.Time
+        current_period_end:
+          description: >
+            is when the current billing period for the user's subscription will end. Derived from
+            subscription.current_billing_period.ends_at
+          x-go-type: time.Time
+        cancelled_at:
+          description: >
+            is when the user's subscription will cancel. Derived from subscription.scheduled_change.action == "cancel".
           x-go-type: time.Time
         trial_end:
           description: >
-            is the date when the trial for the subscription ended.
+            is when the user's trial will end. Derived from subscription.next_billed_at.
           x-go-type: time.Time
+        updated_at:
+          $ref: '#/components/schemas/UpdatedAt'
     User:
       description: is a user of the application.
       allOf:
@@ -477,7 +489,7 @@ components:
             metadata:
               $ref: '#/components/schemas/UserMetadata'
             subscription:
-              $ref: '#/components/schemas/UserSubscription'
+              $ref: '#/components/schemas/PaddleSubscription'
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.
