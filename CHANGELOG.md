@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.145.0](https://github.com/immanent-tech/foragd/compare/v0.144.1...v0.145.0) (2026-05-22)
+
+
+### Features
+
+* **email:** ✨ send an email close to trial expiry as a reminder ([75e0c19](https://github.com/immanent-tech/foragd/commit/75e0c199649f5912d8c3d36878c2f76d2e1822aa))
+
+
+### Bug Fixes
+
+* **favorites,subscriptions:** 🔧 fix crash when viewing favorites with a group subscription ([f0fe0dc](https://github.com/immanent-tech/foragd/commit/f0fe0dc99bf3d5f3c863f7091453993381f16647))
+
 ## [0.144.1](https://github.com/immanent-tech/foragd/compare/v0.144.0...v0.144.1) (2026-05-22)
 
 
