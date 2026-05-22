@@ -55,7 +55,7 @@ type appConfig struct {
 	Version string `koanf:"-" validate:"required,ne=_UNKNOWN_"`
 	// CurrentEnvironment is the environment in which the app is running (i.e., production, development). Defaults to
 	// "development".
-	Environment Environment `koanf:"envrionment" validate:"required,oneof=production development"`
+	Environment Environment `koanf:"environment" validate:"required,oneof=production development"`
 	// BaseURL is the base url from which the app is being served.
 	BaseURL string `koanf:"baseurl" validate:"required,url"`
 }
