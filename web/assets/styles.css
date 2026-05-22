@@ -48,6 +48,28 @@
       transform: scaleX(1);
     }
   }
+
+  @keyframes tab-fade-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  @keyframes tab-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Use page view transitions. */
@@ -208,6 +230,22 @@
   .htmx-request > .hide-loading {
     @apply hidden;
   }
+
+
+  /* The outgoing tab panel */
+  ::view-transition-old(tab-content) {
+    animation: 180ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-out;
+  }
+
+  /* The incoming tab panel */
+  ::view-transition-new(tab-content) {
+    animation: 220ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-in;
+  }
+
+.tab-panel {
+  view-transition-name: tab-content;
+}
+
 
   .prose-article {
     @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
