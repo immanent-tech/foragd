@@ -313,7 +313,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 			} else {
 				// If we aren't viewing all subscriptions, remove the subscription card.
 				if models.View(req.FormValue("view")) != models.ViewAll {
-					res.Header().Set(htmx.HeaderReswap, "delete")
+					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 					res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
 				}
 			}

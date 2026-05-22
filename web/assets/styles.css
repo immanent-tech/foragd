@@ -231,7 +231,6 @@
     @apply hidden;
   }
 
-
   /* The outgoing tab panel */
   ::view-transition-old(tab-content) {
     animation: 180ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-out;
@@ -242,10 +241,13 @@
     animation: 220ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-in;
   }
 
-.tab-panel {
-  view-transition-name: tab-content;
-}
+  .tab-panel {
+    view-transition-name: tab-content;
+  }
 
+  .card.htmx-swapping {
+    @apply opacity-0 transition-opacity duration-300 ease-out;
+  }
 
   .prose-article {
     @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
