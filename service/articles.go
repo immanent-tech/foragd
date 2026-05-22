@@ -160,10 +160,11 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 	}
 
 	// Get the subscriptions associated with the items.
-	subscriptions, err := GetSubscriptionsByFeedID(ctx, items.GetFeedIDs()...)
+	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get subscriptions for items: %w", err)
 	}
+	subscriptions = subscriptions.FilterByFeedIDs(items.GetFeedIDs()...)
 	if len(subscriptions) == 0 {
 		return nil, fmt.Errorf("get subscriptions for items: %w", models.ErrNotFound)
 	}

@@ -199,25 +199,6 @@ func GetSubscriptionsByID(
 	return slices.Collect(maps.Values(results)), nil
 }
 
-// GetSubscriptionsByFeedID returns all subscriptions that match the given FeedIDs.
-func GetSubscriptionsByFeedID(
-	ctx context.Context,
-	ids ...models.FeedID,
-) (models.Subscriptions, error) {
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get all subscriptions: %w", err)
-	}
-
-	subscriptions = subscriptions.FilterByFeedIDs(ids...)
-
-	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		return nil, fmt.Errorf("update dynamic info: %w", err)
-	}
-
-	return subscriptions, nil
-}
-
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
 	user := models.UserFromCtx(ctx)
@@ -817,33 +798,41 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 	}
 
 	// For group subscriptions, calculate stats from other subscriptions.
-	if groupSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeGroup); len(groupSubscriptions) > 0 {
-		for subscription := range slices.Values(groupSubscriptions) {
-			var avgDailyUpdates []float64
-			var unreadCount int
-			var lastUpdates []time.Time
-			for groupSubscription := range slices.Values(subscriptions) {
-				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
-					if user.GetSettings().ShowSubscriptionStats {
-						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.GetStats().AvgDailyUpdates)
-					}
-					unreadCount += groupSubscription.GetStats().UnreadCount
-					lastUpdates = append(lastUpdates, groupSubscription.GetStats().LastUpdate)
-				}
+	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+		var avgDailyUpdates []float64
+		var unreadCount int
+		var lastUpdates []time.Time
+		// Get the avg daily updates and last update for each subscription in the group.
+		for id := range slices.Values(subscription.GroupData.Subscriptions) {
+			childSubscription, err := GetSubscription(ctx, id)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to fetch child subscription details.",
+					slog.String("group_subscription_id", subscription.GetID()),
+					slog.String("child_subscription_id", id),
+					slog.Any("error", err))
+				continue
 			}
-			if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
-				slices.Sort(avgDailyUpdates)
-				slices.Reverse(avgDailyUpdates)
-				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
+			// Collate statistics from child subscription.
+			if user.GetSettings().ShowSubscriptionStats {
+				avgDailyUpdates = append(avgDailyUpdates, childSubscription.GetStats().AvgDailyUpdates)
 			}
-			subscription.GetStats().UnreadCount = unreadCount
-			// Sort by date ascending, with favorites before non-favorites.
-			slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
-				return timeA.Compare(timeB)
-			})
-			slices.Reverse(lastUpdates)
-			subscription.GetStats().LastUpdate = lastUpdates[0]
+			unreadCount += childSubscription.GetStats().UnreadCount
+			lastUpdates = append(lastUpdates, childSubscription.GetStats().LastUpdate)
 		}
+		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
+			// Use the highest avg daily updates as the avg daily updates of the group.
+			slices.Sort(avgDailyUpdates)
+			slices.Reverse(avgDailyUpdates)
+			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
+		}
+		// Unread count is total unread count from all subscriptions in the group.
+		subscription.GetStats().UnreadCount = unreadCount
+		// LastUpdate is the timestamp of the most recent update across all subscriptions in the group.
+		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
+			return timeA.Compare(timeB)
+		})
+		slices.Reverse(lastUpdates)
+		subscription.GetStats().LastUpdate = lastUpdates[0]
 	}
 
 	return nil

@@ -204,8 +204,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 			}
 
-			// Check for an existing existingSubscriptions.
-			existingSubscriptions, err := GetSubscriptionsByFeedID(ctx, feed.GetID())
+			existingSubscriptions, err := GetAllSubscriptions(ctx)
 			if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
@@ -220,6 +219,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 				}
 				return
 			}
+			existingSubscriptions = existingSubscriptions.FilterByFeedIDs(feed.GetID())
 			if existingSubscriptions != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
