@@ -160,7 +160,6 @@
   --noise: 1;
 }
 
-/* catppuccin-mocha.css */
 @plugin "daisyui/theme" {
   name: "catppuccin-mocha";
   default: false;
@@ -168,36 +167,30 @@
   color-scheme: dark;
 
   /* ── Base surfaces ────────────────────────────── */
-  --color-base-100: #1e1e2e; /* Base    — main background pane */
-  --color-base-200: #181825; /* Mantle  — secondary panes */
-  --color-base-300: #11111b; /* Crust   — deepest layer */
-  --color-base-content: #cdd6f4; /* Text    — body copy & headlines */
+  --color-base-100: oklch(24.3% 0.0304 283.9);
+  --color-base-200: oklch(21.6% 0.0254 284.1);
+  --color-base-300: oklch(18.3% 0.0204 284.2);
+  --color-base-content: oklch(87.9% 0.0426 272.3);
 
   /* ── Brand colors ─────────────────────────────── */
-  --color-primary: #cba6f7; /* Mauve — signature Catppuccin purple */
-  --color-primary-content: #1e1e2e;
-
-  --color-secondary: #89b4fa; /* Blue — cool secondary accent */
-  --color-secondary-content: #1e1e2e;
-
-  --color-accent: #f5c2e7; /* Pink — tags, pills, tertiary accent */
-  --color-accent-content: #1e1e2e;
-
-  --color-neutral: #45475a; /* Surface 1 — not-saturated UI chrome */
-  --color-neutral-content: #bac2de; /* Subtext 1 */
+  --color-primary: oklch(78.7% 0.1187 304.8);
+  --color-primary-content: oklch(24.3% 0.0304 283.9);
+  --color-secondary: oklch(76.6% 0.1113 259.9);
+  --color-secondary-content: oklch(24.3% 0.0304 283.9);
+  --color-accent: oklch(87% 0.0752 336.3);
+  --color-accent-content: oklch(24.3% 0.0304 283.9);
+  --color-neutral: oklch(62.4% 0.0287 278.4);
+  --color-neutral-content: oklch(24.3% 0.0304 283.9);
 
   /* ── Semantic states ──────────────────────────── */
-  --color-info: #89b4fa; /* Blue — links & informative */
-  --color-info-content: #1e1e2e;
-
-  --color-success: #a6e3a1; /* Green */
-  --color-success-content: #1e1e2e;
-
-  --color-warning: #f9e2af; /* Yellow */
-  --color-warning-content: #1e1e2e;
-
-  --color-error: #f38ba8; /* Red */
-  --color-error-content: #1e1e2e;
+  --color-info: oklch(76.6% 0.1113 259.9); /* Blue — links & informative */
+  --color-info-content: oklch(24.3% 0.0304 283.9);
+  --color-success: oklch(85.8% 0.1092 142.7); /* Green */
+  --color-success-content: oklch(24.3% 0.0304 283.9);
+  --color-warning: oklch(91.9% 0.0704 86.5); /* Yellow */
+  --color-warning-content: oklch(24.3% 0.0304 283.9);
+  --color-error: oklch(75.6% 0.1297 2.8); /* Red */
+  --color-error-content: oklch(24.3% 0.0304 283.9);
 
   /* ── Shape ────────────────────────────────────── */
   --radius-selector: 2rem;
@@ -210,7 +203,6 @@
   --noise: 0;
 }
 
-/* catppuccin-latte.css */
 @plugin "daisyui/theme" {
   name: "catppuccin-latte";
   default: false;
@@ -218,36 +210,30 @@
   color-scheme: light;
 
   /* ── Base surfaces ────────────────────────────── */
-  --color-base-100: #eff1f5; /* Base   — main background, warm off-white */
-  --color-base-200: #e6e9ef; /* Mantle — secondary panes */
-  --color-base-300: #dce0e8; /* Crust  — deepest layer / dividers */
-  --color-base-content: #4c4f69; /* Text   — body copy & headlines */
+  --color-base-100: oklch(95.8% 0.0058 264.5);
+  --color-base-200: oklch(93.3% 0.0087 264.5);
+  --color-base-300: oklch(90.6% 0.0117 264.5);
+  --color-base-content: oklch(43.5% 0.043 279.3);
 
   /* ── Brand colors ─────────────────────────────── */
-  --color-primary: #8839ef; /* Mauve — signature purple, saturated for light bg */
-  --color-primary-content: #eff1f5;
-
-  --color-secondary: #1e66f5; /* Blue — cool secondary accent */
-  --color-secondary-content: #eff1f5;
-
-  --color-accent: #ea76cb; /* Pink — tags, pills, tertiary accent */
-  --color-accent-content: #eff1f5;
-
-  --color-neutral: #acb0be; /* Surface 2 — not-saturated UI chrome */
-  --color-neutral-content: #4c4f69; /* Text */
+  --color-primary: oklch(55.5% 0.2503 297);
+  --color-primary-content: oklch(95.8% 0.0058 264.5);
+  --color-secondary: oklch(47.6% 0.196 262.3);
+  --color-secondary-content: oklch(95.8% 0.0058 264.5);
+  --color-accent: oklch(53.9% 0.1884 337.7);
+  --color-accent-content: oklch(95.8% 0.0058 264.5);
+  --color-neutral: oklch(49.3% 0.0376 273.5);
+  --color-neutral-content: oklch(95.8% 0.0058 264.5);
 
   /* ── Semantic states ──────────────────────────── */
-  --color-info: #1e66f5; /* Blue — links & informative */
-  --color-info-content: #eff1f5;
-
-  --color-success: #40a02b; /* Green */
-  --color-success-content: #eff1f5;
-
-  --color-warning: #df8e1d; /* Yellow */
-  --color-warning-content: #eff1f5;
-
-  --color-error: #d20f39; /* Red */
-  --color-error-content: #eff1f5;
+  --color-info: oklch(47.6% 0.196 262.3);
+  --color-info-content: oklch(95.8% 0.0058 264.5);
+  --color-success: oklch(51.2% 0.1491 140.2);
+  --color-success-content: oklch(95.8% 0.0058 264.5);
+  --color-warning: oklch(52.4% 0.1136 69.7);
+  --color-warning-content: oklch(95.8% 0.0058 264.5);
+  --color-error: oklch(55% 0.2155 19.8);
+  --color-error-content: oklch(95.8% 0.0058 264.5);
 
   /* ── Shape ────────────────────────────────────── */
   --radius-selector: 2rem;

@@ -7,7 +7,7 @@
   exclude: properties;
 }
 
-@import "./daisyui.css";
+@import "./daisyui-custom.css";
 
 :root {
   scrollbar-gutter: stable;
@@ -223,7 +223,7 @@
       @apply whitespace-normal!;
     }
 
-    [id*=author] {
+    [id*="author"] {
       @apply text-sm/6;
     }
   }
