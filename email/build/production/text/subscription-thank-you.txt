@@ -1,5 +1,6 @@
-Hey {{{USER_NICKNAME}}}, thank you so much for purchasing a
-subscription.
+Hey {{{USER_NICKNAME}}},
+
+Thank you so much for purchasing a subscription.
 
 As a solo indie developer, it means so much to know that someone found
 Foragd useful and they are willing to pay for it. Your subscription
@@ -10,4 +11,5 @@ If you ever have any questions, thoughts or comments, just reply to
 this email.
 
 Thanks,
+
 Josh

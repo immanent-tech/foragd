@@ -223,24 +223,6 @@ func (e UserMessageStatus) Valid() bool {
 	}
 }
 
-// Defines values for UserTipsEmail.
-const (
-	UserTipsEmailNewInactiveUser     UserTipsEmail = "new-inactive-user"
-	UserTipsEmailTipEmailNewsletters UserTipsEmail = "tip-email-newsletters"
-)
-
-// Valid indicates whether the value is a known member of the UserTipsEmail enum.
-func (e UserTipsEmail) Valid() bool {
-	switch e {
-	case UserTipsEmailNewInactiveUser:
-		return true
-	case UserTipsEmailTipEmailNewsletters:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for View.
 const (
 	ViewAll    View = "all"
@@ -487,6 +469,9 @@ type EmailSubscription struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
+
+// EmailTemplateID is the ID of an email template.
+type EmailTemplateID = string
 
 // FavoriteArticleRequest contains parameters for favoriting an article.
 type FavoriteArticleRequest struct {
@@ -1306,9 +1291,6 @@ type UserSettings struct {
 	// UpdatesInterval is the interval on which to check for new updates.
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`
 }
-
-// UserTipsEmail is the id of the user tips email template.
-type UserTipsEmail string
 
 // View The state of objects to view.
 type View string

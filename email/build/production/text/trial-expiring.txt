@@ -1,0 +1,15 @@
+Hey {{{USER_NICKNAME}}},
+
+Just a reminder that your Foragd trial will end in 2 days.
+
+Purchase a subscription: https://foragd.app/checkout
+
+When the trial expires, you'll be redirected to the checkout page to purchase a subscription. There are monthly and
+yearly plans available for a competitive price.
+
+Got any questions? Just reply to this email.
+
+Thanks,
+
+Josh
+

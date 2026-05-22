@@ -120,9 +120,9 @@ components:
     JobType:
       description: is the type of job
       type: string
-      enum: ['get_new_feeds','update_feed','delete_expired_sessions','clear_deleted_feeds','user_tips_job','test']
+      enum: ['get_new_feeds','update_feed','delete_expired_sessions','clear_deleted_feeds','user_email_job','test']
       x-oapi-codegen-extra-tags:
-        validate: 'required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds'
+        validate: 'required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job'
     GetNewFeedsJob:
       description: represents the data needed for a get new feeds job.
       type: object
@@ -159,8 +159,8 @@ components:
       properties:
         checkpoint:
           $ref: '#/components/schemas/Checkpoint'
-    UserTipsJob:
-      description: represents the data needed for a user tips job.
+    UserEmailJob:
+      description: represents the data needed for a user email job.
       type: object
       required:
         - user_id
@@ -169,7 +169,7 @@ components:
         user_id:
           $ref: 'models.yaml#/components/schemas/UserID'
         email_id:
-          $ref: 'models.yaml#/components/schemas/UserTipsEmail'
+          $ref: 'models.yaml#/components/schemas/EmailTemplateID'
     TestJob:
       description: represents the data for a test job.
       type: object
@@ -182,4 +182,4 @@ components:
         - $ref: '#/components/schemas/UpdateFeedJob'
         - $ref: '#/components/schemas/DeleteExpiredSessionsJob'
         - $ref: '#/components/schemas/ClearDeletedFeedsJob'
-        - $ref: '#/components/schemas/UserTipsJob'
+        - $ref: '#/components/schemas/UserEmailJob'

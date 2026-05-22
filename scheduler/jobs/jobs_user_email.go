@@ -17,34 +17,33 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
-var UserTipsJobTriggerTimes = map[models.UserTipsEmail]time.Duration{
-	models.UserTipsEmailTipEmailNewsletters: 24 * time.Hour,
-	models.UserTipsEmailNewInactiveUser:     5 * 24 * time.Hour,
-}
-
-// NewUserTipsJob create a one-shot job to email the user an app tip after a delay as part of onboarding/retention.
-func NewUserTipsJob(userID models.UserID, tip models.UserTipsEmail) (*SerializedJob, error) {
+// NewUserEmailJob create a one-shot job to email the user an app tip after a delay as part of onboarding/retention.
+func NewUserEmailJob(
+	userID models.UserID,
+	emailTemplateID models.EmailTemplateID,
+	delay time.Duration,
+) (*SerializedJob, error) {
 	// Create the update feed job.
 	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
-		JobDescription: new("Send user tip email: " + userID + ": " + string(tip) + ")"),
-		JobKey:         quartz.NewJobKeyWithGroup(string(tip), string(JobTypeUserTipsJob)).String(),
-		JobType:        JobTypeUserTipsJob,
+		JobDescription: new("Send user tip email: " + userID + ": " + string(emailTemplateID) + ")"),
+		JobKey:         quartz.NewJobKeyWithGroup(string(emailTemplateID), string(JobTypeUserEmailJob)).String(),
+		JobType:        JobTypeUserEmailJob,
 		JobNextRun:     models.UnixEpoch,
 		JobTriggerType: TriggerTypeOneshot,
 	}
-	if err := job.JobData.FromUserTipsJob(UserTipsJob{UserID: userID, EmailId: tip}); err != nil {
+	if err := job.JobData.FromUserEmailJob(UserEmailJob{UserID: userID, EmailId: emailTemplateID}); err != nil {
 		return nil, fmt.Errorf("create job data: %w", err)
 	}
-	if err := job.JobTrigger.FromOneShotTrigger(OneShotTrigger{Delay: UserTipsJobTriggerTimes[tip]}); err != nil {
+	if err := job.JobTrigger.FromOneShotTrigger(OneShotTrigger{Delay: delay}); err != nil {
 		return nil, fmt.Errorf("create trigger: %w", err)
 	}
 
 	return job, nil
 }
 
-func ExecuteUserTips(ctx context.Context, job *SerializedJob) error {
-	data, err := job.JobData.AsUserTipsJob()
+func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
+	data, err := job.JobData.AsUserEmailJob()
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}

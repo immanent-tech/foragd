@@ -9,6 +9,8 @@ Login: https://foragd.app/login
 
 Thanks,
 
-Foragd Team
+Josh
+
+---
 
 Unsubscribe from these emails: {{{USER_UNSUBSCRIBE_LINK}}}

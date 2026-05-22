@@ -54,6 +54,11 @@ var templates = map[string][]resend.TemplateOption{
 		resend.WithSubject[*resend.Template]("Thank you for buying a Foragd subscription"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 	},
+	"trial-expiring": []resend.TemplateOption{
+		resend.WithTemplateName("Trial Expiring"),
+		resend.WithSubject[*resend.Template]("Your Foragd trial is expiring soon"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
+	},
 }
 
 // Build creates the email templates

@@ -1685,9 +1685,8 @@ components:
           $ref: '#/components/schemas/FileDetails'
         content:
           x-go-type: '[]byte'
-    UserTipsEmail:
-      description: is the id of the user tips email template.
+    EmailTemplateID:
+      description: is the ID of an email template.
       type: string
-      enum: ['tip-email-newsletters','new-inactive-user']
       x-oapi-codegen-extra-tags:
-        validate: 'required,oneof=tip-email-newsletters new-inactive-user'
+        validate: 'required'

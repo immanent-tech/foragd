@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"slices"
 	"time"
 
 	"github.com/a-h/templ"
@@ -187,20 +186,30 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 				slog.Any("error", err),
 			)
 		} else {
-			for email := range slices.Values([]models.UserTipsEmail{models.UserTipsEmailNewInactiveUser, models.UserTipsEmailTipEmailNewsletters}) {
-				job, err := jobs.NewUserTipsJob(user.GetID(), email)
+			var scheduledEmails = map[models.EmailTemplateID]time.Duration{
+				"tip-email-newsletters": 24 * time.Hour,
+				"new-inactive-user":     5 * 24 * time.Hour,
+				"trial-expiring":        models.DefaultTrialPeriod - 48*time.Hour,
+			}
+
+			for id, delay := range scheduledEmails {
+				job, err := jobs.NewUserEmailJob(user.GetID(), id, delay)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not create user tips job.",
-						slog.String("tip", string(email)),
+						slog.String("email", id),
 						slog.Any("error", err),
 					)
 				}
 				if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to schedule user tip job.",
-						slog.String("tip", string(email)),
+						slog.String("email", id),
 						slog.Any("error", err),
 					)
 				}
+				slogctx.FromCtx(req.Context()).Warn("Scheduled user email.",
+					slog.String("email", id),
+					slog.Time("scheduled_at", time.Now().UTC().Add(delay)),
+				)
 			}
 		}
 	default: // Existing user.

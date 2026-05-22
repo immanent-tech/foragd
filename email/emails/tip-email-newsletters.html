@@ -6,19 +6,23 @@ preheader: Subscribe to email newsletters with Foragd
   <x-container container-class="bg-base-200 rounded-lg">
     <x-title-left-small>
       <fill:title>
-        <h1 class="m-0 mb-6 text-2xl/8 font-semibold font-display"> Hey
-        {{{USER_NICKNAME}}}. </h1>
+        <h1 class="m-0 mb-6 text-2xl/8 font-semibold font-display">Tip:
+        Subscribe to Email Newsletters </h1>
       </fill:title>
     </x-title-left-small>
     <x-paragraph>
       <fill:text>
-        <p class="m-0 mt-4 mb-6">
+        <p>Hey {{{USER_NICKNAME}}},</p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>
           Did you know you can get your email newsletters delivered to Foragd?
           This has many advantages:
         </p>
       </fill:text>
     </x-paragraph>
-
     <div class="p-4">
       <x-three-column-grid
         container-class="bg-base-300 rounded-lg"
@@ -77,7 +81,6 @@ preheader: Subscribe to email newsletters with Foragd
         </fill:col-3>
       </x-three-column-grid>
     </div>
-
     <x-title-left-small>
       <fill:title>
         <h2 class="m-0 mt-12 mb-6 text-2xl/8 font-semibold font-display">Get
@@ -111,13 +114,21 @@ preheader: Subscribe to email newsletters with Foragd
         </fill:text>
       </x-paragraph>
     </div>
-
     <x-paragraph>
       <fill:text>
-        <p class="mso-break-all m-0 mt-12">
+        <p>
           Check out the
           <a class="hover:text-accent" href="/help">help documentation</a>
           for more information. Got any questions? Just reply to this email.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          Thanks,
+          <br />
+          <span class="font-semibold"> Josh </span>
         </p>
       </fill:text>
     </x-paragraph>

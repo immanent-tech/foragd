@@ -21,24 +21,13 @@ preheader: Welcome to Foragd
       </fill:text>
     </x-paragraph>
     <div class="p-12">
-    <x-grid-3-to-1-split container-class="bg-base-300 rounded-lg flex items-center">
-      <fill:col-1>
-        <h2 class="text-center font-display text-xl/8 font-semibold">
-          Go to your home page:
-        </p>
-      </fill:col-1>
-      <fill:col-2>
-        <div class="mb-4">
-        <x-button
-          align="center"
-          href="/home"
-          class="bg-primary text-primary-content hover:bg-accent"
-        >
-          Home
-        </x-button>
-        </div>
-      </fill:col-2>
-    </x-grid-3-to-1-split>
+      <x-button
+        align="center"
+        href="/home"
+        class="bg-primary text-primary-content hover:bg-accent"
+      >
+        Go to your home page
+      </x-button>
     </div>
     <x-paragraph>
       <fill:text>
@@ -54,48 +43,60 @@ preheader: Welcome to Foragd
       </fill:title>
     </x-title-left-small>
     <div class="p-4">
-    <x-paragraph container-class="bg-base-300 rounded-lg">
-      <fill:text>
-        <div class="my-8">
-        <p class="my-2">
-          1️⃣
-          <a class="font-semibold hover:text-accent" href="/subscription/add"
-            >Add</a
-          >
-          a feed from a URL or
-          <a class="font-semibold hover:text-accent" href="/user/import"
-            >Import</a
-          >
-          your feeds from another service.
-        </p>
-        <p class="my-2">
-          2️⃣
-          <a
-            class="font-semibold hover:text-accent"
-            href="/subscription/add/group"
-            >Create a Group Subscription</a
-          >
-          to keep track of all articles from a bunch of similar sources.
-        </p>
-        <p class="my-2">
-          3️⃣ Search and filter to find what you need, then save the results as a
-          <a
-            class="font-semibold hover:text-accent"
-            href="/subscription/add/search"
-            >Search Subscription</a
-          >
-          to keep up to date as new articles come in.
-        </p>
-        </div>
-      </fill:text>
-    </x-paragraph>
+      <x-paragraph container-class="bg-base-300 rounded-lg">
+        <fill:text>
+          <div class="my-8">
+            <p class="my-2">
+              1️⃣
+              <a
+                class="font-semibold hover:text-accent"
+                href="/subscription/add"
+                >Add</a
+              >
+              a feed from a URL or
+              <a class="font-semibold hover:text-accent" href="/user/import"
+                >Import</a
+              >
+              your feeds from another service.
+            </p>
+            <p class="my-2">
+              2️⃣
+              <a
+                class="font-semibold hover:text-accent"
+                href="/subscription/add/group"
+                >Create a Group Subscription</a
+              >
+              to keep track of all articles from a bunch of similar sources.
+            </p>
+            <p class="my-2">
+              3️⃣ Search and filter to find what you need, then save the results
+              as a
+              <a
+                class="font-semibold hover:text-accent"
+                href="/subscription/add/search"
+                >Search Subscription</a
+              >
+              to keep up to date as new articles come in.
+            </p>
+          </div>
+        </fill:text>
+      </x-paragraph>
     </div>
     <x-paragraph>
       <fill:text>
-        <p class="mso-break-all mb-4 mt-12">
+        <p class="mso-break-all mt-12 mb-4">
           Check out the
           <a class="hover:text-accent" href="/help">help documentation</a>
           for more information. Got any questions? Just reply to this email.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p class="m-0 mb-6 text-base/6">
+          Thanks,
+          <br />
+          <span class="font-semibold"> Josh </span>
         </p>
       </fill:text>
     </x-paragraph>

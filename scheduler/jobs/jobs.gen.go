@@ -19,7 +19,7 @@ const (
 	JobTypeGetNewFeeds           JobType = "get_new_feeds"
 	JobTypeTest                  JobType = "test"
 	JobTypeUpdateFeed            JobType = "update_feed"
-	JobTypeUserTipsJob           JobType = "user_tips_job"
+	JobTypeUserEmailJob          JobType = "user_email_job"
 )
 
 // Valid indicates whether the value is a known member of the JobType enum.
@@ -35,7 +35,7 @@ func (e JobType) Valid() bool {
 		return true
 	case JobTypeUpdateFeed:
 		return true
-	case JobTypeUserTipsJob:
+	case JobTypeUserEmailJob:
 		return true
 	default:
 		return false
@@ -134,7 +134,7 @@ type SerializedJob struct {
 	JobTriggerType TriggerType `json:"job_trigger_type" validate:"oneof=poll oneshot"`
 
 	// JobType is the type of job
-	JobType JobType `json:"job_type" validate:"required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds"`
+	JobType JobType `json:"job_type" validate:"required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt externalRef0.UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -160,10 +160,10 @@ type UpdateFeedJob struct {
 	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
-// UserTipsJob represents the data needed for a user tips job.
-type UserTipsJob struct {
-	// EmailId is the id of the user tips email template.
-	EmailId externalRef0.UserTipsEmail `json:"email_id" validate:"required,oneof=tip-email-newsletters new-inactive-user"`
+// UserEmailJob represents the data needed for a user email job.
+type UserEmailJob struct {
+	// EmailId is the ID of an email template.
+	EmailId externalRef0.EmailTemplateID `json:"email_id" validate:"required"`
 
 	// UserID is the unique ID of a user.
 	UserID externalRef0.UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
@@ -299,22 +299,22 @@ func (t *JobData) MergeClearDeletedFeedsJob(v ClearDeletedFeedsJob) error {
 	return err
 }
 
-// AsUserTipsJob returns the union data inside the JobData as a UserTipsJob
-func (t JobData) AsUserTipsJob() (UserTipsJob, error) {
-	var body UserTipsJob
+// AsUserEmailJob returns the union data inside the JobData as a UserEmailJob
+func (t JobData) AsUserEmailJob() (UserEmailJob, error) {
+	var body UserEmailJob
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromUserTipsJob overwrites any union data inside the JobData as the provided UserTipsJob
-func (t *JobData) FromUserTipsJob(v UserTipsJob) error {
+// FromUserEmailJob overwrites any union data inside the JobData as the provided UserEmailJob
+func (t *JobData) FromUserEmailJob(v UserEmailJob) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeUserTipsJob performs a merge with any union data inside the JobData, using the provided UserTipsJob
-func (t *JobData) MergeUserTipsJob(v UserTipsJob) error {
+// MergeUserEmailJob performs a merge with any union data inside the JobData, using the provided UserEmailJob
+func (t *JobData) MergeUserEmailJob(v UserEmailJob) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
