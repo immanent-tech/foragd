@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.144.0](https://github.com/immanent-tech/foragd/compare/v0.143.1...v0.144.0) (2026-05-22)
+
+
+### Features
+
+* **favorites:** ✨ display latest articles on subscription cards on favorites page ([fed62a8](https://github.com/immanent-tech/foragd/commit/fed62a86f0ca3fe2fe42ca6613b04b3f82e15083))
+
+
+### Bug Fixes
+
+* **config:** 🔧 mispelt variable ([08dd86b](https://github.com/immanent-tech/foragd/commit/08dd86bc6875ed85dde03ce7c37f78de8795a901))
+
 ## [0.143.1](https://github.com/immanent-tech/foragd/compare/v0.143.0...v0.143.1) (2026-05-21)
 
 
