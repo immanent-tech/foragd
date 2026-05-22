@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.143.1](https://github.com/immanent-tech/foragd/compare/v0.143.0...v0.143.1) (2026-05-21)
+
+
+### Bug Fixes
+
+* 🔧 remove mentions of beta (now that app is out of beta) ([c2738f2](https://github.com/immanent-tech/foragd/commit/c2738f2343615d8180b661987bfec97897cd586f))
+* **email:** 🎨 fix spacing in 3-to-1 grid component ([a02a085](https://github.com/immanent-tech/foragd/commit/a02a08547be7380a2e65b2f30cf8fe0542898436))
+* **templates:** 🎨 adjust top margin on internal error pages ([4cf1324](https://github.com/immanent-tech/foragd/commit/4cf1324c584cb1c8d1a42bc9ceccdddb3014117c))
+
 ## [0.143.0](https://github.com/immanent-tech/foragd/compare/v0.142.5...v0.143.0) (2026-05-21)
 
 
