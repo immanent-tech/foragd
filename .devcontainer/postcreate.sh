@@ -21,12 +21,6 @@ export PATH="$HOME/go/bin:/go/bin:/usr/local/go/bin:$PATH" && \
     golangci-lint custom && \
     mv /tmp/golangci-lint-v2 $(go env GOPATH)/bin/
 
-# Install Stripe CLI.
-cd /tmp \
-    && curl -L -O https://github.com/stripe/stripe-cli/releases/download/v1.33.2/stripe_1.33.2_linux_x86_64.tar.gz \
-    && tar xvf stripe* \
-    && sudo mv stripe /usr/local/bin
-
 # Install gcloud cli.
 cd $HOME && \
     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz && \
