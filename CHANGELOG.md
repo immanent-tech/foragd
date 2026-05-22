@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.144.1](https://github.com/immanent-tech/foragd/compare/v0.144.0...v0.144.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **policies:** 🔧 update table of contents ([8b725bc](https://github.com/immanent-tech/foragd/commit/8b725bc183a14da7777801e1430dbd2227e1ccb2))
+* **templates/checkout:** 🔧 check both trial and active subscription status ([73984f2](https://github.com/immanent-tech/foragd/commit/73984f26834b062b075b6b2f4f57cd5a79611ea1))
+
 ## [0.144.0](https://github.com/immanent-tech/foragd/compare/v0.143.1...v0.144.0) (2026-05-22)
 
 
