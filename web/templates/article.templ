@@ -320,7 +320,7 @@ templ ArticleCard(idx int, article *models.Article) {
 
 // ArticleContent renders the complete content of an article.
 templ ArticleContent(article *models.Article) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
@@ -779,7 +779,7 @@ templ shareArticleButton(a *models.Article) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Watch for updates.

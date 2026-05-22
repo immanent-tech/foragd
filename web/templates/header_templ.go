@@ -13,12 +13,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-func header(user *models.User) templ.Component {
+func HeaderExternal() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -39,117 +38,15 @@ func header(user *models.User) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"absolute inset-x-0 top-0 z-50\"><nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:hidden\"><button aria-label=\"Open main menu\" type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open menu</span> <svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 6l16 0\"></path><path d=\"M4 12l16 0\"></path><path d=\"M4 18l16 0\"></path></svg></button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Blog</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-300\"><div class=\"flex items-center justify-between\"><a href=\"/\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		switch user {
-		case nil:
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:flex-1\"><a href=\"/\" class=\"link link-hover\"><div class=\"flex sm:flex-row sm:w-36 shrink-0 items-center justify-center p-2\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = partials.Logo(element.WithClasses("size-10")).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span class=\"hidden sm:flex text-xs sm:text-lg font-serif font-bold text-primary\">foragd</span></div></a></div><div class=\"flex lg:hidden\"><button type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open main menu</span> <svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 6l16 0\"></path><path d=\"M4 12l16 0\"></path><path d=\"M4 18l16 0\"></path></svg></button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-neutral/25\"><div class=\"flex items-center justify-between\"><a href=\"/\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = partials.Logo(element.WithClasses("size-10")).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></a> <button type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		default:
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 84, Col: 36}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"flex shrink link link-hover\"><div class=\"flex sm:flex-row sm:w-36 shrink-0 items-center justify-center p-2\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = partials.Logo(element.WithClasses("size-10")).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"hidden sm:flex font-serif text-xs sm:text-lg font-bold text-primary\">foragd</span></div></a><div class=\"flex flex-1 justify-center\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = Search().Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\"><button class=\"btn-square btn-ghost\"><span class=\"sr-only\">Open settings menu</span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = UserAvatar(user, templ.Attributes{
-				"loading": "eager",
-			}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover><ul class=\"menu\"><li><a hx-get=\"/user/settings\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 113, Col: 41}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"on click remove @open from #header-menu\" role=\"menuitem\" tabindex=\"-1\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-settings\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.647 4.081a.724 .724 0 0 0 1.08 .448c2.439 -1.485 5.23 1.305 3.745 3.744a.724 .724 0 0 0 .447 1.08c2.775 .673 2.775 4.62 0 5.294a.724 .724 0 0 0 -.448 1.08c1.485 2.439 -1.305 5.23 -3.744 3.745a.724 .724 0 0 0 -1.08 .447c-.673 2.775 -4.62 2.775 -5.294 0a.724 .724 0 0 0 -1.08 -.448c-2.439 1.485 -5.23 -1.305 -3.745 -3.744a.724 .724 0 0 0 -.447 -1.08c-2.775 -.673 -2.775 -4.62 0 -5.294a.724 .724 0 0 0 .448 -1.08c-1.485 -2.439 1.305 -5.23 3.744 -3.745a.722 .722 0 0 0 1.08 -.447c.673 -2.775 4.62 -2.775 5.294 0zm-2.647 4.919a3 3 0 1 0 0 6a3 3 0 0 0 0 -6\"></path></svg> Settings</div></a></li><li><a hx-get=\"/help\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 129, Col: 41}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-swap=\"innerHTML transition:true\" hx-replace-url=\"true\" role=\"menuitem\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-lifebuoy\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.757 16.172l3.571 3.571a10.004 10.004 0 0 1 -12.656 0l3.57 -3.571a5 5 0 0 0 2.758 .828c1.02 0 1.967 -.305 2.757 -.828m-10.5 -10.5l3.571 3.57a5 5 0 0 0 -.828 2.758c0 1.02 .305 1.967 .828 2.757l-3.57 3.572a10 10 0 0 1 -2.258 -6.329l.005 -.324a10 10 0 0 1 2.252 -6.005m17.743 6.329c0 2.343 -.82 4.57 -2.257 6.328l-3.571 -3.57a5 5 0 0 0 .828 -2.758c0 -1.02 -.305 -1.967 -.828 -2.757l3.571 -3.57a10 10 0 0 1 2.257 6.327m-5 -8.66q .707 .41 1.33 .918l-3.573 3.57a5 5 0 0 0 -2.757 -.828c-1.02 0 -1.967 .305 -2.757 .828l-3.573 -3.57a10 10 0 0 1 11.33 -.918\"></path></svg> Help/Documentation</div></a></li><li><a hx-get=\"/issue\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 147, Col: 41}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-replace-url=\"true\" role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-flag-2\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z\"></path></svg> Report an issue</div></a></li><script type=\"text/hyperscript\">\n  \t\t\t\t\t\t\t\t\t\tbehavior ClearStorageOnLogout\n  \t\t\t\t\t\t\t\t\t\t  on click\n  \t\t\t\t\t\t\t\t\t\t    js localStorage.clear() end\n  \t\t\t\t\t\t\t\t\t\t    js sessionStorage.clear() end\n  \t\t\t\t\t\t\t\t\t\t    then go to url '/logout'\n  \t\t\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\t\t</script><li><a role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu then install ClearStorageOnLogout\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-logout\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2\"></path><path d=\"M9 12h12l-3 -3\"></path><path d=\"M18 15l3 -3\"></path></svg> Log out</div></a></li></ul></el-menu></el-dropdown></div></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
+		templ_7745c5c3_Err = partials.Logo(element.WithClasses("size-10")).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x text-primary\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -157,7 +54,7 @@ func header(user *models.User) templ.Component {
 	})
 }
 
-func HeaderExternal() templ.Component {
+func HeaderInternal(props *InternalLayoutProps) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -173,12 +70,25 @@ func HeaderExternal() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<header aria-label=\"Header\" class=\"absolute inset-x-0 top-0 z-50\"><nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:hidden\"><button aria-label=\"Open main menu\" type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open menu</span> <svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 6l16 0\"></path><path d=\"M4 12l16 0\"></path><path d=\"M4 18l16 0\"></path></svg></button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-300\"><div class=\"flex items-center justify-between\"><a href=\"/\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 79, Col: 34}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"flex shrink link link-hover\"><div class=\"flex sm:flex-row sm:w-36 shrink-0 items-center justify-center p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -186,7 +96,64 @@ func HeaderExternal() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x text-primary\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"hidden sm:flex font-serif text-xs sm:text-lg font-bold text-primary\">foragd</span></div></a><div class=\"flex flex-1 justify-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Search().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\"><button class=\"btn-square btn-ghost\"><span class=\"sr-only\">Open settings menu</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = UserAvatar(props.User, templ.Attributes{
+			"loading": "eager",
+		}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover><ul class=\"menu\"><li><a hx-get=\"/user/settings\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 108, Col: 39}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" _=\"on click remove @open from #header-menu\" role=\"menuitem\" tabindex=\"-1\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-settings\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.647 4.081a.724 .724 0 0 0 1.08 .448c2.439 -1.485 5.23 1.305 3.745 3.744a.724 .724 0 0 0 .447 1.08c2.775 .673 2.775 4.62 0 5.294a.724 .724 0 0 0 -.448 1.08c1.485 2.439 -1.305 5.23 -3.744 3.745a.724 .724 0 0 0 -1.08 .447c-.673 2.775 -4.62 2.775 -5.294 0a.724 .724 0 0 0 -1.08 -.448c-2.439 1.485 -5.23 -1.305 -3.745 -3.744a.724 .724 0 0 0 -.447 -1.08c-2.775 -.673 -2.775 -4.62 0 -5.294a.724 .724 0 0 0 .448 -1.08c-1.485 -2.439 1.305 -5.23 3.744 -3.745a.722 .722 0 0 0 1.08 -.447c.673 -2.775 4.62 -2.775 5.294 0zm-2.647 4.919a3 3 0 1 0 0 6a3 3 0 0 0 0 -6\"></path></svg> Settings</div></a></li><li><a hx-get=\"/docs\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 124, Col: 39}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"innerHTML transition:true\" hx-replace-url=\"true\" role=\"menuitem\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-lifebuoy\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.757 16.172l3.571 3.571a10.004 10.004 0 0 1 -12.656 0l3.57 -3.571a5 5 0 0 0 2.758 .828c1.02 0 1.967 -.305 2.757 -.828m-10.5 -10.5l3.571 3.57a5 5 0 0 0 -.828 2.758c0 1.02 .305 1.967 .828 2.757l-3.57 3.572a10 10 0 0 1 -2.258 -6.329l.005 -.324a10 10 0 0 1 2.252 -6.005m17.743 6.329c0 2.343 -.82 4.57 -2.257 6.328l-3.571 -3.57a5 5 0 0 0 .828 -2.758c0 -1.02 -.305 -1.967 -.828 -2.757l3.571 -3.57a10 10 0 0 1 2.257 6.327m-5 -8.66q .707 .41 1.33 .918l-3.573 3.57a5 5 0 0 0 -2.757 -.828c-1.02 0 -1.967 .305 -2.757 .828l-3.573 -3.57a10 10 0 0 1 11.33 -.918\"></path></svg> Help/Documentation</div></a></li><li><a hx-get=\"/issue\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 142, Col: 39}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-replace-url=\"true\" role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-flag-2\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z\"></path></svg> Report an issue</div></a></li><script type=\"text/hyperscript\">\n  \t\t\t\t\t\t\t\t\t\tbehavior ClearStorageOnLogout\n  \t\t\t\t\t\t\t\t\t\t  on click\n  \t\t\t\t\t\t\t\t\t\t    js localStorage.clear() end\n  \t\t\t\t\t\t\t\t\t\t    js sessionStorage.clear() end\n  \t\t\t\t\t\t\t\t\t\t    then go to url '/logout'\n  \t\t\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\t\t</script><li><a role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu then install ClearStorageOnLogout\"><div class=\"flex flex-1 items-center gap-x-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-logout\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2\"></path><path d=\"M9 12h12l-3 -3\"></path><path d=\"M18 15l3 -3\"></path></svg> Log out</div></a></li></ul></el-menu></el-dropdown></div></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

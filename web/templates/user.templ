@@ -141,7 +141,7 @@ templ UserAvatar(user *models.User, attributes templ.Attributes) {
 }
 
 templ Unsubscribe(token string) {
-	@content() {
+	@LayoutExternal() {
 		@container() {
 			<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Unsubscribe</h1>
 			<p>
@@ -165,7 +165,7 @@ templ Unsubscribe(token string) {
 }
 
 templ UnsubscribeResult(msg *models.UserMessage) {
-	@content() {
+	@LayoutExternal() {
 		@container() {
 			@templ.Fragment(ContentFragment) {
 				<span class="font-semibold tracking-tight text-pretty">{ msg.Summary }</span>

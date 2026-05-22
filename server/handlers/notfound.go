@@ -8,23 +8,38 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type NotFoundPage struct{}
+type NotFoundPage struct {
+	template templ.Component
+}
 
 // HandleNotFound handles showing a page for a 404 response.
 func HandleNotFound() http.HandlerFunc {
-	return RenderInternalPage(&NotFoundPage{})
+	return func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		var layout templ.Component
+		if user == nil {
+			layout = templates.LayoutExternal(templates.NotFound())
+		} else {
+			layout = templates.LayoutInternal(
+				&templates.InternalLayoutProps{User: user},
+				templates.NotFound(),
+			)
+		}
+		RenderInternalPage(&NotFoundPage{template: layout}).ServeHTTP(res, req)
+	}
 }
 
 func (p *NotFoundPage) FullResponse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(templates.NotFound())).ServeHTTP(w, r)
+	templ.Handler(templates.CreatePage(p.template)).ServeHTTP(w, r)
 }
 
 func (p *NotFoundPage) PartialResponse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(templates.NotFound()), templ.WithFragments(templates.ErrorFragment)).
+	templ.Handler(templates.CreatePage(p.template), templ.WithFragments(templates.ErrorFragment)).
 		ServeHTTP(w, r)
 }

@@ -8,7 +8,7 @@ import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 
 // ReportIssue renders a form for reporting issues with the app.
 templ ReportIssue(details *models.ReportIssueRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<section class="mx-auto sm:max-w-3xl">

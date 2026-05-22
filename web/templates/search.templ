@@ -346,7 +346,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResults(results *models.SearchResults) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				if len(results.Articles) == 0 {
@@ -777,7 +777,7 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Show a page header.

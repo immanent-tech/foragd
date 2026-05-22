@@ -3,11 +3,14 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/web/templates/partials"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
 templ ExportSubscriptions() {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<h1 class="sr-only">Export Subscriptions</h1>

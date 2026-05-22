@@ -344,7 +344,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Watch for updates.
@@ -642,7 +642,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
@@ -753,7 +753,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 
 // EditFeedSubscription is a page for editing an existing feed subscription.
 templ EditFeedSubscription(request *models.FeedSubscriptionRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				@manageFeedSubscription("edit", request)
@@ -1111,7 +1111,7 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 
 // manageSearchSubscription generates the appropriate form layout for either adding or editing a search subscription.
 templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
@@ -1403,7 +1403,7 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 
 // manageGroupSubscription generates the appropriate form layout for either adding or editing a group subscription.
 templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
@@ -1606,7 +1606,7 @@ templ AddSubscriptionToGroup(id, name string) {
 }
 
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">

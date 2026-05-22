@@ -143,6 +143,8 @@ func Start(logger *slog.Logger) error {
 		r.Get("/compare/{service}", handlers.HandleComparison())
 		// Posts RSS feed.
 		r.Get("/feed", handlers.HandlePostsFeed())
+		// Help.
+		r.Get("/help", handlers.DocumentationHandler())
 		// Sign-up/Login routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
@@ -170,7 +172,6 @@ func Start(logger *slog.Logger) error {
 				// r.Get("/cancel", handlers.HandleLanding())
 			})
 		})
-
 		// User routes that don't required authentication.
 		r.Get("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
 		r.Post("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
@@ -185,8 +186,6 @@ func Start(logger *slog.Logger) error {
 			middlewares.RequireValidUser,
 			middlewares.PushCriticalAssets,
 		)
-		// Help documentation.
-		r.Get("/help", handlers.DocumentationHandler())
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
 		r.Get(handlers.RouteHome, handlers.HandleHome())
@@ -267,6 +266,7 @@ func Start(logger *slog.Logger) error {
 		// General.
 		r.Get("/issue", handlers.HandleReportIssue())
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())
+		r.Get("/docs", handlers.DocumentationHandler())
 		// Favorite specific.
 		r.Route("/list/favorites", func(r chi.Router) {
 			r.Get("/", handlers.HandleListFavorites())

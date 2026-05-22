@@ -190,7 +190,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<title>{ p.Title }</title>
 		</head>
 		<body
-			class="h-full bg-base-100"
+			class="flex h-full flex-col bg-base-100"
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end"
 		>
 			// log 'restoring scroll to ' + savedY

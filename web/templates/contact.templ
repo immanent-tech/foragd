@@ -7,7 +7,7 @@ import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 import "os"
 
 templ Contact() {
-	@content() {
+	@LayoutExternal() {
 		@container() {
 			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 			<section id="contact" class="mx-auto sm:max-w-4xl">

@@ -14,7 +14,7 @@ import (
 )
 
 templ UserSettings() {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<script type="module">

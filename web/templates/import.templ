@@ -13,7 +13,7 @@ import (
 // ImportSubscriptions renders a form for the user to select or drag and drop an OPML file to import their
 // subscriptions.
 templ ImportSubscriptions() {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Import Subscriptions</h1>

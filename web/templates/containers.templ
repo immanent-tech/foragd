@@ -3,52 +3,7 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-)
-
-// Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
-// (i.e., privacy policy, terms of service, etc.)
-templ Document(data []byte) {
-	@content() {
-		@container() {
-			<article class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
-				@templ.Raw(string(data))
-			</article>
-			@partials.ButtonBackToTop()
-		}
-	}
-}
-
-// content renders children wrapped with appropriate header/footer navigation.
-templ content(options ...element.PropertiesOption) {
-	{{
-		props := element.NewProperties(options...)
-		user := models.UserFromCtx(ctx)
-	}}
-	// Header.
-	@header(user)
-	if user != nil {
-		// Navigation sidebar (on large displays) for logged in user.
-		@SideBar(nil)
-	}
-	<main
-		id={ ContentID.String() }
-		class={ "mb-24 scroll-mt-16 pt-16 min-h-svh-safe bg-base-100", templ.KV("lg:pl-36",user!=nil),  props.Classes() }
-		{ props.Attributes()... }
-	>
-		{ children... }
-	</main>
-	if user != nil {
-		// Bottom navigation dock (on small displays) for logged in user.
-		@Dock(nil)
-	} else {
-		// Footer for non logged in user (external) pages.
-		@footer()
-	}
-}
+import "github.com/immanent-tech/foragd/web/templates/element"
 
 // container constrained to breakpoint with padded content.
 templ container(options ...element.PropertiesOption) {

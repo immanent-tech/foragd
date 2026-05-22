@@ -145,9 +145,8 @@ var LandingPageFAQ = []partials.FAQEntry{
 
 // Landing is the landing page layout.
 templ Landing() {
-	<div class="bg-base-100">
-		@HeaderExternal()
-		<main class="isolate bg-base-100">
+	@LayoutExternal() {
+		<div class="isolate">
 			<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
 				<div class="soft-gradient-top"></div>
 			</div>
@@ -457,10 +456,8 @@ templ Landing() {
 			<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
 				<div class="soft-gradient-bottom"></div>
 			</div>
-		</main>
-		// Footer.
-	</div>
-	@footer()
+		</div>
+	}
 }
 
 templ LandingHeaderSlot() {

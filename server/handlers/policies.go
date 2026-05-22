@@ -105,7 +105,9 @@ func PolicyDocsHandler() http.HandlerFunc {
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		template := templates.CreatePage(
-			templates.Document(policyBuf.Bytes()),
+			templates.LayoutExternal(
+				templates.Document(policyBuf.Bytes()),
+			),
 			templates.WithPageTitle(frontmatter.Title),
 			templates.WithPageDescription(frontmatter.Description),
 			templates.WithOpenGraphMetadata(opengraph.New(

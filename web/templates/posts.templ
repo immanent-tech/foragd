@@ -15,7 +15,7 @@ import (
 )
 
 templ PostsIndex(posts []*models.MarkdownFile) {
-	@content() {
+	@LayoutExternal() {
 		@container() {
 			<div class="mx-auto lg:mx-0">
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
@@ -107,7 +107,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 //
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
 templ Post(post *models.MarkdownFile) {
-	@content() {
+	@LayoutExternal() {
 		@narrowContainer() {
 			<div class="breadcrumbs text-sm">
 				<ul>

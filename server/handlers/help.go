@@ -66,14 +66,20 @@ func DocumentationHandler() http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		page := &Help{
-			template: templates.Document(mdHTML),
-		}
 
 		if user := models.UserFromCtx(req.Context()); user != nil {
-			RenderInternalPage(page).ServeHTTP(res, req)
-			return
+			RenderInternalPage(&Help{
+				template: templates.LayoutInternal(
+					&templates.InternalLayoutProps{User: user},
+					templates.Document(mdHTML),
+				),
+			}).ServeHTTP(res, req.WithContext(req.Context()))
+		} else {
+			RenderExternalPage(&Help{
+				template: templates.LayoutExternal(
+					templates.Document(mdHTML),
+				),
+			}).ServeHTTP(res, req.WithContext(req.Context()))
 		}
-		RenderExternalPage(page).ServeHTTP(res, req)
 	}
 }

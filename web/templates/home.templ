@@ -22,7 +22,7 @@ type HomeData struct {
 
 // UserHome is the default user home page.
 templ UserHome(data *HomeData) {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<main class="pt-8 pb-32">
@@ -147,7 +147,7 @@ templ UserHome(data *HomeData) {
 
 // NewUserHome is a home page displayed for new users, with some instructions and actions to help them set up the app.
 templ NewUserHome() {
-	@content() {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
@@ -308,7 +308,7 @@ templ NewUserHome() {
 					</h2>
 					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 					<ul class="list-inside list-disc">
-						<li><a class="link" href="/help">Documentation Home</a></li>
+						<li><a class="link" href="/docs">Documentation Home</a></li>
 					</ul>
 				</div>
 			}
