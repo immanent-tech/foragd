@@ -19,7 +19,7 @@ Effective date: November 1st, 2025
 
 - [Foragd Privacy Policy](#foragd-privacy-policy)
   - [Table of Contents](#table-of-contents)
-  - [What is Personal Information and why do we collect it?](#what-is-personal-information-and-why-do-we-collect-it)
+  - [What is Personal Information, and why do we collect it?](#what-is-personal-information-and-why-do-we-collect-it)
   - [Sensitive Information](#sensitive-information)
   - [Third Parties](#third-parties)
   - [Disclosure of Personal Information](#disclosure-of-personal-information)
@@ -36,8 +36,9 @@ Effective date: November 1st, 2025
   - [International data transfers](#international-data-transfers)
   - [Security and Retention](#security-and-retention)
   - [Security](#security)
+  - [List of third-party Tools, Services, and Software](#list-of-third-party-tools-services-and-software)
+  - [Open Source](#open-source)
   - [Changes to Our Privacy Statement](#changes-to-our-privacy-statement)
-
 
 ## What is Personal Information, and why do we collect it?
 
