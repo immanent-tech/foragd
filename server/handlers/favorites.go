@@ -106,10 +106,13 @@ func HandleListFavorites() http.HandlerFunc {
 			return
 		}
 
+		latestItems := service.GetLatestItems(req.Context(), models.ViewAll, subscriptions)
+
 		// Render appropriate content.
 		response := &models.ListFavoritesResponse{
-			Subscriptions: subscriptions,
-			Articles:      articles,
+			Subscriptions:  subscriptions,
+			Articles:       articles,
+			LatestArticles: latestItems,
 		}
 		page := &Favorites{
 			template: templates.ListFavorites(response),

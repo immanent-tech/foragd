@@ -750,12 +750,6 @@ type JobState struct {
 // LastFetched indicates when an object was last fetched.
 type LastFetched = time.Time
 
-// ListFavoritesResponse contains the data for displaying the favorites page.
-type ListFavoritesResponse struct {
-	Articles      Articles      `json:"articles,omitempty"`
-	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
-}
-
 // ListFilters contains filters for altering the display of objects.
 type ListFilters struct {
 	// Categories is a list of categories.

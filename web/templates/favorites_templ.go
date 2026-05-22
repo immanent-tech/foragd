@@ -15,6 +15,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
 )
 
 // ListFavorites renders subscription and article favorites in a grid layout.
@@ -102,7 +103,82 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 								}
 								ctx = templ.InitializeContext(ctx)
 								for idx, subscription := range response.Subscriptions {
-									templ_7745c5c3_Err = SubscriptionCard(idx, subscription).Render(ctx, templ_7745c5c3_Buffer)
+									templ_7745c5c3_Var6 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+										templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+										templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+										if !templ_7745c5c3_IsBuffer {
+											defer func() {
+												templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+												if templ_7745c5c3_Err == nil {
+													templ_7745c5c3_Err = templ_7745c5c3_BufErr
+												}
+											}()
+										}
+										ctx = templ.InitializeContext(ctx)
+										if response.LatestArticles != nil {
+											itemsData, ok := response.LatestArticles.Load(subscription.GetID())
+											if ok {
+												items, ok := itemsData.(models.Items)
+												if ok {
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"mt-auto h-full\"><ul role=\"list\" class=\"latest-items list-disc pl-5 marker:text-accent\">")
+													if templ_7745c5c3_Err != nil {
+														return templ_7745c5c3_Err
+													}
+													for item := range slices.Values(items) {
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<li hx-get=\"")
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														var templ_7745c5c3_Var7 string
+														templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
+														if templ_7745c5c3_Err != nil {
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 44, Col: 57}
+														}
+														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-target=\"")
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														var templ_7745c5c3_Var8 string
+														templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+														if templ_7745c5c3_Err != nil {
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 45, Col: 47}
+														}
+														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 link text-pretty link-hover\">")
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														var templ_7745c5c3_Var9 string
+														templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
+														if templ_7745c5c3_Err != nil {
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 51, Col: 34}
+														}
+														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</li>")
+														if templ_7745c5c3_Err != nil {
+															return templ_7745c5c3_Err
+														}
+													}
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</ul></div>")
+													if templ_7745c5c3_Err != nil {
+														return templ_7745c5c3_Err
+													}
+												}
+											}
+										}
+										return nil
+									})
+									templ_7745c5c3_Err = SubscriptionCard(idx, subscription).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
@@ -117,21 +193,21 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</section>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</section>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "  ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "  ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						if len(response.Articles) > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">Articles</h2></div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">Articles</h2></div>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Var6 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+							templ_7745c5c3_Var10 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 								if !templ_7745c5c3_IsBuffer {
@@ -151,7 +227,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -159,12 +235,12 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</section>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</section>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -173,7 +249,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " <div class=\"grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8\"><div class=\"text-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-heart-question mx-auto text-accent size-12\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.105 17.915l-2.105 2.085l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 0 1 8.524 5.127\"></path><path d=\"M19 22v.01\"></path><path d=\"M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483\"></path></svg><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">Nothing here</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Add a favorite subscription or article and it will show up here.</p></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " <div class=\"grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8\"><div class=\"text-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-heart-question mx-auto text-accent size-12\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14.105 17.915l-2.105 2.085l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 0 1 8.524 5.127\"></path><path d=\"M19 22v.01\"></path><path d=\"M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483\"></path></svg><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">Nothing here</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Add a favorite subscription or article and it will show up here.</p></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

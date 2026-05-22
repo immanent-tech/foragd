@@ -16,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -144,75 +143,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		request.Pagination = &next
 
-		var (
-			subscriptionsLatestItems sync.Map
-			wg                       sync.WaitGroup
-		)
-		wg.Go(func() {
-			// For feed/email subscriptions, get the latest 3 items from each.
-			emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail)
-			feedsLatestItems, err := service.GetSubscriptionLatestItems(
-				req.Context(),
-				3,
-				emailSubscriptions,
-				filters.GetView(),
-			)
-			// feedsLatestItems, err := getFeedSubscriptionLatestItems(
-			// 	req.Context(),
-			// 	subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail),
-			// 	filters,
-			// )
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve latest items for feed subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			for subscription := range slices.Values(emailSubscriptions) {
-				if items, found := feedsLatestItems[subscription.GetFeedID()]; found {
-					subscriptionsLatestItems.Store(subscription.GetID(), items)
-				}
-			}
-		})
-
-		wg.Go(func() {
-			// For group subscriptions, get the latest 3 items across each group's members.
-			groupsLatestItems, err := service.GetGroupSubscriptionLatestItems(
-				req.Context(),
-				3,
-				subscriptions.FilterByType(models.SubscriptionTypeGroup),
-				filters.GetView(),
-			)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve latest items for group subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			for key, value := range groupsLatestItems {
-				subscriptionsLatestItems.Store(key, value)
-			}
-		})
-
-		wg.Go(func() {
-			// For search subscription, run each search and get the top 3 results.
-			searchLatestItems, err := service.GetSearchSubscriptionLatestItems(
-				req.Context(),
-				3,
-				subscriptions.FilterByType(models.SubscriptionTypeSearch),
-			)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to retrieve top items for search subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			for key, value := range searchLatestItems {
-				subscriptionsLatestItems.Store(key, value)
-			}
-		})
-
-		wg.Wait()
+		latestItems := service.GetLatestItems(req.Context(), filters.GetView(), subscriptions)
 
 		// Choose rendering method based on method (get = page, post = partial).
-
 		switch ctx := service.ListFiltersToCtx(req.Context(), request.Filters); req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
@@ -221,7 +154,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 					Filters:        request.Filters,
 					Pagination:     *request.Pagination,
 					Subscriptions:  subscriptions,
-					LatestArticles: &subscriptionsLatestItems,
+					LatestArticles: latestItems,
 				}),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
@@ -231,7 +164,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 					Filters:        request.Filters,
 					Pagination:     *request.Pagination,
 					Subscriptions:  subscriptions,
-					LatestArticles: &subscriptionsLatestItems,
+					LatestArticles: latestItems,
 				}),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		}

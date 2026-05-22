@@ -1341,17 +1341,6 @@ components:
         rare_categories:
           x-go-type: 'CategoryCounts'
           x-go-type-skip-optional-pointer: true
-    ListFavoritesResponse:
-      description: >
-        contains the data for displaying the favorites page.
-      type: object
-      properties:
-        subscriptions:
-          x-go-type: 'Subscriptions'
-          x-go-type-skip-optional-pointer: true
-        articles:
-          x-go-type: 'Articles'
-          x-go-type-skip-optional-pointer: true
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.

@@ -178,6 +178,15 @@ type ListArticlesResponse struct {
 	Subscription *Subscription `json:"subscription,omitempty"`
 }
 
+// ListFavoritesResponse contains the data for displaying the favorites page.
+type ListFavoritesResponse struct {
+	Articles Articles `json:"articles,omitempty"`
+
+	// LatestArticles is a map of the latest articles for each subscription in the result.
+	LatestArticles *sync.Map     `json:"latest_articles,omitempty"`
+	Subscriptions  Subscriptions `json:"subscriptions,omitempty"`
+}
+
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
 type ListSubscriptionsResponse struct {
 	// Filters contains filters for altering the display of objects.

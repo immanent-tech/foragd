@@ -349,9 +349,80 @@ func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, f
 	return nil
 }
 
-// GetSubscriptionLatestItems fetches the latest items for subscriptions. This is a wrapper around GetFeedLatestItems
+func GetLatestItems(ctx context.Context, view models.View, subscriptions models.Subscriptions) *sync.Map {
+	var (
+		latestItems sync.Map
+		wg          sync.WaitGroup
+	)
+	wg.Go(func() {
+		// For feed/email subscriptions, get the latest 3 items from each.
+		emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail)
+		feedsLatestItems, err := getFeedSubscriptionLatestItems(
+			ctx,
+			3,
+			emailSubscriptions,
+			view,
+		)
+		// feedsLatestItems, err := getFeedSubscriptionLatestItems(
+		// 	req.Context(),
+		// 	subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail),
+		// 	filters,
+		// )
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for feed subscriptions.",
+				slog.Any("error", err),
+			)
+		}
+		for subscription := range slices.Values(emailSubscriptions) {
+			if items, found := feedsLatestItems[subscription.GetFeedID()]; found {
+				latestItems.Store(subscription.GetID(), items)
+			}
+		}
+	})
+
+	wg.Go(func() {
+		// For group subscriptions, get the latest 3 items across each group's members.
+		groupsLatestItems, err := getGroupSubscriptionLatestItems(
+			ctx,
+			3,
+			subscriptions.FilterByType(models.SubscriptionTypeGroup),
+			view,
+		)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for group subscriptions.",
+				slog.Any("error", err),
+			)
+		}
+		for key, value := range groupsLatestItems {
+			latestItems.Store(key, value)
+		}
+	})
+
+	wg.Go(func() {
+		// For search subscription, run each search and get the top 3 results.
+		searchLatestItems, err := getSearchSubscriptionLatestItems(
+			ctx,
+			3,
+			subscriptions.FilterByType(models.SubscriptionTypeSearch),
+		)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to retrieve top items for search subscriptions.",
+				slog.Any("error", err),
+			)
+		}
+		for key, value := range searchLatestItems {
+			latestItems.Store(key, value)
+		}
+	})
+
+	wg.Wait()
+
+	return &latestItems
+}
+
+// getFeedSubscriptionLatestItems fetches the latest items for subscriptions. This is a wrapper around GetFeedLatestItems
 // that adds an extra filter clause to the search to return items that match the view status (i.e., read/unread).
-func GetSubscriptionLatestItems(
+func getFeedSubscriptionLatestItems(
 	ctx context.Context,
 	count int,
 	subscriptions models.Subscriptions,
@@ -372,8 +443,8 @@ func GetSubscriptionLatestItems(
 	)
 }
 
-// GetGroupSubscriptionLatestItems will return a map of latest items per subscription for the given group subscriptions.
-func GetGroupSubscriptionLatestItems(
+// getGroupSubscriptionLatestItems will return a map of latest items per subscription for the given group subscriptions.
+func getGroupSubscriptionLatestItems(
 	ctx context.Context,
 	count int,
 	subscriptions models.Subscriptions,
@@ -395,7 +466,7 @@ func GetGroupSubscriptionLatestItems(
 				return
 			}
 			// Get latest items for these subscriptions.
-			latestItems, err := GetSubscriptionLatestItems(ctx, count, childSubscriptions, view)
+			latestItems, err := getFeedSubscriptionLatestItems(ctx, count, childSubscriptions, view)
 			// latestItems, err := getFeedSubscriptionLatestItems(ctx, childSubscriptions, filters)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get latest items for group subscription.",
@@ -421,9 +492,9 @@ func GetGroupSubscriptionLatestItems(
 	return groupLatestItems, nil
 }
 
-// GetSearchSubscriptionLatestItems will return a map of latest items per subscription for the given search
+// getSearchSubscriptionLatestItems will return a map of latest items per subscription for the given search
 // subscriptions.
-func GetSearchSubscriptionLatestItems(
+func getSearchSubscriptionLatestItems(
 	ctx context.Context,
 	count int,
 	subscriptions models.Subscriptions,

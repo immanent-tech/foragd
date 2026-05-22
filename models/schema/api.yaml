@@ -261,6 +261,21 @@ components:
           $ref: 'models.yaml#/components/schemas/ListFilters'
         pagination:
           $ref: 'models.yaml#/components/schemas/Pagination'
+    ListFavoritesResponse:
+      description: >
+        contains the data for displaying the favorites page.
+      type: object
+      properties:
+        subscriptions:
+          x-go-type: 'Subscriptions'
+          x-go-type-skip-optional-pointer: true
+        articles:
+          x-go-type: 'Articles'
+          x-go-type-skip-optional-pointer: true
+        latest_articles:
+          description: >
+            is a map of the latest articles for each subscription in the result.
+          x-go-type: sync.Map
     SearchRequest:
       description: >
         represents a search request by the user.

@@ -7,6 +7,7 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
 )
 
 // ListFavorites renders subscription and article favorites in a grid layout.
@@ -30,7 +31,31 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 							</div>
 							@grid() {
 								for idx, subscription := range response.Subscriptions {
-									@SubscriptionCard(idx, subscription)
+									@SubscriptionCard(idx, subscription) {
+										if response.LatestArticles != nil {
+											{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
+											if ok {
+												{{ items, ok := itemsData.(models.Items) }}
+												if ok {
+													<div class="mt-auto h-full">
+														<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
+															for item := range slices.Values(items) {
+																<li
+																	hx-get={ "/view/article/" + item.GetID() }
+																	hx-target={ ContentID.Target() }
+																	hx-swap="innerHTML show:window:top transition:true"
+																	hx-trigger="click"
+																	hx-push-url="true"
+																	_="on click halt the event's bubbling"
+																	class="my-2 link text-pretty link-hover"
+																>{ item.GetTitle() }</li>
+															}
+														</ul>
+													</div>
+												}
+											}
+										}
+									}
 								}
 							}
 							@partials.ButtonBackToTop()
