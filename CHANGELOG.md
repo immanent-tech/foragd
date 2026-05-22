@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.146.0](https://github.com/immanent-tech/foragd/compare/v0.145.0...v0.146.0) (2026-05-22)
+
+
+### Features
+
+* **templates/features:** 🎨 improved tab transitions ([8b5eb6d](https://github.com/immanent-tech/foragd/commit/8b5eb6daf639e5f75fe7a8636ddc5e11885fdb72))
+* **templates/subscriptions:** 🎨 better fade out when marking subscription/article cards as read ([da3c51a](https://github.com/immanent-tech/foragd/commit/da3c51a6d9e5c8f87f3f81bd171b93cdedbc3be2))
+
+
+### Bug Fixes
+
+* **assets:** 🔧 fix color contrast on catppuccin themes ([59a8865](https://github.com/immanent-tech/foragd/commit/59a88659beaae5cedc794a24880f7bca200e13e5))
+
 ## [0.145.0](https://github.com/immanent-tech/foragd/compare/v0.144.1...v0.145.0) (2026-05-22)
 
 
