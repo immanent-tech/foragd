@@ -129,7 +129,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						<div class="mt-12">
 							<label for="url" class="block text-sm/6 font-medium text-neutral">Website URL</label>
 							<div class="join mt-2 flex w-full">
-								<input id="url" type="url" name="url" placeholder="https://some.site..." class="input w-full join-item bg-base-300 brightness-95 input-primary"/>
+								<input id="url" type="url" name="url" placeholder="https://some.site..." class="input join-item w-full bg-base-300 brightness-95 input-primary"/>
 								<button type="submit" class="btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2">
 									Search
 								</button>
@@ -142,41 +142,41 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 										<div class="sm:flex sm:space-x-5">
 											<div class="flex">
 												<div class="mr-4 shrink-0 self-center">
-													<div class="skeleton h-24 w-24"></div>
+													<div class="h-24 w-24 skeleton"></div>
 												</div>
 												<div class="space-y-2">
-													<div class="skeleton h-4 w-28"></div>
-													<div class="skeleton h-4 w-full sm:w-96"></div>
+													<div class="h-4 w-28 skeleton"></div>
+													<div class="h-4 w-full skeleton sm:w-96"></div>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-								<div class="grid grid-cols-1 justify-center sm:grid-cols-3 gap-4">
+								<div class="grid grid-cols-1 justify-center gap-4 sm:grid-cols-3">
 									<div class="flex w-full flex-col gap-4">
-										<div class="skeleton h-32 w-full"></div>
-										<div class="skeleton h-4 w-28"></div>
-										<div class="skeleton h-4 w-full"></div>
-										<div class="skeleton h-4 w-full"></div>
+										<div class="h-32 w-full skeleton"></div>
+										<div class="h-4 w-28 skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
 									</div>
 									<div class="flex w-full flex-col gap-4">
-										<div class="skeleton h-32 w-full"></div>
-										<div class="skeleton h-4 w-28"></div>
-										<div class="skeleton h-4 w-full"></div>
-										<div class="skeleton h-4 w-full"></div>
+										<div class="h-32 w-full skeleton"></div>
+										<div class="h-4 w-28 skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
 									</div>
 									<div class="flex w-full flex-col gap-4">
-										<div class="skeleton h-32 w-full"></div>
-										<div class="skeleton h-4 w-28"></div>
-										<div class="skeleton h-4 w-full"></div>
-										<div class="skeleton h-4 w-full"></div>
+										<div class="h-32 w-full skeleton"></div>
+										<div class="h-4 w-28 skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
+										<div class="h-4 w-full skeleton"></div>
 									</div>
 								</div>
 							</div>
 						</div>
 					</form>
 				</section>
-				<section id="viewer-results" class="mt-8 mb-24 overflow-y-auto mx-auto sm:max-w-5xl">
+				<section id="viewer-results" class="mx-auto mt-8 mb-24 overflow-y-auto sm:max-w-5xl">
 					switch  {
 						case errMsg != nil:
 							@ViewerError(errMsg)

@@ -27,14 +27,14 @@ templ Dock(options ...element.PropertiesOption) {
 		>
 			<span class="sr-only">Go to Home Page</span>
 			<span class="show-loading items-center">
-				<span class="loading loading-spinner loading-md text-primary"></span>
+				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-home size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.707 2.293l9 9c.63 .63 .184 1.707 -.707 1.707h-1v6a3 3 0 0 1 -3 3h-1v-7a3 3 0 0 0 -2.824 -2.995l-.176 -.005h-2a3 3 0 0 0 -3 3v7h-1a3 3 0 0 1 -3 -3v-6h-1c-.89 0 -1.337 -1.077 -.707 -1.707l9 -9a1 1 0 0 1 1.414 0m.293 11.707a1 1 0 0 1 1 1v7h-4v-7a1 1 0 0 1 .883 -.993l.117 -.007z"></path>
 				</svg>
 			</span>
-			<span class="not-sr-only font-display dock-label">Home</span>
+			<span class="dock-label not-sr-only font-display">Home</span>
 		</a>
 		{{ filters := models.NewListDisplayFilters() }}
 		<a
@@ -47,7 +47,7 @@ templ Dock(options ...element.PropertiesOption) {
 		>
 			<span class="sr-only">Go to Subscriptions</span>
 			<span class="show-loading items-center">
-				<span class="loading loading-spinner loading-md text-primary"></span>
+				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -69,7 +69,7 @@ templ Dock(options ...element.PropertiesOption) {
 		>
 			<span class="sr-only">Go to Articles</span>
 			<span class="show-loading items-center">
-				<span class="loading loading-spinner loading-md text-primary"></span>
+				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -86,7 +86,7 @@ templ Dock(options ...element.PropertiesOption) {
 		>
 			<span class="sr-only">Go to Favorites</span>
 			<span class="show-loading items-center">
-				<span class="loading loading-spinner loading-md text-primary"></span>
+				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
 				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

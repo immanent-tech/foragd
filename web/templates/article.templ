@@ -553,7 +553,7 @@ templ ArticleContent(article *models.Article) {
 						case article.Item.ExtensionType != nil && *article.Item.ExtensionType == models.ItemExtensionTypeYoutube:
 							// Youtube video.
 							if youtubeData, err := article.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
-								<div class="relative h-auto max-w-full overflow-hidden p-8 aspect-video">
+								<div class="relative aspect-video h-auto max-w-full overflow-hidden p-8">
 									<embed-youtube
 										video-id={ youtubeData.VideoId }
 										width={ *youtubeData.Width }
@@ -619,7 +619,7 @@ templ ArticleContent(article *models.Article) {
 										"
 									>
 										<span class="show-loading items-center">
-											<span class="loading loading-spinner mr-3"></span>
+											<span class="loading mr-3 loading-spinner"></span>
 											Loading
 										</span>
 										<span class="hide-loading">
@@ -657,7 +657,7 @@ templ ArticleContent(article *models.Article) {
 										_="install LoadingButton"
 									>
 										<span class="show-loading items-center">
-											<span class="loading loading-xs loading-spinner mr-3"></span>
+											<span class="loading mr-3 loading-xs loading-spinner"></span>
 											Loading
 										</span>
 										<span class="hide-loading">
@@ -962,7 +962,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									>
 										<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
 										<div class="show-loading text-center">
-											<span class="loading loading-xl loading-bars mr-3"></span>
+											<span class="loading mr-3 loading-xl loading-bars"></span>
 											<p class="text-lg/loose font-semibold">Loading content...</p>
 										</div>
 									</form>
@@ -974,7 +974,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							if response.Subscription == nil {
 								// Mark all articles action.
 								<button
-									class="btn btn-outline btn-wide"
+									class="btn btn-wide btn-outline"
 									if response.Filters.GetView() == models.ViewUnread {
 										hx-post="/list/articles/mark/read"
 										hx-vals={ templ.JSONString(map[string]any{
@@ -995,12 +995,12 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									</span>
 									<span class="hide-loading items-center">
 										if response.Filters.GetView() == models.ViewUnread {
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-5 mr-3">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened mr-3 size-5">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
 											</svg>
 											<span class="text-sm/6">Mark Articles Read</span>
 										} else {
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5 mr-3">
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail mr-3 size-5">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
 											</svg>
 											<span class="text-sm/6">Mark Articles Unread</span>
@@ -1024,21 +1024,21 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									<button
 										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 										hx-vals={ templ.JSONString(values) }
-										class="btn btn-outline btn-wide"
+										class="btn btn-wide btn-outline"
 										type="submit"
 									>
 										<span class="show-loading items-center">
-											<span class="loading loading-spinner mr-3"></span>
+											<span class="loading mr-3 loading-spinner"></span>
 											Loading
 										</span>
 										<span class="hide-loading items-center">
 											if response.Filters.GetView() == models.ViewUnread {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-5 mr-3">
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened mr-3 size-5">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
 												</svg>
 												<span class="text-sm/6">Mark Subscription Read</span>
 											} else {
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail size-5 mr-3">
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail mr-3 size-5">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z"></path><path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z"></path>
 												</svg>
 												<span class="text-sm/6">Mark Subscription Unread</span>

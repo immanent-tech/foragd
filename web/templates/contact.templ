@@ -39,7 +39,7 @@ templ Contact() {
 										name="contact_email"
 										autocomplete="email"
 										required
-										class="input input-primary bg-base-300 brightness-95"
+										class="input bg-base-300 brightness-95 input-primary"
 									/>
 								</div>
 							</div>
@@ -47,9 +47,9 @@ templ Contact() {
 							<div class="col-span-full">
 								<label for="about" class="block text-sm/6 font-medium">Details</label>
 								<div class="mt-2">
-									<textarea id="details" name="details" rows="5" class="textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95"></textarea>
+									<textarea id="details" name="details" rows="5" class="textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose"></textarea>
 								</div>
-								<p class="mt-3 text-sm/6 neutral">Add as much detail as you like.</p>
+								<p class="text-neutral mt-3 text-sm/6">Add as much detail as you like.</p>
 							</div>
 							// Cloudflare turnstile.
 							<div class="col-span-full">
@@ -57,7 +57,7 @@ templ Contact() {
 							</div>
 						</div>
 					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl">
+					<div class="mt-6 flex w-full items-center justify-end gap-x-6 sm:max-w-3xl">
 						<button type="button" class="btn btn-secondary hover:btn-error" _="on click call history.back()">
 							<span class="text-sm/6">Back</span>
 						</button>

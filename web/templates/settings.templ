@@ -158,13 +158,13 @@ templ AccountSettings(user *models.User) {
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			switch  {
 				case user.InTrial():
-					<div class="col-span-full place-self-end mt-8">
+					<div class="col-span-full mt-8 place-self-end">
 						<div class="mt-2 flex items-center justify-end gap-x-6">
 							<a role="button" class="btn btn-primary" href="/checkout">Purchase a subscription</a>
 						</div>
 					</div>
 				case user.HasActiveSubscription():
-					<div class="col-span-full place-self-end mt-8">
+					<div class="col-span-full mt-8 place-self-end">
 						<div class="mt-2 flex items-center justify-end gap-x-6">
 							if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
 								{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
@@ -194,7 +194,7 @@ templ AccountSettings(user *models.User) {
 			<p>Import or Export your subscriptions.</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full place-self-end mt-8">
+			<div class="col-span-full mt-8 place-self-end">
 				<div class="mt-2 flex items-center justify-end gap-x-6">
 					<button
 						type="button"
@@ -424,7 +424,7 @@ templ AccountSettings(user *models.User) {
 			<p>Use or generate an email for subscribing to email newsletters.</p>
 		</div>
 		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full place-self-end mt-8">
+			<div class="col-span-full mt-8 place-self-end">
 				<div class="mt-2 flex items-center justify-end gap-x-6">
 					if user.Settings.SubscriptionEmail == nil {
 						<button
@@ -455,7 +455,7 @@ templ AccountSettings(user *models.User) {
 			<p>No longer want to use our service? You can deactivate your account here.</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="prose col-span-full">
+			<div class="col-span-full prose">
 				switch  {
 					case user.InTrial():
 						<p class="text-sm/6">
@@ -478,7 +478,7 @@ templ AccountSettings(user *models.User) {
 						</p>
 				}
 			</div>
-			<div class="col-span-full place-self-end mt-8">
+			<div class="col-span-full mt-8 place-self-end">
 				<div class="mt-2 flex items-center justify-end gap-x-6">
 					<button
 						hx-get={ models.RouteUserDeactivateAccount }

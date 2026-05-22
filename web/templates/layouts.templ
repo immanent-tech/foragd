@@ -17,6 +17,7 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 	@HeaderInternal(props)
 	@SideBar(nil)
 	<main
+		aria-label="Main Content"
 		id={ ContentID.String() }
 		class="mb-24 min-h-svh-safe scroll-mt-16 pt-16 lg:pl-36"
 	>
@@ -30,7 +31,11 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 
 templ LayoutExternal(content ...templ.Component) {
 	@HeaderExternal()
-	<main id={ ContentID.String() } class="flex-1 min-h-svh-safe mb-24 scroll-mt-16 pt-16">
+	<main
+		aria-label="Main Content"
+		id={ ContentID.String() }
+		class="mb-24 min-h-svh-safe flex-1 scroll-mt-16 pt-16"
+	>
 		if len(content) > 0 {
 			@templ.Join(content...)
 		}

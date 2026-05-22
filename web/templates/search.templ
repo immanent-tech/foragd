@@ -373,7 +373,7 @@ templ SearchResults(results *models.SearchResults) {
 						// Page title.
 						<div class="md:flex md:items-center md:justify-between">
 							<div class="min-w-0 flex-1">
-								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-display font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
+								<h1 class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
 									Search Results
 								</h1>
 							</div>
@@ -510,7 +510,7 @@ templ SearchResults(results *models.SearchResults) {
 						// Loading results indicator.
 						<div id="loading-results" class="text-center">
 							<span class="show-loading items-center">
-								<span class="loading loading-xl loading-bars mr-3"></span>
+								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</span>
 						</div>
@@ -720,7 +720,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					</svg>
 				</button>
 				<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
-					<div class="card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap card-shadow">
+					<div class="card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul>
 							<li>+ signifies AND operation (i.e., food AND beverages)</li>

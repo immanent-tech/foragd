@@ -62,7 +62,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							<span class="show-loading mx-auto justify-center">
 								<span class="loading loading-dots"></span>
 							</span>
-							<ul id="category-filters-mobile" class="menu hide-loading"></ul>
+							<ul id="category-filters-mobile" class="hide-loading menu"></ul>
 						</el-disclosure>
 					</div>
 					// View Filters (mobile).
@@ -159,7 +159,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 								</svg>
 							</button>
-							<el-menu anchor="bottom end" popover class="menu divide-y divide-neutral/25 w-fit rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
+							<el-menu anchor="bottom end" popover class="menu w-fit divide-y divide-neutral/25 rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
 								<div class="py-1">
 									<li>
 										<h3 class="menu-title">View</h3>

@@ -52,7 +52,7 @@ templ Features() {
 </script>
 			<div class="mt-16">
 				<el-tab-group id="features-tabs">
-					<el-tab-list class="grid grid-cols-3 w-sm sm:w-md mx-auto justify-between align-middle gap-x-8 rounded-md py-2 pr-8 pl-3 text-base outline-1 -outline-offset-1 outline-neutral/15 focus:outline-2 focus:-outline-offset-2 focus:outline-accent">
+					<el-tab-list class="mx-auto grid w-sm grid-cols-3 justify-between gap-x-8 rounded-md py-2 pr-8 pl-3 align-middle text-base outline-1 -outline-offset-1 outline-neutral/15 focus:outline-2 focus:-outline-offset-2 focus:outline-accent sm:w-md">
 						<button
 							id="collect-button"
 							type="button"
@@ -99,7 +99,7 @@ templ Features() {
        						 end
 						   end
 						"
-							class="content-auto tab-panel"
+							class="tab-panel content-auto"
 						></div>
 						<div
 							id="curate"
@@ -128,7 +128,7 @@ templ Features() {
        						 end
 						   end
                              "
-							class="content-auto tab-panel"
+							class="tab-panel content-auto"
 						></div>
 						<div
 							id="consume"
@@ -157,7 +157,7 @@ templ Features() {
        						 end
 						   end
                              "
-							class="content-auto tab-panel"
+							class="tab-panel content-auto"
 						></div>
 					</el-tab-panels>
 				</el-tab-group>
@@ -190,7 +190,7 @@ templ NewFeaturePanel(id string) {
 templ FeatureAddContent(flipped bool) {
 	@NewFeaturePanel("feature-add-content") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Easily add content from anywhere
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -215,7 +215,7 @@ templ FeatureAddContent(flipped bool) {
 					alt="Screenshot of add content page"
 					class="relative -z-20"
 				/>
-				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play text-accent absolute size-32 top-[30%] left-[35%]">
+				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
 				</svg>
 			</div>
@@ -239,7 +239,7 @@ templ FeatureAddContent(flipped bool) {
 templ FeatureEmailNewsletters(flipped bool) {
 	@NewFeaturePanel("feature-email-newsletters") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Sign up for email newsletters
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -262,7 +262,7 @@ templ FeatureEmailNewsletters(flipped bool) {
 templ FeatureImport(flipped bool) {
 	@NewFeaturePanel("feature-import") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Migrate from other services
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -291,7 +291,7 @@ templ FeaturesCollect() {
 templ FeatureGroupSubscriptions(flipped bool) {
 	@NewFeaturePanel("feature-group-subscriptions") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Group subscriptions
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -314,7 +314,7 @@ templ FeatureGroupSubscriptions(flipped bool) {
 templ FeatureSearchSubscription(flipped bool) {
 	@NewFeaturePanel("feature-search-subscriptions") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Saved search subscriptions
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -340,7 +340,7 @@ templ FeatureSearchSubscription(flipped bool) {
 					alt="Screenshots of search subscription page"
 					class="relative -z-20"
 				/>
-				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play text-accent absolute size-32 top-[30%] left-[35%]">
+				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
 				</svg>
 			</div>
@@ -364,7 +364,7 @@ templ FeatureSearchSubscription(flipped bool) {
 templ FeatureArticleFilters(flipped bool) {
 	@NewFeaturePanel("feature-article-filters") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Article filtering
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -386,7 +386,7 @@ templ FeatureArticleFilters(flipped bool) {
 templ FeatureSubscriptionCustomisation(flipped bool) {
 	@NewFeaturePanel("feature-subscription-customisation") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Subscription customisation
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -432,7 +432,7 @@ templ FeaturesCurate() {
 templ FeatureLayout(flipped bool) {
 	@NewFeaturePanel("feature-layout") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Content comes first
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -472,7 +472,7 @@ templ FeatureLayout(flipped bool) {
 templ FeatureFetchRemoteContent(flipped bool) {
 	@NewFeaturePanel("feature-fetch-remote-content") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Get remote content
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -495,7 +495,7 @@ templ FeatureFetchRemoteContent(flipped bool) {
 					alt="Screenshot of article preview (before remote content fetched)"
 					class="relative -z-20"
 				/>
-				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play text-accent absolute size-32 top-[30%] left-[35%]">
+				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
 				</svg>
 			</div>
@@ -519,7 +519,7 @@ templ FeatureFetchRemoteContent(flipped bool) {
 templ FeatureFavorites(flipped bool) {
 	@NewFeaturePanel("feature-favorites") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Favorites
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">
@@ -542,7 +542,7 @@ templ FeatureFavorites(flipped bool) {
 					alt="Screenshot of favorites page"
 					class="relative -z-20"
 				/>
-				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play text-accent absolute size-32 top-[30%] left-[35%]">
+				<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
 				</svg>
 			</div>
@@ -566,7 +566,7 @@ templ FeatureFavorites(flipped bool) {
 templ FeatureThemes(flipped bool) {
 	@NewFeaturePanel("feature-themes") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
-			<h2 class="text-3xl font-semibold tracking-tight text-balancesm:text-4xl">
+			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Themes
 			</h2>
 			<p class="mt-6 text-lg/8 text-neutral">

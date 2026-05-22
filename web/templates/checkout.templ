@@ -89,13 +89,13 @@ type CheckoutProps struct {
 // redirects the user to Stripe for payment.
 templ ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) {
 	@container() {
-		<div class="min-h-svh-safe flex flex-col">
+		<div class="flex min-h-svh-safe flex-col">
 			if !user.InTrial() && user.HasActiveSubscription() {
 				// User has an active plan, show them an action to manage it.
-				<div class="mx-auto text-center mt-8">
+				<div class="mx-auto mt-8 text-center">
 					<h1 id="pricing" class="text-2xl font-semibold text-primary sm:text-3xl/8">You already have an active plan.</h1>
 				</div>
-				<div class="my-16 text-center gap-x-8">
+				<div class="my-16 gap-x-8 text-center">
 					<a
 						role="button"
 						href="/user/settings#account"
@@ -130,7 +130,7 @@ templ ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) {
 					></div>
 				} else {
 					// Show the user the plan options.
-					<div class="mx-auto text-center mt-8">
+					<div class="mx-auto mt-8 text-center">
 						<h1 id="pricing" class="text-2xl font-semibold text-primary sm:text-3xl/8">Choose your plan.</h1>
 						<p class="mx-auto text-center text-base/7 text-pretty">You'll be taken to Paddle to finalise your account.</p>
 					</div>
@@ -293,7 +293,7 @@ templ ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) {
 					</h2>
 					@partials.FAQ(slices.Concat(BillingFAQ))
 				</div>
-				<div class="mx-auto text-center my-8">
+				<div class="mx-auto my-8 text-center">
 					<p class="mx-auto text-center text-base/7 text-pretty text-neutral">Got a question not answered here? <a class="link" href="/contact">Contact Us</a>.</p>
 				</div>
 			}
