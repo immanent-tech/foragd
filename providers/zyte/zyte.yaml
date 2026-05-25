@@ -1,0 +1,328 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Zyte API
+  description: >
+    Zyte API models.
+  license:
+    name: AGPL 3.0
+    idenfiier: AGPL-3.0-or-later
+  contact:
+    name: Immanent Tech
+components:
+  schemas:
+    Request:
+      description: >
+        is a request to the Zyte API
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: is the URL to process with the API
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
+        httpResposeBody:
+          description: >
+            Set to true to get the HTTP response body in the httpResponseBody response field.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'httpResponseBody'
+        httpResponseHeaders:
+          description: >
+            Set to true to get the HTTP response headers in the httpResponseHeaders response field.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'httpResponseHeaders'
+        httpRequestMethod:
+          $ref: '#/components/schemas/RequestMethod'
+        followRedirect:
+          description: >
+            indicates whether to follow HTTP redirection or not.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'followRedirect'
+        tags:
+          description: >
+            Assign arbitrary key-value pairs to the request that you can use for filtering in the Stats API.
+          x-go-type: map[string]string
+          x-go-type-skip-optional-pointer: true
+        article:
+          description: >
+            Set to true to get article data in the article response field.
+          type: boolean
+        articleOptions:
+          $ref: '#/components/schemas/ArticleOptions'
+        articleList:
+          description: >
+            Set to true to get article list data in the articleList response field.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'articleList'
+    Response:
+      description: >
+        is a response from the Zyte API.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: is the URL to process with the API
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
+        statusCode:
+          allOf:
+            - $ref: '#/components/schemas/StatusCode'
+          x-oapi-codegen-extra-tags:
+            json: 'statusCode'
+        httpResponseBody:
+          description: >
+            Base64-encoded HTTP response body. To get this response field, set the httpResponseBody request field to
+            true.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'httpResponseBody'
+        article:
+          $ref: '#/components/schemas/Article'
+    ResponseError:
+      description: >
+        is an error response from the Zyte API.
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        status:
+          allOf:
+            - $ref: '#/components/schemas/StatusCode'
+          x-oapi-codegen-extra-tags:
+            json: 'status'
+            validate: 'required'
+        title:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        detail:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    ExtractFrom:
+      description: >
+        is the extraction source.
+
+        httpResponseBody extracts from httpResponseBody. It is usually faster and cheaper.
+
+        browserHtmlOnly extracts from browserHtml. It typically improves quality over httpResponseBody on
+        JavaScript-heavy web pages.
+
+        browserHtml extracts from both browserHtml and visual features of the rendered web page. It typically improves
+        quality over browserHtmlOnly, but is not as robust in case of rendering issues.
+
+        If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by
+        default for non-AI extraction. In the future, the default value may depend on the target website.
+      type: string
+      enum: ['httpResponseBody','browserHtml','browserHtmlOnly']
+      x-oapi-codegen-extra-tags:
+        json: 'extractFrom'
+        validate: 'omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly'
+    ArticleOptions:
+      description:
+        are options for controlling article extraction.
+      type: object
+      properties:
+        extractFrom:
+          $ref: '#/components/schemas/ExtractFrom'
+      x-oapi-codegen-extra-tags:
+        json: 'articleOptions'
+    Article:
+      description: >
+        is an extracted article.
+      type: object
+      required:
+        - url
+        - metadata
+      properties:
+        headline:
+          description: ia an article headline or title.
+          type: string
+        articleBody:
+          description: is the clean text of the article, including sub-headings, with newline separators.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'articleBody'
+        articleBodyHtml:
+          description: >
+            is the Simplified and standardized HTML of the article body, including sub-headings, image captions and
+            embedded content (videos, tweets, etc.).
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'articleBodyHtml'
+        description:
+          description: >
+            is a short summary of the article. It can be either human-provided (if available), or auto-generated.
+          type: string
+        datePublished:
+          description: >
+            is the publication date. ISO-formatted with 'T' separator, may contain a timezone. If the actual publication
+            date is not found, "dateModified" value is taken.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'datePublished'
+        datePublishedRaw:
+          description: >
+            is the same date as "datePublished", but before parsing/normalization, i.e. as it appears on the website.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'datePublishedRaw'
+        dateModified:
+          description: >
+            The date when the article was most recently modified. ISO-formatted with 'T' separator, may contain a
+            timezone.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'dateModified'
+        dateModifiedRaw:
+          description: >
+            is the same date as "dateModified", but before parsing/normalization, i.e. as it appears on the website.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'dateModifiedRaw'
+        authors:
+          description: is a list of authors of the article.
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+          x-go-type-skip-optional-pointer: true
+        inLanguage:
+          description: >
+            Language of the article, as an ISO 639-1 language code. Example: "en". Sometimes article language is not the
+            same as the web page overall language; to get the detected web page languages, see "webPageInfo".
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'inLanguage'
+        breadcrumbs:
+          description: is a list of breadcrumbs (a specific navigation element) with optional name and url.
+          type: array
+          items:
+            $ref: '#/components/schemas/Breadcrumb'
+          x-go-type-skip-optional-pointer: true
+        mainImage:
+          allOf:
+            - $ref: '#/components/schemas/RemoteMedia'
+          x-oapi-codegen-extra-tags:
+            json: 'mainImage'
+        images:
+          description: is all images of the item (may include the main image).
+          type: array
+          items:
+            $ref: '#/components/schemas/RemoteMedia'
+          x-go-type-skip-optional-pointer: true
+        videos:
+          description: is all video of the item.
+          type: array
+          items:
+            $ref: '#/components/schemas/RemoteMedia'
+          x-go-type-skip-optional-pointer: true
+        audios:
+          description: is all audio of the item.
+          type: array
+          items:
+            $ref: '#/components/schemas/RemoteMedia'
+          x-go-type-skip-optional-pointer: true
+        url:
+          description: is the URL of a page where this article was extracted.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
+        canonicalURL:
+          description: is the canonical URL of the article, if available.
+          type: string
+          x-go-name: CanonicalURL
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,url'
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+    Author:
+      description: is an author attribution.
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          description: is the full name of the author, e.g. "Alice".
+          type: string
+        nameRaw:
+          description: is the text from which this author name was extracted, e.g. "Alice and Bob".
+          type: string
+    Breadcrumb:
+      description: a breadcrumb found on the object
+      type: object
+      properties:
+        name:
+          description: is the text of the breadcrumb, as it appears on the website.
+          type: string
+        url:
+          description: is the absolute URL of the breadcrumb.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,url'
+    RemoteMedia:
+      description: represents a piece of remote media (i.e., image, video, audio).
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: is a URL to the remote media.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
+    Metadata:
+      description: is extracted item metadata for single-item data types.
+      type: object
+      required:
+        - probability
+        - dateDownloaded
+      properties:
+        probability:
+          description: >
+            Probability that extracted item is of requested data type. It is closer to 0 in case this page does not
+            contain requested data type. For example, when single product extraction is requested with "product: true",
+            but a page does not contain a product, probability would be close to 0. If an item of requested type can be
+            extracted from a page, then probability is closer to 1. Recommended probability threshold is 0.5, but we
+            will return extracted data even if probability is very low.
+          type: number
+          x-oapi-codegen-extra-tags:
+            validate: 'required,gte=0,lte=1'
+        dateDownloaded:
+          description: >
+            The timestamp at which the data was downloaded. Timezone: UTC. Format: ISO 8601 format:
+            "YYYY-MM-DDThh:mm:ssZ"
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    StatusCode:
+      description: >
+        The HTTP status code retrieved from the target page. If redirection is followed, this is the status code of
+        the response after redirection.
+      type: integer
+    RequestMethod:
+      description: is the request method.
+      type: string
+      enum: ["GET","POST","PUT","DELETE","OPTIONS","TRACE","PATCH","HEAD"]
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty,oneof=GET POST PUT DELETE OPTIONS TRACE PATCH HEAD'
+        json: 'httpRequestMethod'
