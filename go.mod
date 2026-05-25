@@ -17,7 +17,6 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20260505212615-e40f80bf6836
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.2
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/knadh/koanf/v2 v2.3.4
@@ -27,7 +26,6 @@ require (
 	github.com/mattn/go-isatty v0.0.22
 	github.com/oapi-codegen/runtime v1.4.0
 	github.com/samber/slog-multi v1.8.0
-	github.com/stripe/stripe-go/v83 v83.2.1
 	github.com/zeebo/xxh3 v1.1.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.19.0
 	go.opentelemetry.io/otel/sdk v1.43.0
@@ -117,7 +115,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
 	github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d // indirect
-	github.com/elastic/go-elasticsearch/v9 v9.4.0
+	github.com/elastic/go-elasticsearch/v9 v9.4.1
 	github.com/fatih/color v1.19.0
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/getkin/kin-openapi v0.133.0 // indirect
@@ -161,7 +159,6 @@ require (
 	github.com/samber/slog-chi v1.19.1
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.3 // indirect
-	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/veqryn/slog-context v0.9.0
 	github.com/veqryn/slog-context/otel v0.9.0
 	github.com/veqryn/slog-json v0.5.0
