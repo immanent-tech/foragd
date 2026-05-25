@@ -109,7 +109,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	)
 	for feedURL = range slices.Values(details.GetSourceURLs()) {
 		var err error
-		feed, err = models.NewFeedFromURL(ctx, feedURL, data.FeedID, false)
+		feed, err = service.FetchFeed(ctx, feedURL, data.FeedID, false)
 		if err != nil {
 			var httpErr feeds.ParseError
 			logMsg := &feedStatusLogMsg{

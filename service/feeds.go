@@ -4,9 +4,12 @@
 package service
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -20,12 +23,19 @@ import (
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
+	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/rss"
+	"github.com/immanent-tech/go-syndication/validation"
+
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
+	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
 var feedCache = otter.Must(&otter.Options[models.FeedID, *models.Feed]{
@@ -129,6 +139,16 @@ func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastF
 		)
 	}
 
+	// Update the fetch method.
+	if oldData.FetchMethod != newData.FetchMethod {
+		slogctx.FromCtx(ctx).Info("Updated fetch method.",
+			slog.String("feed_id", newData.GetID()),
+			slog.String("old_method", string(oldData.FetchMethod)),
+			slog.String("new_title", string(newData.FetchMethod)),
+		)
+		updates["fetch_method"] = newData.FetchMethod
+	}
+
 	// Update the title if it has changed.
 	if oldData.GetTitle() != newData.GetTitle() {
 		slogctx.FromCtx(ctx).Info("Updated feed title.",
@@ -171,7 +191,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 	for request := range slices.Values(requests) {
 		wg.Go(func() {
 			// Find an existing or create a new feed from the requested URL.
-			feed, isNew, err := models.FindOrCreateFeed(ctx, request.URL)
+			feed, isNew, err := FindOrCreateFeed(ctx, request.URL)
 			if err != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,
@@ -467,7 +487,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 		slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 			slog.String("url", url),
 		)
-		newFeed, err := models.NewFeedFromURL(ctx, url, "", false)
+		newFeed, err := FetchFeed(ctx, url, "", false)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to find feed at URL.",
 				slog.String("url", url),
@@ -596,7 +616,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
-			newFeed, err := models.NewFeedFromURL(ctx, newFeedURL.String(), "", false)
+			newFeed, err := FetchFeed(ctx, newFeedURL.String(), "", false)
 			if err != nil {
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
@@ -805,4 +825,190 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 	}
 
 	return stats, nil
+}
+
+func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Feed, error) {
+	// Parse the URL to ensure its valid.
+	sourceURL, err := url.Parse(feedURL)
+	if err != nil {
+		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
+	}
+
+	// Create a buffer for the feed data.
+	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return nil, models.NewAPIError(http.StatusInternalServerError, errors.New("get feed buffer failed"))
+	}
+	feedBuf.Reset()
+	defer bufPool.Put(feedBuf)
+
+	// Fetch the feed data from the source url.
+	switch proxy {
+	case false:
+		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
+			slog.String("feed_url", sourceURL.String()),
+		)
+		resp, err := client.Load().R().
+			SetContext(ctx).
+			SetDoNotParseResponse(true).
+			// SetDebug(true).
+			Get(sourceURL.String())
+		defer resp.RawBody().Close()
+		if err != nil || resp.IsError() {
+			if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
+				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
+					slog.String("feed_url", sourceURL.String()),
+				)
+				return FetchFeed(ctx, feedURL, id, true)
+			}
+			return nil, models.NewAPIError(resp.StatusCode(), err)
+		}
+		if resp.Header().Get("Content-Encoding") == "gzip" {
+			// For gzipped response, uncompress first.
+			reader, err := gzip.NewReader(resp.RawBody())
+			if err != nil {
+				return nil, fmt.Errorf("read gzip response: %w", err)
+			}
+			defer reader.Close()
+			const maxBodySize = 10 * 1024 * 1024 // 10 MB limit
+			limitReader := io.LimitReader(reader, maxBodySize)
+			if _, err := io.Copy(feedBuf, limitReader); err != nil {
+				return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+			}
+		} else {
+			// Read response directly.
+			if _, err := io.Copy(feedBuf, resp.RawBody()); err != nil {
+				return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+			}
+		}
+	case true:
+		slogctx.FromCtx(ctx).Debug("Fetching feed via proxy.",
+			slog.String("feed_url", sourceURL.String()),
+			slog.String("feed_id", id),
+		)
+		resp, err := zyte.Proxy(ctx, sourceURL.String())
+		if err != nil {
+			if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
+				return nil, models.NewAPIError(zyteErr.HTTPStatus(), fmt.Errorf("proxy request: %w", zyteErr))
+			}
+			return nil, models.NewAPIError(http.StatusInternalServerError, err)
+		}
+		if _, err := feedBuf.WriteString(*resp.HttpResponseBody); err != nil {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+		}
+	}
+
+	// Parse the response as a feed type.
+	var feedData *feeds.Feed
+	switch {
+	case bytes.Contains(feedBuf.Bytes(), []byte("<feed")):
+		// Atom feed.
+		feedData, err = feeds.NewFeedFromBytes[*atom.Feed](feedBuf.Bytes())
+		if err != nil && errors.Is(err, &validation.StructError{}) {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
+		}
+	case bytes.Contains(feedBuf.Bytes(), []byte("<rss")):
+		// RSS feed.
+		feedData, err = feeds.NewFeedFromBytes[*rss.RSS](feedBuf.Bytes())
+		if err != nil && errors.Is(err, &validation.StructError{}) {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+		}
+	case bytes.Contains(feedBuf.Bytes(), []byte("<html")):
+		// HTML webpage. Use "autodiscovery" to find feed.
+		if newURL, err := feeds.DiscoverFeedURL(
+			sourceURL,
+			feedBuf.Bytes(),
+		); err == nil && newURL != "" &&
+			newURL != sourceURL.String() {
+			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
+			return FetchFeed(ctx, newURL, id, proxy)
+		}
+		return nil, models.ErrNotFound
+	default:
+		return nil, models.NewAPIError(http.StatusUnsupportedMediaType, errors.New("unsupported media type"))
+	}
+
+	// Handle getting through the switch but still not parsing the content.
+	if feedData == nil {
+		return nil, models.ErrNotFound
+	}
+
+	// If the source URL is not set, set it.
+	if feedData.GetSourceURL() == "" || feedData.GetSourceURL() != sourceURL.String() {
+		feedData.SetSourceURL(sourceURL.String())
+	}
+
+	feed := models.NewSyndicationFeed(ctx, feedData.GetSourceURL(), id, feedData)
+	// Try to find an image for the feed if it does not supply one.
+	if feed.GetImage() == nil {
+		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
+		// Fetch and extract image from opengraph data (if any).
+		img, err := client.ExtractMainImage(ctx, feed.GetLink())
+		if err != nil || img == "" {
+			img, err = client.ExtractFavicon(ctx, feed.GetLink())
+		}
+		if img != "" {
+			feed.Image = models.NewRemoteImage(img, feed.GetTitle())
+		} else {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
+				slog.String("feed", feed.GetTitle()),
+				slog.Any("error", err),
+			)
+		}
+	}
+
+	// Set the method used to fetch the feed.
+	if proxy {
+		feed.FetchMethod = models.FeedFetchMethodProxied
+	} else {
+		feed.FetchMethod = models.FeedFetchMethodDirect
+	}
+
+	return feed, nil
+}
+
+// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
+// the boolean return value will be true.
+func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error) {
+	// Fetch from URL as feed.
+	newFeed, err := FetchFeed(ctx, feedURL, "", false)
+	if err != nil {
+		return nil, false, fmt.Errorf("fetch new feed: %w", err)
+	}
+
+	// Create terms queries to match the new feed to an existing feed.
+	var terms []query.Option
+	for url := range slices.Values(newFeed.SourceURLs) {
+		terms = append(terms, query.Term("source_urls", url))
+		// Also match url with trailing slash.
+		if !strings.HasSuffix(url, "/") {
+			terms = append(terms, query.Term("source_urls", url+"/"))
+		}
+	}
+	terms = append(terms, query.Term("url", newFeed.URL))
+	// Also match url with trailing slash.
+	if !strings.HasSuffix(newFeed.URL, "/") {
+		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
+	}
+	// Find any existing feed.
+	resp, err := elastic.Search[*models.Feed](ctx,
+		schema.FeedsIndexRO(),
+		query.Bool(
+			query.Filter(
+				query.Bool(
+					query.Should(terms...),
+				),
+			),
+		),
+		elastic.WithSize(1),
+	)
+	if err != nil {
+		return nil, false, fmt.Errorf("search existing feeds: %w", err)
+	}
+	if len(resp.Results) == 1 {
+		// If an existing feed is found, use that feed.
+		return resp.Results[0], false, nil
+	}
+	// Otherwise use the new feed.
+	return newFeed, true, nil
 }

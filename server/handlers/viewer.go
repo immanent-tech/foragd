@@ -16,6 +16,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -77,7 +78,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), chi.URLParam(req, "*"), "", false)
+			feed, err := service.FetchFeed(req.Context(), chi.URLParam(req, "*"), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -94,7 +95,7 @@ func HandleViewer() http.HandlerFunc {
 
 		case http.MethodPost:
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), req.FormValue("url"), "", false)
+			feed, err := service.FetchFeed(req.Context(), req.FormValue("url"), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

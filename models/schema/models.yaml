@@ -620,6 +620,7 @@ components:
             - created_at
             - last_fetched
             - update_interval
+            - fetch_method
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
@@ -652,6 +653,13 @@ components:
                 value will be derived from the median update interval between published items.
               type: integer
               format: int64
+            fetch_method:
+              description: >
+                defines how this feed should be fetched.
+              type: string
+              enum: ['direct','proxied']
+              x-oapi-codegen-extra-tags:
+                validate: 'required,oneof=direct proxied'
     FeedStatus:
       description: >
         represents the status of fetching the feed.

@@ -51,7 +51,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
-		results, err = models.NewFeedFromURL(ctx, feed.GetSourceURLs()[0], feed.GetID(), c.Validate)
+		results, err = service.FetchFeed(ctx, feed.GetSourceURLs()[0], feed.GetID(), c.Validate)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
@@ -60,7 +60,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
-		results, err = models.NewFeedFromURL(ctx, feedURL.String(), "", c.Validate)
+		results, err = service.FetchFeed(ctx, feedURL.String(), "", c.Validate)
 		if err != nil {
 			return fmt.Errorf("get feed by url: %w", err)
 		}

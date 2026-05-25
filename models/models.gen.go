@@ -28,6 +28,24 @@ func (e ArticleArchiveExtensionType) Valid() bool {
 	}
 }
 
+// Defines values for FeedFetchMethod.
+const (
+	FeedFetchMethodDirect  FeedFetchMethod = "direct"
+	FeedFetchMethodProxied FeedFetchMethod = "proxied"
+)
+
+// Valid indicates whether the value is a known member of the FeedFetchMethod enum.
+func (e FeedFetchMethod) Valid() bool {
+	switch e {
+	case FeedFetchMethodDirect:
+		return true
+	case FeedFetchMethodProxied:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ItemExtensionType.
 const (
 	ItemExtensionTypeYoutube ItemExtensionType = "youtube"
@@ -509,6 +527,9 @@ type Feed struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
+	// FetchMethod defines how this feed should be fetched.
+	FetchMethod FeedFetchMethod `json:"fetch_method" validate:"required,oneof=direct proxied"`
+
 	// Image contains details about a remote image.
 	Image *RemoteImage `json:"image,omitempty"`
 
@@ -540,6 +561,9 @@ type Feed struct {
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
+
+// FeedFetchMethod defines how this feed should be fetched.
+type FeedFetchMethod string
 
 // FeedID is the unique ID of a feed.
 type FeedID = string

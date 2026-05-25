@@ -5,10 +5,8 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -18,18 +16,13 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/go-playground/validator/v10"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/foragd/client"
-
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/reverseproxy"
 )
 
 // GetID retrieves (generates) a unique ID for a FeedStatus object.
@@ -199,132 +192,8 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	return nil
 }
 
-// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
-// the boolean return value will be true.
-func FindOrCreateFeed(ctx context.Context, feedURL string) (*Feed, bool, error) {
-	// Fetch from URL as feed.
-	newFeed, err := NewFeedFromURL(ctx, feedURL, "", false)
-	if err != nil {
-		return nil, false, fmt.Errorf("fetch new feed: %w", err)
-	}
-
-	// Create terms queries to match the new feed to an existing feed.
-	var terms []query.Option
-	for url := range slices.Values(newFeed.SourceURLs) {
-		terms = append(terms, query.Term("source_urls", url))
-		// Also match url with trailing slash.
-		if !strings.HasSuffix(url, "/") {
-			terms = append(terms, query.Term("source_urls", url+"/"))
-		}
-	}
-	terms = append(terms, query.Term("url", newFeed.URL))
-	// Also match url with trailing slash.
-	if !strings.HasSuffix(newFeed.URL, "/") {
-		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
-	}
-	// Find any existing feed.
-	resp, err := elastic.Search[*Feed](ctx,
-		schema.FeedsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Bool(
-					query.Should(terms...),
-				),
-			),
-		),
-		elastic.WithSize(1),
-	)
-	if err != nil {
-		return nil, false, fmt.Errorf("search existing feeds: %w", err)
-	}
-	if len(resp.Results) == 1 {
-		// If an existing feed is found, use that feed.
-		return resp.Results[0], false, nil
-	}
-	// Otherwise use the new feed.
-	return newFeed, true, nil
-}
-
-// NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
-// error is returned.
-func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool) (*Feed, error) {
-	// Parse the raw URL and make any adjustments based on the domain for specific canonical sources.
-	feedURL, err := feedURLParser(ctx, rawURL)
-	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
-	}
-
-	var feed *Feed
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
-
-	result, err := feeds.NewFeedFromURL(
-		ctx,
-		feedURL.String(),
-		feeds.PerformValidation(validate),
-		feeds.WithClient(client.Load()),
-	)
-	if err != nil {
-		if validateErrs, ok := errors.AsType[validator.ValidationErrors](err); ok && validate {
-			slogctx.FromCtx(ctx).Warn("Feed is invalid, continuing without validation",
-				slog.String("url", feedURL.String()),
-				slog.Any("error", validateErrs),
-			)
-			// On validation errors, try again without validation.
-			return NewFeedFromURL(ctx, feedURL.String(), id, false)
-		}
-
-		// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
-		if parseErr, ok := errors.AsType[*feeds.ParseError](err); ok &&
-			(parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) &&
-			!reverseproxy.IsProxiedURL(feedURL.String()) {
-			// Generate a proxied URL.
-			proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
-			if err != nil {
-				return nil, fmt.Errorf("proxy url: %w", err)
-			}
-			slogctx.FromCtx(ctx).Debug("Proxying feed request.",
-				slog.String("url", proxiedURL),
-			)
-			if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
-				return nil, err
-			}
-			// Clean up source URLs: remove proxied URL and re-add original URL as needed.
-			feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(sourceURL string) bool {
-				return reverseproxy.IsProxiedURL(sourceURL)
-			})
-			feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
-			return feed, err
-		} else {
-			// If it has already been proxied and there is a parse error, just return the error.
-			return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), parseErr)
-		}
-	}
-
-	feed = newSyndicationFeed(ctx, feedURL.String(), id, result)
-	// Try to find an image for the feed if it does not supply one.
-	if feed.GetImage() == nil {
-		// Fetch and extract image from opengraph data (if any).
-		img, err := client.ExtractMainImage(ctx, feed.GetLink())
-		if err != nil || img == "" {
-			img, err = client.ExtractFavicon(ctx, feed.GetLink())
-		}
-		if img != "" {
-			feed.Image = NewRemoteImage(img, feed.GetTitle())
-		} else {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
-				slog.String("feed", feed.GetTitle()),
-				slog.Any("error", err),
-			)
-		}
-	}
-
-	return feed, nil
-}
-
-// newSyndicationFeed converts the raw types.FeedSource into a Feed object.
-func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
+// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
+func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
 	}

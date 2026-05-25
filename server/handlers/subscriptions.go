@@ -1011,7 +1011,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
 				slog.String("feed_url", request.URL),
 			)
-			feed, err = models.NewFeedFromURL(req.Context(), request.URL, request.FeedID, false)
+			feed, err = service.FetchFeed(req.Context(), request.URL, request.FeedID, false)
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
