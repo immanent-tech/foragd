@@ -23,7 +23,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "vivaxy.vscode-conventional-commits",
         "golang.go",
         "ymotongpoo.licenser",
         "tamasfe.even-better-toml",
@@ -38,13 +37,13 @@
         "DotJoshJohnson.xml",
         "redhat.vscode-xml",
         "davidlday.languagetool-linter",
-        "nize.oklch-preview",
-        "ms-vscode.wordcount",
         "eliostruyf.vscode-front-matter",
         "cossssmin.posthtml",
         "ms-azuretools.vscode-containers",
         "csstools.postcss",
-        "oderwat.indent-rainbow"
+        "oderwat.indent-rainbow",
+        "adam-bender.commit-message-editor",
+        "kamikillerto.vscode-colorize"
       ]
     }
   }
