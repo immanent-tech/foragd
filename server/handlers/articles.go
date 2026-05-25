@@ -19,7 +19,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -404,46 +403,24 @@ func HandleViewArticle() http.HandlerFunc {
 
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			// Get the full content.
-			data := validation.SanitizeString(req.FormValue("article-full-text"))
-
-			// Respond appropriately.
-			switch content, err := client.ExtractMainContent(req.Context(), article.GetLink(), []byte(data)); {
-			case err != nil:
-				// Couldn't fetch remote article content, show an error message.
-				slogctx.FromCtx(req.Context()).Warn("Unable to fetch remote content for article.",
+			if err := service.GetArticleRemoteContent(req.Context(), article); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get remote content for article.",
 					slog.String("item_id", article.GetID()),
 					slog.String("item_url", article.GetLink()),
-					slog.Any("error", err),
 				)
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
 					msg: models.NewErrorMessage(
-						"Cannot display remote content",
-						"Cannot fetch article content from remote.",
+						"Unable to fetch remote content",
+						"An error occurred fetching the article remote content.",
 					),
 				}).ServeHTTP(res, req)
 				article.ShowFullContent = false
 				return
-			case content == "":
-				// Remote content is same as feed content.
-				slogctx.FromCtx(req.Context()).Warn("No remote content returned for article.",
-					slog.String("item_id", article.GetID()),
-					slog.String("item_url", article.GetLink()),
-				)
-				res.Header().Set(htmx.HeaderReswap, "none")
-				res.Header().Set(htmx.HeaderReplaceUrl, "false")
-				RenderPartial(&Notification{
-					msg: models.NewErrorMessage("No remote content", "Remote article content is missing."),
-				}).ServeHTTP(res, req)
-				article.ShowFullContent = false
-				return
-			default:
-				// Got remote content.
-				article.Content = &content
 			}
 		}
+
 
 		// Render article content.
 		RenderInternalPage(&ArticleContent{

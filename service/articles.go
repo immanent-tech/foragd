@@ -4,15 +4,21 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"slices"
+	"sync"
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/google/gcs"
+	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
 // GetArticles generates Article objects from the Items with the given IDs.
@@ -213,3 +219,80 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 	}
 	return articles, nil
 }
+
+// GetArticleRemoteContent attempts to fetch remote content for an article. It will check if the remote content has
+// already been fetched and cached in GCS and use that content. Otherwise, it uses the Zyte API to fetch the remote
+// content and then cache it for re-use.
+func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
+	var cached bool
+
+	// Try to load content from the article cache.
+	if err := loadArticleCache(); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to load article cache.",
+			slog.Any("error", err),
+		)
+		cached = false
+	} else {
+		if articleBuf, ok := bufPool.Get().(*bytes.Buffer); !ok {
+			slogctx.FromCtx(ctx).Warn("Unable to create buffer for cached article.")
+			cached = false
+		} else {
+			articleBuf.Reset()
+			defer bufPool.Put(articleBuf)
+			if err := articleCache.Copy(ctx, article.GetID(), articleBuf); err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
+					slog.Any("error", err),
+				)
+				cached = false
+			} else {
+				cached = true
+				article.Content = new(articleBuf.String())
+			}
+		}
+	}
+
+	// Fetch article from remote.
+	if !cached {
+		resp, err := zyte.ExtractArticle(
+			ctx,
+			article.GetLink(),
+			zyte.WithResponseBody(true),
+			zyte.WithFollowRedirects(true),
+		)
+		switch {
+		case err != nil:
+			return fmt.Errorf("fetch content: %w", err)
+		case resp.Article == nil:
+			return fmt.Errorf("parse content: %w", err)
+		default:
+			article.Content = resp.Article.ArticleBodyHtml
+		}
+
+		// Cache the content.
+		articleCache.Set(ctx, article.GetID(), []byte(*resp.Article.ArticleBodyHtml))
+	}
+
+	return nil
+}
+
+var articleCache objectCache
+
+var loadArticleCache = sync.OnceValue(func() error {
+	switch config.GetEnvironment() {
+	case config.EnvProduction:
+		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
+		var err error
+		articleCache, err = gcs.Connect(context.Background(), bucketName, "articles")
+		if err != nil {
+			return fmt.Errorf("connect to gcs: %w", err)
+		}
+	default:
+		var err error
+		articleCache, err = newDirCache("articles")
+		if err != nil {
+			return fmt.Errorf("create dir cache: %w", err)
+		}
+	}
+
+	return nil
+})

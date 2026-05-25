@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
-	"github.com/immanent-tech/foragd/reverseproxy"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -595,28 +594,63 @@ templ ArticleContent(article *models.Article) {
 							<div class="mx-auto mt-4 fieldset w-xs justify-items-center">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
-									{{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
+									// {{ proxyURL, _ := reverseproxy.GenerateProxyURL(article.GetLink()) }}
+									// <button
+									// 	id="show-remote-content-button"
+									// 	class="btn btn-wide btn-primary"
+									// 	data-url={ proxyURL }
+									// 	_="
+									// 	on click
+									// 		add .in-flight-request to me
+									// 		set my.disabled to true
+									// 		fetch me.dataset.url
+									// 		put the result into #article-full-text's value then
+									// 		    remove .in-flight-request from me
+									// 		    set my.disabled to false
+									// 			send submit to #extract-article
+									// 		catch e
+									// 		  log 'fetchAndProxy failed with status: ' + e.status
+									// 		  set #article-full-text's value to ''
+									// 		  send submit to #extract-article
+									// 		  remove .in-flight-request from me
+									// 		  set my.disabled to true
+									// 		end
+									// 	"
+									// >
+									// 	<span class="show-loading items-center">
+									// 		<span class="loading mr-3 loading-spinner"></span>
+									// 		Loading
+									// 	</span>
+									// 	<span class="hide-loading">
+									// 		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download mr-3">
+									// 			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+									// 		</svg>
+									// 		<span class="text-sm/6">Get Remote Content</span>
+									// 	</span>
+									// </button>
+									// <form
+									// 	id="extract-article"
+									// 	hx-post={ "/view/article/" + article.GetID() }
+									// 	hx-target={ ContentID.Target() }
+									// 	hx-swap="innerHTML"
+									// 	hx-push-url="false"
+									// 	hx-trigger="submit"
+									// 	hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
+									// 	_="
+									// 	  on htmx:afterRequest(failed) add @disabled to #show-remote-content-button
+									// 	  "
+									// >
+									// class="invisible"
+									// <input type="hidden" name="article-full-text" id="article-full-text"/>
 									<button
 										id="show-remote-content-button"
 										class="btn btn-wide btn-primary"
-										data-url={ proxyURL }
-										_="
-										on click
-											add .in-flight-request to me
-											set my.disabled to true
-											fetch me.dataset.url
-											put the result into #article-full-text's value then
-											    remove .in-flight-request from me
-											    set my.disabled to false
-												send submit to #extract-article
-											catch e
-  											  log 'fetchAndProxy failed with status: ' + e.status
-  											  set #article-full-text's value to ''
-  											  send submit to #extract-article
-    										  remove .in-flight-request from me
-	   										  set my.disabled to true
-											end
-										"
+										hx-post={ "/view/article/" + article.GetID() }
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML"
+										hx-push-url="false"
+										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
+										_="on htmx:afterRequest(failed) add @disabled to me"
 									>
 										<span class="show-loading items-center">
 											<span class="loading mr-3 loading-spinner"></span>
@@ -629,21 +663,7 @@ templ ArticleContent(article *models.Article) {
 											<span class="text-sm/6">Get Remote Content</span>
 										</span>
 									</button>
-									<form
-										id="extract-article"
-										hx-post={ "/view/article/" + article.GetID() }
-										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML"
-										hx-push-url="false"
-										hx-trigger="submit"
-										hx-vals={ templ.JSONString(map[string]any{models.ParamFullArticleContent: true}) }
-										class="invisible"
-										_="
-										  on htmx:afterRequest(failed) add @disabled to #show-remote-content-button
-										  "
-									>
-										<input type="hidden" name="article-full-text" id="article-full-text"/>
-									</form>
+									// </form>
 								} else {
 									<button
 										id="show-feed-content-button"
