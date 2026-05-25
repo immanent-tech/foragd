@@ -55,6 +55,10 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 # Install supporting packages required for certain functionality.
 RUN apk add ca-certificates tzdata
 
+# Add the Zyte CA cert.
+ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
+RUN update-ca-certificates
+
 # Copy project's binary and templates from /build to the scratch container.
 COPY --from=builder /build/foragd /
 
