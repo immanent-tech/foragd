@@ -31,7 +31,7 @@
     "hyperscript.org": "^0.9.91",
     "tailwindcss": "^4.3.0",
     "tailwindcss-safe-area": "^1.3.0",
-    "tailwindcss-visibility": "^1.0.1"
+    "tailwindcss-visibility": "^1.0.3"
   },
   "devDependencies": {
     "@bubblewrap/cli": "^1.24.1",
