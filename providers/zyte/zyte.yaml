@@ -54,13 +54,27 @@ components:
             Set to true to get article data in the article response field.
           type: boolean
         articleOptions:
-          $ref: '#/components/schemas/ArticleOptions'
+          allOf:
+            - $ref: '#/components/schemas/ExtractOptions'
+          x-oapi-codegen-extra-tags:
+            json: 'articleOptions'
         articleList:
           description: >
             Set to true to get article list data in the articleList response field.
           type: boolean
           x-oapi-codegen-extra-tags:
             json: 'articleList'
+        pageContent:
+          description: >
+            Set to true to get page content data in the pageContent response field.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'pageContent'
+        pageContentOptions:
+          allOf:
+            - $ref: '#/components/schemas/ExtractOptions'
+          x-oapi-codegen-extra-tags:
+            json: 'pageContentOptions'
     Response:
       description: >
         is a response from the Zyte API.
@@ -135,15 +149,13 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'extractFrom'
         validate: 'omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly'
-    ArticleOptions:
+    ExtractOptions:
       description:
         are options for controlling article extraction.
       type: object
       properties:
         extractFrom:
           $ref: '#/components/schemas/ExtractFrom'
-      x-oapi-codegen-extra-tags:
-        json: 'articleOptions'
     Article:
       description: >
         is an extracted article.

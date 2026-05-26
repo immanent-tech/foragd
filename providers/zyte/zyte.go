@@ -5,6 +5,7 @@
 package zyte
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -20,6 +21,8 @@ import (
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Zyte.
 	ConfigEnvPrefix = "ZYTE_"
+
+	extractEndpoint = "https://api.zyte.com/v1/extract"
 )
 
 var ErrNotFound = errors.New("not found")
@@ -61,4 +64,10 @@ func (e *ResponseError) WriteLog(ctx context.Context) {
 	default:
 		slogctx.FromCtx(ctx).ErrorContext(ctx, e.Error())
 	}
+}
+
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
 }

@@ -78,7 +78,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), chi.URLParam(req, "*"), "", false)
+			feed, err := service.FetchFeed(req.Context(), chi.URLParam(req, "*"))
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -95,7 +95,7 @@ func HandleViewer() http.HandlerFunc {
 
 		case http.MethodPost:
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), req.FormValue("url"), "", false)
+			feed, err := service.FetchFeed(req.Context(), req.FormValue("url"))
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

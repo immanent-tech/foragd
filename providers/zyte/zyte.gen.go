@@ -115,16 +115,6 @@ type Article struct {
 	Videos []RemoteMedia `json:"videos,omitempty"`
 }
 
-// ArticleOptions are options for controlling article extraction.
-type ArticleOptions struct {
-	// ExtractFrom is the extraction source.
-	// httpResponseBody extracts from httpResponseBody. It is usually faster and cheaper.
-	// browserHtmlOnly extracts from browserHtml. It typically improves quality over httpResponseBody on JavaScript-heavy web pages.
-	// browserHtml extracts from both browserHtml and visual features of the rendered web page. It typically improves quality over browserHtmlOnly, but is not as robust in case of rendering issues.
-	// If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by default for non-AI extraction. In the future, the default value may depend on the target website.
-	ExtractFrom *ExtractFrom `json:"extractFrom" validate:"omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly"`
-}
-
 // Author is an author attribution.
 type Author struct {
 	// Name is the full name of the author, e.g. "Alice".
@@ -150,6 +140,16 @@ type Breadcrumb struct {
 // If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by default for non-AI extraction. In the future, the default value may depend on the target website.
 type ExtractFrom string
 
+// ExtractOptions are options for controlling article extraction.
+type ExtractOptions struct {
+	// ExtractFrom is the extraction source.
+	// httpResponseBody extracts from httpResponseBody. It is usually faster and cheaper.
+	// browserHtmlOnly extracts from browserHtml. It typically improves quality over httpResponseBody on JavaScript-heavy web pages.
+	// browserHtml extracts from both browserHtml and visual features of the rendered web page. It typically improves quality over browserHtmlOnly, but is not as robust in case of rendering issues.
+	// If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by default for non-AI extraction. In the future, the default value may depend on the target website.
+	ExtractFrom *ExtractFrom `json:"extractFrom" validate:"omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly"`
+}
+
 // Metadata is extracted item metadata for single-item data types.
 type Metadata struct {
 	// DateDownloaded The timestamp at which the data was downloaded. Timezone: UTC. Format: ISO 8601 format: "YYYY-MM-DDThh:mm:ssZ"
@@ -171,10 +171,8 @@ type Request struct {
 	Article *bool `json:"article,omitempty"`
 
 	// ArticleList Set to true to get article list data in the articleList response field.
-	ArticleList *bool `json:"articleList"`
-
-	// ArticleOptions are options for controlling article extraction.
-	ArticleOptions *ArticleOptions `json:"articleOptions"`
+	ArticleList    *bool           `json:"articleList"`
+	ArticleOptions *ExtractOptions `json:"articleOptions"`
 
 	// FollowRedirect indicates whether to follow HTTP redirection or not.
 	FollowRedirect *bool `json:"followRedirect"`
@@ -187,6 +185,10 @@ type Request struct {
 
 	// HttpResposeBody Set to true to get the HTTP response body in the httpResponseBody response field.
 	HttpResposeBody *bool `json:"httpResponseBody"`
+
+	// PageContent Set to true to get page content data in the pageContent response field.
+	PageContent        *bool           `json:"pageContent"`
+	PageContentOptions *ExtractOptions `json:"pageContentOptions"`
 
 	// Tags Assign arbitrary key-value pairs to the request that you can use for filtering in the Stats API.
 	Tags map[string]string `json:"tags,omitempty"`

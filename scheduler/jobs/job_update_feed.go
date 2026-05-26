@@ -102,6 +102,18 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Add additional feed details to logs.
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
+	// Set fetch options.
+	var (
+		proxyRequest bool
+		findImage    bool
+	)
+	if details.FetchMethod == models.FeedFetchMethodProxied {
+		proxyRequest = true
+	}
+	if details.GetImage() == nil {
+		findImage = true
+	}
+
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var (
 		feed    *models.Feed
@@ -109,7 +121,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	)
 	for feedURL = range slices.Values(details.GetSourceURLs()) {
 		var err error
-		feed, err = service.FetchFeed(ctx, feedURL, data.FeedID, false)
+		feed, err = service.FetchFeed(
+			ctx,
+			feedURL,
+			service.FetchWithFeedID(data.FeedID),
+			service.FetchWithProxy(proxyRequest),
+			service.FetchAndFindImage(findImage),
+		)
 		if err != nil {
 			var httpErr feeds.ParseError
 			logMsg := &feedStatusLogMsg{

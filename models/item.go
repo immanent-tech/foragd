@@ -16,9 +16,9 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 
-	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
+	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -265,7 +265,7 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 		item.Image = NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
 	} else {
 		// Find an appropriate image for the item and use it.
-		if imgURL, err := client.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+		if imgURL, err := zyte.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
 			item.Image = NewRemoteImage(imgURL, item.GetTitle())
 		}
 	}

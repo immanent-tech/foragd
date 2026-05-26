@@ -487,7 +487,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 		slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 			slog.String("url", url),
 		)
-		newFeed, err := FetchFeed(ctx, url, "", false)
+		newFeed, err := FetchFeed(ctx, url)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to find feed at URL.",
 				slog.String("url", url),
@@ -616,7 +616,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
-			newFeed, err := FetchFeed(ctx, newFeedURL.String(), "", false)
+			newFeed, err := FetchFeed(ctx, newFeedURL.String())
 			if err != nil {
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
@@ -827,7 +827,36 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 	return stats, nil
 }
 
-func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Feed, error) {
+type FetchOptions struct {
+	Proxy     bool
+	FindImage bool
+	FeedID    models.FeedID
+}
+
+func FetchWithProxy(value bool) func(*FetchOptions) {
+	return func(fo *FetchOptions) {
+		fo.Proxy = value
+	}
+}
+
+func FetchAndFindImage(value bool) func(*FetchOptions) {
+	return func(fo *FetchOptions) {
+		fo.FindImage = value
+	}
+}
+
+func FetchWithFeedID(id models.FeedID) func(*FetchOptions) {
+	return func(fo *FetchOptions) {
+		fo.FeedID = id
+	}
+}
+
+func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOptions)) (*models.Feed, error) {
+	opts := &FetchOptions{}
+	for option := range slices.Values(options) {
+		option(opts)
+	}
+
 	// Parse the URL to ensure its valid.
 	sourceURL, err := url.Parse(feedURL)
 	if err != nil {
@@ -843,7 +872,7 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 	defer bufPool.Put(feedBuf)
 
 	// Fetch the feed data from the source url.
-	switch proxy {
+	switch opts.Proxy {
 	case false:
 		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
 			slog.String("feed_url", sourceURL.String()),
@@ -859,7 +888,11 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
 					slog.String("feed_url", sourceURL.String()),
 				)
-				return FetchFeed(ctx, feedURL, id, true)
+				return FetchFeed(ctx, feedURL,
+					FetchWithProxy(true),
+					FetchAndFindImage(opts.FindImage),
+					FetchWithFeedID(opts.FeedID),
+				)
 			}
 			return nil, models.NewAPIError(resp.StatusCode(), err)
 		}
@@ -884,7 +917,7 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 	case true:
 		slogctx.FromCtx(ctx).Debug("Fetching feed via proxy.",
 			slog.String("feed_url", sourceURL.String()),
-			slog.String("feed_id", id),
+			slog.String("feed_id", opts.FeedID),
 		)
 		resp, err := zyte.Proxy(ctx, sourceURL.String())
 		if err != nil {
@@ -921,7 +954,7 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 		); err == nil && newURL != "" &&
 			newURL != sourceURL.String() {
 			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
-			return FetchFeed(ctx, newURL, id, proxy)
+			return FetchFeed(ctx, newURL, options...)
 		}
 		return nil, models.ErrNotFound
 	default:
@@ -938,16 +971,12 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 		feedData.SetSourceURL(sourceURL.String())
 	}
 
-	feed := models.NewSyndicationFeed(ctx, feedData.GetSourceURL(), id, feedData)
+	feed := models.NewSyndicationFeed(ctx, feedData.GetSourceURL(), opts.FeedID, feedData)
 	// Try to find an image for the feed if it does not supply one.
-	if feed.GetImage() == nil {
+	if opts.FindImage {
 		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
 		// Fetch and extract image from opengraph data (if any).
-		img, err := client.ExtractMainImage(ctx, feed.GetLink())
-		if err != nil || img == "" {
-			img, err = client.ExtractFavicon(ctx, feed.GetLink())
-		}
-		if img != "" {
+		if img, err := zyte.ExtractFavicon(ctx, feed.GetLink()); img != "" {
 			feed.Image = models.NewRemoteImage(img, feed.GetTitle())
 		} else {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
@@ -958,7 +987,7 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 	}
 
 	// Set the method used to fetch the feed.
-	if proxy {
+	if opts.Proxy {
 		feed.FetchMethod = models.FeedFetchMethodProxied
 	} else {
 		feed.FetchMethod = models.FeedFetchMethodDirect
@@ -971,7 +1000,7 @@ func FetchFeed(ctx context.Context, feedURL, id string, proxy bool) (*models.Fee
 // the boolean return value will be true.
 func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error) {
 	// Fetch from URL as feed.
-	newFeed, err := FetchFeed(ctx, feedURL, "", false)
+	newFeed, err := FetchFeed(ctx, feedURL)
 	if err != nil {
 		return nil, false, fmt.Errorf("fetch new feed: %w", err)
 	}
