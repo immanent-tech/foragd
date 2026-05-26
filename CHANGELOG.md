@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.147.1](https://github.com/immanent-tech/foragd/compare/v0.147.0...v0.147.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* 🔧 fix request logic ([8150b87](https://github.com/immanent-tech/foragd/commit/8150b87fd69c2dfe7b5253f30fe04d1aff01bfc5))
+* **service:** 🔧 ensure feed URL is passed through extra parser ([d8d6247](https://github.com/immanent-tech/foragd/commit/d8d62475d0e5d58d5979d5600e3ca6a513459afb))
+
+
+### Performance Improvements
+
+* **service:** 🔧 optimise when extra info is fetched for feeds/items ([ca02865](https://github.com/immanent-tech/foragd/commit/ca028655795d8c0621bd6e3a667c332058687316))
+
 ## [0.147.0](https://github.com/immanent-tech/foragd/compare/v0.146.0...v0.147.0) (2026-05-26)
 
 
