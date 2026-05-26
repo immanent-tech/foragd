@@ -88,9 +88,9 @@ components:
         - job_data
       properties:
         created_at:
-          $ref: 'models.yaml#/components/schemas/CreatedAt'
+          $ref: '../../models/schema/models.yaml#/components/schemas/CreatedAt'
         updated_at:
-          $ref: 'models.yaml#/components/schemas/UpdatedAt'
+          $ref: '../../models/schema/models.yaml#/components/schemas/UpdatedAt'
         job_description:
           description: is a summary of what the job does.
           type: string
@@ -139,7 +139,7 @@ components:
         - deleted
       properties:
         feed_id:
-          $ref: 'models.yaml#/components/schemas/FeedID'
+          $ref: '../../models/schema/models.yaml#/components/schemas/FeedID'
         deleted:
           description: indicates that the feed associated with this job has been deleted since the last run.
           type: boolean
@@ -167,9 +167,9 @@ components:
         - email_id
       properties:
         user_id:
-          $ref: 'models.yaml#/components/schemas/UserID'
+          $ref: '../../models/schema/models.yaml#/components/schemas/UserID'
         email_id:
-          $ref: 'models.yaml#/components/schemas/EmailTemplateID'
+          $ref: '../../models/schema/models.yaml#/components/schemas/EmailTemplateID'
     TestJob:
       description: represents the data for a test job.
       type: object

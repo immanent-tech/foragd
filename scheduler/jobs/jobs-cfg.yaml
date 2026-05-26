@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: jobs
-output: ../../scheduler/jobs/jobs.gen.go
+output: jobs.gen.go
 generate:
   models: true
 output-options:
@@ -13,4 +13,4 @@ output-options:
 compatibility:
   always-prefix-enum-values: true
 import-mapping:
-  models.yaml: github.com/immanent-tech/foragd/models
+  ../../models/schema/models.yaml: github.com/immanent-tech/foragd/models
