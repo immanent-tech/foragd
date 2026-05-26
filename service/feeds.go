@@ -141,6 +141,18 @@ func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastF
 			slog.String("old_image", oldData.GetImage().GetURL()),
 			slog.String("new_image", newData.GetImage().GetURL()),
 		)
+	case oldData.GetImage() == nil && newData.GetImage() == nil:
+		// Try to find an image for the feed if it does not supply one.
+		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
+		// Fetch and extract image from opengraph data (if any).
+		if img, err := ExtractFavicon(ctx, newData.GetLink()); img != "" {
+			updates["image"] = models.NewRemoteImage(img, newData.GetTitle())
+		} else {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
+				slog.String("feed", newData.GetTitle()),
+				slog.Any("error", err),
+			)
+		}
 	}
 
 	// Update the fetch method.
@@ -833,22 +845,14 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 
 // FetchOptions defines options that manipulate how a feed will be fetched from a remote URL.
 type FetchOptions struct {
-	Proxy     bool
-	FindImage bool
-	FeedID    models.FeedID
+	Proxy  bool
+	FeedID models.FeedID
 }
 
 // FetchWithProxy option will ensure the fetch feed request is proxied.
 func FetchWithProxy(value bool) func(*FetchOptions) {
 	return func(fo *FetchOptions) {
 		fo.Proxy = value
-	}
-}
-
-// FetchAndFindImage option will perform an additional step to find an image to represent the feed.
-func FetchAndFindImage(value bool) func(*FetchOptions) {
-	return func(fo *FetchOptions) {
-		fo.FindImage = value
 	}
 }
 
@@ -899,7 +903,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 				)
 				return FetchFeed(ctx, feedURL,
 					FetchWithProxy(true),
-					FetchAndFindImage(opts.FindImage),
 					FetchWithFeedID(opts.FeedID),
 				)
 			}
@@ -985,20 +988,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 		feedData.SetSourceURL(sourceURL.String())
 	}
 
-	feed := NewFeed(ctx, feedData.GetSourceURL(), opts.FeedID, feedData)
-	// Try to find an image for the feed if it does not supply one.
-	if opts.FindImage {
-		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
-		// Fetch and extract image from opengraph data (if any).
-		if img, err := ExtractFavicon(ctx, feed.GetLink()); img != "" {
-			feed.Image = models.NewRemoteImage(img, feed.GetTitle())
-		} else {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
-				slog.String("feed", feed.GetTitle()),
-				slog.Any("error", err),
-			)
-		}
-	}
+	feed := NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
@@ -1057,7 +1047,7 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 }
 
 // NewFeed converts a feed source from the go-syndication library into a models.Feed object.
-func NewFeed(ctx context.Context, url string, id models.FeedID, source *feeds.Feed) *models.Feed {
+func NewFeed(url string, id models.FeedID, source *feeds.Feed) *models.Feed {
 	if id == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
 	}
@@ -1091,7 +1081,7 @@ func NewFeed(ctx context.Context, url string, id models.FeedID, source *feeds.Fe
 	itemCh := make(chan models.Item)
 	for i := range slices.Values(source.GetItems()) {
 		wg.Go(func() {
-			item := NewFeedItem(ctx, &i, feed)
+			item := NewFeedItem(&i, feed)
 			itemCh <- *item
 		})
 	}

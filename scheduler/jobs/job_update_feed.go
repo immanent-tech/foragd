@@ -105,13 +105,9 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Set fetch options.
 	var (
 		proxyRequest bool
-		findImage    bool
 	)
 	if details.FetchMethod == models.FeedFetchMethodProxied {
 		proxyRequest = true
-	}
-	if details.GetImage() == nil {
-		findImage = true
 	}
 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
@@ -126,7 +122,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			feedURL,
 			service.FetchWithFeedID(data.FeedID),
 			service.FetchWithProxy(proxyRequest),
-			service.FetchAndFindImage(findImage),
 		)
 		if err != nil {
 			var httpErr feeds.ParseError
@@ -209,7 +204,17 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			slog.Int("new_items", len(newItems)),
 			slog.Duration("interval", time.Duration(details.UpdateInterval)),
 		)
-		// Add any new items.
+
+		// Try to add images to any items missing an image.
+		for item := range slices.Values(newItems) {
+			if item.GetImage() == nil {
+				if imgURL, err := service.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+					item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+				}
+			}
+		}
+
+		// Add new items.
 		if err := service.AddItems(ctx, newItems...); err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}

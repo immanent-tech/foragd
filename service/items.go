@@ -360,7 +360,7 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 }
 
 // NewFeedItem generates an Item from the underlying feed data.
-func NewFeedItem(ctx context.Context, source *feeds.Item, feed *models.Feed) *models.Item {
+func NewFeedItem(source *feeds.Item, feed *models.Feed) *models.Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID models.ItemID
 	if sourceID := source.GetID(); sourceID != "" {
@@ -402,11 +402,6 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *models.Feed) *mo
 	if sourceImg := source.GetImage(); sourceImg != nil {
 		// Source has an image, use that.
 		item.Image = models.NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
-	} else {
-		// Find an appropriate image for the item and use it.
-		if imgURL, err := ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
-			item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
-		}
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
