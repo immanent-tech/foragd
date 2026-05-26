@@ -30,8 +30,10 @@ func (e ArticleArchiveExtensionType) Valid() bool {
 
 // Defines values for FeedFetchMethod.
 const (
-	FeedFetchMethodDirect  FeedFetchMethod = "direct"
-	FeedFetchMethodProxied FeedFetchMethod = "proxied"
+	FeedFetchMethodDirect       FeedFetchMethod = "direct"
+	FeedFetchMethodProxied      FeedFetchMethod = "proxied"
+	FeedFetchMethodZyteArticles FeedFetchMethod = "zyte-articles"
+	FeedFetchMethodZyteProducts FeedFetchMethod = "zyte-products"
 )
 
 // Valid indicates whether the value is a known member of the FeedFetchMethod enum.
@@ -40,6 +42,10 @@ func (e FeedFetchMethod) Valid() bool {
 	case FeedFetchMethodDirect:
 		return true
 	case FeedFetchMethodProxied:
+		return true
+	case FeedFetchMethodZyteArticles:
+		return true
+	case FeedFetchMethodZyteProducts:
 		return true
 	default:
 		return false
@@ -528,7 +534,7 @@ type Feed struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// FetchMethod defines how this feed should be fetched.
-	FetchMethod FeedFetchMethod `json:"fetch_method" validate:"required,oneof=direct proxied"`
+	FetchMethod FeedFetchMethod `json:"fetch_method" validate:"required,oneof=direct proxied zyte-products zyte-articles"`
 
 	// Image contains details about a remote image.
 	Image *RemoteImage `json:"image,omitempty"`
@@ -542,6 +548,9 @@ type Feed struct {
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
+
+	// Quirks contains data on quirks for a feed.
+	Quirks *FeedQuirks `json:"quirks,omitempty"`
 
 	// SourceType indicates what type of source the object came from.
 	SourceType SourceType `json:"source_type"`
@@ -567,6 +576,12 @@ type FeedFetchMethod string
 
 // FeedID is the unique ID of a feed.
 type FeedID = string
+
+// FeedQuirks contains data on quirks for a feed.
+type FeedQuirks struct {
+	// NoImage when set to true, indicates that the feed has no discoverable image, either in its source or on the website that it represents. Setting this quirk to true will stop any logic that tries to update the feed image.
+	NoImage *bool `json:"no_image,omitempty"`
+}
 
 // FeedStatus represents the status of fetching the feed.
 type FeedStatus struct {

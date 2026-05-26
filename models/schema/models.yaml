@@ -657,9 +657,21 @@ components:
               description: >
                 defines how this feed should be fetched.
               type: string
-              enum: ['direct','proxied']
+              enum: ['direct','proxied','zyte-products','zyte-articles']
               x-oapi-codegen-extra-tags:
-                validate: 'required,oneof=direct proxied'
+                validate: 'required,oneof=direct proxied zyte-products zyte-articles'
+            quirks:
+              $ref: '#/components/schemas/FeedQuirks'
+    FeedQuirks:
+      description: >
+        contains data on quirks for a feed.
+      type: object
+      properties:
+        no_image:
+          description: >
+            when set to true, indicates that the feed has no discoverable image, either in its source or on the website
+            that it represents. Setting this quirk to true will stop any logic that tries to update the feed image.
+          type: boolean
     FeedStatus:
       description: >
         represents the status of fetching the feed.

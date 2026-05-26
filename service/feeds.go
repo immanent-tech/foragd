@@ -152,6 +152,9 @@ func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastF
 				slog.String("feed", newData.GetTitle()),
 				slog.Any("error", err),
 			)
+			quirks := oldData.Quirks
+			quirks.NoImage = new(true)
+			updates["quirks"] = quirks
 		}
 	}
 

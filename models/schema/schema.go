@@ -327,6 +327,7 @@ var (
 						templates.WithInt64Mapping("update_interval"),
 						templates.WithKeywordMapping("source_urls"),
 						templates.WithKeywordMapping("fetch_method"),
+						templates.WithFlattenedMapping("quirks"),
 					),
 				),
 				templates.WithTemplateSettings(
