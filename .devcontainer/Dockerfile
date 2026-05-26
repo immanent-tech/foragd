@@ -10,6 +10,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
     apt -y install fish micro graphviz ca-certificates \
     python3
 
+# Add the Zyte CA cert.
+ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
+RUN update-ca-certificates
+
 # Copy go from official image
 COPY --from=docker.io/golang:${GO_VERSION} /usr/local/go/ /usr/local/go/
 
