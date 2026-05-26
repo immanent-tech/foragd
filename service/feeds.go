@@ -831,30 +831,35 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 	return stats, nil
 }
 
+// FetchOptions defines options that manipulate how a feed will be fetched from a remote URL.
 type FetchOptions struct {
 	Proxy     bool
 	FindImage bool
 	FeedID    models.FeedID
 }
 
+// FetchWithProxy option will ensure the fetch feed request is proxied.
 func FetchWithProxy(value bool) func(*FetchOptions) {
 	return func(fo *FetchOptions) {
 		fo.Proxy = value
 	}
 }
 
+// FetchAndFindImage option will perform an additional step to find an image to represent the feed.
 func FetchAndFindImage(value bool) func(*FetchOptions) {
 	return func(fo *FetchOptions) {
 		fo.FindImage = value
 	}
 }
 
+// FetchWithFeedID assigns the given FeedID to the feed object.
 func FetchWithFeedID(id models.FeedID) func(*FetchOptions) {
 	return func(fo *FetchOptions) {
 		fo.FeedID = id
 	}
 }
 
+// FetchFeed retrieves the feed found at the given URL.
 func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOptions)) (*models.Feed, error) {
 	opts := &FetchOptions{}
 	for option := range slices.Values(options) {
@@ -862,7 +867,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 	}
 
 	// Parse the URL to ensure its valid.
-	sourceURL, err := url.Parse(feedURL)
+	sourceURL, err := feedURLParser(feedURL)
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
 	}
@@ -1051,7 +1056,7 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	return newFeed, true, nil
 }
 
-// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
+// NewFeed converts a feed source from the go-syndication library into a models.Feed object.
 func NewFeed(ctx context.Context, url string, id models.FeedID, source *feeds.Feed) *models.Feed {
 	if id == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
@@ -1111,4 +1116,38 @@ func NewFeed(ctx context.Context, url string, id models.FeedID, source *feeds.Fe
 	}
 
 	return feed
+}
+
+// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on
+// where to find their feeds.
+func feedURLParser(urlStr string) (*url.URL, error) {
+	// Parse the URL.
+	feedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	// For some popular sites that have an API or special URL for feeds, handle those.
+	switch {
+	case strings.Contains(feedURL.Host, "reddit.com"):
+		switch {
+		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
+			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
+			}
+		}
+	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		switch {
+		case !strings.HasPrefix(feedURL.Path, "rss") && !strings.HasPrefix(feedURL.Path, "rss/"):
+			// Tumblr blogs usually have their feed at the "/feed" path.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for tumblr.com URL: %w", err)
+			}
+		}
+	}
+
+	return feedURL, nil
 }
