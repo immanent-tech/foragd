@@ -13,6 +13,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/immanent-tech/go-syndication/opengraph"
@@ -86,12 +88,21 @@ func ExtractMainImage(ctx context.Context, rawURL string) (string, error) {
 	// Parse the found URL.
 	imgURL, err := url.Parse(foundURL)
 	if err != nil {
-		return foundURL, fmt.Errorf("parse image URL %q: %w", foundURL, err)
+		return foundURL, models.NewAPIError(
+			http.StatusUnprocessableEntity,
+			fmt.Errorf("parse image URL %q: %w", foundURL, err),
+		)
+	}
+
+	// Check it points to an actual image.
+	if !slices.ContainsFunc(models.ImageExtensions, func(ext string) bool {
+		return strings.HasSuffix(imgURL.Path, ext)
+	}) {
+		return "", models.NewAPIError(http.StatusNotAcceptable, errors.New("invalid image extension"))
 	}
 
 	// If it is not an absolute URL, resolve it relative to the page URL.
 	if !imgURL.IsAbs() {
-		sourceURL, _ := url.Parse(rawURL)
 		return sourceURL.ResolveReference(imgURL).String(), nil
 	}
 
