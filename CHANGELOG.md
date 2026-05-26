@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.147.0](https://github.com/immanent-tech/foragd/compare/v0.146.0...v0.147.0) (2026-05-26)
+
+
+### Features
+
+* ✨ feed fetching tweaks ([ae28ff2](https://github.com/immanent-tech/foragd/commit/ae28ff21b311d70d625d62e416d35eae073dc633))
+* ✨ use zyte to fetch remote article content ([7439d55](https://github.com/immanent-tech/foragd/commit/7439d55b10f50994855f743397cbdffc60d8e405))
+* **service:** ✨ use Zyte as a proxy for downloading feed data where necessary ([9d4382d](https://github.com/immanent-tech/foragd/commit/9d4382dcffb1589c03af420de252fd5be5069e21))
+* **zyte:** ✨ add zyte API provider package ([649debe](https://github.com/immanent-tech/foragd/commit/649debeddd8bcbb5f9dee11a350c066ee13665ae))
+
+
+### Bug Fixes
+
+* **templates/landing:** 🔧 use relative path to images in blog posts on landing page ([92e1f9d](https://github.com/immanent-tech/foragd/commit/92e1f9d113e2f96ff6db29a0260db8bc4d7970c2))
+
 ## [0.146.0](https://github.com/immanent-tech/foragd/compare/v0.145.0...v0.146.0) (2026-05-22)
 
 
