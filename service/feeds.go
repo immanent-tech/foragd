@@ -14,18 +14,22 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/immanent-tech/go-syndication/validation"
 
 	"github.com/immanent-tech/foragd/client"
@@ -926,7 +930,11 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 			}
 			return nil, models.NewAPIError(http.StatusInternalServerError, err)
 		}
-		if _, err := feedBuf.WriteString(*resp.HttpResponseBody); err != nil {
+		body, err := resp.GetBody()
+		if err != nil {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("get response body: %w", err))
+		}
+		if _, err := feedBuf.Write(body); err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
 		}
 	}
@@ -958,6 +966,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 		}
 		return nil, models.ErrNotFound
 	default:
+		godump.Dump(feedBuf.String())
 		return nil, models.NewAPIError(http.StatusUnsupportedMediaType, errors.New("unsupported media type"))
 	}
 
@@ -971,12 +980,12 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 		feedData.SetSourceURL(sourceURL.String())
 	}
 
-	feed := models.NewSyndicationFeed(ctx, feedData.GetSourceURL(), opts.FeedID, feedData)
+	feed := NewFeed(ctx, feedData.GetSourceURL(), opts.FeedID, feedData)
 	// Try to find an image for the feed if it does not supply one.
 	if opts.FindImage {
 		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
 		// Fetch and extract image from opengraph data (if any).
-		if img, err := zyte.ExtractFavicon(ctx, feed.GetLink()); img != "" {
+		if img, err := ExtractFavicon(ctx, feed.GetLink()); img != "" {
 			feed.Image = models.NewRemoteImage(img, feed.GetTitle())
 		} else {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
@@ -1040,4 +1049,66 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	}
 	// Otherwise use the new feed.
 	return newFeed, true, nil
+}
+
+// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
+func NewFeed(ctx context.Context, url string, id models.FeedID, source *feeds.Feed) *models.Feed {
+	if id == "" {
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
+	}
+	feed := &models.Feed{
+		FeedID:       id,
+		CreatedAt:    time.Now().UTC(),
+		LastFetched:  types.UnixEpoch,
+		Title:        source.GetTitle(),
+		Description:  new(source.GetDescription()),
+		SourceType:   models.SourceType(source.SourceType),
+		SourceURLs:   []string{source.GetSourceURL()},
+		URL:          source.GetLink(),
+		Authors:      source.GetAuthors(),
+		Contributors: source.GetContributors(),
+		Copyright:    source.GetRights(),
+		Language:     source.GetLanguage(),
+		Categories:   source.GetCategories(),
+	}
+	if pubDate := source.GetPublishedDate(); pubDate != nil {
+		feed.Published = pubDate.UTC()
+	} else {
+		feed.Published = models.UnixEpoch
+	}
+	if updatedDate := source.GetUpdatedDate(); updatedDate != nil {
+		feed.Updated = new(updatedDate.UTC())
+	}
+
+	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
+	// calls to fetch additional information (e.g., images).
+	var wg sync.WaitGroup
+	itemCh := make(chan models.Item)
+	for i := range slices.Values(source.GetItems()) {
+		wg.Go(func() {
+			item := NewFeedItem(ctx, &i, feed)
+			itemCh <- *item
+		})
+	}
+	go func() {
+		defer close(itemCh)
+		wg.Wait()
+	}()
+	for item := range itemCh {
+		feed.Items = append(feed.Items, &item)
+	}
+
+	// Add the url used to find the feed to the source URLs if needed.
+	if !slices.Contains(feed.SourceURLs, url) {
+		feed.SourceURLs = append(feed.SourceURLs, url)
+	}
+	// Add any image found.
+	if sourceImg := source.GetImage(); sourceImg != nil {
+		feed.Image = &models.RemoteImage{
+			URL:   new(sourceImg.GetURL()),
+			Title: new(sourceImg.GetTitle()),
+		}
+	}
+
+	return feed
 }

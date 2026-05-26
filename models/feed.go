@@ -11,7 +11,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -190,68 +189,6 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
-func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
-	if id == "" {
-		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
-	}
-	feed := &Feed{
-		FeedID:       id,
-		CreatedAt:    time.Now().UTC(),
-		LastFetched:  types.UnixEpoch,
-		Title:        source.GetTitle(),
-		Description:  new(source.GetDescription()),
-		SourceType:   SourceType(source.SourceType),
-		SourceURLs:   []string{source.GetSourceURL()},
-		URL:          source.GetLink(),
-		Authors:      source.GetAuthors(),
-		Contributors: source.GetContributors(),
-		Copyright:    source.GetRights(),
-		Language:     source.GetLanguage(),
-		Categories:   source.GetCategories(),
-	}
-	if pubDate := source.GetPublishedDate(); pubDate != nil {
-		feed.Published = pubDate.UTC()
-	} else {
-		feed.Published = UnixEpoch
-	}
-	if updatedDate := source.GetUpdatedDate(); updatedDate != nil {
-		feed.Updated = new(updatedDate.UTC())
-	}
-
-	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
-	// calls to fetch additional information (e.g., images).
-	var wg sync.WaitGroup
-	itemCh := make(chan Item)
-	for i := range slices.Values(source.GetItems()) {
-		wg.Go(func() {
-			item := NewFeedItem(ctx, &i, feed)
-			itemCh <- *item
-		})
-	}
-	go func() {
-		defer close(itemCh)
-		wg.Wait()
-	}()
-	for item := range itemCh {
-		feed.Items = append(feed.Items, &item)
-	}
-
-	// Add the url used to find the feed to the source URLs if needed.
-	if !slices.Contains(feed.SourceURLs, url) {
-		feed.SourceURLs = append(feed.SourceURLs, url)
-	}
-	// Add any image found.
-	if sourceImg := source.GetImage(); sourceImg != nil {
-		feed.Image = &RemoteImage{
-			URL:   new(sourceImg.GetURL()),
-			Title: new(sourceImg.GetTitle()),
-		}
-	}
-
-	return feed
 }
 
 // FeedSorting contains the sort options for sorting item search results.

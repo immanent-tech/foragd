@@ -88,8 +88,8 @@ func (m *MarkObjectParams) Sanitise() error {
 	return nil
 }
 
-// validateDatetime will check whether a time.Time is not either the zero value or equal to the Unix epoch.
-func validateDatetime(dt time.Time) (bool, error) {
+// ValidateDatetime will check whether a time.Time is not either the zero value or equal to the Unix epoch.
+func ValidateDatetime(dt time.Time) (bool, error) {
 	switch {
 	case dt.IsZero():
 		return false, fmt.Errorf("%w: is zero time value", ErrInvalidDateTimeFormat)

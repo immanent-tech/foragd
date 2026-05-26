@@ -7,15 +7,23 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strconv"
+	"strings"
+	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
+	"github.com/zeebo/xxh3"
+
+	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/atom"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
@@ -349,4 +357,104 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
+}
+
+// NewFeedItem generates an Item from the underlying feed data.
+func NewFeedItem(ctx context.Context, source *feeds.Item, feed *models.Feed) *models.Item {
+	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
+	var itemID models.ItemID
+	if sourceID := source.GetID(); sourceID != "" {
+		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+sourceID)), 10)
+	} else {
+		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+source.GetLink())), 10)
+	}
+	item := &models.Item{
+		ItemID:       itemID,
+		FeedID:       feed.GetID(),
+		Timestamp:    time.Now().UTC(),
+		Title:        source.GetTitle(),
+		Description:  new(validation.SanitizeString(source.GetDescription())),
+		SourceType:   feed.SourceType,
+		URL:          source.GetLink(),
+		Authors:      source.GetAuthors(),
+		Contributors: source.GetContributors(),
+		Copyright:    source.GetRights(),
+		Language:     source.GetLanguage(),
+		Categories:   source.GetCategories(),
+		FeedTitle:    feed.GetTitle(),
+	}
+	if content := source.GetContent(); content != nil {
+		item.Content = new(validation.SanitizeString(*content))
+	}
+	if pubDate := source.GetPublishedDate(); pubDate != nil {
+		item.Published = pubDate.UTC()
+	} else {
+		item.Published = item.Timestamp
+	}
+	if updDate := source.GetUpdatedDate(); updDate != nil {
+		item.Updated = new(updDate.UTC())
+	}
+
+	// Add youtube extension data if found.
+	addYoutubeExtension(source, item)
+
+	// Set the image.
+	if sourceImg := source.GetImage(); sourceImg != nil {
+		// Source has an image, use that.
+		item.Image = models.NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
+	} else {
+		// Find an appropriate image for the item and use it.
+		if imgURL, err := ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+			item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+		}
+	}
+
+	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
+	if valid, _ := models.ValidateDatetime(item.Published); !valid {
+		item.Published = feed.GetTimestamp()
+	}
+
+	return item
+}
+
+// NewEmailItem generates a new Item from an email.
+func NewEmailItem(email models.Email, subscription *models.Subscription) *models.Item {
+	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
+	itemID := "item_" + strconv.FormatUint(xxh3.Hash([]byte(email.GetID())), 10)
+	item := &models.Item{
+		ItemID:     itemID,
+		FeedID:     subscription.GetFeedID(),
+		Timestamp:  email.Timestamp(),
+		Published:  email.Timestamp(),
+		Updated:    new(email.Timestamp()),
+		Title:      email.GetSubject(),
+		SourceType: models.SourceTypeEmail,
+		Authors:    []string{email.GetFrom().String()},
+		Content:    new(email.GetBody()),
+		FeedTitle:  subscription.GetTitle(),
+	}
+
+	return item
+}
+
+func addYoutubeExtension(source *feeds.Item, item *models.Item) {
+	// Extract and add additional information for youtube feeds.
+	if strings.Contains(item.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
+		if entry, isValidEntry := source.ItemSource.(*atom.Entry); isValidEntry {
+			if len(entry.MediaGroup.Content) > 0 {
+				width := entry.MediaGroup.Content[0].Width
+				height := entry.MediaGroup.Content[0].Height
+				if videoID, isValidVideoID := strings.CutPrefix(source.GetID(), "yt:video:"); isValidVideoID {
+					item.ExtensionType = new(models.ItemExtensionTypeYoutube)
+					item.ExtensionData = &models.Item_ExtensionData{}
+					item.ExtensionData.FromItemExtensionYoutube(models.ItemExtensionYoutube{
+						VideoId: videoID,
+						Width:   &width,
+						Height:  &height,
+					})
+				}
+			}
+
+		}
+	}
 }

@@ -5,8 +5,8 @@
 package zyte
 
 import (
-	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -66,8 +66,13 @@ func (e *ResponseError) WriteLog(ctx context.Context) {
 	}
 }
 
-var bufPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
+func (r *Response) GetBody() ([]byte, error) {
+	if r.HttpResponseBody != nil {
+		body, err := base64.StdEncoding.DecodeString(*r.HttpResponseBody)
+		if err != nil {
+			return nil, fmt.Errorf("decode body: %w", err)
+		}
+		return body, nil
+	}
+	return nil, ErrNotFound
 }

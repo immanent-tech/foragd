@@ -4,22 +4,12 @@
 package models
 
 import (
-	"context"
 	"maps"
 	"slices"
-	"strconv"
-	"strings"
 	"time"
-
-	"github.com/zeebo/xxh3"
-
-	feeds "github.com/immanent-tech/go-syndication"
-	"github.com/immanent-tech/go-syndication/atom"
 
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
-	"github.com/immanent-tech/foragd/providers/zyte"
-	"github.com/immanent-tech/foragd/validation"
 )
 
 // Items is a slice of items.
@@ -195,11 +185,11 @@ func (i *Item) HasContent() bool {
 // order.
 func (i *Item) GetTimestamp() time.Time {
 	if i.Updated != nil {
-		if valid, _ := validateDatetime(*i.Updated); valid {
+		if valid, _ := ValidateDatetime(*i.Updated); valid {
 			return i.Updated.UTC()
 		}
 	}
-	if valid, _ := validateDatetime(i.Published); valid {
+	if valid, _ := ValidateDatetime(i.Published); valid {
 		return i.Published.UTC()
 	}
 	return i.Timestamp.UTC()
@@ -218,104 +208,4 @@ func (i *Item) WasUpdated() bool {
 // published after the given time and before now (to ignore potentially incorrect dates in the future).
 func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
-}
-
-// NewFeedItem generates an Item from the underlying feed data.
-func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
-	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
-	var itemID ItemID
-	if sourceID := source.GetID(); sourceID != "" {
-		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+sourceID)), 10)
-	} else {
-		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+source.GetLink())), 10)
-	}
-	item := &Item{
-		ItemID:       itemID,
-		FeedID:       feed.GetID(),
-		Timestamp:    time.Now().UTC(),
-		Title:        source.GetTitle(),
-		Description:  new(validation.SanitizeString(source.GetDescription())),
-		SourceType:   feed.SourceType,
-		URL:          source.GetLink(),
-		Authors:      source.GetAuthors(),
-		Contributors: source.GetContributors(),
-		Copyright:    source.GetRights(),
-		Language:     source.GetLanguage(),
-		Categories:   source.GetCategories(),
-		FeedTitle:    feed.GetTitle(),
-	}
-	if content := source.GetContent(); content != nil {
-		item.Content = new(validation.SanitizeString(*content))
-	}
-	if pubDate := source.GetPublishedDate(); pubDate != nil {
-		item.Published = pubDate.UTC()
-	} else {
-		item.Published = item.Timestamp
-	}
-	if updDate := source.GetUpdatedDate(); updDate != nil {
-		item.Updated = new(updDate.UTC())
-	}
-
-	// Add youtube extension data if found.
-	addYoutubeExtension(source, item)
-
-	// Set the image.
-	if sourceImg := source.GetImage(); sourceImg != nil {
-		// Source has an image, use that.
-		item.Image = NewRemoteImage(sourceImg.GetURL(), sourceImg.GetTitle())
-	} else {
-		// Find an appropriate image for the item and use it.
-		if imgURL, err := zyte.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
-			item.Image = NewRemoteImage(imgURL, item.GetTitle())
-		}
-	}
-
-	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
-	if valid, _ := validateDatetime(item.Published); !valid {
-		item.Published = feed.GetTimestamp()
-	}
-
-	return item
-}
-
-// NewEmailItem generates a new Item from an email.
-func NewEmailItem(email Email, subscription *Subscription) *Item {
-	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
-	itemID := "item_" + strconv.FormatUint(xxh3.Hash([]byte(email.GetID())), 10)
-	item := &Item{
-		ItemID:     itemID,
-		FeedID:     subscription.GetFeedID(),
-		Timestamp:  email.Timestamp(),
-		Published:  email.Timestamp(),
-		Updated:    new(email.Timestamp()),
-		Title:      email.GetSubject(),
-		SourceType: SourceTypeEmail,
-		Authors:    []string{email.GetFrom().String()},
-		Content:    new(email.GetBody()),
-		FeedTitle:  subscription.GetTitle(),
-	}
-
-	return item
-}
-
-func addYoutubeExtension(source *feeds.Item, item *Item) {
-	// Extract and add additional information for youtube feeds.
-	if strings.Contains(item.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
-		if entry, isValidEntry := source.ItemSource.(*atom.Entry); isValidEntry {
-			if len(entry.MediaGroup.Content) > 0 {
-				width := entry.MediaGroup.Content[0].Width
-				height := entry.MediaGroup.Content[0].Height
-				if videoID, isValidVideoID := strings.CutPrefix(source.GetID(), "yt:video:"); isValidVideoID {
-					item.ExtensionType = new(ItemExtensionTypeYoutube)
-					item.ExtensionData = &Item_ExtensionData{}
-					item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{
-						VideoId: videoID,
-						Width:   &width,
-						Height:  &height,
-					})
-				}
-			}
-
-		}
-	}
 }
