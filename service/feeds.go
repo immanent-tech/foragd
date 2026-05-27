@@ -851,22 +851,25 @@ type FetchOptions struct {
 	FeedID models.FeedID
 }
 
+// FetchOption is a functional option that controls some aspect of how a feed will be fetched.
+type FetchOption func(*FetchOptions)
+
 // FetchWithProxy option will ensure the fetch feed request is proxied.
-func FetchWithProxy(value bool) func(*FetchOptions) {
+func FetchWithProxy(value bool) FetchOption {
 	return func(fo *FetchOptions) {
 		fo.Proxy = value
 	}
 }
 
 // FetchWithFeedID assigns the given FeedID to the feed object.
-func FetchWithFeedID(id models.FeedID) func(*FetchOptions) {
+func FetchWithFeedID(id models.FeedID) FetchOption {
 	return func(fo *FetchOptions) {
 		fo.FeedID = id
 	}
 }
 
 // FetchFeed retrieves the feed found at the given URL.
-func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOptions)) (*models.Feed, error) {
+func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*models.Feed, error) {
 	opts := &FetchOptions{}
 	for option := range slices.Values(options) {
 		option(opts)
@@ -876,6 +879,11 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 	sourceURL, err := feedURLParser(feedURL)
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
+	}
+
+	// Add source-specific options.
+	for extraOption := range slices.Values(addFetchOptions(sourceURL)) {
+		extraOption(opts)
 	}
 
 	// Create a buffer for the feed data.
@@ -911,7 +919,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 					FetchWithFeedID(opts.FeedID),
 				)
 			}
-			return nil, models.NewAPIError(resp.StatusCode(), fmt.Errorf("fetch feed: %w", err))
+			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
 		if resp.Header().Get("Content-Encoding") == "gzip" {
 			// For gzipped response, uncompress first.
@@ -1008,6 +1016,46 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 	}
 
 	return feed, nil
+}
+
+// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on
+// where to find their feeds.
+func feedURLParser(urlStr string) (*url.URL, error) {
+	// Parse the URL.
+	feedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	// For some popular sites that have an API or special URL for feeds, handle those.
+	switch {
+	case strings.Contains(feedURL.Host, "reddit.com"):
+		switch {
+		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
+			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
+			}
+		}
+	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		switch {
+		case !strings.HasPrefix(feedURL.Path, "rss") && !strings.HasPrefix(feedURL.Path, "rss/"):
+			// Tumblr blogs usually have their feed at the "/feed" path.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for tumblr.com URL: %w", err)
+			}
+		}
+	}
+
+	return feedURL, nil
+}
+
+// addFetchOptions returns fetch options that are source-specific. This will append or overide existing fetch options to
+// ensure the feed can be fetched correctly.
+func addFetchOptions(feedURL *url.URL) []FetchOption {
+	return nil
 }
 
 // FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
@@ -1116,38 +1164,4 @@ func NewFeed(url string, id models.FeedID, source *feeds.Feed) *models.Feed {
 	}
 
 	return feed
-}
-
-// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on
-// where to find their feeds.
-func feedURLParser(urlStr string) (*url.URL, error) {
-	// Parse the URL.
-	feedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
-	}
-
-	// For some popular sites that have an API or special URL for feeds, handle those.
-	switch {
-	case strings.Contains(feedURL.Host, "reddit.com"):
-		switch {
-		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
-			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
-			var err error
-			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
-				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
-			}
-		}
-	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
-		switch {
-		case !strings.HasPrefix(feedURL.Path, "rss") && !strings.HasPrefix(feedURL.Path, "rss/"):
-			// Tumblr blogs usually have their feed at the "/feed" path.
-			var err error
-			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/rss"); err != nil {
-				return nil, fmt.Errorf("generate RSS feed for tumblr.com URL: %w", err)
-			}
-		}
-	}
-
-	return feedURL, nil
 }
