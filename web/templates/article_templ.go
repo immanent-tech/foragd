@@ -161,7 +161,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<h2 class=\"mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<h2 class=\"mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance wrap-break-word transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
