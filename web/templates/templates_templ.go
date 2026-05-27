@@ -422,7 +422,7 @@ func NewOpenGraphMetadata(options ...opengraph.Option) *opengraph.OpenGraph {
 		Title:       config.AppName,
 		ObjectType:  "website",
 		URL:         config.GetBaseURL(),
-		Image:       config.GetBaseURL() + "/content/logo-color.webp",
+		Image:       config.GetBaseURL() + "/content/logo-vertical-light.webp",
 		Description: new(config.AppDescription),
 	}
 	for option := range slices.Values(options) {

@@ -33,7 +33,7 @@ func HandleAbout() http.HandlerFunc {
 				title,
 				"website",
 				config.GetBaseURL()+"/about",
-				config.GetBaseURL()+"/content/logo-color.webp",
+				config.GetBaseURL()+"/content/logo-vertical-light.webp",
 				opengraph.WithDescription(description),
 				opengraph.WithSiteName(config.AppName),
 			)),

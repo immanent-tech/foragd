@@ -65,7 +65,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 			title,
 			"website",
 			config.GetBaseURL()+"/blog",
-			config.GetBaseURL()+"/content/logo-color.webp",
+			config.GetBaseURL()+"/content/logo-vertical-light.webp",
 			opengraph.WithDescription(description),
 			opengraph.WithSiteName(config.AppName),
 		)),
@@ -261,7 +261,7 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
 				Link:  config.GetBaseURL(),
-				URL:   config.GetBaseURL() + "/content/logo-color.webp",
+				URL:   config.GetBaseURL() + "/content/logo-vertical-light.webp",
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("monthly"),

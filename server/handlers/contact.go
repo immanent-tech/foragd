@@ -32,7 +32,7 @@ func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
 			title,
 			"website",
 			config.GetBaseURL()+"/contact",
-			config.GetBaseURL()+"/content/logo-color.webp",
+			config.GetBaseURL()+"/content/logo-vertical-light.webp",
 			opengraph.WithDescription(description),
 			opengraph.WithSiteName(config.AppName),
 		)),

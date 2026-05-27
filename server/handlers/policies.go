@@ -114,7 +114,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 				frontmatter.Title,
 				"website",
 				config.GetBaseURL()+"/"+metadata.Path,
-				config.GetBaseURL()+"/content/logo-color.webp",
+				config.GetBaseURL()+"/content/logo-vertical-light.webp",
 				opengraph.WithDescription(frontmatter.Description),
 				opengraph.WithSiteName(config.AppName),
 			)),

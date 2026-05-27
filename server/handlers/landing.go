@@ -27,7 +27,7 @@ func HandleLanding() http.HandlerFunc {
 				"Foragd",
 				"website",
 				config.GetBaseURL(),
-				config.GetBaseURL()+"/content/logo-color.webp",
+				config.GetBaseURL()+"/content/logo-vertical-light.webp",
 				opengraph.WithDescription(config.AppDescription),
 				opengraph.WithSiteName(config.AppName),
 			)),
