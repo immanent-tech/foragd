@@ -123,10 +123,10 @@ templ ArticleCard(idx int, article *models.Article) {
 					}
 				</div>
 			}
-			// Add summarised description if article has one.
-			if article.GetDescription() != "" {
-				<div class="prose-summary line-clamp-3">
-					@templ.Raw(article.GetDescription())
+			// Add summarised content if article has content.
+			if content := article.GetContent(); content != "" {
+				<div class={ "prose-summary", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+					@templ.Raw(content)
 				</div>
 			}
 		}
@@ -546,7 +546,7 @@ templ ArticleContent(article *models.Article) {
 					}
 					// Content.
 					switch  {
-						case article.SourceType == models.SourceTypeEmail:
+						case article.IsEmail():
 							// Article from email newsletter.
 							<div
 								class="prose-email mt-4"
@@ -555,9 +555,9 @@ templ ArticleContent(article *models.Article) {
 							>
 								@templ.Raw(article.GetContent())
 							</div>
-						case article.Item.ExtensionType != nil && *article.Item.ExtensionType == models.ItemExtensionTypeYoutube:
+						case article.IsYoutubeVideo():
 							// Youtube video.
-							if youtubeData, err := article.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
+							if youtubeData, err := article.AsYoutubeVideo(); err == nil {
 								<div class="relative aspect-video h-auto max-w-full overflow-hidden p-8">
 									<embed-youtube
 										video-id={ youtubeData.VideoId }
@@ -582,18 +582,13 @@ templ ArticleContent(article *models.Article) {
 							</nav>
 						default:
 							// Try to display content or description.
-							if article.GetContent() != "" || article.GetDescription() != "" {
+							if content := article.GetContent(); content != "" {
 								<div
 									data-disable-scripting
 									hx-disable
 									class="prose-article mt-4 px-2 sm:px-0"
 								>
-									switch  {
-										case article.GetContent() != "":
-											@templ.Raw(article.GetContent())
-										case article.GetDescription() != "":
-											@templ.Raw(article.GetDescription())
-									}
+									@templ.Raw(content)
 								</div>
 							}
 							<div class="mt-8 w-full border-t border-neutral/25"></div>

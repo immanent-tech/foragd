@@ -28,6 +28,8 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+var ErrInvalidArticleContent = errors.New("invalid article content")
+
 // GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
 func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]Category, error) {
 	// Build elastic.
@@ -173,10 +175,33 @@ func (a *Article) GetDescription() string {
 	return a.Item.GetDescription()
 }
 
+func (a *Article) IsYoutubeVideo() bool {
+	return a.Item.ExtensionType != nil && *a.Item.ExtensionType == ItemExtensionTypeYoutube
+}
+
+func (a *Article) AsYoutubeVideo() (*ItemExtensionYoutube, error) {
+	if !a.IsYoutubeVideo() {
+		return nil, ErrInvalidArticleContent
+	}
+	data, err := a.Item.ExtensionData.AsItemExtensionYoutube()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidArticleContent, err)
+	}
+	return &data, nil
+}
+
+func (a *Article) IsEmail() bool {
+	return a.SourceType == SourceTypeEmail
+}
+
 // GetContent returns the main content of the article. This will be either the full content fetched remotely (if
 // requested), the "content" field of the item (if not empty), or the description (if any).
 func (a *Article) GetContent() string {
 	switch {
+	case a.IsEmail():
+		return a.formatContent()
+	case a.IsYoutubeVideo():
+		return ""
 	case a.ShowFullContent && a.Content != nil:
 		return *a.Content
 	case a.Item.HasContent():
