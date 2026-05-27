@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.148.1](https://github.com/immanent-tech/foragd/compare/v0.148.0...v0.148.1) (2026-05-27)
+
+
+### Bug Fixes
+
+* 🔧 fix logo link ([335d4b2](https://github.com/immanent-tech/foragd/commit/335d4b2fb3fe44fcd4d7fcdfce3bdcdc737888f7))
+* **service:** 🔧 feed fetching improvements ([ddfece9](https://github.com/immanent-tech/foragd/commit/ddfece91671a6bdd27972494da5fa1be3726d8c1))
+
 ## [0.148.0](https://github.com/immanent-tech/foragd/compare/v0.147.1...v0.148.0) (2026-05-27)
 
 
