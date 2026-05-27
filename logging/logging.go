@@ -74,8 +74,9 @@ func New(options Options) *slog.Logger {
 	// When logging in a conainer, use json output and disable log file, otherwise, use colourful output.
 	if os.Getenv("FORAGD_CONTAINER") == "1" {
 		logFile = ""
+		instrumentedHandler := HandlerWithSpanContext(slogjson.NewHandler(os.Stderr, containerConsoleOptions(Level)))
 		handlers = append(handlers,
-			slogjson.NewHandler(os.Stderr, containerConsoleOptions(Level)),
+			instrumentedHandler,
 		)
 	} else {
 		handlers = append(handlers,
@@ -236,7 +237,6 @@ func containerReplacer(groups []string, attr slog.Attr) slog.Attr {
 	default:
 		return attr
 	}
-
 }
 
 // openLogFile will attempt to open the specified log file. It will also attempt

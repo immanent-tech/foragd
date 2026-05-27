@@ -19,8 +19,8 @@ import (
 func Otel(next http.Handler) http.Handler {
 	return alice.New(
 		otelchi.Middleware(config.AppName),
-		otelchimetric.NewRequestDurationMillis(otel.MeterConfig),
-		otelchimetric.NewRequestInFlight(otel.MeterConfig),
-		otelchimetric.NewResponseSizeBytes(otel.MeterConfig),
+		otelchimetric.NewServerRequestDuration(otel.MeterConfig),
+		otelchimetric.NewServerActiveRequests(otel.MeterConfig),
+		otelchimetric.NewServerResponseBodySize(otel.MeterConfig),
 	).Then(next)
 }
