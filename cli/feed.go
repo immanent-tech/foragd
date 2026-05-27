@@ -53,7 +53,7 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		results, err = service.FetchFeed(ctx, feed.GetSourceURLs()[0], service.FetchWithFeedID(feed.GetID()))
 		if err != nil {
-			return fmt.Errorf("get feed by id: %w", err)
+			return fmt.Errorf("fetch feed: %w", err)
 		}
 	case c.FeedURL != "":
 		feedURL, err := url.Parse(c.FeedURL)
@@ -62,7 +62,7 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		results, err = service.FetchFeed(ctx, feedURL.String())
 		if err != nil {
-			return fmt.Errorf("get feed by url: %w", err)
+			return fmt.Errorf("fetch feed: %w", err)
 		}
 	default:
 		return errors.New("no ID or URL provided")

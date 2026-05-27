@@ -898,7 +898,10 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 			// SetDebug(true).
 			Get(sourceURL.String())
 		defer resp.RawBody().Close()
-		if err != nil || resp.IsError() {
+		switch {
+		case err != nil:
+			return nil, models.NewAPIError(http.StatusInternalServerError, err)
+		case resp.IsError():
 			if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
 				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
 					slog.String("feed_url", sourceURL.String()),
@@ -908,7 +911,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 					FetchWithFeedID(opts.FeedID),
 				)
 			}
-			return nil, models.NewAPIError(resp.StatusCode(), err)
+			return nil, models.NewAPIError(resp.StatusCode(), fmt.Errorf("fetch feed: %w", err))
 		}
 		if resp.Header().Get("Content-Encoding") == "gzip" {
 			// For gzipped response, uncompress first.
