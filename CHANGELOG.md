@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.149.0](https://github.com/immanent-tech/foragd/compare/v0.148.1...v0.149.0) (2026-05-27)
+
+
+### Features
+
+* **server:** ♻️ rework OTEL instrumentation ([019db47](https://github.com/immanent-tech/foragd/commit/019db47aed7c3b7b1265c2bca3d3026e8051bbbe))
+
 ## [0.148.1](https://github.com/immanent-tech/foragd/compare/v0.148.0...v0.148.1) (2026-05-27)
 
 
