@@ -323,7 +323,7 @@ templ ViewerResults(feed *models.Feed) {
 		</div>
 	</div>
 	if len(feed.GetItems()) > 0 {
-		@grid() {
+		@grid(element.WithClasses("items-stretch")) {
 			for item := range slices.Values(feed.GetItems()) {
 				@viewerItemCard(item)
 			}
@@ -366,7 +366,7 @@ templ viewerItemCard(item *models.Item) {
 		}
 		<div class="card-body">
 			<div class="card-title line-clamp-3 tracking-tight text-balance">{ item.GetTitle() }</div>
-			<div class="inline-grid flex-1">
+			<div class="inline-grid shrink-0">
 				// Author(s) and Published Time.
 				if len(item.GetAuthors()) > 0 {
 					{{
@@ -398,7 +398,7 @@ templ viewerItemCard(item *models.Item) {
 						@templ.Raw(item.GetDescription())
 				}
 			</div>
-			<div class="card-actions justify-end">
+			<div class="card-actions justify-end mt-auto">
 				<a
 					href={ item.GetLink() }
 					target="_blank"

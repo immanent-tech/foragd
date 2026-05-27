@@ -36,7 +36,7 @@ func Card(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"card h-fit overflow-hidden rounded-lg border border-neutral/25", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"card overflow-hidden rounded-lg border border-neutral/25", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -228,7 +228,7 @@ func CardFooter(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var11 = []any{"card-footer px-4 pb-4 pt-2 sm:px-6 mt-auto", props.Classes()}
+		var templ_7745c5c3_Var11 = []any{"card-footer mt-auto px-4 pb-4 pt-2 sm:px-6", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var11...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

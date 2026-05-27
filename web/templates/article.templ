@@ -24,7 +24,7 @@ templ ArticleCard(idx int, article *models.Article) {
 	@partials.Card(
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("id", article.GetID()),
-		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "self-start"),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
@@ -72,7 +72,13 @@ templ ArticleCard(idx int, article *models.Article) {
 				</h2>
 			}
 		</div>
-		@partials.CardBody() {
+		{{
+			var bodyClasses string
+			if img := article.GetImage(); img != nil {
+				bodyClasses = "flex-1"
+			}
+		}}
+		@partials.CardBody(element.WithClasses(bodyClasses)) {
 			{{ categoryLimit := 10 }}
 			// Show up to 10 category badges.
 			if len(article.GetCategories(categoryLimit)) > 0 {
@@ -961,10 +967,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</div>
 				<section class="mt-4">
 					if len(response.Articles) > 0 {
-						@grid(
-							element.WithAttribute("hx-indicator", ""),
-							// element.WithClasses("content-auto"),
-						) {
+						@grid() {
 							@templ.Fragment(PaginateFragment) {
 								for idx, article := range response.Articles {
 									@ArticleCard(idx, article)

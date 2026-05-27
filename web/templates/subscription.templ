@@ -125,7 +125,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 			</div>
 		}
 		// Card body.
-		@partials.CardBody() {
+		@partials.CardBody(element.WithClasses("flex-1")) {
 			// Display up to 5 of the subscription categories.
 			if len(s.GetCategories(0)) > 0 {
 				<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
@@ -468,7 +468,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				<section class="mt-4">
 					if len(response.Subscriptions) > 0 {
-						@grid(element.WithClasses("content-auto")) {
+						@grid(element.WithClasses("items-stretch")) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, subscription := range response.Subscriptions {
 									@SubscriptionCard(idx, subscription) {

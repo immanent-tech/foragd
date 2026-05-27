@@ -6,6 +6,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -29,7 +30,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 							<div class="pb-5">
 								<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">Subscriptions</h2>
 							</div>
-							@grid() {
+							@grid(element.WithClasses("items-stretch")) {
 								for idx, subscription := range response.Subscriptions {
 									@SubscriptionCard(idx, subscription) {
 										if response.LatestArticles != nil {

@@ -8,7 +8,7 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 templ Card(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "card h-fit overflow-hidden rounded-lg border border-neutral/25", props.Classes() }
+		class={ "card overflow-hidden rounded-lg border border-neutral/25", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
@@ -38,7 +38,7 @@ templ CardBody(options ...element.PropertiesOption) {
 templ CardFooter(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "card-footer px-4 pb-4 pt-2 sm:px-6 mt-auto", props.Classes() }
+		class={ "card-footer mt-auto px-4 pb-4 pt-2 sm:px-6", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }

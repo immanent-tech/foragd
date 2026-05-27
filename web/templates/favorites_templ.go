@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -132,7 +133,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 														var templ_7745c5c3_Var7 string
 														templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
 														if templ_7745c5c3_Err != nil {
-															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 44, Col: 57}
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 45, Col: 57}
 														}
 														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 														if templ_7745c5c3_Err != nil {
@@ -145,7 +146,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 														var templ_7745c5c3_Var8 string
 														templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 														if templ_7745c5c3_Err != nil {
-															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 45, Col: 47}
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 46, Col: 47}
 														}
 														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 														if templ_7745c5c3_Err != nil {
@@ -158,7 +159,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 														var templ_7745c5c3_Var9 string
 														templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 														if templ_7745c5c3_Err != nil {
-															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 51, Col: 34}
+															return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 52, Col: 34}
 														}
 														_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 														if templ_7745c5c3_Err != nil {
@@ -185,7 +186,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = grid(element.WithClasses("items-stretch")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
