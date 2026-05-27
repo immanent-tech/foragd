@@ -29,52 +29,62 @@ components:
             Set to true to get the HTTP response body in the httpResponseBody response field.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: 'httpResponseBody'
+            json: 'httpResponseBody,omitzero'
+            validate: 'omitempty,excluded_unless=browserHtml false'
         httpResponseHeaders:
           description: >
             Set to true to get the HTTP response headers in the httpResponseHeaders response field.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: 'httpResponseHeaders'
+            json: 'httpResponseHeaders,omitzero'
         httpRequestMethod:
           $ref: '#/components/schemas/RequestMethod'
+        browserHtml:
+          description: >
+            Set to true to get the browser HTML in the browserHtml response field.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'browserHtml,omitzero'
+            validate: 'omitempty,excluded_unless=httpResponseBody false'
         followRedirect:
           description: >
             indicates whether to follow HTTP redirection or not.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: 'followRedirect'
+            json: 'followRedirect,omitzero'
         tags:
           description: >
             Assign arbitrary key-value pairs to the request that you can use for filtering in the Stats API.
           x-go-type: map[string]string
+          x-omitzero: true
           x-go-type-skip-optional-pointer: true
         article:
           description: >
             Set to true to get article data in the article response field.
           type: boolean
+          x-omitzero: true
         articleOptions:
           allOf:
             - $ref: '#/components/schemas/ExtractOptions'
           x-oapi-codegen-extra-tags:
-            json: 'articleOptions'
+            json: 'articleOptions,omitzero'
         articleList:
           description: >
             Set to true to get article list data in the articleList response field.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: 'articleList'
+            json: 'articleList,omitzero'
         pageContent:
           description: >
             Set to true to get page content data in the pageContent response field.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: 'pageContent'
+            json: 'pageContent,omitzero'
         pageContentOptions:
           allOf:
             - $ref: '#/components/schemas/ExtractOptions'
           x-oapi-codegen-extra-tags:
-            json: 'pageContentOptions'
+            json: 'pageContentOptions,omitzero'
     Response:
       description: >
         is a response from the Zyte API.
@@ -100,6 +110,14 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             json: 'httpResponseBody'
+            validate: 'omitempty,base64'
+        browserHtml:
+          description: >
+            is the HTML representation of the Document Object Model (DOM) of a webpage after it has been rendered in a
+            browser.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'browserHtml'
         article:
           $ref: '#/components/schemas/Article'
     ResponseError:
@@ -337,4 +355,4 @@ components:
       enum: ["GET","POST","PUT","DELETE","OPTIONS","TRACE","PATCH","HEAD"]
       x-oapi-codegen-extra-tags:
         validate: 'omitempty,oneof=GET POST PUT DELETE OPTIONS TRACE PATCH HEAD'
-        json: 'httpRequestMethod'
+        json: 'httpRequestMethod,omitempty'

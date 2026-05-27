@@ -4,6 +4,7 @@
 package validation
 
 import (
+	"bytes"
 	"html"
 	"strings"
 
@@ -16,4 +17,10 @@ var safePrinter = bluemonday.UGCPolicy()
 // string through bluemonday to remove dangerous components. This should retain HTML5 content.
 func SanitizeString(str string) string {
 	return html.UnescapeString(safePrinter.Sanitize(strings.TrimSpace(str)))
+}
+
+// SanitizeBytes attempts to "sanitize" a []byte value. It will strip any leading/trailing whitespace and then run the
+// string through bluemonday to remove dangerous components. This should retain HTML5 content.
+func SanitizeBytes(data []byte) []byte {
+	return safePrinter.SanitizeBytes(bytes.TrimSpace(data))
 }

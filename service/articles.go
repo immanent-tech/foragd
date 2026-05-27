@@ -253,23 +253,22 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 
 	// Fetch article from remote.
 	if !cached {
-		resp, err := zyte.ExtractArticle(
-			ctx,
+		extracted, err := zyte.ExtractArticle(ctx,
 			article.GetLink(),
-			zyte.WithResponseBody(true),
-			zyte.WithFollowRedirects(true),
+			zyte.WithTag("item_id", article.GetID()),
+			zyte.WithTag("feed_id", article.GetFeedID()),
 		)
 		switch {
 		case err != nil:
 			return fmt.Errorf("fetch content: %w", err)
-		case resp.Article == nil:
+		case extracted == nil:
 			return fmt.Errorf("parse content: %w", err)
 		default:
-			article.Content = resp.Article.ArticleBodyHtml
+			article.Content = new(extracted.GetHTML())
 		}
 
 		// Cache the content.
-		articleCache.Set(ctx, article.GetID(), []byte(*resp.Article.ArticleBodyHtml))
+		articleCache.Set(ctx, article.GetID(), []byte(extracted.GetHTML()))
 	}
 
 	return nil

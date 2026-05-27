@@ -50,6 +50,17 @@ var (
 	tagPattern = buildTagPattern()
 )
 
+var (
+	ErrNotFound = errors.New("not found")
+)
+
+func buildTagPattern() *regexp.Regexp {
+	joined := strings.Join(htmlTags, "|")
+	// Match opening tags (with optional attrs) or closing tags
+	pattern := `(?i)<(/?)(?:` + joined + `)(?:\s[^>]*)?>`
+	return regexp.MustCompile(pattern)
+}
+
 // IsHTML returns a boolean indicating whether the given string contains HTML. It can detect both a full HTML document
 // or partial HTML content.
 
@@ -163,13 +174,6 @@ func FindAllHTMLNodes(n *html.Node, tag string) []*html.Node {
 		results = append(results, FindAllHTMLNodes(c, tag)...)
 	}
 	return results
-}
-
-func buildTagPattern() *regexp.Regexp {
-	joined := strings.Join(htmlTags, "|")
-	// Match opening tags (with optional attrs) or closing tags
-	pattern := `(?i)<(/?)(?:` + joined + `)(?:\s[^>]*)?>`
-	return regexp.MustCompile(pattern)
 }
 
 // Favicon is a favicon link found in <head>.

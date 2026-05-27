@@ -266,6 +266,11 @@
     [id*="author"] {
       @apply text-sm/6;
     }
+
+    /* Hide duplicate images (usually just different sizes) */
+    img + img {
+      display: none;
+    }
   }
 
   .prose-email {

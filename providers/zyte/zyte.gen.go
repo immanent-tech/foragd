@@ -168,30 +168,33 @@ type RemoteMedia struct {
 // Request is a request to the Zyte API
 type Request struct {
 	// Article Set to true to get article data in the article response field.
-	Article *bool `json:"article,omitempty"`
+	Article *bool `json:"article,omitempty,omitzero"`
 
 	// ArticleList Set to true to get article list data in the articleList response field.
-	ArticleList    *bool           `json:"articleList"`
-	ArticleOptions *ExtractOptions `json:"articleOptions"`
+	ArticleList    *bool           `json:"articleList,omitzero"`
+	ArticleOptions *ExtractOptions `json:"articleOptions,omitzero"`
+
+	// BrowserHtml Set to true to get the browser HTML in the browserHtml response field.
+	BrowserHtml *bool `json:"browserHtml,omitzero" validate:"omitempty,excluded_unless=httpResponseBody false"`
 
 	// FollowRedirect indicates whether to follow HTTP redirection or not.
-	FollowRedirect *bool `json:"followRedirect"`
+	FollowRedirect *bool `json:"followRedirect,omitzero"`
 
 	// HttpRequestMethod is the request method.
-	HttpRequestMethod *RequestMethod `json:"httpRequestMethod" validate:"omitempty,oneof=GET POST PUT DELETE OPTIONS TRACE PATCH HEAD"`
+	HttpRequestMethod *RequestMethod `json:"httpRequestMethod,omitempty" validate:"omitempty,oneof=GET POST PUT DELETE OPTIONS TRACE PATCH HEAD"`
 
 	// HttpResponseHeaders Set to true to get the HTTP response headers in the httpResponseHeaders response field.
-	HttpResponseHeaders *bool `json:"httpResponseHeaders"`
+	HttpResponseHeaders *bool `json:"httpResponseHeaders,omitzero"`
 
 	// HttpResposeBody Set to true to get the HTTP response body in the httpResponseBody response field.
-	HttpResposeBody *bool `json:"httpResponseBody"`
+	HttpResposeBody *bool `json:"httpResponseBody,omitzero" validate:"omitempty,excluded_unless=browserHtml false"`
 
 	// PageContent Set to true to get page content data in the pageContent response field.
-	PageContent        *bool           `json:"pageContent"`
-	PageContentOptions *ExtractOptions `json:"pageContentOptions"`
+	PageContent        *bool           `json:"pageContent,omitzero"`
+	PageContentOptions *ExtractOptions `json:"pageContentOptions,omitzero"`
 
 	// Tags Assign arbitrary key-value pairs to the request that you can use for filtering in the Stats API.
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `json:"tags,omitempty,omitzero"`
 
 	// URL is the URL to process with the API
 	URL string `json:"url" validate:"required,url"`
@@ -205,8 +208,11 @@ type Response struct {
 	// Article is an extracted article.
 	Article *Article `json:"article,omitempty"`
 
+	// BrowserHtml is the HTML representation of the Document Object Model (DOM) of a webpage after it has been rendered in a browser.
+	BrowserHtml *string `json:"browserHtml"`
+
 	// HttpResponseBody Base64-encoded HTTP response body. To get this response field, set the httpResponseBody request field to true.
-	HttpResponseBody *string     `json:"httpResponseBody"`
+	HttpResponseBody *string     `json:"httpResponseBody" validate:"omitempty,base64"`
 	StatusCode       *StatusCode `json:"statusCode"`
 
 	// URL is the URL to process with the API

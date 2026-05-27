@@ -407,6 +407,7 @@ func HandleViewArticle() http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable to get remote content for article.",
 					slog.String("item_id", article.GetID()),
 					slog.String("item_url", article.GetLink()),
+					slog.Any("error", err),
 				)
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
@@ -420,7 +421,6 @@ func HandleViewArticle() http.HandlerFunc {
 				return
 			}
 		}
-
 
 		// Render article content.
 		RenderInternalPage(&ArticleContent{

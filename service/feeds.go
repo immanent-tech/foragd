@@ -21,7 +21,6 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -934,14 +933,20 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 			slog.String("feed_url", sourceURL.String()),
 			slog.String("feed_id", opts.FeedID),
 		)
-		resp, err := zyte.Proxy(ctx, sourceURL.String())
+		resp, err := zyte.Proxy(
+			ctx,
+			sourceURL.String(),
+			zyte.WithResponseBody(true),
+			zyte.WithFollowRedirects(true),
+			zyte.WithTag("feed_id", opts.FeedID),
+		)
 		if err != nil {
 			if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
 				return nil, models.NewAPIError(zyteErr.HTTPStatus(), fmt.Errorf("proxy request: %w", zyteErr))
 			}
 			return nil, models.NewAPIError(http.StatusInternalServerError, err)
 		}
-		body, err := resp.GetBody()
+		body, err := resp.GetHTMLResponse()
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("get response body: %w", err))
 		}
@@ -977,7 +982,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...func(*FetchOption
 		}
 		return nil, models.ErrNotFound
 	default:
-		godump.Dump(feedBuf.String())
 		return nil, models.NewAPIError(http.StatusUnsupportedMediaType, errors.New("unsupported media type"))
 	}
 
