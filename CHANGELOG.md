@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.148.0](https://github.com/immanent-tech/foragd/compare/v0.147.1...v0.148.0) (2026-05-27)
+
+
+### Features
+
+* **models:** ✨ add quirks tracking for feeds ([0f26c1b](https://github.com/immanent-tech/foragd/commit/0f26c1b6dd5f5868152d8fb939d5c76a02957f6f))
+* **models:** ✨ update GetContent method for articles to handle more article types ([bb751a4](https://github.com/immanent-tech/foragd/commit/bb751a41a3bd918953c15eae0e6d18a532dd5e42))
+* **templates:** 🎨 adjust cards layout ([f0ee879](https://github.com/immanent-tech/foragd/commit/f0ee87932bdf75981f8f6c6404bef630257fceb7))
+* **zyte:** ✨ perform own article extraction ([9221ddd](https://github.com/immanent-tech/foragd/commit/9221ddd411cf4befff87c47b7ca9d311b179d58d))
+
+
+### Bug Fixes
+
+* **service:** 🐛 fix error logic in FetchFeed ([36febd0](https://github.com/immanent-tech/foragd/commit/36febd049cd4286e63251e51d6465a23a4e4da24))
+* **service:** 🔧 make sure url for extracted image points to an actual image file ([f36beb5](https://github.com/immanent-tech/foragd/commit/f36beb55c87b4c0dcedd73ecaf818f27fb4648f4))
+
 ## [0.147.1](https://github.com/immanent-tech/foragd/compare/v0.147.0...v0.147.1) (2026-05-26)
 
 
