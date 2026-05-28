@@ -6,17 +6,15 @@ package otel
 import (
 	"context"
 	"errors"
-	"fmt"
-	"os"
-	"strings"
 
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 	"go.opentelemetry.io/otel"
+	_ "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	_ "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
-	"google.golang.org/api/idtoken"
 
 	"github.com/immanent-tech/foragd/config"
 )
@@ -41,22 +39,6 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 		}
 		shutdownFuncs = nil
 		return err
-	}
-
-	// TODO: perform this check more elegantly...
-	otelExporterURL := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	if strings.Contains(otelExporterURL, "run.app") {
-		tokenSource, err := idtoken.NewTokenSource(ctx, otelExporterURL)
-		if err != nil {
-			return nil, fmt.Errorf("get token source: %w", err)
-		}
-		token, err := tokenSource.Token()
-		if err != nil {
-			return nil, fmt.Errorf("get token: %w", err)
-		}
-		if err := os.Setenv("OTEL_EXPORTER_OTLP_HEADERS", "Authorization=Bearer "+token.AccessToken); err != nil {
-			return nil, fmt.Errorf("export OTEL_EXPORTER_OTLP_HEADERS: %w", err)
-		}
 	}
 
 	// Configure Context Propagation to use the default W3C traceparent format
