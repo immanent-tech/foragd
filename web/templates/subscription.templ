@@ -54,32 +54,6 @@ func generateSubscriptionViewArticlesAttributes(s *models.Subscription) templ.At
 	return attrs
 }
 
-// MarkAttributes generates a templ.Attributes object containing htmx directives for marking a subscription.
-func generateSubscriptionMarkAttributes(s *models.Subscription) templ.Attributes {
-	attrs := make(templ.Attributes)
-	switch s.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
-		attrs["hx-target"] = models.ElementID(s.GetID()).Target()
-		attrs["hx-trigger"] = "click consume"
-		if s.GetStats().IsUnread() {
-			attrs["hx-post"] = "/mark/subscription/" + s.GetID() + "/read"
-		} else {
-			attrs["hx-post"] = "/mark/subscription/" + s.GetID() + "/unread"
-		}
-	}
-	return attrs
-}
-
-// EditAttributes generates a templ.Attributes object containing htmx directives for editing a subscription.
-func generateSubscriptionEditAttributes(s *models.Subscription) templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/subscription/edit/" + s.GetID()
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
 // ReportIssueAttributes generates a templ.Attributes object containing directives for reporting an issue with the subscription.
 func generateSubscriptionReportIssueAttributes(s *models.Subscription) templ.Attributes {
 	attrs := make(templ.Attributes)
@@ -94,7 +68,7 @@ func generateSubscriptionReportIssueAttributes(s *models.Subscription) templ.Att
 	return attrs
 }
 
-templ SubscriptionFavoriteToggle(subscription *models.Subscription) {
+templ subscriptionFavoriteToggle(subscription *models.Subscription) {
 	<button
 		id={ subscription.GetID() + "-toggle-favorite-button" }
 		aria-label={ "Toggle favorite status for " + subscription.GetTitle() }
@@ -124,7 +98,7 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription) {
 	</button>
 }
 
-templ SubscriptionMarkToggle(subscription *models.Subscription) {
+templ subscriptionMarkToggle(subscription *models.Subscription) {
 	// Mark action.
 	if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
 		{{
@@ -262,9 +236,9 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 				</div>
 				<div class="flex shrink-0 items-center gap-1">
 					// Favorite action.
-					@SubscriptionFavoriteToggle(s)
+					@subscriptionFavoriteToggle(s)
 					// Mark action.
-					@SubscriptionMarkToggle(s)
+					@subscriptionMarkToggle(s)
 					// Context menu actions.
 					<div class="flex flex-none">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
@@ -307,7 +281,10 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 										<a
 											role="menuitem"
 											tabindex="-1"
-											{ generateSubscriptionEditAttributes(s)... }
+											hx-get={ "/subscription/edit/" + s.GetID() }
+											hx-target={ ContentID.Target() }
+											hx-swap="innerHTML show:window:top transition:true"
+											hx-trigger="click consume"
 										>
 											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
