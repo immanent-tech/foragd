@@ -5,6 +5,8 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"slices"
 	"strings"
@@ -159,9 +161,9 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 								</svg>
 							</button>
-							<el-menu anchor="bottom end" popover class="menu w-fit divide-y divide-neutral/25 rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
+							@partials.Menu(element.WithClasses("divide-y", "divide-neutral/25")) {
 								<div class="py-1">
-									<li>
+									@partials.MenuItem() {
 										<h3 class="menu-title">View</h3>
 										<ul>
 											@viewOption("desktop", path, models.ViewUnread, *filters)
@@ -169,7 +171,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 											@viewOption("desktop", path, models.ViewAll, *filters)
 											@viewOptionFavorites("desktop", path, filters)
 										</ul>
-									</li>
+									}
 								</div>
 								<div
 									class="py-1"
@@ -183,13 +185,13 @@ templ FilterControls(path string, filters *models.ListFilters) {
 										<span class="loading loading-dots"></span>
 									</div>
 									<div class="hide-loading flex-col">
-										<li>
+										@partials.MenuItem() {
 											<h3 class="menu-title">Categories</h3>
 											<ul id="desktop-category-filters-list"></ul>
-										</li>
+										}
 									</div>
 								</div>
-							</el-menu>
+							}
 						</el-dropdown>
 						// Sorting (desktop).
 						<el-dropdown class="inline-block">
@@ -200,14 +202,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 								</svg>
 							</button>
-							<el-menu anchor="bottom end" popover class="menu w-fit rounded-box bg-base-300 shadow-xl [--anchor-gap:4px]">
+							@partials.Menu() {
 								@sortOption("desktop", path, models.SortNewestFirst, *filters)
 								@sortOption("desktop", path, models.SortOldestFirst, *filters)
 								if path == "/list/subscriptions" {
 									@sortOption("desktop", path, models.SortMostUnread, *filters)
 									@sortOption("desktop", path, models.SortLeastUnread, *filters)
 								}
-							</el-menu>
+							}
 						</el-dropdown>
 					</div>
 				</el-popover-group>
@@ -267,7 +269,7 @@ templ viewOption(layout, path string, view models.View, filters models.ListFilte
 		}
 		filters.View = view
 	}}
-	<li>
+	@partials.MenuItem() {
 		<button
 			class="group relative flex items-center"
 			hx-get={ path }
@@ -292,7 +294,7 @@ templ viewOption(layout, path string, view models.View, filters models.ListFilte
 			</svg>
 			<span class="block text-sm/6 font-medium capitalize">{ view }</span>
 		</button>
-	</li>
+	}
 }
 
 templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
@@ -300,7 +302,7 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 		values := filters.Values()
 		values["only_favorites"] = !filters.OnlyFavorites
 	}}
-	<li>
+	@partials.MenuItem() {
 		<button
 			class="group relative flex items-center"
 			hx-get={ path }
@@ -325,7 +327,7 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 			</svg>
 			<span class="block text-sm/6 font-medium">Favorites</span>
 		</button>
-	</li>
+	}
 }
 
 templ CategoryFilters(data *models.CategoryFilters) {
@@ -363,7 +365,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			id = id + "-" + strings.ToLower(strings.ReplaceAll(category, " ", "-"))
 		}
 	}}
-	<li>
+	@partials.MenuItem() {
 		<button
 			aria-label={ category }
 			class="group relative flex items-center"
@@ -390,13 +392,13 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			</svg>
 			<span class="block text-sm/6 font-medium">{ category }</span>
 		</button>
-	</li>
+	}
 }
 
 templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 	// Remove all current category filters.
 	{{ filters.Categories = nil }}
-	<li>
+	@partials.MenuItem() {
 		<button
 			class="group relative flex items-center"
 			hx-get={ path }
@@ -422,7 +424,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 			</svg>
 			<span class="block text-sm/6 font-medium">Clear</span>
 		</button>
-	</li>
+	}
 }
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
@@ -460,7 +462,7 @@ templ sortOption(layout, path string, sort models.Sort, filters models.ListFilte
 		}
 		filters.Sort = sort
 	}}
-	<li>
+	@partials.MenuItem() {
 		<button
 			class="group relative flex items-center"
 			hx-get={ path }
@@ -485,5 +487,5 @@ templ sortOption(layout, path string, sort models.Sort, filters models.ListFilte
 			</svg>
 			<span class="block text-sm/6 font-medium">{ sort.String() }</span>
 		</button>
-	</li>
+	}
 }

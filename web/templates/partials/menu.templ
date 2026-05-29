@@ -1,0 +1,42 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"strings"
+)
+
+templ Menu(options ...element.PropertiesOption) {
+	{{
+		props := element.NewProperties(options...)
+		// Set default anchoring if none specified.
+		if !props.HasAttribute("anchor") {
+			props.SetAttribute("anchor", "bottom end")
+		}
+	}}
+	<el-menu
+		popover
+		class={ "w-fit origin-top-right rounded-md bg-base-300 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in",
+        templ.KV(strings.Join(props.Classes()," "),len(props.Classes())>0) }
+		{ props.Attributes()... }
+	>
+		<ul class="menu">
+			{ children... }
+		</ul>
+	</el-menu>
+}
+
+templ MenuItem(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<li
+		role="menuitem"
+		if len(props.Classes()) > 0 {
+			class={ props.Classes() }
+		}
+		{ props.Attributes()... }
+	>
+		{ children... }
+	</li>
+}

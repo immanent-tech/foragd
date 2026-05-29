@@ -386,84 +386,74 @@ templ SearchResults(results *models.SearchResults) {
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 								</svg>
 							</button>
-							<el-menu anchor="bottom end" popover>
-								<ul class="menu w-full">
-									if results.Search.SubscriptionID != nil {
-										// Mark all read action.
-										<form>
-											<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-											<li class="w-full">
-												<a
-													hx-post="/list/articles/mark/read"
-													hx-target={ ContentID.Target() }
-													hx-include="#grid-objects"
-													class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-													role="menuitem"
-													tabindex="-1"
-												>
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
-													</svg>
-													Mark all Read
-												</a>
-											</li>
-										</form>
-										// Mark all unread action.
-										<form>
-											<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-											<li class="w-full">
-												<a
-													hx-post="/list/articles/mark/unread"
-													hx-target={ ContentID.Target() }
-													hx-include="#grid-objects"
-													class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-													role="menuitem"
-													tabindex="-1"
-												>
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-													</svg>
-													Mark all Unread
-												</a>
-											</li>
-										</form>
-										// Edit action.
-										<li class="w-full">
-											<a
-												hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
-												hx-target={ ContentID.Target() }
-												hx-swap="innerHTML show:window:top transition:true"
-												class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-												role="menuitem"
-												tabindex="-1"
-											>
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
-													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
-												</svg>
-												Edit Subscription
-											</a>
-										</li>
-									} else {
-										<li class="w-full">
-											<a
-												hx-get="/subscription/add/search"
-												hx-target={ ContentID.Target() }
-												hx-include="#search-filters"
-												class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-												role="menuitem"
-												tabindex="-1"
-											>
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4">
-													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-												</svg>
-												Add Subscription
-											</a>
-										</li>
+							@partials.Menu() {
+								if results.Search.SubscriptionID != nil {
+									// Mark all read action.
+									@partials.MenuItem() {
+										<a
+											hx-post="/list/articles/mark/read"
+											hx-target={ ContentID.Target() }
+											hx-include="#grid-objects"
+											hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewUnread),
+														"mark": string(models.MarkRead),
+													}) }
+											class="group/item flex items-center gap-x-2"
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+											</svg>
+											Mark all Read
+										</a>
 									}
-								</ul>
-							</el-menu>
+									// Mark all unread action.
+									@partials.MenuItem() {
+										<a
+											hx-post="/list/articles/mark/unread"
+											hx-target={ ContentID.Target() }
+											hx-include="#grid-objects"
+											hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewRead),
+														"mark": string(models.MarkUnread),
+													}) }
+											class="group/item flex items-center gap-x-2"
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+											</svg>
+											Mark all Unread
+										</a>
+									}
+									// Edit action.
+									@partials.MenuItem() {
+										<a
+											hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
+											hx-target={ ContentID.Target() }
+											hx-swap="innerHTML show:window:top transition:true"
+											class="group/item flex items-center gap-x-2"
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
+											</svg>
+											Edit Subscription
+										</a>
+									}
+								} else {
+									@partials.MenuItem() {
+										<a
+											hx-get="/subscription/add/search"
+											hx-target={ ContentID.Target() }
+											hx-include="#search-filters"
+											class="group/item flex items-center gap-x-2"
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+											</svg>
+											Add Subscription
+										</a>
+									}
+								}
+							}
 						</el-dropdown>
 					</div>
 					if len(results.Articles) > 1 {
