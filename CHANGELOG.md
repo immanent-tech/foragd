@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.150.0](https://github.com/immanent-tech/foragd/compare/v0.149.0...v0.150.0) (2026-05-29)
+
+
+### Features
+
+* **templates:** ✨ support specifying template fragments for generic partial render ([1065e8f](https://github.com/immanent-tech/foragd/commit/1065e8f7c53714a4576504821b2bafb47dfaceca))
+* **user/settings:** ✨ provide a settings tab for bulk management of subscriptions ([3bb6722](https://github.com/immanent-tech/foragd/commit/3bb6722c504b2290e5a2bec2912e50852f76eeb4))
+
+
+### Performance Improvements
+
+* **server:** ⚡ add some instrumentation to measure some important code paths ([fa2fab8](https://github.com/immanent-tech/foragd/commit/fa2fab8bf004b9a45c337aaf8b28cd4606aab07f))
+
 ## [0.149.0](https://github.com/immanent-tech/foragd/compare/v0.148.1...v0.149.0) (2026-05-27)
 
 
