@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	pathCtxKey contextKey = "path"
+	pathCtxKey      contextKey = "path"
+	fragmentsCtxKey contextKey = "fragments"
 )
 
 type contextKey string
@@ -25,4 +26,19 @@ func PathFromCtx(ctx context.Context) string {
 		return ""
 	}
 	return path
+}
+
+func FragmentKeysToCtx(ctx context.Context, keys ...templFragmentKey) context.Context {
+	if len(keys) > 0 {
+		return context.WithValue(ctx, fragmentsCtxKey, keys)
+	}
+	return ctx
+}
+
+func FragmentKeysFromCtx(ctx context.Context) []templFragmentKey {
+	keys, found := ctx.Value(fragmentsCtxKey).([]templFragmentKey)
+	if !found {
+		return nil
+	}
+	return keys
 }

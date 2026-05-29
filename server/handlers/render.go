@@ -9,6 +9,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // PartialResponseHandler is a handler that handles partial responses.
@@ -90,5 +92,9 @@ type PartialTemplate struct {
 
 // PartialResponse renders the template.
 func (t *PartialTemplate) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(t.template).ServeHTTP(res, req)
+	if fragments := templates.FragmentKeysFromCtx(req.Context()); len(fragments) > 0 {
+		templ.Handler(t.template, templ.WithFragments(fragments)).ServeHTTP(res, req)
+	} else {
+		templ.Handler(t.template).ServeHTTP(res, req)
+	}
 }
