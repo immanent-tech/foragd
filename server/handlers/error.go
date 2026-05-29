@@ -13,6 +13,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -25,6 +26,10 @@ type InternalError struct {
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users).
 func HandleInternalError(referer string, err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(req.Context(), "handle-internal-error")
+		defer span.End()
+
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
@@ -88,6 +93,10 @@ type ExternalError struct {
 // HandleExternalError handles display errors on external pages.
 func HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(req.Context(), "handle-external-error")
+		defer span.End()
+
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())

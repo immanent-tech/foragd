@@ -10,8 +10,6 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -24,6 +22,10 @@ import (
 // then store the user object in the context for use by later handlers.
 func ExtractUserFromSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(req.Context(), "require-user-auth")
+		defer span.End()
+
 		// Ignore updates route.
 		if strings.HasPrefix(req.URL.Path, "/updates") {
 			next.ServeHTTP(res, req)
@@ -129,11 +131,6 @@ func ExtractUserFromSession(next http.Handler) http.Handler {
 		ctx := models.UserToCtx(req.Context(), user)
 		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
 
-		// Add otel attributes.
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "RequireUserAuth", trace.WithAttributes(attribute.String("id", user.GetID())))
-		defer span.End()
-
 		// Pass to next request.
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
@@ -142,6 +139,9 @@ func ExtractUserFromSession(next http.Handler) http.Handler {
 // RequireValidUser will ensure that protected routes have a valid user status before continuing.
 func RequireValidUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "require-valid-user")
+		defer span.End()
+
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			res.WriteHeader(http.StatusForbidden)
