@@ -10,6 +10,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/veqryn/slog-context"
 	"log/slog"
+	"slices"
 	"strings"
 )
 
@@ -24,6 +25,7 @@ templ UserSettings() {
   const tabMap = {
     '#display': 0,
     '#account': 1,
+	'#subscriptions': 2,
   };
 
   function activateTabFromHash() {
@@ -53,6 +55,12 @@ templ UserSettings() {
 							class="btn"
 							onclick="location.hash = '#account'"
 						>Account</button>
+						<button
+							id="settings-subscriptions-button"
+							type="button"
+							class="btn"
+							onclick="location.hash = '#subscriptions'"
+						>Subscriptions</button>
 					</el-tab-list>
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						<div
@@ -107,6 +115,35 @@ templ UserSettings() {
   						   on mutation of @hidden
        					     if not @hidden and my innerHTML is ''
          					   htmx.trigger(me, 'settings-account-revealed')
+       						 end
+						   end
+                             "
+							class="content-auto"
+						></div>
+						<div
+							id="subscriptions"
+							hx-get="/user/settings/subscriptions"
+							hx-trigger="settings-subscriptions-revealed"
+							_="on load
+                                set hash to window.location.hash.replace('#', '')
+                                if hash is 'subscriptions'
+                                  add .btn-primary to #settings-subscriptions-button
+            					  if my innerHTML is '' then htmx.trigger(me, 'settings-subscriptions-revealed') end
+                                else
+                                  remove .btn-primary from #settings-subscriptions-button
+                                end
+                               end
+                               on hashchange from window
+                                set hash to window.location.hash.replace('#', '')
+                                if hash is 'subscriptions'
+                                  add .btn-primary to #settings-subscriptions-button
+                                else
+                                  remove .btn-primary from #settings-subscriptions-button
+                                end
+                               end
+  						   on mutation of @hidden
+       					     if not @hidden and my innerHTML is ''
+         					   htmx.trigger(me, 'settings-subscriptions-revealed')
        						 end
 						   end
                              "
@@ -607,6 +644,279 @@ templ DisplaySettings(user *models.User) {
 				@themePreview("dracula")
 				@themePreview("solarized-dark")
 			</div>
+		</div>
+	</div>
+}
+
+type SubscriptionSettingsData struct {
+	User          *models.User
+	Subscriptions models.Subscriptions
+}
+
+const SubscriptionsTable templFragmentKey = "subscriptionsTable"
+
+templ SubscriptionSettings(data *SubscriptionSettingsData) {
+	<div class="px-2">
+		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+			Subscription Management
+		</h3>
+		<div class="py-4">
+			<input
+				type="text"
+				class="subscription-search input"
+				placeholder="Search subscriptions..."
+				_="on input
+            		add @hidden to <tr.subscription-row/>
+              		when its textContent does not contain my value ignoring case"
+			/>
+		</div>
+		<div class="overflow-x-auto">
+			@templ.Fragment(SubscriptionsTable) {
+				<table class="table">
+					<thead>
+						<tr>
+							<th>
+								<label>
+									<input
+										type="checkbox"
+										class="checkbox"
+										_="set :checkboxes to .select-subscription in the next <tbody/>
+           								on change
+           								  set checked of the :checkboxes to my checked
+										  if my checked then
+										  	remove @hidden from #selected-top
+										  else
+										  	add @hidden to #selected-top
+										  end
+           								on change from the next <tbody/>
+           								  if no :checkboxes where it is checked
+           								    set my indeterminate to false
+           								    set my checked to false
+											add @hidden to #selected-top
+           								  else if no :checkboxes where it is not checked
+           								    set my indeterminate to false
+           								    set my checked to true
+											remove @hidden from #selected-top
+           								  else
+           								    set my indeterminate to true
+											remove @hidden from #selected-top
+           								  end"
+									/>
+								</label>
+							</th>
+							// _="
+							// on click
+							// 	set tbody to #all-subscriptions
+							// 	set rows to the <tr/> in tbody
+							// 	if my @data-dir is 'asc'
+							// 	  set my @data-dir to 'desc'
+							// 	else
+							// 	  set my @data-dir to 'asc'
+							// 	end
+							// 	set sortedRows to rows sorted by its @data-sort-name
+							// 	if my @data-dir is 'desc'
+							// 		set sortedRows to rows sorted by its @data-sort-name descending
+							// 	end
+							// 	put sortedRows into #all-subscriptions
+							// 	if my @data-dir is 'asc'
+							// 	  set #name-sort-order.checked to true
+							// 	else
+							// 	  set #name-sort-order.checked to false
+							// 	end
+							// end
+							// "
+							<th
+								id="col-name"
+								data-dir="desc"
+							>
+								Subscription
+								// <div class="swap">
+								// 	<input
+								// 		id="name-sort-order"
+								// 		type="checkbox"
+								// 	/>
+								// 	<span class="swap-off">↓</span>
+								// 	<span class="swap-on">↑</span>
+								// </div>
+							</th>
+							<th
+								id="col-updated"
+								_="
+							on click
+      							set tbody to #all-subscriptions
+      							set rows to the <tr/> in tbody
+      							if my @data-dir is 'asc'
+      							  set my @data-dir to 'desc'
+      							else
+      							  set my @data-dir to 'asc'
+      							end
+      							set sortedRows to rows sorted by its @data-sort-updated
+      							if my @data-dir is 'desc'
+									set sortedRows to rows sorted by its @data-sort-updated descending
+								end
+								put sortedRows into #all-subscriptions
+      							if my @data-dir is 'asc'
+      							  set #updated-sort-order.checked to true
+      							else
+      							  set #updated-sort-order.checked to false
+      							end
+  							end
+  							"
+								data-dir="desc"
+							>
+								Last Updated
+								<div class="swap space-x-2">
+									<input
+										id="updated-sort-order"
+										type="checkbox"
+										_="
+									on load
+										set sortOrder to #col-updated>@data-dir
+										if sortOrder is 'asc'
+											set my checked to true
+										else
+											set my checked to false
+										end
+									"
+									/>
+									<span class="swap-off">↓</span>
+									<span class="swap-on">↑</span>
+								</div>
+							</th>
+							<th>
+								Actions
+							</th>
+						</tr>
+						<tr id="selected-top" hidden>
+							<td>
+								<div class="flex shrink-0 items-center gap-1">
+									// Mark all read action.
+									<button
+										class="btn btn-square btn-ghost btn-md"
+										hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
+										hx-target={ ContentID.Target() }
+										hx-include="[name='selected_subscriptions']"
+										hx-vals={ templ.JSONString(map[string]string{
+										"mark": string(models.MarkRead),
+										"view": string(models.ViewAll),
+									}) }
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5 text-primary">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
+										</svg>
+									</button>
+									// Mark all unread action.
+									<button
+										class="btn btn-square btn-ghost btn-md"
+										hx-post={ "/list/subscriptions/mark/" + string(models.MarkUnread) }
+										hx-target={ ContentID.Target() }
+										hx-include="[name='selected_subscriptions']"
+										hx-vals={ templ.JSONString(map[string]string{
+										"mark": string(models.MarkUnread),
+										"view": string(models.ViewAll),
+									}) }
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5 text-primary">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+										</svg>
+									</button>
+								</div>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</thead>
+					<tbody id="all-subscriptions">
+						for subscription := range slices.Values(data.Subscriptions) {
+							<tr
+								class="subscription-row"
+								id={ subscription.GetID() }
+								data-sort-updated={ subscription.GetUpdatedDate().UnixNano() }
+								data-sort-name={ subscription.GetTitle() }
+							>
+								<th>
+									// Subscription selection checkbox.
+									<label>
+										<input type="checkbox" class="checkbox select-subscription" name="selected_subscriptions" value={ subscription.GetID() }/>
+									</label>
+								</th>
+								<td>
+									// Subscription thumbnail and title.
+									<div class="flex items-center gap-3">
+										<div>
+											if subscription.GetImage() == "" {
+												@subscriptionThumbnail(nil, subscription.GetTitle())
+											} else {
+												@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
+											}
+										</div>
+										<a class="link link-hover" { generateSubscriptionViewArticlesAttributes(subscription)... }>
+											<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>
+											// <div class="text-sm opacity-50"></div>
+										</a>
+									</div>
+								</td>
+								<td>
+									// Subscription last updated timestamp.
+									<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
+										<relative-time
+											datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+											format="relative"
+											class="tabular-nums"
+										>
+											{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
+										</relative-time>
+									</span>
+								</td>
+								<td>
+									// Subscription actions buttons.
+									<div class="flex shrink-0 items-center gap-1">
+										// Favorite action.
+										@SubscriptionFavoriteToggle(subscription)
+										// Mark action.
+										@SubscriptionMarkToggle(subscription)
+										// Edit action.
+										<button
+											class="btn btn-square btn-ghost btn-md"
+											{ generateSubscriptionEditAttributes(subscription)... }
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-5 text-primary">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
+											</svg>
+										</button>
+										// Unsubscribe action.
+										<button
+											class="btn btn-square btn-ghost btn-md"
+											hx-post={ "/remove/subscription/" + subscription.GetID() }
+											hx-target={ partials.ModalContainerID.Target() }
+											hx-vals={ templ.JSONString(map[string]string{
+													"nickname": subscription.GetTitle(),
+													"confirmed": "false",
+												}) }
+											hx-trigger="click consume"
+										>
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash size-5 text-primary">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+											</svg>
+										</button>
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+					// <!-- foot -->
+					// <tfoot>
+					// 	<tr>
+					// 		<th></th>
+					// 		<th>Name</th>
+					// 		<th>Job</th>
+					// 		<th>Favorite Color</th>
+					// 		<th></th>
+					// 	</tr>
+					// </tfoot>
+				</table>
+			}
 		</div>
 	</div>
 }

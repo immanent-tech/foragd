@@ -54,7 +54,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							hidden
 							class="flex flex-col pt-4"
 							hx-get={ path + "/categories" }
-							hx-include="[name='displayed_subscriptions']"
+							hx-include="[name='selected_subscriptions']"
 							hx-vals={ templ.JSONString(filters.Values()) }
 							hx-trigger="click from:#filters-mobile-disclosure-button once"
 							hx-target="#category-filters-mobile"
@@ -174,7 +174,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								<div
 									class="py-1"
 									hx-get={ path + "/categories" }
-									hx-include="[name='displayed_subscriptions']"
+									hx-include="[name='selected_subscriptions']"
 									hx-vals={ templ.JSONString(filters.Values()) }
 									hx-target="#desktop-category-filters-list"
 									hx-trigger="click from:#desktop-filters-button once"
@@ -372,7 +372,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-params="not displayed_subscriptions"
+			hx-params="not selected_subscriptions"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -404,7 +404,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-params="not displayed_subscriptions,categories"
+			hx-params="not selected_subscriptions,categories"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"

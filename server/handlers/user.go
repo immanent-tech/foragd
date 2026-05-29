@@ -104,6 +104,62 @@ func HandleShowAccountSettings() http.HandlerFunc {
 	}).ServeHTTP
 }
 
+// HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
+func HandleShowSubscriptionsSettings() http.HandlerFunc {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get user data.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to show account settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		// Get all subscriptions.
+		subscriptions, err := service.GetAllSubscriptions(req.Context())
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to show account settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		// Add dynamic info to subscriptions.
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to show account settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		// Sort by newest first.
+		subscriptions = subscriptions.Sort(models.SortNewestFirst)
+		// Render the subscription list.
+		RenderPartial(&PartialTemplate{
+			template: templates.SubscriptionSettings(&templates.SubscriptionSettingsData{
+				User:          user,
+				Subscriptions: subscriptions,
+			}),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
 func HandleSaveDisplaySettings() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {

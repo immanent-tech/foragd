@@ -287,6 +287,8 @@ func Start(logger *slog.Logger) error {
 				r.With(middlewares.RequireHTMX).Post("/display", handlers.HandleSaveDisplaySettings())
 				r.With(middlewares.RequireHTMX).Get("/account", handlers.HandleShowAccountSettings())
 				r.With(middlewares.RequireHTMX).Post("/account", handlers.HandleSaveAccountSettings())
+				r.With(middlewares.RequireHTMX).Get("/subscriptions", handlers.HandleShowSubscriptionsSettings())
+				r.With(middlewares.RequireHTMX).Get("/subscriptions", handlers.HandleShowSubscriptionsSettings())
 				r.Get("/subscription", handlers.HandleManageAccountSubscription())
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())

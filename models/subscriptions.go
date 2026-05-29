@@ -351,6 +351,9 @@ func (s *Subscription) GetSubscriptionType() SubscriptionType {
 // GetUpdatedDate returns the timestamp that represents when the subscription was last updated. Usually, this means the
 // timestamp of the newest article in the subscription.
 func (s *Subscription) GetUpdatedDate() time.Time {
+	if s.Stats == nil {
+		return UnixEpoch
+	}
 	return s.Stats.LastUpdate
 }
 

@@ -323,7 +323,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// HandleMarkSubscriptions handles marking a list of subscriptions.
+// HandleMarkSubscriptions handles marking subscriptions as read/unread.
 func HandleMarkSubscriptions() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
@@ -353,41 +353,49 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			return
 		}
 
-		// res.Header().Set(htmx.HeaderRefresh, "true")
-		// Determine what mark to apply from view and where to redirect.
-		switch request.View {
-		case models.ViewUnread:
-			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   RouteHome,
-				Target: templates.ContentID.Target(),
-			})
-		case models.ViewRead:
-			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   RouteHome,
-				Target: templates.ContentID.Target(),
-			})
+		// Determine actions to apply based on which route this handler was called from.
+		ctx := req.Context()
+		switch {
+		case strings.Contains(req.Referer(), "/user/settings"):
+			// /user/settings#susbcriptions: refresh the page.
+			ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
+			res.Header().Set(htmx.HeaderRefresh, "true")
 		default:
-			err = setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/list/subscriptions",
-				Target: templates.ContentID.Target(),
-				Values: getListSubscriptionsFilters(req).Values(),
-			})
-		}
-		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("set redirect: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to mark subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
+			// /list/subscriptions: redirect appropriately.
+			switch request.View {
+			case models.ViewUnread:
+				err = setRedirect(res, htmxext.HXLocationRequest{
+					Path:   RouteHome,
+					Target: templates.ContentID.Target(),
+				})
+			case models.ViewRead:
+				err = setRedirect(res, htmxext.HXLocationRequest{
+					Path:   RouteHome,
+					Target: templates.ContentID.Target(),
+				})
+			default:
+				err = setRedirect(res, htmxext.HXLocationRequest{
+					Path:   "/list/subscriptions",
+					Target: templates.ContentID.Target(),
+					Values: getListSubscriptionsFilters(req).Values(),
+				})
+			}
+			if err != nil {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("set redirect: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to mark subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
+			}
 		}
 
 		// Mark subscriptions.
-		err = service.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
+		err = service.MarkSubscriptions(ctx, request.Mark, request.Subscriptions...)
 		if err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
@@ -397,7 +405,7 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 						"Unable to mark subscription",
 						"This might be a temporary issue, please try again.",
 					),
-				}).ServeHTTP(res, req)
+				}).ServeHTTP(res, req.WithContext(ctx))
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -523,9 +531,14 @@ func HandleRemoveSubscription() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
-			// When the current page is "/list/articles", redirect the user to "/list/subscriptions".
-			if strings.Contains(req.Referer(), "/list/articles") {
+			switch {
+			case strings.Contains(req.Referer(), "/list/articles"):
+				// When the current page is "/list/articles", redirect the user to "/list/subscriptions".
 				res.Header().Add(htmx.HeaderRedirect, "/list/subscriptions")
+			case strings.Contains(req.Referer(), "/user/settings"):
+				// When on the subscriptions settings page, remove the subscription from the table.
+				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
+				res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
 			}
 			// Show success notification.
 			RenderPartial(

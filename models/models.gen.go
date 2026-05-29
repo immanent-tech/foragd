@@ -810,7 +810,7 @@ type ListRequest struct {
 // ListSubscriptionCategoriesRequest contains data for listing categories for a list of subscriptions.
 type ListSubscriptionCategoriesRequest struct {
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions,omitempty" validate:"omitempty,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions,omitempty" validate:"omitempty,dive,startswith=sub_"`
 }
 
 // Mark applies the given mark action to objects.
@@ -864,7 +864,7 @@ type MarkSubscriptionsRequest struct {
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
