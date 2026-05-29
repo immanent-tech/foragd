@@ -124,39 +124,44 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription) {
 templ SubscriptionMarkToggle(subscription *models.Subscription) {
 	// Mark action.
 	if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
-		<button class="btn btn-square btn-ghost btn-md">
-			<form>
-				<input type="hidden" name={ models.ParamSubscriptionID } value={ subscription.GetID() }/>
-				<input type="hidden" name="view" value={ service.ListFiltersFromCtx(ctx).View }/>
-				<input
-					type="hidden"
-					name={ models.ParamMark }
-					if subscription.GetStats().IsUnread() {
-						value={ models.MarkRead }
-					} else {
-						value={ models.MarkUnread }
-					}
-				/>
-				<label class="swap touch-manipulation">
-					<input
-						hx-post={ "/mark/subscription/" + subscription.GetID() }
-						hx-swap="none"
-						id={ subscription.GetID() + "-read-state" }
-						type="checkbox"
-						if !subscription.GetStats().IsUnread() {
-							checked
-						}
-						_="install HandleReadStatus"
-						aria-label={ "Toggle read status for " + subscription.GetTitle() }
-					/>
-					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
-						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
-					</svg>
-					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
-						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-					</svg>
-				</label>
-			</form>
+		{{
+			var mark models.Mark
+			if subscription.GetStats().IsUnread() {
+				mark = models.MarkRead
+			} else {
+				mark = models.MarkUnread
+			}
+		}}
+		<button
+			id={ subscription.GetID() + "-toggle-read-button" }
+			aria-label={ "Toggle read status for " + subscription.GetTitle() }
+			class="btn btn-square btn-ghost btn-md swap"
+			hx-post={ "/mark/subscription/" + subscription.GetID() }
+			hx-swap="none"
+			hx-include="[name='mark']"
+			hx-vals={ templ.JSONString(map[string]string{
+				"subscription_id": subscription.GetID(),
+				"view": string(service.ListFiltersFromCtx(ctx).View),
+				"mark": string(mark),
+			}) }
+			_="
+			   on htmx:afterRequest(successful) halt the event's bubbling end
+    		   on htmx:afterRequest(failed) toggle @checked on <input /> in me end
+			"
+		>
+			<input
+				type="checkbox"
+				type="hidden"
+				if subscription.GetStats().IsUnread() {
+					checked
+				}
+			/>
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
+			</svg>
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+			</svg>
 		</button>
 	}
 }
