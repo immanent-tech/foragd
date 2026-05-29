@@ -288,7 +288,7 @@ templ viewOption(layout, path string, view models.View, filters models.ListFilte
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
 			</svg>
@@ -321,7 +321,7 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",filters.OnlyFavorites), templ.KV("opacity-0",!filters.OnlyFavorites) }
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100",filters.OnlyFavorites), templ.KV("opacity-0",!filters.OnlyFavorites) }
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
 			</svg>
@@ -386,7 +386,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
 			</svg>
@@ -418,7 +418,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class="icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 text-secondary"
+				class="icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 stroke-accent"
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
 			</svg>
@@ -481,7 +481,7 @@ templ sortOption(layout, path string, sort models.Sort, filters models.ListFilte
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
 			>
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
 			</svg>

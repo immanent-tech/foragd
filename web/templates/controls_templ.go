@@ -621,7 +621,7 @@ func viewOption(layout, path string, view models.View, filters models.ListFilter
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var29 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
+			var templ_7745c5c3_Var29 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var29...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -744,7 +744,7 @@ func viewOptionFavorites(layout, path string, filters *models.ListFilters) templ
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var37 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100", filters.OnlyFavorites), templ.KV("opacity-0", !filters.OnlyFavorites)}
+			var templ_7745c5c3_Var37 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100", filters.OnlyFavorites), templ.KV("opacity-0", !filters.OnlyFavorites)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var37...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -926,7 +926,7 @@ func categoryOption(path string, category models.Category, filters models.ListFi
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var46 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
+			var templ_7745c5c3_Var46 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var46...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -1044,7 +1044,7 @@ func clearCategoryFiltersOption(path string, filters models.ListFilters) templ.C
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\" hx-params=\"not selected_subscriptions,categories\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 text-secondary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg> <span class=\"block text-sm/6 font-medium\">Clear</span></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\" hx-params=\"not selected_subscriptions,categories\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 stroke-accent\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg> <span class=\"block text-sm/6 font-medium\">Clear</span></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1356,7 +1356,7 @@ func sortOption(layout, path string, sort models.Sort, filters models.ListFilter
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var73 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 text-secondary", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
+			var templ_7745c5c3_Var73 = []any{"icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100", checked), templ.KV("opacity-0", !checked)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var73...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
