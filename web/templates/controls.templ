@@ -8,6 +8,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	gonanoid "github.com/matoous/go-nanoid/v2"
+	"html"
 	"slices"
 	"strings"
 )
@@ -224,31 +225,25 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					<div id="active-filters" class="-m-1 flex flex-wrap items-center">
 						// Add favorites filter badge if listing subscriptions and favorites filter is active.
 						if path == "/list/subscriptions" && filters.OnlyFavorites {
-							<form
-								id="filter-clear-only-favorites"
-								class="flex items-center"
-								hx-get={ PathFromCtx(ctx) }
-								hx-replace-url="true"
-								hx-target={ ContentID.Target() }
-								hx-vals={ `{"only_favorites": "false"}` }
-							>
-								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-								<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-								<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-								for subscription := range slices.Values(filters.GetSubscriptions()) {
-									<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-								}
-								for category := range slices.Values(filters.GetCategories()) {
-									<input type="hidden" name={ models.ParamCategories } value={ category }/>
-								}
-								@CategoryBadge("Favorites") {
-									<button type="submit" aria-label="Clear favorites filter">
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
-										</svg>
-									</button>
-								}
-							</form>
+							{{
+								values := filters.Values()
+								values["only_favorites"] = "false"
+							}}
+							@CategoryBadge("Favorites") {
+								<button
+									id="filter-clear-only-favorites"
+									class="flex items-center"
+									hx-get={ PathFromCtx(ctx) }
+									hx-replace-url="true"
+									hx-target={ ContentID.Target() }
+									hx-vals={ templ.JSONString(values) }
+									aria-label="Clear favorites filter"
+								>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+									</svg>
+								</button>
+							}
 						}
 						if len(filters.GetCategories()) > 0 {
 							@activeCategoryFilterBadge(path, filters.GetCategories()[0], filters)
@@ -429,28 +424,25 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
 	<div hx-swap-oob="beforeend:#active-filters">
-		<form
-			id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }
-			hx-get={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-params="not categories"
-		>
-			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-			for subscription := range slices.Values(filters.GetSubscriptions()) {
-				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-			}
-			@CategoryBadge(category) {
-				<button type="submit" aria-label={ "Clear category filter " + category }>
-					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
-						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
-					</svg>
-				</button>
-			}
-		</form>
+		@CategoryBadge(category) {
+			{{
+				values := filters.Values()
+				delete(values, "categories")
+			}}
+			<button
+				id={ "clear-filter-category-" + html.EscapeString(category) }
+				hx-get={ path }
+				hx-target={ ContentID.Target() }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				hx-vals={ templ.JSONString(values) }
+				aria-label={ "Clear category filter " + category }
+			>
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+				</svg>
+			</button>
+		}
 	</div>
 }
 
