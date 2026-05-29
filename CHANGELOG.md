@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.150.1](https://github.com/immanent-tech/foragd/compare/v0.150.0...v0.150.1) (2026-05-29)
+
+
+### Performance Improvements
+
+* **server:** ⚡ add instrumentation to user methods ([653cc1e](https://github.com/immanent-tech/foragd/commit/653cc1e622d6a17ebb9a3fd25f892fbc39fff3ff))
+
 ## [0.150.0](https://github.com/immanent-tech/foragd/compare/v0.149.0...v0.150.0) (2026-05-29)
 
 
