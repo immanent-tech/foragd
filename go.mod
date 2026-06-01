@@ -18,6 +18,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
+	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.22.0
 	github.com/knadh/koanf/v2 v2.3.4
 	github.com/lmittmann/tint v1.1.3
@@ -189,8 +190,8 @@ require (
 	go.opentelemetry.io/contrib/exporters/autoexport v0.68.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.68.0
 	go.opentelemetry.io/otel v1.43.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.43.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.43.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0
 	go.opentelemetry.io/otel/log v0.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.19.0 // indirect

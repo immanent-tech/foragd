@@ -15,6 +15,27 @@ import (
 // Items is a slice of items.
 type Items []*Item
 
+// FindByID will return the Item with the given ID.
+func (i Items) FindByID(id ItemID) *Item {
+	idx := slices.IndexFunc(i, func(v *Item) bool { return v.GetID() == id })
+	if idx == -1 {
+		return nil
+	}
+	return i[idx]
+}
+
+// ExcludeIDs returns a new slice containing the Items which DO NOT have an id matching the given IDs.
+func (i Items) ExcludeIDs(ids ...ItemID) Items {
+	if len(ids) == 0 {
+		return i
+	}
+	return slices.Collect(
+		FilterSlice(i, func(e *Item) bool {
+			return !slices.Contains(ids, e.GetID())
+		}),
+	)
+}
+
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
 	return slices.Collect(FilterSlice(i, func(item *Item) bool {

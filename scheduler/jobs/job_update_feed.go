@@ -198,13 +198,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return nil
 	}
 	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-		slogctx.FromCtx(ctx).Debug("Found new items.",
-			slog.Time("since", details.LastFetched),
-			slog.Int("total_items", len(feed.GetItems())),
-			slog.Int("new_items", len(newItems)),
-			slog.Duration("interval", time.Duration(details.UpdateInterval)),
-		)
-
 		// Try to add images to any items missing an image.
 		for item := range slices.Values(newItems) {
 			if item.GetImage() == nil {
@@ -215,24 +208,36 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		}
 
 		// Add new items.
-		if err := service.AddItems(ctx, newItems...); err != nil {
+		results, err := service.AddItems(ctx, newItems)
+		if err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}
-		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
-		// newer articles where a feed lags behind real-time.
-		if err := service.UpdateFeedDetails(
-			ctx,
-			details,
-			feed,
-			newItems.SortByTimestamp()[0].GetTimestamp(),
-		); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to update feed details.",
-				slog.Any("error", err),
+		if len(results) > 0 {
+			slogctx.FromCtx(ctx).Debug("Added new/updated items.",
+				slog.Time("since", details.LastFetched),
+				slog.Int("new", len(results["new"])),
+				slog.Int("updated", len(results["updated"])),
 			)
+			var allItems models.Items
+			for _, v := range results {
+				allItems = append(allItems, v...)
+			}
+			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
+			// newer articles where a feed lags behind real-time.
+			if err := service.UpdateFeedDetails(
+				ctx,
+				details,
+				feed,
+				allItems.SortByTimestamp()[0].GetTimestamp(),
+			); err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to update feed details.",
+					slog.Any("error", err),
+				)
+			}
+			logMsg.Items = allItems.GetIDs()
 		}
 		// Update FeedStatus.
 		logMsg.StatusCode = http.StatusOK
-		logMsg.Items = newItems.GetIDs()
 	} else {
 		// Update FeedStatus.
 		logMsg.StatusCode = http.StatusNoContent
