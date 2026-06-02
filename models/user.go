@@ -18,7 +18,7 @@ const (
 	// DefaultUpdateInterval is the default interval on which to check for updates.
 	DefaultUpdateInterval = 5 * time.Minute
 	// MaxSubscriptions is the maxiumum number of subscriptions a user can have.
-	MaxSubscriptions = 30
+	MaxSubscriptions = 3000
 	// MaxEmailNewsletters is the maximum number of email newsletter subscriptions a user can have.
 	MaxEmailNewsletters = 30
 	// LimitExceededGracePeriod is the grace period in which the user is allowed to remain over an account limit.
