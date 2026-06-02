@@ -75,6 +75,7 @@ templ Search() {
 					on keydown[key=='Enter']
 					  set window._searchSubmitted to true
 					  call #search-suggestions-popover.hidePopover()
+					on keydown from body if the event's key is 'k' and event.altKey then focus me
   				"
 			/>
 			// on keydown[key=='q']
