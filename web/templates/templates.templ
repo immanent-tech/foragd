@@ -99,7 +99,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 		lang="en"
 		_="on load
              set theme to localStorage.getItem('theme')
-             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end"
+             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end
+		   on mutation of @data-theme send themeChange end"
 	>
 		<head>
 			<meta charset="UTF-8"/>
@@ -107,6 +108,16 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
 			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width"/>
+			// Set browser chrome to accent color.
+			<meta
+				name="theme-color"
+				content="#0b1020"
+				_="on load or themeChange from <html/>
+        			js return getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() end
+        			set my @content to it"
+			/>
+			// Indicate light/dark theme support.
+			<meta name="color-scheme" content="light dark"/>
 			if p.OpenGraph != nil {
 				@templ.Raw(p.OpenGraph.String())
 			}
