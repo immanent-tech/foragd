@@ -21,6 +21,8 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -122,78 +124,19 @@ func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) e
 // UpdateFeedDetails takes a copy of a feed that has been recently fetched/refreshed and checks/updates various fields.
 // If there are updates, these are then saved.
 func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
-	updates := make(map[string]any)
-
-	// Update the feed image if it has changed.
-	switch {
-	case oldData.GetImage() == nil && newData.GetImage() != nil:
-		// No existing image and new image found.
-		updates["image"] = newData.GetImage()
-		slogctx.FromCtx(ctx).Info("Added feed image.",
-			slog.String("feed_id", newData.GetID()),
-		)
-	case oldData.GetImage() != nil && newData.GetImage() != nil && oldData.GetImage().GetURL() != newData.GetImage().GetURL():
-		//  Existing image is not the same as new image.
-		updates["image"] = newData.GetImage()
-		slogctx.FromCtx(ctx).Info("Updated feed image.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_image", oldData.GetImage().GetURL()),
-			slog.String("new_image", newData.GetImage().GetURL()),
-		)
-	case oldData.GetImage() == nil && newData.GetImage() == nil:
-		// Try to find an image for the feed if it does not supply one.
-		slogctx.FromCtx(ctx).Debug("Trying to find a suitable image for the feed.")
-		// Fetch and extract image from opengraph data (if any).
-		if img, err := ExtractFavicon(ctx, newData.GetLink()); img != "" {
-			updates["image"] = models.NewRemoteImage(img, newData.GetTitle())
-		} else {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to find image for feed.",
-				slog.String("feed", newData.GetTitle()),
-				slog.Any("error", err),
-			)
-			quirks := oldData.Quirks
-			quirks.NoImage = new(true)
-			updates["quirks"] = quirks
-		}
-	}
-
-	// Update the fetch method.
-	if oldData.FetchMethod != newData.FetchMethod {
-		slogctx.FromCtx(ctx).Info("Updated fetch method.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_method", string(oldData.FetchMethod)),
-			slog.String("new_title", string(newData.FetchMethod)),
-		)
-		updates["fetch_method"] = newData.FetchMethod
-	}
-
-	// Update the title if it has changed.
-	if oldData.GetTitle() != newData.GetTitle() {
-		slogctx.FromCtx(ctx).Info("Updated feed title.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_title", oldData.GetTitle()),
-			slog.String("new_title", newData.GetTitle()),
-		)
-		updates["title"] = newData.GetTitle()
-	}
-
-	// Update the description if it has changed.
-	if oldData.GetDescription() != newData.GetDescription() {
-		updates["description"] = newData.GetDescription()
-		slogctx.FromCtx(ctx).Info("Updated feed description.",
-			slog.String("feed_id", newData.GetID()),
-			slog.String("old_description", oldData.GetDescription()),
-			slog.String("new_description", newData.GetDescription()),
-		)
-	}
-
-	if len(updates) > 0 {
-		updates["updated"] = newData.Updated
-		updates["last_fetched"] = lastFetched
-
-		// Save the new details.
-		if err := UpdateFeed(ctx, oldData.GetID(), updates); err != nil {
+	if diff := cmp.Diff(*oldData, *newData,
+		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
+		cmpopts.EquateEmpty(),
+	); diff != "" {
+		newData.LastFetched = lastFetched
+		if _, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), newData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
+		}
+	} else {
+		if err := UpdateFeed(ctx, newData.GetID(), map[string]any{
+			"last_fetched": lastFetched,
+		}); err != nil {
+			return fmt.Errorf("update feed last_fetched: %w", err)
 		}
 	}
 
