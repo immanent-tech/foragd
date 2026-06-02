@@ -634,7 +634,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 			Subscription Management
 		</h3>
 		<div class="w-full text-center sm:text-left">
-			<div class="mx-auto stats stats-vertical lg:stats-horizontal shadow ">
+			<div class="stats mx-auto stats-vertical shadow lg:stats-horizontal">
 				<div class="stat">
 					<div class="stat-title">Subscriptions</div>
 					<div class={ "stat-value",templ.KV("text-warning",data.User.Metadata.SubscriptionLimit != nil && data.User.Metadata.SubscriptionLimit.Exceeded) }>{ len(data.Subscriptions) }</div>
