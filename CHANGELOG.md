@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.151.0](https://github.com/immanent-tech/foragd/compare/v0.150.1...v0.151.0) (2026-06-02)
+
+
+### Features
+
+* ✨ better account limits handling ([6493b35](https://github.com/immanent-tech/foragd/commit/6493b357ab309fe2045d2fd0c7d66984b7d40a82))
+
+
+### Bug Fixes
+
+* 🔧 better handling of updated items ([e0ff2ee](https://github.com/immanent-tech/foragd/commit/e0ff2ee9e90698126c867c5524f77104396ca934))
+* **models:** 🔧 fix subscription limit ([66e9607](https://github.com/immanent-tech/foragd/commit/66e9607af85d049ce0c5c0417bb6d15a13df4ab1))
+
 ## [0.150.1](https://github.com/immanent-tech/foragd/compare/v0.150.0...v0.150.1) (2026-05-29)
 
 
