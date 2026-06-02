@@ -34,7 +34,7 @@
     {
       "label": "elastic: update indices",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
+      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -56,7 +56,7 @@
     {
       "label": "elastic: migrate indices",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
+      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -78,7 +78,7 @@
     {
       "label": "elastic: create indices",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
+      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -100,29 +100,7 @@
     {
       "label": "elastic: update ilm",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "options": {
-        "shell": {
-          "executable": "/usr/bin/fish",
-          "args": [
-            "-c"
-          ]
-        }
-      }
-    },
-    {
-      "label": "stripe: run",
-      "type": "shell",
-      "command": "/usr/local/bin/stripe listen --skip-verify --forward-to localhost:7000/checkout/webhooks",
+      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -144,7 +122,7 @@
     {
       "label": "email: run",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} -- npx maizzle serve ${input:environment}",
+      "command": "dotenv -e ../.env.${input:environment} npx maizzle serve ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -167,7 +145,7 @@
     {
       "label": "email: build",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} -- mage build ${input:environment}",
+      "command": "dotenv -e ../.env.${input:environment} mage build ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -190,7 +168,7 @@
     {
       "label": "email: install",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} -- mage install ${input:environment}",
+      "command": "dotenv -e ../.env.${input:environment} mage install ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -236,7 +214,7 @@
     {
       "label": "android: build apk",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} -- bubblewrap build",
+      "command": "dotenv -e ../.env.${input:environment} bubblewrap build",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

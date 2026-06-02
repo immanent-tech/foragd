@@ -24,8 +24,6 @@
     "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.5.20",
     "date-fns": "^4.3.0",
-    "dotenv": "^17.4.2",
-    "dotenv-cli": "^11.0.0",
     "grid-rows-masonry": "^1.2.11",
     "htmx.org": "^2.0.10",
     "hyperscript.org": "^0.9.91",
