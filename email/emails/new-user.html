@@ -23,7 +23,7 @@ preheader: Welcome to Foragd
     <div class="p-12">
       <x-button
         align="center"
-        href="/home"
+        href="/home?utm_medium=email&utm_source=notification"
         class="bg-primary text-primary-content hover:bg-accent"
       >
         Go to your home page
@@ -50,7 +50,7 @@ preheader: Welcome to Foragd
               1️⃣
               <a
                 class="font-semibold hover:text-accent"
-                href="/subscription/add"
+                href="/subscription/add?utm_medium=email&utm_source=notification"
                 >Add</a
               >
               a feed from a URL or
@@ -63,7 +63,7 @@ preheader: Welcome to Foragd
               2️⃣
               <a
                 class="font-semibold hover:text-accent"
-                href="/subscription/add/group"
+                href="/subscription/add/group?utm_medium=email&utm_source=notification"
                 >Create a Group Subscription</a
               >
               to keep track of all articles from a bunch of similar sources.
@@ -73,7 +73,7 @@ preheader: Welcome to Foragd
               as a
               <a
                 class="font-semibold hover:text-accent"
-                href="/subscription/add/search"
+                href="/subscription/add/search?utm_medium=email&utm_source=notification"
                 >Search Subscription</a
               >
               to keep up to date as new articles come in.
@@ -86,7 +86,11 @@ preheader: Welcome to Foragd
       <fill:text>
         <p class="mso-break-all mt-12 mb-4">
           Check out the
-          <a class="hover:text-accent" href="/docs">help documentation</a>
+          <a
+            class="hover:text-accent"
+            href="/docs?utm_medium=email&utm_source=notification"
+            >help documentation</a
+          >
           for more information. Got any questions? Just reply to this email.
         </p>
       </fill:text>
