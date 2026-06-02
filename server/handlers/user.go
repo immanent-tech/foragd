@@ -28,6 +28,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -904,6 +905,22 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 
 			displayResults(nil)
 		}
-
 	}).ServeHTTP
+}
+
+func ValidateSubscriptionLimits(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "validate-user-limits")
+		defer span.End()
+		switch err := service.CheckUserLimits(req.Context()); {
+		case errors.Is(err, models.ErrForbidden):
+			HandleInternalError(req.Referer(), err).ServeHTTP(res, req)
+			return
+		case errors.Is(err, models.ErrSubscriptionLimitExceeded),
+			errors.Is(err, models.ErrEmailNewsletterLimitExceeded):
+			slogctx.FromCtx(req.Context()).Warn("User has exceeded account limits.")
+		}
+
+		next.ServeHTTP(res, req)
+	})
 }

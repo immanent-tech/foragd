@@ -59,6 +59,14 @@ var templates = map[string][]resend.TemplateOption{
 		resend.WithSubject[*resend.Template]("Your Foragd trial is expiring soon"),
 		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
 	},
+	"account-limit-exceeded": []resend.TemplateOption{
+		resend.WithTemplateName("Account Limit Exceeded"),
+		resend.WithSubject[*resend.Template]("You've exceeded your account limits"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
+		resend.WithTemplateVariable("LIMIT_NAME", "string", ""),
+		resend.WithTemplateVariable("TOTAL", "number", 0),
+		resend.WithTemplateVariable("ALLOWED", "number", 0),
+	},
 }
 
 // Build creates the email templates

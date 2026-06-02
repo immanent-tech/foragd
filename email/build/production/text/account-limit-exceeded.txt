@@ -1,0 +1,18 @@
+Hey {{{USER_NICKNAME}}},
+
+Just wanted to let you know you've exceeded {{{LIMIT_NAME}}} account limit. You currently have {{{TOTAL}}} of
+{{{ALLOWED}}} allowed.
+
+Manage subscriptions: https://foragd.app/user/settings#subscriptions
+
+Please make sure to reduce your usage to below the limit in the next 7 days. If after 7 days you are still over your
+limits, your account will be blocked and access restricted.
+
+You can always check your limits and usage on the settings page linked above.
+
+Got any questions? Just reply to this email.
+
+Thanks,
+
+Josh
+

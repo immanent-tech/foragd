@@ -185,6 +185,7 @@ func Start(logger *slog.Logger) error {
 			middlewares.ExtractUserFromSession,
 			middlewares.RequireValidUser,
 			middlewares.PushCriticalAssets,
+			handlers.ValidateSubscriptionLimits,
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)

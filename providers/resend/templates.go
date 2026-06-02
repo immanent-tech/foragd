@@ -69,7 +69,7 @@ func WithTemplateName(name string) TemplateOption {
 }
 
 // WithTemplateVariable option sets a variable for use within the template.
-func WithTemplateVariable(key, dataType, fallback string) TemplateOption {
+func WithTemplateVariable(key, dataType string, fallback any) TemplateOption {
 	return func(t *Template) {
 		t.mu.Lock()
 		defer t.mu.Unlock()

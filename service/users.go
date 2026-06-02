@@ -19,6 +19,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/otel"
 )
 
@@ -228,5 +229,122 @@ func DeleteUser(ctx context.Context, user *models.User) error {
 	); err != nil {
 		return fmt.Errorf("delete user subscriptions: %w", err)
 	}
+	return nil
+}
+
+func CheckUserLimits(ctx context.Context) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscriptions, err := GetAllSubscriptions(ctx)
+	if err != nil {
+		return fmt.Errorf("get all subscriptions: %w", err)
+	}
+
+	// Check current limits.
+	switch {
+	case user.Metadata.SubscriptionLimit != nil:
+		if user.Metadata.SubscriptionLimit.Exceeded &&
+			time.Now().UTC().After(user.Metadata.SubscriptionLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
+			// User has exceeded subscription limit for over 7 days, deny access.
+			return models.ErrForbidden
+		}
+		if len(
+			subscriptions,
+		)-len(
+			subscriptions.FilterByType(models.SubscriptionTypeEmail),
+		) <= models.MaxSubscriptions {
+			// User has corrected limit overage.
+			user.Metadata.SubscriptionLimit = &models.UserLimit{
+				Exceeded:  false,
+				Timestamp: time.Now().UTC(),
+			}
+			if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+				return fmt.Errorf("update user: %w", err)
+			}
+		}
+		return nil
+	case user.Metadata.NewsletterLimit != nil:
+		if user.Metadata.NewsletterLimit.Exceeded &&
+			time.Now().UTC().After(user.Metadata.NewsletterLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
+			// User has exceeded newsletter limit for over 7 days, deny access.
+			return models.ErrForbidden
+		}
+		if len(subscriptions.FilterByType(models.SubscriptionTypeEmail)) <= models.MaxEmailNewsletters {
+			// User has corrected limit overage.
+			user.Metadata.NewsletterLimit = &models.UserLimit{
+				Exceeded:  false,
+				Timestamp: time.Now().UTC(),
+			}
+			if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+				return fmt.Errorf("update user: %w", err)
+			}
+		}
+		return nil
+	}
+
+	switch {
+	case len(subscriptions)-len(subscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxSubscriptions:
+		// Mark user as exceeding subscription limit.
+		user.Metadata.SubscriptionLimit = &models.UserLimit{
+			Exceeded:  true,
+			Timestamp: time.Now().UTC(),
+		}
+		if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+		// Create and send email to notify them about exceeding their limit.
+		email, err := resend.NewTemplatedEmail(
+			"account-limit-exceeded",
+			resend.WithTo(user.GetEmail()),
+			resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
+			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+			resend.WithVariable("LIMIT_NAME", "subscriptions"),
+			resend.WithVariable(
+				"TOTAL",
+				len(subscriptions)-len(subscriptions.FilterByType(models.SubscriptionTypeEmail)),
+			),
+			resend.WithVariable("ALLOWED", models.MaxSubscriptions),
+		)
+		if err != nil {
+			return fmt.Errorf("create email %s: %w", "account-limit-exceeded", err)
+		}
+		if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+			return fmt.Errorf("send email %s: %w", "account-limit-exceeded", err)
+		}
+		return models.ErrSubscriptionLimitExceeded
+	case len(subscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxEmailNewsletters:
+		// Mark user as exceeding newsletter limit.
+		user.Metadata.NewsletterLimit = &models.UserLimit{
+			Exceeded:  true,
+			Timestamp: time.Now().UTC(),
+		}
+		if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+		// Create and send email to notify them about exceeding their limit.
+		email, err := resend.NewTemplatedEmail(
+			"account-limit-exceeded",
+			resend.WithTo(user.GetEmail()),
+			resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
+			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+			resend.WithVariable("LIMIT_NAME", "email newsletters"),
+			resend.WithVariable(
+				"TOTAL",
+				len(subscriptions)-len(subscriptions.FilterByType(models.SubscriptionTypeEmail)),
+			),
+			resend.WithVariable("ALLOWED", models.MaxSubscriptions),
+		)
+		if err != nil {
+			return fmt.Errorf("create email %s: %w", "account-limit-exceeded", err)
+		}
+		if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+			return fmt.Errorf("send email %s: %w", "account-limit-exceeded", err)
+		}
+		return models.ErrEmailNewsletterLimitExceeded
+	}
+
 	return nil
 }

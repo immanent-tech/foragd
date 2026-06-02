@@ -332,6 +332,23 @@ components:
           x-oapi-codegen-extra-tags:
             form: "update_interval"
             validate: "gte=0"
+    UserLimit:
+      description: >
+        represents details about a user account limit
+      type: object
+      required:
+        - exceeded
+        - timestamp
+      properties:
+        exceeded:
+          description: indicates whether this limit has been exceeded.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
+        timestamp:
+          description: is the timestamp when the limit was last changed.
+          x-go-type: time.Time
     UserMetadata:
       description: >
         contains metadata related to the user's account.
@@ -377,6 +394,10 @@ components:
           type: boolean
           x-omitzero: true
           x-omitempty: true
+        subscription_limit:
+          $ref: "#/components/schemas/UserLimit"
+        newsletter_limit:
+          $ref: "#/components/schemas/UserLimit"
     PaddleSubscription:
       description: >
         contains details about the user's paid subscription.

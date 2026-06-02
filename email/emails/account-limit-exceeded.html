@@ -1,0 +1,67 @@
+---
+preheader: You've exceeded your account limits
+---
+
+<x-main>
+  <x-container container-class="bg-base-200 rounded-lg">
+    <x-title-left-small>
+      <fill:title>
+        <h1 class="text-2xl/8 font-semibold font-display"> You've exceeded your
+        account limits</h1>
+      </fill:title>
+    </x-title-left-small>
+    <x-paragraph>
+      <fill:text>
+        <p>Hey {{{USER_NICKNAME}}},</p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          Just wanted to let you know you've exceeded {{{LIMIT_NAME}}} account
+          limit. You currently have {{{TOTAL}}} of {{{ALLOWED}}} allowed.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <div class="p-12">
+      <x-button
+        align="center"
+        href="/user/settings#subscriptions"
+        class="bg-primary text-primary-content hover:bg-accent"
+      >
+        Manage your subscriptions
+      </x-button>
+    </div>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          Please make sure to reduce your usage to below the limit in the next 7
+          days. If after 7 days you are still over your limits, your account
+          will be blocked and access restricted.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          You can always check your limits and usage on the settings page linked
+          above.
+        </p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>Got any questions? Just reply to this email.</p>
+      </fill:text>
+    </x-paragraph>
+    <x-paragraph>
+      <fill:text>
+        <p>
+          Thanks,
+          <br />
+          <span class="font-semibold"> Josh </span>
+        </p>
+      </fill:text>
+    </x-paragraph>
+  </x-container>
+</x-main>

@@ -1,0 +1,88 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/zeebo/xxh3"
+	"strconv"
+	"time"
+)
+
+const DefaultNotificationTimeout = 5 * time.Second
+
+var (
+	// NotificationsID points to an element that can be used for displaying notifications to the user.
+	NotificationsID = models.ElementID("notifications")
+)
+
+templ Notification(msg *models.UserMessage, timeout time.Duration) {
+	{{ id := "notification-" + strconv.FormatUint(xxh3.Hash([]byte(msg.Summary)), 10) }}
+	<div
+		role="alert"
+		class={ "alert-vertical sm:alert-horizontal", templ.KV("alert-info",msg.IsInfo()), templ.KV("alert-success",msg.IsSuccess()), templ.KV("alert-warning",msg.IsWarning()), templ.KV("alert-error",msg.IsError()) }
+		hx-swap-oob={ "beforeend:" + NotificationsID.Target() }
+		if timeout != 0 {
+			_={ "on load wait for " + timeout.String() + " then remove me" }
+		} else {
+			_={ "on load wait for " + DefaultNotificationTimeout.String() + " then remove me" }
+		}
+	>
+		<div class="flex">
+			<div class="shrink-0">
+				switch msg.Status {
+					case models.UserMessageStatusSuccess:
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check size-6 text-success">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M9 12l2 2l4 -4"></path>
+						</svg>
+					case models.UserMessageStatusError:
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle size-6 text-error">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 9v4"></path><path d="M12 16v.01"></path>
+						</svg>
+					case models.UserMessageStatusWarning:
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-6 text-warning">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path><path d="M12 16h.01"></path>
+						</svg>
+					default:
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M12 9h.01"></path><path d="M11 12h1v4h1"></path>
+						</svg>
+				}
+			</div>
+			<div class="ml-3">
+				<h3
+					class={ "text-sm font-medium",
+							templ.KV("info-content",msg.IsInfo()),
+		templ.KV("success-content",msg.IsSuccess()),
+		templ.KV("warning-content",msg.IsWarning()),
+		templ.KV("error-content",msg.IsError()) }
+				>{ msg.Summary }</h3>
+				if msg.HasDetails() {
+					<div
+						class={ "mt-2 text-sm",
+						templ.KV("info-content",msg.IsInfo()),
+		templ.KV("success-content",msg.IsSuccess()),
+		templ.KV("warning-content",msg.IsWarning()),
+		templ.KV("error-content",msg.IsError()) }
+					>
+						{ *msg.Details }
+					</div>
+				}
+			</div>
+		</div>
+		// Close button.
+		<div class="absolute top-0 right-0 p-2">
+			<button
+				type="button"
+				class="btn btn-square btn-ghost btn-xs"
+				_={ "on click remove #" + id }
+			>
+				<span class="sr-only">Close</span>
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x text-neutral">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+				</svg>
+			</button>
+		</div>
+	</div>
+}

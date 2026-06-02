@@ -1265,6 +1265,15 @@ type UserCustomisation struct {
 // UserID is the unique ID of a user.
 type UserID = string
 
+// UserLimit represents details about a user account limit
+type UserLimit struct {
+	// Exceeded indicates whether this limit has been exceeded.
+	Exceeded bool `json:"exceeded"`
+
+	// Timestamp is the timestamp when the limit was last changed.
+	Timestamp time.Time `json:"timestamp"`
+}
+
 // UserMessage represents a message that can be displayed to the user as the result of an action.
 type UserMessage struct {
 	// Details is a longer description and/or background details about the message.
@@ -1288,6 +1297,9 @@ type UserMetadata struct {
 	// EmailVerified indicates whether the user has verfied their email address.
 	EmailVerified bool `json:"email_verified" validate:"required"`
 
+	// NewsletterLimit represents details about a user account limit
+	NewsletterLimit *UserLimit `json:"newsletter_limit,omitempty"`
+
 	// PendingDeletion indicates whether the user account is pending deletion.
 	PendingDeletion *bool `json:"pending_deletion,omitempty,omitzero"`
 
@@ -1296,6 +1308,9 @@ type UserMetadata struct {
 
 	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
 	PromotionalEmail bool `json:"promotional_email" validate:"required"`
+
+	// SubscriptionLimit represents details about a user account limit
+	SubscriptionLimit *UserLimit `json:"subscription_limit,omitempty"`
 }
 
 // UserSession tracks a user session.

@@ -951,6 +951,28 @@ func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Req
 // HandleAddSubscription handles showing a form for adding a new subscription.
 func HandleAddSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: models.ErrCtxValueNotFound,
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to get account details",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			return
+		}
+
 		// Get any pre-entered URL (i.e., incoming share links/protocol handlers).
 		url := req.FormValue("url")
 		if v := req.FormValue("text"); v != "" && url == "" {
@@ -1151,6 +1173,28 @@ func HandleSuggestFeeds() http.HandlerFunc {
 // HandleAddSearchSubscription handles adding a new search subscription.
 func HandleAddSearchSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: models.ErrCtxValueNotFound,
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to get account details",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			return
+		}
+
 		switch req.Method {
 		case http.MethodGet:
 			// Get the details.
@@ -1298,6 +1342,28 @@ func HandleAddSubscriptionToSearch() http.HandlerFunc {
 // HandleAddGroupSubscription handles adding a new group subscription.
 func HandleAddGroupSubscription() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: models.ErrCtxValueNotFound,
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to get account details",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			return
+		}
+
 		switch req.Method {
 		case http.MethodGet:
 			// Get suggested categories from existing subscriptions.
@@ -1471,6 +1537,28 @@ func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, re
 // HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func HandleImportSubscriptions() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: models.ErrCtxValueNotFound,
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to get account details",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			HandleInternalError(req.URL.Path, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			return
+		}
+
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
@@ -1506,6 +1594,31 @@ func HandleImportSubscriptions() http.HandlerFunc {
 							"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
 						),
 					}).ServeHTTP(res, req)
+				return
+			}
+			// Get user's existing subscriptions.
+			currentSubscriptions, err := service.GetAllSubscriptions(req.Context())
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("generate subscription requests: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Getting existing subscriptions.",
+							"There was a problem fetching existing subscription. This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
+			}
+			// Check adding new subscription will not cause user to exceed subscriptions limit.
+			if len(
+				requests,
+			)+len(
+				currentSubscriptions,
+			)-len(
+				currentSubscriptions.FilterByType(models.SubscriptionTypeEmail),
+			) > models.MaxSubscriptions {
+				HandleInternalError(req.URL.Path, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 				return
 			}
 

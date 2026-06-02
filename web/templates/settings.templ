@@ -223,33 +223,6 @@ templ AccountSettings(user *models.User) {
 					</div>
 			}
 		</div>
-		// Import and Export.
-		<div>
-			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-				Import/Export
-			</h3>
-			<p>Import or Export your subscriptions.</p>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full mt-8 place-self-end">
-				<div class="mt-2 flex items-center justify-end gap-x-6">
-					<button
-						type="button"
-						class="btn btn-primary"
-						hx-push-url="true"
-						hx-get="/user/import"
-						hx-target={ ContentID.Target() }
-					>Import</button>
-					<button
-						type="button"
-						class="btn btn-primary"
-						hx-push-url="true"
-						hx-get="/user/export"
-						hx-target={ ContentID.Target() }
-					>Export</button>
-				</div>
-			</div>
-		</div>
 		// Account customisation.
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
@@ -660,6 +633,28 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
 			Subscription Management
 		</h3>
+		<div class="w-full text-center sm:text-left">
+			<div class="mx-auto stats stats-vertical lg:stats-horizontal shadow ">
+				<div class="stat">
+					<div class="stat-title">Subscriptions</div>
+					<div class={ "stat-value",templ.KV("text-warning",data.User.Metadata.SubscriptionLimit != nil && data.User.Metadata.SubscriptionLimit.Exceeded) }>{ len(data.Subscriptions) }</div>
+					<div class="stat-desc">Limit: { models.MaxSubscriptions }</div>
+				</div>
+				<div class="stat">
+					<div class="stat-title">Email Newsletters</div>
+					<div class={ "stat-value",templ.KV("text-warning",data.User.Metadata.NewsletterLimit != nil && data.User.Metadata.NewsletterLimit.Exceeded) }>{ len(data.Subscriptions.FilterByType(models.SubscriptionTypeEmail)) }</div>
+					<div class="stat-desc">Limit { models.MaxEmailNewsletters }</div>
+				</div>
+				<div class="stat">
+					<div class="stat-title">Group Subscriptions</div>
+					<div class="stat-value">{ len(data.Subscriptions.FilterByType(models.SubscriptionTypeGroup)) }</div>
+				</div>
+				<div class="stat">
+					<div class="stat-title">Search Subscriptions</div>
+					<div class="stat-value">{ len(data.Subscriptions.FilterByType(models.SubscriptionTypeSearch)) }</div>
+				</div>
+			</div>
+		</div>
 		<div class="py-4">
 			<input
 				type="text"
@@ -920,6 +915,26 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					// </tfoot>
 				</table>
 			}
+		</div>
+		// Import and Export.
+		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+			Import/Export
+		</h3>
+		<div class="w-full text-center sm:text-left">
+			<button
+				type="button"
+				class="btn btn-primary"
+				hx-push-url="true"
+				hx-get="/user/import"
+				hx-target={ ContentID.Target() }
+			>Import</button>
+			<button
+				type="button"
+				class="btn btn-primary"
+				hx-push-url="true"
+				hx-get="/user/export"
+				hx-target={ ContentID.Target() }
+			>Export</button>
 		</div>
 	</div>
 }

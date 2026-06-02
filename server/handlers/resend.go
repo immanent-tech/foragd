@@ -99,6 +99,11 @@ func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) erro
 		}
 		return fmt.Errorf("get user by subscription email: %w", err)
 	}
+
+	if user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded {
+		return models.ErrEmailNewsletterLimitExceeded
+	}
+
 	// Load user data into context for later methods.
 	ctx = models.UserToCtx(ctx, user)
 

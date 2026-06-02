@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -27,6 +28,36 @@ var (
 	ErrInvalidParams = &APIError{
 		InternalError: errors.New("invalid parameters"),
 		StatusCode:    http.StatusUnprocessableEntity,
+	}
+	ErrForbidden = &APIError{
+		InternalError: errors.New("forbidden"),
+		StatusCode:    http.StatusForbidden,
+		UserMessage: NewWarningMessage(
+			"Access restricted.",
+			"Your access has been forbidden. Please contact support if you believe this is an error.",
+		),
+	}
+	// ErrSubscriptionLimitExceeded indicates that the user has exceeded their subscription limit.
+	ErrSubscriptionLimitExceeded = &APIError{
+		InternalError: errors.New("subscription limit exceeded"),
+		StatusCode:    http.StatusTooManyRequests,
+		UserMessage: NewWarningMessage(
+			"Exceeded subscription limit.",
+			"You have exceeded your subscription limit ("+strconv.Itoa(
+				MaxSubscriptions,
+			)+"). Please remove some subscriptions to get under this limit before continuing.",
+		),
+	}
+	// ErrEmailNewsletterLimitExceeded indicates that the user has exceeded their email newsletter limit.
+	ErrEmailNewsletterLimitExceeded = &APIError{
+		InternalError: errors.New("email newsletter limit exceeded"),
+		StatusCode:    http.StatusTooManyRequests,
+		UserMessage: NewWarningMessage(
+			"Exceeded email newsletter limit.",
+			"You have exceeded your email newsletter limit ("+strconv.Itoa(
+				MaxEmailNewsletters,
+			)+"). Please remove some email newsletter subscriptions to get under this limit before continuing.",
+		),
 	}
 )
 
