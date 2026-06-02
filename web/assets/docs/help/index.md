@@ -4,20 +4,20 @@
   - [Where to get help](#where-to-get-help)
   - [Terminology](#terminology)
   - [Accounts](#accounts)
-  - [Usage](#usage)
-    - [Navigation](#navigation)
-    - [Searching](#searching)
-      - [Search Notes](#search-notes)
-    - [Subscriptions](#subscriptions)
-      - [Customization](#customization)
-      - [Filtering articles within a subscription](#filtering-articles-within-a-subscription)
+  - [How to Use Foragd](#how-to-use-foragd)
+    - [Getting Around the Interface](#getting-around-the-interface)
+    - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
+      - [About Search Results](#about-search-results)
+    - [Managing Your Subscriptions](#managing-your-subscriptions)
+      - [Customising the Subscription Display](#customising-the-subscription-display)
+      - [Filtering Articles Within a Subscription](#filtering-articles-within-a-subscription)
       - [Group Subscriptions](#group-subscriptions)
       - [Search Subscriptions](#search-subscriptions)
       - [Email Newsletter Subscriptions](#email-newsletter-subscriptions)
       - [Managing Subscriptions](#managing-subscriptions)
-    - [Favorites](#favorites)
-    - [Filtering](#filtering)
-    - [Global Keyboard Shortcuts (desktop)](#global-keyboard-shortcuts-desktop)
+    - [Saving and Viewing Your Favorite Subscriptions and Articles](#saving-and-viewing-your-favorite-subscriptions-and-articles)
+    - [Search Operators \& Filtering Guide](#search-operators--filtering-guide)
+    - [Using Keyboard Shortcuts (on Desktops)](#using-keyboard-shortcuts-on-desktops)
   - [Policies and Terms of Service](#policies-and-terms-of-service)
 
 ## Where to get help
@@ -44,14 +44,14 @@
 **Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor. You will be taken to a hosted Paddle
 payment page for managing your subscriptions and payments.
 
-## Usage
+## How to Use Foragd
 
-### Navigation
+### Getting Around the Interface
 
 Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the Home, Subscriptions, Articles, or
 Favorites pages.
 
-### Searching
+### How to Search Articles & Subscriptions
 
 Use the global search in the header bar to search for anything. It will search across all Subscriptions and Articles,
 offering both as suggestions. Additionally certain keywords will show action results (for example, searching `add` will
@@ -59,16 +59,16 @@ show actions for adding subscriptions). Choose a result to go directly to that a
 perform that action, or hit enter/return to get a full set of results.
 
 Use the advanced search (filter icon at the right of the search bar) to filter by subscription, category, author, date,
-and status. See also [filtering](#filtering) for operators that can be used in the text fields.
+and status. See also [filtering](#filtering-articles-within-a-subscription) for operators that can be used in the text fields.
 
-#### Search Notes
+#### About Search Results
 
 - Search will preference articles from your favorite subscriptions.
 - Search will preference articles that have been published/updated closer to today's date.
 
-### Subscriptions
+### Managing Your Subscriptions
 
-#### Customization
+#### Customising the Subscription Display
 
 You can customize any subscription, by changing its name or adding/removing categories. To customize a subscription,
 choose **Edit Subscription** from the context menu of the Subscription card:
@@ -79,14 +79,14 @@ Categories allow you to easily group and filter your subscriptions. Where possib
 presented as auto-complete options in the **Add Categories** input. These will be taken from the most common categories
 on Articles within the feed.
 
-#### Filtering articles within a subscription
+#### Filtering Articles Within a Subscription
 
 You can filter the articles in a subscription by text, authors, or categories. To adjust filters, edit the subscription
 and enter your filter terms in the appropriate inputs:
 
 ![Screenshot of subscription filtering options](/content/screenshots/screenshot-subscription-article-filters.png)
 
-See [filtering](#filtering) for usage.
+See [filtering](#filtering-articles-within-a-subscription) for usage.
 
 **Note:** article filters are applied globally, meaning all searches, views and any group/search Subscriptions you
 create will have the subscription article filters applied.
@@ -106,8 +106,8 @@ To add a Group Subscription:
 
 #### Search Subscriptions
 
-Any [search](#searching) can also be made into a Search Subscription. This is useful for keeping track of particular
-keywords or content across any number of your feed subscriptions.
+Any [search](#how-to-search-articles--subscriptions) can also be made into a Search Subscription. This is useful for
+keeping track of particular keywords or content across any number of your feed subscriptions.
 
 To add a Group Subscription:
 
@@ -118,8 +118,10 @@ To add a Group Subscription:
 
 #### Email Newsletter Subscriptions
 
-You can subscribe to your favorite newsletters from within Foragd. First, you will need to create your unique Foragd
-email address that you will use to subscribe to any newsletters.
+You can subscribe to your favorite newsletters from within Foragd. This allows you to read newsletters alongside your
+RSS feeds without cluttering your inbox.
+
+First, you will need to create your unique Foragd email address that you will use to subscribe to any newsletters.
 
 - Navigate to [Settings](/settings)->Account and scroll down to *Subscribe to Email Newsletters*.
 - Click on the *Generate Email Address* button to generate a unique email.
@@ -135,7 +137,7 @@ You can manage your subscriptions at [Settings->Subscriptions](/user/settings#su
 to edit, mark and manage subscriptions both individually and in bulk. It also shows how many subscriptions you have in
 total (and what your account limits on subscriptions are).
 
-### Favorites
+### Saving and Viewing Your Favorite Subscriptions and Articles
 
 You can mark any subscription or article as a favorite. All favorites can be found on the [favorites](/list/favorites)
 page. On the subscriptions list page, you can filter to show only favorites.
@@ -143,7 +145,7 @@ page. On the subscriptions list page, you can filter to show only favorites.
 While Foragd does not retain all feed articles forever, marking an article as a favorite **will** ensure it is
 kept indefinitely. Foragd makes a copy of the article and stores it specially for you.
 
-### Filtering
+### Search Operators & Filtering Guide
 
 By default words are matched with **OR** (i.e., cats dogs will match cats **OR** dogs). The following operators can be
 used for more refined searches:
@@ -154,19 +156,28 @@ used for more refined searches:
 - `""` represents an exact phrase match (i.e., `"galaxy watch"`).
 - `\*` at the end of a word indicates a prefix match (i.e., `bird\*` will match bird, birding and birds).
 
-Operators can be combined, for e.g., `android -"galaxy watch" +samsung`.
+Some real examples:
 
-### Global Keyboard Shortcuts (desktop)
+| Goal                                                                 | Query                |
+| -------------------------------------------------------------------- | -------------------- |
+| AI news, but not about ChatGPT                                       | `AI -chatgpt`        |
+| Find articles about "machine learning" (phrase)                      | `"machine learning"` |
+| Find articles that are only about python and that are also tutorials | `+python +tutorial`  |
+
+All operators can be combined, for e.g., `+python +tutorial "machine learning" -chatgpt`.
+
+### Using Keyboard Shortcuts (on Desktops)
 
 The following shortcut keys are available on desktop:
 
-- `Alt+k` activates the global search input.
-- `Alt+h` navigates to [Home](/home).
-- `Alt+s` navigates to [Subscriptions](/list/subscriptions).
-- `Alt+a` navigates to [Articles](/list/articles).
-- `Alt+f` navigates to [Favorites](/list/favorites).
-- On [Subscriptions](/list/subscriptions) or [Articles](/list/articles) pages:
-  - `Alt+x` activates the actions menu.
+| Key Combo | Action                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------- |
+| `Alt+k`   | activates the global search input                                                                             |
+| `Alt+h`   | navigates to [Home](/home)                                                                                    |
+| `Alt+s`   | navigates to [Subscriptions](/list/subscriptions)                                                             |
+| `Alt+a`   | navigates to [Articles](/list/articles)                                                                       |
+| `Alt+f`   | navigates to [Favorites](/list/favorites)                                                                     |
+| `Alt+x`   | activates the actions menu (on [Subscriptions](/list/subscriptions) or [Articles](/list/articles) list pages) |
 
 ## Policies and Terms of Service
 

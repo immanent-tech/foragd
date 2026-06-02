@@ -28,7 +28,7 @@ type Help struct {
 func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
-			templates.WithPageTitle("Documentation"),
+			templates.WithPageTitle("Help & Documentation: RSS Reader Guide"),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 		)).ServeHTTP(res, req)
 }
@@ -38,7 +38,7 @@ func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Documentation")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle("Help & Documentation: RSS Reader Guide")).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
