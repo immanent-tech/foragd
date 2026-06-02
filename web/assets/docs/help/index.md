@@ -6,17 +6,18 @@
   - [Accounts](#accounts)
   - [Usage](#usage)
     - [Navigation](#navigation)
-    - [Action Palette](#action-palette)
     - [Searching](#searching)
+      - [Search Notes](#search-notes)
     - [Subscriptions](#subscriptions)
       - [Customization](#customization)
       - [Filtering articles within a subscription](#filtering-articles-within-a-subscription)
       - [Group Subscriptions](#group-subscriptions)
       - [Search Subscriptions](#search-subscriptions)
       - [Email Newsletter Subscriptions](#email-newsletter-subscriptions)
+      - [Managing Subscriptions](#managing-subscriptions)
     - [Favorites](#favorites)
     - [Filtering](#filtering)
-    - [Global Keyboard Shortcuts](#global-keyboard-shortcuts)
+    - [Global Keyboard Shortcuts (desktop)](#global-keyboard-shortcuts-desktop)
   - [Policies and Terms of Service](#policies-and-terms-of-service)
 
 ## Where to get help
@@ -35,10 +36,13 @@
 
 ## Accounts
 
-- You can manage your account at [Settings->Account](/user/settings).
+- You can manage your account at [Settings->Account](/user/settings#account).
 - You can change your plan level or cancel anytime.
 - Cancelling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
   reverse a cancellation during this period if you change your mind.
+
+**Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor. You will be taken to a hosted Paddle
+payment page for managing your subscriptions and payments.
 
 ## Usage
 
@@ -47,19 +51,20 @@
 Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the Home, Subscriptions, Articles, or
 Favorites pages.
 
-### Action Palette
-
-On desktops or devices with a keyboard, you can bring up an action palette by pressing `Alt+k`. You can then use this to
-navigate around the site by typing any of these page names (i.e., _Sub_, _Art_, etc.) and selecting them in the results.
-There are also actions for quickly adding subscriptions (just start typing _Add_…).
-
 ### Searching
 
 Use the global search in the header bar to search for anything. It will search across all Subscriptions and Articles,
-offering both as suggestions. Choose the search action or hit enter/return to get a full set of results.
+offering both as suggestions. Additionally certain keywords will show action results (for example, searching `add` will
+show actions for adding subscriptions). Choose a result to go directly to that article or subscription, an action to
+perform that action, or hit enter/return to get a full set of results.
 
 Use the advanced search (filter icon at the right of the search bar) to filter by subscription, category, author, date,
 and status. See also [filtering](#filtering) for operators that can be used in the text fields.
+
+#### Search Notes
+
+- Search will preference articles from your favorite subscriptions.
+- Search will preference articles that have been published/updated closer to today's date.
 
 ### Subscriptions
 
@@ -124,12 +129,19 @@ Once you’ve generated your email address, use it when subscribing to email new
 automatically grouped under a new subscription from the sender email. You can then customize it further (add a picture,
 nickname, or even filter received emails) as with any other subscription.
 
+#### Managing Subscriptions
+
+You can manage your subscriptions at [Settings->Subscriptions](/user/settings#subscriptions). This page provides a way
+to edit, mark and manage subscriptions both individually and in bulk. It also shows how many subscriptions you have in
+total (and what your account limits on subscriptions are).
+
 ### Favorites
 
-- You can mark any subscription or article as a favorite.
-- All favorites can be found on the [favorites](/list/favorites) page.
-- Favorite subscriptions will appear first on the [subscriptions](/list/subscriptions) page.
-- Favorite articles will be kept indefinitely.
+You can mark any subscription or article as a favorite. All favorites can be found on the [favorites](/list/favorites)
+page. On the subscriptions list page, you can filter to show only favorites.
+
+While Foragd does not retain all feed articles forever, marking an article as a favorite **will** ensure it is
+kept indefinitely. Foragd makes a copy of the article and stores it specially for you.
 
 ### Filtering
 
@@ -144,10 +156,11 @@ used for more refined searches:
 
 Operators can be combined, for e.g., `android -"galaxy watch" +samsung`.
 
-### Global Keyboard Shortcuts
+### Global Keyboard Shortcuts (desktop)
 
-- `Alt+q` activates the global search input.
-- `Alt+k` activates the command palette.
+The following shortcut keys are available on desktop:
+
+- `Alt+k` activates the global search input.
 - `Alt+h` navigates to [Home](/home).
 - `Alt+s` navigates to [Subscriptions](/list/subscriptions).
 - `Alt+a` navigates to [Articles](/list/articles).
