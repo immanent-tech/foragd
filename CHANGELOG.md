@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.151.1](https://github.com/immanent-tech/foragd/compare/v0.151.0...v0.151.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* **templates/search:** 🔧 fix focusing global search ([0bf8e85](https://github.com/immanent-tech/foragd/commit/0bf8e85035d5bd2da5d86d533b24e7887ae3a255))
+
 ## [0.151.0](https://github.com/immanent-tech/foragd/compare/v0.150.1...v0.151.0) (2026-06-02)
 
 
