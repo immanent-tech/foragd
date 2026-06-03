@@ -80,7 +80,7 @@ practically impossible. Similarly, why do feed readers insist on showing you an 
 obligation](https://www.terrygodier.com/phantom-obligation); you didn’t ask for the cognitive pressure from it, yet
 these services demand you make the number go down.
 
-[Foragd](/) does not display unread counts by default. You can turn them on if you want them, but
+[Foragd](/?utm_source=blog) does not display unread counts by default. You can turn them on if you want them, but
 hiding them by default is a deliberate design decision to create space for discovery and novel navigation, not frantic
 “number must go down” skimming.
 
@@ -192,6 +192,6 @@ As an example In Foragd:
 - **Take time to maintain your subscriptions**: spend some time occasionally reviewing all your subscriptions and
   unsubscribing from any heavily filtered or constantly skipped subscriptions that indicate low value or noisy sources.
 
-[Sign up](/signup) for Foragd to easily tame the stream of content.
+[Sign up](/signup?utm_source=blog) for Foragd to easily tame the stream of content.
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

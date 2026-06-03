@@ -97,8 +97,8 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 			config.GetBaseURL()+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithSiteName(config.AppName),
-			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.CreatedAt),
-			opengraph.WithAdditionalProperty("article:modified_time", *p.Frontmatter.UpdatedAt),
+			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.GetCreatedDate()),
+			opengraph.WithAdditionalProperty("article:modified_time", p.Frontmatter.GetUpdatedDate()),
 		)),
 	)).ServeHTTP(res, req.WithContext(ctx))
 }
@@ -212,8 +212,8 @@ func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails)
 		"headline":      fm.Title,
 		"description":   fm.Description,
 		"image":         config.GetBaseURL() + *fm.Image,
-		"datePublished": fm.CreatedAt,
-		"dateModified":  fm.UpdatedAt,
+		"datePublished": fm.GetCreatedDate(),
+		"dateModified":  fm.GetUpdatedDate(),
 		"author": map[string]any{
 			"@type": "Person",
 			"name":  fm.Author,
@@ -272,7 +272,7 @@ func HandlePostsFeed() http.HandlerFunc {
 				continue
 			}
 			var published time.Time
-			if published, err = time.Parse(time.DateOnly, data.Frontmatter.CreatedAt); err != nil {
+			if published, err = time.Parse(time.DateOnly, data.Frontmatter.GetCreatedDate()); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse published date of post.",
 					slog.String("file", post.File),
 					slog.Any("error", err),

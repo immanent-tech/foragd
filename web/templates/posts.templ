@@ -52,7 +52,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 							"@type":         "BlogPosting",
 							"headline":      post.Frontmatter.Title,
 							"url":           config.GetBaseURL() + "/blog/" + post.Details.Path,
-							"datePublished": post.Frontmatter.CreatedAt,
+							"datePublished": post.Frontmatter.GetCreatedDate(),
 							"author": map[string]any{
 								"@type": "Person",
 								"name":  "Joshua Rich",
@@ -60,36 +60,36 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 						}
 						postsJSONLD = append(postsJSONLD, postJSONLD)
 					}}
-					<article
-						style={ "--i: " + strconv.Itoa(idx) }
-						class="card h-fit max-w-prose animate-fadeinup bg-base-200 card-border"
-					>
-						if post.Frontmatter.Image != nil {
-							<figure>
-								<img
-									src={ *post.Frontmatter.Image }
-									alt={ post.Frontmatter.Title }
-									if idx == 0 {
-										fetchpriority="high"
-									} else {
-										loading="lazy"
-									}
-								/>
-							</figure>
-						}
-						<div class="card-body">
-							<a href={ "/blog/" + post.Details.Path }>
-								<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
-							</a>
-							if post.Frontmatter.Author != nil {
-								<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
+					<a href={ "/blog/" + post.Details.Path }>
+						<article
+							style={ "--i: " + strconv.Itoa(idx) }
+							class="card h-fit max-w-prose animate-fadeinup bg-base-200 card-border"
+						>
+							if post.Frontmatter.Image != nil {
+								<figure>
+									<img
+										src={ *post.Frontmatter.Image }
+										alt={ post.Frontmatter.Title }
+										if idx == 0 {
+											fetchpriority="high"
+										} else {
+											loading="lazy"
+										}
+									/>
+								</figure>
 							}
-							<p class="mt-4">{ post.Frontmatter.Description }</p>
-							<div class="card-actions justify-end">
-								<time datetime={ post.Frontmatter.CreatedAt } class="label">{ post.Frontmatter.CreatedAt }</time>
+							<div class="card-body">
+								<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
+								if post.Frontmatter.Author != nil {
+									<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
+								}
+								<p class="mt-4">{ post.Frontmatter.Description }</p>
+								<div class="card-actions justify-end">
+									<time datetime={ post.Frontmatter.GetCreatedDate() } class="label">{ post.Frontmatter.GetCreatedDate() }</time>
+								</div>
 							</div>
-						</div>
-					</article>
+						</article>
+					</a>
 				}
 				// Add all the posts JSON-LD documents to the index document.
 				{{ indexJSONLD["blogPost"] = postsJSONLD }}
@@ -120,10 +120,10 @@ templ Post(post *models.MarkdownFile) {
 				@partials.ReadingProgress()
 				<div class="flex flex-1 items-center space-x-2 justify-self-end text-sm/6 text-neutral">
 					<time
-						datetime={ post.Frontmatter.CreatedAt }
+						datetime={ post.Frontmatter.GetCreatedDate() }
 						itemprop="datePublished"
 					>
-						Created: { post.Frontmatter.CreatedAt }
+						Created: { post.Frontmatter.GetCreatedDate() }
 					</time>
 					if post.Frontmatter.UpdatedAt != nil {
 						<svg viewBox="0 0 2 2" class="size-0.5 flex-none fill-neutral">

@@ -61,13 +61,13 @@ this article.
 
 ## Technique 1: Use Your Feed Reader
 
-Modern feed readers, like [Foragd](https://foragd.app), will auto-detect the feed given a website URL.  They utilize the
-autodiscovery process, along with other sleuthing techniques to find feeds for your favorite sites. So in a lot of
-cases, it may be as simple as just providing the URL of the site to the feed reader and let it do its magic. No need to
-parse the site’s HTML or scan the content or find a site directory; just enter the URL, and in most cases, 💥 you have
-your favorite site’s content streaming to your feed reader.
+Modern feed readers, like [Foragd](https://foragd.app?utm_source=blog), will auto-detect the feed given a website URL.
+They utilize the autodiscovery process, along with other sleuthing techniques to find feeds for your favorite sites. So
+in a lot of cases, it may be as simple as just providing the URL of the site to the feed reader and let it do its magic.
+No need to parse the site’s HTML or scan the content or find a site directory; just enter the URL, and in most cases, 💥
+you have your favorite site’s content streaming to your feed reader.
 
-ℹ️ **You can use Foragd’s [Feed Viewer](/viewer) to find and parse the feed content of any website.**
+ℹ️ **You can use Foragd’s [Feed Viewer](/viewer?utm_source=blog) to find and parse the feed content of any website.**
 
 ## Technique 2: Where’s Waldo
 
@@ -92,7 +92,7 @@ following onto the end of the site URL:
 - `/feed`
 - `/feeds/posts/default`
 
-[Foragd](https://foragd.app) uses this technique when it can’t find a feed natively, but you can also check yourself. If
+[Foragd](https://foragd.app?utm_source=blog) uses this technique when it can’t find a feed natively, but you can also check yourself. If
 the new URL returns feed content, you’ve found yourself the site’s feed!
 
 ## Technique 4: Feed Search Engines/Lists
@@ -121,9 +121,9 @@ To find RSS and Atom feeds for any website, try these approaches in order: paste
 reader and let it auto-discover the feed; look for RSS or feed links in the site's footer; try appending `/feed`,
 `/rss`, or `/feeds/posts/default` to the site URL; or use a dedicated feed search engine like
 [feedle.world](https://feedle.world/), [feedsearch.dev](https://feedsearch.dev/), or [RSSHub](https://rsshub.app). In
-most cases, a good feed reader like [Foragd](https://foragd.app) will handle discovery automatically.
+most cases, a good feed reader like [Foragd](https://foragd.app?utm_source=blog) will handle discovery automatically.
 
-If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](https://foragd.app) and start
+If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](https://foragd.app?utm_source=blog) and start
 gathering your own collection of topics, news, and opinions!
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

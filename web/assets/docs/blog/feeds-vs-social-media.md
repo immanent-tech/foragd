@@ -130,7 +130,7 @@ inherently provided with RSS and Atom is extremely compelling to ensure that div
 For anyone who wants to read the web on their own terms — without ads, without algorithms, and without a corporation
 deciding what's relevant — RSS and Atom remain the most powerful tools available.
 
-If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](/) and start
+If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](/?utm_source=blog) and start
 gathering your own collection of topics, news, and opinions!
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

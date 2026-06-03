@@ -13,3 +13,7 @@ file = "managing-feed-overload.md"
 [[file]]
 path = "foragd-vs-inoreader-vs-feedly"
 file = "foragd-vs-inoreader-vs-feedly.md"
+
+[[file]]
+path = "rediscovering-the-indie-web"
+file = "rediscovering-the-indie-web.md"

@@ -247,8 +247,8 @@ func NewFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 func NormaliseFeedURL(raw string) string {
 	// Strip protocol handler prefixes: web+feed://, web+rss://
 	for _, prefix := range []string{"web+feed://", "web+rss://", "web+feed:", "web+rss:"} {
-		if strings.HasPrefix(raw, prefix) {
-			raw = strings.TrimPrefix(raw, prefix)
+		if after, ok := strings.CutPrefix(raw, prefix); ok {
+			raw = after
 			if !strings.HasPrefix(raw, "http") {
 				raw = "https://" + raw
 			}

@@ -1,5 +1,6 @@
 +++
 title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
+page_title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
 description = "A detailed feature and pricing comparison of Foragd, Inoreader and Feedly. Covers subscription limits, email newsletter support, article filtering, and which RSS reader offers the best value for independent readers."
 created_at = "2026-02-18"
 updated_at = "2026-04-09"
@@ -105,6 +106,6 @@ without sacrificing power, Foragd is worth a look.
 In an age of algorithmic feeds designed to maximize engagement rather than inform, all these readers share something in
 common and increasingly valuable: tools that put you back in control of your content consumption.
 
-Curious? Foragd is currently free to try — no commitment needed. [Sign up](/signup).
+Curious? Foragd is currently free to try — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
