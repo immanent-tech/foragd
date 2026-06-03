@@ -20,7 +20,7 @@ const (
 	// MaxSubscriptions is the maxiumum number of subscriptions a user can have.
 	MaxSubscriptions = 3000
 	// MaxEmailNewsletters is the maximum number of email newsletter subscriptions a user can have.
-	MaxEmailNewsletters = 30
+	MaxEmailNewsletters = 50
 	// LimitExceededGracePeriod is the grace period in which the user is allowed to remain over an account limit.
 	LimitExceededGracePeriod = 7 * 24 * time.Hour
 	// DefaultTrialPeriod is the default amount of time a trial runs for.
