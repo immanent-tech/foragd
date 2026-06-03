@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.152.1](https://github.com/immanent-tech/foragd/compare/v0.152.0...v0.152.1) (2026-06-03)
+
+
+### Bug Fixes
+
+* **models:** 🔧 fix email newsletter limit! ([a43e088](https://github.com/immanent-tech/foragd/commit/a43e088b8ce8697a2d6f012673e9a95606bfa769))
+
 ## [0.152.0](https://github.com/immanent-tech/foragd/compare/v0.151.1...v0.152.0) (2026-06-03)
 
 
