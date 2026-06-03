@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.153.0](https://github.com/immanent-tech/foragd/compare/v0.152.1...v0.153.0) (2026-06-03)
+
+
+### Features
+
+* ✨ add a user-facing changelog ([26e7495](https://github.com/immanent-tech/foragd/commit/26e74950245f5b64d3efd4bf65abfeb94d00222b))
+* **blog:** ✨ new post and some clean ups ([30347c0](https://github.com/immanent-tech/foragd/commit/30347c08fabe7c88fbef5feb09ecb8d0211abd79))
+
 ## [0.152.1](https://github.com/immanent-tech/foragd/compare/v0.152.0...v0.152.1) (2026-06-03)
 
 
