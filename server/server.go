@@ -141,6 +141,9 @@ func Start(logger *slog.Logger) error {
 		r.Get("/blog/*", handlers.HandlePosts())
 		// Comparison pages.
 		r.Get("/compare/{service}", handlers.HandleComparison())
+		// Changelog.
+		r.Get("/changelog", handlers.HandleChangelog())
+		r.Get("/changelog/feed", handlers.HandleChangelogFeed())
 		// Posts RSS feed.
 		r.Get("/feed", handlers.HandlePostsFeed())
 		// Help.

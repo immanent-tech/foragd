@@ -1,0 +1,175 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+// ChangeType represents the type of change in a release
+type ChangeType string
+
+const (
+	ChangeTypeNew      ChangeType = "new"
+	ChangeTypeImproved ChangeType = "improved"
+	ChangeTypeFixed    ChangeType = "fixed"
+	ChangeTypeRemoved  ChangeType = "removed"
+	ChangeTypeSecurity ChangeType = "security"
+)
+
+// VersionType represents semver release tier
+type VersionType string
+
+const (
+	VersionMajor VersionType = "major"
+	VersionMinor VersionType = "minor"
+	VersionPatch VersionType = "patch"
+)
+
+// ChangeEntry is a single change within a release
+type ChangeEntry struct {
+	Type        ChangeType
+	Description string
+}
+
+// Release represents a single versioned release
+type Release struct {
+	Version  string
+	Date     string
+	Type     VersionType
+	IsLatest bool
+	Changes  []ChangeEntry
+}
+
+// changeTagClasses returns badge classes for a change type
+func changeTagClasses(t ChangeType) string {
+	switch t {
+	case ChangeTypeNew:
+		return "badge badge-success badge-soft badge-sm"
+	case ChangeTypeImproved:
+		return "badge badge-info badge-soft badge-sm"
+	case ChangeTypeFixed:
+		return "badge badge-warning badge-soft badge-sm"
+	case ChangeTypeRemoved:
+		return "badge badge-error badge-soft badge-sm"
+	case ChangeTypeSecurity:
+		return "badge badge-secondary badge-soft badge-sm"
+	default:
+		return "badge badge-ghost badge-sm"
+	}
+}
+
+// changeTagLabel returns a display label for a change type
+func changeTagLabel(t ChangeType) string {
+	switch t {
+	case ChangeTypeNew:
+		return "New"
+	case ChangeTypeImproved:
+		return "Improved"
+	case ChangeTypeFixed:
+		return "Fixed"
+	case ChangeTypeRemoved:
+		return "Removed"
+	case ChangeTypeSecurity:
+		return "Security"
+	default:
+		return string(t)
+	}
+}
+
+// versionBadgeClasses returns badge classes for a version type
+func versionBadgeClasses(t VersionType) string {
+	switch t {
+	case VersionMajor:
+		return "badge badge-primary badge-outline badge-sm"
+	case VersionMinor:
+		return "badge badge-accent badge-outline badge-sm"
+	case VersionPatch:
+		return "badge badge-ghost badge-sm"
+	default:
+		return "badge badge-ghost badge-sm"
+	}
+}
+
+// versionBadgeLabel returns a display label for a version type
+func versionBadgeLabel(t VersionType) string {
+	switch t {
+	case VersionMajor:
+		return "Major"
+	case VersionMinor:
+		return "Minor"
+	case VersionPatch:
+		return "Patch"
+	default:
+		return string(t)
+	}
+}
+
+// ChangelogPage renders a full changelog page
+templ ChangelogPage(releases []Release) {
+	@templ.Fragment(ContentFragment) {
+		@narrowContainer() {
+			// Header
+			<div class="mb-8">
+				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Changelog</h1>
+				<p class="text-sm text-base-content/60">
+					Foragd updates and improvements — shipped often.
+				</p>
+			</div>
+			// Subscribe.
+			<div class="alert bg-base-200 border border-base-300 mb-8 py-3">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"></path>
+				</svg>
+				<span class="text-sm text-base-content/70 flex-1">Get notified when we ship something new.</span>
+				<a href="/changelog/feed" class="link link-primary text-sm font-medium">Subscribe to updates</a>
+			</div>
+			// Timeline.
+			<ul class="timeline timeline-vertical timeline-compact">
+				for i, release := range releases {
+					<li>
+						@releaseItem(release, i == len(releases)-1)
+					</li>
+				}
+			</ul>
+		}
+	}
+}
+
+// releaseItem renders a single release in the timeline
+templ releaseItem(r Release, isLast bool) {
+	if !isLast {
+		<hr class="bg-base-300"/>
+	}
+	// Timeline middle dot.
+	<div class="timeline-middle">
+		if r.IsLatest {
+			<div class="w-3 h-3 rounded-full bg-success ring-2 ring-success/30"></div>
+		} else {
+			<div class="w-3 h-3 rounded-full bg-base-300 ring-2 ring-base-200"></div>
+		}
+	</div>
+	// Release details.
+	<div class="timeline-end timeline-box w-full bg-base-100 border border-base-200 shadow-none mb-6 ml-2">
+		// Header.
+		<div class="flex flex-wrap items-center gap-2 mb-4">
+			<span id={ r.Version } class="font-semibold text-base text-base-content">{ r.Version }</span>
+			<span class="text-xs text-base-content/50">{ r.Date }</span>
+			<span class={ versionBadgeClasses(r.Type) }>{ versionBadgeLabel(r.Type) }</span>
+			if r.IsLatest {
+				<span class="badge badge-success badge-sm">Latest</span>
+			}
+		</div>
+		// Changes.
+		<ul class="space-y-2">
+			for _, change := range r.Changes {
+				<li class="flex items-start gap-2 text-sm leading-relaxed">
+					<span class={ changeTagClasses(change.Type) + " mt-0.5 shrink-0" }>
+						{ changeTagLabel(change.Type) }
+					</span>
+					<span class="text-base-content/80">{ change.Description }</span>
+				</li>
+			}
+		</ul>
+	</div>
+	if isLast {
+		<hr class="bg-base-300"/>
+	}
+}
