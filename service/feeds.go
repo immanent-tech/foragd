@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -29,11 +30,13 @@ import (
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/immanent-tech/go-syndication/validation"
 
 	"github.com/immanent-tech/foragd/client"
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -602,6 +605,37 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		Text:        text,
 		LatestItems: make(map[models.FeedID]models.Items),
 	}, nil
+}
+
+// GenerateOPML generates an OPML file of the feeds listed by the given IDs.
+func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error) {
+	feeds, err := GetFeeds(ctx, feedIDs...)
+	if err != nil {
+		return nil, fmt.Errorf("get feeds: %w", err)
+	}
+
+	// Create outlines for all subscriptions.
+	outlines := make([]opml.Outline, 0, len(feeds))
+	for feed := range slices.Values(feeds) {
+		outlines = append(
+			outlines,
+			*opml.NewSubscriptionOutline(feed.GetTitle(), feed.GetSourceURLs()[0],
+				opml.WithHTMLURL(feed.GetLink()),
+				opml.WithOutlineTitle(feed.GetTitle()),
+			),
+		)
+	}
+	// Generate the opml file from the outlines.
+	title := config.AppName + " Export (" + time.Now().Format(time.DateTime) + ")"
+	opmlExport := opml.NewOPML(
+		opml.WithTitle(title),
+		opml.WithOutlines(outlines...),
+	)
+	// Marshal the opml file and convert to a byte reader.
+	data, err := xml.Marshal(opmlExport)
+	data = []byte(xml.Header + string(data))
+
+	return data, nil
 }
 
 func getFeedUnreadCounts(

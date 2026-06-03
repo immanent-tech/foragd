@@ -6,7 +6,6 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -21,15 +20,12 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
@@ -1684,37 +1680,12 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
-			var (
-				subscriptions models.Subscriptions
-				err           error
-			)
-			// Get all subscriptions.
-			subscriptions, err = elastic.SearchAll[*models.Subscription](
-				req.Context(),
-				schema.SubscriptionsIndexRO(),
-				query.Term("user_id", user.GetID()),
-				models.DefaultPaginationSize,
-				elastic.WithTrackTotalHits(false),
-			)
+			// Get all user subscriptions.
+			subscriptions, err := service.GetAllSubscriptions(req.Context())
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
-						InternalError: fmt.Errorf("filter subscriptions: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Failed to export.",
-							"The backend produced an error. This might be temporary, please try again.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
-			// Get all feeds for subscriptions.
-			var feeds models.Feeds
-			feeds, err = service.GetFeeds(req.Context(), subscriptions.GetFeedIDs()...)
-			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("filter subscriptions: %w", err),
+						InternalError: fmt.Errorf("get all subscriptions: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: models.NewErrorMessage(
 							"Failed to export.",
@@ -1724,43 +1695,28 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				return
 			}
 
-			// Create outlines for all subscriptions.
-			outlines := make([]opml.Outline, 0, len(subscriptions))
-			for feed := range slices.Values(feeds) {
-				subscription := subscriptions.GetByFeedID(feed.GetID())
-				outlines = append(
-					outlines,
-					*opml.NewSubscriptionOutline(subscription.Customisation.GetNickname(), feed.GetSourceURLs()[0],
-						opml.WithHTMLURL(feed.GetLink()),
-						opml.WithOutlineTitle(subscription.Customisation.GetNickname()),
-					),
-				)
-			}
-			// Generate the opml file from the outlines.
-			title := config.AppName + " subscriptions export for " + user.GetNickname()
-			opmlExport := opml.NewOPML(
-				opml.WithTitle(title),
-				opml.WithOutlines(outlines...),
-			)
-			// Marshal the opml file and convert to a byte reader.
-			data, err := xml.Marshal(opmlExport)
-			data = []byte(xml.Header + string(data))
+			// Generate opml file.
+			opmlFile, err := service.GenerateOPML(
+				req.Context(),
+				subscriptions.FilterByType(models.SubscriptionTypeFeed).GetFeedIDs()...)
 			if err != nil {
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
-						InternalError: fmt.Errorf("create opml: %w", err),
+						InternalError: fmt.Errorf("generate opml: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: models.NewErrorMessage(
 							"Failed to export.",
 							"The backend produced an error. This might be temporary, please try again.",
 						),
 					}).ServeHTTP(res, req)
+				return
 			}
+
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
 			filename := config.AppName + "-Export.opml"
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(data))
+			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(opmlFile))
 		}
 	}).ServeHTTP
 }
