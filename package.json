@@ -23,7 +23,7 @@
     "@github/relative-time-element": "^5.0.0",
     "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.5.20",
-    "date-fns": "^4.3.0",
+    "date-fns": "^4.4.0",
     "grid-rows-masonry": "^1.2.11",
     "htmx.org": "^2.0.10",
     "hyperscript.org": "^0.9.91",
@@ -38,9 +38,9 @@
     "@tailwindcss/cli": "^4.3.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-prettier": "^5.5.6",
     "globals": "^17.6.0",
     "parcel": "^2.16.4",
     "postcss": "^8.5.15",
@@ -48,7 +48,7 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
-    "release-please": "^17.6.0"
+    "release-please": "^17.7.0"
   },
   "@parcel/resolver-default": {
     "packageExports": true
