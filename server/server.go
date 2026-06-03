@@ -85,6 +85,7 @@ func Start(logger *slog.Logger) error {
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
+		middlewares.SetClient,
 		middlewares.Otel,
 	)
 

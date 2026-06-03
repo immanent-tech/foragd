@@ -13,16 +13,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 )
 
-// SetCacheControl sets an appropriate Cache-Control header for user content based on the user's update frequency
-// setting.
-func SetCacheControl(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().
-			Set("Cache-Control", "private, no-cache, max-age=60, stale-while-revalidate=3600, stale-if-error=86400")
-		next.ServeHTTP(res, req)
-	})
-}
-
 // PushCriticalAssets will optimistically send our custom script/css bundles to a client before it asks for them, which
 // hopefully will speed up first page load.
 func PushCriticalAssets(next http.Handler) http.Handler {
