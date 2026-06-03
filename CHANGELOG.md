@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.152.0](https://github.com/immanent-tech/foragd/compare/v0.151.1...v0.152.0) (2026-06-03)
+
+
+### Features
+
+* ✨ dynamically generate feedsets ([679c6ea](https://github.com/immanent-tech/foragd/commit/679c6ea1a480d778d694760ba5f0bc8cb3971f01))
+* **email:** ♻️ add source-based utm tags to emails ([7767aab](https://github.com/immanent-tech/foragd/commit/7767aabe30ad5ef48fbe1ba5f185b5d4f8afcc60))
+* **templates:** 🎨 expose more theme suggestions ([4be0fee](https://github.com/immanent-tech/foragd/commit/4be0fee99a26d4e4176004a1599bf77051aed9be))
+
+
+### Bug Fixes
+
+* **service:** 🔧 add missing error check ([daffc46](https://github.com/immanent-tech/foragd/commit/daffc46f7b171411cf0836fdd75a3bdf3596dc5c))
+* **subscriptions:** ♻️ improved opml export logic ([a7be295](https://github.com/immanent-tech/foragd/commit/a7be2957335f545a4939ee53d123e47c4d9708fd))
+
 ## [0.151.1](https://github.com/immanent-tech/foragd/compare/v0.151.0...v0.151.1) (2026-06-02)
 
 
