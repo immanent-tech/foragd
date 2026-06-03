@@ -633,6 +633,9 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 	)
 	// Marshal the opml file and convert to a byte reader.
 	data, err := xml.Marshal(opmlExport)
+	if err != nil {
+		return nil, fmt.Errorf("marshal opml: %w", err)
+	}
 	data = []byte(xml.Header + string(data))
 
 	return data, nil
