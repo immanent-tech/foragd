@@ -4,7 +4,6 @@
 @plugin "tailwindcss-visibility";
 @plugin "daisyui" {
   themes: light, dark, dracula;
-  exclude: properties;
 }
 
 @import "./daisyui-custom.css";
