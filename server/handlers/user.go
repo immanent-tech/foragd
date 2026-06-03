@@ -535,17 +535,50 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 			return
 		}
+
+		feedsetEnlightened := map[string]models.FeedID{
+			"NOEMA Magazine":       "feed_5CqH3PEX5S3FysJ4uU6Pb",
+			"waxy.org":             "feed_WOh0ANw9kSg1KI9zaCsCE",
+			"webcurios":            "feed_13204732792406402926",
+			"EFF's Deeplinks Blog": "feed_JW2_cWxBXhS4rqK8XjHE3",
+		}
+		feedsetInspired := map[string]models.FeedID{
+			"Colossal":             "feed_15392474241830067070",
+			"Open Culture":         "feed_XcgMA2rMhX7m7aYhc4NUy",
+			"70s Sci-Fi Art":       "feed_0MauaHq9RS42wxhRC4I2y",
+			"Public Domain Review": "feed_QHx6MHP8F_SuqvV5hu8KL",
+			"500px":                "feed_LoeuTpadhbJam7j5XshVA",
+		}
+		feedsetInformed := map[string]models.FeedID{
+			"Ars Technica": "feed_HOtEGRko3RV0Qy2mSK6zN",
+			"WIRED":        "feed_9861496488451910378",
+			"Live Science": "feed_xaOVKbhp28Ka7tQfqxEVh",
+			"The Guardian": "feed_le7pwn7QyGL5juGdgyQsG",
+		}
+
 		// Process requested feedsets and generate subscription requests.
 		var subscriptionRequests []models.FeedSubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
 			var data []byte
 			switch set {
 			case "enlightened":
-				data, err = static.ReadFile("content/opml/enlightened.opml")
+				ids := make([]models.FeedID, 0, len(feedsetEnlightened))
+				for _, id := range feedsetEnlightened {
+					ids = append(ids, id)
+				}
+				data, err = service.GenerateOPML(req.Context(), ids...)
 			case "informed":
-				data, err = static.ReadFile("content/opml/informed.opml")
+				ids := make([]models.FeedID, 0, len(feedsetInformed))
+				for _, id := range feedsetInformed {
+					ids = append(ids, id)
+				}
+				data, err = service.GenerateOPML(req.Context(), ids...)
 			case "inspired":
-				data, err = static.ReadFile("content/opml/inspired.opml")
+				ids := make([]models.FeedID, 0, len(feedsetInspired))
+				for _, id := range feedsetInspired {
+					ids = append(ids, id)
+				}
+				data, err = service.GenerateOPML(req.Context(), ids...)
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Unknown feedset.",
 					slog.String("set", set))
@@ -614,80 +647,6 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// // HandleChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
-// func HandleChooseSubscriptionPlan() http.HandlerFunc {
-// 	return func(res http.ResponseWriter, req *http.Request) {
-// 		user := models.UserFromCtx(req.Context())
-// 		if user == nil {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-// 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
-// 		var planID string
-// 		if req.URL.Query().Get(models.ParamPlanID) != "" {
-// 			planID = req.URL.Query().Get(models.ParamPlanID)
-// 		} else if p, err := session.Restore[string](req.Context(), models.ParamPlanID); err != nil {
-// 			planID = p
-// 		} else {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("process checkout: %w", err),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-// 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-// 		RenderExternalPage(&ChooseSubscriptionPlan{
-// 			user: user,
-// 			plan: planID,
-// 		}).ServeHTTP(res, req)
-// 	}
-// }
-
-// // HandleSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
-// // processor.
-// func HandleSubscriptionPlanCheckout() http.HandlerFunc {
-// 	return func(res http.ResponseWriter, req *http.Request) {
-// 		// Fetch the user details from context.
-// 		user := models.UserFromCtx(req.Context())
-// 		if user == nil {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-
-// 		// Retrieve the plan id from the session data.
-// 		planID := req.FormValue(models.ParamPlanID)
-// 		if planID == "" {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("no plan"),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-
-// 		// Create a new strip checkout session.
-// 		var session *stripe.Checkout
-// 		var err error
-// 		session, err = stripe.NewCheckoutSession(user, planID)
-// 		if err != nil {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("create checkout session: %w", err),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-
-// 		// Redirect to strip processor to complete checkout session.
-// 		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
-// 		http.Redirect(res, req, session.URL, http.StatusSeeOther)
-// 	}
-// }
-
 func HandleAccountSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// stripeSessionID := req.FormValue("session_id")
@@ -730,16 +689,6 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-
-		// portalSession, err := stripe.NewPortalSession(sessionID)
-		// if err != nil {
-		// 	HandleExternalError(&models.APIError{
-		// 		InternalError: fmt.Errorf("new portal session: %w", err),
-		// 		StatusCode:    http.StatusInternalServerError,
-		// 	}).ServeHTTP(res, req)
-		// 	return
-		// }
-
 		// Redirect to payment processor to complete checkout.
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}).ServeHTTP
