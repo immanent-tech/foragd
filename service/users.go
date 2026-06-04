@@ -251,7 +251,7 @@ func CheckUserLimits(ctx context.Context) error {
 			// User has exceeded subscription limit for over 7 days, deny access.
 			return models.ErrForbidden
 		}
-		if len(
+		if user.Metadata.SubscriptionLimit.Exceeded && len(
 			subscriptions,
 		)-len(
 			subscriptions.FilterByType(models.SubscriptionTypeEmail),
@@ -264,6 +264,7 @@ func CheckUserLimits(ctx context.Context) error {
 			if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 				return fmt.Errorf("update user: %w", err)
 			}
+			slogctx.FromCtx(ctx).Info("User has corrected subscription limit overage.")
 		}
 		return nil
 	case user.Metadata.NewsletterLimit != nil:
@@ -272,7 +273,8 @@ func CheckUserLimits(ctx context.Context) error {
 			// User has exceeded newsletter limit for over 7 days, deny access.
 			return models.ErrForbidden
 		}
-		if len(subscriptions.FilterByType(models.SubscriptionTypeEmail)) <= models.MaxEmailNewsletters {
+		if user.Metadata.NewsletterLimit.Exceeded &&
+			len(subscriptions.FilterByType(models.SubscriptionTypeEmail)) <= models.MaxEmailNewsletters {
 			// User has corrected limit overage.
 			user.Metadata.NewsletterLimit = &models.UserLimit{
 				Exceeded:  false,
@@ -281,6 +283,7 @@ func CheckUserLimits(ctx context.Context) error {
 			if err := UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 				return fmt.Errorf("update user: %w", err)
 			}
+			slogctx.FromCtx(ctx).Info("User has corrected newsletter limit overage.")
 		}
 		return nil
 	}
