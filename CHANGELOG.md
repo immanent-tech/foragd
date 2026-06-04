@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.154.0](https://github.com/immanent-tech/foragd/compare/v0.153.0...v0.154.0) (2026-06-04)
+
+
+### Features
+
+* ✨ easy way to add google news rss subscriptions ([5caa6c5](https://github.com/immanent-tech/foragd/commit/5caa6c580ec25a8a5767b1376a8157b1424c0c8f))
+* **middlewares:** ✨ add middleware to detect client access (pwa, twa or web) ([55386a8](https://github.com/immanent-tech/foragd/commit/55386a8b0075755f225d8996bb767189df548b27))
+
 ## [0.153.0](https://github.com/immanent-tech/foragd/compare/v0.152.1...v0.153.0) (2026-06-03)
 
 
