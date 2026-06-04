@@ -1753,7 +1753,11 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Add a subscription</h1> <form hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"load[document.getElementById('add-subscription-search').value !== ''], keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search\" _=\"\n\t\t\t\t\ton htmx:beforeRequest set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\"><div><label for=\"add-subscription-search\" class=\"block text-sm/6 font-medium text-neutral\">Search:</label><div class=\"mt-2 w-full\"><div class=\"join flex w-full items-center sm:max-w-xl\"><div class=\"input w-full bg-base-300 brightness-95 input-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-search text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg> <input id=\"add-subscription-search\" type=\"text\" name=\"suggestion_text\"")
+					templ_7745c5c3_Err = PageHeading("Add a subscription").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, " <form hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms changed from:#add-subscription-search\" _=\"\n\t\t\t\t\ton htmx:beforeRequest set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\"><div><label for=\"add-subscription-search\" class=\"block text-sm/6 font-medium text-neutral\">Search by keyword or by URL:</label><div class=\"mt-2 w-full\"><div class=\"join flex w-full items-center sm:max-w-xl\"><div class=\"input w-full bg-base-300 brightness-95 input-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-search text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg> <input id=\"add-subscription-search\" type=\"text\" name=\"suggestion_text\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1765,7 +1769,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 						var templ_7745c5c3_Var83 string
 						templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.URL)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 656, Col: 30}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 653, Col: 30}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var83)
 						if templ_7745c5c3_Err != nil {
@@ -1776,7 +1780,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" class=\"join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6\"></div><select id=\"suggestion-source\" name=\"suggestion_source\" aria-label=\"Source\" class=\"select join-item w-auto shrink-0 select-primary\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\">Web</option> <option value=\"youtube\">Youtube</option></select></div></div><ul class=\"mt-4 block list-inside list-disc text-sm/6 text-neutral\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></ul></div><div class=\"show-loading w-full sm:max-w-5xl\"><div class=\"my-4 w-full\"><div class=\"flex flex-1 p-6\"><div class=\"sm:flex sm:items-center sm:justify-between\"><div class=\"sm:flex sm:space-x-5\"><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"h-24 w-24 skeleton\"></div></div><div class=\"space-y-2\"><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton sm:w-96\"></div></div></div></div></div></div><div class=\"grid grid-cols-1 justify-center gap-4 sm:grid-cols-3\"><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div></div></div></div></form><div id=\"subscription-suggestions\" class=\"mt-8\"></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" class=\"join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6\"></div><label for=\"suggestion-source\" class=\"sr-only\">Source</label> <select id=\"suggestion-source\" name=\"suggestion_source\" aria-label=\"Source\" class=\"select join-item w-auto shrink-0 select-primary\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\">Web</option> <option value=\"youtube\">Youtube</option> <option value=\"gnews\">Google News</option></select></div></div><ul class=\"mt-4 block list-inside list-disc text-sm/6 text-neutral\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></ul></div><div class=\"show-loading w-full sm:max-w-5xl\"><div class=\"my-4 w-full\"><div class=\"flex flex-1 p-6\"><div class=\"sm:flex sm:items-center sm:justify-between\"><div class=\"sm:flex sm:space-x-5\"><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"h-24 w-24 skeleton\"></div></div><div class=\"space-y-2\"><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton sm:w-96\"></div></div></div></div></div></div><div class=\"grid grid-cols-1 justify-center gap-4 sm:grid-cols-3\"><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div><div class=\"flex w-full flex-col gap-4\"><div class=\"h-32 w-full skeleton\"></div><div class=\"h-4 w-28 skeleton\"></div><div class=\"h-4 w-full skeleton\"></div><div class=\"h-4 w-full skeleton\"></div></div></div></div></div></form><div id=\"subscription-suggestions\" class=\"mt-8\"></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1926,7 +1930,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			var templ_7745c5c3_Var89 string
 			templ_7745c5c3_Var89, templ_7745c5c3_Err = templ.JoinStringErrs("Editing " + request.Customisation.GetNickname())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 755, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 754, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var89))
 			if templ_7745c5c3_Err != nil {
@@ -1960,7 +1964,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			var templ_7745c5c3_Var90 string
 			templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscription/save/" + request.SubscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 766, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 765, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var90)
 			if templ_7745c5c3_Err != nil {
@@ -1983,7 +1987,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			var templ_7745c5c3_Var91 string
 			templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.ResolveAttributeValue(models.ParamSubscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 775, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 774, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var91)
 			if templ_7745c5c3_Err != nil {
@@ -1996,7 +2000,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			var templ_7745c5c3_Var92 string
 			templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.SubscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 775, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 774, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var92)
 			if templ_7745c5c3_Err != nil {
@@ -2009,7 +2013,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			var templ_7745c5c3_Var93 string
 			templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SubscriptionTypeFeed))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 776, Col: 92}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 775, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var93)
 			if templ_7745c5c3_Err != nil {
@@ -2074,7 +2078,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 					var templ_7745c5c3_Var96 string
 					templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Customisation.GetNickname())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 811, Col: 54}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 810, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var96)
 					if templ_7745c5c3_Err != nil {
@@ -2322,7 +2326,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				var templ_7745c5c3_Var102 string
 				templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.ResolveAttributeValue("suggestion-" + feed.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 930, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 929, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var102)
 				if templ_7745c5c3_Err != nil {
@@ -2356,7 +2360,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				var templ_7745c5c3_Var103 string
 				templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 954, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 953, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 				if templ_7745c5c3_Err != nil {
@@ -2374,7 +2378,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 					var templ_7745c5c3_Var104 string
 					templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 957, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 956, Col: 62}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var104))
 					if templ_7745c5c3_Err != nil {
@@ -2392,7 +2396,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				var templ_7745c5c3_Var105 string
 				templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.ResolveAttributeValue(feed.GetSourceURLs()[0])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 962, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 961, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var105)
 				if templ_7745c5c3_Err != nil {
@@ -2405,7 +2409,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				var templ_7745c5c3_Var106 string
 				templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.ResolveAttributeValue(feed.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 963, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 962, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var106)
 				if templ_7745c5c3_Err != nil {
@@ -2418,7 +2422,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				var templ_7745c5c3_Var107 string
 				templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.ResolveAttributeValue("#suggestion-" + feed.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 969, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 968, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var107)
 				if templ_7745c5c3_Err != nil {
@@ -2492,7 +2496,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 									var templ_7745c5c3_Var110 string
 									templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1016, Col: 29}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1015, Col: 29}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 									if templ_7745c5c3_Err != nil {
@@ -2546,7 +2550,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 									var templ_7745c5c3_Var112 string
 									templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1041, Col: 41}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1040, Col: 41}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var112))
 									if templ_7745c5c3_Err != nil {
@@ -2564,7 +2568,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 								var templ_7745c5c3_Var113 string
 								templ_7745c5c3_Var113, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1045, Col: 78}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1044, Col: 78}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var113)
 								if templ_7745c5c3_Err != nil {
@@ -2577,7 +2581,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 								var templ_7745c5c3_Var114 string
 								templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1049, Col: 57}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1048, Col: 57}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var114))
 								if templ_7745c5c3_Err != nil {
@@ -2656,7 +2660,7 @@ func ShowNoSuggestions(text string) templ.Component {
 		var templ_7745c5c3_Var116 string
 		templ_7745c5c3_Var116, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1070, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1069, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var116))
 		if templ_7745c5c3_Err != nil {
@@ -2822,7 +2826,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						var templ_7745c5c3_Var123 string
 						templ_7745c5c3_Var123, templ_7745c5c3_Err = templ.JoinStringErrs("Editing " + request.Customisation.GetNickname())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1105, Col: 58}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1104, Col: 58}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var123))
 						if templ_7745c5c3_Err != nil {
@@ -2850,7 +2854,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						var templ_7745c5c3_Var124 string
 						templ_7745c5c3_Var124, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscription/save/" + string(*request.Search.SubscriptionID))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1115, Col: 78}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1114, Col: 78}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var124)
 						if templ_7745c5c3_Err != nil {
@@ -2873,7 +2877,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						var templ_7745c5c3_Var125 string
 						templ_7745c5c3_Var125, templ_7745c5c3_Err = templ.ResolveAttributeValue(models.ParamSubscriptionID)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1124, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1123, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var125)
 						if templ_7745c5c3_Err != nil {
@@ -2886,7 +2890,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						var templ_7745c5c3_Var126 string
 						templ_7745c5c3_Var126, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(*request.Search.SubscriptionID))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1124, Col: 109}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1123, Col: 109}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var126)
 						if templ_7745c5c3_Err != nil {
@@ -2899,7 +2903,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						var templ_7745c5c3_Var127 string
 						templ_7745c5c3_Var127, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SubscriptionTypeSearch))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1125, Col: 97}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1124, Col: 97}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var127)
 						if templ_7745c5c3_Err != nil {
@@ -2950,7 +2954,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 								var templ_7745c5c3_Var130 string
 								templ_7745c5c3_Var130, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Customisation.GetNickname())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1139, Col: 55}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1138, Col: 55}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var130)
 								if templ_7745c5c3_Err != nil {
@@ -2994,7 +2998,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var132 string
 							templ_7745c5c3_Var132, templ_7745c5c3_Err = templ.ResolveAttributeValue(`+keyword -"some phrase"`)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1155, Col: 50}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1154, Col: 50}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var132)
 							if templ_7745c5c3_Err != nil {
@@ -3008,7 +3012,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 								var templ_7745c5c3_Var133 string
 								templ_7745c5c3_Var133, templ_7745c5c3_Err = templ.JoinStringErrs(request.Search.Text)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1159, Col: 33}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1158, Col: 33}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var133))
 								if templ_7745c5c3_Err != nil {
@@ -3070,7 +3074,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var136 string
 							templ_7745c5c3_Var136, templ_7745c5c3_Err = templ.ResolveAttributeValue(`+keyword -"some phrase"`)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1196, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1195, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var136)
 							if templ_7745c5c3_Err != nil {
@@ -3084,7 +3088,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 								var templ_7745c5c3_Var137 string
 								templ_7745c5c3_Var137, templ_7745c5c3_Err = templ.JoinStringErrs(*request.Search.Categories)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1200, Col: 42}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1199, Col: 42}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var137))
 								if templ_7745c5c3_Err != nil {
@@ -3120,7 +3124,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var139 string
 							templ_7745c5c3_Var139, templ_7745c5c3_Err = templ.ResolveAttributeValue(`+keyword -"some phrase"`)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1213, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1212, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var139)
 							if templ_7745c5c3_Err != nil {
@@ -3134,7 +3138,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 								var templ_7745c5c3_Var140 string
 								templ_7745c5c3_Var140, templ_7745c5c3_Err = templ.JoinStringErrs(*request.Search.Authors)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1217, Col: 39}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1216, Col: 39}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var140))
 								if templ_7745c5c3_Err != nil {
@@ -3192,7 +3196,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var143 string
 							templ_7745c5c3_Var143, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.ViewUnread))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1250, Col: 47}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1249, Col: 47}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var143)
 							if templ_7745c5c3_Err != nil {
@@ -3215,7 +3219,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var144 string
 							templ_7745c5c3_Var144, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.ViewRead))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1258, Col: 45}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1257, Col: 45}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var144)
 							if templ_7745c5c3_Err != nil {
@@ -3238,7 +3242,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var145 string
 							templ_7745c5c3_Var145, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.ViewAll))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1264, Col: 44}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1263, Col: 44}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var145)
 							if templ_7745c5c3_Err != nil {
@@ -3283,7 +3287,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var147 string
 							templ_7745c5c3_Var147, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortMostRelevant))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1277, Col: 53}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1276, Col: 53}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var147)
 							if templ_7745c5c3_Err != nil {
@@ -3306,7 +3310,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var148 string
 							templ_7745c5c3_Var148, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortNewestFirst))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1285, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1284, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var148)
 							if templ_7745c5c3_Err != nil {
@@ -3329,7 +3333,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 							var templ_7745c5c3_Var149 string
 							templ_7745c5c3_Var149, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortOldestFirst))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1291, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1290, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var149)
 							if templ_7745c5c3_Err != nil {
@@ -3629,7 +3633,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						var templ_7745c5c3_Var158 string
 						templ_7745c5c3_Var158, templ_7745c5c3_Err = templ.JoinStringErrs("Editing " + request.Customisation.GetNickname())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1397, Col: 58}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1396, Col: 58}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var158))
 						if templ_7745c5c3_Err != nil {
@@ -3657,7 +3661,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						var templ_7745c5c3_Var159 string
 						templ_7745c5c3_Var159, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscription/save/" + string(*request.SubscriptionID))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1407, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1406, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var159)
 						if templ_7745c5c3_Err != nil {
@@ -3680,7 +3684,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						var templ_7745c5c3_Var160 string
 						templ_7745c5c3_Var160, templ_7745c5c3_Err = templ.ResolveAttributeValue(models.ParamSubscriptionID)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1417, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1416, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var160)
 						if templ_7745c5c3_Err != nil {
@@ -3693,7 +3697,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						var templ_7745c5c3_Var161 string
 						templ_7745c5c3_Var161, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(*request.SubscriptionID))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1417, Col: 102}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1416, Col: 102}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var161)
 						if templ_7745c5c3_Err != nil {
@@ -3706,7 +3710,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						var templ_7745c5c3_Var162 string
 						templ_7745c5c3_Var162, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SubscriptionTypeGroup))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1418, Col: 96}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1417, Col: 96}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var162)
 						if templ_7745c5c3_Err != nil {
@@ -3757,7 +3761,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 								var templ_7745c5c3_Var165 string
 								templ_7745c5c3_Var165, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Customisation.GetNickname())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1432, Col: 55}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1431, Col: 55}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var165)
 								if templ_7745c5c3_Err != nil {
@@ -3806,7 +3810,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 								var templ_7745c5c3_Var167 string
 								templ_7745c5c3_Var167, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1461, Col: 55}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1460, Col: 55}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var167)
 								if templ_7745c5c3_Err != nil {
@@ -3819,7 +3823,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 								var templ_7745c5c3_Var168 string
 								templ_7745c5c3_Var168, templ_7745c5c3_Err = templ.ResolveAttributeValue("suggestions[" + subscription.GetID() + "]")
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1462, Col: 85}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1461, Col: 85}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var168)
 								if templ_7745c5c3_Err != nil {
@@ -3832,7 +3836,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 								var templ_7745c5c3_Var169 string
 								templ_7745c5c3_Var169, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1462, Col: 119}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1461, Col: 119}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var169)
 								if templ_7745c5c3_Err != nil {
@@ -3845,7 +3849,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 								var templ_7745c5c3_Var170 string
 								templ_7745c5c3_Var170, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1463, Col: 39}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1462, Col: 39}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var170))
 								if templ_7745c5c3_Err != nil {
@@ -4070,7 +4074,7 @@ func AddSubscriptionToGroup(id, name string) templ.Component {
 		var templ_7745c5c3_Var175 string
 		templ_7745c5c3_Var175, templ_7745c5c3_Err = templ.ResolveAttributeValue("subscriptions[" + id + "]")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1580, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1579, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var175)
 		if templ_7745c5c3_Err != nil {
@@ -4083,7 +4087,7 @@ func AddSubscriptionToGroup(id, name string) templ.Component {
 		var templ_7745c5c3_Var176 string
 		templ_7745c5c3_Var176, templ_7745c5c3_Err = templ.ResolveAttributeValue(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1580, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1579, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var176)
 		if templ_7745c5c3_Err != nil {
@@ -4096,7 +4100,7 @@ func AddSubscriptionToGroup(id, name string) templ.Component {
 		var templ_7745c5c3_Var177 string
 		templ_7745c5c3_Var177, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1581, Col: 8}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1580, Col: 8}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var177))
 		if templ_7745c5c3_Err != nil {
@@ -4174,7 +4178,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 					var templ_7745c5c3_Var182 string
 					templ_7745c5c3_Var182, templ_7745c5c3_Err = templ.JoinStringErrs("Editing " + request.Customisation.GetNickname())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1594, Col: 56}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1593, Col: 56}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var182))
 					if templ_7745c5c3_Err != nil {
@@ -4187,7 +4191,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 					var templ_7745c5c3_Var183 string
 					templ_7745c5c3_Var183, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscription/save/" + string(request.SubscriptionID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1600, Col: 69}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1599, Col: 69}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var183)
 					if templ_7745c5c3_Err != nil {
@@ -4200,7 +4204,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 					var templ_7745c5c3_Var184 string
 					templ_7745c5c3_Var184, templ_7745c5c3_Err = templ.ResolveAttributeValue(models.ParamSubscriptionID)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1607, Col: 59}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1606, Col: 59}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var184)
 					if templ_7745c5c3_Err != nil {
@@ -4213,7 +4217,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 					var templ_7745c5c3_Var185 string
 					templ_7745c5c3_Var185, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(request.SubscriptionID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1607, Col: 100}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1606, Col: 100}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var185)
 					if templ_7745c5c3_Err != nil {
@@ -4226,7 +4230,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 					var templ_7745c5c3_Var186 string
 					templ_7745c5c3_Var186, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SubscriptionTypeEmail))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1608, Col: 95}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1607, Col: 95}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var186)
 					if templ_7745c5c3_Err != nil {
@@ -4272,7 +4276,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 								var templ_7745c5c3_Var189 string
 								templ_7745c5c3_Var189, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Customisation.GetNickname())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1621, Col: 55}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1620, Col: 55}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var189)
 								if templ_7745c5c3_Err != nil {
@@ -4432,7 +4436,7 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options 
 			var templ_7745c5c3_Var193 string
 			templ_7745c5c3_Var193, templ_7745c5c3_Err = templ.JoinStringErrs(request.Nickname)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1686, Col: 84}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1685, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var193))
 			if templ_7745c5c3_Err != nil {
@@ -4445,7 +4449,7 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options 
 			var templ_7745c5c3_Var194 string
 			templ_7745c5c3_Var194, templ_7745c5c3_Err = templ.ResolveAttributeValue("/remove/subscription/" + string(request.SubscriptionID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1692, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1691, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var194)
 			if templ_7745c5c3_Err != nil {
@@ -4466,7 +4470,7 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options 
 			var templ_7745c5c3_Var195 string
 			templ_7745c5c3_Var195, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Nickname)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1697, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1696, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var195)
 			if templ_7745c5c3_Err != nil {
@@ -4479,7 +4483,7 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options 
 			var templ_7745c5c3_Var196 string
 			templ_7745c5c3_Var196, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1707, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1706, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var196)
 			if templ_7745c5c3_Err != nil {
@@ -4550,7 +4554,7 @@ func subscriptionThumbnail(img *models.RemoteImage, name string) templ.Component
 				var templ_7745c5c3_Var198 string
 				templ_7745c5c3_Var198, templ_7745c5c3_Err = templ.JoinStringErrs(name[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1735, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1734, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var198))
 				if templ_7745c5c3_Err != nil {

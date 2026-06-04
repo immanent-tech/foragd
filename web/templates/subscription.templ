@@ -625,14 +625,11 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-					Add a subscription
-				</h1>
-				// hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
+				@PageHeading("Add a subscription")
 				<form
 					hx-post="/subscription/add/suggestions"
 					hx-target="#subscription-suggestions"
-					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup[key!='Enter'] delay:500ms changed from:#add-subscription-search"
+					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms changed from:#add-subscription-search"
 					_="
 					on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
 					on keydown[key=='Enter'] halt the event
@@ -640,7 +637,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				>
 					<div>
 						<label for="add-subscription-search" class="block text-sm/6 font-medium text-neutral">
-							Search:
+							Search by keyword or by URL:
 						</label>
 						<div class="mt-2 w-full">
 							<div class="join flex w-full items-center sm:max-w-xl">
@@ -660,6 +657,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 										class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
 									/>
 								</div>
+								<label for="suggestion-source" class="sr-only">Source</label>
 								<select
 									id="suggestion-source"
 									name="suggestion_source"
@@ -668,11 +666,12 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									_="
 									on change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end
 									on change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end
+									on change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end
 									"
 								>
 									<option value="web">Web</option>
 									<option value="youtube">Youtube</option>
-									// <option value="reddit">Reddit</option>
+									<option value="gnews">Google News</option>
 								</select>
 							</div>
 						</div>

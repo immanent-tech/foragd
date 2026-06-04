@@ -1145,6 +1145,21 @@ func HandleSuggestFeeds() http.HandlerFunc {
 				template: templates.ShowFeedSuggestions(results),
 			}).ServeHTTP(res, req)
 			return
+		case "gnews":
+			results, err := service.SuggestGoogleNewsFeeds(req.Context(), text)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable generate google news suggestions.",
+					slog.Any("error", err),
+				)
+				RenderPartial(&PartialTemplate{
+					template: templates.ShowNoSuggestions(text),
+				}).ServeHTTP(res, req)
+				return
+			}
+			RenderPartial(&PartialTemplate{
+				template: templates.ShowFeedSuggestions(results),
+			}).ServeHTTP(res, req)
+			return
 		case "web":
 			fallthrough
 		default:

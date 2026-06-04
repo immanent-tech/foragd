@@ -42,6 +42,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/zyte"
 )
@@ -469,6 +470,93 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 		}
 		feeds = append(feeds, newFeed)
 	}
+	return &models.FeedSuggestionsResults{
+		Text:        text,
+		Feeds:       feeds,
+		LatestItems: latestItems,
+	}, nil
+}
+
+// SuggestGoogleNewsFeeds will return a google news RSS feed for the given search query.
+func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+	newsURL, err := news.GenerateRSSURL(text)
+	if err != nil {
+		return nil, fmt.Errorf("generate news RSS URL: %w", err)
+	}
+
+	// Get user subscriptions.
+	subscriptions, err := GetAllSubscriptions(ctx)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+
+	var feeds models.Feeds
+	// Try to find existing feeds that match the query.
+	resp, err := elastic.Search[*models.Feed](
+		ctx,
+		schema.FeedsIndexRO(),
+		query.Bool(
+			query.MustNot(
+				// User must not already be subscribed.
+				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+			),
+			query.Should(
+				// Match source_urls (preferred) or url.
+				query.Term(
+					"source_urls",
+					newsURL.String(),
+					query.WithQueryBoost[*query.TermQuery](10.0),
+				),
+				query.Term(
+					"url",
+					newsURL.String(),
+				),
+			),
+		),
+		elastic.WithSort(
+			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+		),
+		elastic.WithSize(5),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search feeds: %w", err)
+	}
+
+	// If existing feeds are found, return the results
+	if len(resp.Results) > 0 {
+		feeds = resp.Results
+		// Retrieve the latest 3 articles for each feed.
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs(), nil)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
+				slog.Any("error", err),
+			)
+		}
+		return &models.FeedSuggestionsResults{
+			Text:        text,
+			Feeds:       feeds,
+			LatestItems: latestItems,
+		}, nil
+	}
+
+	// Try to create new feeds for the urls.
+	latestItems := make(map[models.FeedID]models.Items)
+	slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
+		slog.String("url", newsURL.String()),
+	)
+	newFeed, err := FetchFeed(ctx, newsURL.String())
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch google news RSS feed: %w", err)
+	}
+	// Retrieve the latest 3 articles for each feed.
+	if items := newFeed.GetItems(); len(items) > 0 {
+		// Truncate to 3 items.
+		if len(items) > 3 {
+			items = items[:3]
+		}
+		latestItems[newFeed.GetID()] = items
+	}
+	feeds = append(feeds, newFeed)
 	return &models.FeedSuggestionsResults{
 		Text:        text,
 		Feeds:       feeds,
