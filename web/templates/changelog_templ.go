@@ -34,17 +34,17 @@ const (
 
 // ChangeEntry is a single change within a release
 type ChangeEntry struct {
-	Type        ChangeType
-	Description string
+	Type        ChangeType `toml:"type"`
+	Description string     `toml:"description"`
 }
 
 // Release represents a single versioned release
 type Release struct {
-	Version  string
-	Date     string
-	Type     VersionType
-	IsLatest bool
-	Changes  []ChangeEntry
+	Version  string        `toml:"version"`
+	Date     string        `toml:"date"`
+	Type     VersionType   `toml:"type"`
+	IsLatest bool          `toml:"is_latest"`
+	Changes  []ChangeEntry `toml:"changes"`
 }
 
 // changeTagClasses returns badge classes for a change type
@@ -366,12 +366,7 @@ func releaseItem(r Release, isLast bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(change.Description)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/changelog.templ`, Line: 167, Col: 60}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			templ_7745c5c3_Err = templ.Raw(change.Description).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

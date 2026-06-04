@@ -25,17 +25,17 @@ const (
 
 // ChangeEntry is a single change within a release
 type ChangeEntry struct {
-	Type        ChangeType
-	Description string
+	Type        ChangeType `toml:"type"`
+	Description string     `toml:"description"`
 }
 
 // Release represents a single versioned release
 type Release struct {
-	Version  string
-	Date     string
-	Type     VersionType
-	IsLatest bool
-	Changes  []ChangeEntry
+	Version  string        `toml:"version"`
+	Date     string        `toml:"date"`
+	Type     VersionType   `toml:"type"`
+	IsLatest bool          `toml:"is_latest"`
+	Changes  []ChangeEntry `toml:"changes"`
 }
 
 // changeTagClasses returns badge classes for a change type
@@ -164,7 +164,9 @@ templ releaseItem(r Release, isLast bool) {
 					<span class={ changeTagClasses(change.Type) + " mt-0.5 shrink-0" }>
 						{ changeTagLabel(change.Type) }
 					</span>
-					<span class="text-base-content/80">{ change.Description }</span>
+					<span class="text-base-content/80">
+						@templ.Raw(change.Description)
+					</span>
 				</li>
 			}
 		</ul>

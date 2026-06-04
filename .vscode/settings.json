@@ -117,5 +117,7 @@
   "xmlTools.splitAttributesOnFormat": true,
   "git.autofetch": true,
   "git.followTagsWhenSync": true,
-  "git.enableSmartCommit": true
+  "git.enableSmartCommit": true,
+  "evenBetterToml.formatter.alignEntries": true,
+  "evenBetterToml.formatter.trailingNewline": true
 }

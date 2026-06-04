@@ -1,0 +1,56 @@
+#:schema https://json.schemastore.org/any.json
+
+[[releases]]
+version = "v0.154"
+date = "June 4, 2026"
+type = "major"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+You can now add Google News RSS feeds easily. On the <a class="link" href="/subscription/add">Add Subscription</a> page, switch the source to 'Google News' and enter a search query to generate a feed for that query.
+"""
+
+[[releases]]
+version = "v0.153"
+date =    "June 3, 2026"
+type =     "major"
+[[releases.changes]]
+type = "new"
+description =  "Added a changelog page."
+
+[[releases]]
+version = "v0.152"
+date =    "June 3, 2026"
+type =    "patch"
+[[releases.changes]]
+type = "improved"
+description = "Foragd now suggests a colour for the browser or OS to use when rendering surfaces around the site based on your theme."
+[[releases.changes]]
+type = "improved"
+description = "OPML export has been streamlined."
+[[releases.changes]]
+type = "improved"
+description = "The informed/inspired/enlightened starter feedsets have been updated and now generated dynamically."
+
+
+[[releases]]
+version = "v0.151"
+date = "Jun 2, 2026"
+type = "patch"
+[[release.changes]]
+type = "fixed"
+description = "You can now focus the global search box with Alt+k again."
+[[releases.changes]]
+type = "improved"
+description = "Foragd will try to protect you from breaching your account limits."
+
+[[releases]]
+version =  "v0.150"
+date =    "May 29, 2026"
+type = "major"
+[[releases.changes]]
+type = "new"
+description = """
+There is now a <a class="link" href="/user/settings#subscriptions">dedicated page</a> for bulk and individual management of all your subscriptions.
+"""

@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
@@ -21,87 +23,31 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
-var releases = []templates.Release{
-	{
-		Version:  "v0.153",
-		Date:     "June 3, 2026",
-		Type:     templates.VersionMajor,
-		IsLatest: true,
-		Changes: []templates.ChangeEntry{
-			{
-				Type:        templates.ChangeTypeNew,
-				Description: "Added a changelog page.",
-			},
-		},
-	},
-	{
-		Version: "v0.152",
-		Date:    "June 3, 2026",
-		Type:    templates.VersionPatch,
-		Changes: []templates.ChangeEntry{
-			{
-				Type:        templates.ChangeTypeImproved,
-				Description: "Foragd now suggests a colour for the browser or OS to use when rendering surfaces around the site based on your theme.",
-			},
-			{
-				Type:        templates.ChangeTypeImproved,
-				Description: "OPML export has been streamlined.",
-			},
-			{
-				Type:        templates.ChangeTypeImproved,
-				Description: "The informed/inspired/enlightened starter feedsets have been updated and now generated dynamically.",
-			},
-		},
-	},
-	{
-		Version: "v0.151",
-		Date:    "Jun 2, 2026",
-		Type:    templates.VersionPatch,
-		Changes: []templates.ChangeEntry{
-			{
-				Type:        templates.ChangeTypeFixed,
-				Description: "You can now focus the global search box with Alt+k again.",
-			},
-			{
-				Type:        templates.ChangeTypeImproved,
-				Description: "Foragd will try to protect you from breaching your account limits.",
-			},
-		},
-	},
-	{
-		Version: "v0.150",
-		Date:    "May 29, 2026",
-		Type:    templates.VersionMajor,
-		Changes: []templates.ChangeEntry{
-			{
-				Type:        templates.ChangeTypeNew,
-				Description: "There is now a dedicated page for bulk and individual management of all your subscriptions.",
-			},
-		},
-	},
-}
-
 type Changelog struct {
-	title    string
-	template templ.Component
+	title       string              `toml:"-"`
+	description string              `toml:"-"`
+	Releases    []templates.Release `toml:"releases"`
 }
 
-// FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(templates.ChangelogPage(p.Releases),
 			templates.WithPageTitle(p.title),
+			templates.WithPageDescription(p.description),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 		)).ServeHTTP(res, req)
 }
 
 func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+	templ.Handler(
+		templates.ChangelogPage(p.Releases),
+		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
@@ -109,29 +55,54 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 
 func HandleChangelog() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		changelog := &Changelog{
+			title:       "Foragd Changelog",
+			description: "Foragd updates and improvements — shipped often",
+			Releases:    make([]templates.Release, 0),
+		}
+
+		if _, err := toml.DecodeFS(
+			web.DocsFS,
+			filepath.Join("assets", "docs", "changelog.toml"),
+			changelog,
+		); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not decode changelog toml.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+		}
+
 		if user := models.UserFromCtx(req.Context()); user != nil {
-			RenderInternalPage(&Help{
-				template: templates.LayoutInternal(
-					&templates.InternalLayoutProps{User: user},
-					templates.ChangelogPage(releases),
-				),
-			}).ServeHTTP(res, req.WithContext(req.Context()))
+			RenderInternalPage(changelog).ServeHTTP(res, req.WithContext(req.Context()))
 		} else {
-			RenderExternalPage(&Help{
-				template: templates.LayoutExternal(
-					templates.ChangelogPage(releases),
-				),
-			}).ServeHTTP(res, req.WithContext(req.Context()))
+			RenderExternalPage(changelog).ServeHTTP(res, req.WithContext(req.Context()))
 		}
 	}
 }
 
 func HandleChangelogFeed() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		changelog := &Changelog{
+			title:       "Foragd Changelog",
+			description: "Foragd updates and improvements — shipped often",
+			Releases:    make([]templates.Release, 0),
+		}
+
+		if _, err := toml.DecodeFS(
+			web.DocsFS,
+			filepath.Join("assets", "docs", "changelog.toml"),
+			changelog,
+		); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not decode changelog toml.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+		}
+
 		// Generate RSS file.
 		rssFile := rss.NewRSS(
-			"Foragd Changelog",
-			"Foragd updates and improvements — shipped often",
+			changelog.title,
+			changelog.description,
 			config.GetBaseURL(),
 			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
@@ -145,7 +116,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 			rss.WithUpdatePeriod("daily"),
 		)
 
-		for release := range slices.Values(releases) {
+		for release := range slices.Values(changelog.Releases) {
 			timestamp, err := time.Parse("January 2, 2006", release.Date)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse timestamp of release.",
