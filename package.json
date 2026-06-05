@@ -1,22 +1,23 @@
 {
-  "name": "foragd",
+  "name": "app.foragd",
   "version": "0.0.0",
-  "description": "Gather the information important to you",
+  "description": "Foragd is a web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
   "license": "AGPL-3.0-or-later",
-  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "browserslist": "last 2 years, not dead, > 0.2%",
   "type": "module",
   "source": [
     "web/assets/scripts.js",
     "web/assets/styles.css"
   ],
   "targets": {
-    "default": {
-      "distDir": "web/content"
+    "frontend": {
+      "distDir": "web/content",
+      "outputFormat": "esmodule"
     }
   },
   "scripts": {
-    "build:prod": "parcel build --no-source-maps",
-    "build:dev": "parcel build --no-optimize",
+    "build:prod": "parcel build --no-source-maps --target frontend",
+    "build:dev": "parcel build --no-optimize --target frontend",
     "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
   },
   "dependencies": {
