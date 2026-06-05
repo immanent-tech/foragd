@@ -52,7 +52,7 @@ var (
 
 type appConfig struct {
 	// Version is the application/stack version.
-	Version string `koanf:"-" validate:"required,ne=_UNKNOWN_"`
+	Version string `koanf:"version" validate:"required,ne=_UNKNOWN_"`
 	// CurrentEnvironment is the environment in which the app is running (i.e., production, development). Defaults to
 	// "development".
 	Environment Environment `koanf:"environment" validate:"required,oneof=production development"`
