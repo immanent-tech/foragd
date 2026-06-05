@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.155.0](https://github.com/immanent-tech/foragd/compare/v0.154.0...v0.155.0) (2026-06-05)
+
+
+### Features
+
+* **pkg/formats/html:** ✨ add method to strip html back to plain text ([9450389](https://github.com/immanent-tech/foragd/commit/9450389df8b947e25f40ac655826511e2072ba41))
+* **templates/features:** ♻️ improved features page ([c77e6d2](https://github.com/immanent-tech/foragd/commit/c77e6d2e0fc4ba4584923308dd9bed1fb69bfde8))
+* **templates:** ✨ add ItemList JSON-LD schema ([0e5a179](https://github.com/immanent-tech/foragd/commit/0e5a179baed58cc2f389402802c4dbe5d9a1ba07))
+* **templates:** 🎨 more vibrant notifications ([61530a5](https://github.com/immanent-tech/foragd/commit/61530a52d9686a713ec490ada7e1e88b836ea67d))
+
+
+### Bug Fixes
+
+* **service/users:** 🔧 don't update for limit checks if not needed ([c32b920](https://github.com/immanent-tech/foragd/commit/c32b9207f8a59c779eb7f3f4bc8c2779a5ef7f3d))
+
 ## [0.154.0](https://github.com/immanent-tech/foragd/compare/v0.153.0...v0.154.0) (2026-06-04)
 
 
