@@ -1,10 +1,21 @@
 #:schema https://json.schemastore.org/any.json
 
+
+[[releases]]
+version   = "v0.155"
+date      = "June 5, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+More vibrant notifications. Notifications now have a color that reflects their severity, making the status more obvious.
+"""
+
 [[releases]]
 version = "v0.154"
-date = "June 4, 2026"
-type = "major"
-is_latest = true
+date    = "June 4, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -13,42 +24,42 @@ You can now add Google News RSS feeds easily. On the <a class="link" href="/subs
 
 [[releases]]
 version = "v0.153"
-date =    "June 3, 2026"
-type =     "major"
+date    = "June 3, 2026"
+type    = "major"
 [[releases.changes]]
-type = "new"
-description =  "Added a changelog page."
+type        = "new"
+description = "Added a changelog page."
 
 [[releases]]
 version = "v0.152"
-date =    "June 3, 2026"
-type =    "patch"
+date    = "June 3, 2026"
+type    = "patch"
 [[releases.changes]]
-type = "improved"
+type        = "improved"
 description = "Foragd now suggests a colour for the browser or OS to use when rendering surfaces around the site based on your theme."
 [[releases.changes]]
-type = "improved"
+type        = "improved"
 description = "OPML export has been streamlined."
 [[releases.changes]]
-type = "improved"
+type        = "improved"
 description = "The informed/inspired/enlightened starter feedsets have been updated and now generated dynamically."
 
 
 [[releases]]
 version = "v0.151"
-date = "Jun 2, 2026"
-type = "patch"
+date    = "Jun 2, 2026"
+type    = "patch"
 [[release.changes]]
-type = "fixed"
+type        = "fixed"
 description = "You can now focus the global search box with Alt+k again."
 [[releases.changes]]
-type = "improved"
+type        = "improved"
 description = "Foragd will try to protect you from breaching your account limits."
 
 [[releases]]
-version =  "v0.150"
-date =    "May 29, 2026"
-type = "major"
+version = "v0.150"
+date    = "May 29, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
