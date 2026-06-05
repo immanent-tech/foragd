@@ -21,10 +21,7 @@ type Notification struct {
 
 // PartialResponse renders the notification into the notification container on the page as an OOB response.
 func (n *Notification) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	if n.timeout == 0 {
-		n.timeout = templates.DefaultNotificationTimeout
-	}
-	templ.Handler(templates.Notification(n.msg, n.timeout)).ServeHTTP(res, req)
+	templ.Handler(templates.Notification(n.msg, templates.WithNotificationTimeout(n.timeout))).ServeHTTP(res, req)
 }
 
 type Modal struct {
