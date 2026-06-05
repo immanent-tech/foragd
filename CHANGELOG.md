@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.155.1](https://github.com/immanent-tech/foragd/compare/v0.155.0...v0.155.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* **config:** 🐛 make sure version is parsed from environment ([576bb05](https://github.com/immanent-tech/foragd/commit/576bb058ad2fa7f1ec47cc001d58384df39d2708))
+
 ## [0.155.0](https://github.com/immanent-tech/foragd/compare/v0.154.0...v0.155.0) (2026-06-05)
 
 
