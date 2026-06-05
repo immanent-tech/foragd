@@ -327,3 +327,32 @@ var bufPool = sync.Pool{
 		return new(bytes.Buffer)
 	},
 }
+
+var whitespaceRe = regexp.MustCompile(`\s+`)
+
+// ToPlainText converts a HTML encoded string to plain text.
+func ToPlainText(s string) string {
+	doc, err := html.Parse(strings.NewReader(s))
+	if err != nil {
+		return s
+	}
+
+	// Walk the HTML and remove.
+	var b strings.Builder
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			b.WriteString(n.Data)
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+
+	// Remove excess whitespace formatting.
+	normalised := whitespaceRe.ReplaceAllString(strings.TrimSpace(b.String()), " ")
+
+	return normalised
+
+}
