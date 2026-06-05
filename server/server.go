@@ -118,9 +118,9 @@ func Start(logger *slog.Logger) error {
 		// Landing and features.
 		r.Get("/", handlers.HandleLanding())
 		r.Get("/features", handlers.HandleFeatures())
-		r.With(middlewares.RequireHTMX).Get("/features/collect", handlers.HandleFeaturesCollect())
-		r.With(middlewares.RequireHTMX).Get("/features/curate", handlers.HandleFeaturesCurate())
-		r.With(middlewares.RequireHTMX).Get("/features/consume", handlers.HandleFeaturesConsume())
+		r.Get("/features/collect", handlers.HandleFeaturesCollect())
+		r.Get("/features/curate", handlers.HandleFeaturesCurate())
+		r.Get("/features/consume", handlers.HandleFeaturesConsume())
 		// About.
 		r.Get("/about", handlers.HandleAbout())
 		// Contact.
@@ -162,7 +162,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/logout", handlers.Logout)
 			r.Get("/account-issue", handlers.HandleAccountIssue())
 		})
-		// Payment routes.
+		// Web payment routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
 				session.LoadAndSave,

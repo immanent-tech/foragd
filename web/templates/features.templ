@@ -3,8 +3,55 @@
 
 package templates
 
+import "slices"
+
+var featureGroups = []ListItem{
+	ListItem{
+		Name: "Collect",
+		Description: `
+<p class="mx-auto prose mt-12 text-neutral">
+	<span class="font-semibold">Collect everything from one place.</span> Add any website, blog, YouTube channel, Reddit
+	subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
+	of tabs or missing posts because an algorithm buried them.
+</p>
+<p class="text-center mt-12 text-accent font-semibold">
+	<a class="link" href="/features/collect">Learn More <span aria-hidden="true">→</span></a>
+</p>
+`,
+	},
+	ListItem{
+		Name: "Curate",
+		Description: `
+<p class="mx-auto prose mt-12 text-neutral">
+	<span class="font-semibold">Organise your feeds your way.</span> Group subscriptions into a single unified feed.
+	Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
+	in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
+	algorithm, no sponsored suggestions.
+</p>
+<p class="text-center mt-12 text-accent font-semibold">
+	<a class="link" href="/features/curate">Learn More <span aria-hidden="true">→</span></a>
+</p>
+`,
+	},
+	ListItem{
+		Name: "Consume",
+		Description: `
+<p class="mx-auto prose mt-12 text-neutral">
+	<span class="font-semibold">Read without distractions.</span> Foragd can fetch the full
+	article text directly from the source, so you get clean, readable content even when a site
+	only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
+	mean the content always comes first. Save articles to read later, or share them with a link.
+</p>
+<p class="text-center mt-12 text-accent font-semibold">
+	<a class="link" href="/features/consume">Learn More <span aria-hidden="true">→</span></a>
+</p>
+`,
+	},
+}
+
 templ Features() {
 	@LayoutExternal() {
+		@LandingHeaderSlot()
 		<div class="isolate bg-base-100">
 			<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
 				<div class="soft-gradient-top"></div>
@@ -12,160 +59,106 @@ templ Features() {
 			<div class="lg:pb-40">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
-						<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
-							Features
+						<h1 class="text-5xl font-semibold tracking-tight text-primary">
+							Everything you need to follow the web, on your terms
 						</h1>
-						<h2 class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">
-							Follow what you want. Control the noise.
-						</h2>
+						<p class="prose mt-8 text-neutral">
+							Foragd is a web-based RSS and feed reader for people who want to follow websites,
+							newsletters, and YouTube channels without algorithms or ads. It's designed as an alternative
+							to Feedly, Inoreader, and NewsBlur, with a focus on simplicity and clean reading.
+						</p>
 					</div>
 				</div>
 			</div>
-			<script type="module">
-  const tabGroup = document.getElementById('features-tabs');
-
-  // Map hash → tab index
-  const tabMap = {
-    '#collect': 0,
-    '#curate': 1,
-    '#consume': 2,
-  };
-
-  function activateTabFromHash() {
-    const index = tabMap[window.location.hash];
-    if (index !== undefined) {
-  if (!document.startViewTransition) {
-    tabGroup.setActiveTab(index);
-    return;
-  }
-
-  document.startViewTransition(() => {
-    tabGroup.setActiveTab(index);
-  });    }
-  }
-
-  // Activate on initial load
-  activateTabFromHash();
-
-  // Also handle back/forward navigation
-  window.addEventListener('hashchange', activateTabFromHash);
-</script>
-			<div class="mt-16">
-				<el-tab-group id="features-tabs">
-					<el-tab-list class="mx-auto grid w-sm grid-cols-3 justify-between gap-x-8 rounded-md py-2 pr-8 pl-3 align-middle text-base outline-1 -outline-offset-1 outline-neutral/15 focus:outline-2 focus:-outline-offset-2 focus:outline-accent sm:w-md">
-						<button
-							id="collect-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#collect'"
-						>Collect</button>
-						<button
-							id="curate-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#curate'"
-						>Curate</button>
-						<button
-							id="consume-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#consume'"
-						>Consume</button>
-					</el-tab-list>
-					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-						<div
-							id="collect"
-							hx-get="/features/collect"
-							hx-trigger="load, collect-revealed"
-							_="on load
-                           	set hash to window.location.hash.replace('#', '')
-                            if hash is 'collect'
-                              add .btn-primary to #collect-button
-                        	else
-                              remove .btn-primary from #collect-button
-                            end
-                           end
-                           on hashchange from window
-                            set hash to window.location.hash.replace('#', '')
-                            if hash is 'collect'
-                              add .btn-primary to #collect-button
-                              else
-                                remove .btn-primary from #collect-button
-                              end
-                            end
-						   on mutation of @hidden
-       					     if not @hidden and my innerHTML is ''
-         					   htmx.trigger(me, 'collect-revealed')
-       						 end
-						   end
-						"
-							class="tab-panel content-auto"
-						></div>
-						<div
-							id="curate"
-							hx-get="/features/curate"
-							hx-trigger="curate-revealed"
-							_="on load
-                                set hash to window.location.hash.replace('#', '')
-                                if hash is 'curate'
-                                  add .btn-primary to #curate-button
-            					  if my innerHTML is '' then htmx.trigger(me, 'curate-revealed') end
-                                else
-                                  remove .btn-primary from #curate-button
-                                end
-                               end
-                               on hashchange from window
-                                set hash to window.location.hash.replace('#', '')
-                                if hash is 'curate'
-                                  add .btn-primary to #curate-button
-                                else
-                                  remove .btn-primary from #curate-button
-                                end
-                               end
-  						   on mutation of @hidden
-       					     if not @hidden and my innerHTML is ''
-         					   htmx.trigger(me, 'curate-revealed')
-       						 end
-						   end
-                             "
-							class="tab-panel content-auto"
-						></div>
-						<div
-							id="consume"
-							hx-get="/features/consume"
-							hx-trigger="consume-revealed"
-							_="on load
-                                set hash to window.location.hash.replace('#', '')
-                                if hash is 'consume'
-                                  add .btn-primary to #consume-button
-            					  if my innerHTML is '' then htmx.trigger(me, 'consume-revealed') end
-                                else
-                                  remove .btn-primary from #consume-button
-                                end
-                               end
-                               on hashchange from window
-                                set hash to window.location.hash.replace('#', '')
-                                if hash is 'consume'
-                                  add .btn-primary to #consume-button
-                                else
-                                  remove .btn-primary from #consume-button
-                                end
-                               end
-   						   on mutation of @hidden
-       					     if not @hidden and my innerHTML is ''
-         					   htmx.trigger(me, 'consume-revealed')
-       						 end
-						   end
-                             "
-							class="tab-panel content-auto"
-						></div>
-					</el-tab-panels>
-				</el-tab-group>
-			</div>
+			@container() {
+				<dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+					for group := range slices.Values(featureGroups) {
+						<div class="flex flex-col">
+							<dt class="flex items-center gap-x-3 text-lg font-semibold text-secondary">
+								{ group.Name }
+							</dt>
+							<dd class="mt-4 flex flex-auto flex-col">
+								@templ.Raw(group.Description)
+							</dd>
+						</div>
+					}
+				</dl>
+			}
+			@ItemList("Foragd Features", featureGroups)
 			<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
 				<div class="soft-gradient-bottom"></div>
 			</div>
 		</div>
+	}
+}
+
+templ FeaturesPageCollect() {
+	@LayoutExternal() {
+		<div class="lg:pb-40">
+			<div class="mx-auto max-w-7xl px-6 lg:px-8">
+				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
+					<h1 class="text-5xl font-semibold tracking-tight text-primary">
+						Collect
+					</h1>
+					<p class="mx-auto prose mt-12 text-neutral">
+						<span class="font-semibold">Collect everything from one place.</span> Add any website, blog, YouTube channel, Reddit
+						subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
+						of tabs or missing posts because an algorithm buried them.
+					</p>
+				</div>
+			</div>
+		</div>
+		@FeatureAddContent(false)
+		@FeatureEmailNewsletters(true)
+		@FeatureImport(false)
+	}
+}
+
+templ FeaturesPageCurate() {
+	@LayoutExternal() {
+		<div class="lg:pb-40">
+			<div class="mx-auto max-w-7xl px-6 lg:px-8">
+				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
+					<h1 class="text-5xl font-semibold tracking-tight text-primary">
+						Curate
+					</h1>
+					<p class="mx-auto prose mt-12 text-neutral">
+						<span class="font-semibold">Organise your feeds your way.</span> Group subscriptions into a single unified feed.
+						Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
+						in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
+						algorithm, no sponsored suggestions.
+					</p>
+				</div>
+			</div>
+		</div>
+		@FeatureGroupSubscriptions(false)
+		@FeatureSearchSubscription(true)
+		@FeatureArticleFilters(false)
+		@FeatureSubscriptionCustomisation(true)
+	}
+}
+
+templ FeaturesPageConsume() {
+	@LayoutExternal() {
+		<div class="lg:pb-40">
+			<div class="mx-auto max-w-7xl px-6 lg:px-8">
+				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
+					<h1 class="text-5xl font-semibold tracking-tight text-primary">
+						Consume
+					</h1>
+					<p class="mx-auto prose mt-12 text-neutral">
+						<span class="font-semibold">Read without distractions.</span> Foragd can fetch the full
+						article text directly from the source, so you get clean, readable content even when a site
+						only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
+						mean the content always comes first. Save articles to read later, or share them with a link.
+					</p>
+				</div>
+			</div>
+		</div>
+		@FeatureLayout(false)
+		@FeatureFetchRemoteContent(true)
+		@FeatureFavorites(false)
+		@FeatureThemes(true)
 	}
 }
 
@@ -193,10 +186,26 @@ templ FeatureAddContent(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Easily add content from anywhere
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Just enter a URL and Foragd will attempt to find and subscribe to the site's content. Whether its a Youtube
-				channel, Reddit subreddit or Tumblr blog, Foragd will parse and subscribe. No need to worry about finding the right
-				links; Foragd does it for you!
+			<p class="mt-2 text-lg/8 text-neutral">
+				Enter a URL and Foragd will attempt to find and subscribe to the site's content. Or just enter a search
+				term or phrase and explore Foragd's existing database of feeds.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				For YouTube, you can enter a channel name
+				like
+				<span class="italic">
+					{ `@TED` }
+				</span> directly.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				For Google News, enter your search query such as
+				<span class="italic">
+					when:24h site:reuters.com
+				</span>.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				Whether its a Google News search, Youtube channel, or just a URL, Foragd will find any
+				available feeds for you to subscribe to. No need to hunt around for obscure URL links, formats and parameters.
 			</p>
 		</div>
 		<button
@@ -242,9 +251,10 @@ templ FeatureEmailNewsletters(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Sign up for email newsletters
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
+			<p class="mt-2 text-lg/8 text-neutral">
 				Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to
-				sign up to email newsletters. Get your website and email updates in the one place.
+				sign up to email newsletters. Use this email when signing up for newsletters to get your website and
+				email updates in the one place. You can favorite and search through newsletters just like any other feed.
 			</p>
 		</div>
 		<img
@@ -265,9 +275,10 @@ templ FeatureImport(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Migrate from other services
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Coming from Feedly, Inoreader or another service? Foragd can
-				import your existing subscriptions easily.
+			<p class="mt-2 text-lg/8 text-neutral">
+				Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily.
+				Foragd supports using the OPML file format, a widely used standard for imports and exports. You always
+				own and control your data. Import and export your subscriptions freely.
 			</p>
 		</div>
 		<img
@@ -282,21 +293,19 @@ templ FeatureImport(flipped bool) {
 	}
 }
 
-templ FeaturesCollect() {
-	@FeatureAddContent(false)
-	@FeatureEmailNewsletters(true)
-	@FeatureImport(false)
-}
-
 templ FeatureGroupSubscriptions(flipped bool) {
 	@NewFeaturePanel("feature-group-subscriptions") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Group subscriptions
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
+			<p class="mt-2 text-lg/8 text-neutral">
 				Group multiple site subscriptions together to view a unified feed of their articles. Great for combining
-				sites on similar topics into one (e.g., all Android or Apple news).
+				sites on similar topics into one (e.g., all Android or Apple news). You can then apply <a
+	class="link"
+	href="#feature-article-filters"
+>article filters</a> across all grouped subscriptions, further refining
+				the list of articles displayed.
 			</p>
 		</div>
 		<img
@@ -317,11 +326,15 @@ templ FeatureSearchSubscription(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Saved search subscriptions
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Use full text search across articles. Find that thing mentioned in that post on that blog, easily.
+			<p class="mt-2 text-lg/8 text-neutral">
+				Use full text search across articles. Find that thing mentioned in that post on that blog a while ago
+				easily.
 			</p>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Save a search as a subscription to always keep up to date with matching articles from any feeds.
+			<p class="mt-2 text-lg/8 text-neutral">
+				Want to keep up to date when new posts arrive that match? Save the search as a <span
+	class="italic"
+>Search Subscription</span> to keep up to date with new articles that match. This a great way to keep up to date with a
+				topic across multiple sources or for research and data analysis.
 			</p>
 		</div>
 		<button
@@ -367,8 +380,24 @@ templ FeatureArticleFilters(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Article filtering
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and logic.
+			<p class="mt-2 text-lg/8 text-neutral">
+				Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and
+				logic.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				For example, <span class="italic">`AI -chatgpt`</span> will filter for AI news, but not about
+				ChatGPT.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				Use <span class="italic">`+python +tutorial`</span> to find articles that are only about python
+				and are also tutorials.
+			</p>
+			<p class="mt-2 text-lg/8 text-neutral">
+				Combine them for further refinement:
+				<span class="italic">
+					`+python +tutorial AI
+					-chatgpt`
+				</span>.
 			</p>
 		</div>
 		<img
@@ -389,8 +418,9 @@ templ FeatureSubscriptionCustomisation(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Subscription customisation
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				Customize any subscription with your own nickname and thumbnail image.
+			<p class="mt-2 text-lg/8 text-neutral">
+				You can customise each subscription, choosing your own nickname and/or image to represent each. Useful
+				where the feed does not include its own image or its name is verbose or generic.
 			</p>
 		</div>
 		<button
@@ -422,20 +452,13 @@ templ FeatureSubscriptionCustomisation(flipped bool) {
 	}
 }
 
-templ FeaturesCurate() {
-	@FeatureGroupSubscriptions(false)
-	@FeatureSearchSubscription(true)
-	@FeatureArticleFilters(false)
-	@FeatureSubscriptionCustomisation(true)
-}
-
 templ FeatureLayout(flipped bool) {
 	@NewFeaturePanel("feature-layout") {
 		<div class={ "lg:row-start-2 lg:max-w-md", templ.KV("lg:col-start-2 justify-self-end",flipped) }>
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Content comes first
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
+			<p class="mt-2 text-lg/8 text-neutral">
 				Foragd has an interface that stays out of the way, letting the content shine. Beautiful typography and
 				large images.
 			</p>
@@ -475,8 +498,10 @@ templ FeatureFetchRemoteContent(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Get remote content
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
-				For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the remote content. No more tab-switching.
+			<p class="mt-2 text-lg/8 text-neutral">
+				For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the
+				remote content. Foragd tries to fetch all images and other relevant content to recreate the reading
+				experience without needing to switch browser tabs.
 			</p>
 		</div>
 		<button
@@ -522,8 +547,9 @@ templ FeatureFavorites(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Favorites
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
+			<p class="mt-2 text-lg/8 text-neutral">
 				Favorite subscriptions to keep them top and center. Favorite articles to easily reference them later.
+				Your favorite articles are kept forever, even if the source removes them from their feed.
 			</p>
 		</div>
 		<button
@@ -569,7 +595,7 @@ templ FeatureThemes(flipped bool) {
 			<h2 class="text-balancesm:text-4xl text-3xl font-semibold tracking-tight">
 				Themes
 			</h2>
-			<p class="mt-6 text-lg/8 text-neutral">
+			<p class="mt-2 text-lg/8 text-neutral">
 				Choose from a selection of curated light and dark themes to your liking.
 			</p>
 		</div>
@@ -600,13 +626,6 @@ templ FeatureThemes(flipped bool) {
 			/>
 		}
 	}
-}
-
-templ FeaturesConsume() {
-	@FeatureLayout(false)
-	@FeatureFetchRemoteContent(true)
-	@FeatureFavorites(false)
-	@FeatureThemes(true)
 }
 
 templ imagePopup(id string) {
