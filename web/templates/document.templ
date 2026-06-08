@@ -9,7 +9,7 @@ import "github.com/immanent-tech/foragd/web/templates/partials"
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
 	@templ.Fragment(ContentFragment) {
-		<article class="mx-auto p-4 prose sm:prose-lg prose-img:shadow-md">
+		<article class="mx-auto p-4 prose-document">
 			@templ.Raw(string(data))
 		</article>
 		@partials.ButtonBackToTop()

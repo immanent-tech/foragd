@@ -315,6 +315,11 @@
     }
   }
 
+  /* For formatting help and policy documents. */
+  .prose-document {
+    @apply prose sm:prose-lg prose-headings:tracking-tight prose-headings:text-balance prose-h1:font-display prose-h1:text-2xl/7 prose-a:link prose-a:link-hover prose-img:shadow-md;
+  }
+
   .section-label {
     @apply mb-1 flex items-center gap-2 text-lg font-semibold text-accent uppercase;
   }
