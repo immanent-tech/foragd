@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.156.0](https://github.com/immanent-tech/foragd/compare/v0.155.2...v0.156.0) (2026-06-08)
+
+
+### Features
+
+* **templates/header:** ✨ add changelog link and icon styling ([1f66fc7](https://github.com/immanent-tech/foragd/commit/1f66fc7414a45fb17831d186936409979a2334e6))
+* **templates/home:** ✨ improve new user home page ([fda8623](https://github.com/immanent-tech/foragd/commit/fda8623a954a57c35c492a90e68d73c9d2f2608f))
+* **templates/subscriptions:** ✨ improve add subscription page ([e49742b](https://github.com/immanent-tech/foragd/commit/e49742be07a5f93a3879d660774cf4851dd69cc2))
+
 ## [0.155.2](https://github.com/immanent-tech/foragd/compare/v0.155.1...v0.155.2) (2026-06-08)
 
 
