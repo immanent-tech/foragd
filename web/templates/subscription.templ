@@ -676,12 +676,30 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							</div>
 						</div>
 						<ul class="mt-4 block list-inside list-disc text-sm/6 text-neutral">
-							<li>
-								Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
-							</li>
-							<li>
-								Enter a URL to fetch and parse the website for a suitable feed.
-							</li>
+							<div _="on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me">
+								<li>
+									Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
+								</li>
+								<li>
+									Enter a URL to fetch and parse the website for a suitable feed.
+								</li>
+							</div>
+							<div _="on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me" hidden>
+								<li>
+									Enter <span class="italic">{ `@ChannelName` }</span> to fetch a channel's feed.
+								</li>
+								<li>
+									Enter keywords or a phrase to search YouTube for channels that match.
+								</li>
+							</div>
+							<div _="on change from #suggestion-source if its value is 'gnews' remove @hidden from me else add @hidden to me" hidden>
+								<li>
+									Enter search terms to fetch and generate a feed with matching articles.
+								</li>
+								<li>
+									For example: <span class="italic">when:24h site:reuters.com "World Events"</span>.
+								</li>
+							</div>
 						</ul>
 					</div>
 					<div class="show-loading w-full sm:max-w-5xl">
