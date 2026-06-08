@@ -722,6 +722,9 @@ func (s Subscriptions) FilterEmailIDs(ids ...string) Subscriptions {
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
 func (s Subscriptions) Sort(sort Sort) Subscriptions {
+	if len(s) == 0 {
+		return s
+	}
 	sort = setValidSort(sort)
 	switch sort {
 	case SortNewestFirst, SortOldestFirst:

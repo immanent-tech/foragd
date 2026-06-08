@@ -124,10 +124,10 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 		}
 		// Get all subscriptions.
 		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil {
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					InternalError: fmt.Errorf("get subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to show account settings",
@@ -138,16 +138,9 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 		}
 		// Add dynamic info to subscriptions.
 		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to show account settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
+			slogctx.FromCtx(req.Context()).Warn("Unable to add subscription dynamic info.",
+				slog.Any("error", err),
+			)
 		}
 		// Sort by newest first.
 		subscriptions = subscriptions.Sort(models.SortNewestFirst)
