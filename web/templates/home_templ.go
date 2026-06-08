@@ -13,7 +13,6 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -123,7 +122,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var5 string
 							templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue("article" + strconv.Itoa(idx+1))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 53, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 52, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 							if templ_7745c5c3_Err != nil {
@@ -154,7 +153,7 @@ func UserHome(data *HomeData) templ.Component {
 						var templ_7745c5c3_Var6 string
 						templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters.Values()))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 65, Col: 52}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 64, Col: 52}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 						if templ_7745c5c3_Err != nil {
@@ -177,7 +176,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var7 string
 								templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("--i: " + strconv.Itoa(idx))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 85, Col: 47}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 84, Col: 47}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 								if templ_7745c5c3_Err != nil {
@@ -190,7 +189,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var8 string
 								templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 86, Col: 37}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 85, Col: 37}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 								if templ_7745c5c3_Err != nil {
@@ -226,7 +225,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var9 string
 								templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 97, Col: 87}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 96, Col: 87}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 								if templ_7745c5c3_Err != nil {
@@ -239,7 +238,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var10 string
 								templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 100, Col: 90}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 99, Col: 90}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 								if templ_7745c5c3_Err != nil {
@@ -252,7 +251,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var11 string
 								templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 104, Col: 69}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 103, Col: 69}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 								if templ_7745c5c3_Err != nil {
@@ -384,46 +383,57 @@ func NewUserHome() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"mt-16 transition-transform duration-300 ease-in-out animate-fadeinup\" style=\"--i: 0\"><p class=\"text-accent uppercase text-balance text-base\">Welcome to Foragd</p><h1 class=\"text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl my-4\">Your feed reader,<br>your way.</h1><p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p></div><div class=\"mt-12 transition-transform duration-300 ease-in-out animate-fadeinup\" style=\"--i: 1\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = SectionLabel("Add subscriptions").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"grid grid-cols-1 sm:grid-cols-2 gap-3\"><a class=\"card-body bg-base-200 rounded-box hover:shadow-md hover:border hover:border-secondary active:scale-[0.98]\" hx-get=\"/subscription/add\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var16 string
-					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("Welcome to " + config.AppName)
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 152, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 161, Col: 37}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</h1><p class=\"py-2\">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p><div class=\"py-4\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">Add/Import Subscriptions</h2><p class=\"py-2\">Import your subscriptions from an external service or start fresh.</p><div class=\"relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-6 text-secondary-content\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></div><div><h4 class=\"text-sm font-medium\"><a hx-get=\"/subscription/add\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus bg-secondary text-secondary-content rounded-selector p-1\" aria-hidden=\"true\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M12 5l0 14\"></path> <path d=\"M5 12l14 0\"></path></svg><div><div class=\"card-title text-secondary\">Add a feed</div><p class=\"text-secondary text-base/7\">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p></div><div class=\"card-actions text-accent justify-end\">Get started <span aria-hidden=\"true\">-></span></div></a> <a class=\"card-body bg-base-200 rounded-box hover:shadow-md hover:border hover:border-secondary active:scale-[0.98]\" hx-get=\"/user/import\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var17 string
 					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 174, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 191, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> Add a feed subscription\t<span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Add a single subscription from a URL or webpage.</p></div></div><div class=\"relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-cloud-download size-6 text-secondary-content\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4\"></path><path d=\"M12 13l0 9\"></path><path d=\"M9 19l3 3l3 -3\"></path></svg></div><div><h4 class=\"text-sm font-medium\"><a hx-get=\"/user/import\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-cloud-download bg-secondary text-secondary-content rounded-selector p-1\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4\"></path> <path d=\"M12 13l0 9\"></path> <path d=\"M9 19l3 3l3 -3\"></path></svg><div><div class=\"card-title text-secondary\">Import from OPML</div><p class=\"text-secondary text-base/7\">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p></div><div class=\"card-actions text-accent justify-end\">Upload OPML file <span aria-hidden=\"true\">-></span></div></a></div></div><div class=\"mt-12 transition-transform duration-300 ease-in-out animate-fadeinup\" style=\"--i: 2\"><div class=\"mt-12\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var18 string
-					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 198, Col: 39}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
+					templ_7745c5c3_Err = SectionLabel("Or start with a Curated Set").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> Import subscriptions <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Import multiple subscriptions using an OPML file.</p></div></div></div><div class=\"py-4\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">Start With Curated Subscription Sets</h2><p class=\"py-2\">Or try one or more curated starter sets (you can also add these later in settings).</p><form><fieldset><div class=\"mt-6 space-y-6\"><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" aria-describedby=\"informed-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"informed\" class=\"font-medium\">Informed</label><p id=\"inspired-description\" class=\"text-base-content brightness-95\">News and information sites.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" aria-describedby=\"inspired-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"inspired\" class=\"font-medium\">Inspired</label><p id=\"inspired-description\" class=\"text-base-content brightness-95\">Digital art and other oddities.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" aria-describedby=\"enlightened-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"enlightened\" class=\"font-medium\">Enlightened</label><p id=\"enlightened-description\" class=\"text-base-content brightness-95\">Alternative and fringe sites.</p></div></div></div></fieldset><div class=\"mt-6 flex max-w-prose items-center justify-end gap-x-6\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><span class=\"text-sm/6\">Add Sets</span></span></button></div></form></div><div class=\"py-4\"><h2 class=\"mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl\">Get to know Foragd</h2><p class=\"py-2\">Read the documentation/help to get familiar with the app.</p><ul class=\"list-inside list-disc\"><li><a class=\"link\" href=\"/docs\">Documentation Home</a></li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div><form><div class=\"grid grid-cols-1 sm:grid-cols-3 gap-3\"><div class=\"card-body bg-base-200 rounded-box hover:shadow-md hover:border hover:border-secondary active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" class=\"checkbox checkbox-sm checkbox-primary\"> <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-news text-secondary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11\"></path> <path d=\"M8 8l4 0\"></path> <path d=\"M8 12l4 0\"></path> <path d=\"M8 16l4 0\"></path></svg> <label class=\"card-title text-secondary\" for=\"informed\">Informed</label></div><p class=\"text-sm/6\">News and information from across the web.</p></div><div class=\"card-body bg-base-200 rounded-box hover:shadow-md hover:border hover:border-secondary active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" class=\"checkbox checkbox-sm checkbox-primary\"> <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-palette icon-tabler-news text-secondary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25\"></path> <path d=\"M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"></path> <path d=\"M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"></path> <path d=\"M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"></path></svg> <label class=\"card-title text-secondary\" for=\"inspired\">Inspired</label></div><p class=\"text-sm/6\">Digital art, design and creative oddities.</p></div><div class=\"card-body bg-base-200 rounded-box hover:shadow-md hover:border hover:border-secondary active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" class=\"checkbox checkbox-sm checkbox-primary\"> <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-atom text-secondary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M12 12v.01\"></path> <path d=\"M19.071 4.929c-1.562 -1.562 -6 .337 -9.9 4.243c-3.905 3.905 -5.804 8.337 -4.242 9.9c1.562 1.561 6 -.338 9.9 -4.244c3.905 -3.905 5.804 -8.337 4.242 -9.9\"></path> <path d=\"M4.929 4.929c-1.562 1.562 .337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561 -1.562 -.338 -6 -4.244 -9.9c-3.905 -3.905 -8.337 -5.804 -9.9 -4.242\"></path></svg> <label class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</label></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></div></div><div class=\"mt-4 transition-transform duration-300 ease-in-out animate-fadeinup\" style=\"--i: 2\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-circle-plus\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path> <path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"></path> <path d=\"M9 12h6\"></path> <path d=\"M12 9v6\"></path></svg> <span class=\"text-sm/6\">Add Sets</span></div></span></button></div></form></div><div class=\"mt-12 transition-transform duration-300 ease-in-out animate-fadeinup\" style=\"--i: 3\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = SectionLabel("Learn More").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<ul role=\"list\" class=\"divide-y divide-accent\"><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/docs\">Documentation Home</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/blog\">Blog</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/changelog\">Changelog</a></li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

@@ -314,6 +314,14 @@
       @apply hidden!;
     }
   }
+
+  .section-label {
+    @apply mb-1 flex items-center gap-2 text-lg font-semibold text-accent uppercase;
+  }
+  .section-label::after {
+    @apply h-0.5 flex-1 bg-accent brightness-50;
+    content: "";
+  }
 }
 
 @utility soft-gradient-top {
