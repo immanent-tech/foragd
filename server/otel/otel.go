@@ -6,6 +6,8 @@ package otel
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/exporters/autoexport"
@@ -15,6 +17,7 @@ import (
 	_ "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/api/idtoken"
 
 	"github.com/immanent-tech/foragd/config"
 )
@@ -28,6 +31,18 @@ var MeterConfig otelchimetric.BaseConfig
 func Setup(ctx context.Context) (func(context.Context) error, error) {
 	var shutdownFuncs []func(context.Context) error
 	var err error
+
+	tokenSource, err := idtoken.NewTokenSource(ctx, os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+	if err != nil {
+		return nil, fmt.Errorf("new authorization: %w", err)
+	}
+	token, err := tokenSource.Token()
+	if err != nil {
+		return nil, fmt.Errorf("get authorization token: %w", err)
+	}
+	if err := os.Setenv("OTEL_EXPORTER_OTLP_HEADERS", "Authorization="+token.AccessToken); err != nil {
+		return nil, fmt.Errorf("set OTEL_EXPORTER_OTLP_HEADERS: %w", err)
+	}
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
 	// The errors from the calls are joined.
