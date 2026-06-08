@@ -2,10 +2,30 @@
 
 
 [[releases]]
+version   = "v0.156"
+date      = "June 8, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+New user home page has been revamped. Easier to navigate and cleaner styling.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Changelog is now linked in header and user actions menu.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+On the add subscription page, the additional instructions are now source-specific.
+"""
+
+[[releases]]
 version   = "v0.155"
 date      = "June 5, 2026"
 type      = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """
