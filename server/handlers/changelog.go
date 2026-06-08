@@ -35,8 +35,19 @@ type Changelog struct {
 }
 
 func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
+	var template templ.Component
+
+	if user := models.UserFromCtx(req.Context()); user != nil {
+		template = templates.LayoutInternal(
+			&templates.InternalLayoutProps{User: user},
+			templates.ChangelogPage(p.Releases),
+		)
+	} else {
+		template = templates.LayoutExternal(templates.ChangelogPage(p.Releases))
+	}
+
 	templ.Handler(
-		templates.CreatePage(templates.ChangelogPage(p.Releases),
+		templates.CreatePage(template,
 			templates.WithPageTitle(p.title),
 			templates.WithPageDescription(p.description),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
