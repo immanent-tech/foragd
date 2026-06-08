@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.155.2](https://github.com/immanent-tech/foragd/compare/v0.155.1...v0.155.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* **handlers/user:** 🔧 fix display of subscriptions settings page when user has no subscriptions ([25ac774](https://github.com/immanent-tech/foragd/commit/25ac774929ad7c17285d39949aa68b96c0fd738b))
+* **server/otel:** 🔧 don't add authorization header for non-production deployments ([3e91f76](https://github.com/immanent-tech/foragd/commit/3e91f76d95872bdff64887cd4c9e7fb18766de78))
+* **server:** 🔧 set otel authorization headers ([17f9f73](https://github.com/immanent-tech/foragd/commit/17f9f738bc140eac8109c5799d088330c0ad71ca))
+
 ## [0.155.1](https://github.com/immanent-tech/foragd/compare/v0.155.0...v0.155.1) (2026-06-05)
 
 
