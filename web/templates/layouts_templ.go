@@ -64,7 +64,7 @@ func LayoutInternal(props *InternalLayoutProps, content ...templ.Component) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"mb-24 min-h-svh-safe scroll-mt-16 pt-16 lg:pl-36\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"pb-24 min-h-svh-safe scroll-mt-16 pt-16 lg:pl-36\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

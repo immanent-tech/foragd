@@ -19,7 +19,7 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 	<main
 		aria-label="Main Content"
 		id={ ContentID.String() }
-		class="mb-24 min-h-svh-safe scroll-mt-16 pt-16 lg:pl-36"
+		class="pb-24 min-h-svh-safe scroll-mt-16 pt-16 lg:pl-36"
 	>
 		if len(content) > 0 {
 			@templ.Join(content...)
