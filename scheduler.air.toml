@@ -2,8 +2,8 @@
 
 # Working directory
 # . or absolute path, please note that the directories following must be under root.
-root = "."
-tmp_dir = "tmp"
+root      = "."
+tmp_dir   = "tmp"
 env_files = [".devcontainer/.env", ".env.development"]
 
 [build]
@@ -39,6 +39,7 @@ exclude_dir = [
   "web",
   "email",
   "android",
+  "oneshots",
 ]
 # Ignore these filename extensions or directories.
 include_dir = ["scheduler", "models", "service", "pkg"]
@@ -87,10 +88,10 @@ silent = false
 
 [color]
 # Customize each part's color. If no color found, use the raw app log.
-main = "magenta"
+main    = "magenta"
 watcher = "cyan"
-build = "yellow"
-runner = "green"
+build   = "yellow"
+runner  = "green"
 
 [misc]
 # Delete tmp directory on exit
@@ -98,10 +99,10 @@ clean_on_exit = true
 
 [screen]
 clear_on_rebuild = false
-keep_scroll = true
+keep_scroll      = true
 
 [proxy]
 # Enable live-reloading on the browser.
-enabled = false
+enabled    = false
 proxy_port = 8090
-app_port = 8080
+app_port   = 8080
