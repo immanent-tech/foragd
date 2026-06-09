@@ -310,6 +310,15 @@ jobs:
             -e 's|__ANDROID_KEYSTORE_FINGERPRINT__|${{ secrets.ANDROID_KEYSTORE_FINGERPRINT }}|g' \
             android/twa-manifest.json
 
+      - name: Bubblewrap update
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          bubblewrap update \
+            --skipVersionUpgrade
+
       - name: Bubblewrap build
         working-directory: android
         env:
