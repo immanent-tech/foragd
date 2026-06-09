@@ -41,6 +41,7 @@ templ ArticleCard(idx int, article *models.Article) {
 				if img.GetTitle() == "" {
 					{{ img.Title = new(article.GetTitle()) }}
 				}
+				// Article Main Image.
 				<figure class="relative overflow-hidden rounded-t-[inherit]">
 					{{
 						var loadingAttrKey, loadingAttrValue string
@@ -60,17 +61,20 @@ templ ArticleCard(idx int, article *models.Article) {
 						element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 					)
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+					<div class="absolute top-2.5 left-2.5">
+						<span class="badge badge-sm bg-base-100/90 text-base-content/80 border-0 font-medium backdrop-blur-sm">{ article.Item.FeedTitle }</span>
+					</div>
 				</figure>
 			}
-			@partials.CardHeader() {
-				<h2 class="mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance wrap-break-word transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
-					if article.GetTitle() != "" {
-						{ article.GetTitle() }
-					} else {
-						(no title)
-					}
-				</h2>
-			}
+			// @partials.CardHeader() {
+			// 	<h2 class="mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance wrap-break-word transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
+			// 		if article.GetTitle() != "" {
+			// 			{ article.GetTitle() }
+			// 		} else {
+			// 			(no title)
+			// 		}
+			// 	</h2>
+			// }
 		</div>
 		{{
 			var bodyClasses string
@@ -82,9 +86,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			{{ categoryLimit := 10 }}
 			// Show up to 10 category badges.
 			if len(article.GetCategories(categoryLimit)) > 0 {
-				<div
-					class="mb-4 flex flex-row flex-wrap gap-2 self-start"
-				>
+				<div class="flex flex-wrap gap-1.5 mb-2.5 self-start">
 					for idx, category := range article.GetCategories(categoryLimit) {
 						{{
 							filters := models.NewListDisplayFilters()
@@ -123,9 +125,16 @@ templ ArticleCard(idx int, article *models.Article) {
 					}
 				</div>
 			}
+			<h3 class="font-bold font-serif text-base text-balance leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
+				} else {
+					(no title)
+				}
+			</h3>
 			// Add summarised content if article has content.
 			if content := article.GetContent(); content != "" {
-				<div class={ "prose-summary", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
 					@templ.Raw(content)
 				</div>
 			}
@@ -153,7 +162,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					</relative-time>
 				</div>
 				<div class="flex shrink-0 items-center gap-1">
-					<button class="btn btn-square btn-ghost btn-md">
+					<button class="btn btn-square btn-ghost btn-xs">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
@@ -178,7 +187,7 @@ templ ArticleCard(idx int, article *models.Article) {
 							</label>
 						</form>
 					</button>
-					<button class="btn btn-square btn-ghost btn-md">
+					<button class="btn btn-square btn-ghost btn-xs">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
@@ -216,7 +225,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					// Actions menu.
 					<div class="flex flex-none">
 						<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
-							<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-md">
+							<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-xs">
 								<span class="sr-only">{ article.GetTitle() + " Actions" }</span>
 								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
