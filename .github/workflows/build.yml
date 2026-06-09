@@ -269,7 +269,7 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > android/android.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android/android.keystore
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -286,18 +286,38 @@ jobs:
           sed -i "s/\"appVersionCode\": [0-9]*/\"appVersionCode\": $VERSION_CODE/" android/twa-manifest.json
           sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"1.0.$VERSION_CODE\"/" android/twa-manifest.json
 
+      - name: Setup Go
+        id: setup_go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: Build frontend files
+        run: |
+          npm clean-install
+          npm run build:prod
+
+      - name: Inject secrets into twa-manifest
+        run: |
+          sed -i \
+            -e 's|__ANDROID_KEYSTORE_PATH__|android/android.keystore|g' \
+            -e 's|__ANDROID_KEYSTORE_ALIAS__|${{ secrets.ANDROID_KEYSTORE_ALIAS }}|g' \
+            -e 's|__ANDROID_KEYSTORE_FINGERPRINT__|${{ secrets.ANDROID_KEYSTORE_FINGERPRINT }}|g' \
+            android/twa-manifest.json
+
       - name: Bubblewrap build
         working-directory: android
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           bubblewrap build \
             --skipPwaValidation \
             --signingKeyPath android.keystore \
             --signingKeyAlias android \
-            --signingKeyPassword "$KEYSTORE_PASSWORD" \
-            --signingKeyAliasPassword "$KEY_PASSWORD"
+            --signingKeyPassword "$ANDROID_KEYSTORE_PASSWORD" \
+            --signingKeyAliasPassword "$ANDROID_KEY_PASSWORD"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -308,6 +328,8 @@ jobs:
             android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
 
-      - name: Clean up keystore
+      - name: Clean up secrets
         if: always()
-        run: rm -f android/android.keystore
+        run: |
+          rm -f android/android.keystore
+          rm -f android/twa-manifest.json

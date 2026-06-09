@@ -1,0 +1,88 @@
+{
+  "packageId": "app.foragd.twa",
+  "host": "foragd.app",
+  "name": "Foragd - RSS & Feed Reader",
+  "launcherName": "Foragd",
+  "display": "standalone",
+  "themeColor": "#4A6653",
+  "themeColorDark": "#2A3D2F",
+  "navigationColor": "#D6CFC1",
+  "navigationColorDark": "#1A1A1A",
+  "navigationDividerColor": "#4B433B",
+  "navigationDividerColorDark": "#1A1A1A",
+  "backgroundColor": "#FCFAF7",
+  "enableNotifications": true,
+  "startUrl": "/home?utm_source=pwa&utm_medium=homescreen",
+  "iconUrl": "https://foragd.app/content/logo-vertical-light.png",
+  "maskableIconUrl": "https://foragd.app/content/icons/maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "alias": "__ANDROID_KEYSTORE_ALIAS__",
+    "path": "__ANDROID_KEYSTORE_PATH__"
+  },
+  "appVersionName": "4",
+  "appVersionCode": 4,
+  "shortcuts": [
+    {
+      "name": "Go to Subscriptions",
+      "shortName": "Feeds",
+      "url": "https://foragd.app/list/subscriptions",
+      "chosenIconUrl": "https://foragd.app/content/icons/subscriptions.png"
+    },
+    {
+      "name": "Go to Articles",
+      "shortName": "Articles",
+      "url": "https://foragd.app/list/articles",
+      "chosenIconUrl": "https://foragd.app/content/icons/articles.png"
+    },
+    {
+      "name": "Go to Favorites",
+      "shortName": "Favorites",
+      "url": "https://foragd.app/list/favorites",
+      "chosenIconUrl": "https://foragd.app/content/icons/favorites.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://foragd.app/content/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://foragd.app/",
+  "minSdkVersion": 24,
+  "orientation": "any",
+  "fingerprints": [
+    __ANDROID_KEYSTORE_FINGERPRINT__
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [
+    {
+      "protocol": "web+feed",
+      "url": "https://foragd.app/subscription/add?url=%s"
+    },
+    {
+      "protocol": "web+rss",
+      "url": "https://foragd.app/subscription/add?url=%s"
+    }
+  ],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "appVersion": "4",
+  "requestHeaders": {
+    "X-TWA-Client": "android"
+  }
+}

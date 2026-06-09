@@ -14,5 +14,4 @@ lerna-debug.log
 *.apk.idsig
 *.aab
 app/build/*
-twa-manifest.json
 google-services.json
