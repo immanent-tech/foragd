@@ -14,6 +14,8 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/scheduler"
 )
 
@@ -45,6 +47,14 @@ func (c *RunSchedulerCmd) Run(opts *Arguments) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	ctx = slogctx.NewCtx(ctx, opts.Logger)
+
+	if config.IsProduction() {
+		// Start the error client.
+		if err := gcp.InitErrorClient(ctx); err != nil {
+			return fmt.Errorf("init error client: %w", err)
+		}
+	}
+
 	// Run scheduler.
 	if err := scheduler.Run(ctx); err != nil {
 		return fmt.Errorf("could not run scheduler: %w", err)

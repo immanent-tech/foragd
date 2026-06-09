@@ -22,6 +22,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/immanent-tech/foragd/config"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -48,6 +49,13 @@ func Start(logger *slog.Logger) error {
 	}
 
 	var err error
+
+	if config.IsProduction() {
+		// Start the error client.
+		if err := gcp.InitErrorClient(ctx); err != nil {
+			return fmt.Errorf("init error client: %w", err)
+		}
+	}
 
 	// Set up the session manager.
 	if err := session.NewSessionManager(); err != nil {
