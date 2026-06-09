@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.157.0](https://github.com/immanent-tech/foragd/compare/v0.156.0...v0.157.0) (2026-06-09)
+
+
+### Features
+
+* ✨ add initial (disabled) android billing integration ([cae307d](https://github.com/immanent-tech/foragd/commit/cae307d63650de27bc868717db8ae6cef0704c38))
+
 ## [0.156.0](https://github.com/immanent-tech/foragd/compare/v0.155.2...v0.156.0) (2026-06-08)
 
 
