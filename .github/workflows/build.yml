@@ -322,15 +322,15 @@ jobs:
       - name: Bubblewrap build
         working-directory: android
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           bubblewrap build \
             --skipPwaValidation \
             --signingKeyPath android.keystore \
             --signingKeyAlias android \
-            --signingKeyPassword "$ANDROID_KEYSTORE_PASSWORD" \
-            --signingKeyAliasPassword "$ANDROID_KEY_PASSWORD"
+            --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" \
+            --signingKeyAliasPassword "$BUBBLEWRAP_KEY_PASSWORD"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
