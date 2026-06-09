@@ -18,8 +18,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 
 	"github.com/immanent-tech/foragd/config"
 	gcp "github.com/immanent-tech/foragd/providers/google"
@@ -310,9 +308,9 @@ func Start(logger *slog.Logger) error {
 		})
 	})
 
-	h2s := &http2.Server{}
 	svr := &http.Server{
-		Handler:           h2c.NewHandler(router, h2s),
+		Protocols:         new(http.Protocols),
+		Handler:           router,
 		Addr:              net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
 		ReadHeaderTimeout: cfg.ReadTimeout.Duration(),
 		ReadTimeout:       cfg.ReadTimeout.Duration(),
@@ -322,11 +320,7 @@ func Start(logger *slog.Logger) error {
 			return ctx
 		},
 	}
-
-	err = http2.ConfigureServer(svr, h2s)
-	if err != nil {
-		return fmt.Errorf("unable to configure server for H2C: %w", err)
-	}
+	svr.Protocols.SetUnencryptedHTTP2(true)
 
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),
