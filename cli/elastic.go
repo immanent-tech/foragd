@@ -77,14 +77,8 @@ func (r *CreateIndexCmd) Run(opts *CreateIndexCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	// Load the Elastic backend
-	elasticClient, err := elastic.NewConnection()
-	if err != nil {
-		return fmt.Errorf("connect to elasticsearch: %w", err)
-	}
 	// Perform migrations.
-	err = schema.CreateIndices(ctx, elasticClient.TypedClient, &opts.IndicesOptions)
-	if err != nil {
+	if err := schema.CreateIndices(ctx, &opts.IndicesOptions); err != nil {
 		return fmt.Errorf("create indices: %w", err)
 	}
 	return nil
@@ -113,5 +107,4 @@ func (r *UpdateILMPoliciesCmd) Run(opts *UpdateILMPoliciesCmd) error {
 		return fmt.Errorf("create indices: %w", err)
 	}
 	return nil
-
 }

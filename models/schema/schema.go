@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -20,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 	"github.com/immanent-tech/foragd/providers/elastic/templates"
@@ -376,6 +376,8 @@ var (
 						templates.WithInt64Mapping("login_count"),
 						templates.WithKeywordMapping("max_history"),
 						templates.WithFlattenedMapping("settings"),
+						templates.WithKeywordMapping("subscription_type"),
+						templates.WithFlattenedMapping("subscription"),
 						templates.WithObjectMapping("metadata",
 							templates.WithBooleanMapping("blocked"),
 							templates.WithBooleanMapping("email_verified"),
@@ -672,24 +674,24 @@ type IndicesOptions struct {
 }
 
 // CreateIndices creates indices and appropriate read/write aliases.
-func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *IndicesOptions) error {
+func CreateIndices(ctx context.Context, opts *IndicesOptions) error {
 	// If no indices are specified, create indices for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
 	}
 	for prefix := range slices.Values(opts.Indices) {
-		index := generateIndexName(prefix)
+		index := elastic.GenerateIndexName(prefix)
 		writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 		readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 		// Create a scheduler index if one doesn't exist.
-		if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
+		if _, err := elastic.CreateIndexIfNotExists(ctx, prefix); err != nil {
 			return fmt.Errorf("create index: %w", err)
 		}
 		// Add appropriate aliases.
-		if err := updateAlias(ctx, api, readAlias, index); err != nil {
+		if err := elastic.UpdateIndexAlias(ctx, readAlias, index); err != nil {
 			return fmt.Errorf("add read alias: %w", err)
 		}
-		if err := updateAlias(ctx, api, writeAlias, index); err != nil {
+		if err := elastic.UpdateIndexAlias(ctx, writeAlias, index); err != nil {
 			return fmt.Errorf("add write alias: %w", err)
 		}
 	}
@@ -901,17 +903,17 @@ func migrateIndexData(
 	api *elasticsearch.TypedClient,
 	prefix string,
 ) error {
-	index := generateIndexName(prefix)
+	index := elastic.GenerateIndexName(prefix)
 	writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
 	readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
 
 	// Create index.
-	if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
+	if _, err := elastic.CreateIndexIfNotExists(ctx, prefix); err != nil {
 		return fmt.Errorf("could not create index %s: %w", index, err)
 	}
 
 	// Update the write alias.
-	if err := updateAlias(ctx, api, writeAlias, index); err != nil {
+	if err := elastic.UpdateIndexAlias(ctx, writeAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 	// Reindex if requested.
@@ -943,83 +945,10 @@ func migrateIndexData(
 		)
 	}
 	// Update the read alias.
-	if err = updateAlias(ctx, api, readAlias, index); err != nil {
+	if err = elastic.UpdateIndexAlias(ctx, readAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 	return nil
-}
-
-// updateAlias performs a swap of an alias to the given index. It adds the given index to the alias, sets it as the
-// write destination, then removes any existing aliased indicies so the index remains as the only aliased one.
-//
-// https://www.elastic.co/docs/manage-data/data-store/aliases
-func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias string, index string) error {
-	aliasesResp, err := api.Indices.GetAlias().Index(alias).Do(ctx)
-	if err != nil {
-		if getStatusCode(err) != http.StatusNotFound {
-			return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
-		}
-	}
-	// Remove existing index marked as write index from alias.
-	for aliasedIndex, aliases := range aliasesResp {
-		if _, found := aliases.Aliases[alias]; found {
-			_, err = api.Indices.DeleteAlias(aliasedIndex, alias).Do(ctx)
-			if err != nil {
-				return fmt.Errorf("unable to remove index %s from alias %s: %w", aliasedIndex, alias, err)
-			}
-			slogctx.FromCtx(ctx).Info("Removed index for alias.",
-				slog.String("alias", alias),
-				slog.String("old_index", aliasedIndex),
-			)
-		}
-	}
-
-	var writeIndex bool
-	if strings.HasSuffix(alias, "rw") {
-		// Set as write index if alias name ends in "rw".
-		writeIndex = true
-	}
-	// Update the alias.
-	_, err = api.Indices.PutAlias(index, alias).IsWriteIndex(writeIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
-	}
-	slogctx.FromCtx(ctx).Info("Index alias updated.",
-		slog.String("alias", alias),
-		slog.String("index", index),
-		slog.Bool("is_write_index", writeIndex),
-	)
-	return nil
-}
-
-func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient, prefix string) (bool, error) {
-	index := generateIndexName(prefix)
-	// Create index.
-	found, err := api.Indices.Exists(index).Do(ctx)
-	if err != nil {
-		return found, fmt.Errorf("could not determine %s index state: %w", index, err)
-	}
-	if !found {
-		_, err = api.Indices.Create(index).Do(ctx)
-		if err != nil {
-			return found, fmt.Errorf("could not create index %s: %w", index, err)
-		}
-		slogctx.FromCtx(ctx).Info("New index created.",
-			slog.String("name", index),
-		)
-	}
-	slogctx.FromCtx(ctx).Info("Index already exists.",
-		slog.String("name", index),
-	)
-
-	return found, nil
-}
-
-func generateIndexName(prefix string) string {
-	return strings.Join(
-		[]string{prefix, config.GetEnvironment().String(), time.Now().Format("20060102150405"), "000000"},
-		"-",
-	)
 }
 
 func getStatusCode(err error) int {

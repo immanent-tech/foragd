@@ -78,39 +78,6 @@ func (u *User) GetMaxHistory() time.Time {
 	return time.Now().Add(-u.GetSettings().MaxViewHistory)
 }
 
-// InTrial returns a boolean indicating whether this user account is in its trial period.
-func (u *User) InTrial() bool {
-	switch u.HasActiveSubscription() {
-	case false:
-		// No current subscription, check against account creation time.
-		if time.Now().UTC().Compare(u.CreatedAt.Add(DefaultTrialPeriod)) == -1 {
-			return true
-		}
-	case true:
-		//  Current subscription, check status.
-		if u.Subscription.IsTrial() {
-			// User is in trial period.
-			return true
-		}
-	}
-
-	return false
-}
-
-// HasActiveSubscription returns a boolean indicating whether this user has an active subscription.
-func (u *User) HasActiveSubscription() bool {
-	switch {
-	case u.Subscription == nil:
-		return false
-	case u.Subscription != nil:
-		if u.Subscription.IsActive() {
-			return true
-		}
-	}
-
-	return false
-}
-
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
 // parsing the value from the user's metdata, it will use the lowest plan updates frequency.
 func (u *User) GetUpdatesFrequency() time.Duration {
@@ -120,17 +87,21 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 	return u.GetSettings().UpdatesInterval
 }
 
-func (u *User) GetSubscription() *PaddleSubscription {
-	if u.Subscription == nil {
-		u.Subscription = &PaddleSubscription{}
-	}
-	return u.Subscription
-}
-
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
 func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
+}
+
+// InTrial returns a boolean indicating whether this user account is in its trial period.
+func (u *User) InTrial() bool {
+	if u.Subscription == nil {
+		// No current subscription, check against account creation time.
+		if time.Now().UTC().Compare(u.CreatedAt.Add(DefaultTrialPeriod)) == -1 {
+			return true
+		}
+	}
+	return false
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

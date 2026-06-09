@@ -14,6 +14,9 @@ import "@github/relative-time-element";
 // Custom element for youtube player.
 import "./embed-youtube";
 
+// Android billing.
+import "./android-billing";
+
 // Make sure back button after logout does not show cached data.
 //
 // https://web.dev/articles/bfcache?utm_source=devtools#update-data-after-restore

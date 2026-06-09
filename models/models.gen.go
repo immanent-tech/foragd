@@ -223,6 +223,24 @@ func (e SubscriptionMetadataType) Valid() bool {
 	}
 }
 
+// Defines values for UserSubscriptionType.
+const (
+	UserSubscriptionTypeAndroid UserSubscriptionType = "android"
+	UserSubscriptionTypePaddle  UserSubscriptionType = "paddle"
+)
+
+// Valid indicates whether the value is a known member of the UserSubscriptionType enum.
+func (e UserSubscriptionType) Valid() bool {
+	switch e {
+	case UserSubscriptionTypeAndroid:
+		return true
+	case UserSubscriptionTypePaddle:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UserMessageStatus.
 const (
 	UserMessageStatusError   UserMessageStatus = "error"
@@ -283,6 +301,21 @@ type AddSubscriptionSearchFilterRequest struct {
 
 	// SubscriptionName is the nickname of the subscription.
 	SubscriptionName string `form:"subscription_name" json:"subscription_name"`
+}
+
+// AndroidSubscription contains details about a user's paid Android subscription
+type AndroidSubscription struct {
+	// ExpiresAt is the timestamp when the subscription expires.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	// GrantedAt is the timestamp when the subscription was granted.
+	GrantedAt time.Time `json:"granted_at" validate:"required"`
+
+	// PurchaseToken is a token that validates the subscription purchase.
+	PurchaseToken string `json:"purchase_token" validate:"required"`
+
+	// SKU is the subscription SKU.
+	SKU string `json:"sku" validate:"required"`
 }
 
 // Article defines model for Article.
@@ -1235,10 +1268,11 @@ type User struct {
 	Provider string `json:"provider" validate:"required"`
 
 	// Settings contains user-specific settings for the application.
-	Settings UserSettings `json:"settings"`
+	Settings     UserSettings       `json:"settings"`
+	Subscription *User_Subscription `json:"subscription,omitempty"`
 
-	// Subscription contains details about the user's paid subscription.
-	Subscription *PaddleSubscription `json:"subscription,omitempty"`
+	// SubscriptionType is the type of subscription the user has purchased.
+	SubscriptionType *UserSubscriptionType `json:"subscription_type,omitempty" validate:"omitempty,oneof=paddle android"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -1246,6 +1280,14 @@ type User struct {
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
+
+// User_Subscription defines model for User.Subscription.
+type User_Subscription struct {
+	union json.RawMessage
+}
+
+// UserSubscriptionType is the type of subscription the user has purchased.
+type UserSubscriptionType string
 
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {
@@ -1435,6 +1477,68 @@ func (t Item_ExtensionData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Item_ExtensionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsPaddleSubscription returns the union data inside the User_Subscription as a PaddleSubscription
+func (t User_Subscription) AsPaddleSubscription() (PaddleSubscription, error) {
+	var body PaddleSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPaddleSubscription overwrites any union data inside the User_Subscription as the provided PaddleSubscription
+func (t *User_Subscription) FromPaddleSubscription(v PaddleSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePaddleSubscription performs a merge with any union data inside the User_Subscription, using the provided PaddleSubscription
+func (t *User_Subscription) MergePaddleSubscription(v PaddleSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAndroidSubscription returns the union data inside the User_Subscription as a AndroidSubscription
+func (t User_Subscription) AsAndroidSubscription() (AndroidSubscription, error) {
+	var body AndroidSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAndroidSubscription overwrites any union data inside the User_Subscription as the provided AndroidSubscription
+func (t *User_Subscription) FromAndroidSubscription(v AndroidSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAndroidSubscription performs a merge with any union data inside the User_Subscription, using the provided AndroidSubscription
+func (t *User_Subscription) MergeAndroidSubscription(v AndroidSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t User_Subscription) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *User_Subscription) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

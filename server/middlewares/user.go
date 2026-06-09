@@ -13,6 +13,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
@@ -163,30 +164,41 @@ func RequireValidUser(next http.Handler) http.Handler {
 
 		case !user.InTrial() && user.Subscription != nil:
 			// User not in trial and has a subscription.
-			switch {
-			case user.Subscription.IsPastDue():
-				// User account is past due or has other payment issues.
-				slogctx.FromCtx(req.Context()).Error("User account is past due.")
-				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-				return
+			switch *user.SubscriptionType {
+			case models.UserSubscriptionTypePaddle:
+				userSubscription, err := user.Subscription.AsPaddleSubscription()
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Error("Get user paddle subscription failed.",
+						slog.Any("error", err),
+					)
+					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+					return
+				}
+				switch {
+				case paddle.IsPastDue(&userSubscription):
+					// User account is past due or has other payment issues.
+					slogctx.FromCtx(req.Context()).Error("User account is past due.")
+					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+					return
 
-			case user.Subscription.IsPaused():
-				slogctx.FromCtx(req.Context()).Error("User account is paused.")
-				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-				return
+				case paddle.IsPaused(&userSubscription):
+					slogctx.FromCtx(req.Context()).Error("User account is paused.")
+					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+					return
 
-			case user.Subscription.IsCancelled():
-				// User subscription is cancelled.
-				slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
-				http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-				return
+				case paddle.IsCancelled(&userSubscription):
+					// User subscription is cancelled.
+					slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
+					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+					return
 
-			case !user.Subscription.IsActive():
-				// User subscription is cancelled.
-				slogctx.FromCtx(req.Context()).Error("User account requires activation.")
-				ctx := models.UserToCtx(req.Context(), user)
-				http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
-				return
+				case !paddle.IsActive(&userSubscription):
+					// User subscription is cancelled.
+					slogctx.FromCtx(req.Context()).Error("User account requires activation.")
+					ctx := models.UserToCtx(req.Context(), user)
+					http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
+					return
+				}
 			}
 
 		case !user.InTrial():

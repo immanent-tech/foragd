@@ -17,14 +17,39 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
+func IsActive(s *models.PaddleSubscription) bool {
+	return s.SubscriptionStatus == string(paddle.SubscriptionStatusActive)
+}
+
+func IsTrial(s *models.PaddleSubscription) bool {
+	return s.SubscriptionStatus == string(paddle.SubscriptionItemStatusTrialing)
+}
+
+func IsPastDue(s *models.PaddleSubscription) bool {
+	return s.SubscriptionStatus == string(paddle.SubscriptionStatusPastDue)
+}
+
+func IsPaused(s *models.PaddleSubscription) bool {
+	return s.SubscriptionStatus == string(paddle.SubscriptionStatusPaused)
+}
+
+func IsCancelled(s *models.PaddleSubscription) bool {
+	return s.SubscriptionStatus == string(paddle.SubscriptionStatusCanceled)
+}
+
 // CancelSubscription will cancel a user's subscription.
 func CancelSubscription(ctx context.Context, user *models.User) error {
 	if err := loadClient(); err != nil {
 		return fmt.Errorf("load client: %w", err)
 	}
 
+	userSubscription, err := user.Subscription.AsPaddleSubscription()
+	if err != nil {
+		return fmt.Errorf("get user paddle subscription: %w", err)
+	}
+
 	if _, err := client.CancelSubscription(ctx, &paddle.CancelSubscriptionRequest{
-		SubscriptionID: user.GetSubscription().SubscriptionID,
+		SubscriptionID: userSubscription.SubscriptionID,
 	}); err != nil {
 		return fmt.Errorf("cancel user subscription: %w", err)
 	}
@@ -34,7 +59,11 @@ func CancelSubscription(ctx context.Context, user *models.User) error {
 
 // UpdateUserSubscription handles updating a user's subscription data.
 func UpdateUserSubscription[T subscriptionData](ctx context.Context, user *models.User, subscription T) error {
-	subscriptionData := user.GetSubscription()
+	subscriptionData, err := user.Subscription.AsPaddleSubscription()
+	if err != nil {
+		return fmt.Errorf("get user paddle subscription: %w", err)
+	}
+
 	if id, err := getSubscriptionID(subscription); err != nil {
 		return fmt.Errorf("update id: %w", err)
 	} else {
@@ -82,8 +111,14 @@ func UpdateUserSubscription[T subscriptionData](ctx context.Context, user *model
 		subscriptionData.UpdatedAt = updatedAt
 	}
 
-	user.Subscription = subscriptionData
-	if err := service.UpdateUser(ctx, user, map[string]any{"subscription": user.Subscription}); err != nil {
+	if err := user.Subscription.FromPaddleSubscription(subscriptionData); err != nil {
+		return fmt.Errorf("update user paddle subscription: %w", err)
+	}
+
+	if err := service.UpdateUser(ctx, user, map[string]any{
+		"subscription_type": models.UserSubscriptionTypePaddle,
+		"subscription":      user.Subscription},
+	); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
 

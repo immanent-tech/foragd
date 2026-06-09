@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -481,23 +482,44 @@ func HandleDeactivateAccount() http.HandlerFunc {
 
 				// Pass to logout handler.
 				Logout(res, req)
-			case user.HasActiveSubscription():
-				if err := paddle.CancelSubscription(req.Context(), user); err != nil {
-					HandleInternalError(req.URL.Path,
-						&models.APIError{
-							InternalError: fmt.Errorf("cancel subscription: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to deactivate account",
-								"If this issue persists, please email support@foragd.app.",
-							),
-						}).ServeHTTP(res, req)
-					return
+			default:
+				var timeLeft *time.Time
+				switch *user.SubscriptionType {
+				case models.UserSubscriptionTypePaddle:
+					userSubscription, err := user.Subscription.AsPaddleSubscription()
+					if err != nil {
+						HandleInternalError(req.URL.Path,
+							&models.APIError{
+								InternalError: fmt.Errorf("get paddle subscription: %w", err),
+								StatusCode:    http.StatusInternalServerError,
+								UserMessage: models.NewErrorMessage(
+									"Unable to deactivate account",
+									"If this issue persists, please email support@foragd.app.",
+								),
+							}).ServeHTTP(res, req)
+						return
+					}
+					if paddle.IsActive(&userSubscription) {
+						if err := paddle.CancelSubscription(req.Context(), user); err != nil {
+							HandleInternalError(req.URL.Path,
+								&models.APIError{
+									InternalError: fmt.Errorf("deactivate paddle subscription: %w", err),
+									StatusCode:    http.StatusInternalServerError,
+									UserMessage: models.NewErrorMessage(
+										"Unable to deactivate account",
+										"If this issue persists, please email support@foragd.app.",
+									),
+								}).ServeHTTP(res, req)
+							return
+						}
+					}
+					timeLeft = userSubscription.CurrentPeriodEnd
 				}
+
 				res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
 				res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
 				RenderPartial(&PartialTemplate{
-					template: templates.DeactivateResult(user),
+					template: templates.DeactivateResult(user, timeLeft),
 				}).ServeHTTP(res, req)
 
 				slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")

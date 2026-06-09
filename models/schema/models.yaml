@@ -470,6 +470,33 @@ components:
           x-go-type: time.Time
         updated_at:
           $ref: "#/components/schemas/UpdatedAt"
+    AndroidSubscription:
+      description: contains details about a user's paid Android subscription
+      type: object
+      required:
+        - sku
+        - purchase_token
+        - granted_at
+      properties:
+        sku:
+          description: is the subscription SKU.
+          type: string
+          x-go-name: SKU
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        purchase_token:
+          description: is a token that validates the subscription purchase.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        expires_at:
+          description: is the timestamp when the subscription expires.
+          x-go-type: time.Time
+        granted_at:
+          description: is the timestamp when the subscription was granted.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            validate: "required"
     User:
       description: is a user of the application.
       allOf:
@@ -516,8 +543,16 @@ components:
               $ref: "#/components/schemas/UserSettings"
             metadata:
               $ref: "#/components/schemas/UserMetadata"
+            subscription_type:
+              description: is the type of subscription the user has purchased.
+              type: string
+              enum: ["paddle", "android"]
+              x-oapi-codegen-extra-tags:
+                validate: "omitempty,oneof=paddle android"
             subscription:
-              $ref: "#/components/schemas/PaddleSubscription"
+              oneOf:
+                - $ref: "#/components/schemas/PaddleSubscription"
+                - $ref: "#/components/schemas/AndroidSubscription"
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.

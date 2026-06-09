@@ -16,6 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"time"
 )
 
 func UserAccountIssue() templ.Component {
@@ -130,7 +131,7 @@ func DeactivateAccountModal() templ.Component {
 	})
 }
 
-func DeactivateResult(user *models.User) templ.Component {
+func DeactivateResult(user *models.User, timeLeft *time.Time) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -163,33 +164,43 @@ func DeactivateResult(user *models.User) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8\"><div class=\"mb-12 text-center\"><h1 class=\"mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-3xl\">Your account has been deactivated.</h1></div><div class=\"prose mb-12\"><p class=\"text-sm/6\">You can continue to use your account.</p><p class=\"text-sm/6\">You'll have access until: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8\"><div class=\"mb-12 text-center\"><h1 class=\"mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-3xl\">Your account has been deactivated.</h1></div><div class=\"prose mb-12\"><p class=\"text-sm/6\">You can continue to use your account.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetSubscription().CurrentPeriodEnd.Format("Jan _2, 2006"))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 92, Col: 95}
+			if timeLeft != nil {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-sm/6\">You'll have access until: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(timeLeft.Format("Jan _2, 2006"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 94, Col: 65}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ".</p><p class=\"text-sm/6\">After that date, your account (including all subscriptions, favorites and settings) will be permanently deleted and you will no longer be able to log in.</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, ".</p><p class=\"text-sm/6\">After that date, your account (including all subscriptions, favorites and settings) will be permanently deleted and you will no longer be able to log in.</p></div><div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 126, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 129, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-swap=\"innerHTML transition:true\" hx-trigger=\"load delay:10s\">Go Home</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML transition:true\" hx-trigger=\"load delay:10s\">Go Home</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -283,20 +294,20 @@ func Unsubscribe(token string) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Unsubscribe</h1><p>If you wish to unsubscribe from promotional emails from Foragd, click the following button.</p><p>You will still recieve important administrative and account-related emails.</p><div id=\"unsubscribe\" class=\"mt-8 min-h-fill-safe\"><button class=\"btn btn-primary hover:btn-success\" hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Unsubscribe</h1><p>If you wish to unsubscribe from promotional emails from Foragd, click the following button.</p><p>You will still recieve important administrative and account-related emails.</p><div id=\"unsubscribe\" class=\"mt-8 min-h-fill-safe\"><button class=\"btn btn-primary hover:btn-success\" hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue("/unsubscribe/" + token)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 158, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 161, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#unsubscribe\" hx-swap=\"innerHTML transition:true\">Unsubscribe</button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"#unsubscribe\" hx-swap=\"innerHTML transition:true\">Unsubscribe</button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -373,48 +384,48 @@ func UnsubscribeResult(msg *models.UserMessage) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"font-semibold tracking-tight text-pretty\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"font-semibold tracking-tight text-pretty\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var19 string
 					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 173, Col: 72}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 176, Col: 72}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if msg.HasDetails() {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var20 string
 						templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 175, Col: 22}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 178, Col: 22}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if msg.Status != models.UserMessageStatusSuccess {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<p>Problems? <a class=\"link\" href=\"mailto:hello@foragd.app\">Email us</a></p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p>Problems? <a class=\"link\" href=\"mailto:hello@foragd.app\">Email us</a></p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

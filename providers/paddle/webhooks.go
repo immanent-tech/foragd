@@ -14,6 +14,7 @@ import (
 	"github.com/PaddleHQ/paddle-go-sdk/v5/pkg/paddlenotification"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -65,9 +66,26 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
 		// Update the user's subscription.
-		userSubscription := user.GetSubscription()
+		userSubscription, err := user.Subscription.AsPaddleSubscription()
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Get user subscription failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+
 		userSubscription.CustomerID = customer.Data.ID
-		if err := service.UpdateUser(ctx, user, map[string]any{"subscription": user.Subscription}); err != nil {
+		if err := user.Subscription.FromPaddleSubscription(userSubscription); err != nil {
+			slogctx.FromCtx(ctx).Error("Update user subscription failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+
+		if err := service.UpdateUser(ctx, user, map[string]any{
+			"subscription_type": models.UserSubscriptionTypePaddle,
+			"subscription":      user.Subscription},
+		); err != nil {
 			slogctx.FromCtx(ctx).Error("Could not update user.",
 				slog.Any("error", err),
 			)

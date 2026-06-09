@@ -90,7 +90,7 @@ type CheckoutProps struct {
 templ ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) {
 	@container() {
 		<div class="flex min-h-svh-safe flex-col">
-			if !user.InTrial() && user.HasActiveSubscription() {
+			if !user.InTrial() {
 				// User has an active plan, show them an action to manage it.
 				<div class="mx-auto mt-8 text-center">
 					<h1 id="pricing" class="text-2xl font-semibold text-primary sm:text-3xl/8">You already have an active plan.</h1>

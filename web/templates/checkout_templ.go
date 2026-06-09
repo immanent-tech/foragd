@@ -174,7 +174,7 @@ func ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if !user.InTrial() && user.HasActiveSubscription() {
+			if !user.InTrial() {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">You already have an active plan.</h1></div><div class=\"my-16 gap-x-8 text-center\"><a role=\"button\" href=\"/user/settings#account\" class=\"btn btn-primary\">Account Settings</a> <a role=\"button\" href=\"/home\" class=\"btn btn-primary\">Home</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
