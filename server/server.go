@@ -320,7 +320,9 @@ func Start(logger *slog.Logger) error {
 			return ctx
 		},
 	}
-	svr.Protocols.SetUnencryptedHTTP2(true)
+	svr.Protocols.SetUnencryptedHTTP2(true) // Enable H2C (HTTP/2 cleartext)
+	svr.Protocols.SetHTTP1(true)            // Enable HTTP/1.1
+	svr.Protocols.SetHTTP2(false)           // Explicitly disable encrypted HTTP/2 (HTTPS)
 
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),
