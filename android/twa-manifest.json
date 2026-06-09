@@ -59,9 +59,7 @@
   "fullScopeUrl": "https://foragd.app/",
   "minSdkVersion": 24,
   "orientation": "any",
-  "fingerprints": [
-    __ANDROID_KEYSTORE_FINGERPRINT__,
-  ],
+  "fingerprints": __ANDROID_KEYSTORE_FINGERPRINT__,
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "protocolHandlers": [
