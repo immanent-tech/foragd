@@ -260,22 +260,30 @@ jobs:
           npm clean-install
           npm run build:prod
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: "tools platform-tools build-tools;34.0.0 cmdline-tools;latest platforms;android-34"
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
-
-      - name: Install Android build tools
+      - name: Configure Bubblewrap
         run: |
-          sdkmanager "build-tools;34.0.0"
-          sdkmanager "platforms;android-34"
+          SDK_PATH="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          mkdir -p ~/.bubblewrap
+          cat > ~/.bubblewrap/config.json << EOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$SDK_PATH"
+          }
+          EOF
 
       - name: Decode keystore
         run: |
