@@ -83,6 +83,8 @@ jobs:
       IMAGE_NAME: ${{ github.repository }}
       APPVERSION: ${{ needs.check_release.outputs.app_version }}
 
+    timeout-minutes: 30
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -232,6 +234,8 @@ jobs:
     env:
       APPVERSION: ${{ needs.check_release.outputs.app_version }}
 
+    timeout-minutes: 30
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -286,11 +290,13 @@ jobs:
           key: gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
-      - name: Bump version code
+      - name: Set version code
         run: |
-          VERSION_CODE=${{ env.APPVERSION }}
-          sed -i "s/\"appVersionCode\": [0-9]*/\"appVersionCode\": $VERSION_CODE/" android/twa-manifest.json
-          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"1.0.$VERSION_CODE\"/" android/twa-manifest.json
+          VERSION=$(echo "${{ env.APPVERSION }}" | sed 's/^v//' | tr '.' ' ')
+          MAJOR=$(echo $VERSION | cut -d' ' -f1)
+          MINOR=$(echo $VERSION | cut -d' ' -f2)
+          PATCH=$(echo $VERSION | cut -d' ' -f3)
+          echo "VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))" >> $GITHUB_ENV
 
       - name: Inject secrets into twa-manifest
         run: |
