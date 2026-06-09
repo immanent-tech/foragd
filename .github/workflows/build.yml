@@ -2,9 +2,9 @@ name: 🏗️ Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   # workflow_run:
   #   workflows: ["test"]
   #   branches: [main]
@@ -24,11 +24,12 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-22.04
     outputs:
       release_created: ${{ steps.release_please.outputs.release_created }}
       release_tag: ${{ steps.release_please.outputs.tag_name }}
+      app_version: ${{ steps.set_version.outputs.app_version }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -43,6 +44,21 @@ jobs:
         id: release_please
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        with:
+          submodules: "true"
+          persist-credentials: false
+
+      - name: Set app version
+        id: set_version
+        run: |
+          if [ -n "${{ steps.release_please.outputs.tag_name }}" ]; then
+            echo "app_version=${{ steps.release_please.outputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "app_version=$(git describe --tags --always --long --dirty)" >> $GITHUB_OUTPUT
+          fi
 
   build_container:
     name: Build container (${{ matrix.service }})
@@ -64,6 +80,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
+      APPVERSION: ${{ needs.check_release.outputs.app_version }}
 
     steps:
       - name: Harden Runner
@@ -96,16 +113,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          submodules: 'true'
+          submodules: "true"
           persist-credentials: false
-
-      - name: Set up environment
-        run: |
-          echo "APPVERSION=$(git describe --tags --always --dirty)" >> $GITHUB_ENV
-
-      - name: Set app version for release
-        if: ${{ needs.check_release.outputs.release_created }}
-        run: echo "APPVERSION=${{ needs.check_release.outputs.release_tag }}" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
@@ -193,7 +202,6 @@ jobs:
             --type cyclonedx \
             ${CONTAINER}
 
-
       # -----------------------------------------------------------------------
       - name: Print cosign verify command
         env:
@@ -211,3 +219,94 @@ jobs:
           echo "    --certificate-oidc-issuer=\"https://token.actions.githubusercontent.com\" \\"
           echo "    ${CONTAINER}"
           echo ""
+
+  build_apk:
+    name: Build apk
+    needs: check_release
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    env:
+      APPVERSION: ${{ needs.check_release.outputs.app_version }}
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          disable-sudo: true
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: "true"
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: |
+          sdkmanager "build-tools;34.0.0"
+          sdkmanager "platforms;android-34"
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > android/android.keystore
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Bump version code
+        run: |
+          VERSION_CODE=${{ env.APPVERSION }}
+          sed -i "s/\"appVersionCode\": [0-9]*/\"appVersionCode\": $VERSION_CODE/" android/twa-manifest.json
+          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"1.0.$VERSION_CODE\"/" android/twa-manifest.json
+
+      - name: Bubblewrap build
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          bubblewrap build \
+            --skipPwaValidation \
+            --signingKeyPath android.keystore \
+            --signingKeyAlias android \
+            --signingKeyPassword "$KEYSTORE_PASSWORD" \
+            --signingKeyAliasPassword "$KEY_PASSWORD"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: foragd-${{ github.sha }}
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f android/android.keystore
