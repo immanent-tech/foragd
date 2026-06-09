@@ -292,11 +292,10 @@ jobs:
 
       - name: Set version code
         run: |
-          VERSION=$(echo "${{ env.APPVERSION }}" | sed 's/^v//' | tr '.' ' ')
-          MAJOR=$(echo $VERSION | cut -d' ' -f1)
-          MINOR=$(echo $VERSION | cut -d' ' -f2)
-          PATCH=$(echo $VERSION | cut -d' ' -f3)
-          echo "VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))" >> $GITHUB_ENV
+          VERSION=${{ env.APPVERSION }}
+          VERSION_CODE=$(echo "${{ env.APPVERSION }}" | sed 's/^v//')
+          sed -i "s/\"appVersionCode\": [0-9]*/\"appVersionCode\": $VERSION_CODE/" android/twa-manifest.json
+          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"$VERSION\"/" android/twa-manifest.json
 
       - name: Inject secrets into twa-manifest
         run: |
