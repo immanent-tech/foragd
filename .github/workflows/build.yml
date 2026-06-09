@@ -300,10 +300,7 @@ jobs:
 
       - name: Set version code
         run: |
-          VERSION=${{ env.APPVERSION }}
-          VERSION_CODE=$(echo "${{ env.APPVERSION }}" | sed 's/^v//')
-          sed -i "s/\"appVersionCode\": [0-9]*/\"appVersionCode\": $VERSION_CODE/" android/twa-manifest.json
-          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"$VERSION\"/" android/twa-manifest.json
+          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"${{ env.APPVERSION }}\"/" android/twa-manifest.json
 
       - name: Inject secrets into twa-manifest
         run: |
