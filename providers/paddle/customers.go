@@ -68,6 +68,8 @@ func addCustomerDetailsToUser(ctx context.Context, id string) (*models.User, err
 		if err != nil {
 			return nil, fmt.Errorf("get user paddle subscription: %w", err)
 		}
+	} else {
+		user.Subscription = &models.User_Subscription{}
 	}
 	userSubscription.CustomerID = customer.ID
 	if err := user.Subscription.FromPaddleSubscription(userSubscription); err != nil {
