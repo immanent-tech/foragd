@@ -6,6 +6,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/mail"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -16,7 +17,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -45,32 +45,29 @@ func HandleForgetMe() http.HandlerFunc {
 
 func HandleSubmitForgetMe() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeMultiPartForm[*models.ContactRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-				}).ServeHTTP(res, req)
+		contact, err := mail.ParseAddress(req.FormValue("contact_email"))
+		if err != nil {
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("parse contact address: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Invalid contact address",
+					"There was a problem with the contact address entered. Please check, correct if needed and try again.",
+				),
+			}).ServeHTTP(res, req)
 			return
 		}
 
-		// Build issue body.
+ 		// Build issue body.
 		var bodyBuilder strings.Builder
-		bodyBuilder.WriteString("Contact Email: " + request.ContactEmail)
-		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString("Details:")
-		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString(request.Details)
+		bodyBuilder.WriteString("Contact Email: " + )
 		bodyBuilder.WriteRune('\n')
 
 		if err := resend.SendEmail(req.Context(),
 			resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
-			resend.WithReplyTo[*resend.Email](request.ContactEmail),
-			resend.WithTo("support@immanent.tech"),
-			resend.WithSubject[*resend.Email]("Contact form submission from "+request.ContactEmail),
+			resend.WithReplyTo[*resend.Email](contact.Address),
+			resend.WithTo("privacy@immanent.tech"),
+			resend.WithSubject[*resend.Email]("Forget me request from "+contact.String()),
 			resend.WithTextContent(bodyBuilder.String()),
 			resend.WithTag(resend.TagCategory, resend.TagCategorySupport),
 		); err != nil {
@@ -88,8 +85,8 @@ func HandleSubmitForgetMe() http.HandlerFunc {
 		// Show notification of issue reported.
 		RenderPartial(&Notification{
 			msg: models.NewInfoMessage(
-				"Thanks for contacting us!",
-				"If we need to reach out to discuss, we will send you an email to the address that was submitted.",
+				"Your request has been recieved",
+				"We will reply via email to confirm and then once the request is complete.",
 			),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
