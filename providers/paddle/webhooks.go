@@ -66,16 +66,22 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
 		// Update the user's subscription.
-		userSubscription, err := user.Subscription.AsPaddleSubscription()
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Get user subscription failed.",
-				slog.Any("error", err),
-			)
-			return
+		var userSubscription *models.PaddleSubscription
+		if user.Subscription != nil {
+			sub, err := user.Subscription.AsPaddleSubscription()
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Get user subscription failed.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			userSubscription = &sub
+		} else {
+			userSubscription = &models.PaddleSubscription{}
 		}
 
 		userSubscription.CustomerID = customer.Data.ID
-		if err := user.Subscription.FromPaddleSubscription(userSubscription); err != nil {
+		if err := user.Subscription.FromPaddleSubscription(*userSubscription); err != nil {
 			slogctx.FromCtx(ctx).Error("Update user subscription failed.",
 				slog.Any("error", err),
 			)
