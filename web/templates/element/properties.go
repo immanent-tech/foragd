@@ -160,6 +160,13 @@ func WithHXTarget(target string) PropertiesOption {
 	}
 }
 
+// WithHXTrigger sets a "hx-trigger" attribute.
+func WithHXTrigger(trigger string) PropertiesOption {
+	return func(p *Properties) {
+		p.setAttribute("hx-trigger", trigger)
+	}
+}
+
 // WithHXSwap sets a "hx-swap" attribute.
 func WithHXSwap(swap string) PropertiesOption {
 	return func(p *Properties) {

@@ -21,21 +21,19 @@ import (
 
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(idx int, article *models.Article) {
-	@partials.Card(
+	@partials.Card(element.WithAttribute("id", article.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithAttribute("id", article.GetID()),
-		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "self-start"),
+		element.WithClasses(
+			"group", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "self-start", "cursor-pointer", "touch-manipulation"),
+		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+		element.WithHXTarget(ContentID.Target()),
+		element.WithHXSwap("innerHTML show:window:top transition:true"),
+		element.WithHXTrigger("click"),
+		element.WithHXPushURL(true),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-		<div
-			hx-get={ "/view/article/" + article.GetID() }
-			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
-			hx-trigger="click"
-			hx-push-url="true"
-			class="cursor-pointer touch-manipulation"
-		>
+		<div>
 			if img := article.GetImage(); img != nil {
 				{{ img := article.GetImage() }}
 				if img.GetTitle() == "" {
