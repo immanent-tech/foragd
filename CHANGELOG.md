@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.158.0](https://github.com/immanent-tech/foragd/compare/v0.157.0...v0.158.0) (2026-06-10)
+
+
+### Features
+
+* ✨ add form to request deletion of account and personal data ([b48c322](https://github.com/immanent-tech/foragd/commit/b48c322c907260d34712072f9298f01fccd484d2))
+* **pwa:** ✨ additional pwa/app feature support ([f81f507](https://github.com/immanent-tech/foragd/commit/f81f507595d41f6f86ba0112efc06f8ab2cff7d0))
+* **templates/articles:** 🎨 improved article card styling ([3a4b1ad](https://github.com/immanent-tech/foragd/commit/3a4b1adc6b629cf937315bdf76936f70745e7200))
+* **templates/home:** 🎨 improved home page layout ([8f1dca6](https://github.com/immanent-tech/foragd/commit/8f1dca6f6d7e4ddbfe39709b2110beae55f0072b))
+
+
+### Bug Fixes
+
+* **android:** 🔧 fix twa-manifest format ([07142b2](https://github.com/immanent-tech/foragd/commit/07142b2eaab032cecd80ef1b19b31a80aef28811))
+* **gcp:** 🐛 fix init of error client ([67c1024](https://github.com/immanent-tech/foragd/commit/67c10241acc79d4ec84e758eaac137a58c52cdfb))
+* **paddle:** 🐛 fix handling of new subscription ([e166625](https://github.com/immanent-tech/foragd/commit/e1666257e328f1a021a81c54e33bef61726ab094))
+* **server:** ♻️ enable HTTP/1.1 ([80c281b](https://github.com/immanent-tech/foragd/commit/80c281b3570d412f247f319b74a6c6aa345437c6))
+* **server:** ♻️ update and removed deprecated h2c server configuration ([8850094](https://github.com/immanent-tech/foragd/commit/8850094717d88a383611b9e5311865c7ee47b187))
+* **server:** 🔧 fix forget-me handling ([d5c6580](https://github.com/immanent-tech/foragd/commit/d5c658005c86731c27cde4f107b845f627d9e9e7))
+* **server:** 🔧 fix forget-me handling ([eab6a13](https://github.com/immanent-tech/foragd/commit/eab6a137de672c9317a3084daa082a95adb2eac7))
+* **service/feeds:** 🐛 fix defer of response body close ([cb31870](https://github.com/immanent-tech/foragd/commit/cb318702dca4fef83dd97d5548e3b56f923217c6))
+
 ## [0.157.0](https://github.com/immanent-tech/foragd/compare/v0.156.0...v0.157.0) (2026-06-09)
 
 
