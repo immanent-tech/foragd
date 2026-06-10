@@ -100,6 +100,16 @@
       "url": "/subscription/add?url=%s"
     }
   ],
+  "share_target": {
+    "action": "/subscription/add",
+    "method": "GET",
+    "params": {
+      "url": "url"
+    }
+  },
+  "edge_side_panel": {
+    "preferred_width": 430
+  },
   "related_applications": [
     {
       "id": "com.foragd.app",
