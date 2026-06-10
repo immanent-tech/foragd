@@ -24,7 +24,7 @@ def twaManifest = [
     applicationId: 'app.foragd.twa',
     hostName: 'foragd.app', // The domain being opened in the TWA.
     launchUrl: '/home?utm_source=pwa&utm_medium=homescreen', // The start path for the TWA. Must be relative to the domain.
-    name: 'Foragd – RSS & Feed Reader', // The application name.
+    name: 'Foragd - RSS & Feed Reader', // The application name.
     launcherName: 'Foragd', // The name shown on the Android Launcher.
     themeColor: '#4A6653', // The color used for the status bar.
     themeColorDark: '#2A3D2F', // The color used for the dark status bar.
@@ -57,8 +57,8 @@ android {
         applicationId "app.foragd.twa"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 4
-        versionName "4"
+        versionCode 6
+        versionName "6"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
