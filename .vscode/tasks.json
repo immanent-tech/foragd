@@ -4,6 +4,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "frontend: check for package updates",
+      "type": "shell",
+      "command": "npx npm-check-updates -u",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
       "label": "server: run",
       "type": "shell",
       "command": "air -c server.air.toml",
@@ -212,7 +226,30 @@
       }
     },
     {
-      "label": "android: build apk",
+      "label": "bubblewrap: update",
+      "type": "shell",
+      "command": "dotenv -e ../.env.${input:environment} bubblewrap update --manifest /workspace/.devcontainer/twa-manifest-secret.json",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/usr/bin/fish",
+          "args": [
+            "-c"
+          ],
+        },
+        "cwd": "${workspaceFolder}/android"
+      }
+    },
+    {
+      "label": "bubblewrap: build",
       "type": "shell",
       "command": "dotenv -e ../.env.${input:environment} bubblewrap build --manifest /workspace/.devcontainer/twa-manifest-secret.json",
       "problemMatcher": [],
