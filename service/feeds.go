@@ -131,6 +131,7 @@ func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastF
 	if diff := cmp.Diff(*oldData, *newData,
 		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
 		cmpopts.EquateEmpty(),
+		cmpopts.IgnoreUnexported(),
 	); diff != "" {
 		newData.LastFetched = lastFetched
 		if _, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), newData); err != nil {
