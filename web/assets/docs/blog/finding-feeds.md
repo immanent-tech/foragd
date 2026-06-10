@@ -92,8 +92,25 @@ following onto the end of the site URL:
 - `/feed`
 - `/feeds/posts/default`
 
-[Foragd](https://foragd.app?utm_source=blog) uses this technique when it can’t find a feed natively, but you can also check yourself. If
-the new URL returns feed content, you’ve found yourself the site’s feed!
+Note that [Foragd](https://foragd.app?utm_source=blog) uses a bunch of techniques when it can’t find a feed natively, so
+that you don't need to use trial-and-error to find the feed URL yourself!
+
+### A Few Well-known URLs For Specific Sites
+
+#### Reddit
+
+For any sub-reddit, just append `.rss` on the end of the URL. For example:
+[https://reddit.com/r/rss/.rss](https://reddit.com/r/rss/.rss).
+
+#### Tumblr
+
+A Tumblr blog usually has an RSS feed at `/rss` on the end of the URL.
+
+#### Medium
+
+Medium [helpfully
+documents](https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics) how
+to generate URLs to get feeds for authors, publications and even topics.
 
 ## Technique 4: Feed Search Engines/Lists
 

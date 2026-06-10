@@ -13,7 +13,6 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
-	"go.abhg.dev/goldmark/anchor"
 	"go.abhg.dev/goldmark/frontmatter"
 )
 
@@ -29,7 +28,6 @@ var LoadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 			extension.GFM,
 			extension.Typographer,
 			&frontmatter.Extender{},
-			&anchor.Extender{},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),

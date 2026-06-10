@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/immanent-tech/go-syndication/client"
+	"github.com/immanent-tech/go-syndication/types"
 	"golang.org/x/net/html"
 )
 
@@ -52,6 +54,7 @@ var (
 
 var (
 	ErrNotFound = errors.New("not found")
+	ErrParseURL = errors.New("could not parse URL")
 )
 
 func buildTagPattern() *regexp.Regexp {
@@ -355,4 +358,168 @@ func ToPlainText(s string) string {
 
 	return normalised
 
+}
+
+// DiscoverFeedURL attempts to find a feed URL within a HTML page.
+//
+// There are a couple of "canonical" places the feed URL is located. Firstly, as per the RSS spec, look for a link
+// element with rel="alternate" and type="application/rss+xml". Secondly, check for a link element with a URL that ends
+// with feed, rss or atom, which would indicate a feed URL.
+//
+//nolint:gocognit
+func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
+	page, err := html.Parse(bytes.NewReader(content))
+	if err != nil {
+		return "", fmt.Errorf("parse html: %w", err)
+	}
+
+	// Check if its a Medium blog with a custom domain. If so, just return the original URL with the path replaced with
+	// `/feed`.
+	//
+	// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics
+	if checkMediumSignals(page) > 0 {
+		sourceURL.Path = "/feed"
+		return sourceURL.String(), nil
+	}
+
+	findCanonicalLinkAttribute := func(elem *html.Node) string {
+		// Needs to have attributes rel="alternate".
+		if !slices.ContainsFunc(
+			elem.Attr,
+			func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" },
+		) {
+			return ""
+		}
+		// Needs to have type="{feedMimeType}".
+		if !slices.ContainsFunc(
+			elem.Attr,
+			func(a html.Attribute) bool { return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val) },
+		) {
+			return ""
+		}
+		// Return the href attribute value.
+		for a := range slices.Values(elem.Attr) {
+			if a.Key == "href" {
+				return a.Val
+			}
+		}
+		return ""
+	}
+
+	findCommonFeedURL := func(elem *html.Node) string {
+		for a := range slices.Values(elem.Attr) {
+			// href attribute should contain a well-known substring.
+			if a.Key == "href" &&
+				(strings.Contains(a.Val, "feed") || strings.Contains(a.Val, "rss") || strings.Contains(a.Val, "atom")) {
+				return a.Val
+			}
+		}
+		return ""
+	}
+
+	var findURL func(*html.Node) string
+	findURL = func(n *html.Node) string {
+		if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "link") {
+			if foundURL := findCanonicalLinkAttribute(n); foundURL != "" {
+				return foundURL
+			}
+			if foundURL := findCommonFeedURL(n); foundURL != "" {
+				return foundURL
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			if foundURL := findURL(c); foundURL != "" {
+				return foundURL
+			}
+		}
+		return ""
+	}
+
+	foundURL := findURL(page)
+	if foundURL == "" {
+		return "", fmt.Errorf("%w: no url found", ErrParseURL)
+	}
+
+	// Parse the discovered URL.
+	feedURL, err := url.Parse(foundURL)
+	if err != nil {
+		return foundURL, fmt.Errorf("discover feed url: %w", err)
+	}
+	// Check whether the URL is absolute.
+	if !feedURL.IsAbs() {
+		// Try to create an absolute URL for the feed.
+		feedURL, err = url.Parse(sourceURL.String())
+		if err != nil {
+			return "", fmt.Errorf("discover feed url: %w", err)
+		}
+		feedURL.Path, err = url.JoinPath("/", foundURL)
+		if err != nil {
+			return "", fmt.Errorf("discover feed url: %w", err)
+		}
+	}
+	return feedURL.String(), nil
+}
+
+// checkMediumSignals walks the HTML tree and counts Medium-specific markers.
+func checkMediumSignals(n *html.Node) int {
+	count := 0
+
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			switch n.Data {
+			case "meta":
+				name := attrVal(n, "name")
+				content := attrVal(n, "content")
+				property := attrVal(n, "property")
+
+				// Primary signal: Medium's generator tag
+				if strings.EqualFold(name, "generator") &&
+					strings.EqualFold(content, "Medium") {
+					count += 10 // strong signal
+				}
+
+				// Medium's Apollo client state hint
+				if strings.EqualFold(name, "medium-lite-url") {
+					count += 5
+				}
+
+				// Open Graph site name often set to "Medium"
+				if strings.EqualFold(property, "og:site_name") &&
+					strings.EqualFold(content, "Medium") {
+					count++
+				}
+
+			case "link":
+				href := attrVal(n, "href")
+				// Medium serves assets from miro.medium.com
+				if strings.Contains(href, "miro.medium.com") ||
+					strings.Contains(href, "medium.com") {
+					count++
+				}
+
+			case "script":
+				src := attrVal(n, "src")
+				// Medium's JS bundles come from medium.com
+				if strings.Contains(src, "medium.com") ||
+					strings.Contains(src, "miro.medium.com") {
+					count++
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(n)
+	return count
+}
+
+func attrVal(n *html.Node, key string) string {
+	for _, a := range n.Attr {
+		if strings.EqualFold(a.Key, key) {
+			return a.Val
+		}
+	}
+	return ""
 }

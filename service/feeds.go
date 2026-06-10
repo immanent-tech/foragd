@@ -1117,6 +1117,12 @@ func feedURLParser(urlStr string) (*url.URL, error) {
 				return nil, fmt.Errorf("generate RSS feed for tumblr.com URL: %w", err)
 			}
 		}
+	case strings.Contains(feedURL.Host, "medium.com") && !strings.Contains(feedURL.Path, "feed"):
+		// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics.
+		var err error
+		if feedURL.Path, err = url.JoinPath("/feed", feedURL.Path); err != nil {
+			return nil, fmt.Errorf("generate RSS feed for medium.com URL: %w", err)
+		}
 	}
 
 	return feedURL, nil
