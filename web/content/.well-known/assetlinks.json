@@ -1,13 +1,15 @@
 [
     {
         "relation": [
-            "delegate_permission/common.handle_all_urls"
+            "delegate_permission/common.handle_all_urls",
+            "delegate_permission/common.get_login_creds"
         ],
         "target": {
             "namespace": "android_app",
             "package_name": "app.foragd.twa",
             "sha256_cert_fingerprints": [
-                "EF:47:CF:44:B2:C5:54:71:ED:9B:D7:8F:30:C7:33:29:9C:06:C5:F8:AD:8F:36:96:1E:57:40:3A:0D:01:CC:16"
+                "EF:47:CF:44:B2:C5:54:71:ED:9B:D7:8F:30:C7:33:29:9C:06:C5:F8:AD:8F:36:96:1E:57:40:3A:0D:01:CC:16",
+                "E8:F8:B8:B9:77:F9:28:C7:20:C3:22:E4:C4:B0:73:5E:CF:4F:3D:DD:D6:CD:A2:90:9A:FE:E7:E0:E8:EA:8E:DE"
             ]
         }
     }
