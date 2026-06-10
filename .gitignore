@@ -20,9 +20,6 @@ web/content/*.css
 web/content/*.css.map
 web/content/*.js
 web/content/*.js.map
-web/content/*.woff2
-web/content/*.ttf
-web/content/fontawesome
 
 # Node modules.
 node_modules/
@@ -67,3 +64,4 @@ deployments/
 .devcontainer/.step.password
 .devcontainer/data
 test/**
+**/twa-manifest-secret.json

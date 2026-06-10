@@ -214,7 +214,7 @@
     {
       "label": "android: build apk",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} bubblewrap build",
+      "command": "dotenv -e ../.env.${input:environment} bubblewrap build --manifest /workspace/.devcontainer/twa-manifest-secret.json",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
