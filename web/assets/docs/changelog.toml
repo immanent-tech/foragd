@@ -2,10 +2,20 @@
 
 
 [[releases]]
-version   = "v0.158"
+version   = "v0.159"
 date      = "June 8, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Foragd will now automically detect feeds for medium.com blogs/pages.
+"""
+
+[[releases]]
+version = "v0.158"
+date    = "June 8, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
