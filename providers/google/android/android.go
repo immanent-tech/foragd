@@ -129,6 +129,10 @@ func VerifyAndAcknowledgeProduct(
 		GrantedAt:     time.Now().UTC(),
 	}
 
+	if !user.HasValidSubscription() {
+		user.Subscription = &models.User_Subscription{}
+	}
+
 	if err := user.Subscription.FromAndroidSubscription(models.AndroidSubscription{
 		PurchaseToken: token,
 		SKU:           sku,
@@ -187,6 +191,10 @@ func VerifyAndAcknowledgeSubscription(
 		PurchaseToken: token,
 		ExpiresAt:     &expiry,
 		GrantedAt:     time.Now(),
+	}
+
+	if !user.HasValidSubscription() {
+		user.Subscription = &models.User_Subscription{}
 	}
 
 	if err := user.Subscription.FromAndroidSubscription(models.AndroidSubscription{

@@ -95,13 +95,17 @@ func (u *User) GetSettings() *UserSettings {
 
 // InTrial returns a boolean indicating whether this user account is in its trial period.
 func (u *User) InTrial() bool {
-	if u.Subscription == nil {
+	if !u.HasValidSubscription() {
 		// No current subscription, check against account creation time.
 		if time.Now().UTC().Compare(u.CreatedAt.Add(DefaultTrialPeriod)) == -1 {
 			return true
 		}
 	}
 	return false
+}
+
+func (u *User) HasValidSubscription() bool {
+	return u.Subscription != nil && u.SubscriptionType != nil && *u.SubscriptionType != ""
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

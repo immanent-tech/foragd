@@ -62,9 +62,12 @@ func addCustomerDetailsToUser(ctx context.Context, id string) (*models.User, err
 	}
 
 	// Update the user's subscription.
-	userSubscription, err := user.Subscription.AsPaddleSubscription()
-	if err != nil {
-		return nil, fmt.Errorf("get user paddle subscription: %w", err)
+	var userSubscription models.PaddleSubscription
+	if user.HasValidSubscription() {
+		userSubscription, err = user.Subscription.AsPaddleSubscription()
+		if err != nil {
+			return nil, fmt.Errorf("get user paddle subscription: %w", err)
+		}
 	}
 	userSubscription.CustomerID = customer.ID
 	if err := user.Subscription.FromPaddleSubscription(userSubscription); err != nil {
