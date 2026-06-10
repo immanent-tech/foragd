@@ -58,9 +58,10 @@ func HandleSubmitForgetMe() http.HandlerFunc {
 			return
 		}
 
- 		// Build issue body.
+		// Build issue body.
 		var bodyBuilder strings.Builder
-		bodyBuilder.WriteString("Contact Email: " + )
+		bodyBuilder.WriteString("Contact Email: ")
+		bodyBuilder.WriteString(contact.String())
 		bodyBuilder.WriteRune('\n')
 
 		if err := resend.SendEmail(req.Context(),
