@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.158.1](https://github.com/immanent-tech/foragd/compare/v0.158.0...v0.158.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **providers/paddle:** 🐛 subscription modification fixes ([b102c13](https://github.com/immanent-tech/foragd/commit/b102c132d81ddf1e03eb5ed6ac61c2ac4fbb6658))
+* **service/feeds:** 🔧 ignore unexported fields when comparing feed details ([ed193a4](https://github.com/immanent-tech/foragd/commit/ed193a44c78fde75a01857fe051ab25332085c5f))
+* **templates/home:** 🔧 fix links to add subscription and view all subscriptions ([62bcdcf](https://github.com/immanent-tech/foragd/commit/62bcdcf825285f921261bee76d0b2d313e3203f4))
+
 ## [0.158.0](https://github.com/immanent-tech/foragd/compare/v0.157.0...v0.158.0) (2026-06-10)
 
 
