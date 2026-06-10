@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: true
-          persist-credentials: 'false'
+          persist-credentials: "false"
 
       - name: Setup Go
         id: setup_go
@@ -74,7 +74,7 @@ jobs:
           npm run build:prod
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # 2.25.4
+        uses: github/codeql-action/init@c35d1b164463ee62a100735382aaaa525c5d3496 # 2.25.6
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -85,6 +85,6 @@ jobs:
         run: go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)"
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # 2.25.4
+        uses: github/codeql-action/analyze@c35d1b164463ee62a100735382aaaa525c5d3496 # 2.25.6
         with:
           category: "/language:${{matrix.language}}"
