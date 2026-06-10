@@ -2,8 +2,8 @@ ARG CONTAINER_VERSION=dev-ubuntu26.04
 
 FROM mcr.microsoft.com/devcontainers/base:${CONTAINER_VERSION} AS builder
 
-ARG NODE_VERSION=v24.15.0
-ARG GO_VERSION=1.26.3
+ARG NODE_VERSION=v24.16.0
+ARG GO_VERSION=1.26.4
 
 # Install additional packages
 RUN DEBIAN_FRONTEND=noninteractive apt -y update && \

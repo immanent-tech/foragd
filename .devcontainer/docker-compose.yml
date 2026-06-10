@@ -16,7 +16,6 @@ services:
       - /run/user/1000/podman/podman.sock:/var/run/docker.sock:rw
     command: -c 'sleep infinity'
     user: vscode
-    privileged: true
     init: true
     group_add:
       - keep-groups
@@ -287,48 +286,6 @@ services:
       - co.elastic.logs/module=kibana
     stop_grace_period: 1m
 
-  # metricbeat:
-  #   depends_on:
-  #     es01:
-  #       condition: service_healthy
-  #     kibana:
-  #       condition: service_healthy
-  #   hostname: metricbeat
-  #   image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
-  #   restart: always
-  #   user: root
-  #   volumes:
-  #     - ../deployments/certs:/usr/share/metricbeat/config/certs
-  #     - ./data/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
-  #     - ${HOST_FILESYSTEM}:/hostfs:ro
-  #     - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
-  #     - ${DOCKER_SOCK}:/var/run/docker.sock
-  #   cgroup: host
-  #   environment:
-  #     - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
-  #     - ELASTIC_USER=elastic
-  #     - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
-  #   command:
-  #     - --strict.perms=false
-
-  # filebeat:
-  #   depends_on:
-  #     es01:
-  #       condition: service_healthy
-  #   image: docker.elastic.co/beats/filebeat:$ELASTIC_STACK_VERSION
-  #   user: root
-  #   volumes:
-  #     - ../deployments/certs:/usr/share/filebeat/config/certs
-  #     - ./data/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-  #     - ./data:/usr/share/filebeat/ingest_data
-  #     - "../../../.local/share/containers:/var/lib/docker/containers:ro"
-  #     - ${DOCKER_SOCK}:/var/run/docker.sock
-  #   environment:
-  #     - ELASTIC_USER=elastic
-  #     - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
-  #   command:
-  #     - --strict.perms=false
-
   otel-collector:
     image: docker.io/elastic/elastic-agent:$ELASTIC_STACK_VERSION
     container_name: otel-collector
@@ -359,10 +316,6 @@ services:
     environment:
       IMGPROXY_KEY: $IMGPROXY_KEY
       IMGPROXY_SALT: $IMGPROXY_SALT
-      IMGPROXY_FALLBACK_IMAGE_URL: $IMGPROXY_FALLBACK_IMAGE_URL
-      IMGPROXY_USE_ETAG: "true"
-      IMGPROXY_USE_LAST_MODIFIED: "true"
-      IMGPROXY_CACHE_CONTROL_PASSTHROUGH: "true"
       IMGPROXY_SO_REUSEPORT: "true"
       IMGPROXY_ALLOW_LOOPBACK_SOURCE_ADDRESSES: "true"
       IMGPROXY_AUTO_WEBP: "true"
