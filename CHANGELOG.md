@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.159.0](https://github.com/immanent-tech/foragd/compare/v0.158.2...v0.159.0) (2026-06-10)
+
+
+### Features
+
+* **service/feeds:** ✨ detect and parse feeds for medium.com ([a2d2dc7](https://github.com/immanent-tech/foragd/commit/a2d2dc74c69cde41c5cc55bc409ae88a3b460393))
+
+
+### Bug Fixes
+
+* **templates/articles:** 🔧 make whole article card clickable ([88ab9ba](https://github.com/immanent-tech/foragd/commit/88ab9ba86379d7cf59e90578128dabc3b47ff50c))
+
 ## [0.158.2](https://github.com/immanent-tech/foragd/compare/v0.158.1...v0.158.2) (2026-06-10)
 
 
