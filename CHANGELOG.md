@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.158.2](https://github.com/immanent-tech/foragd/compare/v0.158.1...v0.158.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 fix user subscription validity check ([eee1261](https://github.com/immanent-tech/foragd/commit/eee12616597e27238786e9e87595e038fbef54a8))
+* **providers/paddle:** 🐛 init user subscription object before writing if needed ([3b29e68](https://github.com/immanent-tech/foragd/commit/3b29e68d765c9f9c46522f7e9283f7108c9d7981))
+
 ## [0.158.1](https://github.com/immanent-tech/foragd/compare/v0.158.0...v0.158.1) (2026-06-10)
 
 
