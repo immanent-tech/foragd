@@ -2,10 +2,25 @@
 
 
 [[releases]]
-version   = "v0.156"
+version   = "v0.158"
 date      = "June 8, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Improved article card styling.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Backend changes for Android app support (app coming soon!)
+"""
+
+[[releases]]
+version = "v0.156"
+date    = "June 8, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -23,9 +38,9 @@ On the add subscription page, the additional instructions are now source-specifi
 """
 
 [[releases]]
-version   = "v0.155"
-date      = "June 5, 2026"
-type      = "minor"
+version = "v0.155"
+date    = "June 5, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
