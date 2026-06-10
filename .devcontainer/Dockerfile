@@ -8,7 +8,7 @@ ARG GO_VERSION=1.26.4
 # Install additional packages
 RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
     apt -y install fish micro graphviz ca-certificates dotenv-cli \
-    python3
+    python3 openjdk-17-jdk-headless openjdk-17-jre-headless android-sdk
 
 # Add the Zyte CA cert.
 ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
