@@ -132,6 +132,8 @@ func Start(logger *slog.Logger) error {
 		// Contact.
 		r.Get("/contact", handlers.HandleContact())
 		r.With(middlewares.RequireHTMX).Post("/contact", handlers.HandleSubmitContact())
+		r.Get("/forget-me", handlers.HandleForgetMe())
+		r.With(middlewares.RequireHTMX).Post("/forget-me", handlers.HandleSubmitContact())
 		// Feed Viewer.
 		r.Get("/viewer", handlers.HandleViewer())
 		r.Get("/viewer/url/*", handlers.HandleViewer())

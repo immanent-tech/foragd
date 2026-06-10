@@ -1,0 +1,69 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import "os"
+
+templ ForgetMe() {
+	@LayoutExternal() {
+		@container() {
+			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+			<section id="contact" class="mx-auto sm:max-w-4xl">
+				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Forget Me</h1>
+				<p class="mt-2 max-w-4xl text-neutral">
+					Use this form to request deletion of your account and all personal data stored in the app. We
+					will contact you on the email address provided to confirm deletion and completion of the request.
+				</p>
+				<p class="mt-2 max-w-4xl text-neutral">
+					Note: to verify your identity for security, we may request extra information before addressing your
+					request.
+				</p>
+				<form
+					hx-post={ "/contact" }
+					hx-target={ ContentID.Target() }
+					hx-target-error={ ContentID.Target() }
+					hx-encoding="multipart/form-data"
+					hx-swap="none"
+					hx-push-url="false"
+					class="mt-12"
+				>
+					<div class="space-y-12">
+						<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+							// User email.
+							<div class="sm:col-span-4">
+								<label for="email" class="block text-sm/6 font-medium text-neutral">Email address</label>
+								<div class="mt-2">
+									<input
+										id="email"
+										type="email"
+										name="contact_email"
+										autocomplete="email"
+										required
+										class="input bg-base-300 brightness-95 input-primary"
+									/>
+								</div>
+								<span class="font-semibold text-sm">Use the email address associated with your account.</span>
+							</div>
+							// Cloudflare turnstile.
+							<div class="col-span-full">
+								<div class="cf-turnstile" data-sitekey={ os.Getenv("CLOUDFLARE_TURNSTILE_KEY") }></div>
+							</div>
+						</div>
+					</div>
+					<div class="mt-6 flex w-full items-center justify-end gap-x-6 sm:max-w-3xl">
+						<button type="submit" class="btn btn-primary">
+							<span class="show-loading items-center">
+								<span class="loading mr-3 loading-spinner"></span>
+								<span class="text-sm/6">Processing</span>
+							</span>
+							<span class="hide-loading items-center">
+								<span class="text-sm/6">Submit</span>
+							</span>
+						</button>
+					</div>
+				</form>
+			</section>
+		}
+	}
+}
