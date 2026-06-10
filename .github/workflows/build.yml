@@ -326,7 +326,6 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           bubblewrap build \
-            --skipPwaValidation \
             --signingKeyPath android.keystore \
             --signingKeyAlias android \
             --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" \
