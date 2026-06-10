@@ -162,7 +162,7 @@ func RequireValidUser(next http.Handler) http.Handler {
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 
-		case !user.InTrial() && user.Subscription != nil:
+		case !user.InTrial() && user.HasValidSubscription():
 			// User not in trial and has a subscription.
 			switch *user.SubscriptionType {
 			case models.UserSubscriptionTypePaddle:

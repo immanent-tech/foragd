@@ -104,6 +104,8 @@ func (u *User) InTrial() bool {
 	return false
 }
 
+// HasValidSubscription returns a boolean indicating whether the user has a valid subscription. A valid subscription
+// only indicates the user has a subscription of some type. It does not indicate the state of the subscription.
 func (u *User) HasValidSubscription() bool {
 	return u.Subscription != nil && u.SubscriptionType != nil && *u.SubscriptionType != ""
 }
