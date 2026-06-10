@@ -7,7 +7,7 @@ ARG GO_VERSION=1.26.4
 
 # Install additional packages
 RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
-    apt -y install fish micro graphviz ca-certificates \
+    apt -y install fish micro graphviz ca-certificates dotenv-cli \
     python3
 
 # Add the Zyte CA cert.
