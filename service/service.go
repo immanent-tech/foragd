@@ -44,12 +44,11 @@ func ExtractMainImage(ctx context.Context, rawURL string) (string, error) {
 	resp, err := client.Load().R().
 		SetContext(ctx).
 		SetDoNotParseResponse(true).
-		// SetDebug(true).
 		Get(sourceURL.String())
-	defer resp.RawBody().Close()
-	if err != nil || resp.IsError() {
+	if err != nil || resp.IsError() || resp.StatusCode() == http.StatusNoContent {
 		return "", models.NewAPIError(resp.StatusCode(), err)
 	}
+	defer resp.RawBody().Close()
 	if resp.Header().Get("Content-Encoding") == "gzip" {
 		// For gzipped response, uncompress first.
 		reader, err := gzip.NewReader(resp.RawBody())
