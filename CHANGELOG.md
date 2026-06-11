@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.159.2](https://github.com/immanent-tech/foragd/compare/v0.159.1...v0.159.2) (2026-06-11)
+
+
+### Performance Improvements
+
+* ⚡ enable toggling open telemetry instrumentation on/off with an environment variable ([b61b281](https://github.com/immanent-tech/foragd/commit/b61b281eff91b497c22cd970b547015632212f98))
+
 ## [0.159.1](https://github.com/immanent-tech/foragd/compare/v0.159.0...v0.159.1) (2026-06-11)
 
 
