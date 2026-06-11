@@ -128,6 +128,7 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 			if diff := cmp.Diff(*existingItem, *newItem,
 				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp"),
 				cmpopts.EquateEmpty(),
+				cmpopts.IgnoreUnexported(),
 			); diff != "" {
 				updatedItems = append(updatedItems, newItem)
 			}
