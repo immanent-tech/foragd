@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.159.1](https://github.com/immanent-tech/foragd/compare/v0.159.0...v0.159.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 fix trying to find item images ([84ce057](https://github.com/immanent-tech/foragd/commit/84ce0577f6157bb4e39292089a964da4830fd1f5))
+
+
+### Performance Improvements
+
+* **cli:** ⚡ improve output generation of fetch feed cli command ([e1f42f8](https://github.com/immanent-tech/foragd/commit/e1f42f8ae701dadeca7d325573aa07136f235327))
+
 ## [0.159.0](https://github.com/immanent-tech/foragd/compare/v0.158.2...v0.159.0) (2026-06-10)
 
 
