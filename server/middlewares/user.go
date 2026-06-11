@@ -23,9 +23,11 @@ import (
 // then store the user object in the context for use by later handlers.
 func ExtractUserFromSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(req.Context(), "require-user-auth")
-		defer span.End()
+		if otel.IsEnabled() {
+			_, span := otel.TracerProvider.Tracer("").
+				Start(req.Context(), "require-user-auth")
+			defer span.End()
+		}
 
 		// Ignore updates route.
 		if strings.HasPrefix(req.URL.Path, "/updates") {
@@ -140,8 +142,10 @@ func ExtractUserFromSession(next http.Handler) http.Handler {
 // RequireValidUser will ensure that protected routes have a valid user status before continuing.
 func RequireValidUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "require-valid-user")
-		defer span.End()
+		if otel.IsEnabled() {
+			_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "require-valid-user")
+			defer span.End()
+		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {

@@ -48,9 +48,11 @@ func loadUser(ctx context.Context, id string) (models.User, error) {
 
 // GetUser retrieves the user doc with the given id.
 func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
-	_, span := otel.TracerProvider.Tracer("").
-		Start(ctx, "get-user")
-	defer span.End()
+	if otel.IsEnabled() {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(ctx, "get-user")
+		defer span.End()
+	}
 
 	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, schema.UsersIndexRO(), id)
 	if err != nil || user == nil {
@@ -61,9 +63,11 @@ func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	_, span := otel.TracerProvider.Tracer("").
-		Start(ctx, "get-user-by-external-id")
-	defer span.End()
+	if otel.IsEnabled() {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(ctx, "get-user-by-external-id")
+		defer span.End()
+	}
 
 	switch user, err := userCache.Get(ctx, externalID, otter.LoaderFunc[string, models.User](loadUser)); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
@@ -134,9 +138,11 @@ func GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, erro
 
 // UpdateUser will apply the given updates to the user.
 func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error {
-	_, span := otel.TracerProvider.Tracer("").
-		Start(ctx, "update-user")
-	defer span.End()
+	if otel.IsEnabled() {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(ctx, "update-user")
+		defer span.End()
+	}
 
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), user.GetID(), updates,
@@ -153,9 +159,11 @@ func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) 
 
 // SyncUser tries to sync relevant user data from the auth backend to the local data.
 func SyncUser(ctx context.Context, localUser *models.User) {
-	_, span := otel.TracerProvider.Tracer("").
-		Start(ctx, "sync-user")
-	defer span.End()
+	if otel.IsEnabled() {
+		_, span := otel.TracerProvider.Tracer("").
+			Start(ctx, "sync-user")
+		defer span.End()
+	}
 
 	auth0User, err := auth0.GetUser(ctx, localUser.GetExternalID())
 	if err != nil {

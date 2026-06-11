@@ -17,10 +17,13 @@ import (
 
 // Otel is a middleware to configure open telemetry for the server.
 func Otel(next http.Handler) http.Handler {
-	return alice.New(
-		otelchi.Middleware(config.AppName),
-		otelchimetric.NewServerRequestDuration(otel.MeterConfig),
-		otelchimetric.NewServerActiveRequests(otel.MeterConfig),
-		otelchimetric.NewServerResponseBodySize(otel.MeterConfig),
-	).Then(next)
+	if otel.IsEnabled() {
+		return alice.New(
+			otelchi.Middleware(config.AppName),
+			otelchimetric.NewServerRequestDuration(otel.MeterConfig),
+			otelchimetric.NewServerActiveRequests(otel.MeterConfig),
+			otelchimetric.NewServerResponseBodySize(otel.MeterConfig),
+		).Then(next)
+	}
+	return next
 }

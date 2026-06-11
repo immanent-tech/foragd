@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync/atomic"
 
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/exporters/autoexport"
@@ -25,10 +26,20 @@ import (
 var TracerProvider *trace.TracerProvider
 var MeterProvider *metric.MeterProvider
 var MeterConfig otelchimetric.BaseConfig
+var enabled atomic.Bool
+
+func init() {
+	enabled.Store(false)
+}
+
+func IsEnabled() bool {
+	return enabled.Load()
+}
 
 // Setup bootstraps the OpenTelemetry pipeline. If it does not return an error, make sure to call shutdown for proper
 // cleanup.
 func Setup(ctx context.Context) (func(context.Context) error, error) {
+
 	var shutdownFuncs []func(context.Context) error
 	var err error
 
@@ -83,5 +94,8 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 	MeterConfig = otelchimetric.NewBaseConfig(config.AppName, otelchimetric.WithMeterProvider(MeterProvider))
 	shutdownFuncs = append(shutdownFuncs, MeterProvider.Shutdown)
 	otel.SetMeterProvider(MeterProvider)
+
+	enabled.Store(true)
+
 	return shutdown, nil
 }

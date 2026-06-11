@@ -46,8 +46,6 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
-	var err error
-
 	if config.IsProduction() {
 		// Start the error client.
 		if err := gcp.InitErrorClient(ctx); err != nil {
@@ -60,15 +58,17 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
-	// Set up OpenTelemetry.
-	otelShutdown, err := otel.Setup(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to set up open telemetry: %w", err)
+	if cfg.EnableOTEL {
+		// Set up OpenTelemetry.
+		otelShutdown, err := otel.Setup(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to set up open telemetry: %w", err)
+		}
+		// Handle shutdown properly so nothing leaks.
+		defer func() {
+			err = errors.Join(err, otelShutdown(context.Background()))
+		}()
 	}
-	// Handle shutdown properly so nothing leaks.
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	// Set up a new chi router.
 	router := chi.NewRouter()

@@ -26,9 +26,11 @@ type InternalError struct {
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users).
 func HandleInternalError(referer string, err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(req.Context(), "handle-internal-error")
-		defer span.End()
+		if otel.IsEnabled() {
+			_, span := otel.TracerProvider.Tracer("").
+				Start(req.Context(), "handle-internal-error")
+			defer span.End()
+		}
 
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
@@ -93,9 +95,11 @@ type ExternalError struct {
 // HandleExternalError handles display errors on external pages.
 func HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(req.Context(), "handle-external-error")
-		defer span.End()
+		if otel.IsEnabled() {
+			_, span := otel.TracerProvider.Tracer("").
+				Start(req.Context(), "handle-external-error")
+			defer span.End()
+		}
 
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())

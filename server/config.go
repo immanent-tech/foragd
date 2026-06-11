@@ -43,6 +43,7 @@ type Config struct {
 	IdleTimeout          config.Timeout `koanf:"idletimeout"          validate:"required,validateFn"`
 	BlockSignup          bool           `koanf:"blocksignup"`
 	BlockLogin           bool           `koanf:"blocklogin"`
+	EnableOTEL           bool           `koanf:"enableotel"`
 	ImgProxy             ImgProxyConfig
 }
 

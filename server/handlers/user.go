@@ -874,8 +874,11 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 
 func ValidateSubscriptionLimits(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "validate-user-limits")
-		defer span.End()
+		if otel.IsEnabled() {
+			_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "validate-user-limits")
+			defer span.End()
+		}
+
 		switch err := service.CheckUserLimits(req.Context()); {
 		case errors.Is(err, models.ErrForbidden):
 			HandleInternalError(req.Referer(), err).ServeHTTP(res, req)
