@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
 	"os/signal"
@@ -43,15 +44,18 @@ func (c *FetchFeedCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	var results *models.Feed
+	var (
+		details, feed *models.Feed
+		err           error
+	)
 
 	switch {
 	case c.FeedID != "" && strings.HasPrefix(c.FeedID, "feed_"):
-		feed, err := service.GetFeed(ctx, c.FeedID)
+		details, err = service.GetFeed(ctx, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
-		results, err = service.FetchFeed(ctx, feed.GetSourceURLs()[0], service.FetchWithFeedID(feed.GetID()))
+		feed, err = service.FetchFeed(ctx, details.GetSourceURLs()[0], service.FetchWithFeedID(details.GetID()))
 		if err != nil {
 			return fmt.Errorf("fetch feed: %w", err)
 		}
@@ -60,7 +64,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
-		results, err = service.FetchFeed(ctx, feedURL.String())
+		feed, err = service.FetchFeed(ctx, feedURL.String())
 		if err != nil {
 			return fmt.Errorf("fetch feed: %w", err)
 		}
@@ -68,7 +72,22 @@ func (c *FetchFeedCmd) Run() error {
 		return errors.New("no ID or URL provided")
 	}
 
-	showFeedDetails(results)
+	showFeedDetails(feed)
+
+	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+		slogctx.FromCtx(ctx).Info("Feed has new items.",
+			slog.Int("count", len(newItems)),
+		)
+		// Try to add images to any items missing an image.
+		for item := range slices.Values(newItems) {
+			if item.GetImage() == nil {
+				if imgURL, err := service.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+					item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -76,11 +95,14 @@ func (c *FetchFeedCmd) Run() error {
 func showFeedDetails(feed *models.Feed) {
 	var str strings.Builder
 
-	str.WriteString("Feed: " + feed.GetTitle())
+	str.WriteString("Feed: ")
+	str.WriteString(feed.GetTitle())
 	str.WriteRune('\n')
-	str.WriteString("Link: " + feed.GetLink())
+	str.WriteString("Link: ")
+	str.WriteString(feed.GetLink())
 	str.WriteRune('\n')
-	str.WriteString("Type: " + string(feed.SourceType))
+	str.WriteString("Type: ")
+	str.WriteString(string(feed.SourceType))
 	str.WriteRune('\n')
 	if feed.GetDescription() != "" {
 		str.WriteString("Description:")
@@ -88,14 +110,17 @@ func showFeedDetails(feed *models.Feed) {
 		str.WriteString(feed.GetDescription())
 		str.WriteRune('\n')
 	}
-	str.WriteString("Updated: " + feed.GetTimestamp().String())
+	str.WriteString("Updated: ")
+	str.WriteString(feed.GetTimestamp().String())
 	str.WriteRune('\n')
 	if len(feed.GetCategories()) > 0 {
-		str.WriteString("Categories: " + strings.Join(feed.GetCategories(), ","))
+		str.WriteString("Categories: ")
+		str.WriteString(strings.Join(feed.GetCategories(), ","))
 		str.WriteRune('\n')
 	}
 	if feed.GetImage() != nil {
-		str.WriteString("Image: " + feed.GetImage().String())
+		str.WriteString("Image: ")
+		str.WriteString(feed.GetImage().String())
 	}
 	str.WriteRune('\n')
 	str.WriteRune('\n')
@@ -103,11 +128,14 @@ func showFeedDetails(feed *models.Feed) {
 	for article := range slices.Values(feed.GetItems().SortByTimestamp()) {
 		str.WriteString("---")
 		str.WriteRune('\n')
-		str.WriteString("Item ID: " + article.GetID())
+		str.WriteString("Item ID: ")
+		str.WriteString(article.GetID())
 		str.WriteRune('\n')
-		str.WriteString("Title: " + article.GetTitle())
+		str.WriteString("Title: ")
+		str.WriteString(article.GetTitle())
 		str.WriteRune('\n')
-		str.WriteString("Link: " + article.GetLink())
+		str.WriteString("Link: ")
+		str.WriteString(article.GetLink())
 		str.WriteRune('\n')
 		if article.GetDescription() != "" {
 			str.WriteString("Description:")
@@ -115,14 +143,17 @@ func showFeedDetails(feed *models.Feed) {
 			str.WriteString(article.GetDescription())
 			str.WriteRune('\n')
 		}
-		str.WriteString("Published: " + article.GetTimestamp().String())
+		str.WriteString("Published: ")
+		str.WriteString(article.GetTimestamp().String())
 		str.WriteRune('\n')
 		if len(article.GetCategories()) > 0 {
-			str.WriteString("Categories: " + strings.Join(article.GetCategories(), ","))
+			str.WriteString("Categories: ")
+			str.WriteString(strings.Join(article.GetCategories(), ","))
 			str.WriteRune('\n')
 		}
 		if article.GetImage() != nil {
-			str.WriteString("Image: " + article.GetImage().String())
+			str.WriteString("Image: ")
+			str.WriteString(article.GetImage().String())
 		}
 		if article.GetContent() != "" {
 			str.WriteString("Content:")
