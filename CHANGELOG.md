@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.159.4](https://github.com/immanent-tech/foragd/compare/v0.159.3...v0.159.4) (2026-06-12)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix preloading fonts ([6e4b2c6](https://github.com/immanent-tech/foragd/commit/6e4b2c62464bab413f204ef669def21666b03a05))
+
 ## [0.159.3](https://github.com/immanent-tech/foragd/compare/v0.159.2...v0.159.3) (2026-06-12)
 
 
