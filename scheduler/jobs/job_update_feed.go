@@ -16,8 +16,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	feeds "github.com/immanent-tech/go-syndication"
-
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -124,7 +122,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			service.FetchWithProxy(proxyRequest),
 		)
 		if err != nil {
-			var httpErr feeds.ParseError
 			logMsg := &feedStatusLogMsg{
 				FeedStatus: &models.FeedStatus{
 					Timestamp: time.Now().UTC(),
@@ -136,9 +133,9 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 					"type": "feed-status",
 				},
 			}
-			if errors.Is(err, &httpErr) {
-				logMsg.StatusCode = httpErr.Code
-				logMsg.StatusMessage = new(httpErr.Error())
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+				logMsg.StatusCode = apiErr.StatusCode
+				logMsg.StatusMessage = new(apiErr.Error())
 			} else {
 				logMsg.StatusCode = http.StatusInternalServerError
 				logMsg.StatusMessage = new(err.Error())
