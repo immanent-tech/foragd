@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.159.8](https://github.com/immanent-tech/foragd/compare/v0.159.7...v0.159.8) (2026-06-12)
+
+
+### Performance Improvements
+
+* **middlewares:** ⚡ etag fixes and performance improvements ([268d4bd](https://github.com/immanent-tech/foragd/commit/268d4bd071b05c71d1a5539027c3488e6a23ea12))
+
 ## [0.159.7](https://github.com/immanent-tech/foragd/compare/v0.159.6...v0.159.7) (2026-06-12)
 
 
