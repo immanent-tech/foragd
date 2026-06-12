@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/v2"
@@ -60,15 +61,12 @@ type appConfig struct {
 	BaseURL string `koanf:"baseurl" validate:"required,url"`
 }
 
-var cfg *appConfig
+var cfg = &appConfig{
+	Environment: EnvDevelopment,
+	Version:     "_UNKNOWN_",
+}
 
-// Init ensures the application will have appropriate Version and Envrionment vars set.
-func init() {
-	cfg = &appConfig{
-		Environment: EnvDevelopment,
-		Version:     "_UNKNOWN_",
-	}
-
+var loadConfig = sync.OnceValue(func() error {
 	var vcsRevision string
 	// var vcsTime string
 	var vcsModified bool
@@ -93,27 +91,41 @@ func init() {
 	}
 
 	if err := Load(ConfigEnvPrefix, cfg); err != nil {
-		panic(fmt.Errorf("load base config: %w", err))
+		return fmt.Errorf("load base config: %w", err)
 	}
 
 	if err := validation.Validate.Struct(cfg); err != nil {
-		panic(fmt.Errorf("validate base config: %w", err))
+		return fmt.Errorf("validate base config: %w", err)
 	}
-}
+
+	return nil
+})
 
 func GetVersion() string {
+	if err := loadConfig(); err != nil {
+		panic(err)
+	}
 	return cfg.Version
 }
 
 func GetBaseURL() string {
+	if err := loadConfig(); err != nil {
+		panic(err)
+	}
 	return cfg.BaseURL
 }
 
 func GetEnvironment() Environment {
+	if err := loadConfig(); err != nil {
+		panic(err)
+	}
 	return cfg.Environment
 }
 
 func IsProduction() bool {
+	if err := loadConfig(); err != nil {
+		panic(err)
+	}
 	return cfg.Environment == EnvProduction
 }
 
