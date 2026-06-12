@@ -328,6 +328,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 
 		// If no updates are necessary, bail early.
 		if len(updates) == 0 {
+			slogctx.FromCtx(req.Context()).Debug("No account settings changes needed.")
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -537,6 +538,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
+			slogctx.FromCtx(req.Context()).Debug("No feedsets selected.")
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}

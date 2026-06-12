@@ -78,6 +78,7 @@ func Handler(next http.Handler, weak bool) http.Handler {
 			hw.status < 200 || hw.status >= 300 ||
 			hw.status == http.StatusNoContent ||
 			hw.buf.Len() == 0 {
+			slogctx.FromCtx(req.Context()).Debug("Not setting E-Tag for response.")
 			res.WriteHeader(hw.status)
 			res.Write(hw.buf.Bytes())
 			return
