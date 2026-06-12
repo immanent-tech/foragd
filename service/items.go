@@ -122,11 +122,12 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	}
 
 	// Collect updated items. Ignore noop updates like timestamp changes.
+	// TODO: add a custom comparer when ExtensionData contains information worth updating.
 	updatedItems := make(models.Items, 0, len(existingItems))
 	for existingItem := range slices.Values(existingItems) {
 		if newItem := items.FindByID(existingItem.GetID()); newItem != nil {
 			if diff := cmp.Diff(*existingItem, *newItem,
-				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp"),
+				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp", "ExtensionData"),
 				cmpopts.EquateEmpty(),
 				cmpopts.IgnoreUnexported(),
 			); diff != "" {
