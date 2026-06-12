@@ -5,7 +5,6 @@ package etag
 import (
 	"bytes"
 	"fmt"
-	"hash"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -19,7 +18,6 @@ import (
 // hashWriter buffers the downstream response so we can compute an ETag before flushing to the real ResponseWriter.
 type hashWriter struct {
 	rw     http.ResponseWriter
-	hash   hash.Hash
 	buf    *bytes.Buffer
 	len    int
 	status int
