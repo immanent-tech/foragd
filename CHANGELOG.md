@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.159.6](https://github.com/immanent-tech/foragd/compare/v0.159.5...v0.159.6) (2026-06-12)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 explicitly set Cache-Control for error responses to "no-store" ([d86c861](https://github.com/immanent-tech/foragd/commit/d86c86101a1a5972498dbe245494e3e04e5cc0df))
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ catch and log job panics to error reporting in production ([dc46662](https://github.com/immanent-tech/foragd/commit/dc46662463e7fe395901b2a97fed8cd565ed0c14))
+
 ## [0.159.5](https://github.com/immanent-tech/foragd/compare/v0.159.4...v0.159.5) (2026-06-12)
 
 
