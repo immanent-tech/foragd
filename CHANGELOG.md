@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.159.3](https://github.com/immanent-tech/foragd/compare/v0.159.2...v0.159.3) (2026-06-12)
+
+
+### Bug Fixes
+
+* **jobs:** 🔧 fix exposing underlying api error when update feed job fails ([b27a665](https://github.com/immanent-tech/foragd/commit/b27a6656b4489f3cae41fc8d2d2657a69fbd8c5f))
+* **service/items:** 🐛 fix the fix for comparing items ([a03e082](https://github.com/immanent-tech/foragd/commit/a03e08243a5203f9f67d80bb2686c964307cfb94))
+* **service/items:** 🔧 ignore unexported fields of item when comparing ([d5a2b44](https://github.com/immanent-tech/foragd/commit/d5a2b441dfd6c962f1f68caf5372d794c938e6dd))
+
+
+### Performance Improvements
+
+* **middlewares:** ⚡ improve CSP policy header generation ([877656f](https://github.com/immanent-tech/foragd/commit/877656f4bc0aaa56dbae143c2dae66a831bdccfd))
+
 ## [0.159.2](https://github.com/immanent-tech/foragd/compare/v0.159.1...v0.159.2) (2026-06-11)
 
 
