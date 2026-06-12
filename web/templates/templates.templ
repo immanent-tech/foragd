@@ -142,10 +142,10 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
-			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin as="font"/>
-			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin as="font"/>
-			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin as="font"/>
-			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin as="font"/>
+			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/></noscript>
 			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/>
