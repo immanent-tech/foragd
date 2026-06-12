@@ -81,70 +81,114 @@ func (csp *CSP) String() string {
 	var policy strings.Builder
 
 	if len(csp.BaseURI) > 0 {
-		policy.WriteString("base-uri 'self' " + strings.Join(csp.BaseURI, " ") + "; ")
+		policy.WriteString("base-uri 'self' ")
+		policy.WriteString(strings.Join(csp.BaseURI, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ChildSrc) > 0 {
-		policy.WriteString("child-src " + strings.Join(csp.ChildSrc, " ") + "; ")
+		policy.WriteString("child-src ")
+		policy.WriteString(strings.Join(csp.ChildSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ConnectSrc) > 0 {
-		policy.WriteString("connect-src " + strings.Join(csp.ConnectSrc, " ") + "; ")
+		policy.WriteString("connect-src ")
+		policy.WriteString(strings.Join(csp.ConnectSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.DefaultSrc) > 0 {
-		policy.WriteString("default-src 'self' " + strings.Join(csp.DefaultSrc, " ") + "; ")
+		policy.WriteString("default-src 'self' ")
+		policy.WriteString(strings.Join(csp.DefaultSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.FontSrc) > 0 {
-		policy.WriteString("font-src 'self' " + strings.Join(csp.FontSrc, " ") + "; ")
+		policy.WriteString("font-src 'self' ")
+		policy.WriteString(strings.Join(csp.FontSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.FormAction) > 0 {
-		policy.WriteString("form-action 'self' " + strings.Join(csp.FormAction, " ") + "; ")
+		policy.WriteString("form-action 'self' ")
+		policy.WriteString(strings.Join(csp.FormAction, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.FrameAncestors) > 0 {
-		policy.WriteString("frame-ancestors 'none' " + strings.Join(csp.FrameAncestors, " ") + "; ")
+		policy.WriteString("frame-ancestors 'none' ")
+		policy.WriteString(strings.Join(csp.FrameAncestors, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.FrameSrc) > 0 {
-		policy.WriteString("frame-src " + strings.Join(csp.FrameSrc, " ") + "; ")
+		policy.WriteString("frame-src ")
+		policy.WriteString(strings.Join(csp.FrameSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ImgSrc) > 0 {
-		policy.WriteString("img-src * data: " + strings.Join(csp.ImgSrc, " ") + "; ")
+		policy.WriteString("img-src * data: ")
+		policy.WriteString(strings.Join(csp.ImgSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ManifestSrc) > 0 {
-		policy.WriteString("manifest-src " + strings.Join(csp.ManifestSrc, " ") + "; ")
+		policy.WriteString("manifest-src ")
+		policy.WriteString(strings.Join(csp.ManifestSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.MediaSrc) > 0 {
-		policy.WriteString("media-src " + strings.Join(csp.MediaSrc, " ") + "; ")
+		policy.WriteString("media-src ")
+		policy.WriteString(strings.Join(csp.MediaSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ObjectSrc) > 0 {
-		policy.WriteString("object-src " + strings.Join(csp.ObjectSrc, " ") + "; ")
+		policy.WriteString("object-src ")
+		policy.WriteString(strings.Join(csp.ObjectSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.PluginTypes) > 0 {
-		policy.WriteString("plugin-types " + strings.Join(csp.PluginTypes, " ") + "; ")
+		policy.WriteString("plugin-types ")
+		policy.WriteString(strings.Join(csp.PluginTypes, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.PrefetchSrc) > 0 {
-		policy.WriteString("prefetch-src " + strings.Join(csp.PrefetchSrc, " ") + "; ")
+		policy.WriteString("prefetch-src ")
+		policy.WriteString(strings.Join(csp.PrefetchSrc, " "))
+		policy.WriteString("; ")
 	}
 	if csp.ReportTo != "" {
-		policy.WriteString("report-to " + csp.ReportTo + "; ")
+		policy.WriteString("report-to ")
+		policy.WriteString(csp.ReportTo)
+		policy.WriteString("; ")
 	}
 	if csp.ReportURI != "" {
-		policy.WriteString("report-uri " + csp.ReportURI + "; ")
+		policy.WriteString("report-uri ")
+		policy.WriteString(csp.ReportURI)
+		policy.WriteString("; ")
 	}
 	if len(csp.Sandbox) > 0 {
-		policy.WriteString("sandbox " + strings.Join(csp.Sandbox, " ") + "; ")
+		policy.WriteString("sandbox ")
+		policy.WriteString(strings.Join(csp.Sandbox, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ScriptSrc) > 0 {
-		policy.WriteString("script-src " + strings.Join(csp.ScriptSrc, " ") + "; ")
+		policy.WriteString("script-src ")
+		policy.WriteString(strings.Join(csp.ScriptSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.ScriptSrcAttr) > 0 {
-		policy.WriteString("script-src-attr " + strings.Join(csp.ScriptSrcAttr, " ") + "; ")
+		policy.WriteString("script-src-attr ")
+		policy.WriteString(strings.Join(csp.ScriptSrcAttr, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.StyleSrc) > 0 {
-		policy.WriteString("style-src 'self' 'unsafe-inline' " + strings.Join(csp.StyleSrc, " ") + "; ")
+		policy.WriteString("style-src 'self' 'unsafe-inline' ")
+		policy.WriteString(strings.Join(csp.StyleSrc, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.StyleSrcAttr) > 0 {
-		policy.WriteString("style-src-attr " + strings.Join(csp.StyleSrcAttr, " ") + "; ")
+		policy.WriteString("style-src-attr ")
+		policy.WriteString(strings.Join(csp.StyleSrcAttr, " "))
+		policy.WriteString("; ")
 	}
 	if len(csp.WorkerSrc) > 0 {
-		policy.WriteString("worker-src " + strings.Join(csp.WorkerSrc, " ") + "; ")
+		policy.WriteString("worker-src ")
+		policy.WriteString(strings.Join(csp.WorkerSrc, " "))
+		policy.WriteString("; ")
 	}
 
 	return strings.TrimSpace(policy.String())
