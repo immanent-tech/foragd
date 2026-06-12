@@ -55,7 +55,9 @@ var HTMXResponseHeaders = []string{
 	htmx.HeaderTrigger,
 }
 
-var corsCfg CORS
+var corsCfg = CORS{
+	MaxAge: 300,
+}
 
 var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 	if err := config.Load(config.ConfigEnvPrefix+"CORS_", &corsCfg); err != nil {
