@@ -109,6 +109,9 @@ func Start(logger *slog.Logger) error {
 	router.Handle("/favicon.ico", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/.well-known/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
+	router.Handle("/security.txt", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		http.Redirect(res, req, "/.well-known/security.txt", http.StatusMovedPermanently)
+	}))
 
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)
