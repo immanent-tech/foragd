@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.159.7](https://github.com/immanent-tech/foragd/compare/v0.159.6...v0.159.7) (2026-06-12)
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 cors middleware improvements ([f26d193](https://github.com/immanent-tech/foragd/commit/f26d19349a8ea71ef12cbc782201a6dd00a194fb))
+
 ## [0.159.6](https://github.com/immanent-tech/foragd/compare/v0.159.5...v0.159.6) (2026-06-12)
 
 
