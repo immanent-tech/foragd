@@ -17,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
 var (
@@ -103,15 +104,15 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 	)
 	switch j.JobType {
 	case JobTypeGetNewFeeds:
-		return ExecuteGetNewFeeds(ctx, j)
+		return safeExecute(ctx, j, ExecuteGetNewFeeds)
 	case JobTypeUpdateFeed:
-		return ExecuteUpdateFeed(ctx, j)
+		return safeExecute(ctx, j, ExecuteUpdateFeed)
 	case JobTypeDeleteExpiredSessions:
-		return ExecuteDeleteExpiredSessions(ctx, j)
+		return safeExecute(ctx, j, ExecuteDeleteExpiredSessions)
 	case JobTypeClearDeletedFeeds:
-		return ExecuteClearDeletedFeeds(ctx, j)
+		return safeExecute(ctx, j, ExecuteClearDeletedFeeds)
 	case JobTypeUserEmailJob:
-		return ExecuteUserEmail(ctx, j)
+		return safeExecute(ctx, j, ExecuteUserEmail)
 	}
 
 	// Fail if we can't find an execution method (i.e., not implemented).
@@ -151,4 +152,23 @@ func (j *SerializedJob) shouldExecute(ctx context.Context) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func safeExecute(
+	ctx context.Context,
+	job *SerializedJob,
+	executeFn func(ctx context.Context, job *SerializedJob) error,
+) (err error) {
+	defer func() {
+		if rvr := recover(); rvr != nil {
+			// Log to GCP error console.
+			switch v := rvr.(type) {
+			case error:
+				gcp.ReportError(ctx, v)
+			default:
+				gcp.ReportError(ctx, fmt.Errorf("panic: %v", v))
+			}
+		}
+	}()
+	return executeFn(ctx, job)
 }
