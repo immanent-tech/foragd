@@ -9,6 +9,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -34,7 +35,8 @@ type InternalPage interface {
 func RenderInternalPage(content InternalPage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
-			// If there is no response, return 204: No Content.
+			// If there is no content to render, return 204: No Content.
+			slogctx.FromCtx(req.Context()).Warn("No content to render.")
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -59,7 +61,8 @@ type ExternalPage interface {
 func RenderExternalPage(content ExternalPage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
-			// If there is no response, return 204: No Content.
+			// If there is no content to render, return 204: No Content.
+			slogctx.FromCtx(req.Context()).Warn("No content to render.")
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -71,7 +74,8 @@ func RenderExternalPage(content ExternalPage) http.HandlerFunc {
 func RenderPartial(content PartialResponseHandler) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
-			// If there is no response, return 204: No Content.
+			// If there is no content to render, return 204: No Content.
+			slogctx.FromCtx(req.Context()).Warn("No content to render.")
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
