@@ -58,8 +58,8 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
+	// Set up OpenTelemetry if specified in the config.
 	if cfg.EnableOTEL {
-		// Set up OpenTelemetry.
 		otelShutdown, err := otel.Setup(ctx)
 		if err != nil {
 			return fmt.Errorf("unable to set up open telemetry: %w", err)
@@ -68,6 +68,9 @@ func Start(logger *slog.Logger) error {
 		defer func() {
 			err = errors.Join(err, otelShutdown(context.Background()))
 		}()
+		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is enabled.")
+	} else {
+		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is disabled.")
 	}
 
 	// Set up a new chi router.
