@@ -46,7 +46,7 @@ func HeaderExternal() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x text-primary\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x text-primary\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Blog</a> <a href=\"/changelog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Changelog</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -82,7 +82,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 80, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 82, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
@@ -153,7 +153,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 108, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 110, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 				if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 135, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 137, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
@@ -257,7 +257,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 194, Col: 38}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 196, Col: 38}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
