@@ -9,16 +9,18 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/rs/cors"
+
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/cors"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // CORS contains values for various CORS settings derived from the environment.
 type CORS struct {
-	AllowedOrigins  []string `koanf:"allowedorigins"`
+	AllowedOrigins  []string `koanf:"allowedorigins"  validate:"required"`
 	MaxAge          int      `koanf:"maxage"`
 	RequestHeaders  []string `koanf:"requestheaders"`
 	ResponseHeaders []string `koanf:"responseheaders"`
@@ -64,10 +66,13 @@ var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 		return nil, fmt.Errorf("load cors config: %w", err)
 	}
 
+	if err := validation.Validate.Struct(&corsCfg); err != nil {
+		return nil, fmt.Errorf("cors config invalid: %w", err)
+	}
+
 	corsOptions := cors.Options{
-		AllowCredentials:   true,
-		MaxAge:             corsCfg.MaxAge,
-		OptionsPassthrough: true,
+		AllowCredentials: true,
+		MaxAge:           corsCfg.MaxAge,
 		AllowedHeaders: append(
 			[]string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 			HTMXRequestHeaders...,
@@ -91,7 +96,7 @@ func SetupCORS(next http.Handler) http.Handler {
 			slogctx.FromCtx(req.Context()).Error("Cannot load CORS config.",
 				slog.Any("error", err),
 			)
-			res.WriteHeader(http.StatusInternalServerError)
+			http.Error(res, "internal server error", http.StatusInternalServerError)
 		})
 	}
 	return cors.Handler(next)

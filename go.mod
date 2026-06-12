@@ -142,7 +142,6 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/getkin/kin-openapi v0.133.0 // indirect
-	github.com/go-chi/cors v1.2.2
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
@@ -178,6 +177,7 @@ require (
 	github.com/resend/resend-go/v3 v3.7.0
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
+	github.com/rs/cors v1.11.1
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-chi v1.19.1
 	github.com/segmentio/asm v1.2.1 // indirect
