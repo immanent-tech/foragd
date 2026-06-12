@@ -42,9 +42,9 @@ func RenderInternalPage(content InternalPage) http.HandlerFunc {
 		}
 		switch {
 		case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-			if htmx.IsHistoryRestoreRequest(req) {
-				res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
-			}
+			// if htmx.IsHistoryRestoreRequest(req) {
+			// 	res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+			// }
 			content.FullResponse(res, req)
 		default: // HTMX request renders partial content.
 			content.PartialResponse(res, req)

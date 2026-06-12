@@ -13,6 +13,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -32,8 +33,17 @@ func HandleInternalError(referer string, err error) http.HandlerFunc {
 			defer span.End()
 		}
 
+		// Don't cache errors.
+		res.Header().Set("Cache-Control", "no-store")
+
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+			// Write appropriately leveled log message.
 			apiErr.WriteLog(req.Context())
+			// For 500+ errors, log to GCP error console.
+			if apiErr.HTTPStatus() >= 500 {
+				gcp.ReportError(req.Context(), apiErr)
+			}
+			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())
 			if apiErr.UserMessage == nil {
 				// Add a generic user message if one isn't already set.
@@ -101,8 +111,17 @@ func HandleExternalError(err error) http.HandlerFunc {
 			defer span.End()
 		}
 
+		// Don't cache errors.
+		res.Header().Set("Cache-Control", "no-store")
+
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+			// Write appropriately leveled log message.
 			apiErr.WriteLog(req.Context())
+			// For 500+ errors, log to GCP error console.
+			if apiErr.HTTPStatus() >= 500 {
+				gcp.ReportError(req.Context(), apiErr)
+			}
+			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &ExternalError{
 				template: templates.ExternalError(models.UserFromCtx(req.Context()), apiErr.GetUserMessage()),
