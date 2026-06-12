@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.159.5](https://github.com/immanent-tech/foragd/compare/v0.159.4...v0.159.5) (2026-06-12)
+
+
+### Bug Fixes
+
+* **server:** 🔧 change default listen address from localhost to 0.0.0.0 ([17d75ac](https://github.com/immanent-tech/foragd/commit/17d75ac1a9b393d571662af8dcd2917634878d70))
+
+
+### Performance Improvements
+
+* **middlewares:** ⚡ etag middlewares improvements ([7f36e73](https://github.com/immanent-tech/foragd/commit/7f36e73cc80f8bb6efcfa4d0792ba035979bd8fc))
+
 ## [0.159.4](https://github.com/immanent-tech/foragd/compare/v0.159.3...v0.159.4) (2026-06-12)
 
 
