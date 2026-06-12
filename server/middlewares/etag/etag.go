@@ -63,6 +63,7 @@ func Handler(next http.Handler, weak bool) http.Handler {
 			slogctx.FromCtx(req.Context()).Error("Could not generate ETag.",
 				slog.String("error", "could not get hashWriter buffer"))
 			next.ServeHTTP(res, req)
+			return
 		}
 		hw.rw = res
 		defer func() {
@@ -73,9 +74,8 @@ func Handler(next http.Handler, weak bool) http.Handler {
 
 		resHeader := res.Header()
 
-		if hw.hash == nil ||
-			resHeader.Get("ETag") != "" ||
-			strconv.Itoa(hw.status)[0] != '2' ||
+		if resHeader.Get("ETag") != "" ||
+			hw.status < 200 || hw.status >= 300 ||
 			hw.status == http.StatusNoContent ||
 			hw.buf.Len() == 0 {
 			res.WriteHeader(hw.status)
@@ -103,45 +103,26 @@ func Handler(next http.Handler, weak bool) http.Handler {
 }
 
 func isFresh(reqHeader http.Header, resHeader http.Header) bool {
-	isEtagMatched, isModifiedMatched := false, false
-
-	ifModifiedSince := reqHeader.Get("If-Modified-Since")
-	ifUnmodifiedSince := reqHeader.Get("If-Unmodified-Since")
 	ifNoneMatch := reqHeader.Get("If-None-Match")
-	ifMatch := reqHeader.Get("If-Match")
+	ifModifiedSince := reqHeader.Get("If-Modified-Since")
 	cacheControl := reqHeader.Get("Cache-Control")
-
 	etag := resHeader.Get("ETag")
 	lastModified := resHeader.Get("Last-Modified")
 
-	if ifModifiedSince == "" &&
-		ifUnmodifiedSince == "" &&
-		ifNoneMatch == "" &&
-		ifMatch == "" {
+	if ifNoneMatch == "" && ifModifiedSince == "" {
 		return false
 	}
-
 	if strings.Contains(cacheControl, "no-cache") {
 		return false
 	}
 
 	if etag != "" && ifNoneMatch != "" {
-		isEtagMatched = checkEtagNoneMatch(trimTags(strings.Split(ifNoneMatch, ",")), etag)
+		return checkEtagNoneMatch(trimTags(strings.Split(ifNoneMatch, ",")), etag)
 	}
-
-	if etag != "" && ifMatch != "" && !isEtagMatched {
-		isEtagMatched = checkEtagMatch(trimTags(strings.Split(ifMatch, ",")), etag)
-	}
-
 	if lastModified != "" && ifModifiedSince != "" {
-		isModifiedMatched = checkModifedMatch(lastModified, ifModifiedSince)
+		return checkModifedMatch(lastModified, ifModifiedSince)
 	}
-
-	if lastModified != "" && ifUnmodifiedSince != "" && !isModifiedMatched {
-		isModifiedMatched = checkUnmodifedMatch(lastModified, ifUnmodifiedSince)
-	}
-
-	return isEtagMatched || isModifiedMatched
+	return false
 }
 
 func trimTags(tags []string) []string {
@@ -164,37 +145,9 @@ func checkEtagNoneMatch(etagsToNoneMatch []string, etag string) bool {
 	return false
 }
 
-func checkEtagMatch(etagsToMatch []string, etag string) bool {
-	for _, etagToMatch := range etagsToMatch {
-		if etagToMatch == "*" {
-			return false
-		}
-
-		if strings.HasPrefix(etagToMatch, "W/") {
-			if etagToMatch == "W/"+etag {
-				return false
-			}
-		} else {
-			if etagToMatch == etag {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
 func checkModifedMatch(lastModified, ifModifiedSince string) bool {
 	if lm, ims, ok := parseTimePairs(lastModified, ifModifiedSince); ok {
 		return lm.Before(ims)
-	}
-
-	return false
-}
-
-func checkUnmodifedMatch(lastModified, ifUnmodifiedSince string) bool {
-	if lm, ius, ok := parseTimePairs(lastModified, ifUnmodifiedSince); ok {
-		return lm.After(ius)
 	}
 
 	return false
