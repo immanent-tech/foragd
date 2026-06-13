@@ -22,6 +22,7 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
@@ -39,6 +40,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
@@ -422,7 +424,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 			),
 		),
 		elastic.WithSort(
-			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
 		elastic.WithSize(5),
 	)
@@ -515,7 +517,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 			),
 		),
 		elastic.WithSort(
-			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
 		elastic.WithSize(5),
 	)
@@ -638,7 +640,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		schema.FeedsIndexRO(),
 		feedSearchQuery,
 		elastic.WithSort(
-			models.NewFeedSortOptions(new(models.SortMostRelevant))...,
+			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
 		elastic.WithSize(5),
 	)
@@ -1053,7 +1055,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		}
 	case bytes.Contains(feedBuf.Bytes(), []byte("<html")):
 		// HTML webpage. Use "autodiscovery" to find feed.
-		if newURL, err := feeds.DiscoverFeedURL(
+		if newURL, err := html.DiscoverFeedURL(
 			sourceURL,
 			feedBuf.Bytes(),
 		); err == nil && newURL != "" &&
@@ -1077,6 +1079,25 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	}
 
 	feed := NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
+
+	// For Atom, assume a default hourly update.
+	if feedData.SourceType == feeds.TypeAtom || feedData.SourceType == feeds.TypeJSONFeed {
+		feed.UpdateInterval = int64(time.Hour)
+	}
+
+	// For RSS use either the reasonable interval given by the feed or a reasonable default.
+	if feedData.SourceType == feeds.TypeRSS {
+		switch interval := feedData.GetUpdateInterval(); {
+		case interval < time.Minute:
+			// Set really short update intervals to every 5 minutes.
+			feed.UpdateInterval = int64(5 * time.Minute)
+		case interval > 24*time.Hour:
+			// Set really long update intervals to daily.
+			feed.UpdateInterval = int64(24 * time.Hour)
+		default:
+			feed.UpdateInterval = int64(interval)
+		}
+	}
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
@@ -1240,4 +1261,92 @@ func NewFeed(url string, id models.FeedID, source *feeds.Feed) *models.Feed {
 	}
 
 	return feed
+}
+
+// FeedSorting contains the sort options for sorting item search results.
+type FeedSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	FeedID    string `json:"feed_id"`
+}
+
+// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
+func (s *FeedSorting) SortCombinationsCaster() *estypes.SortCombinations {
+	c := estypes.SortCombinations(s)
+	return &c
+}
+
+func NewFeedSortOptions(sort *models.Sort) []estypes.SortCombinationsVariant {
+	if sort == nil {
+		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+	}
+	var opts []estypes.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: estypes.NewScoreSort(),
+		})
+	}
+	return opts
+}
+
+func NewFeedSortCombinations(sort *models.Sort) []estypes.SortCombinations {
+	var opts []estypes.SortCombinations
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: estypes.NewScoreSort(),
+		})
+	}
+	return opts
 }

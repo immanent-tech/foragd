@@ -112,13 +112,6 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 					slog.Any("error", err),
 				)
 			case errors.Is(err, quartz.ErrJobNotFound):
-				// Determine and set the feed update interval.
-				if err := feed.SetUpdateInterval(feedCtx); err != nil {
-					slogctx.FromCtx(feedCtx).Warn("Unable to set an update interval for feed.",
-						slog.Any("error", err),
-					)
-					return
-				}
 				// If there is no existing scheduled newJob, create one.
 				newJob, err := NewUpdateFeedJob(ctx, feed.GetID())
 				if err != nil {

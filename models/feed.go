@@ -4,24 +4,14 @@
 package models
 
 import (
-	"context"
-	"fmt"
-	"log/slog"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
-	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
-
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
 // GetID retrieves (generates) a unique ID for a FeedStatus object.
@@ -144,105 +134,6 @@ func (f *Feed) GetRights() string {
 	return ""
 }
 
-// SetUpdateInterval will set the update interval of the feed. It fetches the feed details from the source and
-// determines a reasonable update interval. In the case of errors, a default interval will be set.
-func (f *Feed) SetUpdateInterval(ctx context.Context) error {
-	// In case of an error, set the default update interval to hourly.
-	f.UpdateInterval = int64(time.Hour)
-
-	// Get fresh feed details.
-	details, err := feeds.NewFeedFromURL(ctx, f.GetSourceURLs()[0])
-	if err != nil {
-		slogctx.FromCtx(ctx).
-			Warn("Unable to retrieve feed details to determine update interval. Using default update interval.",
-				slog.Any("error", err),
-			)
-		f.UpdateInterval = int64(time.Hour)
-		return nil
-	}
-
-	// For Atom, assume a default hourly update.
-	if details.SourceType == feeds.TypeAtom || details.SourceType == feeds.TypeJSONFeed {
-		f.UpdateInterval = int64(time.Hour)
-	}
-
-	// For RSS use either the reasonable interval given by the feed or a reasonable default.
-	if details.SourceType == feeds.TypeRSS {
-
-		switch interval := details.GetUpdateInterval(); {
-		case interval < time.Minute:
-			// Set really short update intervals to every 5 minutes.
-			f.UpdateInterval = int64(5 * time.Minute)
-		case interval > 24*time.Hour:
-			// Set really long update intervals to daily.
-			f.UpdateInterval = int64(24 * time.Hour)
-		default:
-			f.UpdateInterval = int64(interval)
-		}
-	}
-
-	// Update the feed with the calculated poll interval for reference.
-	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW(), f.GetID(), map[string]any{
-		"update_interval": f.UpdateInterval,
-	}); err != nil {
-		return fmt.Errorf("set feed update interval: %w", err)
-	}
-
-	return nil
-}
-
-// FeedSorting contains the sort options for sorting item search results.
-type FeedSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	FeedID    string `json:"feed_id"`
-}
-
-// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
-func (s *FeedSorting) SortCombinationsCaster() *estypes.SortCombinations {
-	c := estypes.SortCombinations(s)
-	return &c
-}
-
-func NewFeedSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
-	if sort == nil {
-		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
-	}
-	var opts []estypes.SortCombinationsVariant
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
-	}
-	return opts
-}
-
 // normaliseURL strips protocol handler schemes and cleans the URL
 func NormaliseFeedURL(raw string) string {
 	// Strip protocol handler prefixes: web+feed://, web+rss://
@@ -260,40 +151,4 @@ func NormaliseFeedURL(raw string) string {
 		raw = decoded
 	}
 	return raw
-}
-
-func NewFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
-	var opts []estypes.SortCombinations
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &estypes.SortOptions{
-			Score_: &estypes.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &estypes.SortOptions{
-			Doc_: estypes.NewScoreSort(),
-		})
-	}
-	return opts
 }
