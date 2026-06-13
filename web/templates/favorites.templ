@@ -7,7 +7,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
@@ -149,7 +148,6 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 											@ArticleCard(idx, article)
 										}
 									}
-									@partials.ButtonBackToTop()
 								} else {
 									<div class="max-w-md mt-8 text-center">
 										<svg
