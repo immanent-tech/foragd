@@ -3,9 +3,15 @@
 
 package templates
 
+import "github.com/immanent-tech/foragd/web/templates/element"
+
 // pageHeading renders a section appropriate for displaying a page title and actions.
-templ pageHeading() {
-	<div class="md:flex md:items-center md:justify-between">
+templ pageHeading(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div
+		class={ "md:flex md:items-center md:justify-between", props.Classes() }
+		{ props.Attributes()... }
+	>
 		{ children... }
 	</div>
 }
@@ -22,6 +28,33 @@ templ pageTitle(title string) {
 // title on mobile screens.
 templ pageActions() {
 	<div class="mt-4 flex md:mt-0 md:ml-4">
+		{ children... }
+	</div>
+}
+
+// sectionHeading renders a section appropriate for displaying a section title and actions.
+templ sectionHeading(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div
+		class={ "border-b border-neutral/15 pb-2 sm:flex sm:items-center sm:justify-between", props.Classes() }
+		{ props.Attributes()... }
+	>
+		{ children... }
+	</div>
+}
+
+// sectionTitle renders a section title and any additional/supporting content.
+templ sectionTitle(title string) {
+	<div class="min-w-0 flex-1">
+		<h2 class="font-display text-lg font-semibold">{ title }</h2>
+		{ children... }
+	</div>
+}
+
+// sectionActions renders section action content. Placement will be on the right of the title on desktop screens, or under the
+// title on mobile screens.
+templ sectionActions() {
+	<div class="mt-3 flex sm:mt-0 sm:ml-4">
 		{ children... }
 	</div>
 }

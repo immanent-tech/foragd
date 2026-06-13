@@ -71,12 +71,12 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					}
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						// Favorite Subscriptions.
-						<section id="subscriptions" class="mt-8 content-auto">
-							<div class="border-b border-neutral pb-5">
-								<h2 class="font-display text-lg/7 font-semibold">Subscriptions</h2>
-							</div>
+						<section id="subscriptions" class="pt-4 content-auto">
+							@sectionHeading() {
+								@sectionTitle("Subscriptions")
+							}
 							if len(response.Subscriptions) > 0 {
-								@grid(element.WithClasses("items-stretch")) {
+								@grid(element.WithClasses("items-stretch pt-12")) {
 									for idx, subscription := range response.Subscriptions {
 										@SubscriptionCard(idx, subscription) {
 											if response.LatestArticles != nil {
@@ -106,7 +106,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 									}
 								}
 							} else {
-								<div class="mt-8 max-w-md text-center">
+								<div class="pt-12 max-w-md text-center">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										width="24"
@@ -137,18 +137,18 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								</div>
 							}
 						</section>
-						<section id="articles" class="mt-8 content-auto">
-							<div class="border-b border-neutral pb-5">
-								<h2 class="font-display text-lg/7 font-semibold">Articles</h2>
-							</div>
+						<section id="articles" class="pt-4 content-auto">
+							@sectionHeading() {
+								@sectionTitle("Articles")
+							}
 							if len(response.Articles) > 0 {
-								@grid() {
+								@grid(element.WithClasses("pt-12")) {
 									for idx, article := range response.Articles {
 										@ArticleCard(idx, article)
 									}
 								}
 							} else {
-								<div class="mt-8 max-w-md text-center">
+								<div class="pt-12 max-w-md text-center">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										width="24"

@@ -39,17 +39,22 @@ templ UserHome(data *HomeData) {
 						// Left Column.
 						<div class="space-y-8 sm:col-span-2">
 							<section aria-labelledby="section-latest-articles">
-								<div class="mb-4 flex items-center justify-between">
-									<h2 id="latest-heading" class="text-sm font-semibold tracking-widest text-base-content/50 uppercase">Latest Articles</h2>
-									<a
-										hx-get="/list/articles"
-										hx-target="#content"
-										hx-swap="innerHTML show:window:top transition:true"
-										class="link text-sm text-primary link-hover"
-									>See all <span aria-hidden="true">-></span></a>
-								</div>
+								@sectionHeading() {
+									@sectionTitle("Latest Articles")
+									@sectionActions() {
+										<a
+											hx-get="/list/articles"
+											hx-target="#content"
+											hx-swap="innerHTML show:window:top transition:true"
+											class="link text-sm text-primary link-hover"
+										>See all <span aria-hidden="true">-></span></a>
+									}
+								}
+								// <div class="mb-4 flex items-center justify-between">
+								// 	<h2 id="latest-heading" class="text-sm font-semibold tracking-widest text-base-content/50 uppercase">Latest Articles</h2>
+								// </div>
 								// Section: Latest Articles.
-								<div class="grid grid-cols-1 items-start gap-2 sm:grid-cols-2">
+								<div class="grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2">
 									for idx, article := range data.LatestArticles {
 										@ArticleCard(idx, article)
 									}
@@ -58,11 +63,13 @@ templ UserHome(data *HomeData) {
 						</div>
 						// Right Column.
 						<aside class="space-y-5">
-							<div class="overflow-hidden rounded-2xl border border-base-content/8 bg-base-200">
-								<div class="flex items-center justify-between border-b border-base-content/6 px-4 pt-4 pb-3">
-									<h2 class="text-xs font-semibold tracking-widest text-base-content/50 uppercase">Latest Updated Feeds</h2>
-									<a class="link text-xs text-primary link-hover" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
-								</div>
+							<div class="overflow-hidden rounded-box border border-base-content/8 bg-base-200">
+								@sectionHeading(element.WithClasses("pt-2 px-4")) {
+									@sectionTitle("Latest Updated Feeds")
+									@sectionActions() {
+										<a class="link text-xs text-primary link-hover" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
+									}
+								}
 								// List: Latest Updated Subscriptions.
 								<ul role="list" class="scrollbar-thin divide-y divide-neutral/15 overflow-y-auto">
 									for idx, subscription := range data.Subscriptions {
@@ -109,9 +116,11 @@ templ UserHome(data *HomeData) {
 								</div>
 							</div>
 							if len(data.TopCategories) > 0 {
-								<div class="rounded-2xl border border-base-content/8 bg-base-200 p-4">
-									<h2 class="mb-3 text-xs font-semibold tracking-widest text-base-content/50 uppercase">Top Categories</h2>
-									<div class="flex flex-wrap gap-1.5">
+								<div class="rounded-box border border-base-content/8 bg-base-200">
+									@sectionHeading(element.WithClasses("pt-2 px-4")) {
+										@sectionTitle("Top Categories")
+									}
+									<div class="flex flex-wrap gap-1.5 p-4">
 										for category := range slices.Values(data.TopCategories) {
 											{{
 												filters := models.NewListDisplayFilters()
