@@ -17,7 +17,7 @@ import (
 templ UserSettings() {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("pt-4")) {
 				<script type="module">
   const tabGroup = document.getElementById('settings-tabs');
 
@@ -42,26 +42,32 @@ templ UserSettings() {
   window.addEventListener('hashchange', activateTabFromHash);
 </script>
 				<el-tab-group id="settings-tabs">
-					<el-tab-list class="mt-8 mb-12 flex gap-x-8 py-2 text-base">
-						<button
-							id="settings-display-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#display'"
-						>Display</button>
-						<button
-							id="settings-account-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#account'"
-						>Account</button>
-						<button
-							id="settings-subscriptions-button"
-							type="button"
-							class="btn"
-							onclick="location.hash = '#subscriptions'"
-						>Subscriptions</button>
-					</el-tab-list>
+					// Show a page header.
+					@pageHeading() {
+						@pageTitle("Settings")
+						@pageActions() {
+							<el-tab-list class="mt-4 flex gap-x-2 md:mt-0 md:ml-4">
+								<button
+									id="settings-display-button"
+									type="button"
+									class="btn"
+									onclick="location.hash = '#display'"
+								>Display</button>
+								<button
+									id="settings-account-button"
+									type="button"
+									class="btn"
+									onclick="location.hash = '#account'"
+								>Account</button>
+								<button
+									id="settings-subscriptions-button"
+									type="button"
+									class="btn"
+									onclick="location.hash = '#subscriptions'"
+								>Subscriptions</button>
+							</el-tab-list>
+						}
+					}
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						<div
 							id="display"

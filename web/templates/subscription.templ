@@ -323,15 +323,15 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Show a page header.
-				<div class="md:flex md:items-center md:justify-between">
-					<div class="min-w-0 flex-1">
-						@PageHeading("Subscriptions")
-					</div>
-					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
-						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
-						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
-					</p>
-				</div>
+				@pageHeading() {
+					@pageTitle("Subscriptions")
+					@pageActions() {
+						<p aria-live="polite" class="flex gap-x-4 md:ml-4">
+							<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
+							<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
+						</p>
+					}
+				}
 				@FilterControls("/list/subscriptions", &response.Filters) {
 					// Subscriptions actions menu.
 					<el-dropdown class="inline-block">
@@ -623,7 +623,9 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				@PageHeading("Add a subscription")
+				@pageHeading() {
+					@pageTitle("Add a subscription")
+				}
 				<form
 					hx-post="/subscription/add/suggestions"
 					hx-target="#subscription-suggestions"

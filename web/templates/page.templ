@@ -1,0 +1,27 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+// pageHeading renders a section appropriate for displaying a page title and actions.
+templ pageHeading() {
+	<div class="md:flex md:items-center md:justify-between">
+		{ children... }
+	</div>
+}
+
+// pageTitle renders a page title and any additional/supporting content.
+templ pageTitle(title string) {
+	<div class="min-w-0 flex-1">
+		<h1 class="font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">{ title }</h1>
+		{ children... }
+	</div>
+}
+
+// pageActions renders page action content. Placement will be on the right of the title on desktop screens, or under the
+// title on mobile screens.
+templ pageActions() {
+	<div class="mt-4 flex md:mt-0 md:ml-4">
+		{ children... }
+	</div>
+}

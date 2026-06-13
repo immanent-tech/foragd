@@ -778,23 +778,23 @@ templ shareArticleButton(a *models.Article) {
 templ ListArticles(response *models.ListArticlesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("pt-4")) {
 				// Show a page header.
-				<div class="md:flex md:items-center md:justify-between">
-					<div class="min-w-0 flex-1">
-						{{ var title string }}
-						if response.Subscription != nil {
-							{{ title = response.Subscription.GetTitle() }}
-						} else {
-							{{ title = "Articles" }}
-						}
-						@PageHeading(title)
-					</div>
-					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
-						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
-						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
-					</p>
-				</div>
+				@pageHeading() {
+					{{ var title string }}
+					if response.Subscription != nil {
+						{{ title = response.Subscription.GetTitle() }}
+					} else {
+						{{ title = "Articles" }}
+					}
+					@pageTitle(title)
+					@pageActions() {
+						<p aria-live="polite" class="flex gap-x-4 md:ml-4">
+							<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
+							<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
+						</p>
+					}
+				}
 				<div
 					if response.Subscription != nil {
 						hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }

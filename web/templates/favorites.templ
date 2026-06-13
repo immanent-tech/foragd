@@ -16,17 +16,16 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				<el-tab-group id="favorites-tabs">
-					<div class="md:flex md:items-center md:justify-between">
-						<div class="min-w-0 flex-1">
-							@PageHeading("Favorites")
-						</div>
-						<el-tab-list class="mt-4 flex gap-x-2 md:mt-0 md:ml-4">
-							<button
-								id="favorite-subscriptions-button"
-								type="button"
-								class="btn"
-								onclick="location.hash = '#subscriptions'"
-								_="on load
+					@pageHeading() {
+						@pageTitle("Favorites")
+						@pageActions() {
+							<el-tab-list class="mt-4 flex gap-x-2 md:mt-0 md:ml-4">
+								<button
+									id="favorite-subscriptions-button"
+									type="button"
+									class="btn"
+									onclick="location.hash = '#subscriptions'"
+									_="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'subscriptions' or hash is empty
                               add .btn-primary to #favorite-subscriptions-button
@@ -43,13 +42,13 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                               end
                             end
 							"
-							>Subscriptions</button>
-							<button
-								id="favorite-articles-button"
-								type="button"
-								class="btn"
-								onclick="location.hash = '#articles'"
-								_="on load
+								>Subscriptions</button>
+								<button
+									id="favorite-articles-button"
+									type="button"
+									class="btn"
+									onclick="location.hash = '#articles'"
+									_="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'articles'
                               add .btn-primary to #favorite-articles-button
@@ -66,9 +65,10 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                               end
                             end
 							"
-							>Articles</button>
-						</el-tab-list>
-					</div>
+								>Articles</button>
+							</el-tab-list>
+						}
+					}
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						// Favorite Subscriptions.
 						<section id="subscriptions" class="mt-8 content-auto">

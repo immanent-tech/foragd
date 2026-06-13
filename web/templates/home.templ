@@ -24,29 +24,18 @@ type HomeData struct {
 templ UserHome(data *HomeData) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("pt-4")) {
 				if len(data.LatestArticles) == 0 {
 					// User has no unread content, show a message and link to favorites.
 					@partials.NoContent()
 				} else {
 					// Home Header.
-					<div class="flex items-center justify-between py-5 sm:py-7">
-						<div>
-							@PageHeading("Your Feed")
+					@pageHeading() {
+						@pageTitle("Your Feed") {
 							<p class="mt-0.5 text-sm text-base-content/50">{ time.Now().Format("Mon, 02 Jan 2006") }</p>
-						</div>
-					</div>
-					// Updates Toast.
-					{{ filters := new(models.NewListDisplayFilters()) }}
-					<div
-						id="updates"
-						class="toast toast-center z-10"
-						hx-post="/list/articles/updates"
-						hx-vals={ templ.JSONString(filters.Values()) }
-						hx-trigger="every 5m"
-						hx-target="#updates"
-					></div>
-					<div class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8">
+						}
+					}
+					<div class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8 pt-4">
 						// Left Column.
 						<div class="space-y-8 sm:col-span-2">
 							<section aria-labelledby="section-latest-articles">
@@ -143,6 +132,16 @@ templ UserHome(data *HomeData) {
 				}
 				@partials.ButtonBackToTop()
 			}
+			// Updates Toast.
+			{{ filters := new(models.NewListDisplayFilters()) }}
+			<div
+				id="updates"
+				class="toast toast-center z-10"
+				hx-post="/list/articles/updates"
+				hx-vals={ templ.JSONString(filters.Values()) }
+				hx-trigger="every 5m"
+				hx-target="#updates"
+			></div>
 		}
 	}
 }
