@@ -164,11 +164,9 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<div>
-					<h2 class="card-title line-clamp-2 font-serif text-xl font-bold leading-snug text-balance wrap-break-word group-hover:text-primary transition-colors group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-						{ s.GetTitle() }
-					</h2>
-				</div>
+				<h2 class="mb-2 line-clamp-2 flex-1 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+					{ s.GetTitle() }
+				</h2>
 			</div>
 		}
 		// Card body.
@@ -381,7 +379,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 											}) }
 									>
 										if response.Filters.GetView() == models.ViewUnread {
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened stroke-accent size-4">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-4 stroke-accent">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
 												<path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path>
 												<path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
@@ -390,7 +388,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 											</svg>
 											Mark All Read
 										} else {
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail text-accent size-4">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4 text-accent">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
 												<path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
 												<path d="M3 7l9 6l9 -6"></path>

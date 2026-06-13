@@ -59,20 +59,15 @@ templ ArticleCard(idx int, article *models.Article) {
 						element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 					)
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+					// Overlay the feed name on the image.
 					<div class="absolute top-2.5 left-2.5">
-						<span class="badge badge-sm bg-base-100/90 text-base-content/80 border-0 font-medium backdrop-blur-sm">{ article.Item.FeedTitle }</span>
+						<span class="badge border-0 bg-base-100/90 badge-sm font-medium text-base-content/80 backdrop-blur-sm">{ article.Item.FeedTitle }</span>
 					</div>
 				</figure>
+			} else {
+				// Show the feed name at the top left.
+				<span class="mt-2.5 ml-2.5 badge badge-ghost badge-sm font-medium text-base-content/80">{ article.Item.FeedTitle }</span>
 			}
-			// @partials.CardHeader() {
-			// 	<h2 class="mt-auto card-title line-clamp-2 font-serif text-xl font-bold tracking-tight text-balance wrap-break-word transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.toggle-categories-btn]:scale-none group-has-[.toggle-categories-btn:active]:transition-none">
-			// 		if article.GetTitle() != "" {
-			// 			{ article.GetTitle() }
-			// 		} else {
-			// 			(no title)
-			// 		}
-			// 	</h2>
-			// }
 		</div>
 		{{
 			var bodyClasses string
@@ -81,10 +76,24 @@ templ ArticleCard(idx int, article *models.Article) {
 			}
 		}}
 		@partials.CardBody(element.WithClasses(bodyClasses)) {
+			// Article Title.
+			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary">
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
+				} else {
+					(no title)
+				}
+			</h3>
+			// Article Summary (if any).
+			if content := article.GetContent(); content != "" {
+				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+					@templ.Raw(content)
+				</div>
+			}
 			{{ categoryLimit := 10 }}
-			// Show up to 10 category badges.
+			// Category Badges (up to 10).
 			if len(article.GetCategories(categoryLimit)) > 0 {
-				<div class="flex flex-wrap gap-1.5 mb-2.5 self-start">
+				<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
 					for idx, category := range article.GetCategories(categoryLimit) {
 						{{
 							filters := models.NewListDisplayFilters()
@@ -123,23 +132,10 @@ templ ArticleCard(idx int, article *models.Article) {
 					}
 				</div>
 			}
-			<h3 class="font-bold font-serif text-base text-balance leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
-				} else {
-					(no title)
-				}
-			</h3>
-			// Add summarised content if article has content.
-			if content := article.GetContent(); content != "" {
-				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
-					@templ.Raw(content)
-				</div>
-			}
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
-				<div class="flex min-w-0 flex-col">
+			<div class="flex items-center justify-between gap-4 border-t border-neutral/25 pt-3">
+				<div class="flex-separated flex min-w-0 items-center">
 					if len(article.GetAuthors()) > 0 {
 						{{
 							authors := make([]string, 0)
@@ -147,20 +143,20 @@ templ ArticleCard(idx int, article *models.Article) {
 								authors = append(authors, author.String())
 							}
 						}}
-						<strong class="truncate text-sm/6">
+						<div class="truncate text-xs/4">
 							{ strings.Join(authors,",") }
-						</strong>
+						</div>
 					}
 					<relative-time
 						datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 						format="relative"
-						class="text-xs/4 text-neutral capitalize tabular-nums"
+						class="shrink-0 text-xs/4 text-neutral capitalize tabular-nums"
 					>
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>
 				</div>
 				<div class="flex shrink-0 items-center gap-1">
-					<button class="btn btn-square btn-ghost btn-xs">
+					<button class="btn btn-square btn-ghost btn-sm">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
@@ -185,7 +181,7 @@ templ ArticleCard(idx int, article *models.Article) {
 							</label>
 						</form>
 					</button>
-					<button class="btn btn-square btn-ghost btn-xs">
+					<button class="btn btn-square btn-ghost btn-sm">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
@@ -223,7 +219,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					// Actions menu.
 					<div class="flex flex-none">
 						<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
-							<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-xs">
+							<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
 								<span class="sr-only">{ article.GetTitle() + " Actions" }</span>
 								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
@@ -849,7 +845,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
 											>
 												if response.Filters.GetView() == models.ViewUnread {
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened stroke-accent size-4">
+													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-4 stroke-accent">
 														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
 														<path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path>
 														<path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
@@ -858,7 +854,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 													</svg>
 													Mark Articles Read
 												} else {
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail text-accent size-4">
+													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4 text-accent">
 														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
 														<path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
 														<path d="M3 7l9 6l9 -6"></path>
