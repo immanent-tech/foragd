@@ -1,11 +1,30 @@
 #:schema https://json.schemastore.org/any.json
 
-
 [[releases]]
-version   = "v0.159"
+version   = "v0.160"
 date      = "June 8, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Tabbed Favorites page for easier navigation with larger number of favorites.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Behind the scenes performance fixes should increase stability and speed.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Styling improvements. Consistent page/section headings. Tooltips on card actions/menu in footer.
+"""
+
+[[releases]]
+version = "v0.159"
+date    = "June 8, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
