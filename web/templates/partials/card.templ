@@ -8,7 +8,7 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 templ Card(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "card overflow-hidden rounded-lg border border-neutral/25", props.Classes() }
+		class={ "card rounded-lg border border-neutral/25", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
