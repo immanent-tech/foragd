@@ -14,20 +14,19 @@ import (
 templ ListFavorites(response *models.ListFavoritesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
-				<div class="pt-12">
-					<el-tab-group id="favorites-tabs">
-						<div class="md:flex md:items-center md:justify-between">
-							<div class="min-w-0 flex-1">
-								<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Favorites</h2>
-							</div>
-							<el-tab-list class="mt-4 flex gap-x-2 md:mt-0 md:ml-4">
-								<button
-									id="favorite-subscriptions-button"
-									type="button"
-									class="btn"
-									onclick="location.hash = '#subscriptions'"
-									_="on load
+			@container(element.WithClasses("pt-4")) {
+				<el-tab-group id="favorites-tabs">
+					<div class="md:flex md:items-center md:justify-between">
+						<div class="min-w-0 flex-1">
+							@PageHeading("Favorites")
+						</div>
+						<el-tab-list class="mt-4 flex gap-x-2 md:mt-0 md:ml-4">
+							<button
+								id="favorite-subscriptions-button"
+								type="button"
+								class="btn"
+								onclick="location.hash = '#subscriptions'"
+								_="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'subscriptions' or hash is empty
                               add .btn-primary to #favorite-subscriptions-button
@@ -44,13 +43,13 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                               end
                             end
 							"
-								>Subscriptions</button>
-								<button
-									id="favorite-articles-button"
-									type="button"
-									class="btn"
-									onclick="location.hash = '#articles'"
-									_="on load
+							>Subscriptions</button>
+							<button
+								id="favorite-articles-button"
+								type="button"
+								class="btn"
+								onclick="location.hash = '#articles'"
+								_="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'articles'
                               add .btn-primary to #favorite-articles-button
@@ -67,122 +66,121 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                               end
                             end
 							"
-								>Articles</button>
-							</el-tab-list>
-						</div>
-						<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-							// Favorite Subscriptions.
-							<section id="subscriptions" class="mt-8 content-auto">
-								<div class="border-b border-neutral pb-5">
-									<h3 class="text-base font-semibold">Subscriptions</h3>
-								</div>
-								if len(response.Subscriptions) > 0 {
-									@grid(element.WithClasses("items-stretch")) {
-										for idx, subscription := range response.Subscriptions {
-											@SubscriptionCard(idx, subscription) {
-												if response.LatestArticles != nil {
-													{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
+							>Articles</button>
+						</el-tab-list>
+					</div>
+					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+						// Favorite Subscriptions.
+						<section id="subscriptions" class="mt-8 content-auto">
+							<div class="border-b border-neutral pb-5">
+								<h2 class="font-display text-lg/7 font-semibold">Subscriptions</h2>
+							</div>
+							if len(response.Subscriptions) > 0 {
+								@grid(element.WithClasses("items-stretch")) {
+									for idx, subscription := range response.Subscriptions {
+										@SubscriptionCard(idx, subscription) {
+											if response.LatestArticles != nil {
+												{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
+												if ok {
+													{{ items, ok := itemsData.(models.Items) }}
 													if ok {
-														{{ items, ok := itemsData.(models.Items) }}
-														if ok {
-															<div class="mt-auto h-full">
-																<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
-																	for item := range slices.Values(items) {
-																		<li
-																			hx-get={ "/view/article/" + item.GetID() }
-																			hx-target={ ContentID.Target() }
-																			hx-swap="innerHTML show:window:top transition:true"
-																			hx-trigger="click"
-																			hx-push-url="true"
-																			_="on click halt the event's bubbling"
-																			class="my-2 link text-pretty link-hover"
-																		>{ item.GetTitle() }</li>
-																	}
-																</ul>
-															</div>
-														}
+														<div class="mt-auto h-full">
+															<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
+																for item := range slices.Values(items) {
+																	<li
+																		hx-get={ "/view/article/" + item.GetID() }
+																		hx-target={ ContentID.Target() }
+																		hx-swap="innerHTML show:window:top transition:true"
+																		hx-trigger="click"
+																		hx-push-url="true"
+																		_="on click halt the event's bubbling"
+																		class="my-2 link text-pretty link-hover"
+																	>{ item.GetTitle() }</li>
+																}
+															</ul>
+														</div>
 													}
 												}
 											}
 										}
 									}
-								} else {
-									<div class="max-w-md mt-8 text-center">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-question-mark text-secondary size-16 mx-auto"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4"></path><path d="M12 19l0 .01"></path>
-										</svg>
-										<h4 class="mt-6 text-xl font-bold">No favorite subscriptions</h4>
-										<p class="mt-4 text-pretty">
-											Subscriptions you favorite will appear here.
-										</p>
-										<button
-											type="button"
-											hx-get="/list/subscriptions"
-											hx-target={ ContentID.Target() }
-											hx-swap="innerHTML show:window:top transition:true"
-											class="mt-6 btn btn-primary"
-										>
-											Go to your subscriptions <span aria-hidden="true">-></span>
-										</button>
-									</div>
 								}
-							</section>
-							<section id="articles" class="mt-8 content-auto">
-								<div class="border-b border-neutral pb-5">
-									<h3 class="text-base font-semibold">Articles</h3>
+							} else {
+								<div class="mt-8 max-w-md text-center">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="icon icon-tabler icons-tabler-outline icon-tabler-question-mark mx-auto size-16 text-secondary"
+									>
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4"></path><path d="M12 19l0 .01"></path>
+									</svg>
+									<h3 class="mt-6 text-xl font-bold">No favorite subscriptions</h3>
+									<p class="mt-4 text-pretty">
+										Subscriptions you favorite will appear here.
+									</p>
+									<button
+										type="button"
+										hx-get="/list/subscriptions"
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML show:window:top transition:true"
+										class="btn mt-6 btn-primary"
+									>
+										Go to your subscriptions <span aria-hidden="true">-></span>
+									</button>
 								</div>
-								if len(response.Articles) > 0 {
-									@grid() {
-										for idx, article := range response.Articles {
-											@ArticleCard(idx, article)
-										}
+							}
+						</section>
+						<section id="articles" class="mt-8 content-auto">
+							<div class="border-b border-neutral pb-5">
+								<h2 class="font-display text-lg/7 font-semibold">Articles</h2>
+							</div>
+							if len(response.Articles) > 0 {
+								@grid() {
+									for idx, article := range response.Articles {
+										@ArticleCard(idx, article)
 									}
-								} else {
-									<div class="max-w-md mt-8 text-center">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-question-mark text-secondary size-16 mx-auto"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4"></path><path d="M12 19l0 .01"></path>
-										</svg>
-										<h4 class="mt-6 text-xl font-bold">No favorite articles</h4>
-										<p class="mt-4 text-pretty">
-											Articles you favorite will appear here.
-										</p>
-										<button
-											type="button"
-											hx-get="/list/articles"
-											hx-target={ ContentID.Target() }
-											hx-swap="innerHTML show:window:top transition:true"
-											class="mt-6 btn btn-primary"
-										>
-											Go to your articles <span aria-hidden="true">-></span>
-										</button>
-									</div>
 								}
-							</section>
-						</el-tab-panels>
-					</el-tab-group>
-				</div>
+							} else {
+								<div class="mt-8 max-w-md text-center">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="icon icon-tabler icons-tabler-outline icon-tabler-question-mark mx-auto size-16 text-secondary"
+									>
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4"></path><path d="M12 19l0 .01"></path>
+									</svg>
+									<h3 class="mt-6 text-xl font-bold">No favorite articles</h3>
+									<p class="mt-4 text-pretty">
+										Articles you favorite will appear here.
+									</p>
+									<button
+										type="button"
+										hx-get="/list/articles"
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML show:window:top transition:true"
+										class="btn mt-6 btn-primary"
+									>
+										Go to your articles <span aria-hidden="true">-></span>
+									</button>
+								</div>
+							}
+						</section>
+					</el-tab-panels>
+				</el-tab-group>
 			}
 		}
 	}

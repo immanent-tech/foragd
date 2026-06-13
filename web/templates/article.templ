@@ -779,15 +779,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				// Watch for updates.
-				<div
-					id="updates"
-					class="toast toast-center"
-					hx-post="/list/articles/updates"
-					hx-vals={ templ.JSONString(response.Filters.Values()) }
-					hx-trigger="every 5m"
-					hx-target="#updates"
-				></div>
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
@@ -797,7 +788,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
+						@PageHeading(title)
 					</div>
 					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
@@ -1054,6 +1045,15 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					}
 				</section>
 			}
+			// Watch for updates.
+			<div
+				id="updates"
+				class="toast toast-center"
+				hx-post="/list/articles/updates"
+				hx-vals={ templ.JSONString(response.Filters.Values()) }
+				hx-trigger="every 5m"
+				hx-target="#updates"
+			></div>
 		}
 	}
 }
