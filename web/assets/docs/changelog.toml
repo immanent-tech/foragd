@@ -2,7 +2,7 @@
 
 [[releases]]
 version   = "v0.160"
-date      = "June 8, 2026"
+date      = "June 15, 2026"
 type      = "minor"
 is_latest = true
 [[releases.changes]]
