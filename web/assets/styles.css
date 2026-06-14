@@ -1,12 +1,12 @@
-@import "tailwindcss" source("../templates/**/*.{html,templ}");
-@import "tailwindcss-safe-area";
-@plugin "@tailwindcss/typography";
-@plugin "tailwindcss-visibility";
-@plugin "daisyui" {
+@import 'tailwindcss' source('../templates/**/*.{html,templ}');
+@import 'tailwindcss-safe-area';
+@plugin '@tailwindcss/typography';
+@plugin 'tailwindcss-visibility';
+@plugin 'daisyui' {
   themes: light, dark, dracula;
 }
 
-@import "./daisyui-custom.css";
+@import './daisyui-custom.css';
 
 :root {
   scrollbar-gutter: stable;
@@ -15,17 +15,15 @@
 
 /* Global custom theme values. */
 @theme {
-  --font-sans: "Inter", sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-sans--font-feature-settings:
-    "liga" 1, "ccmp" 1, "calt" 1, "ss01" 1, "ss03" 1, "cv02" 1, "cv03" 1,
-    "cv04" 1, "cv11" 1;
-  --font-serif: "TexGyrePagella", serif;
+    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
+  --font-serif: 'TexGyrePagella', serif;
   --font-serif--font-feature-settings:
-    "liga" 1, "ccmp" 1, "ss01" 1, "ss03" 1, "ss04" 1, "ss10" 1, "kern" 1;
-  --font-display: "Nunito", sans-serif;
+    'liga' 1, 'ccmp' 1, 'ss01' 1, 'ss03' 1, 'ss04' 1, 'ss10' 1, 'kern' 1;
+  --font-display: 'Nunito', sans-serif;
   --font-display--font-feature-settings:
-    "liga" 1, "ccmp" 1, "calt" 1, "ss01" 1, "ss03" 1, "cv02" 1, "cv03" 1,
-    "cv04" 1, "cv11" 1;
+    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
   --sidebar-width: var(--w-sm);
 
   @keyframes fadeInUp {
@@ -254,16 +252,22 @@
     .scrollable {
       @apply overflow-x-auto;
     }
-    [style*="white-space-collapse"] {
+    [style*='white-space-collapse'] {
       @apply whitespace-normal!;
     }
 
-    [id*="author"] {
+    /* Format elements that are likely an author bio/info. */
+    [id*='author'] {
       @apply text-sm/6;
     }
 
-    /* Hide duplicate images (usually just different sizes) */
+    /* Hide duplicate images (usually just different sizes). */
     img + img {
+      display: none;
+    }
+
+    /* Remove empty list elements. */
+    li:empty {
       display: none;
     }
   }
@@ -284,7 +288,7 @@
     }
 
     /* Captions under images */
-    td[align="center"] > p {
+    td[align='center'] > p {
       @apply mt-1 text-center text-sm/tight opacity-65;
     }
 
@@ -317,7 +321,7 @@
 
   .flex-separated > * + *::before {
     @apply mx-2;
-    content: "·";
+    content: '·';
   }
 
   /* For formatting help and policy documents. */
@@ -330,7 +334,7 @@
   }
   .section-label::after {
     @apply h-0.5 flex-1 bg-accent brightness-50;
-    content: "";
+    content: '';
   }
 }
 
@@ -388,8 +392,8 @@
   }
 
   /* Strip any injected tracking pixels */
-  img[width="1"],
-  img[height="1"] {
+  img[width='1'],
+  img[height='1'] {
     display: none !important;
   }
 }
