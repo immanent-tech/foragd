@@ -13,9 +13,40 @@ import (
 // ListFavorites renders subscription and article favorites in a grid layout.
 templ ListFavorites(response *models.ListFavoritesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		<script type="module">
+  const tabGroup = document.getElementById('favorites-tabs');
+
+  // Map hash → tab index
+  const tabMap = {
+    '#subscriptions': 0,
+    '#articles': 1,
+  };
+
+  function activateTabFromHash() {
+    const index = tabMap[window.location.hash];
+    if (index !== undefined) {
+      tabGroup.setActiveTab(index);
+    }
+  }
+
+  // Activate on initial load
+  activateTabFromHash();
+
+  // Also handle back/forward navigation
+  window.addEventListener('hashchange', activateTabFromHash);
+</script>
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
-				<el-tab-group id="favorites-tabs">
+				<el-tab-group
+					id="favorites-tabs"
+					data-script="
+					init
+                       	set hash to window.location.hash.replace('#', '')
+						if hash is empty
+							set window.location.hash to '#subscriptions'
+						end
+					"
+				>
 					@pageHeading() {
 						@pageTitle("Favorites")
 						@pageActions() {
