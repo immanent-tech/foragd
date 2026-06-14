@@ -417,7 +417,17 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							}
 						}
 						// Show some actions at the bottom of the list.
-						<nav class="mt-8 hidden justify-center" _="install RevealAtBottom">
+						<nav
+							class="mt-8 hidden justify-center"
+							_="
+						  	  on load or scroll from window
+    					  	  	if (window.scrollY + window.innerHeight) >= document.body.scrollHeight
+      								remove .hidden from me
+      					  	  		add .flex to me
+    						  	end
+  							 end
+							"
+						>
 							// Mark all subscriptions action.
 							<button
 								class="btn btn-wide btn-outline"

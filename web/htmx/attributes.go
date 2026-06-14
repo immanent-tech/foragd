@@ -21,7 +21,7 @@ type Attributes struct {
 // NewAttributes creates a Attributes object for an element with the given options.
 func NewAttributes(options ...AttributesOption) *Attributes {
 	props := &Attributes{
-		attributes: make(templ.Attributes),
+		attributes: make(templ.Attributes, len(options)),
 	}
 	for option := range slices.Values(options) {
 		if option == nil {
