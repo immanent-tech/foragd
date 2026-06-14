@@ -85,7 +85,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 = []any{"transition-transform duration-800 ease-in-out pointer-events-auto w-full max-w-sm alert alert-vertical sm:alert-horizontal", templ.KV("alert-info", msg.IsInfo()), templ.KV("alert-success", msg.IsSuccess()), templ.KV("alert-warning", msg.IsWarning()), templ.KV("alert-error", msg.IsError())}
+		var templ_7745c5c3_Var3 = []any{"transition-transform duration-800 ease-in-out pointer-events-auto w-full max-w-sm alert", templ.KV("alert-info", msg.IsInfo()), templ.KV("alert-success", msg.IsSuccess()), templ.KV("alert-warning", msg.IsWarning()), templ.KV("alert-error", msg.IsError())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -246,7 +246,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><button type=\"button\" class=\"btn btn-square btn-sm btn-outline\" _=\"on click settle then remove the closest parent <div/>\"><span class=\"sr-only\">Close</span> <svg viewBox=\"0 0 20 20\" fill=\"currentColor\" data-slot=\"icon\" aria-hidden=\"true\" class=\"size-5\"><path d=\"M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z\"></path></svg></button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><button type=\"button\" class=\"btn btn-square btn-outline btn-sm\" _=\"on click settle then remove the closest parent <div/>\"><span class=\"sr-only\">Close</span> <svg viewBox=\"0 0 20 20\" fill=\"currentColor\" data-slot=\"icon\" aria-hidden=\"true\" class=\"size-5\"><path d=\"M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z\"></path></svg></button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

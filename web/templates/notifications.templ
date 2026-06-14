@@ -44,7 +44,7 @@ templ Notification(msg *models.UserMessage, options ...notificationOption) {
 	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
 		<div
 			role="alert"
-			class={ "transition-transform duration-800 ease-in-out pointer-events-auto w-full max-w-sm alert alert-vertical sm:alert-horizontal", templ.KV("alert-info",msg.IsInfo()), templ.KV("alert-success",msg.IsSuccess()), templ.KV("alert-warning",msg.IsWarning()), templ.KV("alert-error",msg.IsError()) }
+			class={ "transition-transform duration-800 ease-in-out pointer-events-auto w-full max-w-sm alert", templ.KV("alert-info",msg.IsInfo()), templ.KV("alert-success",msg.IsSuccess()), templ.KV("alert-warning",msg.IsWarning()), templ.KV("alert-error",msg.IsError()) }
 			if opts.timeout != 0 {
 				_={ "on load wait for " + opts.timeout.String() + " then remove me" }
 			} else {
@@ -81,7 +81,7 @@ templ Notification(msg *models.UserMessage, options ...notificationOption) {
 			</div>
 			<button
 				type="button"
-				class="btn btn-square btn-sm btn-outline"
+				class="btn btn-square btn-outline btn-sm"
 				_="on click settle then remove the closest parent <div/>"
 			>
 				<span class="sr-only">Close</span>
