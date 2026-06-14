@@ -844,6 +844,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					</thead>
 					<tbody id="all-subscriptions">
 						for subscription := range slices.Values(data.Subscriptions) {
+							{{ s := &Subscription{Subscription: subscription} }}
 							<tr
 								class="subscription-row"
 								id={ subscription.GetID() }
@@ -866,9 +867,8 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 											}
 										</div>
-										<a class="link link-hover" { generateSubscriptionViewArticlesAttributes(subscription)... }>
+										<a class="link link-hover" { s.viewAttributes()... }>
 											<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>
-											// <div class="text-sm opacity-50"></div>
 										</a>
 									</div>
 								</td>
@@ -888,16 +888,13 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 									// Subscription actions buttons.
 									<div class="flex shrink-0 items-center gap-1">
 										// Favorite action.
-										@subscriptionFavoriteToggle(subscription)
+										@subscriptionFavoriteToggle(s)
 										// Mark action.
-										@subscriptionMarkToggle(subscription)
+										@subscriptionMarkToggle(s)
 										// Edit action.
 										<button
 											class="btn btn-square btn-ghost btn-md"
-											hx-get={ "/subscription/edit/" + subscription.GetID() }
-											hx-target={ ContentID.Target() }
-											hx-swap="innerHTML show:window:top transition:true"
-											hx-trigger="click consume"
+											{ s.editAttributes()... }
 										>
 											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-5 text-primary">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
@@ -906,13 +903,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										// Unsubscribe action.
 										<button
 											class="btn btn-square btn-ghost btn-md"
-											hx-post={ "/remove/subscription/" + subscription.GetID() }
-											hx-target={ partials.ModalContainerID.Target() }
-											hx-vals={ templ.JSONString(map[string]string{
-													"nickname": subscription.GetTitle(),
-													"confirmed": "false",
-												}) }
-											hx-trigger="click consume"
+											{ s.unsubscribeAttributes()... }
 										>
 											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash size-5 text-primary">
 												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>

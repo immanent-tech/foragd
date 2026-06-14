@@ -14,75 +14,17 @@ import (
 	"strings"
 )
 
-// ViewAttributes generates a templ.Attributes object containing htmx directives for viewing a subscription.
-func generateSubscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-trigger"] = "click consume"
-	attrs["hx-push-url"] = "true"
-	switch s.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListDisplayFilters()
-		filters.Subscriptions = []string{s.GetID()}
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"], _ = templ.JSONString(values)
-		attrs["hx-get"] = "/list/articles"
-	case models.SubscriptionTypeGroup:
-		filters := models.NewListDisplayFilters()
-		filters.Subscriptions = s.GroupData.Subscriptions
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"], _ = templ.JSONString(values)
-		attrs["hx-get"] = "/list/articles"
-	case models.SubscriptionTypeSearch:
-		attrs["hx-get"] = "/search"
-		s.SearchData.Search.SubscriptionID = new(s.GetID())
-		attrs["hx-vals"] = s.SearchData.Search.HXVals()
-	}
-	return attrs
-}
-
-// ReportIssueAttributes generates a templ.Attributes object containing directives for reporting an issue with the subscription.
-func generateSubscriptionReportIssueAttributes(s *models.Subscription) templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/issue"
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-replace-url"] = "true"
-	attrs["hx-trigger"] = "click consume"
-	vals, _ := templ.JSONString(map[string]any{
-		"object_id": s.GetID(),
-	})
-	attrs["hx-vals"] = vals
-	return attrs
-}
-
-templ subscriptionFavoriteToggle(subscription *models.Subscription) {
+templ subscriptionFavoriteToggle(subscription *Subscription) {
 	<div class="tooltip" data-tip="Toggle favorite">
 		<button
 			id={ subscription.GetID() + "-toggle-favorite-button" }
 			aria-label={ "Toggle favorite status for " + subscription.GetTitle() }
 			class="btn swap btn-square btn-ghost btn-md"
-			hx-post={ "/favorite/subscription/" + subscription.GetID() }
-			hx-swap="none"
-			hx-vals={ templ.JSONString(map[string]string{
-			"subscription_id": subscription.GetID(),
-		}) }
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
     	on htmx:afterRequest(failed) toggle @checked on <input /> in me end
 		"
+			{ subscription.favoriteAttributes()... }
 		>
 			<input
 				type="checkbox"
@@ -100,7 +42,7 @@ templ subscriptionFavoriteToggle(subscription *models.Subscription) {
 	</div>
 }
 
-templ subscriptionMarkToggle(subscription *models.Subscription) {
+templ subscriptionMarkToggle(subscription *Subscription) {
 	// Mark action.
 	if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
 		{{
@@ -116,17 +58,11 @@ templ subscriptionMarkToggle(subscription *models.Subscription) {
 				id={ subscription.GetID() + "-toggle-read-button" }
 				aria-label={ "Toggle read status for " + subscription.GetTitle() }
 				class="btn swap btn-square btn-ghost btn-md"
-				hx-post={ "/mark/subscription/" + subscription.GetID() }
-				hx-swap="none"
-				hx-vals={ templ.JSONString(map[string]string{
-				"subscription_id": subscription.GetID(),
-				"view": string(service.ListFiltersFromCtx(ctx).View),
-				"mark": string(mark),
-			}) }
 				_="
 			on htmx:afterRequest(successful) halt the event's bubbling end
     		on htmx:afterRequest(failed) toggle @checked on <input /> in me end
 			"
+				{ subscription.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
 			>
 				<input
 					type="checkbox"
@@ -148,7 +84,8 @@ templ subscriptionMarkToggle(subscription *models.Subscription) {
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
-templ SubscriptionCard(idx int, s *models.Subscription) {
+templ SubscriptionCard(idx int, subscription *models.Subscription) {
+	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("id", s.GetID()),
@@ -159,7 +96,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 		@partials.CardHeader() {
 			<div
 				class="flex cursor-pointer touch-manipulation items-center"
-				{ generateSubscriptionViewArticlesAttributes(s)... }
+				{ s.viewAttributes()... }
 			>
 				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 					if s.GetImage() == "" {
@@ -286,15 +223,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
-									<a
-										hx-post={ "/remove/subscription/" + s.GetID() }
-										hx-target={ partials.ModalContainerID.Target() }
-										hx-vals={ templ.JSONString(map[string]string{
-												"nickname": s.GetTitle(),
-												"confirmed": "false",
-											}) }
-										hx-trigger="click consume"
-									>
+									<a { s.unsubscribeAttributes()... }>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
 										</svg>
@@ -303,9 +232,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 								}
 								// Report issue action.
 								@partials.MenuItem() {
-									<a
-										{ generateSubscriptionReportIssueAttributes(s)... }
-									>
+									<a { s.reportIssueAttributes()... }>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
 										</svg>
