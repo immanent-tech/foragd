@@ -1,9 +1,20 @@
 {
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": false,
+  "singleQuote": true,
+  "quoteProps": "as-needed",
+  "trailingComma": "es5",
+  "bracketSameLine": true,
+  "htmlWhitespaceSensitivity": "css",
+  "embeddedLanguageFormatting": "auto",
   "plugins": [
     "prettier-plugin-organize-imports",
     "prettier-plugin-tailwindcss-extra-plus",
     "prettier-plugin-tailwindcss",
-    "@prettier/plugin-xml"
+    "@prettier/plugin-xml",
+    "prettier-plugin-templ"
   ],
   "tailwindStylesheet": "./web/assets/styles.css"
 }

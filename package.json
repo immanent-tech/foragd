@@ -49,6 +49,7 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
+    "prettier-plugin-templ": "^0.2.2",
     "release-please": "^17.9.0"
   },
   "@parcel/resolver-default": {
