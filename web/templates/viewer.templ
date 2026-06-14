@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -349,7 +350,12 @@ templ viewerItemCard(item *models.Item) {
 		{{ var img *models.RemoteImage }}
 		{{ img = item.GetImage() }}
 		if img == nil {
-			{{ img, _ = models.ExtractImageFromContent(item.GetContent()) }}
+			{{
+				url, alt, err := html.ExtractImageFromHTML(item.GetContent())
+				if err != nil {
+					img = models.NewRemoteImage(url, alt)
+				}
+			}}
 		}
 		if img != nil {
 			<figure>

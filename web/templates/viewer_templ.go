@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -234,7 +235,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle()[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 270, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 271, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -252,7 +253,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 277, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 278, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -270,7 +271,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 280, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 281, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -293,7 +294,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 		var templ_7745c5c3_Var8 templ.SafeURL
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(feed.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 288, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 289, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -306,7 +307,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(len(feed.GetItems()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 304, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 305, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -324,7 +325,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(feed.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 312, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 313, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 			if templ_7745c5c3_Err != nil {
@@ -337,7 +338,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetTimestamp().Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 316, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 317, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -423,7 +424,7 @@ func ViewerError(msg *models.UserMessage) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 338, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 339, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -441,7 +442,7 @@ func ViewerError(msg *models.UserMessage) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 341, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 342, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -489,7 +490,10 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var img *models.RemoteImage
 		img = item.GetImage()
 		if img == nil {
-			img, _ = models.ExtractImageFromContent(item.GetContent())
+			url, alt, err := html.ExtractImageFromHTML(item.GetContent())
+			if err != nil {
+				img = models.NewRemoteImage(url, alt)
+			}
 		}
 		if img != nil {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<figure><img src=\"")
@@ -499,7 +503,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.GetURL())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 357, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 363, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
@@ -512,7 +516,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 358, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 364, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 			if templ_7745c5c3_Err != nil {
@@ -525,7 +529,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 359, Col: 243}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 365, Col: 243}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 			if templ_7745c5c3_Err != nil {
@@ -543,7 +547,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 368, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 374, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -565,7 +569,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(authors, ","))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 379, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 385, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -583,7 +587,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 385, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 391, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
 		if templ_7745c5c3_Err != nil {
@@ -596,7 +600,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 389, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 395, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -625,7 +629,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var templ_7745c5c3_Var24 templ.SafeURL
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(item.GetLink())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 403, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 409, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
