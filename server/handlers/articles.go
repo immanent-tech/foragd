@@ -409,6 +409,9 @@ func HandleViewArticle() http.HandlerFunc {
 					slog.String("item_url", article.GetLink()),
 					slog.Any("error", err),
 				)
+				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+					res.WriteHeader(apiErr.HTTPStatus())
+				}
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{

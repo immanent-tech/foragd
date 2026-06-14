@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"slices"
 
@@ -106,7 +107,10 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 
 	article, err := result.ExtractArticle()
 	if err != nil {
-		return nil, fmt.Errorf("extract article: %w", err)
+		return nil, fmt.Errorf(
+			"extract article: %w",
+			&ResponseError{Title: err.Error(), Status: http.StatusUnprocessableEntity},
+		)
 	}
 
 	return article, nil

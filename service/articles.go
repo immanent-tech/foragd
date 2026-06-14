@@ -6,8 +6,10 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"slices"
 	"sync"
@@ -260,9 +262,12 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 		)
 		switch {
 		case err != nil:
-			return fmt.Errorf("fetch content: %w", err)
+			if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
+				return models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
+			}
+			return models.NewAPIError(http.StatusInternalServerError, err)
 		case extracted == nil:
-			return fmt.Errorf("parse content: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
 		default:
 			article.Content = new(extracted.GetHTML())
 		}
