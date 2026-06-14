@@ -39,9 +39,8 @@ var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
 // GetItems retrieves the Items matching the given ItemIDs.
 func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 	var (
-		items    models.Items
-		err      error
-		unCached []models.ItemID
+		items       models.Items
+		unCachedIDs []models.ItemID
 	)
 
 	// Fetch items from cache.
@@ -49,16 +48,16 @@ func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 		if item, found := itemsCache.GetIfPresent(id); found {
 			items = append(items, item)
 		} else {
-			unCached = append(unCached, id)
+			unCachedIDs = append(unCachedIDs, id)
 		}
 	}
 	// If there are items missing from the cache, fetch and cache them.
-	if len(unCached) > 0 {
-		items, err = elastic.GetDocs[models.ItemID, *models.Item](ctx, schema.ItemsIndexRO(), ids...)
+	if len(unCachedIDs) > 0 {
+		unCachedItems, err := elastic.GetDocs[models.ItemID, *models.Item](ctx, schema.ItemsIndexRO(), unCachedIDs...)
 		if err != nil {
 			return nil, fmt.Errorf("get items: %w", err)
 		}
-		for item := range slices.Values(items) {
+		for item := range slices.Values(unCachedItems) {
 			items = append(items, item)
 			itemsCache.Set(item.GetID(), item)
 		}
