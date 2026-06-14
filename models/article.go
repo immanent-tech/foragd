@@ -14,12 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/html"
-
-	"golang.org/x/net/html/atom"
-
 	"github.com/immanent-tech/foragd/models/schema"
-	htmlparser "github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
@@ -212,40 +208,15 @@ func (a *Article) GetContent() string {
 }
 
 func (a *Article) formatContent() string {
-	content := a.Item.GetContent()
-	switch {
+	switch content := a.Item.GetContent(); {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
-		// For reddit posts, check if the content is HTML.
-		if htmlparser.IsHTML(a.Item.GetContent()) {
-			doc, err := html.Parse(strings.NewReader(content))
-			if err != nil {
-				return content
-			}
-
-			row := htmlparser.FindHTMLNode(doc, "tr")
-			if row == nil {
-				return content
-			}
-
-			cells := htmlparser.FindAllHTMLNodes(row, "td")
-			if cells == nil {
-				return content
-			}
-
-			var str strings.Builder
-			for cell := range slices.Values(cells) {
-				if err := html.Render(&str, cell); err != nil {
-					return content
-				}
-			}
-
-			return str.String()
-		}
+		return html.CleanRedditHTML(a.Item.GetContent())
 	case a.SourceType == SourceTypeEmail:
 		// For emails, perform extra content cleanup.
 		return stripPreheaderPadding(content)
+	default:
+		return content
 	}
-	return content
 }
 
 // IsRemoteContent returns a boolean indicating whether the full content of the article should be shown.
@@ -258,12 +229,13 @@ func (a *Article) GetImage() *RemoteImage {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
 	}
-	// Try to extract an image from the content.
 
-	switch img, err := ExtractImageFromContent(a.GetContent()); {
+	// Try to extract an image from the content.
+	switch url, alt, err := html.ExtractImageFromHTML(a.GetContent()); {
 	case err != nil:
 		return nil
-	case img != nil:
+	case url != "":
+		img := NewRemoteImage(url, alt)
 		if img.GetTitle() == "" {
 			img.Title = new(a.GetTitle())
 		}
@@ -318,33 +290,6 @@ func (a *Article) IsFavorite() bool {
 // GetObjectType returns the type of the object, in this case, "article".
 func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
-}
-
-func ExtractImageFromContent(content string) (*RemoteImage, error) {
-	doc, err := html.Parse(strings.NewReader(content))
-	if err != nil {
-		return nil, fmt.Errorf("parse content: %w", err)
-	}
-	for n := range doc.Descendants() {
-		if n.Type == html.ElementNode && n.DataAtom == atom.Img {
-			img := &RemoteImage{}
-
-			for a := range slices.Values(n.Attr) {
-				switch a.Key {
-				case "src":
-					img.URL = new(a.Val)
-				case "alt":
-					img.Title = new(a.Val)
-				}
-			}
-
-			if img.URL != nil {
-				return img, nil
-			}
-		}
-	}
-
-	return nil, errors.New("no img element found")
 }
 
 // Valid ensures that the MarkArticlesRequest contains valid data.

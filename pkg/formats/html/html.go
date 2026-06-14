@@ -17,6 +17,7 @@ import (
 	"github.com/immanent-tech/go-syndication/client"
 	"github.com/immanent-tech/go-syndication/types"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // Common HTML tags.
@@ -53,8 +54,9 @@ var (
 )
 
 var (
-	ErrNotFound = errors.New("not found")
-	ErrParseURL = errors.New("could not parse URL")
+	ErrNotFound  = errors.New("not found")
+	ErrParseURL  = errors.New("could not parse URL")
+	ErrParseHTML = errors.New("could not parse HTML")
 )
 
 func buildTagPattern() *regexp.Regexp {
@@ -301,6 +303,38 @@ func FindMainImage(page []byte, rawURL string) (string, error) {
 	return rdData.ImageURL(), nil
 }
 
+func ExtractImageFromHTML(content string) (string, string, error) {
+	if !IsHTML(content) {
+		return "", "", fmt.Errorf("%w: content is not HTML", ErrParseHTML)
+	}
+	doc, err := html.Parse(strings.NewReader(content))
+	if err != nil {
+		return "", "", fmt.Errorf("%w: %w", ErrParseHTML, err)
+	}
+
+	var url, alt string
+
+	for n := range doc.Descendants() {
+		if n.Type == html.ElementNode && n.DataAtom == atom.Img {
+
+			for a := range slices.Values(n.Attr) {
+				switch a.Key {
+				case "src":
+					url = a.Val
+				case "alt":
+					alt = a.Val
+				}
+			}
+
+			if url != "" {
+				return url, alt, nil
+			}
+		}
+	}
+
+	return "", "", fmt.Errorf("%w: no image found", ErrParseHTML)
+}
+
 // SanitizeHTMLString will parse and re-render the given string containing HTML. In doing so, the HTML is hopefully
 // sanitized and reformatted to be well-formed HTML.
 func SanitizeHTMLString(rawStr string) (string, error) {
@@ -458,68 +492,4 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 		}
 	}
 	return feedURL.String(), nil
-}
-
-// checkMediumSignals walks the HTML tree and counts Medium-specific markers.
-func checkMediumSignals(n *html.Node) int {
-	count := 0
-
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
-		if n.Type == html.ElementNode {
-			switch n.Data {
-			case "meta":
-				name := attrVal(n, "name")
-				content := attrVal(n, "content")
-				property := attrVal(n, "property")
-
-				// Primary signal: Medium's generator tag
-				if strings.EqualFold(name, "generator") &&
-					strings.EqualFold(content, "Medium") {
-					count += 10 // strong signal
-				}
-
-				// Medium's Apollo client state hint
-				if strings.EqualFold(name, "medium-lite-url") {
-					count += 5
-				}
-
-				// Open Graph site name often set to "Medium"
-				if strings.EqualFold(property, "og:site_name") &&
-					strings.EqualFold(content, "Medium") {
-					count++
-				}
-
-			case "link":
-				href := attrVal(n, "href")
-				// Medium serves assets from miro.medium.com
-				if strings.Contains(href, "miro.medium.com") ||
-					strings.Contains(href, "medium.com") {
-					count++
-				}
-
-			case "script":
-				src := attrVal(n, "src")
-				// Medium's JS bundles come from medium.com
-				if strings.Contains(src, "medium.com") ||
-					strings.Contains(src, "miro.medium.com") {
-					count++
-				}
-			}
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
-		}
-	}
-	walk(n)
-	return count
-}
-
-func attrVal(n *html.Node, key string) string {
-	for _, a := range n.Attr {
-		if strings.EqualFold(a.Key, key) {
-			return a.Val
-		}
-	}
-	return ""
 }
