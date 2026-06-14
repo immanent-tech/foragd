@@ -80,7 +80,7 @@ func UserSettings() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script type=\"module\">\n  const tabGroup = document.getElementById('settings-tabs');\n\n  // Map hash → tab index\n  const tabMap = {\n    '#display': 0,\n    '#account': 1,\n\t'#subscriptions': 2,\n  };\n\n  function activateTabFromHash() {\n    const index = tabMap[window.location.hash];\n    if (index !== undefined) {\n      tabGroup.setActiveTab(index);\n    }\n  }\n\n  // Activate on initial load\n  activateTabFromHash();\n\n  // Also handle back/forward navigation\n  window.addEventListener('hashchange', activateTabFromHash);\n</script> <el-tab-group id=\"settings-tabs\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script type=\"module\">\n  const tabGroup = document.getElementById('settings-tabs');\n\n  // Map hash → tab index\n  const tabMap = {\n    '#display': 0,\n    '#account': 1,\n\t'#subscriptions': 2,\n  };\n\n  function activateTabFromHash() {\n    const index = tabMap[window.location.hash];\n    if (index !== undefined) {\n      tabGroup.setActiveTab(index);\n    }\n  }\n\n  // Activate on initial load\n  activateTabFromHash();\n\n  // Also handle back/forward navigation\n  window.addEventListener('hashchange', activateTabFromHash);\n</script> <el-tab-group id=\"settings-tabs\" data-script=\"\n\t\t\t\t\tinit\n                       \tset hash to window.location.hash.replace('#', '')\n\t\t\t\t\t\tif hash is empty\n\t\t\t\t\t\t\tset window.location.hash to '#display'\n\t\t\t\t\t\tend\n\t\t\t\t\t\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -132,7 +132,7 @@ func UserSettings() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<el-tab-panels class=\"mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none\"><div id=\"display\" hx-get=\"/user/settings/display\" hx-trigger=\"load, settings-display-revealed\" _=\"on load\n                           \tset hash to window.location.hash.replace('#', '')\n                            if hash is 'display'\n                              add .btn-primary to #settings-display-button\n                        \telse\n                              remove .btn-primary from #settings-display-button\n                            end\n                           end\n                           on hashchange from window\n                            set hash to window.location.hash.replace('#', '')\n                            if hash is 'display'\n                              add .btn-primary to #settings-display-button\n                              else\n                                remove .btn-primary from #settings-display-button\n                              end\n                            end\n\t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-display-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n\t\t\t\t\t\t\" class=\"content-auto\"></div><div id=\"account\" hx-get=\"/user/settings/account\" hx-trigger=\"settings-account-revealed\" _=\"on load\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'account'\n                                  add .btn-primary to #settings-account-button\n            \t\t\t\t\t  if my innerHTML is '' then htmx.trigger(me, 'settings-account-revealed') end\n                                else\n                                  remove .btn-primary from #settings-account-button\n                                end\n                               end\n                               on hashchange from window\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'account'\n                                  add .btn-primary to #settings-account-button\n                                else\n                                  remove .btn-primary from #settings-account-button\n                                end\n                               end\n  \t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-account-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n                             \" class=\"content-auto\"></div><div id=\"subscriptions\" hx-get=\"/user/settings/subscriptions\" hx-trigger=\"settings-subscriptions-revealed\" _=\"on load\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'subscriptions'\n                                  add .btn-primary to #settings-subscriptions-button\n            \t\t\t\t\t  if my innerHTML is '' then htmx.trigger(me, 'settings-subscriptions-revealed') end\n                                else\n                                  remove .btn-primary from #settings-subscriptions-button\n                                end\n                               end\n                               on hashchange from window\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'subscriptions'\n                                  add .btn-primary to #settings-subscriptions-button\n                                else\n                                  remove .btn-primary from #settings-subscriptions-button\n                                end\n                               end\n  \t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-subscriptions-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n                             \" class=\"content-auto\"></div></el-tab-panels></el-tab-group>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<el-tab-panels class=\"mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none\"><div id=\"display\" hx-get=\"/user/settings/display\" hx-trigger=\"load, settings-display-revealed\" data-script=\"on load\n                           \tset hash to window.location.hash.replace('#', '')\n                            if hash is 'display'\n                              add .btn-primary to #settings-display-button\n                        \telse\n                              remove .btn-primary from #settings-display-button\n                            end\n                           end\n                           on hashchange from window\n                            set hash to window.location.hash.replace('#', '')\n                            if hash is 'display'\n                              add .btn-primary to #settings-display-button\n                              else\n                                remove .btn-primary from #settings-display-button\n                              end\n                            end\n\t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-display-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n\t\t\t\t\t\t\" class=\"content-auto\"></div><div id=\"account\" hx-get=\"/user/settings/account\" hx-trigger=\"settings-account-revealed\" data-script=\"on load\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'account'\n                                  add .btn-primary to #settings-account-button\n            \t\t\t\t\t  if my innerHTML is '' then htmx.trigger(me, 'settings-account-revealed') end\n                                else\n                                  remove .btn-primary from #settings-account-button\n                                end\n                               end\n                               on hashchange from window\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'account'\n                                  add .btn-primary to #settings-account-button\n                                else\n                                  remove .btn-primary from #settings-account-button\n                                end\n                               end\n  \t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-account-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n                             \" class=\"content-auto\"></div><div id=\"subscriptions\" hx-get=\"/user/settings/subscriptions\" hx-trigger=\"settings-subscriptions-revealed\" data-script=\"on load\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'subscriptions'\n                                  add .btn-primary to #settings-subscriptions-button\n            \t\t\t\t\t  if my innerHTML is '' then htmx.trigger(me, 'settings-subscriptions-revealed') end\n                                else\n                                  remove .btn-primary from #settings-subscriptions-button\n                                end\n                               end\n                               on hashchange from window\n                                set hash to window.location.hash.replace('#', '')\n                                if hash is 'subscriptions'\n                                  add .btn-primary to #settings-subscriptions-button\n                                else\n                                  remove .btn-primary from #settings-subscriptions-button\n                                end\n                               end\n  \t\t\t\t\t\t   on mutation of @hidden\n       \t\t\t\t\t     if not @hidden and my innerHTML is ''\n         \t\t\t\t\t   htmx.trigger(me, 'settings-subscriptions-revealed')\n       \t\t\t\t\t\t end\n\t\t\t\t\t\t   end\n                             \" class=\"content-auto\"></div></el-tab-panels></el-tab-group>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -192,7 +192,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(user.CreatedAt.Add(models.DefaultTrialPeriod))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 177, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 186, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {
@@ -205,7 +205,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 181, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 190, Col: 77}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 183, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 192, Col: 77}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -266,7 +266,7 @@ func AccountSettings(user *models.User) templ.Component {
 				var templ_7745c5c3_Var11 templ.SafeURL
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(mgmtLink)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 216, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 225, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -299,7 +299,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(user.GetNickname())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 258, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 267, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -312,7 +312,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(user.GetEmail())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 274, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 283, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 			if templ_7745c5c3_Err != nil {
@@ -385,7 +385,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(models.RouteUserDeactivateAccount)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 491, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 500, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 		if templ_7745c5c3_Err != nil {
@@ -398,7 +398,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.ModalContainerID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 492, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 501, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -411,7 +411,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"confirmed": "no"}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 493, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 502, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -460,7 +460,7 @@ func showPaddleSubscriptionDetails(user *models.User) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.SubscriptionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 513, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 522, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -473,7 +473,7 @@ func showPaddleSubscriptionDetails(user *models.User) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.PriceName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 513, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 522, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -486,7 +486,7 @@ func showPaddleSubscriptionDetails(user *models.User) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.CurrentPeriodEnd)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 518, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 527, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
@@ -499,7 +499,7 @@ func showPaddleSubscriptionDetails(user *models.User) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.CurrentPeriodEnd.Format("Jan _2, 2006"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 522, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 531, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -690,7 +690,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(len(data.Subscriptions))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 660, Col: 176}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 669, Col: 176}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -703,7 +703,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(models.MaxSubscriptions)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 661, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 670, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -738,7 +738,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(len(data.Subscriptions.FilterByType(models.SubscriptionTypeEmail)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 665, Col: 215}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 674, Col: 215}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {
@@ -751,7 +751,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(models.MaxEmailNewsletters)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 666, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 675, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -764,7 +764,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(len(data.Subscriptions.FilterByType(models.SubscriptionTypeGroup)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 670, Col: 97}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 679, Col: 97}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
@@ -777,7 +777,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var33 string
 		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(len(data.Subscriptions.FilterByType(models.SubscriptionTypeSearch)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 674, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 683, Col: 98}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
@@ -806,7 +806,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue("/list/subscriptions/mark/" + string(models.MarkRead))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 811, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 820, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 			if templ_7745c5c3_Err != nil {
@@ -819,7 +819,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 812, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 821, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 			if templ_7745c5c3_Err != nil {
@@ -835,7 +835,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				"view": string(models.ViewAll),
 			}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 817, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 826, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37)
 			if templ_7745c5c3_Err != nil {
@@ -848,7 +848,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.ResolveAttributeValue("/list/subscriptions/mark/" + string(models.MarkUnread))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 826, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 835, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38)
 			if templ_7745c5c3_Err != nil {
@@ -861,7 +861,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 827, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 836, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
 			if templ_7745c5c3_Err != nil {
@@ -877,7 +877,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				"view": string(models.ViewAll),
 			}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 832, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 841, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 			if templ_7745c5c3_Err != nil {
@@ -896,7 +896,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var41 string
 				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 850, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 859, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41)
 				if templ_7745c5c3_Err != nil {
@@ -909,7 +909,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().UnixNano())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 851, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 860, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var42)
 				if templ_7745c5c3_Err != nil {
@@ -922,7 +922,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 852, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 861, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var43)
 				if templ_7745c5c3_Err != nil {
@@ -935,7 +935,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var44 string
 				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 857, Col: 128}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 866, Col: 128}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var44)
 				if templ_7745c5c3_Err != nil {
@@ -971,7 +971,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 871, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 880, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -984,7 +984,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 879, Col: 86}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 888, Col: 86}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 				if templ_7745c5c3_Err != nil {
@@ -997,7 +997,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				var templ_7745c5c3_Var47 string
 				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 883, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 892, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 				if templ_7745c5c3_Err != nil {
@@ -1053,7 +1053,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var48 string
 		templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 940, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 949, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var48)
 		if templ_7745c5c3_Err != nil {
@@ -1066,7 +1066,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 		var templ_7745c5c3_Var49 string
 		templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 947, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 956, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var49)
 		if templ_7745c5c3_Err != nil {
@@ -1108,7 +1108,7 @@ func ShowSubscriptionEmail(email string) templ.Component {
 		var templ_7745c5c3_Var51 string
 		templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.ResolveAttributeValue(email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 956, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 965, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var51)
 		if templ_7745c5c3_Err != nil {
@@ -1121,7 +1121,7 @@ func ShowSubscriptionEmail(email string) templ.Component {
 		var templ_7745c5c3_Var52 string
 		templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.ResolveAttributeValue("on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 959, Col: 162}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 968, Col: 162}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var52)
 		if templ_7745c5c3_Err != nil {
@@ -1187,7 +1187,7 @@ func themePreview(theme string) templ.Component {
 				var templ_7745c5c3_Var56 string
 				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(theme[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 985, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 994, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 				if templ_7745c5c3_Err != nil {
@@ -1200,7 +1200,7 @@ func themePreview(theme string) templ.Component {
 				var templ_7745c5c3_Var57 string
 				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 992, Col: 382}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 1001, Col: 382}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var57)
 				if templ_7745c5c3_Err != nil {
@@ -1213,7 +1213,7 @@ func themePreview(theme string) templ.Component {
 				var templ_7745c5c3_Var58 string
 				templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 994, Col: 13}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 1003, Col: 13}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 				if templ_7745c5c3_Err != nil {

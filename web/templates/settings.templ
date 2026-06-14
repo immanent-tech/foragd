@@ -41,7 +41,16 @@ templ UserSettings() {
   // Also handle back/forward navigation
   window.addEventListener('hashchange', activateTabFromHash);
 </script>
-				<el-tab-group id="settings-tabs">
+				<el-tab-group
+					id="settings-tabs"
+					data-script="
+					init
+                       	set hash to window.location.hash.replace('#', '')
+						if hash is empty
+							set window.location.hash to '#display'
+						end
+					"
+				>
 					// Show a page header.
 					@pageHeading() {
 						@pageTitle("Settings")
@@ -73,7 +82,7 @@ templ UserSettings() {
 							id="display"
 							hx-get="/user/settings/display"
 							hx-trigger="load, settings-display-revealed"
-							_="on load
+							data-script="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'display'
                               add .btn-primary to #settings-display-button
@@ -101,7 +110,7 @@ templ UserSettings() {
 							id="account"
 							hx-get="/user/settings/account"
 							hx-trigger="settings-account-revealed"
-							_="on load
+							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'account'
                                   add .btn-primary to #settings-account-button
@@ -130,7 +139,7 @@ templ UserSettings() {
 							id="subscriptions"
 							hx-get="/user/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
-							_="on load
+							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'subscriptions'
                                   add .btn-primary to #settings-subscriptions-button
