@@ -76,20 +76,6 @@ templ ArticleCard(idx int, article *models.Article) {
 			}
 		}}
 		@partials.CardBody(element.WithClasses(bodyClasses)) {
-			// Article Title.
-			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
-				} else {
-					(no title)
-				}
-			</h3>
-			// Article Summary (if any).
-			if content := article.GetContent(); content != "" {
-				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
-					@templ.Raw(content)
-				</div>
-			}
 			{{ categoryLimit := 10 }}
 			// Category Badges (up to 10).
 			if len(article.GetCategories(categoryLimit)) > 0 {
@@ -130,6 +116,20 @@ templ ArticleCard(idx int, article *models.Article) {
 							{ fmt.Sprintf("+ %d more",len(article.GetCategories(categoryLimit))-3) }
 						</button>
 					}
+				</div>
+			}
+			// Article Title.
+			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary">
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
+				} else {
+					(no title)
+				}
+			</h3>
+			// Article Summary (if any).
+			if content := article.GetContent(); content != "" {
+				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+					@templ.Raw(content)
 				</div>
 			}
 		}
