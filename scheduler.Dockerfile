@@ -1,17 +1,21 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-# Alpine base.
+
 # https://hub.docker.com/_/alpine/
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS builder
+ARG ALPINE_VERSION=3.24.0@sha256:a2d49ea686c2adfe3c992e47dc3b5e7fa6e6b5055609400dc2acaeb241c829f4
+# https://hub.docker.com/_/golang
+ARG GO_VERSION=1.26.4-alpine3.24@sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c
+
+FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
+FROM --platform=$BUILDPLATFORM docker.io/alpine:${ALPINE_VERSION} AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
 ARG APPVERSION
 
 # Copy go from official image.
-# https://hub.docker.com/_/golang
-COPY --from=docker.io/golang:1.26.3-alpine3.23@sha256:f44b851aa23dfa219d18db6eab743203245429d355cb619cf96a2ffe2a84ba7a /usr/local/go/ /usr/local/go/
+COPY --from=golang /usr/local/go/ /usr/local/go/
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -23,7 +27,7 @@ WORKDIR /build
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
-RUN mkdir -p pkg/go-syndication pkg/slog-elasticsearch pkg/slog-chi
+RUN mkdir -p pkg/go-syndication
 COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication/
 RUN go mod download
 
