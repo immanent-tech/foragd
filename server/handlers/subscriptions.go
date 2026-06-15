@@ -942,6 +942,8 @@ func (h *AddSubscription) FullResponse(res http.ResponseWriter, req *http.Reques
 func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // HandleAddSubscription handles showing a form for adding a new subscription.
