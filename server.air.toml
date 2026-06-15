@@ -78,7 +78,7 @@ stop_on_error = true
 # Send Interrupt signal before killing process (windows does not support this feature)
 send_interrupt = true
 # Delay after sending Interrupt signal
-kill_delay = 15000000000 # nanosecond
+kill_delay = 500 # nanosecond
 # Rerun binary or not
 rerun = false
 # Delay after each execution
