@@ -995,7 +995,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 														return templ_7745c5c3_Err
 													}
 													for item := range slices.Values(items) {
-														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<li class=\"my-1 text-sm/6 border-l-2 border-accent/40 pl-3\"><a hx-get=\"")
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<li class=\"my-1 text-base border-l-2 border-accent/40 pl-3\"><a hx-get=\"")
 														if templ_7745c5c3_Err != nil {
 															return templ_7745c5c3_Err
 														}

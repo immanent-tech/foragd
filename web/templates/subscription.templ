@@ -335,7 +335,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 													<div class="mt-auto h-full">
 														<ul class="latest-items menu">
 															for item := range slices.Values(items) {
-																<li class="my-1 text-sm/6 border-l-2 border-accent/40 pl-3">
+																<li class="my-1 text-base border-l-2 border-accent/40 pl-3">
 																	<a
 																		hx-get={ "/view/article/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
