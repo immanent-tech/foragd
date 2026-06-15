@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.160.2](https://github.com/immanent-tech/foragd/compare/v0.160.1...v0.160.2) (2026-06-15)
+
+
+### Bug Fixes
+
+* 🔧 change all /posts -&gt; /blog and add redirects ([c15f983](https://github.com/immanent-tech/foragd/commit/c15f983b334f1ebc6bc5fe6c04174eab0e1534d0))
+* **templates:** 🔧 fix layout shift with menus ([ffee167](https://github.com/immanent-tech/foragd/commit/ffee16746b81fec9db903fd1e2e7666a37750062))
+
 ## [0.160.1](https://github.com/immanent-tech/foragd/compare/v0.160.0...v0.160.1) (2026-06-15)
 
 
