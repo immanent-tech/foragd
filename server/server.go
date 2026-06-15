@@ -149,11 +149,16 @@ func Start(logger *slog.Logger) error {
 		// Policy documentation (i.e., terms of service, privacy).
 		r.Get("/policies/*", handlers.PolicyDocsHandler())
 		// Posts index.
-		r.Get("/posts", handlers.HandlePosts())
 		r.Get("/blog", handlers.HandlePosts())
+		r.Get("/posts", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			http.Redirect(res, req, "/blog", http.StatusMovedPermanently)
+		}))
 		// Individual posts.
-		r.Get("/posts/*", handlers.HandlePosts())
 		r.Get("/blog/*", handlers.HandlePosts())
+		r.Get("/posts/*", func(w http.ResponseWriter, r *http.Request) {
+			wildcardPath := chi.URLParam(r, "*")
+			http.Redirect(w, r, "/blog/"+wildcardPath, http.StatusMovedPermanently)
+		})
 		// Comparison pages.
 		r.Get("/compare/{service}", handlers.HandleComparison())
 		// Changelog.
