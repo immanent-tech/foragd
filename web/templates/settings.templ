@@ -263,6 +263,7 @@ templ AccountSettings(user *models.User) {
 							class="validator input bg-base-content/10 input-primary invalid:input-error"
 							placeholder="Nickname"
 							name="nickname"
+							autocomplete="name"
 							required
 							value={ user.GetNickname() }
 						/>
@@ -271,7 +272,7 @@ templ AccountSettings(user *models.User) {
 				</div>
 				// Edit email.
 				<div class="sm:col-span-full">
-					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
+					<label for="email" class="block text-sm/6 font-medium">Email</label>
 					<div class="mt-2">
 						<input
 							id="email"
@@ -280,6 +281,7 @@ templ AccountSettings(user *models.User) {
 							placeholder="Email"
 							name="email"
 							required
+							autocomplete="email"
 							value={ user.GetEmail() }
 						/>
 						<p class="validator-hint">Must be a valid email address</p>
@@ -405,13 +407,13 @@ templ AccountSettings(user *models.User) {
 				<div class="sm:col-span-full">
 					<label for="new-password" class="block text-sm/6 font-medium">New Password</label>
 					<div class="mt-2">
-						<input id="nickname" type="password" class="input bg-base-content/10 input-primary" name="new_password" required/>
+						<input id="new-password" type="password" class="input bg-base-content/10 input-primary" name="new_password" required/>
 					</div>
 				</div>
 				<div class="sm:col-span-full">
-					<label for="nickname" class="block text-sm/6 font-medium">Confirm New Password</label>
+					<label for="confirm-new-password" class="block text-sm/6 font-medium">Confirm New Password</label>
 					<div class="mt-2">
-						<input id="nickname" type="password" class="input bg-base-content/10 input-primary" name="confirm_new_password" required/>
+						<input id="confirm-new-password" type="password" class="input bg-base-content/10 input-primary" name="confirm_new_password" required/>
 					</div>
 				</div>
 				<div class="col-span-full place-self-end">
@@ -441,7 +443,7 @@ templ AccountSettings(user *models.User) {
 		</div>
 		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			<div class="col-span-full mt-8 place-self-end">
-				<div class="mt-2 flex items-center justify-end gap-x-6">
+				<div class="mt-2 sm:mt-0 flex flex-col items-start gap-y-3">
 					if user.Settings.SubscriptionEmail == nil {
 						<button
 							hx-post="/user/settings/subscriptionemail"
@@ -968,9 +970,11 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 }
 
 templ ShowSubscriptionEmail(email string) {
-	<p class="col-span-full mt-1 text-sm/6">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</p>
-	<div class="join col-span-full join-vertical sm:join-horizontal">
-		<input type="text" class="input join-item w-full input-primary" value={ email } readonly/>
+	<div>
+		<label for="newsletter-email" class="text-sm/6">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</label>
+	</div>
+	<div class="join join-vertical sm:join-horizontal w-full">
+		<input id="newsletter-email" type="text" class="input join-item w-full input-primary" value={ email } readonly/>
 		<button
 			class="btn join-item btn-outline btn-primary"
 			_={ "on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
@@ -981,11 +985,6 @@ templ ShowSubscriptionEmail(email string) {
 			<span class="sr-only">Copy</span>
 		</button>
 	</div>
-	// <el-copyable id="subscription-email">{ email }</el-copyable>
-	// <button command="--copy" commandfor="subscription-email" class="btn btn-primary">
-	// 	<span class="in-data-copied:hidden">Copy</span>
-	// 	<span class="not-in-data-copied:hidden">Copied!</span>
-	// </button>
 }
 
 templ themePreview(theme string) {
