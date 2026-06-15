@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.160.1](https://github.com/immanent-tech/foragd/compare/v0.160.0...v0.160.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **handlers/home:** 🔧 make sure latest articles on home respect any per-subscription article filters ([b6771b0](https://github.com/immanent-tech/foragd/commit/b6771b0265e53520cf61c46298d7dfcb936ab533))
+* **handlers/subscriptions:** 🔧 update dock/sidebar on htmx update of add subscription page ([69de59b](https://github.com/immanent-tech/foragd/commit/69de59bcbae8a37dc4192c1a8bd5cd9e9f673a4f))
+* **templates/list:** 🐛 fix broken filter actions ([faecd72](https://github.com/immanent-tech/foragd/commit/faecd722a1e1ba64341576a2587f3d89e66526cc))
+* **templates/sidebar:** 🎨 fix missing cursor change for hovering over sidebar links ([1f3e73c](https://github.com/immanent-tech/foragd/commit/1f3e73c935a3938c941542cd383a8ddc0717bfc4))
+
 ## [0.160.0](https://github.com/immanent-tech/foragd/compare/v0.159.8...v0.160.0) (2026-06-15)
 
 
