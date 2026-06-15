@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.161.0](https://github.com/immanent-tech/foragd/compare/v0.160.2...v0.161.0) (2026-06-15)
+
+
+### Features
+
+* **templates/settings:** ✨ add tooltips on subscription settings table ([e486427](https://github.com/immanent-tech/foragd/commit/e486427f6d6803acd5e7fa6847b5250a2e44ff56))
+
+
+### Bug Fixes
+
+* **assets:** 🔧 fix missing form encoding for share action in manifest ([744c141](https://github.com/immanent-tech/foragd/commit/744c14150f8f809e556c4d6ce4ea8e63c51db439))
+* **templates/article:** 🔧 fix mark articles button to depend on whether viewing articles for a subscription or not ([8c9544f](https://github.com/immanent-tech/foragd/commit/8c9544f0e511008e423ed08204a5f66d0b9d7b99))
+* **templates/subscription:** 🎨 increase font size for articles listed on subscription cards ([427d782](https://github.com/immanent-tech/foragd/commit/427d782dac6e137418d82681f279e58c87769523))
+
 ## [0.160.2](https://github.com/immanent-tech/foragd/compare/v0.160.1...v0.160.2) (2026-06-15)
 
 
