@@ -64,7 +64,7 @@ func LayoutInternal(props *InternalLayoutProps, content ...templ.Component) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"w-screen flex-1 scroll-mt-16 scroll-mb-16 pt-16 px-safe pb-16 lg:pl-36\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"w-screen flex-1 scroll-mt-16 scroll-mb-20 pt-16 px-safe pb-20 lg:pl-36\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -128,7 +128,7 @@ func LayoutExternal(content ...templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"w-screen flex-1 scroll-mt-16 pt-16 px-safe pb-24\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"w-screen flex-1 scroll-mt-16 pt-16 px-safe pb-20\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

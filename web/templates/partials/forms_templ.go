@@ -33,7 +33,7 @@ func FormSection() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mt-10 space-y-8 border-b border-base-300 pb-12 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300 sm:pb-0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mt-10 space-y-8 border-b border-neutral/20 pb-12 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300 sm:pb-0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

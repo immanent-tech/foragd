@@ -137,7 +137,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 		}
 		// Card footer.
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
+			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
@@ -263,7 +263,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				// List actions.
 				if len(response.Subscriptions) > 0 {
-					<div id="list-actions" class="w-full flex justify-end pb-4">
+					<div id="list-actions" class="w-full flex justify-end">
 						if len(response.Subscriptions) > 0 {
 							{{
 								var mark models.Mark
@@ -316,7 +316,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 						}
 					</div>
 				}
-				<section class="mt-4">
+				<section id="subscriptions-list">
 					if len(response.Subscriptions) > 0 {
 						@grid(element.WithClasses("items-stretch")) {
 							@templ.Fragment(PaginateFragment) {
@@ -457,7 +457,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 		</button>
 		@partials.FormSection() {
 			<el-disclosure id="subscription-article-filtering" hidden>
-				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+				<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 					@partials.FormField() {
 						<label for="article-text-filters" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Text</label>
 						<div class="mt-2 sm:col-span-2 sm:mt-0">
@@ -758,7 +758,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 						}
 						id="customisation"
 					>
-						<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+						<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 							@partials.FormField() {
 								<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
 								<div class="mt-2 sm:col-span-2 sm:mt-0">
@@ -827,7 +827,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 							hidden
 							id="subscription-settings"
 						>
-							<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+							<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 								@partials.FormField() {
 									<div class="flex items-center">
 										<label for="show-full-article-content" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">
@@ -987,7 +987,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 									// 	}
 									// }
 									@partials.CardFooter(element.WithClasses("items-center")) {
-										<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
+										<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 											<div class="flex min-w-0 flex-col">
 												if len(item.GetAuthors()) > 0 {
 													{{
@@ -1140,7 +1140,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									id="filtering"
 									hidden
 								>
-									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+									<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 										@partials.FormField() {
 											<label for="search-categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">
@@ -1277,7 +1277,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									id="customisation"
 									hidden
 								>
-									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+									<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 										@partials.FormField() {
 											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">
@@ -1470,7 +1470,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									id="customisation"
 									hidden
 								>
-									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+									<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 										@partials.FormField() {
 											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">

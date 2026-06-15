@@ -114,7 +114,7 @@ templ ChangelogPage(releases []Release) {
 				</p>
 			</div>
 			// Subscribe.
-			<div class="alert bg-base-200 border border-base-300 mb-8 py-3">
+			<div class="alert bg-base-200 border border-neutral/20 mb-8 py-3">
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"></path>
 				</svg>
@@ -147,7 +147,7 @@ templ releaseItem(r Release, isLast bool) {
 		}
 	</div>
 	// Release details.
-	<div class="timeline-end timeline-box w-full bg-base-100 border border-base-200 shadow-none mb-6 ml-2">
+	<div class="timeline-end timeline-box w-full bg-base-100 border border-neutral/20 shadow-none mb-6 ml-2">
 		// Header.
 		<div class="flex flex-wrap items-center gap-2 mb-4">
 			<span id={ r.Version } class="font-semibold text-base text-base-content">{ r.Version }</span>

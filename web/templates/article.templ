@@ -398,7 +398,7 @@ templ ArticleCard(idx int, a *models.Article) {
 			}
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
+			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 				<div class="flex-separated flex min-w-0 items-center">
 					if len(article.GetAuthors()) > 0 {
 						{{
@@ -509,7 +509,7 @@ templ ArticleContent(a *models.Article) {
 						}
 					</div>
 					// Byline and actions.
-					<div class="grid grid-cols-2 items-center justify-between border-b border-neutral/25 p-1">
+					<div class="grid grid-cols-2 items-center justify-between border-b border-neutral/20 p-1">
 						<div class="flex items-center">
 							if article.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
@@ -592,7 +592,7 @@ templ ArticleContent(a *models.Article) {
 									@templ.Raw(content)
 								</div>
 							}
-							<div class="mt-8 w-full border-t border-neutral/25"></div>
+							<div class="mt-8 w-full border-t border-neutral/20"></div>
 							<div class="mx-auto mt-4 fieldset w-xs justify-items-center">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
@@ -657,7 +657,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				if len(response.Articles) > 0 {
 					<div
 						id="list-actions"
-						class="w-full flex justify-end pb-4"
+						class="w-full flex justify-end"
 						if response.Subscription != nil {
 							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
 						}
@@ -767,7 +767,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						}
 					</div>
 				}
-				<section class="mt-4">
+				<section id="articles-list">
 					if len(response.Articles) > 0 {
 						@grid() {
 							@templ.Fragment(PaginateFragment) {

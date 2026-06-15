@@ -68,7 +68,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto lg:mx-0\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons</h1><p class=\"mt-2 text-base\">The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons with other feed readers, and practical strategies for taking back control of your reading in an era of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find guides and opinions here to help you get the most out of independent web reading.</p></div><div class=\"mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-base-300 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto lg:mx-0\"><h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons</h1><p class=\"mt-2 text-base\">The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons with other feed readers, and practical strategies for taking back control of your reading in an era of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find guides and opinions here to help you get the most out of independent web reading.</p></div><div class=\"mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral/20 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -452,7 +452,7 @@ func Post(post *models.MarkdownFile) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</p><div class=\"mb-4 flex items-center justify-between border-t border-b border-neutral/25 p-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</p><div class=\"mb-4 flex items-center justify-between border-t border-b border-neutral/20 p-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

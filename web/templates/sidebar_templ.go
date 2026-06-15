@@ -39,7 +39,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav aria-label=\"Sidebar Navigation\" id=\"page-sidebar\" class=\"mt-16 hidden border-r border-neutral/25 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav aria-label=\"Sidebar Navigation\" id=\"page-sidebar\" class=\"mt-16 hidden border-r border-neutral/20 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] lg:fixed lg:inset-y-safe-or-0 lg:pl-safe lg:z-50 lg:flex lg:w-36 lg:flex-col\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

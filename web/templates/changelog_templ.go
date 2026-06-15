@@ -157,7 +157,7 @@ func ChangelogPage(releases []Release) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"mb-8\"><h1 id=\"page-title\" class=\"mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Changelog</h1><p class=\"text-sm text-base-content/60\">Foragd updates and improvements — shipped often.</p></div> <div class=\"alert bg-base-200 border border-base-300 mb-8 py-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-5 w-5 shrink-0 text-base-content/50\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z\"></path></svg> <span class=\"text-sm text-base-content/70 flex-1\">Get notified when we ship something new.</span> <a href=\"/changelog/feed\" class=\"link link-primary text-sm font-medium\">Subscribe to updates</a></div> <ul class=\"timeline timeline-vertical timeline-compact\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"mb-8\"><h1 id=\"page-title\" class=\"mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Changelog</h1><p class=\"text-sm text-base-content/60\">Foragd updates and improvements — shipped often.</p></div> <div class=\"alert bg-base-200 border border-neutral/20 mb-8 py-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-5 w-5 shrink-0 text-base-content/50\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z\"></path></svg> <span class=\"text-sm text-base-content/70 flex-1\">Get notified when we ship something new.</span> <a href=\"/changelog/feed\" class=\"link link-primary text-sm font-medium\">Subscribe to updates</a></div> <ul class=\"timeline timeline-vertical timeline-compact\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -238,7 +238,7 @@ func releaseItem(r Release, isLast bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"timeline-end timeline-box w-full bg-base-100 border border-base-200 shadow-none mb-6 ml-2\"><div class=\"flex flex-wrap items-center gap-2 mb-4\"><span id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"timeline-end timeline-box w-full bg-base-100 border border-neutral/20 shadow-none mb-6 ml-2\"><div class=\"flex flex-wrap items-center gap-2 mb-4\"><span id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
