@@ -3,12 +3,17 @@
 [[releases]]
 version   = "v0.160"
 date      = "June 15, 2026"
-type      = "minor"
+type      = "major"
 is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
 Tabbed Favorites page for easier navigation with larger number of favorites.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Easily add new subscriptions from sidebar/dock.
 """
 [[releases.changes]]
 type = "improved"

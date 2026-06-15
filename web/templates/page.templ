@@ -26,8 +26,12 @@ templ pageTitle(title string) {
 
 // pageActions renders page action content. Placement will be on the right of the title on desktop screens, or under the
 // title on mobile screens.
-templ pageActions() {
-	<div class="mt-4 flex md:mt-0 md:ml-4">
+templ pageActions(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div
+		class={ "mt-4 flex items-center md:mt-0 md:ml-4", props.Classes() }
+		{ props.Attributes()... }
+	>
 		{ children... }
 	</div>
 }

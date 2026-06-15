@@ -60,7 +60,6 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),
 	).GetAttributes()
-
 }
 
 func (s *Subscription) markAttributes(view models.View) templ.Attributes {

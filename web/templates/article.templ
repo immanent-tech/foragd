@@ -288,7 +288,7 @@ templ ArticleCard(idx int, a *models.Article) {
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithClasses(
-			"group", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "self-start", "cursor-pointer", "touch-manipulation"),
+			"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation"),
 		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
 		element.WithHXSwap("innerHTML show:window:top transition:true"),
@@ -325,12 +325,12 @@ templ ArticleCard(idx int, a *models.Article) {
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 					// Overlay the feed name on the image.
 					<div class="absolute top-2.5 left-2.5">
-						<span class="badge border-0 bg-base-100/90 badge-sm font-medium text-base-content/80 backdrop-blur-sm">{ article.Item.FeedTitle }</span>
+						<span class="badge badge-neutral badge-soft badge-sm font-medium backdrop-blur-sm">{ article.Item.FeedTitle }</span>
 					</div>
 				</figure>
 			} else {
 				// Show the feed name at the top left.
-				<span class="mt-2.5 ml-2.5 badge badge-ghost badge-sm font-medium text-base-content/80">{ article.Item.FeedTitle }</span>
+				<span class="mt-2.5 ml-2.5 badge badge-ghost badge-sm font-medium">{ article.Item.FeedTitle }</span>
 			}
 		</div>
 		{{
@@ -383,7 +383,7 @@ templ ArticleCard(idx int, a *models.Article) {
 				</div>
 			}
 			// Article Title.
-			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary">
+			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
@@ -419,7 +419,7 @@ templ ArticleCard(idx int, a *models.Article) {
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>
 				</div>
-				<div class="flex shrink-0 items-center gap-1">
+				<div class="flex shrink-0 items-center divide-x divide-neutral/20">
 					// Toggle favorite action.
 					@article.favoriteToggle()
 					// Toggle mark action.
@@ -633,6 +633,7 @@ templ ArticleContent(a *models.Article) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
+	{{ controls := &listControls{path: "/list/articles", filters: response.Filters} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
@@ -645,154 +646,68 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						{{ title = "Articles" }}
 					}
 					@pageTitle(title)
-					@pageActions() {
-						// <div class="w-full justify-end">
-						// 	<div class="tabs tabs-box">
-						// 		<input type="radio" name="view" class="tab" aria-label="Unread"/>
-						// 		<input type="radio" name="view" class="tab" aria-label="Read" checked="checked"/>
-						// 		<input type="radio" name="view" class="tab" aria-label="All"/>
-						// 	</div>
-						// </div>
-						<p aria-live="polite" class="flex gap-x-4 md:ml-4">
-							<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
-							<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
-						</p>
+					@pageActions(element.WithClasses("justify-between")) {
+						@controls.viewFilters()
+						@controls.sortOptions()
 					}
 				}
-				<div
-					if response.Subscription != nil {
-						hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
-					}
-				>
-					@FilterControls("/list/articles", &response.Filters) {
-						<el-dropdown class="inline-block flex-none">
-							<button id="articles-actions-button" class="btn inline-flex btn-wide">
-								Actions
-								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
-								</svg>
-							</button>
-							@partials.Menu(
-								element.WithAttribute("id", "articles-actions-menu"),
-								element.WithAttribute("_", "on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me end"),
-								element.WithAttribute("anchor", "bottom start"),
-							) {
-								if response.Subscription == nil {
-									if len(response.Articles) > 0 {
-										// Mark all articles action.
-										@partials.MenuItem() {
-											{{
-												var mark models.Mark
-												if response.Filters.GetView() == models.ViewUnread {
-													mark = models.MarkRead
-												} else {
-													mark = models.MarkUnread
-												}
-											}}
-											<a
-												if response.Filters.GetView() == models.ViewUnread {
-													hx-post="/list/articles/mark/read"
-												} else {
-													hx-post="/list/articles/mark/unread"
-												}
-												hx-target={ ContentID.Target() }
-												hx-include="article > input"
-												hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-											>
-												if response.Filters.GetView() == models.ViewUnread {
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-4 stroke-accent">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-														<path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path>
-														<path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
-														<path d="M3 19l6 -6"></path>
-														<path d="M15 13l6 6"></path>
-													</svg>
-													Mark Articles Read
-												} else {
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4 text-accent">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-														<path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
-														<path d="M3 7l9 6l9 -6"></path>
-													</svg>
-													Mark Articles Unread
-												}
-											</a>
-										}
-									} else {
-										@partials.MenuItem() {
-											<p class="px-4 py-2 italic">No actions.</p>
-										}
-									}
-								} else {
-									// Show mark read/unread action when not viewing all articles.
-									if response.Filters.GetView() != models.ViewAll {
-										// Mark subscription action.
-										@partials.MenuItem() {
-											{{
-												var mark models.Mark
-												if response.Filters.GetView() == models.ViewUnread {
-													mark = models.MarkRead
-												} else {
-													mark = models.MarkUnread
-												}
-											}}
-											<a
-												hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-												hx-vals={ templ.JSONString(map[string]string{
-														"mark": string(mark),
-														"subscription_id": response.Subscription.GetID(),
-														"view": string(response.Filters.GetView()),
-														}) }
-											>
-												if response.Filters.GetView() == models.ViewUnread {
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4 fill-accent">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
-													</svg>
-													Mark Subscription Read
-												} else {
-													<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail size-4 stroke-accent">
-														<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z"></path><path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z"></path>
-													</svg>
-													Mark Subscription Unread
-												}
-											</a>
-										}
-									}
-									// Edit subscription action.
-									@partials.MenuItem() {
-										<a
-											hx-get={ "/subscription/edit/" + response.Subscription.GetID() }
-											hx-target={ ContentID.Target() }
-											hx-params="not subscription_id"
-										>
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4 stroke-accent">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
-											</svg>
-											Edit Subscription
-										</a>
-									}
-									// Unsubscribe action.
-									@partials.MenuItem() {
-										<a
-											hx-post={ "/remove/subscription/" + response.Subscription.GetID() }
-											hx-target={ partials.ModalContainerID.Target() }
-											hx-vals={ templ.JSONString(map[string]string{
-													"nickname": response.Subscription.GetTitle(),
-													"confirmed": "false",
-												}) }
-											hx-trigger="click consume"
-										>
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash size-4 stroke-accent">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
-											</svg>
-											Remove Subscription
-										</a>
-									}
-								}
+				// List actions.
+				if len(response.Articles) > 0 {
+					<div
+						class="w-full flex justify-end px-2 pb-4"
+						if response.Subscription != nil {
+							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
+						}
+					>
+						{{
+							var mark models.Mark
+							if response.Filters.GetView() == models.ViewUnread {
+								mark = models.MarkRead
+							} else {
+								mark = models.MarkUnread
 							}
-						</el-dropdown>
-					}
-				</div>
+						}}
+						<button
+							if response.Filters.GetView() == models.ViewUnread {
+								hx-post="/list/articles/mark/read"
+							} else {
+								hx-post="/list/articles/mark/unread"
+							}
+							hx-target={ ContentID.Target() }
+							hx-include=".card > input"
+							hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
+							class="btn btn-square btn-ghost"
+						>
+							if response.Filters.GetView() == models.ViewUnread {
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5"
+								><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path></svg>
+							} else {
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5"
+								><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path></svg>
+							}
+						</button>
+					</div>
+				}
 				<section class="mt-4">
 					if len(response.Articles) > 0 {
 						@grid() {

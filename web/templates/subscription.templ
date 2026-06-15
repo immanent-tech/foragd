@@ -86,10 +86,9 @@ templ subscriptionMarkToggle(subscription *Subscription) {
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, subscription *models.Subscription) {
 	{{ s := &Subscription{Subscription: subscription} }}
-	@partials.Card(
+	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithAttribute("id", s.GetID()),
-		element.WithClasses("group", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+		element.WithClasses("group", "animate-fadeinup"),
 	) {
 		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
 		// Card header.
@@ -105,7 +104,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<h2 class="mb-2 line-clamp-2 flex-1 font-serif text-base leading-snug font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="mb-2 line-clamp-2 flex-1 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 			</div>
@@ -142,11 +141,10 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
-							<span class="col-span-full justify-start text-xs/4 text-wrap text-neutral capitalize">
+							<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums">
 								<relative-time
 									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 									format="relative"
-									class="tabular-nums"
 								>
 									{ s.GetUpdatedDate().Format("Jan _2, 2006") }
 								</relative-time>
@@ -162,18 +160,17 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 							</span>
 						</div>
 					} else {
-						<span class="text-xs/4 text-wrap text-neutral capitalize">
+						<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
-								class="tabular-nums"
 							>
 								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
 						</span>
 					}
 				</div>
-				<div class="flex shrink-0 items-center gap-1">
+				<div class="flex shrink-0 items-center divide-x divide-neutral/20">
 					// Favorite action.
 					@subscriptionFavoriteToggle(s)
 					// Mark action.
@@ -250,6 +247,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
+	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
@@ -257,111 +255,71 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				@pageHeading() {
 					@pageTitle("Subscriptions")
 					@pageActions() {
-						<p aria-live="polite" class="flex gap-x-4 md:ml-4">
-							<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
-							<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
-						</p>
+						@controls.viewFilters()
+						@controls.sortOptions()
 					}
 				}
-				@FilterControls("/list/subscriptions", &response.Filters) {
-					// Subscriptions actions menu.
-					<el-dropdown class="inline-block">
-						<button
-							id="subscriptions-actions-button"
-							class="btn btn-wide"
-						>
-							Actions
-							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
-							</svg>
-						</button>
-						@partials.Menu(
-							element.WithAttribute("id", "subscriptions-actions-menu"),
-							element.WithAttribute("_", "on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"),
-							element.WithAttribute("anchor", "bottom start"),
-						) {
-							// Mark all subscriptions action (when there are subscriptions shown).
-							if len(response.Subscriptions) > 0 {
-								@partials.MenuItem() {
-									{{
-										var mark models.Mark
-										if response.Filters.GetView() == models.ViewUnread {
-											mark = models.MarkRead
-										} else {
-											mark = models.MarkUnread
-										}
-									}}
-									<a
-										hx-post={ "/list/subscriptions/mark/" + string(mark) }
-										hx-target={ ContentID.Target() }
-										hx-include=".card > input"
-										hx-vals={ templ.JSONString(map[string]string{
+				// List actions.
+				if len(response.Subscriptions) > 0 {
+					<div class="w-full flex justify-end px-2 pb-4">
+						if len(response.Subscriptions) > 0 {
+							{{
+								var mark models.Mark
+								if response.Filters.GetView() == models.ViewUnread {
+									mark = models.MarkRead
+								} else {
+									mark = models.MarkUnread
+								}
+							}}
+							<div
+								class="tooltip overflow-visible"
+								if mark == models.MarkRead {
+									data-tip="Mark all Read"
+								} else {
+									data-tip="Mark all Unread"
+								}
+							>
+								<button
+									hx-post={ "/list/subscriptions/mark/" + string(mark) }
+									hx-target={ ContentID.Target() }
+									hx-include=".card > input"
+									hx-vals={ templ.JSONString(map[string]string{
 												"view": string(response.Filters.GetView()),
 												"mark": string(mark),
 											}) }
-									>
-										if response.Filters.GetView() == models.ViewUnread {
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-4 stroke-accent">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-												<path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path>
-												<path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
-												<path d="M3 19l6 -6"></path>
-												<path d="M15 13l6 6"></path>
-											</svg>
-											Mark All Read
-										} else {
-											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4 text-accent">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-												<path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path>
-												<path d="M3 7l9 6l9 -6"></path>
-											</svg>
-											Mark All Unread
-										}
-									</a>
-								}
-							}
-							// Add feed subscription action.
-							@partials.MenuItem() {
-								<a
-									hx-get="/subscription/add/feed"
-									hx-target={ ContentID.Target() }
-									hx-push-url="true"
+									class="btn btn-square btn-ghost"
 								>
-									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 stroke-accent">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									Add Feed Subscription
-								</a>
-							}
-							// Add search subscription action.
-							@partials.MenuItem() {
-								<a
-									hx-get="/subscription/add/search"
-									hx-target={ ContentID.Target() }
-									hx-include="#search-filters"
-									hx-push-url="true"
-								>
-									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 stroke-accent">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									Add Search Subscription
-								</a>
-							}
-							// Add group subscription action.
-							@partials.MenuItem() {
-								<a
-									hx-get="/subscription/add/group"
-									hx-target={ ContentID.Target() }
-									hx-push-url="true"
-								>
-									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 stroke-accent">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									Add Group Subscription
-								</a>
-							}
+									if response.Filters.GetView() == models.ViewUnread {
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5"
+										><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path></svg>
+									} else {
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5"
+										><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path></svg>
+									}
+								</button>
+							</div>
 						}
-					</el-dropdown>
+					</div>
 				}
 				<section class="mt-4">
 					if len(response.Subscriptions) > 0 {
@@ -375,7 +333,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												{{ items, ok := itemsData.(models.Items) }}
 												if ok {
 													<div class="mt-auto h-full">
-														<ul role="list" class="latest-items list-disc pl-5 marker:text-accent">
+														<ul role="list" class="latest-items">
 															for item := range slices.Values(items) {
 																<li
 																	hx-get={ "/view/article/" + item.GetID() }
@@ -384,7 +342,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																	hx-trigger="click"
 																	hx-push-url="true"
 																	_="on click halt the event's bubbling"
-																	class="my-2 link text-pretty link-hover"
+																	class="my-2 link link-hover text-pretty text-sm/6 hover:bg-base-300 hover:rounded-box border-l-2 border-accent/40 pl-3"
 																>{ item.GetTitle() }</li>
 															}
 														</ul>
@@ -563,7 +521,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("pt-4")) {
 				@pageHeading() {
 					@pageTitle("Add a subscription")
 				}
@@ -684,6 +642,55 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 					</div>
 				</form>
 				<div id="subscription-suggestions" class="mt-8"></div>
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<div
+						class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+						hx-get="/subscription/add/group"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+					>
+						<div class="flex flex-row items-center gap-x-3">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus text-secondary"
+							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4h6v6h-6v-6"></path><path d="M14 4h6v6h-6v-6"></path><path d="M4 14h6v6h-6v-6"></path><path d="M14 17h6m-3 -3v6"></path></svg>
+							<label class="card-title text-secondary" for="informed">Add a Group Subscription</label>
+						</div>
+						<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
+					</div>
+					<div
+						class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+						hx-get="/subscription/add/search"
+						hx-target={ ContentID.Target() }
+						hx-include="#search-filters"
+						hx-push-url="true"
+					>
+						<div class="flex flex-row items-center gap-x-3">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="icon icon-tabler icons-tabler-outline icon-tabler-search text-secondary"
+							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
+							<label class="card-title text-secondary" for="informed">Add a Search Subscription</label>
+						</div>
+						<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
+					</div>
+				</div>
 			}
 		}
 	}
@@ -693,7 +700,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 templ EditFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("pt-4")) {
 				@manageFeedSubscription("edit", request)
 			}
 		}
@@ -702,19 +709,15 @@ templ EditFeedSubscription(request *models.FeedSubscriptionRequest) {
 
 // manageFeedSubscription generates the appropriate form layout for either adding or editing a feed subscription.
 templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequest) {
-	<div class="min-w-0 flex-1 pb-8">
+	@pageHeading() {
+		{{ var title string }}
 		switch action {
 			case "add":
-				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-					Add a subscription
-				</h1>
+				{{ title = "Add a Subscription" }}
 			case "edit":
-				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-					{ "Editing " + request.Customisation.GetNickname() }
-				</h1>
+				{{ title = "Editing " + request.Customisation.GetNickname() }}
 		}
-	</div>
-	if action == "add" {
+		@pageTitle(title)
 	}
 	<form
 		id="add-subscription"
@@ -733,7 +736,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
 			<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 		}
-		<div class="space-y-12 sm:space-y-16">
+		<div class="space-y-12 sm:space-y-16 mt-12">
 			// Optional subscription customisation.
 			<div>
 				<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
@@ -1051,20 +1054,17 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
-				<div class="min-w-0 flex-1 pb-8">
+			@container(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					{{ var title string }}
 					switch action {
 						case "add":
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-								Add a search subscription
-							</h1>
+							{{ title = "Add a Search Subscription" }}
 						case "edit":
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-								{ "Editing " + request.Customisation.GetNickname() }
-							</h1>
+							{{ title = "Editing " + request.Customisation.GetNickname() }}
 					}
-				</div>
-				// hx-on::after-request="if(event.detail.successful) this.reset()"
+					@pageTitle(title)
+				}
 				<form
 					id="add-subscription"
 					if action == "add" {
@@ -1082,7 +1082,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.Search.SubscriptionID) }/>
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 					}
-					<div class="space-y-12 sm:space-y-16">
+					<div class="space-y-12 sm:space-y-16 mt-12">
 						// Subscription nickname and search text.
 						<div>
 							@partials.FormSection() {
@@ -1343,20 +1343,17 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
-				<div class="min-w-0 flex-1 pb-8">
+			@container(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					{{ var title string }}
 					switch action {
 						case "add":
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-								Add a group subscription
-							</h1>
+							{{ title = "Add a Group Subscription" }}
 						case "edit":
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-								{ "Editing " + request.Customisation.GetNickname() }
-							</h1>
+							{{ title = "Editing " + request.Customisation.GetNickname() }}
 					}
-				</div>
-				// hx-on::after-request="if(event.detail.successful) this.reset()"
+					@pageTitle(title)
+				}
 				<form
 					id="add-subscription"
 					if action == "add" {
@@ -1375,7 +1372,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.SubscriptionID) }/>
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
 					}
-					<div class="space-y-12 sm:space-y-16">
+					<div class="space-y-12 sm:space-y-16 mt-12">
 						// Subscription name, suggestions and existing subscriptions.
 						<div>
 							@partials.FormSection() {
@@ -1546,13 +1543,10 @@ templ AddSubscriptionToGroup(id, name string) {
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
-				<div class="min-w-0 flex-1 pb-8">
-					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-						{ "Editing " + request.Customisation.GetNickname() }
-					</h1>
-				</div>
-				// hx-on::after-request="if(event.detail.successful) this.reset()"
+			@container(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					@pageTitle("Editing " + request.Customisation.GetNickname())
+				}
 				<form
 					id="add-subscription"
 					hx-post={ "/subscription/save/" + string(request.SubscriptionID) }

@@ -214,7 +214,42 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2\" _=\"on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-heart size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z\"></path></svg></span> <span class=\"not-sr-only font-display text-base font-semibold text-primary\">Favorites</span></a></li></ul></div></div></nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2\" _=\"on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-heart size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z\"></path></svg></span> <span class=\"not-sr-only font-display text-base font-semibold text-primary\">Favorites</span></a></li>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var16 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/subscription/add")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<li class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var16).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"><a hx-trigger=\"click,globalShortcutAdd\" hx-get=\"/subscription/add\" hx-target=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var18 string
+		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 115, Col: 37}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2\" _=\"on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end\"><span class=\"sr-only\">Add Subscription</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> <span class=\"not-sr-only font-display text-base font-semibold text-primary\">Add</span></a></li></ul></div></div></nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

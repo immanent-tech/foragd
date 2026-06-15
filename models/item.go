@@ -36,6 +36,16 @@ func (i Items) ExcludeIDs(ids ...ItemID) Items {
 	)
 }
 
+// FilterByIDs returns a new slice containing the items which have a ItemID matching the given ids.
+func (i Items) FilterByIDs(ids ...ItemID) Items {
+	if len(ids) == 0 {
+		return i
+	}
+	return slices.Collect(FilterSlice(i, func(item *Item) bool {
+		return slices.Contains(ids, item.GetID())
+	}))
+}
+
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
 	return slices.Collect(FilterSlice(i, func(item *Item) bool {

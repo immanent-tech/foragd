@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"slices"
 	"strings"
 )
@@ -122,4 +123,101 @@ templ CategoryBadge(category models.Category, options ...element.PropertiesOptio
 		{ category }
 		{ children... }
 	</span>
+}
+
+templ CategoryFilters(data *models.CategoryFilters) {
+	if len(data.Categories) == 0 {
+		<div class="flex p-4">
+			<div class="flex h-5 shrink-0 items-center">
+				<div class="group grid grid-cols-1">
+					No categories
+				</div>
+			</div>
+		</div>
+	} else {
+		for category := range slices.Values(data.Categories.Limit(10)) {
+			@categoryOption(data.Path, category.Category, data.Filters)
+		}
+		if len(data.Filters.GetCategories()) > 0 {
+			@clearCategoryFiltersOption(data.Path, data.Filters)
+		}
+	}
+}
+
+// categoryFilter renders a checkbox for a category filter.
+templ categoryOption(path string, category models.Category, filters models.ListFilters) {
+	{{
+		var checked bool
+		if filters.GetCategories().HasCategory(category) {
+			checked = true
+		}
+		filters.Categories = []models.Category{category}
+		var id string
+		id, err := gonanoid.New()
+		if err != nil {
+			id = strings.ToLower(strings.ReplaceAll(category, " ", "-"))
+		} else {
+			id = id + "-" + strings.ToLower(strings.ReplaceAll(category, " ", "-"))
+		}
+	}}
+	@partials.MenuItem() {
+		<button
+			aria-label={ category }
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-params="not selected_subscriptions"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class={ "icon icon-tabler icons-tabler-outline icon-tabler-check size-5 shrink-0 stroke-accent", templ.KV("opacity-100",checked), templ.KV("opacity-0",!checked) }
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path>
+			</svg>
+			<span class="block text-sm/6 font-medium">{ category }</span>
+		</button>
+	}
+}
+
+templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
+	// Remove all current category filters.
+	{{ filters.Categories = nil }}
+	@partials.MenuItem() {
+		<button
+			class="group relative flex items-center"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-params="not selected_subscriptions,categories"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="icon icon-tabler icons-tabler-outline icon-tabler-x size-5 shrink-0 stroke-accent"
+			>
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+			</svg>
+			<span class="block text-sm/6 font-medium">Clear</span>
+		</button>
+	}
 }

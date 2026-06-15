@@ -1,0 +1,150 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"strings"
+)
+
+type listControls struct {
+	path    string
+	filters models.ListFilters
+}
+
+templ (c *listControls) viewFilters() {
+	<div class="tabs shrink-0">
+		@viewFilterOption(c.path, models.ViewUnread, c.filters)
+		@viewFilterOption(c.path, models.ViewRead, c.filters)
+		@viewFilterOption(c.path, models.ViewAll, c.filters)
+		@viewFilterFavorites(c.path, c.filters)
+	</div>
+}
+
+templ viewFilterOption(path string, view models.View, filters models.ListFilters) {
+	{{
+		var checked bool
+		if view == filters.GetView() {
+			checked = true
+		}
+		filters.View = view
+	}}
+	<input
+		class={ "tab hover:text-accent active:font-semibold", templ.KV("font-semibold",checked) }
+		name="view"
+		type="radio"
+		aria-label={ strings.ToUpper(string(view)[:1]) + string(view)[1:] }
+		if checked {
+			checked="checked"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+		}
+	/>
+}
+
+templ viewFilterFavorites(path string, filters models.ListFilters) {
+	{{
+		var checked bool
+		values := filters.Values()
+		if filters.OnlyFavorites {
+			checked = true
+		}
+		values["only_favorites"] = !filters.OnlyFavorites
+	}}
+	<input
+		class={ "tab hover:text-accent active:font-semibold", templ.KV("font-semibold",checked) }
+		name="view"
+		type="radio"
+		aria-label="Favorites"
+		if checked {
+			checked="checked"
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(values) }
+		}
+	/>
+}
+
+templ (c *listControls) sortOptions() {
+	{{ currentSort := c.filters.GetSort() }}
+	<div
+		_="
+        on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe
+        "
+		hx-get={ c.path }
+		hx-include="#sort-hidden,#view-hidden,#count-hidden"
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-target={ ContentID.Target() }
+		hx-trigger="triggerMe"
+	>
+		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
+		<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
+		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
+		<el-select id="select" _="on change send sortChanged(sort: my value)">
+			<button
+				class="btn btn-ghost"
+				type="button"
+			>
+				<el-selectedcontent class="col-start-1 row-start-1 truncate pr-6">
+					{ currentSort.String() }
+				</el-selectedcontent>
+				<svg
+					class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4 dark:text-gray-400"
+					aria-hidden="true"
+					data-slot="icon"
+					fill="currentColor"
+					viewBox="0 0 16 16"
+				>
+					<path
+						clip-rule="evenodd"
+						d="M5.22 10.22a.75.75 0 0 1 1.06 0L8 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06ZM10.78 5.78a.75.75 0 0 1-1.06 0L8 4.06 6.28 5.78a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06Z"
+						fill-rule="evenodd"
+					></path>
+				</svg>
+			</button>
+			<el-options
+				class="max-h-60 w-(--button-width) overflow-auto rounded-box bg-base-200 py-1 text-base shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)] data-leave:transition data-leave:transition-discrete data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+				anchor="bottom start"
+				popover
+			>
+				@sortOption(models.SortNewestFirst)
+				@sortOption(models.SortOldestFirst)
+				if c.path == "/list/subscriptions" {
+					@sortOption(models.SortMostUnread)
+					@sortOption(models.SortLeastUnread)
+				}
+			</el-options>
+		</el-select>
+	</div>
+}
+
+templ sortOption(sort models.Sort) {
+	<el-option
+		class="group/option relative block cursor-default py-2 pr-9 pl-3 select-none focus:bg-accent focus:text-accent-content focus:outline-hidden"
+		value={ string(sort) }
+	>
+		<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ sort.String() }</span>
+		<span class="absolute inset-y-0 right-0 flex items-center pr-4 text-accent group-not-aria-selected/option:hidden group-focus/option:text-secondary-content in-[el-selectedcontent]:hidden">
+			<svg
+				class="size-5"
+				aria-hidden="true"
+				data-slot="icon"
+				fill="currentColor"
+				viewBox="0 0 20 20"
+			>
+				<path
+					clip-rule="evenodd"
+					d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+					fill-rule="evenodd"
+				></path>
+			</svg>
+		</span>
+	</el-option>
+}

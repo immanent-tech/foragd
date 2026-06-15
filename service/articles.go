@@ -96,6 +96,11 @@ func FilterArticles(
 		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
 
+	// Filter by favorites if requested.
+	if request.Filters.OnlyFavorites {
+		items = items.FilterByIDs(user.ItemFavorites...)
+	}
+
 	// Generate articles.
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {

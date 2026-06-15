@@ -95,5 +95,31 @@ templ Dock(options ...element.PropertiesOption) {
 			</span>
 			<span class="dock-label not-sr-only font-display">Favorites</span>
 		</a>
+		<a
+			hx-get="/subscription/add"
+			hx-target={ ContentID.Target() }
+			hx-swap="innerHTML show:window:top transition:true"
+			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
+		>
+			<span class="sr-only">Add a Subscription</span>
+			<span class="show-loading items-center">
+				<span class="loading loading-md loading-spinner text-primary"></span>
+			</span>
+			<span class="hide-loading items-center">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]"
+				><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
+			</span>
+			<span class="dock-label not-sr-only font-display">Add</span>
+		</a>
 	</footer>
 }
