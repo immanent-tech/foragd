@@ -1260,7 +1260,7 @@ func themePreview(theme string) templ.Component {
 		templ_7745c5c3_Err = partials.Card(
 			element.WithAttribute("data-theme", theme),
 			element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
-			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var54), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -361,16 +361,8 @@
   }
 }
 
-@utility link {
-  @apply transition-[scale,color] duration-150;
-  .link:active,
-  .link:hover {
-    @apply scale-[0.99];
-  }
-}
-
 @utility card {
-  @apply flex flex-col bg-base-200 transition-shadow duration-250 ease-in-out will-change-[opacity,transform] hover:shadow-lg;
+  @apply flex flex-col bg-base-200 transition-shadow duration-250 ease-in-out hover:shadow-lg;
 }
 
 @utility animation-delay-none {

@@ -170,11 +170,13 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 						</span>
 					}
 				</div>
-				<div class="flex shrink-0 items-center divide-x divide-neutral/20">
+				<div class="flex shrink-0 items-center">
 					// Favorite action.
 					@subscriptionFavoriteToggle(s)
 					// Mark action.
 					@subscriptionMarkToggle(s)
+					// Separator.
+					<div aria-hidden="true" class="h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
 					<div class="tooltip overflow-visible" data-tip="Subscription actions">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
@@ -950,7 +952,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 									element.WithAttribute("hx-push-url", "true"),
 									element.WithAttribute("hx-disinherit", "*"),
 									element.WithAttribute("id", item.GetID()),
-									element.WithClasses("group", "w-[85vw]", "sm:w-sm", "shrink-0", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto", "p-2"),
+									element.WithClasses("group", "w-[85vw]", "sm:w-sm", "shrink-0", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "p-2"),
 								) {
 									if img := item.GetImage(); img != nil {
 										{{ img := item.GetImage() }}

@@ -398,7 +398,7 @@ templ ArticleCard(idx int, a *models.Article) {
 			}
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between gap-4 border-t border-neutral/25 pt-3">
+			<div class="flex items-center justify-between border-t border-neutral/25 pt-3">
 				<div class="flex-separated flex min-w-0 items-center">
 					if len(article.GetAuthors()) > 0 {
 						{{
@@ -419,11 +419,13 @@ templ ArticleCard(idx int, a *models.Article) {
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>
 				</div>
-				<div class="flex shrink-0 items-center divide-x divide-neutral/20">
+				<div class="flex shrink-0 items-center">
 					// Toggle favorite action.
 					@article.favoriteToggle()
 					// Toggle mark action.
 					@article.markToggle()
+					// Separator.
+					<div aria-hidden="true" class="h-4 w-px bg-neutral/20"></div>
 					// Actions menu.
 					@article.actionsMenu()
 				</div>

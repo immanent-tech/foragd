@@ -350,7 +350,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-0 z-999 flex items-end sm:items-start\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
