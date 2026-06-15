@@ -3,10 +3,7 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"strings"
-)
+import "github.com/immanent-tech/foragd/models"
 
 type listControls struct {
 	path    string
@@ -14,12 +11,67 @@ type listControls struct {
 }
 
 templ (c *listControls) viewFilters() {
-	<ul class="menu menu-horizontal">
+	{{ currentView := c.filters.GetView() }}
+	// On desktop screen sizes, show a horizontal menu of view options.
+	<ul class="menu menu-horizontal hidden sm:flex">
 		@viewFilterOption(c.path, models.ViewUnread, c.filters)
 		@viewFilterOption(c.path, models.ViewRead, c.filters)
 		@viewFilterOption(c.path, models.ViewAll, c.filters)
 		@viewFilterFavorites(c.path, c.filters)
 	</ul>
+	// On mobile screen sizes, show a select menu for view options.
+	<div
+		_="
+        on viewChanged(view) set #view-hidden.value to view then send triggerMe
+        "
+		hx-get={ c.path }
+		hx-include="#sort-hidden,#view-hidden,#count-hidden"
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-target={ ContentID.Target() }
+		hx-trigger="triggerMe"
+		class="min-w-fit grow sm:hidden"
+	>
+		<input id="sort-hidden" name="sort" type="hidden" value={ string(c.filters.GetSort()) }/>
+		<input id="view-hidden" name="view" type="hidden" value={ string(currentView) }/>
+		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
+		<el-select id="select-view" _="on change send viewChanged(view: my value)" class="block">
+			<button class="btn inline-flex w-full justify-start btn-ghost" type="button">
+				<svg
+					aria-hidden="true"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"
+				>
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+				</svg>
+				<el-selectedcontent class="truncate capitalize">
+					{ string(currentView) }
+				</el-selectedcontent>
+			</button>
+			<el-options
+				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+				anchor="bottom start"
+				popover
+			>
+				<div class="menu">
+					<el-option value={ string(models.ViewUnread) }>
+						@viewFilterOption(c.path, models.ViewUnread, c.filters)
+					</el-option>
+					<el-option value={ string(models.ViewRead) }>
+						@viewFilterOption(c.path, models.ViewRead, c.filters)
+					</el-option>
+					<el-option value={ string(models.ViewAll) }>
+						@viewFilterOption(c.path, models.ViewAll, c.filters)
+					</el-option>
+					@viewFilterFavorites(c.path, c.filters)
+				</div>
+			</el-options>
+		</el-select>
+	</div>
 }
 
 templ viewFilterOption(path string, view models.View, filters models.ListFilters) {
@@ -37,16 +89,29 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters.Values()) }
-			class={ templ.KV("font-semibold", active) }
+			class="group/option pr-9"
 		>
-			<input
-				name="view"
-				type="hidden"
-				if active {
-					checked="checked"
-				}
-			/>
-			{ strings.ToUpper(string(view)[:1]) + string(view)[1:] }
+			// For mobile screens where option is displayed in select menu.
+			<div class="sm:hidden">
+				<span class={ "block truncate font-normal capitalize pr-4", templ.KV("font-semibold",active) }>{ string(view) }</span>
+				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
+					<svg
+						class="size-5"
+						aria-hidden="true"
+						data-slot="icon"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
+						<path
+							clip-rule="evenodd"
+							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+							fill-rule="evenodd"
+						></path>
+					</svg>
+				</span>
+			</div>
+			// For desktop screens where option is displayed in horizontal menu.
+			<span class={ "hidden sm:flex capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
 		</a>
 	</li>
 }
@@ -67,16 +132,29 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(values) }
-			class={ templ.KV("font-semibold", active) }
+			class="group/option pr-9"
 		>
-			<input
-				name="view"
-				type="hidden"
-				if active {
-					checked="checked"
-				}
-			/>
-			Favorites
+			// For mobile screens where option is displayed in select menu.
+			<div class="sm:hidden">
+				<span class={ "block truncate font-normal pr-4", templ.KV("font-semibold",active) }>Favorites</span>
+				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
+					<svg
+						class="size-5"
+						aria-hidden="true"
+						data-slot="icon"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
+						<path
+							clip-rule="evenodd"
+							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+							fill-rule="evenodd"
+						></path>
+					</svg>
+				</span>
+			</div>
+			// For desktop screens where option is displayed in horizontal menu.
+			<span class={ "hidden sm:flex", templ.KV("font-semibold",active) }>Favorites</span>
 		</a>
 	</li>
 }
@@ -98,39 +176,34 @@ templ (c *listControls) sortOptions() {
 		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
 		<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
 		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
-		<el-select id="select" _="on change send sortChanged(sort: my value)" class="block">
-			<button
-				class="btn grid w-full grid-cols-1 btn-ghost"
-				type="button"
-			>
-				<el-selectedcontent class="col-start-1 row-start-1 truncate pr-6">
+		<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
+			<button class="btn inline-flex w-full justify-end btn-ghost" type="button">
+				<el-selectedcontent class="truncate">
 					{ currentSort.String() }
 				</el-selectedcontent>
 				<svg
-					class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4 dark:text-gray-400"
 					aria-hidden="true"
-					data-slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
 					fill="currentColor"
-					viewBox="0 0 16 16"
+					class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"
 				>
-					<path
-						clip-rule="evenodd"
-						d="M5.22 10.22a.75.75 0 0 1 1.06 0L8 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06ZM10.78 5.78a.75.75 0 0 1-1.06 0L8 4.06 6.28 5.78a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06Z"
-						fill-rule="evenodd"
-					></path>
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 				</svg>
 			</button>
 			<el-options
 				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-				anchor="bottom start"
+				anchor="bottom end"
 				popover
 			>
 				<div class="menu">
-					@sortOption(models.SortNewestFirst)
-					@sortOption(models.SortOldestFirst)
+					@sortOption(models.SortNewestFirst, currentSort)
+					@sortOption(models.SortOldestFirst, currentSort)
 					if c.path == "/list/subscriptions" {
-						@sortOption(models.SortMostUnread)
-						@sortOption(models.SortLeastUnread)
+						@sortOption(models.SortMostUnread, currentSort)
+						@sortOption(models.SortLeastUnread, currentSort)
 					}
 				</div>
 			</el-options>
@@ -138,11 +211,11 @@ templ (c *listControls) sortOptions() {
 	</div>
 }
 
-templ sortOption(sort models.Sort) {
+templ sortOption(sort, current models.Sort) {
 	<el-option value={ string(sort) }>
-		<li class="group/option">
-			<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ sort.String() }</span>
-			<span class="absolute inset-y-0 right-0 flex items-center pr-4 text-accent group-not-aria-selected/option:hidden group-focus/option:text-secondary-content in-[el-selectedcontent]:hidden">
+		<li class="group/option pr-9">
+			<span class={ "block truncate font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
+			<span class={ "absolute inset-y-0 right-0 flex items-center pr-4 text-accent", templ.KV("hidden",sort != current) }>
 				<svg
 					class="size-5"
 					aria-hidden="true"

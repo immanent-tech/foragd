@@ -654,6 +654,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				// List actions.
 				if len(response.Articles) > 0 {
 					<div
+						id="list-actions"
 						class="w-full flex justify-end pb-4"
 						if response.Subscription != nil {
 							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
@@ -678,7 +679,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								hx-target={ ContentID.Target() }
 								hx-include=".card > input"
 								hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-								class="btn btn-square btn-ghost"
+								class="btn btn-ghost"
 							>
 								if response.Filters.GetView() == models.ViewUnread {
 									<svg
@@ -693,6 +694,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										stroke-linejoin="round"
 										class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5"
 									><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path></svg>
+									Mark shown read
 								} else {
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -706,6 +708,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										stroke-linejoin="round"
 										class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5"
 									><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path></svg>
+									Mark shown unread
 								}
 							</button>
 						} else {
@@ -726,7 +729,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 														"subscription_id": response.Subscription.GetID(),
 														"view": string(response.Filters.GetView()),
 														}) }
-									class="btn btn-square btn-ghost"
+									class="btn btn-ghost"
 								>
 									if response.Filters.GetView() == models.ViewUnread {
 										<svg
@@ -741,6 +744,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											stroke-linejoin="round"
 											class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5"
 										><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path></svg>
+										Mark all read
 									} else {
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -754,6 +758,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											stroke-linejoin="round"
 											class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5"
 										><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path></svg>
+										Mark all unread
 									}
 								</button>
 							}

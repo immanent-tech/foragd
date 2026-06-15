@@ -9,6 +9,7 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 templ pageHeading(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
+		id="page-heading"
 		class={ "md:flex md:items-center md:justify-between", props.Classes() }
 		{ props.Attributes()... }
 	>
@@ -18,7 +19,7 @@ templ pageHeading(options ...element.PropertiesOption) {
 
 // pageTitle renders a page title and any additional/supporting content.
 templ pageTitle(title string) {
-	<div class="min-w-0 flex-1">
+	<div id="page-title" class="min-w-0 flex-1">
 		<h1 class="font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">{ title }</h1>
 		{ children... }
 	</div>
@@ -29,6 +30,7 @@ templ pageTitle(title string) {
 templ pageActions(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
+		id="page-actions"
 		class={ "mt-4 flex items-center md:mt-0 md:ml-4", props.Classes() }
 		{ props.Attributes()... }
 	>

@@ -9,7 +9,7 @@ import (
 )
 
 templ HeaderExternal() {
-	<header aria-label="Header" class="absolute inset-x-0 top-0 z-50">
+	<header id="page-header" aria-label="Header" class="absolute top-0 inset-x-safe-or-0 z-50 pt-safe">
 		<nav aria-label="Global" class="flex w-full items-center justify-between p-6 lg:px-8">
 			<div class="flex lg:hidden">
 				<button aria-label="Open main menu" type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
@@ -73,8 +73,9 @@ templ HeaderExternal() {
 
 templ HeaderInternal(props *InternalLayoutProps) {
 	<header
+		id="page-header"
 		aria-label="Header"
-		class="fixed top-0 z-50 flex h-16 w-screen items-center border-b border-neutral/10 bg-base-200 pt-safe px-safe shadow-sm"
+		class="fixed top-0 inset-x-safe-or-0 z-50 h-16 w-screen border-b border-neutral/10 bg-base-200 pt-safe shadow-sm"
 	>
 		<div class="flex w-full items-center justify-between">
 			<a
@@ -96,7 +97,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 			<div class="mx-2 flex items-center justify-end space-x-2 sm:mr-4">
 				<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
 				<el-dropdown id="header-user-menu" class="flex">
-					<button class="btn-square btn-ghost inline-flex w-full ">
+					<button class="inline-flex btn-square w-full btn-ghost">
 						<span class="sr-only">Open settings menu</span>
 						@UserAvatar(props.User, templ.Attributes{
 							"loading": "eager",
