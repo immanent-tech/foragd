@@ -1,21 +1,27 @@
-ARG CONTAINER_VERSION=dev-ubuntu26.04
+# Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+# https://mcr.microsoft.com/artifact/mar/devcontainers/base
+ARG CONTAINER_VERSION=dev-ubuntu26.04@sha256:08b927560c4f83bcdaa324d95c25bbb8a3857aff53c2ffae5a9d9cd9bec6850b
+# https://hub.docker.com/_/golang
+ARG GO_VERSION=1.26.4@sha256:792443b89f65105abba56b9bd5e97f680a80074ac62fc844a584212f8c8102c3
+
+FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
 FROM mcr.microsoft.com/devcontainers/base:${CONTAINER_VERSION} AS builder
 
 ARG NODE_VERSION=v24.16.0
-ARG GO_VERSION=1.26.4
 
 # Install additional packages
 RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
     apt -y install fish micro graphviz ca-certificates dotenv-cli \
-    python3 openjdk-17-jdk-headless openjdk-17-jre-headless android-sdk
+    python3 openjdk-17-jdk-headless openjdk-17-jre-headless
 
 # Add the Zyte CA cert.
 ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
 RUN update-ca-certificates
 
 # Copy go from official image
-COPY --from=docker.io/golang:${GO_VERSION} /usr/local/go/ /usr/local/go/
+COPY --from=golang /usr/local/go/ /usr/local/go/
 
 # Download and install node:
 RUN sudo curl -L -o- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz \

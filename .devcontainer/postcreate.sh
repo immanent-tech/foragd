@@ -34,7 +34,6 @@ mkdir -p ~/.bubblewrap && \
     cat > ~/.bubblewrap/config.json << EOF
           {
             "jdkPath": "/usr/lib/jvm/java-17-openjdk-amd64",
-            "androidSdkPath": "/usr/lib/android-sdk"
           }
 EOF
 

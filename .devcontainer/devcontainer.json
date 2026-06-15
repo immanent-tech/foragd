@@ -43,7 +43,8 @@
         "csstools.postcss",
         "oderwat.indent-rainbow",
         "adam-bender.commit-message-editor",
-        "kamikillerto.vscode-colorize"
+        "kamikillerto.vscode-colorize",
+        "PWABuilder.pwa-studio"
       ]
     }
   }
