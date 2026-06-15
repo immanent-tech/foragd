@@ -116,7 +116,7 @@ func IsValidReplyTo(to []string) (bool, error) {
 
 	// Ignore emails not explicitly addressed to our admin/catch-all address.
 	if !slices.Contains(to, cfg.ReplyToEmail) {
-		return false, nil
+		return false, fmt.Errorf("invalid to address: %v", to)
 	}
 
 	return true, nil
