@@ -8,11 +8,6 @@
 
 @import './daisyui-custom.css';
 
-:root {
-  scrollbar-gutter: stable;
-  scrollbar-color: var(--color-primary) transparent;
-}
-
 /* Global custom theme values. */
 @theme {
   --font-sans: 'Inter', sans-serif;
@@ -87,60 +82,28 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  [data-loading] {
-    display: none;
-  }
-
-  /* Animate popovers using the top-layer transition API */
-  el-popover[popover],
-  [popover] {
-    /* @apply scale-1 opacity-1 transition-[opacity,scale,display,overlay] duration-150 ease-in; */
-    transition:
-      opacity 150ms ease,
-      scale 150ms ease,
-      display 150ms ease allow-discrete,
-      overlay 150ms ease allow-discrete;
-    opacity: 1;
-    scale: 1;
-  }
-
-  /* Exit state (when popover is closed) */
-  el-popover[popover]:not(:popover-open),
-  [popover]:not(:popover-open) {
-    opacity: 0;
-    scale: 0.97;
-  }
-
-  /* Starting state for enter animation */
-  @starting-style {
-    el-popover[popover]:popover-open,
-    [popover]:popover-open {
-      opacity: 0;
-      scale: 0.97;
-    }
-  }
-
   el-popover {
-    @apply overscroll-contain;
+    @apply overscroll-contain transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+  }
+
+  el-menu {
+    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
   }
 
   el-options {
-    @apply overflow-auto rounded-box transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-    el-option {
-      @apply block bg-base-content/10 px-3 py-2 select-none aria-selected:bg-primary aria-selected:text-primary-content;
-    }
+    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
   }
 
   dialog {
-    @apply overscroll-contain backdrop:bg-transparent;
+    @apply backdrop:bg-transparent;
   }
 
   el-dialog-backdrop {
-    @apply fixed inset-0 bg-base-300/30 transition-opacity duration-300 ease-linear data-closed:opacity-0;
+    @apply fixed inset-0 bg-base-300/50 transition duration-200 data-closed:opacity-0;
   }
 
   el-dialog-panel {
-    @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
+    @apply block transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
   /* Skip animation if content was restored from cache */

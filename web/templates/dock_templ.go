@@ -41,7 +41,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		pageURL := PathFromCtx(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock border-t border-base-content/10 bg-base-200 text-primary lg:hidden\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock border-t border-base-content/10 bg-base-200 text-primary px-safe w-screen lg:hidden\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -14,61 +14,71 @@ type listControls struct {
 }
 
 templ (c *listControls) viewFilters() {
-	<div class="tabs shrink-0">
+	<ul class="menu menu-horizontal">
 		@viewFilterOption(c.path, models.ViewUnread, c.filters)
 		@viewFilterOption(c.path, models.ViewRead, c.filters)
 		@viewFilterOption(c.path, models.ViewAll, c.filters)
 		@viewFilterFavorites(c.path, c.filters)
-	</div>
+	</ul>
 }
 
 templ viewFilterOption(path string, view models.View, filters models.ListFilters) {
 	{{
-		var checked bool
+		var active bool
 		if view == filters.GetView() {
-			checked = true
+			active = true
 		}
 		filters.View = view
 	}}
-	<input
-		class={ "tab hover:text-accent active:font-semibold", templ.KV("font-semibold",checked) }
-		name="view"
-		type="radio"
-		aria-label={ strings.ToUpper(string(view)[:1]) + string(view)[1:] }
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(filters.Values()) }
-		if checked {
-			checked="checked"
-		}
-	/>
+	<li>
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			class={ templ.KV("font-semibold", active) }
+		>
+			<input
+				name="view"
+				type="hidden"
+				if active {
+					checked="checked"
+				}
+			/>
+			{ strings.ToUpper(string(view)[:1]) + string(view)[1:] }
+		</a>
+	</li>
 }
 
 templ viewFilterFavorites(path string, filters models.ListFilters) {
 	{{
-		var checked bool
+		var active bool
 		values := filters.Values()
 		if filters.OnlyFavorites {
-			checked = true
+			active = true
 		}
 		values["only_favorites"] = !filters.OnlyFavorites
 	}}
-	<input
-		class={ "tab hover:text-accent active:font-semibold", templ.KV("font-semibold",checked) }
-		name="view"
-		type="radio"
-		aria-label="Favorites"
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-vals={ templ.JSONString(values) }
-		if checked {
-			checked="checked"
-		}
-	/>
+	<li>
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(values) }
+			class={ templ.KV("font-semibold", active) }
+		>
+			<input
+				name="view"
+				type="hidden"
+				if active {
+					checked="checked"
+				}
+			/>
+			Favorites
+		</a>
+	</li>
 }
 
 templ (c *listControls) sortOptions() {
@@ -83,13 +93,14 @@ templ (c *listControls) sortOptions() {
 		hx-swap="innerHTML transition:true"
 		hx-target={ ContentID.Target() }
 		hx-trigger="triggerMe"
+		class="min-w-fit grow"
 	>
 		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
 		<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
 		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
-		<el-select id="select" _="on change send sortChanged(sort: my value)">
+		<el-select id="select" _="on change send sortChanged(sort: my value)" class="block">
 			<button
-				class="btn btn-ghost"
+				class="btn grid w-full grid-cols-1 btn-ghost"
 				type="button"
 			>
 				<el-selectedcontent class="col-start-1 row-start-1 truncate pr-6">
@@ -110,41 +121,42 @@ templ (c *listControls) sortOptions() {
 				</svg>
 			</button>
 			<el-options
-				class="max-h-60 w-(--button-width) overflow-auto rounded-box bg-base-200 py-1 text-base shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)] data-leave:transition data-leave:transition-discrete data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
+				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
 				anchor="bottom start"
 				popover
 			>
-				@sortOption(models.SortNewestFirst)
-				@sortOption(models.SortOldestFirst)
-				if c.path == "/list/subscriptions" {
-					@sortOption(models.SortMostUnread)
-					@sortOption(models.SortLeastUnread)
-				}
+				<div class="menu">
+					@sortOption(models.SortNewestFirst)
+					@sortOption(models.SortOldestFirst)
+					if c.path == "/list/subscriptions" {
+						@sortOption(models.SortMostUnread)
+						@sortOption(models.SortLeastUnread)
+					}
+				</div>
 			</el-options>
 		</el-select>
 	</div>
 }
 
 templ sortOption(sort models.Sort) {
-	<el-option
-		class="group/option relative block cursor-default py-2 pr-9 pl-3 select-none focus:bg-accent focus:text-accent-content focus:outline-hidden"
-		value={ string(sort) }
-	>
-		<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ sort.String() }</span>
-		<span class="absolute inset-y-0 right-0 flex items-center pr-4 text-accent group-not-aria-selected/option:hidden group-focus/option:text-secondary-content in-[el-selectedcontent]:hidden">
-			<svg
-				class="size-5"
-				aria-hidden="true"
-				data-slot="icon"
-				fill="currentColor"
-				viewBox="0 0 20 20"
-			>
-				<path
-					clip-rule="evenodd"
-					d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-					fill-rule="evenodd"
-				></path>
-			</svg>
-		</span>
+	<el-option value={ string(sort) }>
+		<li class="group/option">
+			<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ sort.String() }</span>
+			<span class="absolute inset-y-0 right-0 flex items-center pr-4 text-accent group-not-aria-selected/option:hidden group-focus/option:text-secondary-content in-[el-selectedcontent]:hidden">
+				<svg
+					class="size-5"
+					aria-hidden="true"
+					data-slot="icon"
+					fill="currentColor"
+					viewBox="0 0 20 20"
+				>
+					<path
+						clip-rule="evenodd"
+						d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+						fill-rule="evenodd"
+					></path>
+				</svg>
+			</span>
+		</li>
 	</el-option>
 }

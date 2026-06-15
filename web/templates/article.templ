@@ -654,7 +654,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				// List actions.
 				if len(response.Articles) > 0 {
 					<div
-						class="w-full flex justify-end px-2 pb-4"
+						class="w-full flex justify-end pb-4"
 						if response.Subscription != nil {
 							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
 						}

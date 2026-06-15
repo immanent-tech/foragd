@@ -1711,7 +1711,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if len(response.Articles) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "<div class=\"w-full flex justify-end px-2 pb-4\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "<div class=\"w-full flex justify-end pb-4\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

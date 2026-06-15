@@ -75,7 +75,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-screen items-center border-b border-neutral/10 bg-base-200 pt-safe px-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -104,7 +104,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\"><button class=\"btn-square btn-ghost\"><span class=\"sr-only\">Open settings menu</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"flex\"><button class=\"btn-square btn-ghost inline-flex w-full\"><span class=\"sr-only\">Open settings menu</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -261,7 +261,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				// List actions.
 				if len(response.Subscriptions) > 0 {
-					<div class="w-full flex justify-end px-2 pb-4">
+					<div class="w-full flex justify-end pb-4">
 						if len(response.Subscriptions) > 0 {
 							{{
 								var mark models.Mark
@@ -333,17 +333,20 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												{{ items, ok := itemsData.(models.Items) }}
 												if ok {
 													<div class="mt-auto h-full">
-														<ul role="list" class="latest-items">
+														<ul class="latest-items menu">
 															for item := range slices.Values(items) {
-																<li
-																	hx-get={ "/view/article/" + item.GetID() }
-																	hx-target={ ContentID.Target() }
-																	hx-swap="innerHTML show:window:top transition:true"
-																	hx-trigger="click"
-																	hx-push-url="true"
-																	_="on click halt the event's bubbling"
-																	class="my-2 link link-hover text-pretty text-sm/6 hover:bg-base-300 hover:rounded-box border-l-2 border-accent/40 pl-3"
-																>{ item.GetTitle() }</li>
+																<li class="my-1 text-sm/6 border-l-2 border-accent/40 pl-3">
+																	<a
+																		hx-get={ "/view/article/" + item.GetID() }
+																		hx-target={ ContentID.Target() }
+																		hx-swap="innerHTML show:window:top transition:true"
+																		hx-trigger="click"
+																		hx-push-url="true"
+																		_="on click halt the event's bubbling"
+																	>
+																		{ item.GetTitle() }
+																	</a>
+																</li>
 															}
 														</ul>
 													</div>
