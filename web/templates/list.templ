@@ -35,13 +35,13 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 		name="view"
 		type="radio"
 		aria-label={ strings.ToUpper(string(view)[:1]) + string(view)[1:] }
+		hx-get={ path }
+		hx-target={ ContentID.Target() }
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-vals={ templ.JSONString(filters.Values()) }
 		if checked {
 			checked="checked"
-			hx-get={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-vals={ templ.JSONString(filters.Values()) }
 		}
 	/>
 }
@@ -60,13 +60,13 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 		name="view"
 		type="radio"
 		aria-label="Favorites"
+		hx-get={ path }
+		hx-target={ ContentID.Target() }
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-vals={ templ.JSONString(values) }
 		if checked {
 			checked="checked"
-			hx-get={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-vals={ templ.JSONString(values) }
 		}
 	/>
 }
