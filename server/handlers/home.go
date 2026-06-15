@@ -107,6 +107,20 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 func HandleHome() http.HandlerFunc {
 	return userContentHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+			user := models.UserFromCtx(req.Context())
+			if user == nil {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Could not display home page",
+							"This might be temporary, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
+			}
+
 			start := time.Now()
 			// Get subscriptions.
 			subscriptions, err := service.GetAllSubscriptions(req.Context())
@@ -166,26 +180,16 @@ func HandleHome() http.HandlerFunc {
 				resp, err := elastic.Search[*models.Item](
 					req.Context(),
 					schema.ItemsIndexRO(),
+					// Query is adapted from service.FilterArticles query to boost favorites and return unread only.
 					query.Bool(
 						query.Filter(
-							query.Terms("feed_id", data.Subscriptions.GetFeedIDs()),
+							query.Terms(
+								"feed_id",
+								data.Subscriptions.GetFeedIDs(),
+								query.WithQueryName[*query.TermsQuery]("match-feed-id"),
+							),
 							query.Bool(
-								query.Should(
-									// Boost items that are from a favorite subscription.
-									query.Terms(
-										"feed_id",
-										data.Subscriptions.FilterByFavorites(true).GetFeedIDs(),
-										query.WithQueryName[*query.TermsQuery]("boost-favorites"),
-										query.WithQueryBoost[*query.TermsQuery](2.0),
-									),
-								),
-								// On the home page, only show articles which have an image (looks nicer).
-								query.Must(
-									query.Exists("image.url"),
-								),
-								query.MustNot(
-									query.Term("image.url", ""),
-								),
+								query.Should(service.BuildItemQueries(user, models.ViewUnread, data.Subscriptions)...),
 							),
 						),
 					),
