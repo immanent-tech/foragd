@@ -38,6 +38,7 @@ templ UserHome(data *HomeData) {
 					<div class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8 pt-4">
 						// Left Column.
 						<div class="space-y-8 sm:col-span-2">
+							// Section: Latest Articles.
 							<section aria-labelledby="section-latest-articles">
 								@sectionHeading() {
 									@sectionTitle("Latest Articles")
@@ -50,10 +51,6 @@ templ UserHome(data *HomeData) {
 										>See all <span aria-hidden="true">-></span></a>
 									}
 								}
-								// <div class="mb-4 flex items-center justify-between">
-								// 	<h2 id="latest-heading" class="text-sm font-semibold tracking-widest text-base-content/50 uppercase">Latest Articles</h2>
-								// </div>
-								// Section: Latest Articles.
 								<div class="grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2">
 									for idx, article := range data.LatestArticles {
 										@ArticleCard(idx, article)
@@ -63,6 +60,7 @@ templ UserHome(data *HomeData) {
 						</div>
 						// Right Column.
 						<aside class="space-y-5">
+							// List: Latest Updated Subscriptions.
 							<div class="overflow-hidden rounded-box border border-base-content/8 bg-base-200">
 								@sectionHeading(element.WithClasses("pt-2 px-4")) {
 									@sectionTitle("Latest Updated Feeds")
@@ -70,7 +68,6 @@ templ UserHome(data *HomeData) {
 										<a class="link text-xs text-primary link-hover" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
 									}
 								}
-								// List: Latest Updated Subscriptions.
 								<ul role="list" class="scrollbar-thin divide-y divide-neutral/15 overflow-y-auto">
 									for idx, subscription := range data.Subscriptions {
 										{{ s := &Subscription{Subscription: subscription} }}
@@ -116,6 +113,7 @@ templ UserHome(data *HomeData) {
 									</button>
 								</div>
 							</div>
+							// List: Top Categories.
 							if len(data.TopCategories) > 0 {
 								<div class="rounded-box border border-base-content/8 bg-base-200">
 									@sectionHeading(element.WithClasses("pt-2 px-4")) {
@@ -167,7 +165,9 @@ templ NewUserHome() {
 					<p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p>
 				</div>
 				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 1">
-					@SectionLabel("Add subscriptions")
+					@sectionHeading() {
+						@sectionTitle("Add subscriptions")
+					}
 					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<a
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
@@ -232,9 +232,9 @@ templ NewUserHome() {
 					</div>
 				</div>
 				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 2">
-					<div class="mt-12">
-						@SectionLabel("Or start with a Curated Set")
-					</div>
+					@sectionHeading() {
+						@sectionTitle("Or start with a curated set")
+					}
 					<form>
 						<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 							<div class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
@@ -362,7 +362,9 @@ templ NewUserHome() {
 					</form>
 				</div>
 				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 3">
-					@SectionLabel("Learn More")
+					@sectionHeading() {
+						@sectionTitle("Learn more")
+					}
 					<ul role="list" class="divide-y divide-accent">
 						<li class="px-4 py-4 sm:px-0">
 							<a class="link link-hover" href="/docs">Documentation Home</a>

@@ -8,7 +8,7 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 templ Card(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "card rounded-lg border border-neutral/20", props.Classes() }
+		class={ "card bg-base-200 border border-neutral/20 transition-shadow duration-250 ease-in-out hover:shadow-lg", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
