@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.160.0](https://github.com/immanent-tech/foragd/compare/v0.159.8...v0.160.0) (2026-06-15)
+
+
+### Features
+
+* ♻️ more article content clean-ups ([57ffe56](https://github.com/immanent-tech/foragd/commit/57ffe561a700eeb77e62167f2f60c21a4e29bd8e))
+* ✨ major style rewrite and fixes ([6d942fa](https://github.com/immanent-tech/foragd/commit/6d942fa7cef889d4fbdfbc4852f38ab9d1dc506c))
+* **service/articles:** ✨ expose wrapped zyte api error for better handling of content fetching problems ([878835a](https://github.com/immanent-tech/foragd/commit/878835acaefd22b60c2ac21eddffc7c8d2ceb7a5))
+* **templates/article,templates/subscription:** 🎨 add tooltips to action toggles/menu in card footers ([e2bcee8](https://github.com/immanent-tech/foragd/commit/e2bcee882138381c3d3e2786dc0d03fb455ebbf9))
+* **templates/favorites:** 🎨 improved favorites page ([dbdcd64](https://github.com/immanent-tech/foragd/commit/dbdcd646d03ce6ede295fd331ea28bb3a3fbf003))
+* **web/htmx:** ✨ provide a NewAttributes helper to generate hx-* attributes for an element ([f291341](https://github.com/immanent-tech/foragd/commit/f291341afa6407b5538b6c02a62180a6ce949953))
+
+
+### Bug Fixes
+
+* **assets:** 🔧 actually add styles to clean up article content ([f736569](https://github.com/immanent-tech/foragd/commit/f7365696af5a79aaeb2a78587433a763ddecddac))
+* **service/items:** 🐛 fix logic for fetching and caching items ([4df82c2](https://github.com/immanent-tech/foragd/commit/4df82c2353619d3f624571aae3753046c5d5156e))
+* **templates/favorites:** ♻️ functionality improvements ([6871c41](https://github.com/immanent-tech/foragd/commit/6871c418e64ef86febec1029d8facc78a9101792))
+* **templates/favorites:** 🗑️ remove errant back to top button ([f00f1a0](https://github.com/immanent-tech/foragd/commit/f00f1a0b9d43642812572cb347488229d0c36b04))
+* **templates/notifications:** 🔧 always use horizontal alert style ([8391e1f](https://github.com/immanent-tech/foragd/commit/8391e1f5554e6616337b72b2d7e61b537a5b4807))
+* **templates/settings:** 🔧 on page load, open a default tab if none specified ([8d56904](https://github.com/immanent-tech/foragd/commit/8d56904bcdaed8c997dd3ef61730f0c868b4e6ed))
+* **templates/viewer:** 🔧 use new image extraction method ([1652930](https://github.com/immanent-tech/foragd/commit/1652930e9cf517fa148a7b47085c1fd391648965))
+
+
+### Performance Improvements
+
+* **middlewares:** 🗑️ etag minor fix ([6358468](https://github.com/immanent-tech/foragd/commit/6358468645dce8f08fab651a4c525f3b02e3b285))
+* **scheduler/jobs:** 🔧 increase job timeout for update_feed jobs ([0fbf478](https://github.com/immanent-tech/foragd/commit/0fbf478c1d6dde385b221c428ddbbde1b5115788))
+
+
+### Reverts
+
+* **templates/article:** ♻️ switch back to category badges above article title ([1bced33](https://github.com/immanent-tech/foragd/commit/1bced3360259f2601bce80f8217c00c88c19e58c))
+
 ## [0.159.8](https://github.com/immanent-tech/foragd/compare/v0.159.7...v0.159.8) (2026-06-12)
 
 
