@@ -105,7 +105,8 @@
     "method": "GET",
     "params": {
       "url": "url"
-    }
+    },
+    "enctype": "application/x-www-form-urlencoded"
   },
   "edge_side_panel": {
     "preferred_width": 430
