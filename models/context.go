@@ -12,6 +12,7 @@ import (
 const (
 	userCtxKey          contextKey = "user"
 	subscriptionsCtxKey contextKey = "subscriptions"
+	clientTypeCtxKey    contextKey = "client_type"
 )
 
 type contextKey string
@@ -49,4 +50,19 @@ func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
 		return make(Subscriptions, 0)
 	}
 	return subscriptions
+}
+
+// ClientTypeFromCtx stores a ClientType in the context.
+func ClientTypeToCtx(ctx context.Context, clientType ClientType) context.Context {
+	return context.WithValue(ctx, clientTypeCtxKey, clientType)
+}
+
+// ClientTypeFromCtx retrieves the ClientType from the context, if any.
+func ClientTypeFromCtx(ctx context.Context) ClientType {
+	clientType, found := ctx.Value(clientTypeCtxKey).(ClientType)
+	if !found {
+		// Assume web client as default.
+		return ClientTypeWeb
+	}
+	return clientType
 }

@@ -28,6 +28,27 @@ func (e ArticleArchiveExtensionType) Valid() bool {
 	}
 }
 
+// Defines values for ClientType.
+const (
+	ClientTypePwa ClientType = "pwa"
+	ClientTypeTwa ClientType = "twa"
+	ClientTypeWeb ClientType = "web"
+)
+
+// Valid indicates whether the value is a known member of the ClientType enum.
+func (e ClientType) Valid() bool {
+	switch e {
+	case ClientTypePwa:
+		return true
+	case ClientTypeTwa:
+		return true
+	case ClientTypeWeb:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for FeedFetchMethod.
 const (
 	FeedFetchMethodDirect       FeedFetchMethod = "direct"
@@ -484,6 +505,9 @@ type ChangePasswordRequest struct {
 	// NewPassword is the new password.
 	NewPassword string `form:"new_password" json:"new_password" validate:"required,eqfield=ConfirmNewPassword"`
 }
+
+// ClientType represents which type of client is accessing the app.
+type ClientType string
 
 // Count is the count of items to retrieve with a request.
 type Count = int

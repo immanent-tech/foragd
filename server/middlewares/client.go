@@ -4,49 +4,41 @@
 package middlewares
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"strings"
 
 	slogctx "github.com/veqryn/slog-context"
-)
 
-// ClientContext is a string that represents which type of client is accessing the app.
-type ClientContext string
-
-const (
-	ClientWeb ClientContext = "web"
-	ClientTWA ClientContext = "twa"
-	ClientPWA ClientContext = "pwa"
+	"github.com/immanent-tech/foragd/models"
 )
 
 // DetectClient detects the type of client accessing the app.
-func DetectClient(req *http.Request) ClientContext {
+func DetectClient(req *http.Request) models.ClientType {
 	// Explicit header — most reliable
 	if req.Header.Get("X-TWA-Client") != "" {
-		return ClientTWA
+		return models.ClientTypeTwa
 	}
 
 	// TWA WebView UA contains package ID and wv token
 	if ua := req.Header.Get("User-Agent"); strings.Contains(ua, "app.foragd.twa") && strings.Contains(ua, "wv") {
-		return ClientTWA
+		return models.ClientTypeTwa
 	}
 
 	// Standalone PWA (installed, not TWA)
 	if req.Header.Get("Sec-Fetch-Mode") == "navigate" &&
 		req.Header.Get("Sec-Fetch-Site") == "none" {
-		return ClientPWA
+		return models.ClientTypePwa
 	}
 
-	return ClientWeb
+	return models.ClientTypeWeb
 }
 
 // SetClient is a middleware that detects and sets a client variable in the context.
 func SetClient(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		client := DetectClient(req)
-		ctx := context.WithValue(req.Context(), "client", client)
+		ctx := models.ClientTypeToCtx(req.Context(), client)
 		ctx = slogctx.With(ctx, slog.String("client", string(client)))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})

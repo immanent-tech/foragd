@@ -1,56 +1,56 @@
-openapi: "3.0.3"
+openapi: '3.0.3'
 info:
   version: 1.0.0
   title: Common Models
   description: >
     Contains common fields and objects that are shared and reused through the application.
   license:
-    name: "AGPL 3.0"
+    name: 'AGPL 3.0'
     idenfiier: AGPL-3.0-or-later
   contact:
-    name: "Immanent Tech"
+    name: 'Immanent Tech'
 components:
   schemas:
     # Common Fields.
     Timestamp:
       description: is when the document was created.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "@timestamp"
-        validate: "required"
+        json: '@timestamp'
+        validate: 'required'
     CreatedAt:
       description: records when the object was created in the database.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "created_at"
-        validate: "required"
+        json: 'created_at'
+        validate: 'required'
     UpdatedAt:
       description: records when the object was last updated in the database.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "updated_at,omitempty"
-        validate: "omitnil"
+        json: 'updated_at,omitempty'
+        validate: 'omitnil'
     DeletedAt:
       description: records when the object was deleted.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "deleted_at,omitempty"
-        validate: "omitnil"
+        json: 'deleted_at,omitempty'
+        validate: 'omitnil'
       deprecated: true
     LastFetched:
       description: >
         indicates when an object was last fetched.
       x-go-type: time.Time
       x-oapi-codegen-extra-tags:
-        json: "last_fetched,omitempty"
+        json: 'last_fetched,omitempty'
     URL:
       description: is a URL.
       type: string
       x-go-name: URL
       x-oapi-codegen-extra-tags:
-        validate: "omitempty,url"
-        json: "url"
-        form: "url"
+        validate: 'omitempty,url'
+        json: 'url'
+        form: 'url'
     RemoteImage:
       description: >
         contains details about a remote image.
@@ -61,7 +61,7 @@ components:
             the description of the image
           type: string
         url:
-          $ref: "#/components/schemas/URL"
+          $ref: '#/components/schemas/URL'
     Author:
       description: >
         represents a person who contributed to a feed or item.
@@ -74,96 +74,96 @@ components:
             is the name of the person. Can be any combination of first name and last name, in any order.
           type: string
         url:
-          $ref: "#/components/schemas/URL"
+          $ref: '#/components/schemas/URL'
         email:
           description: is an email address.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,email"
+            validate: 'omitempty,email'
     Mark:
       description: >
         applies the given mark action to objects.
       type: string
-      enum: ["read", "unread"]
+      enum: ['read', 'unread']
       x-oapi-codegen-extra-tags:
-        form: "mark"
-        validate: "oneof=read unread"
+        form: 'mark'
+        validate: 'oneof=read unread'
     State:
       description: >
         Tracks the state of an object.
       type: string
-      enum: ["read", "unread", "saved"]
-      default: "unread"
+      enum: ['read', 'unread', 'saved']
+      default: 'unread'
       x-oapi-codegen-extra-tags:
-        json: "state"
-        validate: "oneof=read unread saved"
+        json: 'state'
+        validate: 'oneof=read unread saved'
     FeedID:
       description: is the unique ID of a feed.
       type: string
       x-go-name: FeedID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=feed_"
-        json: "feed_id"
-        form: "feed_id"
+        validate: 'required,startswith=feed_'
+        json: 'feed_id'
+        form: 'feed_id'
     ItemID:
       description: is the unique ID of an item.
       type: string
       x-go-name: ItemID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=item_"
-        json: "item_id"
-        form: "item_id"
+        validate: 'required,startswith=item_'
+        json: 'item_id'
+        form: 'item_id'
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
       x-go-name: SubscriptionID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=sub_"
-        json: "subscription_id"
-        form: "subscription_id"
+        validate: 'required,startswith=sub_'
+        json: 'subscription_id'
+        form: 'subscription_id'
     EmailSenderID:
       description: >
         is an email address that sends emails.
       type: string
       x-go-name: EmailSenderID
       x-oapi-codegen-extra-tags:
-        form: "email_sender_id"
-        validate: "required,email"
+        form: 'email_sender_id'
+        validate: 'required,email'
     ObjectID:
       description: represents an ID of any user-facing object.
       type: string
       x-go-name: ObjectID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=sub_|startswith=item_"
-        json: "id"
-        form: "id"
+        validate: 'required,startswith=sub_|startswith=item_'
+        json: 'id'
+        form: 'id'
     ObjectType:
       description: represents the type of any user-facing object.
       type: string
-      enum: ["subscription", "article"]
+      enum: ['subscription', 'article']
       x-oapi-codegen-extra-tags:
-        validate: "required,oneof=subscription article"
-        json: "object"
-        form: "object"
+        validate: 'required,oneof=subscription article'
+        json: 'object'
+        form: 'object'
     SourceType:
       description: >
         indicates what type of source the object came from.
       type: string
-      enum: ["RSS", "Atom", "JSONFeed", "Email"]
+      enum: ['RSS', 'Atom', 'JSONFeed', 'Email']
     UserID:
       description: is the unique ID of a user.
       type: string
       x-go-name: UserID
       x-oapi-codegen-extra-tags:
-        json: "user_id"
-        validate: "required,startswith=user_"
-        form: "user_id"
+        json: 'user_id'
+        validate: 'required,startswith=user_'
+        form: 'user_id'
     Nickname:
       description: >
         is an optional friendly name.
       type: string
       x-oapi-codegen-extra-tags:
-        form: "nickname"
+        form: 'nickname'
     StoredImage:
       description: >
         is an image stored locally (i.e., the binary data to represent the image).
@@ -178,7 +178,7 @@ components:
         represents a taxonomy applied to an object.
       type: string
       x-oapi-codegen-extra-tags:
-        form: "category"
+        form: 'category'
     CategoryCount:
       description: >
         holds a category and the count of its occurence. The count will be
@@ -189,7 +189,7 @@ components:
         - count
       properties:
         category:
-          $ref: "#/components/schemas/Category"
+          $ref: '#/components/schemas/Category'
         count:
           type: integer
           minimum: 0
@@ -197,39 +197,38 @@ components:
       description: >
         is the count of items to retrieve with a request.
       type: integer
-      default: "10"
+      default: '10'
       x-oapi-codegen-extra-tags:
-        form: "count"
-        validate: "gt=0,lt=20"
+        form: 'count'
+        validate: 'gt=0,lt=20'
     View:
       description: >
         The state of objects to view.
       type: string
-      enum: ["read", "unread", "all"]
-      default: "unread"
+      enum: ['read', 'unread', 'all']
+      default: 'unread'
       x-oapi-codegen-extra-tags:
-        validate: "required,oneof=read unread all"
-        form: "view"
+        validate: 'required,oneof=read unread all'
+        form: 'view'
     Pagination:
       description: contains data for paginating through results.
       type: string
       x-oapi-codegen-extra-tags:
-        form: "pagination"
-        validate: "omitempty,url_encoded"
+        form: 'pagination'
+        validate: 'omitempty,url_encoded'
     Sort:
       description: is how a list of objects is sorted.
       type: string
-      enum:
-        [
-          "newest_first",
-          "oldest_first",
-          "most_unread",
-          "least_unread",
-          "most_relevant",
-        ]
+      enum: ['newest_first', 'oldest_first', 'most_unread', 'least_unread', 'most_relevant']
       x-oapi-codegen-extra-tags:
-        form: "sort"
-        validate: "required,oneof=newest_first oldest_first most_unread least_unread most_relevant"
+        form: 'sort'
+        validate: 'required,oneof=newest_first oldest_first most_unread least_unread most_relevant'
+    ClientType:
+      description: represents which type of client is accessing the app.
+      type: string
+      enum: ['web', 'twa', 'pwa']
+      x-oapi-codegen-extra-tags:
+        validate: 'required,oneof=web twa pwa'
     # Objects.
     UserCustomisation:
       description: >
@@ -244,23 +243,23 @@ components:
             is a nickname for the user.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "nickname"
-            validate: "required"
+            form: 'nickname'
+            validate: 'required'
         email:
           description: >
             is the email address of the user.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "email"
-            validate: "required,email"
+            form: 'email'
+            validate: 'required,email'
         avatar_url:
           description: >
             is a link to an image file to user as an avatar for the user.
           type: string
           x-go-name: AvatarURL
           x-oapi-codegen-extra-tags:
-            form: "avatar_url"
-            validate: "omitempty,url"
+            form: 'avatar_url'
+            validate: 'omitempty,url'
         promotional_email:
           description: >
             is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
@@ -269,8 +268,8 @@ components:
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            validate: "required"
-            form: "promotional_email"
+            validate: 'required'
+            form: 'promotional_email'
     UserSettings:
       description: >
         contains user-specific settings for the application.
@@ -288,7 +287,7 @@ components:
           type: boolean
           default: true
           x-oapi-codegen-extra-tags:
-            form: "-"
+            form: '-'
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
@@ -297,7 +296,7 @@ components:
             indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
           type: boolean
           x-oapi-codegen-extra-tags:
-            form: "show_subscription_stats"
+            form: 'show_subscription_stats'
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
@@ -307,7 +306,7 @@ components:
           type: boolean
           default: true
           x-oapi-codegen-extra-tags:
-            form: "mark_article_read_on_view"
+            form: 'mark_article_read_on_view'
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
@@ -316,22 +315,22 @@ components:
             is an email address the user can use to subscribe to email newsletters.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "subscription_email"
-            validate: "omitempty,email"
+            form: 'subscription_email'
+            validate: 'omitempty,email'
         max_view_history:
           description: >
             is a user-specified limit on how far back in time to view articles.
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            form: "max_view_history"
-            validate: "gte=0"
+            form: 'max_view_history'
+            validate: 'gte=0'
         updates_interval:
           description: >
             is the interval on which to check for new updates.
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            form: "update_interval"
-            validate: "gte=0"
+            form: 'update_interval'
+            validate: 'gte=0'
     UserLimit:
       description: >
         represents details about a user account limit
@@ -369,7 +368,7 @@ components:
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         promotional_email:
           description: >
             is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
@@ -378,7 +377,7 @@ components:
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         email_verified:
           description: >
             indicates whether the user has verfied their email address.
@@ -387,7 +386,7 @@ components:
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         pending_deletion:
           description: >
             indicates whether the user account is pending deletion.
@@ -395,9 +394,9 @@ components:
           x-omitzero: true
           x-omitempty: true
         subscription_limit:
-          $ref: "#/components/schemas/UserLimit"
+          $ref: '#/components/schemas/UserLimit'
         newsletter_limit:
-          $ref: "#/components/schemas/UserLimit"
+          $ref: '#/components/schemas/UserLimit'
     PaddleSubscription:
       description: >
         contains details about the user's paid subscription.
@@ -417,39 +416,39 @@ components:
           type: string
           x-go-name: CustomerID
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         subscription_id:
           description: >
             is the unique identifier for the user's subscription.
           type: string
           x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         subscription_name:
           description: >
             is the name of the subscription the user purchased.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         subscription_status:
           description: >
             is the name current status of the subscription plan.
           x-go-type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         price_id:
           description: >
             is the ID of the price that the customer paid for their subscription.
           x-go-name: PriceID
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         price_name:
           description: >
             is the name of price for the subscription.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         current_period_start:
           description: >
             is when the current billing period for the user's subscription started. Derived from
@@ -469,7 +468,7 @@ components:
             is when the user's trial will end. Derived from subscription.next_billed_at.
           x-go-type: time.Time
         updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
+          $ref: '#/components/schemas/UpdatedAt'
     AndroidSubscription:
       description: contains details about a user's paid Android subscription
       type: object
@@ -483,12 +482,12 @@ components:
           type: string
           x-go-name: SKU
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         purchase_token:
           description: is a token that validates the subscription purchase.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         expires_at:
           description: is the timestamp when the subscription expires.
           x-go-type: time.Time
@@ -496,11 +495,11 @@ components:
           description: is the timestamp when the subscription was granted.
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
     User:
       description: is a user of the application.
       allOf:
-        - $ref: "#/components/schemas/UserCustomisation"
+        - $ref: '#/components/schemas/UserCustomisation'
         - type: object
           required:
             - created_at
@@ -513,60 +512,60 @@ components:
             - metadata
           properties:
             created_at:
-              $ref: "#/components/schemas/CreatedAt"
+              $ref: '#/components/schemas/CreatedAt'
             updated_at:
-              $ref: "#/components/schemas/UpdatedAt"
+              $ref: '#/components/schemas/UpdatedAt'
             user_id:
-              $ref: "#/components/schemas/UserID"
+              $ref: '#/components/schemas/UserID'
             external_user_id:
               description: >
                 is the ID of the user on the external backend that was used to create the account.
               type: string
               x-go-name: ExternalUserID
               x-oapi-codegen-extra-tags:
-                validate: "required"
+                validate: 'required'
             provider:
               description: >
                 is the backend provider that was used to create the account.
               type: string
               x-oapi-codegen-extra-tags:
-                validate: "required"
+                validate: 'required'
             last_login:
               description: >
                 is the timestamp of when the user last logged in to the app.
-              x-go-type: "time.Time"
+              x-go-type: 'time.Time'
             login_count:
               description: >
                 is the total number of logins of the user.
               type: integer
             settings:
-              $ref: "#/components/schemas/UserSettings"
+              $ref: '#/components/schemas/UserSettings'
             metadata:
-              $ref: "#/components/schemas/UserMetadata"
+              $ref: '#/components/schemas/UserMetadata'
             subscription_type:
               description: is the type of subscription the user has purchased.
               type: string
-              enum: ["paddle", "android"]
+              enum: ['paddle', 'android']
               x-oapi-codegen-extra-tags:
-                validate: "omitempty,oneof=paddle android"
+                validate: 'omitempty,oneof=paddle android'
             subscription:
               oneOf:
-                - $ref: "#/components/schemas/PaddleSubscription"
-                - $ref: "#/components/schemas/AndroidSubscription"
+                - $ref: '#/components/schemas/PaddleSubscription'
+                - $ref: '#/components/schemas/AndroidSubscription'
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.
               type: array
               items:
-                $ref: "#/components/schemas/ItemID"
+                $ref: '#/components/schemas/ItemID'
               x-oapi-codegen-extra-tags:
-                validate: "omitempty,dive,startswith=item_"
+                validate: 'omitempty,dive,startswith=item_'
               x-go-type-skip-optional-pointer: true
     EditUserRequest:
       description: >
         contains details for editing a user account.
       allOf:
-        - $ref: "#/components/schemas/UserCustomisation"
+        - $ref: '#/components/schemas/UserCustomisation'
     ChangePasswordRequest:
       description: >
         contains details for changing a user password.
@@ -580,15 +579,15 @@ components:
             is the new password.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "new_password"
-            validate: "required,eqfield=ConfirmNewPassword"
+            form: 'new_password'
+            validate: 'required,eqfield=ConfirmNewPassword'
         confirm_new_password:
           description: >
             is the new password (again), used for confirmation.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "confirm_new_password"
-            validate: "required"
+            form: 'confirm_new_password'
+            validate: 'required'
     UserSession:
       description: tracks a user session.
       type: object
@@ -602,7 +601,7 @@ components:
           type: string
         data:
           description: the encoded session data.
-          x-go-type: "[]byte"
+          x-go-type: '[]byte'
         expiry:
           description: the time at which this session token expires.
           x-go-type: time.Time
@@ -637,16 +636,16 @@ components:
           type: string
           x-go-name: URL
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,url"
+            validate: 'omitempty,url'
           x-go-type-skip-optional-pointer: true
         categories:
           description: >
             is a list of categories that define a taxonomy for the feed or item.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,unique"
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         authors:
           description: >
@@ -667,14 +666,14 @@ components:
         copyright:
           type: string
         source_type:
-          $ref: "#/components/schemas/SourceType"
+          $ref: '#/components/schemas/SourceType'
         image:
-          $ref: "#/components/schemas/RemoteImage"
+          $ref: '#/components/schemas/RemoteImage'
     Feed:
       description: represents a feed object.
       type: object
       allOf:
-        - $ref: "#/components/schemas/ObjectCommon"
+        - $ref: '#/components/schemas/ObjectCommon'
         - type: object
           required:
             - feed_id
@@ -686,30 +685,30 @@ components:
             - fetch_method
           properties:
             feed_id:
-              $ref: "#/components/schemas/FeedID"
+              $ref: '#/components/schemas/FeedID'
             source_urls:
               description: >
                 is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the
               type: array
               items:
-                $ref: "#/components/schemas/URL"
+                $ref: '#/components/schemas/URL'
               x-go-name: SourceURLs
               x-oapi-codegen-extra-tags:
-                validate: "required,dive,url"
+                validate: 'required,dive,url'
             items:
               description: >
                 contains the list of items in the feed.
               type: array
               items:
-                x-go-type: "*Item"
+                x-go-type: '*Item'
                 # $ref: '#/components/schemas/Item'
               x-oapi-codegen-extra-tags:
-                json: "-"
+                json: '-'
               x-go-type-skip-optional-pointer: true
             created_at:
-              $ref: "#/components/schemas/CreatedAt"
+              $ref: '#/components/schemas/CreatedAt'
             last_fetched:
-              $ref: "#/components/schemas/LastFetched"
+              $ref: '#/components/schemas/LastFetched'
             update_interval:
               description: >
                 indicates how often the feed is updated. Where a feed does not supply an actual update interval, this
@@ -720,11 +719,11 @@ components:
               description: >
                 defines how this feed should be fetched.
               type: string
-              enum: ["direct", "proxied", "zyte-products", "zyte-articles"]
+              enum: ['direct', 'proxied', 'zyte-products', 'zyte-articles']
               x-oapi-codegen-extra-tags:
-                validate: "required,oneof=direct proxied zyte-products zyte-articles"
+                validate: 'required,oneof=direct proxied zyte-products zyte-articles'
             quirks:
-              $ref: "#/components/schemas/FeedQuirks"
+              $ref: '#/components/schemas/FeedQuirks'
     FeedQuirks:
       description: >
         contains data on quirks for a feed.
@@ -746,18 +745,18 @@ components:
         - status_code
       properties:
         timestamp:
-          $ref: "#/components/schemas/Timestamp"
+          $ref: '#/components/schemas/Timestamp'
         feed_id:
-          $ref: "#/components/schemas/FeedID"
+          $ref: '#/components/schemas/FeedID'
         items:
           description: >
             is a list of IDs of items that were added.
           type: array
           items:
-            $ref: "#/components/schemas/ItemID"
+            $ref: '#/components/schemas/ItemID'
           x-go-type-skip-optional-pointer: true
         url:
-          $ref: "#/components/schemas/URL"
+          $ref: '#/components/schemas/URL'
         status_code:
           description: >
             is the HTTP status code returned when fetching.
@@ -770,7 +769,7 @@ components:
       description: represents an individual item (e.g., an individual feed item).
       type: object
       allOf:
-        - $ref: "#/components/schemas/ObjectCommon"
+        - $ref: '#/components/schemas/ObjectCommon'
         - type: object
           required:
             - item_id
@@ -779,17 +778,17 @@ components:
             - Timestamp
           properties:
             Timestamp:
-              $ref: "#/components/schemas/Timestamp"
+              $ref: '#/components/schemas/Timestamp'
             item_id:
-              $ref: "#/components/schemas/ItemID"
+              $ref: '#/components/schemas/ItemID'
             feed_id:
-              $ref: "#/components/schemas/FeedID"
+              $ref: '#/components/schemas/FeedID'
             feed_title:
               description: >
                 is the title of the feed to which this item belongs.
               type: string
               x-oapi-codegen-extra-tags:
-                validate: "required"
+                validate: 'required'
             extension_type:
               description: >
                 is the type of extension for this item.
@@ -800,7 +799,7 @@ components:
               description: >
                 contains the embedded extension data.
               oneOf:
-                - $ref: "#/components/schemas/ItemExtensionYoutube"
+                - $ref: '#/components/schemas/ItemExtensionYoutube'
             content:
               description: >
                 contains the item content.
@@ -822,7 +821,7 @@ components:
           description: is the video height.
           type: integer
         statistics:
-          $ref: "#/components/schemas/YoutubeVideoStatistics"
+          $ref: '#/components/schemas/YoutubeVideoStatistics'
         duration:
           description: is the length of the video.
           x-go-type: time.Duration
@@ -865,17 +864,17 @@ components:
             is an optional alias or label for an object.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "nickname"
-            validate: "omitempty"
+            form: 'nickname'
+            validate: 'omitempty'
         categories:
           description: >
             is a custom list of categories for an object.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            form: "categories"
-            validate: "omitempty,unique"
+            form: 'categories'
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         image_url:
           description: >
@@ -883,9 +882,9 @@ components:
           type: string
           x-go-name: ImageURL
           x-oapi-codegen-extra-tags:
-            validate: "omitzero,url"
+            validate: 'omitzero,url'
       x-oapi-codegen-extra-tags:
-        form: "customisation"
+        form: 'customisation'
     SubscriptionArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
@@ -896,22 +895,22 @@ components:
             is the filters on the title/content to apply.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "text"
+            form: 'text'
         categories:
           description: >
             is the category filters to apply.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "categories"
+            form: 'categories'
         authors:
           description: >
             is the author filters to apply.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "authors"
+            form: 'authors'
       x-omitempty: false
       x-oapi-codegen-extra-tags:
-        form: "article_filters"
+        form: 'article_filters'
     SubscriptionSettings:
       description: >
         contains options that control how the subscription is stored/displayed.
@@ -922,12 +921,12 @@ components:
             toggles whether articles in the subscription should be always displayed with remote content.
           type: boolean
           x-oapi-codegen-extra-tags:
-            form: "show_full_article_content"
+            form: 'show_full_article_content'
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
-        form: "settings"
+        form: 'settings'
     SubscriptionStats:
       description: >
         contains stats about a subscription.
@@ -942,25 +941,25 @@ components:
             is the avergage number of articles published per day.
           x-go-type: float64
           x-oapi-codegen-extra-tags:
-            json: "-"
-            validate: "gte=0"
+            json: '-'
+            validate: 'gte=0'
         unread_count:
           description: >
             is the value of items that are not explicitly marked unread by the user for this subscription.
           type: integer
           x-oapi-codegen-extra-tags:
-            json: "-"
-            validate: "gte=0"
+            json: '-'
+            validate: 'gte=0'
         last_update:
           description: >
             is the timestamp of the most newest item that matches the search.
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
-            json: "-"
-            validate: "required"
+            json: '-'
+            validate: 'required'
       x-oapi-codegen-extra-tags:
-        json: "-"
-        validate: "-"
+        json: '-'
+        validate: '-'
     SubscriptionMetadata:
       description: >
         contains common fields across all subscription types.
@@ -973,24 +972,24 @@ components:
         - settings
       properties:
         created_at:
-          $ref: "#/components/schemas/CreatedAt"
+          $ref: '#/components/schemas/CreatedAt'
         updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
+          $ref: '#/components/schemas/UpdatedAt'
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         user_id:
-          $ref: "#/components/schemas/UserID"
+          $ref: '#/components/schemas/UserID'
         type:
           description: >
             is the type of subscription.
           type: string
-          enum: ["feed", "search", "group", "email"]
+          enum: ['feed', 'search', 'group', 'email']
           x-oapi-codegen-extra-tags:
-            validate: "required,oneof=feed search group email"
+            validate: 'required,oneof=feed search group email'
         customisation:
-          $ref: "#/components/schemas/SubscriptionCustomisation"
+          $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
-          $ref: "#/components/schemas/SubscriptionSettings"
+          $ref: '#/components/schemas/SubscriptionSettings'
         favorite:
           description: >
             indicates whether this subscription has been marked as a favorite by the user.
@@ -1004,7 +1003,7 @@ components:
             read, any newer unread.
           x-go-type: time.Time
       x-oapi-codegen-extra-tags:
-        validate: "required"
+        validate: 'required'
     FeedSubscription:
       description: >
         represents a feed a user has subscribed to.
@@ -1015,17 +1014,17 @@ components:
         - article_states
       properties:
         feed_id:
-          $ref: "#/components/schemas/FeedID"
+          $ref: '#/components/schemas/FeedID'
         article_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.
-          x-go-type: "map[ItemID]ArticleState"
+          x-go-type: 'map[ItemID]ArticleState'
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         article_filters:
-          $ref: "#/components/schemas/SubscriptionArticleFilters"
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
-        validate: "omitempty"
+        validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
     GroupSubscription:
       description: >
@@ -1039,14 +1038,14 @@ components:
             is the list of subscription IDs belonging to the group.
           type: array
           items:
-            $ref: "#/components/schemas/SubscriptionID"
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            form: "subscriptions"
-            validate: "required,dive,startswith=sub_"
+            form: 'subscriptions'
+            validate: 'required,dive,startswith=sub_'
         article_filters:
-          $ref: "#/components/schemas/SubscriptionArticleFilters"
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
-        validate: "omitempty"
+        validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
     SearchSubscription:
       description: >
@@ -1056,9 +1055,9 @@ components:
         - search
       properties:
         search:
-          $ref: "api.yaml#/components/schemas/SearchRequest"
+          $ref: 'api.yaml#/components/schemas/SearchRequest'
       x-oapi-codegen-extra-tags:
-        validate: "omitempty"
+        validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
     EmailSubscription:
       description: >
@@ -1070,38 +1069,38 @@ components:
         - article_states
       properties:
         feed_id:
-          $ref: "#/components/schemas/FeedID"
+          $ref: '#/components/schemas/FeedID'
         email_sender_id:
-          $ref: "#/components/schemas/EmailSenderID"
+          $ref: '#/components/schemas/EmailSenderID'
         article_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.
-          x-go-type: "map[ItemID]ArticleState"
+          x-go-type: 'map[ItemID]ArticleState'
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         article_filters:
-          $ref: "#/components/schemas/SubscriptionArticleFilters"
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
-        validate: "omitempty"
+        validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
     Subscription:
       description: >
         represents any kind of subscription.
       type: object
       allOf:
-        - $ref: "#/components/schemas/SubscriptionMetadata"
+        - $ref: '#/components/schemas/SubscriptionMetadata'
         - type: object
           properties:
             feed_data:
-              $ref: "#/components/schemas/FeedSubscription"
+              $ref: '#/components/schemas/FeedSubscription'
             search_data:
-              $ref: "#/components/schemas/SearchSubscription"
+              $ref: '#/components/schemas/SearchSubscription'
             group_data:
-              $ref: "#/components/schemas/GroupSubscription"
+              $ref: '#/components/schemas/GroupSubscription'
             email_data:
-              $ref: "#/components/schemas/EmailSubscription"
+              $ref: '#/components/schemas/EmailSubscription'
             stats:
-              $ref: "#/components/schemas/SubscriptionStats"
+              $ref: '#/components/schemas/SubscriptionStats'
     SearchSubscriptionRequest:
       description: >
         represents a request to create a search subscription.
@@ -1110,20 +1109,20 @@ components:
         - search
       properties:
         search:
-          $ref: "api.yaml#/components/schemas/SearchRequest"
+          $ref: 'api.yaml#/components/schemas/SearchRequest'
         customisation:
-          $ref: "#/components/schemas/SubscriptionCustomisation"
+          $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
-          $ref: "#/components/schemas/SubscriptionSettings"
+          $ref: '#/components/schemas/SubscriptionSettings'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            form: "-"
-            json: "-"
+            form: '-'
+            json: '-'
           x-go-type-skip-optional-pointer: true
     GroupSubscriptionSuggestionRequest:
       description: >
@@ -1153,26 +1152,26 @@ components:
         - subscription_id
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         customisation:
           allOf:
-            - $ref: "#/components/schemas/SubscriptionCustomisation"
+            - $ref: '#/components/schemas/SubscriptionCustomisation'
           x-oapi-codegen-extra-tags:
-            form: "customisation"
+            form: 'customisation'
         settings:
           allOf:
-            - $ref: "#/components/schemas/SubscriptionSettings"
+            - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
-            form: "settings"
+            form: 'settings'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            form: "-"
-            json: "-"
+            form: '-'
+            json: '-'
           x-go-type-skip-optional-pointer: true
     ArticleMetadata:
       description: >
@@ -1184,11 +1183,11 @@ components:
         - source_type
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         state:
-          $ref: "#/components/schemas/ArticleState"
+          $ref: '#/components/schemas/ArticleState'
         source_type:
-          $ref: "#/components/schemas/SourceType"
+          $ref: '#/components/schemas/SourceType'
     ArticleSettings:
       description: >
         contains settings related to the display of the article.
@@ -1222,27 +1221,27 @@ components:
             indicates whether the object has been read (true) or is unread (false).
           type: boolean
         updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
+          $ref: '#/components/schemas/UpdatedAt'
     Article:
       description: >
         is the representation of an item from the user's perspective. It holds the original item and additional fields
         to track the state of the item from the perspective of the user.
       type: object
       allOf:
-        - $ref: "#/components/schemas/ArticleMetadata"
-        - $ref: "#/components/schemas/ArticleSettings"
+        - $ref: '#/components/schemas/ArticleMetadata'
+        - $ref: '#/components/schemas/ArticleSettings'
         - type: object
           required:
             - item
           properties:
             item:
-              $ref: "#/components/schemas/Item"
+              $ref: '#/components/schemas/Item'
             favorite:
               description: >
                 indicates whether this subscription has been marked as a Favorite by the user.
               type: boolean
               x-oapi-codegen-extra-tags:
-                json: "-"
+                json: '-'
               x-go-type-skip-optional-pointer: true
               x-omit-zero: false
               x-omitempty: false
@@ -1255,16 +1254,16 @@ components:
         represents an item that has been archived to avoid deletion (i.e. favorited by a user).
       type: object
       allOf:
-        - $ref: "#/components/schemas/Item"
+        - $ref: '#/components/schemas/Item'
         - type: object
           required:
             - user_id
             - subscription_id
           properties:
             user_id:
-              $ref: "#/components/schemas/UserID"
+              $ref: '#/components/schemas/UserID'
             subscription_id:
-              $ref: "#/components/schemas/SubscriptionID"
+              $ref: '#/components/schemas/SubscriptionID'
     JobState:
       description: >
         represents the stored state of a scheduled job.
@@ -1273,7 +1272,7 @@ components:
         - updated_at
       properties:
         updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
+          $ref: '#/components/schemas/UpdatedAt'
         job_data:
           x-go-type: json.RawMessage
           x-go-type-skip-optional-pointer: true
@@ -1287,19 +1286,19 @@ components:
         - input_name
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         subscription_name:
           description: >
             is the nickname of the subscription.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "subscription_name"
+            form: 'subscription_name'
         input_name:
           description: >
             is the name of the input in the form into which this filter should be added.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "subscriptions-input-name"
+            form: 'subscriptions-input-name'
     GetSubscriptionsSuggestionRequest:
       description: >
         contains the data for finding matching subscriptions as suggestion results.
@@ -1312,15 +1311,15 @@ components:
             is a string that should match a subscription.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "subscription-suggestion-text"
+            form: 'subscription-suggestion-text'
         ignored_subscriptions:
           description: >
             is a list of subscription IDs to ignore for suggestions.
           type: array
           items:
-            $ref: "#/components/schemas/SubscriptionID"
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            form: "subscription_id"
+            form: 'subscription_id'
           x-go-type-skip-optional-pointer: true
     AddFeedsetRequest:
       description: >
@@ -1332,7 +1331,7 @@ components:
           items:
             type: string
           x-oapi-codegen-extra-tags:
-            form: "feedset,unique"
+            form: 'feedset,unique'
           x-go-type-skip-optional-pointer: true
     ListFilters:
       description: >
@@ -1344,45 +1343,45 @@ components:
         - sort
       properties:
         count:
-          $ref: "#/components/schemas/Count"
+          $ref: '#/components/schemas/Count'
         view:
-          $ref: "#/components/schemas/View"
+          $ref: '#/components/schemas/View'
         sort:
-          $ref: "#/components/schemas/Sort"
+          $ref: '#/components/schemas/Sort'
         categories:
           description: is a list of categories.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            json: "categories"
-            form: "categories"
-            validate: "omitnil,unique,dive,url_encoded"
+            json: 'categories'
+            form: 'categories'
+            validate: 'omitnil,unique,dive,url_encoded'
           x-go-type-skip-optional-pointer: true
         subscriptions:
           description: >
             is a list of subscription IDs.
           type: array
           items:
-            $ref: "#/components/schemas/SubscriptionID"
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            json: "subscriptions"
-            form: "subscriptions"
-            validate: "omitnil,dive,startswith=sub_"
+            json: 'subscriptions'
+            form: 'subscriptions'
+            validate: 'omitnil,dive,startswith=sub_'
           x-go-type-skip-optional-pointer: true
         onlyFavorites:
           description: >
             indicates whether to filter by favorites only.
           type: boolean
           x-oapi-codegen-extra-tags:
-            json: "only_favorites"
-            form: "only_favorites"
-            validate: "omitempty,boolean"
+            json: 'only_favorites'
+            form: 'only_favorites'
+            validate: 'omitempty,boolean'
           x-omit-zero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
-        validate: "required"
+        validate: 'required'
     ObjectParams:
       description: >
         contains the parameters for viewing an object.
@@ -1392,37 +1391,37 @@ components:
         - object
       properties:
         id:
-          $ref: "#/components/schemas/ObjectID"
+          $ref: '#/components/schemas/ObjectID'
         object:
-          $ref: "#/components/schemas/ObjectType"
+          $ref: '#/components/schemas/ObjectType'
     MarkObjectParams:
       description: >
         contains the parameters for marking an object.
       type: object
       allOf:
-        - $ref: "#/components/schemas/ObjectParams"
+        - $ref: '#/components/schemas/ObjectParams'
         - type: object
           required:
             - mark
           properties:
             mark:
-              $ref: "#/components/schemas/Mark"
+              $ref: '#/components/schemas/Mark'
     HomeResponse:
       description: >
         contains the data for displaying the home page.
       type: object
       properties:
         subscriptions:
-          x-go-type: "Subscriptions"
+          x-go-type: 'Subscriptions'
           x-go-type-skip-optional-pointer: true
         latest_articles:
-          x-go-type: "Articles"
+          x-go-type: 'Articles'
           x-go-type-skip-optional-pointer: true
         top_categories:
-          x-go-type: "map[CategoryCount]Articles"
+          x-go-type: 'map[CategoryCount]Articles'
           x-go-type-skip-optional-pointer: true
         rare_categories:
-          x-go-type: "CategoryCounts"
+          x-go-type: 'CategoryCounts'
           x-go-type-skip-optional-pointer: true
     ListRequest:
       description: >
@@ -1432,15 +1431,15 @@ components:
         - filters
       properties:
         filters:
-          $ref: "#/components/schemas/ListFilters"
+          $ref: '#/components/schemas/ListFilters'
         pagination:
-          $ref: "#/components/schemas/Pagination"
+          $ref: '#/components/schemas/Pagination'
         query:
           description: >
             is an additional query to apply for this request.
           x-go-type: query.Option
           x-go-type-import:
-            path: "github.com/immanent-tech/foragd/providers/elastic/query"
+            path: 'github.com/immanent-tech/foragd/providers/elastic/query'
           x-go-type-skip-optional-pointer: true
     ListSubscriptionCategoriesRequest:
       description: >
@@ -1452,10 +1451,10 @@ components:
             is a list of subscription IDs.
           type: array
           items:
-            $ref: "#/components/schemas/SubscriptionID"
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            form: "selected_subscriptions"
-            validate: "omitempty,dive,startswith=sub_"
+            form: 'selected_subscriptions'
+            validate: 'omitempty,dive,startswith=sub_'
           x-go-type-skip-optional-pointer: true
     MarkSubscriptionRequest:
       description: >
@@ -1466,9 +1465,9 @@ components:
         - mark
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         mark:
-          $ref: "#/components/schemas/Mark"
+          $ref: '#/components/schemas/Mark'
     MarkSubscriptionsRequest:
       description: >
         contains the parameters for marking a list of subscriptions.
@@ -1483,14 +1482,14 @@ components:
             is a list of subscription IDs.
           type: array
           items:
-            $ref: "#/components/schemas/SubscriptionID"
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            form: "selected_subscriptions"
-            validate: "omitempty,dive,startswith=sub_"
+            form: 'selected_subscriptions'
+            validate: 'omitempty,dive,startswith=sub_'
         view:
-          $ref: "#/components/schemas/View"
+          $ref: '#/components/schemas/View'
         mark:
-          $ref: "#/components/schemas/Mark"
+          $ref: '#/components/schemas/Mark'
     FavoriteSubscriptionRequest:
       description: >
         contains parameters for favoriting a subscription.
@@ -1499,7 +1498,7 @@ components:
         - subscription_id
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
     MarkArticleRequest:
       description: >
         contains parameters for marking an article.
@@ -1510,11 +1509,11 @@ components:
         - item_id
       properties:
         item_id:
-          $ref: "#/components/schemas/ItemID"
+          $ref: '#/components/schemas/ItemID'
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         mark:
-          $ref: "#/components/schemas/Mark"
+          $ref: '#/components/schemas/Mark'
     MarkArticlesRequest:
       description: >
         contains the parameters for marking articles.
@@ -1526,11 +1525,11 @@ components:
         displayed_articles:
           description: >
             is a map of item ids per subscription.
-          x-go-type: "map[SubscriptionID][]ItemID"
+          x-go-type: 'map[SubscriptionID][]ItemID'
           x-oapi-codegen-extra-tags:
-            form: "displayed_articles"
+            form: 'displayed_articles'
         mark:
-          $ref: "#/components/schemas/Mark"
+          $ref: '#/components/schemas/Mark'
     FavoriteArticleRequest:
       description: >
         contains parameters for favoriting an article.
@@ -1540,9 +1539,9 @@ components:
         - item_id
       properties:
         item_id:
-          $ref: "#/components/schemas/ItemID"
+          $ref: '#/components/schemas/ItemID'
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
     RemoveSubscriptionRequest:
       description: >
         contains the parameters for removing a subscription.
@@ -1552,7 +1551,7 @@ components:
         - nickname
       properties:
         subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+          $ref: '#/components/schemas/SubscriptionID'
         nickname:
           type: string
           x-oapi-codegen-extra-tags:
@@ -1568,21 +1567,21 @@ components:
         - link
       properties:
         item_id:
-          $ref: "#/components/schemas/ItemID"
+          $ref: '#/components/schemas/ItemID'
         title:
           description: >
             is the article title.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "title"
-            validate: "required"
+            form: 'title'
+            validate: 'required'
         link:
           description: >
             is the link to the article.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "link"
-            validate: "required,url"
+            form: 'link'
+            validate: 'required,url'
     CategoryFilters:
       description: >
         contains categories that can be used for filtering.
@@ -1597,7 +1596,7 @@ components:
         path:
           type: string
         filters:
-          $ref: "#/components/schemas/ListFilters"
+          $ref: '#/components/schemas/ListFilters'
     UserMessage:
       description: >
         represents a message that can be displayed to the user as the result of an action.
@@ -1612,7 +1611,7 @@ components:
             or summary.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         details:
           description: >
             is a longer description and/or background details about the message.
@@ -1621,9 +1620,9 @@ components:
           description: >
             indicates the severity or importance of the message.
           type: string
-          enum: ["info", "success", "warning", "error"]
+          enum: ['info', 'success', 'warning', 'error']
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
       x-go-type-skip-optional-pointer: false
     FileUpload:
       description: >
@@ -1640,13 +1639,13 @@ components:
             is the file data/content.
           x-go-type: multipart.File
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         header:
           description: >
             is the mime header information of the file.
-          x-go-type: "*multipart.FileHeader"
+          x-go-type: '*multipart.FileHeader'
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
     FileDetails:
       description: >
         contains a mapping of a file in an embedded FS to the URL path it is served from.
@@ -1660,15 +1659,15 @@ components:
             is the path in an embedded FS to the file.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "file"
-            validate: "required,filepath"
+            toml: 'file'
+            validate: 'required,filepath'
         path:
           description: >
             is the relative URL path from where this document should be served.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "path"
-            validate: "required,filepath"
+            toml: 'path'
+            validate: 'required,filepath'
     FileIndex:
       description: >
         contains a listing of files in a directory of an embedded FS.
@@ -1679,16 +1678,16 @@ components:
             is a list of details for files.
           type: array
           items:
-            $ref: "#/components/schemas/FileDetails"
+            $ref: '#/components/schemas/FileDetails'
           x-oapi-codegen-extra-tags:
-            toml: "file"
+            toml: 'file'
           x-go-type-skip-optional-pointer: true
         updated_at:
           description: >
             indicates when the index was last updated.
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
-            toml: "updated_at"
+            toml: 'updated_at'
     MarkdownFrontMatter:
       description: >
         contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
@@ -1704,51 +1703,51 @@ components:
             is the in-page title of the document.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "title"
-            validate: "required"
+            toml: 'title'
+            validate: 'required'
         page_title:
           description: >
             is the title rendered in the page header (i.e., <title/>).
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "page_title"
-            validate: "required"
+            toml: 'page_title'
+            validate: 'required'
         description:
           description: >
             is a description of the document, used in metadata headers of the page.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "description"
-            validate: "required"
+            toml: 'description'
+            validate: 'required'
         created_at:
           description: >
             is when the post was created.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "created_at"
-            validate: "required,datetime=2006-01-02"
+            toml: 'created_at'
+            validate: 'required,datetime=2006-01-02'
         updated_at:
           description: >
             is when the post was updated.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "updated_at"
-            validate: "omitempty,datetime=2006-01-02"
+            toml: 'updated_at'
+            validate: 'omitempty,datetime=2006-01-02'
         author:
           description: >
             the person who wrote or is responsible for the document.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "author"
+            toml: 'author'
         image:
           description: >
             is a URL to an image to represent the file.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "image"
-            validate: "omitempty,url"
+            toml: 'image'
+            validate: 'omitempty,url'
       x-oapi-codegen-extra-tags:
-        toml: "doc_metadata"
+        toml: 'doc_metadata'
     MarkdownFile:
       description: >
         contains the raw markdown file data and its frontmatter.
@@ -1763,13 +1762,13 @@ components:
             is the JSON-LD format for the file.
           x-go-type: json.RawMessage
         frontmatter:
-          $ref: "#/components/schemas/MarkdownFrontMatter"
+          $ref: '#/components/schemas/MarkdownFrontMatter'
         details:
-          $ref: "#/components/schemas/FileDetails"
+          $ref: '#/components/schemas/FileDetails'
         content:
-          x-go-type: "[]byte"
+          x-go-type: '[]byte'
     EmailTemplateID:
       description: is the ID of an email template.
       type: string
       x-oapi-codegen-extra-tags:
-        validate: "required"
+        validate: 'required'
