@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.162.0](https://github.com/immanent-tech/foragd/compare/v0.161.0...v0.162.0) (2026-06-16)
+
+
+### Features
+
+* ✨ user subscription improvements ([b8339bd](https://github.com/immanent-tech/foragd/commit/b8339bd0c2838f2181c612ebb2a816aea2c3c237))
+
+
+### Bug Fixes
+
+* **templates/checkout:** 🔧 fix checkout process for users out of trial and without a plan ([d88a55a](https://github.com/immanent-tech/foragd/commit/d88a55aa63b503d73786c8da470e29c39791b56a))
+* **templates/home:** 🔧 when clicking on feedset card, toggle checkbox ([ea60010](https://github.com/immanent-tech/foragd/commit/ea60010df18886cc0fda1150727c40eb29f7eba3))
+* **templates/settings:** 🔧 fix labels and display on account settings ([7491b07](https://github.com/immanent-tech/foragd/commit/7491b075d88087566dae313b3591bdffe12c9554))
+
 ## [0.161.0](https://github.com/immanent-tech/foragd/compare/v0.160.2...v0.161.0) (2026-06-15)
 
 
