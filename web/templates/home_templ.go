@@ -349,7 +349,7 @@ func UserHome(data *HomeData) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</h2></div><span class=\"mt-1 self-end text-right text-sm/6 text-neutral\"><relative-time datetime=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</h2></div><span class=\"mt-1 self-end text-right badge badge-neutral badge-soft\"><relative-time datetime=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

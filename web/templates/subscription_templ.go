@@ -279,7 +279,7 @@ func SubscriptionCard(idx int, subscription *models.Subscription) templ.Componen
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><h2 class=\"mb-2 line-clamp-2 flex-1 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><h2 class=\"mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
