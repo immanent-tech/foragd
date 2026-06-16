@@ -244,24 +244,6 @@ func (e SubscriptionMetadataType) Valid() bool {
 	}
 }
 
-// Defines values for UserSubscriptionType.
-const (
-	UserSubscriptionTypeAndroid UserSubscriptionType = "android"
-	UserSubscriptionTypePaddle  UserSubscriptionType = "paddle"
-)
-
-// Valid indicates whether the value is a known member of the UserSubscriptionType enum.
-func (e UserSubscriptionType) Valid() bool {
-	switch e {
-	case UserSubscriptionTypeAndroid:
-		return true
-	case UserSubscriptionTypePaddle:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for UserMessageStatus.
 const (
 	UserMessageStatusError   UserMessageStatus = "error"
@@ -280,6 +262,24 @@ func (e UserMessageStatus) Valid() bool {
 	case UserMessageStatusSuccess:
 		return true
 	case UserMessageStatusWarning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UserSubscriptionType.
+const (
+	UserSubscriptionTypeAndroid UserSubscriptionType = "android"
+	UserSubscriptionTypePaddle  UserSubscriptionType = "paddle"
+)
+
+// Valid indicates whether the value is a known member of the UserSubscriptionType enum.
+func (e UserSubscriptionType) Valid() bool {
+	switch e {
+	case UserSubscriptionTypeAndroid:
+		return true
+	case UserSubscriptionTypePaddle:
 		return true
 	default:
 		return false
@@ -322,6 +322,12 @@ type AddSubscriptionSearchFilterRequest struct {
 
 	// SubscriptionName is the nickname of the subscription.
 	SubscriptionName string `form:"subscription_name" json:"subscription_name"`
+}
+
+// AndroidCheckout contains data for checking out a Android subscription.
+type AndroidCheckout struct {
+	// SKU is the plan SKU.
+	SKU string `json:"sku" validate:"required"`
 }
 
 // AndroidSubscription contains details about a user's paid Android subscription
@@ -504,6 +510,19 @@ type ChangePasswordRequest struct {
 
 	// NewPassword is the new password.
 	NewPassword string `form:"new_password" json:"new_password" validate:"required,eqfield=ConfirmNewPassword"`
+}
+
+// CheckoutRequest contains data for a subscription checkout.
+type CheckoutRequest struct {
+	SubscriptionData CheckoutRequest_SubscriptionData `json:"subscription_data"`
+
+	// UserSubscriptionType is the type of subscription the user has purchased.
+	UserSubscriptionType UserSubscriptionType `json:"subscription_type" validate:"omitempty,oneof=paddle android"`
+}
+
+// CheckoutRequest_SubscriptionData defines model for CheckoutRequest.SubscriptionData.
+type CheckoutRequest_SubscriptionData struct {
+	union json.RawMessage
 }
 
 // ClientType represents which type of client is accessing the app.
@@ -1018,6 +1037,15 @@ type ObjectParams struct {
 // ObjectType represents the type of any user-facing object.
 type ObjectType string
 
+// PaddleCheckout contains data for checking out a Paddle subscription.
+type PaddleCheckout struct {
+	// PlanID is the plan ID.
+	PlanID string `json:"plan_id" validate:"required"`
+
+	// TransactionID is the transaction ID for this checkout session.
+	TransactionID *string `json:"transaction_id,omitempty"`
+}
+
 // PaddleSubscription contains details about the user's paid subscription.
 type PaddleSubscription struct {
 	// CancelledAt is when the user's subscription will cancel. Derived from subscription.scheduled_change.action == "cancel".
@@ -1295,8 +1323,8 @@ type User struct {
 	Settings     UserSettings       `json:"settings"`
 	Subscription *User_Subscription `json:"subscription,omitempty"`
 
-	// SubscriptionType is the type of subscription the user has purchased.
-	SubscriptionType *UserSubscriptionType `json:"subscription_type,omitempty" validate:"omitempty,oneof=paddle android"`
+	// UserSubscriptionType is the type of subscription the user has purchased.
+	UserSubscriptionType *UserSubscriptionType `json:"subscription_type,omitempty" validate:"omitempty,oneof=paddle android"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -1309,9 +1337,6 @@ type User struct {
 type User_Subscription struct {
 	union json.RawMessage
 }
-
-// UserSubscriptionType is the type of subscription the user has purchased.
-type UserSubscriptionType string
 
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {
@@ -1412,6 +1437,9 @@ type UserSettings struct {
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`
 }
 
+// UserSubscriptionType is the type of subscription the user has purchased.
+type UserSubscriptionType string
+
 // View The state of objects to view.
 type View string
 
@@ -1465,6 +1493,68 @@ func (t ArticleArchive_ExtensionData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *ArticleArchive_ExtensionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsPaddleCheckout returns the union data inside the CheckoutRequest_SubscriptionData as a PaddleCheckout
+func (t CheckoutRequest_SubscriptionData) AsPaddleCheckout() (PaddleCheckout, error) {
+	var body PaddleCheckout
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPaddleCheckout overwrites any union data inside the CheckoutRequest_SubscriptionData as the provided PaddleCheckout
+func (t *CheckoutRequest_SubscriptionData) FromPaddleCheckout(v PaddleCheckout) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePaddleCheckout performs a merge with any union data inside the CheckoutRequest_SubscriptionData, using the provided PaddleCheckout
+func (t *CheckoutRequest_SubscriptionData) MergePaddleCheckout(v PaddleCheckout) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAndroidCheckout returns the union data inside the CheckoutRequest_SubscriptionData as a AndroidCheckout
+func (t CheckoutRequest_SubscriptionData) AsAndroidCheckout() (AndroidCheckout, error) {
+	var body AndroidCheckout
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAndroidCheckout overwrites any union data inside the CheckoutRequest_SubscriptionData as the provided AndroidCheckout
+func (t *CheckoutRequest_SubscriptionData) FromAndroidCheckout(v AndroidCheckout) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAndroidCheckout performs a merge with any union data inside the CheckoutRequest_SubscriptionData, using the provided AndroidCheckout
+func (t *CheckoutRequest_SubscriptionData) MergeAndroidCheckout(v AndroidCheckout) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CheckoutRequest_SubscriptionData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CheckoutRequest_SubscriptionData) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

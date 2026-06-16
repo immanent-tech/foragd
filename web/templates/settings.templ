@@ -191,8 +191,11 @@ templ AccountSettings(user *models.User) {
 						</relative-time>
 						({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
 					</p>
+				case user.InTrialGracePeriod():
+					<span class="badge badge-warning">Trial Expired</span>
+					<p>Please purchase a subscription to maintain access to your account.</p>
 				default:
-					switch *user.SubscriptionType {
+					switch *user.UserSubscriptionType {
 						case models.UserSubscriptionTypePaddle:
 							@showPaddleSubscriptionDetails(user)
 					}
@@ -201,6 +204,12 @@ templ AccountSettings(user *models.User) {
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			switch  {
 				case user.InTrial():
+					<div class="col-span-full mt-8 place-self-end">
+						<div class="mt-2 flex items-center justify-end gap-x-6">
+							<a role="button" class="btn btn-primary" href="/checkout">Purchase a subscription</a>
+						</div>
+					</div>
+				case user.InTrialGracePeriod():
 					<div class="col-span-full mt-8 place-self-end">
 						<div class="mt-2 flex items-center justify-end gap-x-6">
 							<a role="button" class="btn btn-primary" href="/checkout">Purchase a subscription</a>

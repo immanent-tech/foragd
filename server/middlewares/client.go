@@ -16,7 +16,7 @@ import (
 // DetectClient detects the type of client accessing the app.
 func DetectClient(req *http.Request) models.ClientType {
 	// Explicit header — most reliable
-	if req.Header.Get("X-TWA-Client") != "" {
+	if req.Header.Get("X-Twa-Client") != "" {
 		return models.ClientTypeTwa
 	}
 

@@ -485,7 +485,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				Logout(res, req)
 			default:
 				var timeLeft *time.Time
-				switch *user.SubscriptionType {
+				switch *user.UserSubscriptionType {
 				case models.UserSubscriptionTypePaddle:
 					userSubscription, err := user.Subscription.AsPaddleSubscription()
 					if err != nil {

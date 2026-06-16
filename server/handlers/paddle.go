@@ -76,15 +76,15 @@ func HandlePaddleWebhook(res http.ResponseWriter, req *http.Request) {
 }
 
 type ChooseSubscription struct {
-	user  *models.User
-	props *templates.CheckoutProps
+	user    *models.User
+	request *models.CheckoutRequest
 }
 
 func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
 	ctx := slots.WithSlot(req.Context(), slots.Header, templates.PaddleHead())
 	templ.Handler(
 		templates.CreatePage(
-			templates.ChooseSubscriptionPlan(t.user, t.props),
+			templates.ChooseSubscriptionPlan(t.user, t.request),
 			templates.WithPageTitle("Choose Subscription Plan"),
 		)).ServeHTTP(res, req.WithContext(ctx))
 }
@@ -115,19 +115,12 @@ func HandleChooseSubscription() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-		// If ?_ptxn=txn_01... is present, pass it to the template so the
-		// Paddle overlay is opened automatically for that transaction.
-		if transactionID := req.FormValue("_ptxn"); transactionID != "" {
-			RenderExternalPage(&ChooseSubscription{
-				user: user,
-				props: &templates.CheckoutProps{
-					TransactionID: transactionID,
-				},
-			}).ServeHTTP(res, req)
-			return
-		}
-
+		// If ?_ptxn=txn_01... is present, this will be passed so the Paddle overlay is opened automatically for that
+		// transaction.
+		transactionID := req.FormValue("_ptxn")
+		// The paddle plan ID.
 		plan := req.FormValue("plan")
+
 		if _, err := paddle.GetPriceID(plan); err != nil {
 			HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("get price id: %w", err),
@@ -142,11 +135,26 @@ func HandleChooseSubscription() http.HandlerFunc {
 			// Assign annual pricing as default.
 			plan, _ = paddle.GetPriceID("annual")
 		}
+
+		checkout := &models.CheckoutRequest{UserSubscriptionType: models.UserSubscriptionTypePaddle}
+		if err := checkout.SubscriptionData.FromPaddleCheckout(models.PaddleCheckout{
+			PlanID:        plan,
+			TransactionID: &transactionID,
+		}); err != nil {
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("generate checkout request: %w", err),
+				StatusCode:    http.StatusBadRequest,
+				UserMessage: models.NewErrorMessage(
+					"Unable to render form",
+					"There was a problem with the request. Please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
 		RenderExternalPage(&ChooseSubscription{
-			user: user,
-			props: &templates.CheckoutProps{
-				PlanID: plan,
-			},
+			user:    user,
+			request: checkout,
 		}).ServeHTTP(res, req)
 	}
 }

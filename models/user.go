@@ -97,17 +97,26 @@ func (u *User) GetSettings() *UserSettings {
 func (u *User) InTrial() bool {
 	if !u.HasValidSubscription() {
 		// No current subscription, check against account creation time.
-		if time.Now().UTC().Compare(u.CreatedAt.Add(DefaultTrialPeriod)) == -1 {
+		if time.Now().UTC().Before(u.CreatedAt.Add(DefaultTrialPeriod)) {
 			return true
 		}
 	}
 	return false
 }
 
+// InTrialGracePeriod returns a boolean indicating whether the user account is in its trial grace period. The trial
+// grace period starts after the trial has expired and lasts for one week. It allows a user who may have forgotten or
+// otherwise let a trial temporarily lapse to continue to use the app for a short period, with the hope they will buy a
+// subscription.
+func (u *User) InTrialGracePeriod() bool {
+	return !u.HasValidSubscription() &&
+		time.Now().UTC().Before(u.CreatedAt.Add(DefaultTrialPeriod+7*24*time.Hour))
+}
+
 // HasValidSubscription returns a boolean indicating whether the user has a valid subscription. A valid subscription
 // only indicates the user has a subscription of some type. It does not indicate the state of the subscription.
 func (u *User) HasValidSubscription() bool {
-	return u.Subscription != nil && u.SubscriptionType != nil && *u.SubscriptionType != ""
+	return u.Subscription != nil && u.UserSubscriptionType != nil && *u.UserSubscriptionType != ""
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data

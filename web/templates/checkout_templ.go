@@ -21,6 +21,50 @@ import (
 	"time"
 )
 
+var BillingFAQ = []partials.FAQEntry{
+	{
+		ID:       "switching",
+		Question: "Can I switch plans?",
+		Answer: `
+				<p>Yes. You can upgrade from monthly to annual at any time. We'll prorate the difference.</p>
+				`,
+	},
+	{
+		ID:       "payment-methods",
+		Question: "What payment methods do you accept?",
+		Answer: `
+				<p>All major credit cards, PayPal, and local payment methods depending on your region. Payments are
+				handled by either Google Play (for Android app users) or Paddle (for website users).</p> `,
+	},
+	{
+		ID:       "tax",
+		Question: "Do you handle tax?",
+		Answer: `
+				<p>Yes. For Android app users, Google Play is our merchant of record. From website users, Paddle is our
+				Merchant of Record. Both handle sales tax, VAT, and GST collection globally.</p> `,
+	},
+	{
+		ID:       "cancel",
+		Question: "Can I cancel anytime?",
+		Answer: `
+				<p>Absolutely. Cancel from your dashboard and you'll retain access until the end of your billing period.</p>
+				<p>You can manage your subscription from Settings->Account once logged in.</p>
+				`,
+	},
+	{
+		ID:       "refunds",
+		Question: "What is your refund policy?",
+		Answer: `
+				<p>Monthly plans: No refunds. Cancel anytime before your next billing date.</p>
+
+				<p>Annual plans: Full refund within 14 days of purchase if you're not satisfied. After 14 days, no
+				refunds are issued for the remaining period.</p>
+
+				<p>To request a refund, contact hello@immanent.tech with your account email, or use the contact form on
+				the website.</p> `,
+	},
+}
+
 func PaddleHead() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -53,7 +97,7 @@ func PaddleHead() templ.Component {
 			}
 			templ_7745c5c3_Var2, templ_7745c5c3_Err := templruntime.ScriptContentOutsideStringLiteral(paddle.GetClientToken())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 23, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 67, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -70,7 +114,7 @@ func PaddleHead() templ.Component {
 			}
 			templ_7745c5c3_Var3, templ_7745c5c3_Err := templruntime.ScriptContentOutsideStringLiteral(paddle.GetClientToken())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 31, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 75, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -85,59 +129,7 @@ func PaddleHead() templ.Component {
 	})
 }
 
-var BillingFAQ = []partials.FAQEntry{
-	{
-		ID:       "switching",
-		Question: "Can I switch plans?",
-		Answer: `
-				<p>Yes. You can upgrade from monthly to annual at any time. We'll prorate the difference.</p>
-				`,
-	},
-	{
-		ID:       "payment-methods",
-		Question: "What payment methods do you accept?",
-		Answer: `
-				<p>All major credit cards, PayPal, and local payment methods depending on your region. Payments are handled by Paddle.</p>
-				`,
-	},
-	{
-		ID:       "tax",
-		Question: "Do you handle tax?",
-		Answer: `
-				<p>Yes. Paddle is our Merchant of Record and handles sales tax, VAT, and GST collection globally.</p>
-				`,
-	},
-	{
-		ID:       "cancel",
-		Question: "Can I cancel anytime?",
-		Answer: `
-				<p>Absolutely. Cancel from your dashboard and you'll retain access until the end of your billing period.</p>
-				<p>You can manage your subscription from Settings->Account once logged in.</p>
-				`,
-	},
-	{
-		ID:       "refunds",
-		Question: "What is your refund policy?",
-		Answer: `
-				<p>Monthly plans: No refunds. Cancel anytime before your next billing date.</p>
-
-				<p>Annual plans: Full refund within 14 days of purchase if you're not satisfied. After 14 days, no
-				refunds are issued for the remaining period.</p>
-
-				<p>To request a refund, contact hello@immanent.tech with your account email, or use the contact form on
-				the website.</p> `,
-	},
-}
-
-type CheckoutProps struct {
-	PlanID        string
-	TransactionID string
-}
-
-// ChooseSubscriptionPlan renders a full page for the user to choose their subscription plan, with any
-// previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
-// redirects the user to Stripe for payment.
-func ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) templ.Component {
+func checkout(request *models.CheckoutRequest) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -158,106 +150,95 @@ func ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) templ.Compo
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
+		var preflightFailed bool
+		if request.UserSubscriptionType == models.UserSubscriptionTypePaddle {
+			if data, err := request.SubscriptionData.AsPaddleCheckout(); err != nil {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div class=\"text-center\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\" class=\"mx-auto size-12\"><path d=\"M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z\" stroke-width=\"2\" vector-effect=\"non-scaling-stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><h3 class=\"mt-2 text-sm font-semibold\">Unable to checkout!</h3><p class=\"mt-1 text-sm\">There was a problem with the request data. This might be temporary, please try again.</p><div class=\"mt-6\"><a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				preflightFailed = true
+			} else if data.TransactionID != nil && *data.TransactionID != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div id=\"txn-auto-open\" data-txn-id=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(data.TransactionID)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 104, Col: 36}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-success-url=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue("/checkout/success")
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 105, Col: 42}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" _=\"on load\n\t\t\t\t\tset txnId to my @data-txn-id\n\t\t\t\t\tset successUrl to my @data-success-url\n\t\t\t\t\twait 300ms -- small delay ensures Paddle.js is fully initialised\n\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\ttransactionId: txnId,\n\t\t\t\t\t\tsuccessUrl: successUrl\n\t\t\t\t\t})\"></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"flex min-h-svh-safe flex-col\">")
+		}
+		if !preflightFailed {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">Choose your plan.</h1><p class=\"mx-auto text-center text-base/7 text-pretty\">You'll be taken to Paddle to finalise your account.</p></div><div class=\"mb-16\"><form class=\"group/tiers\"><div class=\"mt-16 mb-8 flex justify-center\"><fieldset aria-label=\"Payment frequency\"><div class=\"grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold inset-ring inset-ring-gray-200 dark:inset-ring-white/10\"><label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"monthly\" class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Monthly</span></label> <label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"annually\" checked class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Annually</span></label></div></fieldset></div><div class=\"grid grid-cols-1 gap-10 lg:grid-cols-2\"><div class=\"col-span-full -m-2 mx-auto grid max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 gap-4 rounded-4xl p-2\"><div class=\"group/tier card w-full bg-base-200 shadow-sm sm:w-lg\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span></h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually</p></div></div><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month</p></div></div><p class=\"mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><span class=\"badge badge-sm text-warning-content badge-warning\">Best value</span> Save ~30% discount vs. monthly subscription.</p><div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> No ads, no recommended content, ever.</li></ul></div><div class=\"mt-8\"><div class=\"group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if !user.InTrial() && user.HasValidSubscription() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">You already have an active plan.</h1></div><div class=\"my-16 gap-x-8 text-center\"><a role=\"button\" href=\"/user/settings#account\" class=\"btn btn-primary\">Account Settings</a> <a role=\"button\" href=\"/home\" class=\"btn btn-primary\">Home</a></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "  ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if props.TransactionID != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div id=\"txn-auto-open\" data-txn-id=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(props.TransactionID)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 120, Col: 39}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" data-success-url=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var7 string
-					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/checkout/success")
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 121, Col: 44}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" _=\"on load\n\t\t\t\t\tset txnId to my @data-txn-id\n\t\t\t\t\tset successUrl to my @data-success-url\n\t\t\t\t\twait 300ms -- small delay ensures Paddle.js is fully initialised\n\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\ttransactionId: txnId,\n\t\t\t\t\t\tsuccessUrl: successUrl\n\t\t\t\t\t})\"></div>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">Choose your plan.</h1><p class=\"mx-auto text-center text-base/7 text-pretty\">You'll be taken to Paddle to finalise your account.</p></div><div class=\"mb-16\"><form class=\"group/tiers\"><div class=\"mt-16 mb-8 flex justify-center\"><fieldset aria-label=\"Payment frequency\"><div class=\"grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold inset-ring inset-ring-gray-200 dark:inset-ring-white/10\"><label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"monthly\" class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Monthly</span></label> <label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"annually\" checked class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Annually</span></label></div></fieldset></div><div class=\"grid grid-cols-1 gap-10 lg:grid-cols-2\"><div class=\"col-span-full -m-2 mx-auto grid max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 gap-4 rounded-4xl p-2\"><div class=\"group/tier card w-full bg-base-200 shadow-sm sm:w-lg\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span></h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually</p></div></div><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month</p></div></div><p class=\"mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><span class=\"badge badge-sm text-warning-content badge-warning\">Best value</span> Save ~30% discount vs. monthly subscription.</p><div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-check size-4\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0\"></path></svg></span> No ads, no recommended content, ever.</li></ul></div><div class=\"mt-8\"><div class=\"group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\"><button aria-label=\"Activate a monthly subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" hx-post=\"/checkout\" hx-vals='{\"plan\": \"monthly\"}' hx-swap=\"none\" _=\"on htmx:afterRequest\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\tif event.detail.successful\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tset data to JSON.parse(response)\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n                                \t\t\t\t\t\t\t\t        customer: {email: data.email},\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t\tsuccessUrl: data.successUrl,\n                                \t\t\t\t\t\t\t\t        allowLogout: false\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\tend\">Activate monthly subscription</button></div><div class=\"group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><button aria-label=\"Activate an annual subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" hx-post=\"/checkout\" hx-vals='{\"plan\": \"annual\"}' hx-swap=\"none\" _=\"on htmx:afterRequest\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\tif event.detail.successful\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tset data to JSON.parse(response)\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n                                \t\t\t\t\t\t\t\t        customer: {email: data.email},\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t\tsuccessUrl: data.successUrl,\n                                \t\t\t\t\t\t\t\t        allowLogout: false\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t        \t\t\t\t\t\t\t\tend\">Activate annual subscription</button></div></div></div></div></div></div></div></form></div>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " <p id=\"checkout-error\" class=\"checkout-error\"></p><div class=\"container\"><h2 class=\"text-xl font-semibold text-primary sm:text-2xl/8\">Frequently Asked Questions</h2>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = partials.FAQ(slices.Concat(BillingFAQ)).Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"mx-auto my-8 text-center\"><p class=\"mx-auto text-center text-base/7 text-pretty text-neutral\">Got a question not answered here? <a class=\"link\" href=\"/contact\">Contact Us</a>.</p></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
+			templ_7745c5c3_Err = paddleCheckoutMonthlyButton().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			return nil
-		})
-		templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = paddleCheckoutAnnualButton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div></div></div></div></div></div></form></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<footer class=\"bg-base-200\"><div class=\"mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8\"><nav aria-label=\"Footer\" class=\"-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6\"><a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><p class=\"mt-10 text-center text-sm/6\">Copyright © ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		return nil
+	})
+}
+
+func paddleCheckoutMonthlyButton() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
 		}
-		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 309, Col: 82}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " - <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></div></footer>")
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<button aria-label=\"Activate a monthly subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" hx-post=\"/checkout\" hx-vals='{\"plan\": \"monthly\"}' hx-swap=\"none\" _=\"\n\t\ton htmx:afterRequest\n\t\t\tif event.detail.successful\n\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\tset data to JSON.parse(response)\n\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n        \t    \tcustomer: {email: data.email},\n\t\t\t\t\tsuccessUrl: data.successUrl,\n        \t    \tallowLogout: false\n\t\t\t\t})\n\t\t\tend\n\t\t\">Activate monthly subscription</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -265,7 +246,39 @@ func ChooseSubscriptionPlan(user *models.User, props *CheckoutProps) templ.Compo
 	})
 }
 
-func PurchaseSubscriptionSuccess(transactionID string) templ.Component {
+func paddleCheckoutAnnualButton() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<button aria-label=\"Activate an annual subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" hx-post=\"/checkout\" hx-vals='{\"plan\": \"annual\"}' hx-swap=\"none\" _=\"\n\t\ton htmx:afterRequest\n\t\t\tif event.detail.successful\n\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\tset data to JSON.parse(response)\n\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n        \t        customer: {email: data.email},\n\t\t\t\t\tsuccessUrl: data.successUrl,\n        \t        allowLogout: false\n\t\t\t\t})\n\t\t\tend\n\t\t\">Activate annual subscription</button>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+// ChooseSubscriptionPlan renders a full page for the user to choose their subscription plan, with any
+// previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
+// redirects the user to Stripe for payment.
+func ChooseSubscriptionPlan(user *models.User, request *models.CheckoutRequest) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -298,49 +311,140 @@ func PurchaseSubscriptionSuccess(transactionID string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<section class=\"success-page\"><div class=\"success-icon\">🎉</div><h1>You're all set!</h1><p>Thanks for subscribing. Your account is being provisioned and you'll receive a confirmation email shortly.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"flex min-h-svh-safe flex-col\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if transactionID != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<p class=\"txn-id\">Transaction: <code>")
+			if !user.InTrial() && user.HasValidSubscription() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">You already have an active plan.</h1></div><div class=\"my-16 gap-x-8 text-center\"><a role=\"button\" href=\"/user/settings#account\" class=\"btn btn-primary\">Account Settings</a> <a role=\"button\" href=\"/home\" class=\"btn btn-primary\">Home</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(transactionID)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 321, Col: 56}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			} else {
+				templ_7745c5c3_Err = checkout(request).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</code></p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " <p id=\"checkout-error\" class=\"checkout-error\"></p><div class=\"container\"><h2 class=\"text-xl font-semibold text-primary sm:text-2xl/8\">Frequently Asked Questions</h2>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = partials.FAQ(slices.Concat(BillingFAQ)).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><div class=\"mx-auto my-8 text-center\"><p class=\"mx-auto text-center text-base/7 text-pretty text-neutral\">Got a question not answered here? <a class=\"link\" href=\"/contact\">Contact Us</a>.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 350, Col: 35}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" hx-swap=\"innerHTML transition:true\" hx-trigger=\"load delay:10s\">Go Home</a></div></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
 		templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<footer class=\"bg-base-200\"><div class=\"mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8\"><nav aria-label=\"Footer\" class=\"-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6\"><a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><p class=\"mt-10 text-center text-sm/6\">Copyright © ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 338, Col: 82}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " - <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></div></footer>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func PurchaseSubscriptionSuccess(transactionID string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<section class=\"success-page\"><div class=\"success-icon\">🎉</div><h1>You're all set!</h1><p>Thanks for subscribing. Your account is being provisioned and you'll receive a confirmation email shortly.</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if transactionID != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<p class=\"txn-id\">Transaction: <code>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var14 string
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(transactionID)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 350, Col: 56}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</code></p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/checkout.templ`, Line: 379, Col: 35}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" hx-swap=\"innerHTML transition:true\" hx-trigger=\"load delay:10s\">Go Home</a></div></section>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

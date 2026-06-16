@@ -141,6 +141,9 @@ func ExtractUserFromSession(next http.Handler) http.Handler {
 
 // RequireValidUser will ensure that protected routes have a valid user status before continuing.
 func RequireValidUser(next http.Handler) http.Handler {
+	paddleHandler := validatePaddleSubscription(next)
+	androidHandler := validateAndroidSubscription(next)
+
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if otel.IsEnabled() {
 			_, span := otel.TracerProvider.Tracer("").Start(req.Context(), "require-valid-user")
@@ -168,52 +171,80 @@ func RequireValidUser(next http.Handler) http.Handler {
 
 		case !user.InTrial() && user.HasValidSubscription():
 			// User not in trial and has a subscription.
-			switch *user.SubscriptionType {
+			switch *user.UserSubscriptionType {
 			case models.UserSubscriptionTypePaddle:
-				userSubscription, err := user.Subscription.AsPaddleSubscription()
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Error("Get user paddle subscription failed.",
-						slog.Any("error", err),
-					)
-					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-					return
-				}
-				switch {
-				case paddle.IsPastDue(&userSubscription):
-					// User account is past due or has other payment issues.
-					slogctx.FromCtx(req.Context()).Error("User account is past due.")
-					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-					return
-
-				case paddle.IsPaused(&userSubscription):
-					slogctx.FromCtx(req.Context()).Error("User account is paused.")
-					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-					return
-
-				case paddle.IsCancelled(&userSubscription):
-					// User subscription is cancelled.
-					slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
-					http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
-					return
-
-				case !paddle.IsActive(&userSubscription):
-					// User subscription is cancelled.
-					slogctx.FromCtx(req.Context()).Error("User account requires activation.")
-					ctx := models.UserToCtx(req.Context(), user)
-					http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
-					return
-				}
+				paddleHandler.ServeHTTP(res, req)
+				return
+			case models.UserSubscriptionTypeAndroid:
+				androidHandler.ServeHTTP(res, req)
+				return
+			default:
+				res.WriteHeader(http.StatusForbidden)
+				return
 			}
 
-		case !user.InTrial():
+		case user.InTrialGracePeriod():
+			slogctx.FromCtx(req.Context()).Warn("User in trial grace period.")
+			// User not in trial and does not have a subscription.
+
+		default:
+			slogctx.FromCtx(req.Context()).Error("Trial expired. User account requires activation.")
+			ctx := models.UserToCtx(req.Context(), user)
+			http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
+			return
+		}
+
+		next.ServeHTTP(res, req)
+	})
+}
+
+func validatePaddleSubscription(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		userSubscription, err := user.Subscription.AsPaddleSubscription()
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Get user paddle subscription failed.",
+				slog.Any("error", err),
+			)
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
+		}
+		switch {
+		case paddle.IsPastDue(&userSubscription):
+			// User account is past due or has other payment issues.
+			slogctx.FromCtx(req.Context()).Error("User account is past due.")
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
+
+		case paddle.IsPaused(&userSubscription):
+			slogctx.FromCtx(req.Context()).Error("User account is paused.")
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
+
+		case paddle.IsCancelled(&userSubscription):
+			// User subscription is cancelled.
+			slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
+
+		case !paddle.IsActive(&userSubscription):
+			// User subscription is cancelled.
 			slogctx.FromCtx(req.Context()).Error("User account requires activation.")
 			ctx := models.UserToCtx(req.Context(), user)
 			http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
 			return
-
 		}
+		next.ServeHTTP(res, req)
+	})
+}
 
-		// Account ok.
+func validateAndroidSubscription(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		next.ServeHTTP(res, req)
 	})
 }
