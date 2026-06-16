@@ -64,4 +64,4 @@ deployments/
 .devcontainer/.step.password
 .devcontainer/data
 test/**
-**/twa-manifest-secret.json
+**/twa-manifest-generated.json

@@ -2,9 +2,9 @@ name: 🏗️ Build
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
   # workflow_run:
   #   workflows: ["test"]
   #   branches: [main]
@@ -49,7 +49,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
         with:
-          submodules: "true"
+          submodules: 'true'
           persist-credentials: false
 
       - name: Set app version
@@ -116,7 +116,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          submodules: "true"
+          submodules: 'true'
           persist-credentials: false
 
       - name: Set up QEMU
@@ -246,14 +246,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          submodules: "true"
+          submodules: 'true'
           persist-credentials: false
 
       - name: Setup node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "24"
-          cache: "npm"
+          node-version: '24'
+          cache: 'npm'
 
       - name: Build frontend files
         run: |
@@ -263,13 +263,13 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
-          java-version: "17"
-          distribution: "temurin"
+          java-version: '17'
+          distribution: 'temurin'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
         with:
-          packages: "tools platform-tools build-tools;34.0.0 cmdline-tools;latest platforms;android-34"
+          packages: 'tools platform-tools build-tools;34.0.0 cmdline-tools;latest platforms;android-34'
 
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
@@ -308,7 +308,10 @@ jobs:
             -e 's|__ANDROID_KEYSTORE_PATH__|android/android.keystore|g' \
             -e 's|__ANDROID_KEYSTORE_ALIAS__|${{ secrets.ANDROID_KEYSTORE_ALIAS }}|g' \
             -e 's|__ANDROID_KEYSTORE_FINGERPRINT__|${{ secrets.ANDROID_KEYSTORE_FINGERPRINT }}|g' \
+            -e 's|__FORAGD_BASEURL__|${{ env.FORAGD_BASEURL }}|g' \
             android/twa-manifest.json
+        env:
+          FORAGD_BASEURL: 'https://foragd.app'
 
       - name: Bubblewrap update
         working-directory: android
