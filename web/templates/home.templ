@@ -168,7 +168,7 @@ templ NewUserHome() {
 					@sectionHeading() {
 						@sectionTitle("Add subscriptions")
 					}
-					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-4">
 						<a
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/subscription/add"
@@ -236,8 +236,11 @@ templ NewUserHome() {
 						@sectionTitle("Or start with a curated set")
 					}
 					<form>
-						<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-							<div class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+						<div class="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-4">
+							<div
+								class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
+								_="on click toggle @checked on <input/> in me"
+							>
 								<div class="flex flex-row items-center gap-x-3">
 									<input
 										id="informed"
@@ -269,7 +272,10 @@ templ NewUserHome() {
 								</div>
 								<p class="text-sm/6">News and information from across the web.</p>
 							</div>
-							<div class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+							<div
+								class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
+								_="on click toggle @checked on <input/> in me"
+							>
 								<div class="flex flex-row items-center gap-x-3">
 									<input
 										id="inspired"
@@ -301,7 +307,10 @@ templ NewUserHome() {
 								</div>
 								<p class="text-sm/6">Digital art, design and creative oddities.</p>
 							</div>
-							<div class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+							<div
+								class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
+								_="on click toggle @checked on <input/> in me"
+							>
 								<div class="flex flex-row items-center gap-x-3">
 									<input
 										id="enlightened"
