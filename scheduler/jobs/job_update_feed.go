@@ -169,8 +169,10 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		}
 		if logMsg.StatusMessage != nil {
 			logMsg.StatusMessage = new("no feed data returned by any URL: " + *logMsg.StatusMessage)
+			logMsg.StatusCode = http.StatusNotFound
 		} else {
 			logMsg.StatusMessage = new("no feed data returned by any URL")
+			logMsg.StatusCode = http.StatusNotFound
 		}
 		if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
@@ -187,6 +189,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	// Add any new items since the last feed update.
 	if len(feed.GetItems()) == 0 {
+		logMsg.StatusCode = http.StatusNoContent
 		slogctx.FromCtx(ctx).Warn("Feed data did not contain any items.")
 		return nil
 	}
