@@ -1017,11 +1017,11 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = subscriptionFavoriteToggle(s).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = s.subscriptionFavoriteToggle().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = subscriptionMarkToggle(s).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = s.subscriptionMarkToggle().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

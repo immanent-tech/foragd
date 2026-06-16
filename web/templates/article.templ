@@ -55,7 +55,7 @@ templ (a *Article) markToggle() {
 		<button
 			class="btn btn-square btn-ghost btn-sm swap"
 			_="
-			on htmx:afterRequest(successful) halt the event's bubbling end
+			on htmx:afterRequest(successful) toggle .brightness-90 on closest .card then halt the event's bubbling end
     		on htmx:afterRequest(failed) toggle @checked on <input /> in me end
 			"
 			{ a.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
@@ -288,7 +288,7 @@ templ ArticleCard(idx int, a *models.Article) {
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithClasses(
-			"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation"),
+			"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
 		element.WithHXSwap("innerHTML show:window:top transition:true"),

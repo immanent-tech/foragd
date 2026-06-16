@@ -912,9 +912,9 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 									// Subscription actions buttons.
 									<div class="flex shrink-0 items-center gap-1">
 										// Favorite action.
-										@subscriptionFavoriteToggle(s)
+										@s.subscriptionFavoriteToggle()
 										// Mark action.
-										@subscriptionMarkToggle(s)
+										@s.subscriptionMarkToggle()
 										// Edit action.
 										<div class="tooltip" data-tip="Edit subscription">
 											<button

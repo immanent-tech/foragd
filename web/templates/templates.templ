@@ -99,7 +99,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
              set theme to localStorage.getItem('theme')
              if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end
 		   on mutation of @data-theme send themeChange end"
-		class="scrollbar-thumb-(--color-primary) scrollbar-gutter-stable"
+		class="h-full scrollbar-thumb-(--color-primary) scrollbar-gutter-stable"
 	>
 		<head>
 			<meta charset="UTF-8"/>
@@ -199,7 +199,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<title>{ p.Title }</title>
 		</head>
 		<body
-			class="flex h-screen max-w-svw flex-col bg-base-100"
+			class="flex h-full w-screen flex-col bg-base-100"
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end"
 		>
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>

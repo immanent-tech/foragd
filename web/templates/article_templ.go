@@ -125,7 +125,7 @@ func (a *Article) markToggle() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"tooltip\" data-tip=\"Toggle read status\"><button class=\"btn btn-square btn-ghost btn-sm swap\" _=\"\n\t\t\ton htmx:afterRequest(successful) halt the event's bubbling end\n    \t\ton htmx:afterRequest(failed) toggle @checked on <input /> in me end\n\t\t\t\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"tooltip\" data-tip=\"Toggle read status\"><button class=\"btn btn-square btn-ghost btn-sm swap\" _=\"\n\t\t\ton htmx:afterRequest(successful) toggle .brightness-90 on closest .card then halt the event's bubbling end\n    \t\ton htmx:afterRequest(failed) toggle @checked on <input /> in me end\n\t\t\t\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -993,7 +993,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 			element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 			element.WithAttribute("hx-disinherit", "*"),
 			element.WithClasses(
-				"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation"),
+				"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 			element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXSwap("innerHTML show:window:top transition:true"),

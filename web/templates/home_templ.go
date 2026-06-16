@@ -206,7 +206,11 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2\">")
+						templ_7745c5c3_Err = masonryGrid().Render(ctx, templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2 masonry-grid relative\" _=\"install MasonryGrid\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -259,7 +263,7 @@ func UserHome(data *HomeData) templ.Component {
 								var templ_7745c5c3_Var12 string
 								templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 68, Col: 117}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 69, Col: 117}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 								if templ_7745c5c3_Err != nil {
@@ -294,7 +298,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var13 string
 							templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("--i: " + strconv.Itoa(idx))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 76, Col: 46}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 77, Col: 46}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 							if templ_7745c5c3_Err != nil {
@@ -307,7 +311,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var14 string
 							templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 77, Col: 36}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 78, Col: 36}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 							if templ_7745c5c3_Err != nil {
@@ -343,7 +347,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var15 string
 							templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 88, Col: 106}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 89, Col: 106}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 							if templ_7745c5c3_Err != nil {
@@ -356,7 +360,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var16 string
 							templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 92, Col: 88}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 93, Col: 88}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 							if templ_7745c5c3_Err != nil {
@@ -369,7 +373,7 @@ func UserHome(data *HomeData) templ.Component {
 							var templ_7745c5c3_Var17 string
 							templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 96, Col: 67}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 97, Col: 67}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 							if templ_7745c5c3_Err != nil {
@@ -387,7 +391,7 @@ func UserHome(data *HomeData) templ.Component {
 						var templ_7745c5c3_Var18 string
 						templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 108, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 109, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 						if templ_7745c5c3_Err != nil {
@@ -477,7 +481,7 @@ func UserHome(data *HomeData) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters.Values()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 149, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 150, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 				if templ_7745c5c3_Err != nil {
@@ -594,7 +598,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 175, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 176, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
 					if templ_7745c5c3_Err != nil {
@@ -607,7 +611,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 205, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 206, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var27)
 					if templ_7745c5c3_Err != nil {

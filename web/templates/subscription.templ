@@ -14,21 +14,21 @@ import (
 	"strings"
 )
 
-templ subscriptionFavoriteToggle(subscription *Subscription) {
+templ (s *Subscription) subscriptionFavoriteToggle() {
 	<div class="tooltip" data-tip="Toggle favorite">
 		<button
-			id={ subscription.GetID() + "-toggle-favorite-button" }
-			aria-label={ "Toggle favorite status for " + subscription.GetTitle() }
+			id={ s.GetID() + "-toggle-favorite-button" }
+			aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			class="btn swap btn-square btn-ghost btn-md"
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
     	on htmx:afterRequest(failed) toggle @checked on <input /> in me end
 		"
-			{ subscription.favoriteAttributes()... }
+			{ s.favoriteAttributes()... }
 		>
 			<input
 				type="checkbox"
-				if subscription.IsFavorite() {
+				if s.IsFavorite() {
 					checked
 				}
 			/>
@@ -42,12 +42,12 @@ templ subscriptionFavoriteToggle(subscription *Subscription) {
 	</div>
 }
 
-templ subscriptionMarkToggle(subscription *Subscription) {
+templ (s *Subscription) subscriptionMarkToggle() {
 	// Mark action.
-	if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
+	if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
 		{{
 			var mark models.Mark
-			if subscription.GetStats().IsUnread() {
+			if s.GetStats().IsUnread() {
 				mark = models.MarkRead
 			} else {
 				mark = models.MarkUnread
@@ -55,18 +55,18 @@ templ subscriptionMarkToggle(subscription *Subscription) {
 		}}
 		<div class="tooltip" data-tip={ "Mark " + string(mark) }>
 			<button
-				id={ subscription.GetID() + "-toggle-read-button" }
-				aria-label={ "Toggle read status for " + subscription.GetTitle() }
+				id={ s.GetID() + "-toggle-read-button" }
+				aria-label={ "Toggle read status for " + s.GetTitle() }
 				class="btn swap btn-square btn-ghost btn-md"
 				_="
-			on htmx:afterRequest(successful) halt the event's bubbling end
+			on htmx:afterRequest(successful) toggle .brightness-90 on closest .card halt the event's bubbling end
     		on htmx:afterRequest(failed) toggle @checked on <input /> in me end
 			"
-				{ subscription.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
+				{ s.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
 			>
 				<input
 					type="checkbox"
-					if subscription.GetStats().IsUnread() {
+					if s.GetStats().IsUnread() {
 						checked
 					}
 				/>
@@ -88,7 +88,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithClasses("group", "animate-fadeinup"),
+		element.WithClasses("group", "animate-fadeinup", "masonry-item"),
 	) {
 		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
 		// Card header.
@@ -104,7 +104,8 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<h2 class="mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				// <h2 class="mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif leading-tight text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 			</div>
@@ -172,9 +173,9 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 				</div>
 				<div class="flex shrink-0 items-center">
 					// Favorite action.
-					@subscriptionFavoriteToggle(s)
+					@s.subscriptionFavoriteToggle()
 					// Mark action.
-					@subscriptionMarkToggle(s)
+					@s.subscriptionMarkToggle()
 					// Separator.
 					<div aria-hidden="true" class="h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
@@ -318,7 +319,9 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				<section id="subscriptions-list">
 					if len(response.Subscriptions) > 0 {
-						@grid(element.WithClasses("items-stretch")) {
+						@masonryGrid()
+						@grid(element.WithClasses("items-stretch", "masonry-grid", "relative"),
+							element.WithAttribute("_", "install MasonryGrid")) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, subscription := range response.Subscriptions {
 									@SubscriptionCard(idx, subscription) {
@@ -350,28 +353,31 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										}
 									}
 								}
+								// Add pagination trigger if there are more results.
 								if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
 									{{
 										values := response.Filters.Values()
 										values["pagination"] = response.Pagination
 									}}
 									<div
-										class="col-span-full mx-auto"
 										hx-post="/list/subscriptions/paginate"
 										hx-vals={ templ.JSONString(values) }
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
+										hx-indicator="#loading-items"
+										hx-sync="#grid-objects:wait"
 										_="on htmx:afterRequest remove me"
-									>
-										<div class="show-loading text-center">
-											<span class="loading mr-3 loading-xl loading-bars"></span>
-											<p class="text-lg/loose font-semibold">Loading content...</p>
-										</div>
-									</div>
+									></div>
 								}
 							}
 						}
+						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
+							<div class="show-loading text-center">
+								<span class="loading mr-3 loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Loading content...</p>
+							</div>
+						</div>
 						// Show some actions at the bottom of the list.
 						<nav
 							class="mt-8 hidden justify-center"

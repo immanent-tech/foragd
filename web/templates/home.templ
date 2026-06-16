@@ -51,7 +51,8 @@ templ UserHome(data *HomeData) {
 										>See all <span aria-hidden="true">-></span></a>
 									}
 								}
-								<div class="grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2">
+								@masonryGrid()
+								<div class="grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2 masonry-grid relative" _="install MasonryGrid">
 									for idx, article := range data.LatestArticles {
 										@ArticleCard(idx, article)
 									}

@@ -173,7 +173,7 @@ func HandleHome() http.HandlerFunc {
 				defaultMaxDocsPerValue := 1
 				shardSize := 200
 				topCategoryHitsCount := 3
-				topSampleHitsCount := 6
+				lastestArticlesCount := 10
 				maxDocCount := int64(3)
 
 				// Perform the request.
@@ -235,7 +235,7 @@ func HandleHome() http.HandlerFunc {
 									},
 									"latest_articles_sample": {
 										TopHits: &types.TopHitsAggregation{
-											Size: &topSampleHitsCount,
+											Size: &lastestArticlesCount,
 										},
 									},
 								},

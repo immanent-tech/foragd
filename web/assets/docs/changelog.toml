@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.160"
+version   = "v0.163"
 date      = "June 15, 2026"
 type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Home, Subscriptions and Articles pages now use a masonry style grid layout on desktop screens, for better packing of cards.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+When toggling read status of a subscription/article, the card will now change brightness rather than disappear.
+"""
+
+[[releases]]
+version   = "v0.160"
+date      = "June 15, 2026"
+type      = "major"
 [[releases.changes]]
 type = "new"
 description = """

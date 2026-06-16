@@ -37,3 +37,167 @@ templ grid(options ...element.PropertiesOption) {
 		{ children... }
 	</div>
 }
+
+templ masonryGrid() {
+	<script type="text/hyperscript">
+behavior MasonryGrid
+
+  def layout()
+    -- Read col count from computed grid-template-columns
+    js(me)
+      var computed = getComputedStyle(me)
+      var templateCols = computed.getPropertyValue('grid-template-columns')
+      me._cols = templateCols.trim().split(/\s+(?=\d|\()/).length
+      me._gap = parseFloat(computed.getPropertyValue('gap')) ||
+                parseFloat(computed.getPropertyValue('column-gap')) || 0
+    end
+
+    set :cols to my._cols
+    set :gap  to my._gap
+
+    -- Single column: remove all absolute positioning and let grid flow naturally
+    if :cols is 1
+      set :children to my.children
+      set :i to 0
+      repeat while :i < :children.length
+        set :el to :children[:i]
+        set :el.style.position to ''
+        set :el.style.width    to ''
+        set :el.style.left     to ''
+        set :el.style.top      to ''
+        set :i to :i + 1
+      end
+      set my.style.height to ''
+      set my.style.position to ''
+      return
+    end
+
+    -- Multi-column: compute item width from actual column tracks
+    js(me)
+      var computed = getComputedStyle(me)
+      var templateCols = computed.getPropertyValue('grid-template-columns')
+      var tracks = templateCols.trim().split(/\s+(?=\d|\()/)
+      me._itemWidth = parseFloat(tracks[0])
+    end
+
+    set :itemWidth to my._itemWidth
+
+    -- Pass 1: assign data-masonry-col left-to-right to any unassigned items
+    set :children to my.children
+    set :childCount to :children.length
+    set :i to 0
+    repeat while :i < :childCount
+      set :el to :children[:i]
+      set my._el to :el
+      if :el.style.display is not 'none' and not :el.matches('.masonry-sentinel')
+        if :el.getAttribute('data-masonry-col') is null
+          js(me)
+            if (me._nextCol === undefined) me._nextCol = 0
+            me._el.setAttribute('data-masonry-col', me._nextCol)
+            me._nextCol = (me._nextCol + 1) % me._cols
+          end
+        end
+      end
+      set :i to :i + 1
+    end
+
+    -- Pass 2: bucket items into per-column arrays
+    set my._children to :children
+    set my._childCount to :childCount
+    js(me)
+      var buckets = []
+      for (var b = 0; b < me._cols; b++) buckets[b] = []
+      for (var k = 0; k < me._childCount; k++) {
+        var el = me._children[k]
+        if (el.style.display !== 'none' && !el.matches('.masonry-sentinel')) {
+          var col = parseInt(el.getAttribute('data-masonry-col'))
+          if (!isNaN(col) && col < me._cols) buckets[col].push(el)
+        }
+      }
+      me._buckets = buckets
+    end
+
+    -- Pass 3: position each item column by column
+    set :colHeights to []
+    set :i to 0
+    repeat while :i < :cols
+      set :colHeights[:i] to 0
+      set :i to :i + 1
+    end
+
+    set my.style.position to 'relative'
+
+    set :i to 0
+    repeat while :i < :cols
+      set :colList to my._buckets[:i]
+      set :colLen to :colList.length
+      set :j to 0
+      repeat while :j < :colLen
+        set :item to :colList[:j]
+        set :item.style.position to 'absolute'
+        set :item.style.width    to `${:itemWidth}px`
+        set :item.style.left     to `${:i * (:itemWidth + :gap)}px`
+        set :item.style.top      to `${:colHeights[:i]}px`
+        set :colHeights[:i] to :colHeights[:i] + :item.offsetHeight + :gap
+        set :j to :j + 1
+      end
+      set :i to :i + 1
+    end
+
+    -- Container height
+    set :tallest to 0
+    set :i to 0
+    repeat while :i < :cols
+      if :colHeights[:i] > :tallest then set :tallest to :colHeights[:i] end
+      set :i to :i + 1
+    end
+    set my.style.height to `${Math.max(0, :tallest - :gap)}px`
+  end
+
+  def resetLayout()
+    set :children to my.children
+    set :i to 0
+    repeat while :i < :children.length
+      call :children[:i].removeAttribute('data-masonry-col')
+      set :i to :i + 1
+    end
+    js(me)
+      me._nextCol = 0
+      me._buckets = undefined
+    end
+    call layout()
+  end
+
+  -- Resize: debounce via setTimeout, fire a custom event to re-enter Hyperscript
+  on resize from window
+    js(me)
+      if (me._t) clearTimeout(me._t)
+      me._t = setTimeout(function() {
+        me.dispatchEvent(new CustomEvent('masonry:reset'))
+      }, 100)
+    end
+  end
+
+  on masonry:reset from me
+    call resetLayout()
+  end
+
+  on load or htmx:afterSettle from document
+    call resetLayout()
+  end
+
+  on htmx:afterSwap from document
+    wait 1ms then call layout()
+  end
+
+  on htmx:afterRequest from me
+    wait 1ms then call layout()
+  end
+
+  on mutation of childList from me
+    call layout()
+  end
+
+end
+</script>
+}

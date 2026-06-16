@@ -306,13 +306,14 @@ func HandleMarkSubscription() http.HandlerFunc {
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
 				}
-			} else {
-				// If we aren't viewing all subscriptions, remove the subscription card.
-				if models.View(req.FormValue("view")) != models.ViewAll {
-					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
-					res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
-				}
 			}
+			// else {
+			// 	// If we aren't viewing all subscriptions, remove the subscription card.
+			// 	if models.View(req.FormValue("view")) != models.ViewAll {
+			// 		res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
+			// 		res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
+			// 	}
+			// }
 		}
 
 		res.WriteHeader(http.StatusOK)
@@ -358,36 +359,37 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			res.Header().Set(htmx.HeaderRefresh, "true")
 		default:
 			// /list/subscriptions: redirect appropriately.
-			switch request.View {
-			case models.ViewUnread:
-				err = setRedirect(res, htmxext.HXLocationRequest{
-					Path:   RouteHome,
-					Target: templates.ContentID.Target(),
-				})
-			case models.ViewRead:
-				err = setRedirect(res, htmxext.HXLocationRequest{
-					Path:   RouteHome,
-					Target: templates.ContentID.Target(),
-				})
-			default:
-				err = setRedirect(res, htmxext.HXLocationRequest{
-					Path:   "/list/subscriptions",
-					Target: templates.ContentID.Target(),
-					Values: getListSubscriptionsFilters(req).Values(),
-				})
-			}
-			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("set redirect: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to mark subscription",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
+			res.Header().Set(htmx.HeaderRefresh, "true")
+			// switch request.View {
+			// case models.ViewUnread:
+			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 		Path:   RouteHome,
+			// 		Target: templates.ContentID.Target(),
+			// 	})
+			// case models.ViewRead:
+			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 		Path:   RouteHome,
+			// 		Target: templates.ContentID.Target(),
+			// 	})
+			// default:
+			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 		Path:   "/list/subscriptions",
+			// 		Target: templates.ContentID.Target(),
+			// 		Values: getListSubscriptionsFilters(req).Values(),
+			// 	})
+			// }
+			// if err != nil {
+			// 	HandleInternalError(req.URL.Path,
+			// 		&models.APIError{
+			// 			InternalError: fmt.Errorf("set redirect: %w", err),
+			// 			StatusCode:    http.StatusInternalServerError,
+			// 			UserMessage: models.NewErrorMessage(
+			// 				"Unable to mark subscription",
+			// 				"This might be a temporary issue, please try again.",
+			// 			),
+			// 		}).ServeHTTP(res, req)
+			// 	return
+			// }
 		}
 
 		// Mark subscriptions.
