@@ -78,6 +78,7 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		}
 
 		userSubscription.CustomerID = customer.Data.ID
+		user.Subscription = &models.User_Subscription{}
 		if err := user.Subscription.FromPaddleSubscription(userSubscription); err != nil {
 			slogctx.FromCtx(ctx).Error("Update user subscription failed.",
 				slog.Any("error", err),

@@ -4,9 +4,7 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"time"
@@ -56,30 +54,9 @@ var BillingFAQ = []partials.FAQEntry{
 	},
 }
 
-templ PaddleHead() {
-	<link rel="preconnect" href="https://cdn.paddle.com"/>
-	<script src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>
-	if !config.IsProduction() {
-		<script>
-					document.addEventListener("DOMContentLoaded", function() {
-						Paddle.Environment.set("sandbox");
-                        Paddle.Initialize({
-                          token: {{ paddle.GetClientToken() }}
-                        });
-                    });
-				</script>
-	} else {
-		<script>
-					document.addEventListener("DOMContentLoaded", function() {
-                        Paddle.Initialize({
-                          token: {{ paddle.GetClientToken() }}
-                        });
-					});
-				</script>
-	}
-}
-
-templ checkout(request *models.CheckoutRequest) {
+// showSubscriptionPlans shows the user available subscription plans and ways to checkout as appropriate for the
+// checkout method.
+templ showSubscriptionPlans(request *models.CheckoutRequest) {
 	{{ var preflightFailed bool }}
 	if request.UserSubscriptionType == models.UserSubscriptionTypePaddle {
 		if data, err := request.SubscriptionData.AsPaddleCheckout(); err != nil {
@@ -118,7 +95,10 @@ templ checkout(request *models.CheckoutRequest) {
 		// Show the user the plan options.
 		<div class="mx-auto mt-8 text-center">
 			<h1 id="pricing" class="text-2xl font-semibold text-primary sm:text-3xl/8">Choose your plan.</h1>
-			<p class="mx-auto text-center text-base/7 text-pretty">You'll be taken to Paddle to finalise your account.</p>
+			switch  {
+				case request.UserSubscriptionType == models.UserSubscriptionTypePaddle:
+					<p class="mx-auto text-center text-base/7 text-pretty">You'll be taken to Paddle to finalise your account.</p>
+			}
 		</div>
 		<div class="mb-16">
 			<form class="group/tiers">
@@ -215,12 +195,15 @@ templ checkout(request *models.CheckoutRequest) {
 										</ul>
 									</div>
 									<div class="mt-8">
-										<div class="group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
-											@paddleCheckoutMonthlyButton()
-										</div>
-										<div class="group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
-											@paddleCheckoutAnnualButton()
-										</div>
+										switch  {
+											case request.UserSubscriptionType == models.UserSubscriptionTypePaddle:
+												<div class="group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
+													@paddleCheckoutMonthlyButton()
+												</div>
+												<div class="group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
+													@paddleCheckoutAnnualButton()
+												</div>
+										}
 									</div>
 								</div>
 							</div>
@@ -230,60 +213,6 @@ templ checkout(request *models.CheckoutRequest) {
 			</form>
 		</div>
 	}
-}
-
-templ paddleCheckoutMonthlyButton() {
-	<button
-		aria-label="Activate a monthly subscription"
-		id="checkout-monthly"
-		type="submit"
-		class="btn btn-block btn-accent"
-		hx-post="/checkout"
-		hx-vals='{"plan": "monthly"}'
-		hx-swap="none"
-		_="
-		on htmx:afterRequest
-			if event.detail.successful
-				set response to event.detail.xhr.responseText
-				set data to JSON.parse(response)
-				Paddle.Checkout.open({
-					items: [{ priceId: data.priceId, quantity: 1 }],
-        	    	customer: {email: data.email},
-					successUrl: data.successUrl,
-        	    	allowLogout: false
-				})
-			end
-		"
-	>
-		Activate monthly subscription
-	</button>
-}
-
-templ paddleCheckoutAnnualButton() {
-	<button
-		aria-label="Activate an annual subscription"
-		id="checkout-monthly"
-		type="submit"
-		class="btn btn-block btn-accent"
-		hx-post="/checkout"
-		hx-vals='{"plan": "annual"}'
-		hx-swap="none"
-		_="
-		on htmx:afterRequest
-			if event.detail.successful
-				set response to event.detail.xhr.responseText
-				set data to JSON.parse(response)
-				Paddle.Checkout.open({
-					items: [{ priceId: data.priceId, quantity: 1 }],
-        	        customer: {email: data.email},
-					successUrl: data.successUrl,
-        	        allowLogout: false
-				})
-			end
-		"
-	>
-		Activate annual subscription
-	</button>
 }
 
 // ChooseSubscriptionPlan renders a full page for the user to choose their subscription plan, with any
@@ -314,7 +243,7 @@ templ ChooseSubscriptionPlan(user *models.User, request *models.CheckoutRequest)
 					</a>
 				</div>
 			} else {
-				@checkout(request)
+				@showSubscriptionPlans(request)
 				<p id="checkout-error" class="checkout-error"></p>
 				<div class="container">
 					<h2 class="text-xl font-semibold text-primary sm:text-2xl/8">

@@ -184,20 +184,28 @@ func RequireValidUser(next http.Handler) http.Handler {
 			}
 
 		case user.InTrialGracePeriod():
+			// Trial grace period. User can still use the app but will see a permanent (dismissable) notification that
+			// they need to buy a subscription.
 			slogctx.FromCtx(req.Context()).Warn("User in trial grace period.")
-			// User not in trial and does not have a subscription.
 
 		default:
-			slogctx.FromCtx(req.Context()).Error("Trial expired. User account requires activation.")
-			ctx := models.UserToCtx(req.Context(), user)
-			http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
-			return
+			// ! While Android app is in beta, allow Android app users to continue using the app after their trial has
+			// ! expired.
+			if client := models.ClientTypeFromCtx(req.Context()); client != models.ClientTypeTwa {
+				slogctx.FromCtx(req.Context()).Error("Trial expired. User account requires activation.")
+				ctx := models.UserToCtx(req.Context(), user)
+				http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
+				return
+			} else {
+				slogctx.FromCtx(req.Context()).Info("Android app using out of trial.")
+			}
 		}
 
 		next.ServeHTTP(res, req)
 	})
 }
 
+// validatePaddleSubscription performs steps necessary to validate a user's Paddle subscription.
 func validatePaddleSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
@@ -243,6 +251,7 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 	})
 }
 
+// validateAndroidSubscription performs steps necessary to validate a user's Android subscription.
 func validateAndroidSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		next.ServeHTTP(res, req)

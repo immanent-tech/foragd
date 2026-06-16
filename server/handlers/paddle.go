@@ -10,14 +10,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
-	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 // HandlePaddleWebhook handles incoming webhooks from paddle.
@@ -75,34 +72,8 @@ func HandlePaddleWebhook(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(`{"success": true}`))
 }
 
-type ChooseSubscription struct {
-	user    *models.User
-	request *models.CheckoutRequest
-}
-
-func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slots.WithSlot(req.Context(), slots.Header, templates.PaddleHead())
-	templ.Handler(
-		templates.CreatePage(
-			templates.ChooseSubscriptionPlan(t.user, t.request),
-			templates.WithPageTitle("Choose Subscription Plan"),
-		)).ServeHTTP(res, req.WithContext(ctx))
-}
-
-func HandleChooseSubscription() http.HandlerFunc {
+func handleChoosePaddleSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		if err := req.ParseForm(); err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("parse form: %w", err),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			HandleExternalError(&models.APIError{
@@ -115,6 +86,7 @@ func HandleChooseSubscription() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+
 		// If ?_ptxn=txn_01... is present, this will be passed so the Paddle overlay is opened automatically for that
 		// transaction.
 		transactionID := req.FormValue("_ptxn")
@@ -159,24 +131,8 @@ func HandleChooseSubscription() http.HandlerFunc {
 	}
 }
 
-// HandlePurchaseSubscription returns a JSON payload consumed by Paddle.js on the client.
-// The actual checkout is opened via Paddle.Checkout.open() in the browser;
-// this endpoint validates the price ID and returns it for client-side use.
-func HandlePurchaseSubscription() http.HandlerFunc {
+func handlePaddlePurchase() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		if err := req.ParseForm(); err != nil {
-			res.WriteHeader(http.StatusBadRequest)
-			RenderPartial(
-				&Notification{
-					msg: models.NewWarningMessage(
-						"Invalid data",
-						"There was a problem processing the checkout. This might be temporary, please try again.",
-					),
-				},
-			).ServeHTTP(res, req)
-			return
-		}
-
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -213,25 +169,5 @@ func HandlePurchaseSubscription() http.HandlerFunc {
 			"successUrl": successURL,
 			"email":      user.GetEmail(),
 		})
-	}
-}
-
-type PurchaseSubscriptionSuccess struct {
-	transactionID string
-}
-
-// FullResponse renders the page for the user to choose a subscription plan.
-func (t *PurchaseSubscriptionSuccess) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			templates.PurchaseSubscriptionSuccess(t.transactionID),
-			templates.WithPageTitle("Choose Subscription Plan"),
-		)).ServeHTTP(res, req)
-}
-
-func HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		txID := req.URL.Query().Get("_ptxn")
-		RenderExternalPage(&PurchaseSubscriptionSuccess{transactionID: txID}).ServeHTTP(res, req)
 	}
 }

@@ -1,0 +1,86 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/paddle"
+)
+
+templ paddleCheckoutMonthlyButton() {
+	<button
+		aria-label="Activate a monthly subscription"
+		id="checkout-monthly"
+		type="submit"
+		class="btn btn-block btn-accent"
+		hx-post="/checkout"
+		hx-vals='{"plan": "monthly","subscription_type":"paddle"}'
+		hx-swap="none"
+		_="
+		on htmx:afterRequest
+			if event.detail.successful
+				set response to event.detail.xhr.responseText
+				set data to JSON.parse(response)
+				Paddle.Checkout.open({
+					items: [{ priceId: data.priceId, quantity: 1 }],
+        	    	customer: {email: data.email},
+					successUrl: data.successUrl,
+        	    	allowLogout: false
+				})
+			end
+		"
+	>
+		Activate monthly subscription
+	</button>
+}
+
+templ paddleCheckoutAnnualButton() {
+	<button
+		aria-label="Activate an annual subscription"
+		id="checkout-monthly"
+		type="submit"
+		class="btn btn-block btn-accent"
+		hx-post="/checkout"
+		hx-vals='{"plan": "annual","subscription_type":"paddle"}'
+		hx-swap="none"
+		_="
+		on htmx:afterRequest
+			if event.detail.successful
+				set response to event.detail.xhr.responseText
+				set data to JSON.parse(response)
+				Paddle.Checkout.open({
+					items: [{ priceId: data.priceId, quantity: 1 }],
+        	        customer: {email: data.email},
+					successUrl: data.successUrl,
+        	        allowLogout: false
+				})
+			end
+		"
+	>
+		Activate annual subscription
+	</button>
+}
+
+templ PaddleHead() {
+	<link rel="preconnect" href="https://cdn.paddle.com"/>
+	<script src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>
+	if !config.IsProduction() {
+		<script>
+					document.addEventListener("DOMContentLoaded", function() {
+						Paddle.Environment.set("sandbox");
+                        Paddle.Initialize({
+                          token: {{ paddle.GetClientToken() }}
+                        });
+                    });
+				</script>
+	} else {
+		<script>
+					document.addEventListener("DOMContentLoaded", function() {
+                        Paddle.Initialize({
+                          token: {{ paddle.GetClientToken() }}
+                        });
+					});
+				</script>
+	}
+}
