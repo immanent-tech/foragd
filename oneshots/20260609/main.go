@@ -40,7 +40,7 @@ func main() {
 			slogctx.FromCtx(ctx).Info("Adding subscription type to user.",
 				slog.String("user_id", user.GetID()),
 			)
-			user.SubscriptionType = new(models.UserSubscriptionTypePaddle)
+			user.UserSubscriptionType = new(models.UserSubscriptionTypePaddle)
 		}
 	}
 
