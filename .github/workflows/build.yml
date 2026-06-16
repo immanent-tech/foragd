@@ -315,9 +315,6 @@ jobs:
 
       - name: Bubblewrap update
         working-directory: android
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           bubblewrap update \
             --skipVersionUpgrade
