@@ -19,28 +19,28 @@ Effective date: November 1st, 2025
 
 - [Foragd Privacy Policy](#foragd-privacy-policy)
   - [Table of Contents](#table-of-contents)
-  - [What is Personal Information, and why do we collect it?](#what-is-personal-information-and-why-do-we-collect-it)
+  - [What Is Personal Information, and Why Do We Collect It?](#what-is-personal-information-and-why-do-we-collect-it)
   - [Sensitive Information](#sensitive-information)
   - [Third Parties](#third-parties)
   - [Disclosure of Personal Information](#disclosure-of-personal-information)
   - [Security of Personal Information](#security-of-personal-information)
-  - [Access to your Personal Information](#access-to-your-personal-information)
-  - [Maintaining the Quality of your Personal Information](#maintaining-the-quality-of-your-personal-information)
-  - [How we collect your information](#how-we-collect-your-information)
+  - [Access to Your Personal Information](#access-to-your-personal-information)
+  - [Maintaining the Quality of Your Personal Information](#maintaining-the-quality-of-your-personal-information)
+  - [How We Collect Your Information](#how-we-collect-your-information)
     - [From You](#from-you)
     - [Automatically](#automatically)
   - [Processing Purposes: How We Use Your Personal Data](#processing-purposes-how-we-use-your-personal-data)
   - [Sharing of Personal Data](#sharing-of-personal-data)
   - [Lawful Bases for Processing Personal Data (Applicable to EEA and UK End Users)](#lawful-bases-for-processing-personal-data-applicable-to-eea-and-uk-end-users)
   - [Your Privacy Rights](#your-privacy-rights)
-  - [International data transfers](#international-data-transfers)
+  - [International Data Transfers](#international-data-transfers)
   - [Security and Retention](#security-and-retention)
   - [Security](#security)
-  - [List of third-party Tools, Services, and Software](#list-of-third-party-tools-services-and-software)
+  - [List of Third-Party Tools, Services, and Software](#list-of-third-party-tools-services-and-software)
   - [Open Source](#open-source)
   - [Changes to Our Privacy Statement](#changes-to-our-privacy-statement)
 
-## What is Personal Information, and why do we collect it?
+## What Is Personal Information, and Why Do We Collect It?
 
 Personal Information is information or an opinion that identifies an individual. Examples of Personal Information we
 collect includes names, addresses, email addresses, phone, and facsimile numbers.
@@ -88,7 +88,7 @@ Your Personal Information is stored in a manner that reasonably protects it from
 access, modification, or disclosure. When your Personal Information is no longer needed for the purpose for which it was
 obtained, we will take reasonable steps to destroy or permanently anonymize your Personal Information.
 
-## Access to your Personal Information
+## Access to Your Personal Information
 
 You may access the Personal Information we hold about you and to update and/or correct it, subject to certain
 exceptions.
@@ -99,14 +99,14 @@ Foragd will not charge any fee for your access request.
 In order to protect your Personal Information we may require identification from you before releasing the requested
 information.
 
-## Maintaining the Quality of your Personal Information
+## Maintaining the Quality of Your Personal Information
 
 It is an important to us that your Personal Information is up-to-date. We will take reasonable steps to make sure that
 your Personal Information is accurate, complete, and up-to-date. If you find that the information we have is not
 up-to-date or is inaccurate, please advise us as soon as practicable so we can update our records and ensure we can
 continue to provide quality services to you.
 
-## How we collect your information
+## How We Collect Your Information
 
 Personally identifiable information about you is collected only when you knowingly and voluntarily submit it to us or
 automatically via your interaction with our services. It may be used for acknowledgment and training purposes or future
@@ -133,10 +133,10 @@ reference unless we disclose other uses in this Privacy Statement or at the time
   statements of these companies for more information.
 - Essential Cookies and Similar Tracking Technologies: We use cookies and similar technologies to provide essential
   functionality like storing settings and recognizing you while using our Services.
-- Non-essential Cookies: Depending on your jurisdiction, we may use online analytics products that use cookies to help
+- Nonessential Cookies: Depending on your jurisdiction, we may use online analytics products that use cookies to help
   us analyze how de-identified users use our Services and to enhance your experience when you use the Services. We may
   also employ third-party Cookies to gather data for interest-based advertising. In some jurisdictions, we only use
-  non-essential cookies after obtaining your consent.
+  nonessential cookies after obtaining your consent.
 - Email Marketing Interactions: Our emails may have web beacons that offer information on your device type, email
   client, email reception, opens, and link clicks.
 - Geolocation Information: Depending on the Service’s functionality, we collect regional geolocation data.
@@ -180,10 +180,10 @@ We may share Personal Data with the following recipients:
 
 - Abuse and Fraud Prevention Entities: We may disclose Personal Data based on a good faith belief it is needed to
   prevent fraud, abuse, or attacks on our Services, or to protect the safety of Foragd and our users.
-- Affiliates: Personal Data may be shared with Foragd affiliates, to facilitate customer service, marketing and
+- Affiliates: Personal Data may be shared with Foragd affiliates, to facilitate customer service, marketing, and
   advertising, order fulfillment, billing, technical support, and legal and compliance obligations. Our affiliates may
   only use the Personal Data in a manner consistent with this Privacy Statement.
-- Competent Authorities: We may disclose Personal Data to authorized law enforcement, regulators, courts, or other
+- Competent Authorities: We may disclose Personal Data to authorize law enforcement, regulators, courts, or other
   public authorities in response to lawful requests or to protect our rights and safety.
 - Corporate Transaction Entities: we might disclose Personal Data within the limits of the law and in accordance with
   this Privacy Statement for strategic business transactions such as sales or a merger.
@@ -194,7 +194,7 @@ We may share Personal Data with the following recipients:
 ## Lawful Bases for Processing Personal Data (Applicable to EEA and UK End Users)
 
 Foragd processes Personal Data in compliance with the GDPR, ensuring a lawful basis for each processing activity. The
-basis varies depending on the data type and the context, including how you access the services. Our processing
+basis varies depending on the datatype and the context, including how you access the services. Our processing
 activities typically fall under these lawful bases:
 
 - Contractual Necessity: Processing is required to fulfill our contractual duties to you, in accordance with the Foragd
@@ -235,7 +235,7 @@ Information Commissioner’s Office website.
 We aim to promptly respond to requests in compliance with legal requirements. Please note that we may retain certain
 data as necessary for legal obligations or for establishing, exercising, or defending legal claims.
 
-## International data transfers
+## International Data Transfers
 
 Foragd stores and processes Personal Data in a variety of locations, including your local region, Australia, Singapore,
 the United States, and other countries where Foragd, its affiliates, subsidiaries, or subprocessors have operations. We
@@ -259,14 +259,15 @@ collection and any legal obligations.
 
 Foragd uses administrative, technical, and physical security controls where appropriate to protect your Personal Data.
 
-## List of third-party Tools, Services, and Software
+## List of Third-Party Tools, Services, and Software
 
 The following is a list of the third-party tools, services, and software used by Foragd that handles customer data
 directly with links to their privacy policies:
 
-- [Paddle](https://www.paddle.com/legal/privacy): payment processor.
-- [Umami](https://umami.is/privacy): website analytics.
-- [Cloudflare Insights](https://www.cloudflare.com/policies/privacy/): website analytics.
+- [Paddle](https://www.paddle.com/legal/privacy): payment processor (website).
+- [Google Play Billing](https://policies.google.com/privacy?hl=en): payment processor (Android app).
+- [Umami](https://umami.is/privacy): app analytics.
+- [Cloudflare Insights](https://www.cloudflare.com/policies/privacy/): app analytics.
 - [Resend](https://resend.com/legal/privacy-policy): email processor.
 - [Elastic Cloud](https://www.elastic.co/trust/privacy): data store.
 - [Auth0](https://www.elastic.co/trust/privacy): user database.
