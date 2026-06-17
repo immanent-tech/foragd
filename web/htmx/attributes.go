@@ -100,6 +100,16 @@ func WithHXSwap(value string) AttributesOption {
 	}
 }
 
+// WithHXInclude sets the hx-include attribute.
+func WithHXInclude(value string) AttributesOption {
+	return func(a *Attributes) {
+		if value == "" {
+			return
+		}
+		a.setAttribute("hx-include", value)
+	}
+}
+
 // WithHXTrigger sets the hx-trigger attribute.
 func WithHXTrigger(value string) AttributesOption {
 	return func(a *Attributes) {

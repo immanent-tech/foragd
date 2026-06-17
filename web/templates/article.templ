@@ -23,7 +23,7 @@ import (
 // favoriteToggle renders a button toggle for toggling the favorite status of an article.
 templ (a *Article) favoriteToggle() {
 	<div class="tooltip" data-tip="Toggle favorite">
-		<button
+		<label
 			class="btn btn-square btn-ghost btn-sm swap"
 			{ a.favoriteAttributes()... }
 			_="
@@ -32,11 +32,11 @@ templ (a *Article) favoriteToggle() {
 		"
 		>
 			<input
-				id={ a.GetID() + "-favorite-state" }
 				type="checkbox"
 				if a.IsFavorite() {
 					checked
 				}
+				_="on click halt the event's bubbling"
 				aria-label={ "Toggle favorite status for " + a.GetTitle() }
 			/>
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
@@ -45,28 +45,55 @@ templ (a *Article) favoriteToggle() {
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
 			</svg>
-		</button>
+		</label>
 	</div>
 }
 
 // markToggle renders a button toggle for toggling the read status of an article.
 templ (a *Article) markToggle() {
+	{{
+		var mark models.Mark
+		if a.IsUnread() {
+			mark = models.MarkRead
+		} else {
+			mark = models.MarkUnread
+		}
+	}}
 	<div class="tooltip" data-tip="Toggle read status">
-		<button
+		<label
 			class="btn btn-square btn-ghost btn-sm swap"
 			_="
-			on htmx:afterRequest(successful) toggle .brightness-90 on closest .card then halt the event's bubbling end
-    		on htmx:afterRequest(failed) toggle @checked on <input /> in me end
-			"
+			  on htmx:afterRequest
+			  	if event.detail.successful
+					halt the event's bubbling
+					if closest .card exists
+			  			toggle .brightness-90 on closest .card
+					end
+					set :mark to the first <input/> in me
+					if :mark.value is 'read'
+						set :mark.value to 'unread'
+					else if :mark.value is 'unread'
+						set :mark.value to 'read'
+					end
+				else
+    			  toggle @checked on next <input[type='checkbox']/> in me
+				end
+				"
 			{ a.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
 		>
 			<input
-				id={ a.GetID() + "-read-state" }
+				id={ a.GetID() + "-mark-action" }
+				type="hidden"
+				name="mark"
+				value={ string(mark) }
+			/>
+			<input
 				type="checkbox"
-				if !a.IsUnread() {
+				_="on click halt the event's bubbling"
+				if a.IsUnread() {
 					checked
 				}
-				aria-label={ "Toggle read status for " + a.GetTitle() }
+				aria-label={ "Toggle mark status for " + a.GetTitle() }
 			/>
 			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
@@ -74,7 +101,7 @@ templ (a *Article) markToggle() {
 			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
 			</svg>
-		</button>
+		</label>
 	</div>
 }
 
@@ -731,7 +758,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 														"subscription_id": response.Subscription.GetID(),
 														"view": string(response.Filters.GetView()),
 														}) }
-									class="btn btn-ghost"
+									class="btn btn-neutral btn-outline btn-sm"
 								>
 									if response.Filters.GetView() == models.ViewUnread {
 										<svg
@@ -767,7 +794,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						}
 					</div>
 				}
-				<section id="articles-list">
+				<section id="articles-list" class="pt-4">
 					if len(response.Articles) > 0 {
 						@grid() {
 							@templ.Fragment(PaginateFragment) {

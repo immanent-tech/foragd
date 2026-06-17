@@ -63,19 +63,20 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 }
 
 func (s *Subscription) markAttributes(view models.View) templ.Attributes {
-	var mark models.Mark
-	if s.GetStats().IsUnread() {
-		mark = models.MarkRead
-	} else {
-		mark = models.MarkUnread
-	}
+	// var mark models.Mark
+	// if s.GetStats().IsUnread() {
+	// 	mark = models.MarkRead
+	// } else {
+	// 	mark = models.MarkUnread
+	// }
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/mark/subscription/"+s.GetID()),
 		htmx.WithHXSwap("none"),
+		htmx.WithHXInclude("[id='"+s.GetID()+"-mark-action']"),
 		htmx.WithHXVals(map[string]string{
 			"subscription_id": s.GetID(),
 			"view":            string(view),
-			"mark":            string(mark),
+			// "mark":            string(mark),
 		}),
 	).GetAttributes()
 }

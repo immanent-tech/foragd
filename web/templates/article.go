@@ -20,21 +20,15 @@ type Article struct {
 
 // markAttributes are the htmx attributes for marking an article.
 func (a *Article) markAttributes(view models.View) templ.Attributes {
-	var mark models.Mark
-	if a.IsUnread() {
-		mark = models.MarkRead
-	} else {
-		mark = models.MarkUnread
-	}
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/mark/article/"+a.GetID()),
 		htmx.WithHXSwap("none"),
 		htmx.WithHXTrigger("click consume"),
+		htmx.WithHXInclude("[id='"+a.GetID()+"-mark-action']"),
 		htmx.WithHXVals(map[string]string{
 			"subscription_id": a.GetSubscriptionID(),
 			"item_id":         a.GetID(),
 			"view":            string(view),
-			"mark":            string(mark),
 		}),
 	).GetAttributes()
 }

@@ -16,21 +16,23 @@ import (
 
 templ (s *Subscription) subscriptionFavoriteToggle() {
 	<div class="tooltip" data-tip="Toggle favorite">
-		<button
-			id={ s.GetID() + "-toggle-favorite-button" }
+		<label
+			id={ s.GetID() + "-toggle-favorite" }
 			aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			class="btn swap btn-square btn-ghost btn-md"
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
-    	on htmx:afterRequest(failed) toggle @checked on <input /> in me end
+    	on htmx:afterRequest(failed) toggle @checked on next <input[type='checkbox']/>
 		"
 			{ s.favoriteAttributes()... }
 		>
 			<input
 				type="checkbox"
+				_="on click halt the event's bubbling"
 				if s.IsFavorite() {
 					checked
 				}
+				aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			/>
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
@@ -38,7 +40,7 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
 			</svg>
-		</button>
+		</label>
 	</div>
 }
 
@@ -53,22 +55,43 @@ templ (s *Subscription) subscriptionMarkToggle() {
 				mark = models.MarkUnread
 			}
 		}}
-		<div class="tooltip" data-tip={ "Mark " + string(mark) }>
-			<button
-				id={ s.GetID() + "-toggle-read-button" }
-				aria-label={ "Toggle read status for " + s.GetTitle() }
-				class="btn swap btn-square btn-ghost btn-md"
+		<div class="tooltip" data-tip={ "Toggle mark" }>
+			<label
+				id={ s.GetID() + "-toggle-mark" }
+				aria-label={ "Toggle mark status for " + s.GetTitle() }
+				class="btn btn-square btn-ghost btn-md swap"
 				_="
-			on htmx:afterRequest(successful) toggle .brightness-90 on closest .card halt the event's bubbling end
-    		on htmx:afterRequest(failed) toggle @checked on <input /> in me end
-			"
+				  on htmx:afterRequest
+    				if event.detail.successful
+				  		halt the event's bubbling
+						if closest .card exists
+				  			toggle .brightness-90 on closest .card
+						end
+						set :mark to the first <input/> in me
+						if :mark.value is 'read'
+							set :mark.value to 'unread'
+						else if :mark.value is 'unread'
+							set :mark.value to 'read'
+						end
+					else
+    			  		toggle @checked on next <input[type='checkbox']/> in me
+					end
+				"
 				{ s.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
 			>
 				<input
+					id={ s.GetID() + "-mark-action" }
+					type="hidden"
+					name="mark"
+					value={ string(mark) }
+				/>
+				<input
 					type="checkbox"
+					_="on click halt the event's bubbling"
 					if s.GetStats().IsUnread() {
 						checked
 					}
+					aria-label={ "Toggle mark status for " + s.GetTitle() }
 				/>
 				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
@@ -76,7 +99,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
 				</svg>
-			</button>
+			</label>
 		</div>
 	}
 }
@@ -105,7 +128,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 					}
 				</div>
 				// <h2 class="mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-				<h2 class="card-title font-serif leading-tight text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif leading-tight text-balance transition-colors transition-all group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 			</div>
@@ -282,7 +305,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												"view": string(response.Filters.GetView()),
 												"mark": string(mark),
 											}) }
-								class="btn btn-ghost"
+								class="btn btn-neutral btn-outline btn-sm"
 							>
 								if response.Filters.GetView() == models.ViewUnread {
 									<svg
@@ -317,7 +340,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 						}
 					</div>
 				}
-				<section id="subscriptions-list">
+				<section id="subscriptions-list" class="pt-4">
 					if len(response.Subscriptions) > 0 {
 						@masonryGrid()
 						@grid(element.WithClasses("items-stretch", "masonry-grid", "relative"),
