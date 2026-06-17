@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.164.0](https://github.com/immanent-tech/foragd/compare/v0.163.0...v0.164.0) (2026-06-17)
+
+
+### Features
+
+* **assets:** ⬆️ update screenshot on landing page ([8d7b6f6](https://github.com/immanent-tech/foragd/commit/8d7b6f63a78b5ee025c8a5ced732e7777406131b))
+
+
+### Bug Fixes
+
+* 🐛 fix pagination of subscription/article lists ([327f7dc](https://github.com/immanent-tech/foragd/commit/327f7dc53a9d37931a1f94362a44fdd52210d60c))
+* **templates/subscription,templates/article:** 🔧 fix logic for marking subscriptions/articles as read/unread ([6f48afe](https://github.com/immanent-tech/foragd/commit/6f48afef6fa0de967ce6c1950e87a4600f540837))
+
+
+### Performance Improvements
+
+* **templates/search:** 🔧 improve search functionality ([1f67334](https://github.com/immanent-tech/foragd/commit/1f67334010e9dc72e7a3d2dd9abbac3273bc0884))
+* **templates/subscription,templates/article:** 🔧 don't perform pagination if grid list is still loading ([80e5eb7](https://github.com/immanent-tech/foragd/commit/80e5eb7f6319746622f54638f9e00f28e0db4673))
+
 ## [0.163.0](https://github.com/immanent-tech/foragd/compare/v0.162.0...v0.163.0) (2026-06-16)
 
 
