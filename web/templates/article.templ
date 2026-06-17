@@ -796,31 +796,15 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				}
 				<section id="articles-list" class="pt-4">
 					if len(response.Articles) > 0 {
-						@grid() {
+						@grid(element.WithClasses("masonry-grid", "relative"),
+							element.WithAttribute("_", "install MasonryGrid")) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, article := range response.Articles {
 									@ArticleCard(idx, article)
 								}
-								// Add pagination element if pagination is required.
-								if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
-									{{
-										values := response.Filters.Values()
-										values["pagination"] = response.Pagination
-									}}
-									<div
-										class="col-span-full mx-auto"
-										hx-post="/list/articles/paginate"
-										hx-vals={ templ.JSONString(values) }
-										hx-trigger="intersect once threshold:0.1"
-										hx-target="#grid-objects"
-										hx-swap="beforeend transition:false"
-										hx-sync="#grid-objects:abort"
-										hx-indicator="#loading-items"
-										_="on htmx:afterRequest remove me"
-									></div>
-								}
 							}
 						}
+						@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
 						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
 							<div class="show-loading text-center">
 								<span class="loading mr-3 loading-xl loading-bars"></span>

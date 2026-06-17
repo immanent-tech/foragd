@@ -233,3 +233,23 @@ templ sortOption(sort, current models.Sort) {
 		</li>
 	</el-option>
 }
+
+// ListPaginationControl renders a sentinel element for controlling pagination of a list. It should be added as an OOB
+// swap to the page whenever pagination needs to be updated (i.e., after loading the latest set of items).
+templ ListPaginationControl(path string, filters *models.ListFilters, pagination models.Pagination) {
+	{{
+		values := filters.Values()
+		values["pagination"] = pagination
+	}}
+	<div
+		id="pagination-sentinel-wrapper"
+		hx-swap-oob="true"
+		hx-post={ path }
+		hx-vals={ templ.JSONString(values) }
+		hx-trigger="intersect once"
+		hx-target="#grid-objects"
+		hx-swap="beforeend transition:false"
+		hx-indicator="#loading-items"
+		hx-sync="#grid-objects:abort"
+	></div>
+}

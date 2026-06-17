@@ -343,7 +343,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				<section id="subscriptions-list" class="pt-4">
 					if len(response.Subscriptions) > 0 {
 						@masonryGrid()
-						@grid(element.WithClasses("items-stretch", "masonry-grid", "relative"),
+						@grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid")) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, subscription := range response.Subscriptions {
@@ -376,25 +376,9 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										}
 									}
 								}
-								// Add pagination trigger if there are more results.
-								if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
-									{{
-										values := response.Filters.Values()
-										values["pagination"] = response.Pagination
-									}}
-									<div
-										hx-post="/list/subscriptions/paginate"
-										hx-vals={ templ.JSONString(values) }
-										hx-trigger="intersect once threshold:0.1"
-										hx-target="#grid-objects"
-										hx-swap="beforeend transition:false"
-										hx-indicator="#loading-items"
-										hx-sync="#grid-objects:abort"
-										_="on htmx:afterRequest remove me"
-									></div>
-								}
 							}
 						}
+						@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
 						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
 							<div class="show-loading text-center">
 								<span class="loading mr-3 loading-xl loading-bars"></span>

@@ -141,28 +141,36 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		latestItems := service.GetLatestItems(req.Context(), filters.GetView(), subscriptions)
 
+		response := &models.ListSubscriptionsResponse{
+			Filters:        request.Filters,
+			Pagination:     *request.Pagination,
+			Subscriptions:  subscriptions,
+			LatestArticles: latestItems,
+		}
+
 		// Choose rendering method based on method (get = page, post = partial).
-		switch ctx := service.ListFiltersToCtx(req.Context(), request.Filters); req.Method {
+		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
+		switch req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
-				title: "Subscriptions",
-				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
-					Filters:        request.Filters,
-					Pagination:     *request.Pagination,
-					Subscriptions:  subscriptions,
-					LatestArticles: latestItems,
-				}),
+				title:    "Subscriptions",
+				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			RenderPartial(&ListSubscriptions{
-				title: "Subscriptions",
-				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
-					Filters:        request.Filters,
-					Pagination:     *request.Pagination,
-					Subscriptions:  subscriptions,
-					LatestArticles: latestItems,
-				}),
+				title:    "Subscriptions",
+				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
+			// Update pagination control element as needed.
+			if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
+				RenderPartial(&PartialTemplate{
+					template: templates.ListPaginationControl(
+						"/list/subscriptions/paginate",
+						&response.Filters,
+						response.Pagination,
+					),
+				}).ServeHTTP(res, req.WithContext(ctx))
+			}
 		}
 	}).ServeHTTP
 }
