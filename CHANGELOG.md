@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.163.0](https://github.com/immanent-tech/foragd/compare/v0.162.0...v0.163.0) (2026-06-16)
+
+
+### Features
+
+* **assets:** ➕ add feature and github social logos ([9214b85](https://github.com/immanent-tech/foragd/commit/9214b85bf67d4b69afda6afe84998b9deda5deb1))
+* **templates:** ✨ add masonry grid layout implemented with hyperscript ([629e144](https://github.com/immanent-tech/foragd/commit/629e144d9d5d9c63ee2b5e8a9cdeb7d6a29a3438))
+
 ## [0.162.0](https://github.com/immanent-tech/foragd/compare/v0.161.0...v0.162.0) (2026-06-16)
 
 
