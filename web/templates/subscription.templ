@@ -366,7 +366,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
 										hx-indicator="#loading-items"
-										hx-sync="#grid-objects:wait"
+										hx-sync="#grid-objects:abort"
 										_="on htmx:afterRequest remove me"
 									></div>
 								}

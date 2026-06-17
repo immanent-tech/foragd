@@ -787,16 +787,19 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-trigger="intersect once threshold:0.1"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
+										hx-sync="#grid-objects:abort"
+										hx-indicator="#loading-items"
 										_="on htmx:afterRequest remove me"
-									>
-										<div class="show-loading text-center">
-											<span class="loading mr-3 loading-xl loading-bars"></span>
-											<p class="text-lg/loose font-semibold">Loading content...</p>
-										</div>
-									</div>
+									></div>
 								}
 							}
 						}
+						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
+							<div class="show-loading text-center">
+								<span class="loading mr-3 loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Loading content...</p>
+							</div>
+						</div>
 						// Show some actions at the bottom of the list.
 						<nav
 							class="mt-8 hidden justify-center"
