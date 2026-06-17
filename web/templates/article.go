@@ -18,13 +18,17 @@ type Article struct {
 	*models.Article
 }
 
+func (a *Article) markValueID() models.ElementID {
+	return models.ElementID(a.GetID() + "-mark-value")
+}
+
 // markAttributes are the htmx attributes for marking an article.
 func (a *Article) markAttributes(view models.View) templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/mark/article/"+a.GetID()),
 		htmx.WithHXSwap("none"),
 		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXInclude("[id='"+a.GetID()+"-mark-action']"),
+		htmx.WithHXInclude("[id='"+a.markValueID().String()+"']"),
 		htmx.WithHXVals(map[string]string{
 			"subscription_id": a.GetSubscriptionID(),
 			"item_id":         a.GetID(),
