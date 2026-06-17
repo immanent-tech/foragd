@@ -146,7 +146,7 @@ func Search() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keydown[key=='Enter'] consume\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Search\" _=\"\n\t\t\t\t\ton toggle from #search-advanced-popover\n       \t\t\t\t\tif event.newState is 'open'\n       \t\t\t\t\t  set me.disabled to true\n       \t\t\t\t\telse\n       \t\t\t\t\t  set me.disabled to false\n       \t\t\t\t\tend\n\t\t\t\t\ton change set #search-text's value to my value\n\t\t\t\t\ton htmx:afterRequest\n\t\t\t\t\t  wait 500ms\n\t\t\t\t\t  set window._searchSubmitted to false\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown[key=='Enter']\n\t\t\t\t\t  set window._searchSubmitted to true\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus me\n  \t\t\t\t\"><button hx-post=\"/search/suggestions\" hx-target=\"#search-suggestions-popover\" hx-include=\"#search-filters,[id='timezone'],[id='global-search']\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed from:#global-search\" hx-on::after-request=\"if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()\" popovertarget=\"search-suggestions-popover\" type=\"button\" aria-label=\"Search suggestions\" class=\"focus:outline-primary\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none transform text-primary transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0\"></path></svg></button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]\"></el-popover><script>\n\t\t\t{\n  const input   = document.getElementById('global-search');\n  const popover = document.getElementById('search-suggestions-popover');\n\n  input.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    if (!items.length) return;\n\n    const current = document.activeElement;\n    const idx     = items.indexOf(current);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      const prev = idx > 0 ? items[idx - 1] : items[items.length - 1];\n      prev.focus();\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n  });\n\n  // Allow ArrowUp to re-enter the list from any focused item\n  popover.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    const idx   = items.indexOf(document.activeElement);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      if (idx === 0) {\n        input.focus();\n      } else {\n        items[idx - 1].focus();\n      }\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n\n    if (e.key === 'Enter') {\n      e.preventDefault();\n  \t  e.stopPropagation();\n      document.activeElement.click();\n    }\n  });\n\t\t\t}\n</script><button popovertarget=\"search-advanced-popover\" type=\"button\" class=\"focus:outline-primary\" aria-label=\"Show advanced search dialog\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-adjustments text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M6 4v4\"></path><path d=\"M6 12v8\"></path><path d=\"M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M12 4v10\"></path><path d=\"M12 18v2\"></path><path d=\"M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M18 4v1\"></path><path d=\"M18 9v11\"></path></svg></button></div><el-popover id=\"search-advanced-popover\" anchor=\"bottom end\" popover class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:12px]\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keydown[key=='Enter'] consume\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Search\" _=\"\n\t\t\t\t\ton toggle from #search-advanced-popover\n       \t\t\t\t\tif event.newState is 'open'\n       \t\t\t\t\t  set me.disabled to true\n       \t\t\t\t\telse\n       \t\t\t\t\t  set me.disabled to false\n       \t\t\t\t\tend\n\t\t\t\t\ton change set #search-text's value to my value\n\t\t\t\t\ton htmx:afterRequest\n\t\t\t\t\t  wait 500ms\n\t\t\t\t\t  set window._searchSubmitted to false\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown[key=='Enter']\n\t\t\t\t\t  set window._searchSubmitted to true\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus me\n  \t\t\t\t\"><button hx-post=\"/search/suggestions\" hx-target=\"#search-suggestions-popover\" hx-include=\"#search-filters,[id='timezone'],[id='global-search']\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed from:#global-search\" hx-on::after-request=\"if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()\" hx-sync=\"this:replace\" popovertarget=\"search-suggestions-popover\" type=\"button\" aria-label=\"Search suggestions\" class=\"focus:outline-primary\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none transform text-primary transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0\"></path></svg></button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]\"></el-popover><script>\n\t\t\t{\n  const input   = document.getElementById('global-search');\n  const popover = document.getElementById('search-suggestions-popover');\n\n  input.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    if (!items.length) return;\n\n    const current = document.activeElement;\n    const idx     = items.indexOf(current);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      const prev = idx > 0 ? items[idx - 1] : items[items.length - 1];\n      prev.focus();\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n  });\n\n  // Allow ArrowUp to re-enter the list from any focused item\n  popover.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    const idx   = items.indexOf(document.activeElement);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      if (idx === 0) {\n        input.focus();\n      } else {\n        items[idx - 1].focus();\n      }\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n\n    if (e.key === 'Enter') {\n      e.preventDefault();\n  \t  e.stopPropagation();\n      document.activeElement.click();\n    }\n  });\n\t\t\t}\n</script><button popovertarget=\"search-advanced-popover\" type=\"button\" class=\"focus:outline-primary\" aria-label=\"Show advanced search dialog\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-adjustments text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M6 4v4\"></path><path d=\"M6 12v8\"></path><path d=\"M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M12 4v10\"></path><path d=\"M12 18v2\"></path><path d=\"M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"></path><path d=\"M18 4v1\"></path><path d=\"M18 9v11\"></path></svg></button></div><el-popover id=\"search-advanced-popover\" anchor=\"bottom end\" popover class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:12px]\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -191,20 +191,20 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 201, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 202, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-include=\"#search-filters,[id='timezone']\" hx-sync=\"#search-suggestions-popover:drop\" hx-on::before-request=\"document.getElementById('search-suggestions-popover').hidePopover()\" class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden\"><input type=\"hidden\" name=\"text\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-include=\"#search-filters,[id='timezone']\" hx-sync=\"#search-suggestions-popover:drop\" hx-on::before-request=\"document.getElementById('search-suggestions-popover').hidePopover()\" _=\"on htmx:beforeRequest set #global-search.value to #suggestion-text.value\" class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden\"><input type=\"hidden\" id=\"suggestion-text\" name=\"suggestion_text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(suggestions.Search.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 208, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 210, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -217,7 +217,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(suggestions.Search.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 212, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 214, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -270,7 +270,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 242, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 244, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -295,7 +295,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + article.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 257, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 259, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
@@ -308,7 +308,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 258, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 260, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 				if templ_7745c5c3_Err != nil {
@@ -343,7 +343,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 278, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 280, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -372,7 +372,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 296, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 298, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 				if templ_7745c5c3_Err != nil {
@@ -395,7 +395,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 314, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 316, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 				if templ_7745c5c3_Err != nil {
@@ -418,7 +418,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 332, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 334, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 				if templ_7745c5c3_Err != nil {
@@ -509,7 +509,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 						var templ_7745c5c3_Var21 string
 						templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(results.Search.Values()))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 369, Col: 57}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 371, Col: 57}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 						if templ_7745c5c3_Err != nil {
@@ -555,7 +555,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var24 string
 									templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 396, Col: 41}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 398, Col: 41}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 									if templ_7745c5c3_Err != nil {
@@ -571,7 +571,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 										"mark": string(models.MarkRead),
 									}))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 401, Col: 15}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 403, Col: 15}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 									if templ_7745c5c3_Err != nil {
@@ -610,7 +610,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var27 string
 									templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 414, Col: 41}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 416, Col: 41}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var27)
 									if templ_7745c5c3_Err != nil {
@@ -626,7 +626,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 										"mark": string(models.MarkUnread),
 									}))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 419, Col: 15}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 421, Col: 15}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
 									if templ_7745c5c3_Err != nil {
@@ -665,7 +665,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var30 string
 									templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.ResolveAttributeValue("/edit/subscription/" + *results.Search.SubscriptionID)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 431, Col: 74}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 433, Col: 74}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
 									if templ_7745c5c3_Err != nil {
@@ -678,7 +678,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var31 string
 									templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 432, Col: 41}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 434, Col: 41}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31)
 									if templ_7745c5c3_Err != nil {
@@ -714,7 +714,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var33 string
 									templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 446, Col: 41}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 448, Col: 41}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var33)
 									if templ_7745c5c3_Err != nil {
@@ -799,7 +799,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var36 string
 									templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue("metadata[" + article.GetSubscriptionID() + "]")
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 480, Col: 84}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 482, Col: 84}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 									if templ_7745c5c3_Err != nil {
@@ -812,7 +812,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var37 string
 									templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.ResolveAttributeValue(article.GetID())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 480, Col: 110}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 482, Col: 110}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37)
 									if templ_7745c5c3_Err != nil {
@@ -839,7 +839,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var38 string
 									templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(results.Search))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 486, Col: 52}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 488, Col: 52}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38)
 									if templ_7745c5c3_Err != nil {
@@ -852,7 +852,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									var templ_7745c5c3_Var39 string
 									templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.ResolveAttributeValue(*results.Pagination)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 496, Col: 76}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 498, Col: 76}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
 									if templ_7745c5c3_Err != nil {
@@ -939,14 +939,14 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, " class=\"p-4\"><h3 id=\"search-filters-dialog-title\" class=\"text-base font-semibold\">Advanced Search</h3><div class=\"grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2\"><fieldset class=\"col-span-full fieldset\"><legend class=\"fieldset-legend\">Includes the words</legend> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"text\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, " class=\"p-4\"><h3 id=\"search-filters-dialog-title\" class=\"text-base font-semibold\">Advanced Search</h3><div class=\"grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2\"><fieldset class=\"col-span-full fieldset\"><legend class=\"fieldset-legend\">Includes the words</legend> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"advanced-search-text\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var41 string
 		templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.ResolveAttributeValue(`+keyword -"some phrase"`)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 530, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 532, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41)
 		if templ_7745c5c3_Err != nil {
@@ -960,7 +960,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(request.Text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 535, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 537, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -975,7 +975,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(*request.Categories)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 550, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 552, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -990,7 +990,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(*request.Authors)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 565, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 567, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -1094,7 +1094,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		var templ_7745c5c3_Var45 string
 		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortMostRelevant))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 658, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 660, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var45)
 		if templ_7745c5c3_Err != nil {
@@ -1117,7 +1117,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		var templ_7745c5c3_Var46 string
 		templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortNewestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 666, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 668, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 		if templ_7745c5c3_Err != nil {
@@ -1140,7 +1140,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		var templ_7745c5c3_Var47 string
 		templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(models.SortOldestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 672, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 674, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var47)
 		if templ_7745c5c3_Err != nil {
@@ -1163,13 +1163,13 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		var templ_7745c5c3_Var48 string
 		templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 689, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 691, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var48)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-md btn-primary\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle text-info btn-ghost btn-md\" aria-label=\"Search filters help\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"></path><path d=\"M12 9h.01\"></path><path d=\"M11 12h1v4h1\"></path></svg></button> <el-popover popover=\"hint\" id=\"filter-operators-help\" anchor=\"bottom end\" class=\"[--anchor-gap:4px]\"><div class=\"card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap\"><p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p><ul><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div></el-popover></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,advanced-search-text\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-md btn-primary\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle text-info btn-ghost btn-md\" aria-label=\"Search filters help\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"></path><path d=\"M12 9h.01\"></path><path d=\"M11 12h1v4h1\"></path></svg></button> <el-popover popover=\"hint\" id=\"filter-operators-help\" anchor=\"bottom end\" class=\"[--anchor-gap:4px]\"><div class=\"card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap\"><p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p><ul><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div></el-popover></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1206,7 +1206,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 735, Col: 132}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 737, Col: 132}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var50)
 			if templ_7745c5c3_Err != nil {
@@ -1219,7 +1219,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.ResolveAttributeValue("Add subscription filter for " + subscription.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 738, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 740, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var51)
 			if templ_7745c5c3_Err != nil {
@@ -1232,7 +1232,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 741, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 743, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
@@ -1275,7 +1275,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var54 string
 		templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.ResolveAttributeValue("Remove subscription filter " + filter.SubscriptionName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 756, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 758, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var54)
 		if templ_7745c5c3_Err != nil {
@@ -1288,7 +1288,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var55 string
 		templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.ResolveAttributeValue(filter.InputName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 758, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 760, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var55)
 		if templ_7745c5c3_Err != nil {
@@ -1301,7 +1301,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var56 string
 		templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.ResolveAttributeValue(filter.SubscriptionID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 758, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 760, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var56)
 		if templ_7745c5c3_Err != nil {
@@ -1314,7 +1314,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var57 string
 		templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(filter.SubscriptionName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 760, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 762, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 		if templ_7745c5c3_Err != nil {

@@ -87,6 +87,7 @@ templ Search() {
 				hx-include="#search-filters,[id='timezone'],[id='global-search']"
 				hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#global-search"
 				hx-on::after-request="if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()"
+				hx-sync="this:replace"
 				popovertarget="search-suggestions-popover"
 				type="button"
 				aria-label="Search suggestions"
@@ -202,10 +203,11 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-include="#search-filters,[id='timezone']"
 			hx-sync="#search-suggestions-popover:drop"
 			hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+			_="on htmx:beforeRequest set #global-search.value to #suggestion-text.value"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 		>
 			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
-			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
+			<input type="hidden" id="suggestion-text" name="suggestion_text" value={ suggestions.Search.Text }/>
 			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search group-hover:text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
 			</svg>
@@ -526,7 +528,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					rows="2"
 					id="search-text"
 					type="text"
-					name="text"
+					name="advanced-search-text"
 					placeholder={ `+keyword -"some phrase"` }
 					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
 					_="on change set #global-search's value to my value"
@@ -688,7 +690,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					hx-get="/search"
 					hx-target={ ContentID.Target() }
 					hx-include="[id='timezone'],#search-filters"
-					hx-params="not subscription-text"
+					hx-params="not subscription-text,advanced-search-text"
 					_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
 				>
 					<button
