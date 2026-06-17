@@ -600,8 +600,8 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				query.Term("source_urls", text, query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.Term("url", text, query.WithQueryBoost[*query.TermQuery](5.0)),
 				// Wildcard URL prefix.
-				query.Wildcard("source_urls", text+"*"),
-				query.Wildcard("url", text+"*"),
+				// query.Wildcard("source_urls", text+"*"),
+				// query.Wildcard("url", text+"*"),
 			),
 		)
 	default:
@@ -649,7 +649,6 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 			slog.Any("error", err),
 		)
 	}
-
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
 		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs(), nil)
