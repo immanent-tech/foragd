@@ -966,6 +966,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	defer bufPool.Put(feedBuf)
 
 	// Fetch the feed data from the source url.
+	var contentType string
 	switch opts.Proxy {
 	case false:
 		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
@@ -992,6 +993,8 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
 		defer resp.RawBody().Close()
+
+		contentType = resp.Header().Get("Content-Type")
 
 		if resp.Header().Get("Content-Encoding") == "gzip" {
 			// For gzipped response, uncompress first.
@@ -1065,7 +1068,10 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		}
 		return nil, models.ErrNotFound
 	default:
-		return nil, models.NewAPIError(http.StatusUnsupportedMediaType, errors.New("unsupported media type"))
+		return nil, models.NewAPIError(
+			http.StatusUnsupportedMediaType,
+			fmt.Errorf("unsupported media type: %s", contentType),
+		)
 	}
 
 	// Handle getting through the switch but still not parsing the content.
