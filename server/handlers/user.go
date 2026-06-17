@@ -57,14 +57,14 @@ func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Reques
 
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		RenderInternalPage(&UserSettings{}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
 func HandleShowDisplaySettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			HandleInternalError(req.URL.Path,
@@ -86,7 +86,7 @@ func HandleShowDisplaySettings() http.HandlerFunc {
 
 // HandleShowAccountSettings handles showing the settings related to user accounts.
 func HandleShowAccountSettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			HandleInternalError(req.URL.Path,
@@ -108,7 +108,7 @@ func HandleShowAccountSettings() http.HandlerFunc {
 
 // HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
 func HandleShowSubscriptionsSettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -157,7 +157,7 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
 func HandleSaveDisplaySettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
 		if err != nil || !valid {
@@ -212,7 +212,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 //
 //nolint:funlen
 func HandleSaveAccountSettings() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
 		if err != nil || !valid {
@@ -373,7 +373,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 
 // HandleChangePassword handles a change password request from the user.
 func HandleChangePassword() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(req.URL.Path,
@@ -412,7 +412,7 @@ func HandleChangePassword() http.HandlerFunc {
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.FormValue("confirmed") {
 		case "yes":
 			// Get user account details.
@@ -535,7 +535,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
 func HandleAddFeedset(static embed.FS) http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			slogctx.FromCtx(req.Context()).Debug("No feedsets selected.")
@@ -697,7 +697,7 @@ func HandleAccountIssue() http.HandlerFunc {
 }
 
 func HandleManageAccountSubscription() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
 			HandleExternalError(&models.APIError{
@@ -712,7 +712,7 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 }
 
 func HandleGenerateSubscriptionEmail() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {

@@ -12,8 +12,6 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/immanent-tech/foragd/web/templates/partials"
-
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 func Document(data []byte) templ.Component {
@@ -61,7 +59,7 @@ func Document(data []byte) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.ButtonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

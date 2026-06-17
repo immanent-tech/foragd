@@ -247,7 +247,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 									}
 									return nil
 								})
-								templ_7745c5c3_Err = SubscriptionCard(idx, subscription).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = SubscriptionCard(idx, "/list/favorites", subscription).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

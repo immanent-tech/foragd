@@ -636,7 +636,7 @@ templ ArticleContent(a *models.Article) {
 					}
 				</article>
 				<div class="p-4">
-					@partials.ButtonBackToTop()
+					@buttonBackToTop()
 					// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 					// read and mark it so (when the user has set this option).
 					if article.IsUnread() && article.MarkArticleReadOnView {
@@ -902,7 +902,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								}
 							}
 						</nav>
-						@partials.ButtonBackToTop()
+						@buttonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
 						@partials.NoContent()

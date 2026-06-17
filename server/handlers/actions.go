@@ -18,7 +18,7 @@ import (
 
 // GetSubscriptionActionSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionActionSuggestions() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
 		text := validation.SanitizeString(req.FormValue("command-text"))
 		subscriptions, err := service.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)

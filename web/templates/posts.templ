@@ -99,7 +99,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 				}
 			</div>
 		}
-		@partials.ButtonBackToTop()
+		@buttonBackToTop()
 	}
 }
 
@@ -166,7 +166,7 @@ templ Post(post *models.MarkdownFile) {
 				</div>
 				@templ.Raw(string(post.Content))
 			</article>
-			@partials.ButtonBackToTop()
+			@buttonBackToTop()
 		}
 	}
 }

@@ -44,7 +44,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func HandleSearchSuggestions() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -184,7 +184,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
 func HandleSearchResults() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -363,7 +363,7 @@ func HandleSearchResults() http.HandlerFunc {
 
 // HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
 func HandleSearchUpdates() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -447,7 +447,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionFilterSuggestions() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
 		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil || !valid {

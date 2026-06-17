@@ -105,7 +105,7 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 
 // HandleHome handles displaying the user's home page.
 func HandleHome() http.HandlerFunc {
-	return userContentHandlerChain.
+	return internalPageHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			user := models.UserFromCtx(req.Context())
 			if user == nil {

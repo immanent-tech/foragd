@@ -1029,7 +1029,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, s.editAttributes())
+				templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, s.editAttributes("/user/settings#subscriptions"))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

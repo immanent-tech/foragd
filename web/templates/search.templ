@@ -508,7 +508,7 @@ templ SearchResults(results *models.SearchResults) {
 							</span>
 						</div>
 						// Button to go back to top.
-						@partials.ButtonBackToTop()
+						@buttonBackToTop()
 					</section>
 				}
 			}
@@ -799,7 +799,7 @@ templ SimilarArticles(articles models.Articles) {
 								@ArticleCard(idx, article)
 							}
 						}
-						@partials.ButtonBackToTop()
+						@buttonBackToTop()
 					</section>
 				}
 			}

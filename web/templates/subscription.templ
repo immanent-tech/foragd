@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -107,7 +108,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
-templ SubscriptionCard(idx int, subscription *models.Subscription) {
+templ SubscriptionCard(idx int, path string, subscription *models.Subscription) {
 	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
@@ -232,12 +233,7 @@ templ SubscriptionCard(idx int, subscription *models.Subscription) {
 								}
 								// Edit action.
 								@partials.MenuItem() {
-									<a
-										hx-get={ "/subscription/edit/" + s.GetID() }
-										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
-										hx-trigger="click consume"
-									>
+									<a { s.editAttributes(path)... }>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
 										</svg>
@@ -347,7 +343,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							element.WithAttribute("_", "install MasonryGrid")) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, subscription := range response.Subscriptions {
-									@SubscriptionCard(idx, subscription) {
+									@SubscriptionCard(idx, "/list/subscriptions", subscription) {
 										if response.LatestArticles != nil {
 											{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
 											if ok {
@@ -433,7 +429,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								</span>
 							</button>
 						</nav>
-						@partials.ButtonBackToTop()
+						@buttonBackToTop()
 					} else {
 						@partials.NoContent()
 					}
@@ -539,7 +535,8 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				<form
 					hx-post="/subscription/add/suggestions"
 					hx-target="#subscription-suggestions"
-					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms changed from:#add-subscription-search"
+					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms from:#add-subscription-search, changed from:#add-subscription-search"
+					hx-sync="this:replace"
 					_="
 					on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
 					on keydown[key=='Enter'] halt the event
@@ -673,7 +670,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								stroke-linejoin="round"
 								class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus text-secondary"
 							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4h6v6h-6v-6"></path><path d="M14 4h6v6h-6v-6"></path><path d="M4 14h6v6h-6v-6"></path><path d="M14 17h6m-3 -3v6"></path></svg>
-							<label class="card-title text-secondary" for="informed">Add a Group Subscription</label>
+							<div class="card-title text-secondary">Add a Group Subscription</div>
 						</div>
 						<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
 					</div>
@@ -697,9 +694,51 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								stroke-linejoin="round"
 								class="icon icon-tabler icons-tabler-outline icon-tabler-search text-secondary"
 							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
-							<label class="card-title text-secondary" for="informed">Add a Search Subscription</label>
+							<div class="card-title text-secondary">Add a Search Subscription</div>
 						</div>
 						<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
+					</div>
+					<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
+						<div class="flex flex-row items-center gap-x-3">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="icon icon-tabler icons-tabler-outline icon-tabler-mailbox text-secondary"
+							>
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+								<path d="M10 21v-6.5a3.5 3.5 0 0 0 -7 0v6.5h18v-6a4 4 0 0 0 -4 -4h-10.5"></path>
+								<path d="M12 11v-8h4l2 2l-2 2h-4"></path>
+								<path d="M6 15h1"></path>
+							</svg>
+							<div class="card-title text-secondary">Subscribe to email newsletters</div>
+						</div>
+						{{ user := models.UserFromCtx(ctx) }}
+						if user.Settings.SubscriptionEmail == nil {
+							<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
+							<button
+								hx-post="/user/settings/subscriptionemail"
+								hx-target="#subscription-email"
+								hx-swap="innerHTML transition:true"
+								class="btn btn-primary"
+							>
+								<span class="show-loading items-center">
+									<span class="loading mr-3 loading-spinner"></span>
+									<span class="text-sm/6">Processing</span>
+								</span>
+								<span class="hide-loading items-center">
+									<span class="text-sm/6">Generate email address</span>
+								</span>
+							</button>
+						} else {
+							@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
+						}
 					</div>
 				</div>
 			}
@@ -881,7 +920,16 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				Processing...
 				<span class="loading loading-md loading-spinner"></span>
 			</div>
-			@partials.ButtonBack()
+			<button
+				type="button"
+				class="btn btn-secondary hover:btn-error"
+				hx-get={ FromPathFromCtx(ctx) }
+				hx-target={ ContentID.Target() }
+				hx-swap="innerHTML transition:true"
+				hx-push-url="true"
+			>
+				Back
+			</button>
 			switch action {
 				case "add":
 					<button type="submit" class="btn btn-primary">Add</button>
@@ -898,6 +946,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 	} else {
 		<ul id="feed-suggestions" class="divide-y divide-neutral/15">
 			for feed := range slices.Values(request.Feeds) {
+				{{ godump.Dump(feed.GetTitle()) }}
 				<li
 					id={ "suggestion-" + feed.GetID() }
 					class="group/item py-4"
@@ -1326,7 +1375,18 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							Processing...
 							<span class="loading loading-md loading-spinner"></span>
 						</div>
-						@partials.ButtonBack()
+						// Back button.
+						<button
+							type="button"
+							class="btn btn-secondary hover:btn-error"
+							hx-get={ FromPathFromCtx(ctx) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-push-url="true"
+						>
+							Back
+						</button>
+						// Add/edit button.
 						switch action {
 							case "add":
 								<button type="submit" class="btn btn-primary">Add</button>
@@ -1521,7 +1581,18 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							Processing...
 							<span class="loading loading-md loading-spinner"></span>
 						</div>
-						@partials.ButtonBack()
+						// Back button.
+						<button
+							type="button"
+							class="btn btn-secondary hover:btn-error"
+							hx-get={ FromPathFromCtx(ctx) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-push-url="true"
+						>
+							Back
+						</button>
+						// Add/edit button.
 						switch action {
 							case "add":
 								<button type="submit" class="btn btn-primary">Add</button>
@@ -1621,7 +1692,18 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 							Processing...
 							<span class="loading loading-md loading-spinner"></span>
 						</div>
-						@partials.ButtonBack()
+						// Back button.
+						<button
+							type="button"
+							class="btn btn-secondary hover:btn-error"
+							hx-get={ FromPathFromCtx(ctx) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-push-url="true"
+						>
+							Back
+						</button>
+						// Add/edit button.
 						<button type="submit" class="btn btn-primary">Save</button>
 					</div>
 				</form>

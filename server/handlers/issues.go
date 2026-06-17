@@ -45,7 +45,7 @@ func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
 func HandleReportIssue() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -73,7 +73,7 @@ func HandleReportIssue() http.HandlerFunc {
 
 // HandleSubmitIssue handles processing the user submitted subscription issues form.
 func HandleSubmitIssue() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
 		if err != nil || !valid {

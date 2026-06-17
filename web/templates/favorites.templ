@@ -109,7 +109,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 							if len(response.Subscriptions) > 0 {
 								@grid(element.WithClasses("items-stretch pt-12")) {
 									for idx, subscription := range response.Subscriptions {
-										@SubscriptionCard(idx, subscription) {
+										@SubscriptionCard(idx, "/list/favorites", subscription) {
 											if response.LatestArticles != nil {
 												{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
 												if ok {

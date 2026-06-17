@@ -20,7 +20,7 @@ import (
 
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
 func ListCategories() http.HandlerFunc {
-	return userContentHandlerChain.
+	return internalPageHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			switch {
 			case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):

@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"strconv"
 )
@@ -76,7 +75,18 @@ templ ImportSubscriptions() {
 							Processing...
 							<span class="loading loading-md loading-spinner"></span>
 						</div>
-						@partials.ButtonBack()
+						// Back button.
+						<button
+							type="button"
+							class="btn btn-secondary hover:btn-error"
+							hx-get={ FromPathFromCtx(ctx) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-push-url="true"
+						>
+							Back
+						</button>
+						// Import button.
 						<button type="submit" class="btn btn-primary">Import</button>
 					</div>
 				</form>
@@ -196,5 +206,5 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			}
 		</ul>
 	</div>
-	@partials.ButtonBackToTop()
+	@buttonBackToTop()
 }

@@ -9,6 +9,7 @@ import (
 
 const (
 	pathCtxKey      contextKey = "path"
+	fromPathCtxKey  contextKey = "fromPath"
 	fragmentsCtxKey contextKey = "fragments"
 )
 
@@ -24,6 +25,21 @@ func PathFromCtx(ctx context.Context) string {
 	path, found := ctx.Value(pathCtxKey).(string)
 	if !found {
 		return ""
+	}
+	return path
+}
+
+// FromPathToCtx stores the path of the referring page in the context.
+func FromPathToCtx(ctx context.Context, path string) context.Context {
+	return context.WithValue(ctx, fromPathCtxKey, path)
+}
+
+// FromPathFromCtx retrieves the path of the referring page in the context.
+func FromPathFromCtx(ctx context.Context) string {
+	path, found := ctx.Value(fromPathCtxKey).(string)
+	if !found {
+		// Assume a from path of "/home" if none found.
+		return "/home"
 	}
 	return path
 }

@@ -34,7 +34,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var userContentHandlerChain = alice.New(storePath, noCache, refreshOnHistoryRestore)
+var internalPageHandlerChain = alice.New(storePath, withFromPath, noCache, refreshOnHistoryRestore)
 
 var bufPool = sync.Pool{
 	New: func() any {
@@ -131,4 +131,22 @@ func noCache(next http.Handler) http.Handler {
 		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
 		next.ServeHTTP(res, req)
 	})
+}
+
+func withFromPath(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		from := req.URL.Query().Get("from")
+		if from == "" {
+			from = req.Header.Get("Referer")
+		}
+		if !isSafeLocalPath(from) {
+			from = "/home"
+		}
+		ctx := templates.FromPathToCtx(req.Context(), from)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func isSafeLocalPath(p string) bool {
+	return strings.HasPrefix(p, "/") && !strings.HasPrefix(p, "//")
 }

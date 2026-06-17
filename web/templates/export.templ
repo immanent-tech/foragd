@@ -3,10 +3,7 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-)
+import "github.com/immanent-tech/foragd/models"
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
 templ ExportSubscriptions() {
@@ -26,7 +23,18 @@ templ ExportSubscriptions() {
 				</p>
 				<div class="mt-10 space-y-8">
 					<div class="mt-6 flex items-center justify-end gap-x-6">
-						@partials.ButtonBack()
+						// Back button.
+						<button
+							type="button"
+							class="btn btn-secondary hover:btn-error"
+							hx-get={ FromPathFromCtx(ctx) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-push-url="true"
+						>
+							Back
+						</button>
+						// Export button.
 						<form method="post">
 							<button type="submit" class="btn btn-primary">Export</button>
 						</form>
