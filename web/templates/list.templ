@@ -132,11 +132,11 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(values) }
-			class="group/option pr-9"
+			class="group/option pr-5"
 		>
 			// For mobile screens where option is displayed in select menu.
 			<div class="sm:hidden">
-				<span class={ "block truncate font-normal pr-4", templ.KV("font-semibold",active) }>Favorites</span>
+				<span class={ "block truncate font-normal", templ.KV("font-semibold",active) }>Favorites</span>
 				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
 					<svg
 						class="size-5"
@@ -213,23 +213,25 @@ templ (c *listControls) sortOptions() {
 
 templ sortOption(sort, current models.Sort) {
 	<el-option value={ string(sort) }>
-		<li class="group/option pr-9">
-			<span class={ "block truncate font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
-			<span class={ "absolute inset-y-0 right-0 flex items-center pr-4 text-accent", templ.KV("hidden",sort != current) }>
-				<svg
-					class="size-5"
-					aria-hidden="true"
-					data-slot="icon"
-					fill="currentColor"
-					viewBox="0 0 20 20"
-				>
-					<path
-						clip-rule="evenodd"
-						d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-						fill-rule="evenodd"
-					></path>
-				</svg>
-			</span>
+		<li class="group/option pr-5">
+			<div>
+				<span class={ "block truncate font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
+				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent ", templ.KV("hidden",sort != current) }>
+					<svg
+						class="size-5"
+						aria-hidden="true"
+						data-slot="icon"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
+						<path
+							clip-rule="evenodd"
+							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+							fill-rule="evenodd"
+						></path>
+					</svg>
+				</span>
+			</div>
 		</li>
 	</el-option>
 }
