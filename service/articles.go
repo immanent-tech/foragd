@@ -229,7 +229,7 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 
 // GetArticleRemoteContent attempts to fetch remote content for an article. It will check if the remote content has
 // already been fetched and cached in GCS and use that content. Otherwise, it uses the Zyte API to fetch the remote
-// content and then cache it for re-use.
+// content and then cache it for reuse.
 func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
 	var cached bool
 

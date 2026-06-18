@@ -14,7 +14,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
-// ElasticsearchToAPIError will extract and wrap a types.ElasticsearchError from the given error, in a APIError
+// ElasticsearchToAPIError will extract and wrap a types.ElasticsearchError from the given error, in an APIError
 // containing its pertinent information. If the given error does not contain types.ElasticsearchError, the given error
 // is wrapped in a generic APIError is created.
 func ElasticsearchToAPIError(err error) error {
@@ -22,9 +22,12 @@ func ElasticsearchToAPIError(err error) error {
 		var str strings.Builder
 
 		str.WriteString(*esErr.ErrorCause.Reason)
-		str.WriteString(" (" + esErr.ErrorCause.Type + ")")
+		str.WriteString(" (")
+		str.WriteString(esErr.ErrorCause.Type)
+		str.WriteString(")")
 		if esErr.ErrorCause.RootCause != nil {
-			str.WriteString(" reason: " + *esErr.ErrorCause.CausedBy.Reason)
+			str.WriteString(" reason: ")
+			str.WriteString(*esErr.ErrorCause.CausedBy.Reason)
 		}
 
 		return &models.APIError{

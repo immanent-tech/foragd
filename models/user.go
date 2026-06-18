@@ -17,7 +17,7 @@ const (
 	DefaultMaxHistory = 31 * 24 * time.Hour
 	// DefaultUpdateInterval is the default interval on which to check for updates.
 	DefaultUpdateInterval = 5 * time.Minute
-	// MaxSubscriptions is the maxiumum number of subscriptions a user can have.
+	// MaxSubscriptions is the maximum number of subscriptions a user can have.
 	MaxSubscriptions = 3000
 	// MaxEmailNewsletters is the maximum number of email newsletter subscriptions a user can have.
 	MaxEmailNewsletters = 50
@@ -79,7 +79,7 @@ func (u *User) GetMaxHistory() time.Time {
 }
 
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
-// parsing the value from the user's metdata, it will use the lowest plan updates frequency.
+// parsing the value from the user's metadata, it will use the lowest plan updates frequency.
 func (u *User) GetUpdatesFrequency() time.Duration {
 	if u.GetSettings().UpdatesInterval == 0 {
 		return DefaultUpdateInterval
