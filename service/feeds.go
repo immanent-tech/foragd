@@ -621,7 +621,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				query.MultiMatch(
 					text,
 					[]string{"title^5", "description"},
-					query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
+					query.WithFuzziness[*query.MultiMatchQuery]("2"),
 				),
 				// Match phrase in description.
 				query.MatchPhrase(
