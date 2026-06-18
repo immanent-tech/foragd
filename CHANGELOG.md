@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.164.1](https://github.com/immanent-tech/foragd/compare/v0.164.0...v0.164.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* **middlewares:** 🐛 fix logic around checking trial, not trial and android access ([7b75c0f](https://github.com/immanent-tech/foragd/commit/7b75c0f2661985a4a5563629d2a157762afac8bb))
+* **middlewares:** 🔧 faster path when user is in trial ([f1f0c1d](https://github.com/immanent-tech/foragd/commit/f1f0c1d80057f3f9fd1e2cbd3634b3317e327c8c))
+* **models:** 🐛 fix logic for calculating user trial grace period ([efa5a35](https://github.com/immanent-tech/foragd/commit/efa5a35f388c7bfee40b469b0a433f21a2d30058))
+* **service/feeds:** 🔧 don't use wildcard match on url prefix to support multiple feeds hosted from single domain ([752d21e](https://github.com/immanent-tech/foragd/commit/752d21e67cd3cf2178a8bffd09897da128122f8a))
+* **templates/article:** 🐛 fix auto marking when viewing article content ([4b9bbac](https://github.com/immanent-tech/foragd/commit/4b9bbac53eb1121ca94896c621d78b8c3c10c4c2))
+* **templates/list:** 🎨 fix padding in filter select menus ([d3f2083](https://github.com/immanent-tech/foragd/commit/d3f2083ff921bde1a2c4e1da07940e989766256b))
+
 ## [0.164.0](https://github.com/immanent-tech/foragd/compare/v0.163.0...v0.164.0) (2026-06-17)
 
 
