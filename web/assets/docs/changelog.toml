@@ -1,8 +1,24 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.164"
+date      = "June 18, 2026"
+type      = "patch"
+is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Fixed logic around user trials. Apologies if you signed up and saw a message your trial already expired. That was wrong!
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+On pages with back buttons, hitting the back button will load fresh content on the page you return to. This means editing a subscription and going back to the subscription will show your edits immediately.
+"""
+
+[[releases]]
 version   = "v0.163"
-date      = "June 15, 2026"
+date      = "June 17, 2026"
 type      = "major"
 is_latest = true
 [[releases.changes]]
@@ -17,9 +33,9 @@ When toggling read status of a subscription/article, the card will now change br
 """
 
 [[releases]]
-version   = "v0.160"
-date      = "June 15, 2026"
-type      = "major"
+version = "v0.160"
+date    = "June 15, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
