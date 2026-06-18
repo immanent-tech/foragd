@@ -110,6 +110,7 @@ func (u *User) InTrial() bool {
 // subscription.
 func (u *User) InTrialGracePeriod() bool {
 	return !u.HasValidSubscription() &&
+		time.Now().UTC().After(u.CreatedAt.Add(DefaultTrialPeriod)) &&
 		time.Now().UTC().Before(u.CreatedAt.Add(DefaultTrialPeriod+7*24*time.Hour))
 }
 
