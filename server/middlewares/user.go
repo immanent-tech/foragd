@@ -191,7 +191,7 @@ func RequireValidUser(next http.Handler) http.Handler {
 		default:
 			// ! While Android app is in beta, allow Android app users to continue using the app after their trial has
 			// ! expired.
-			if client := models.ClientTypeFromCtx(req.Context()); client != models.ClientTypeTwa {
+			if client := models.ClientTypeFromCtx(req.Context()); client != models.ClientTypeTwa && !user.InTrial() {
 				slogctx.FromCtx(req.Context()).Error("Trial expired. User account requires activation.")
 				ctx := models.UserToCtx(req.Context(), user)
 				http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
