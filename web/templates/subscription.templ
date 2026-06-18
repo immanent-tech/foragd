@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -542,9 +541,13 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 					on keydown[key=='Enter'] halt the event
 					"
 				>
-					<div>
-						<label for="add-subscription-search" class="block text-sm/6 font-medium text-neutral">
-							Search by keyword or by URL:
+					<div class="mt-4">
+						<ol>
+							<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
+							<li>Enter search terms (see notes below) as appropriate.</li>
+						</ol>
+						<label for="add-subscription-search" class="block text-sm/6 font-medium text-neutral mt-4">
+							Source search terms:
 						</label>
 						<div class="mt-2 w-full">
 							<div class="join flex w-full items-center sm:max-w-xl">
@@ -576,6 +579,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									on change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end
 									"
 								>
+									<option disabled selected value="web">Source...</option>
 									<option value="web">Web</option>
 									<option value="youtube">Youtube</option>
 									<option value="gnews">Google News</option>
@@ -946,7 +950,6 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 	} else {
 		<ul id="feed-suggestions" class="divide-y divide-neutral/15">
 			for feed := range slices.Values(request.Feeds) {
-				{{ godump.Dump(feed.GetTitle()) }}
 				<li
 					id={ "suggestion-" + feed.GetID() }
 					class="group/item py-4"
