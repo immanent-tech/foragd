@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.165.0](https://github.com/immanent-tech/foragd/compare/v0.164.1...v0.165.0) (2026-06-18)
+
+
+### Features
+
+* **cli:** ✨ add a user command to list user details ([41dd354](https://github.com/immanent-tech/foragd/commit/41dd354d794800abab58c3de446b5f8024ef7e2a))
+* **templates/subscription:** ♻️ be more instructive on add feed page ([9cfba9a](https://github.com/immanent-tech/foragd/commit/9cfba9a76a959dcd4d080c9074bbacce493f8dbb))
+
+
+### Performance Improvements
+
+* **service/feeds:** ⚡ be extra fuzzy with feed suggestions ([de79b83](https://github.com/immanent-tech/foragd/commit/de79b83078424d46eafbcaac82bba672c7d1792b))
+
 ## [0.164.1](https://github.com/immanent-tech/foragd/compare/v0.164.0...v0.164.1) (2026-06-18)
 
 
