@@ -169,8 +169,13 @@ func RequireValidUser(next http.Handler) http.Handler {
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 
+		case user.InTrial():
+			// User in trial, pass to next handler.
+			next.ServeHTTP(res, req)
+			return
+
 		case !user.InTrial() && user.HasValidSubscription():
-			// User not in trial and has a subscription.
+			// User not in trial and has a subscription. Pass to subscription validator handler.
 			switch *user.UserSubscriptionType {
 			case models.UserSubscriptionTypePaddle:
 				paddleHandler.ServeHTTP(res, req)
@@ -187,6 +192,8 @@ func RequireValidUser(next http.Handler) http.Handler {
 			// Trial grace period. User can still use the app but will see a permanent (dismissable) notification that
 			// they need to buy a subscription.
 			slogctx.FromCtx(req.Context()).Warn("User in trial grace period.")
+			next.ServeHTTP(res, req)
+			return
 
 		default:
 			// ! While Android app is in beta, allow Android app users to continue using the app after their trial has
@@ -222,6 +229,7 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 		}
+		// ! Note that trials are implemented outside of Paddle so we don't check the subscription status is trial here.
 		switch {
 		case paddle.IsPastDue(&userSubscription):
 			// User account is past due or has other payment issues.
@@ -230,18 +238,19 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 			return
 
 		case paddle.IsPaused(&userSubscription):
+			// User subscription is paused.
 			slogctx.FromCtx(req.Context()).Error("User account is paused.")
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 
 		case paddle.IsCancelled(&userSubscription):
-			// User subscription is cancelled.
+			// User subscription is canceled.
 			slogctx.FromCtx(req.Context()).Error("User has cancelled account.")
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 
 		case !paddle.IsActive(&userSubscription):
-			// User subscription is cancelled.
+			// User subscription is not active.
 			slogctx.FromCtx(req.Context()).Error("User account requires activation.")
 			ctx := models.UserToCtx(req.Context(), user)
 			http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
