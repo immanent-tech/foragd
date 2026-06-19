@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.164"
-date      = "June 18, 2026"
+version   = "v0.166"
+date      = "June 19, 2026"
 type      = "patch"
 is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Fixed the button on the add subscription page to generate your email address for subscribing to email newsletters.
+"""
+
+[[releases]]
+version = "v0.164"
+date    = "June 18, 2026"
+type    = "patch"
 [[releases.changes]]
 type = "fixed"
 description = """
@@ -17,10 +27,9 @@ On pages with back buttons, hitting the back button will load fresh content on t
 """
 
 [[releases]]
-version   = "v0.163"
-date      = "June 17, 2026"
-type      = "major"
-is_latest = true
+version = "v0.163"
+date    = "June 17, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
