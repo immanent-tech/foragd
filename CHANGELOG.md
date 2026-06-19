@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.166.0](https://github.com/immanent-tech/foragd/compare/v0.165.0...v0.166.0) (2026-06-19)
+
+
+### Features
+
+* **config:** ✨ basic android billing support ([992b3da](https://github.com/immanent-tech/foragd/commit/992b3da219c8f51c3e1ef901fb000594a5bfef4c))
+* **templates/landiing:** ✨ add google play store link ([df99204](https://github.com/immanent-tech/foragd/commit/df99204be752e65fcefeef03f09331851621bb50))
+
+
+### Bug Fixes
+
+* **templates/subscription:** 🐛 fix generation of subscription email on add subscription form ([83ed68b](https://github.com/immanent-tech/foragd/commit/83ed68b88f128b1da9117bff823569b5143f6914))
+
 ## [0.165.0](https://github.com/immanent-tech/foragd/compare/v0.164.1...v0.165.0) (2026-06-18)
 
 
