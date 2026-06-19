@@ -724,25 +724,27 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							<div class="card-title text-secondary">Subscribe to email newsletters</div>
 						</div>
 						{{ user := models.UserFromCtx(ctx) }}
-						if user.Settings.SubscriptionEmail == nil {
-							<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
-							<button
-								hx-post="/user/settings/subscriptionemail"
-								hx-target="#subscription-email"
-								hx-swap="innerHTML transition:true"
-								class="btn btn-primary"
-							>
-								<span class="show-loading items-center">
-									<span class="loading mr-3 loading-spinner"></span>
-									<span class="text-sm/6">Processing</span>
-								</span>
-								<span class="hide-loading items-center">
-									<span class="text-sm/6">Generate email address</span>
-								</span>
-							</button>
-						} else {
-							@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
-						}
+						<div id="subscription-email">
+							if user.Settings.SubscriptionEmail == nil {
+								<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
+								<button
+									hx-post="/user/settings/subscriptionemail"
+									hx-target="#subscription-email"
+									hx-swap="innerHTML transition:true"
+									class="btn btn-primary"
+								>
+									<span class="show-loading items-center">
+										<span class="loading mr-3 loading-spinner"></span>
+										<span class="text-sm/6">Processing</span>
+									</span>
+									<span class="hide-loading items-center">
+										<span class="text-sm/6">Generate email address</span>
+									</span>
+								</button>
+							} else {
+								@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
+							}
+						</div>
 					</div>
 				</div>
 			}
