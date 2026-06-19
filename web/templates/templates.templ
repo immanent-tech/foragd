@@ -11,7 +11,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
 	"github.com/immanent-tech/go-syndication/opengraph"
-	"path/filepath"
+	"net/url"
 	"slices"
 )
 
@@ -121,9 +121,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				@templ.Raw(p.OpenGraph.String())
 			}
 			if p.CanonicalLink != "" {
-				<link rel="canonical" href={ p.CanonicalLink }/>
+				<link rel="canonical" href={ templ.URL(p.CanonicalLink) }/>
 			} else {
-				<link rel="canonical" href="https://foragd.app/"/>
+				<link rel="canonical" href={ templ.URL(config.GetBaseURL()) }/>
 			}
 			//  iOS Safari Full screen.
 			<meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -138,7 +138,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 			// RSS feed.
-			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href="https://foragd.app/feed"/>
+			{{ feedURL, _ := url.JoinPath(config.GetBaseURL(), "feed") }}
+			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href={ feedURL }/>
 			// Performance.
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
@@ -149,18 +150,20 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/></noscript>
-			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/>
-			<link rel="stylesheet" href={ "/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.GetVersion() }/>
-			<link rel="stylesheet" href={ "/content/fonts/nunito/nunito.css?v=" + config.GetVersion() }/>
+			<link rel="stylesheet" href={ templ.URL("/content/fonts/inter/inter.css?v=" + config.GetVersion()) }/>
+			<link rel="stylesheet" href={ templ.URL("/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.GetVersion()) }/>
+			<link rel="stylesheet" href={ templ.URL("/content/fonts/nunito/nunito.css?v=" + config.GetVersion()) }/>
 			// Load style bundles from embedded FS.
 			for styleFile := range slices.Values(web.GetStyleFilenames()) {
 				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) }/></noscript>
-				<link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) }/>
+				{{ styleURL, _ := url.JoinPath("/content", styleFile) }}
+				<link rel="stylesheet" href={ templ.URL(styleURL + "?v=" + config.GetVersion()) }/>
 			}
 			// Load script bundles from embedded FS.
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
-				<script src={ filepath.Join("/content", scriptFile+"?v="+config.GetVersion()) } type="module"></script>
+				{{ scriptURL, _ := url.JoinPath("/content", scriptFile) }}
+				<script src={ templ.URL(scriptURL + "?v=" + config.GetVersion()) } type="module"></script>
 			}
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
 			if config.IsProduction() {

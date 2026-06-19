@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -30,17 +31,18 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 			</div>
 			<div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral/20 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-2">
 				{{
+					blogURL, _ := url.JoinPath(config.GetBaseURL(), "blog")
 					// Create an index JSON-LD document.
 					indexJSONLD := map[string]any{
 						"@context":    "https://schema.org",
 						"@type":       "Blog",
 						"name":        "The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons",
 						"description": "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
-						"url":         "https://foragd.app/blog",
+						"url":         blogURL,
 						"publisher": map[string]any{
 							"@type": "Organization",
 							"name":  "Foragd",
-							"url":   "https://foragd.app",
+							"url":   config.GetBaseURL(),
 						},
 					}
 					postsJSONLD := make([]map[string]any, 0, len(posts))
