@@ -3,6 +3,9 @@
 
 package templates
 
+import "github.com/immanent-tech/foragd/web/templates/partials"
+import "github.com/immanent-tech/foragd/config"
+
 templ Comparison(service string) {
 	@LayoutExternal() {
 		@narrowContainer() {
@@ -203,25 +206,25 @@ templ VsFeedly() {
 }
 
 templ VsFeedlyMeta() {
-	<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Foragd vs Feedly: RSS Feed Reader Comparison 2026",
-  "description": "A detailed comparison of Foragd and Feedly covering pricing, features, and which is best for different use cases.",
-  "dateModified": "2026-04-09",
-  "author": {
-    "@type": "Organization",
-    "name": "Immanent Tech",
-    "url": "https://immanent.tech/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Foragd",
-    "url": "https://foragd.app/"
-  }
-}
-</script>
+	@partials.RenderJSONLD("vs-feedly-meta",
+		&partials.ArticleJSONLD{
+			Context:      "https://schema.org",
+			Type:         "Article",
+			Headline:     "Foragd vs Feedly: RSS Feed Reader Comparison 2026",
+			Description:  "A detailed comparison of Foragd and Feedly covering pricing, features, and which is best for different use cases.",
+			DateModified: "2026-04-09",
+			Author: partials.AuthorJSONLD{
+				Type: "Organization",
+				Name: "Immanent Tech",
+				URL:  "https://immanent.tech/",
+			},
+			Publisher: partials.PublishedJSONLD{
+				Type: "Organization",
+				Name: "Foragd",
+				URL:  config.GetBaseURL(),
+			},
+		},
+	)
 }
 
 templ VsInoreader() {
@@ -392,23 +395,23 @@ templ VsInoreader() {
 }
 
 templ VsInoreaderMeta() {
-	<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Foragd vs Inoreader: RSS Feed Reader Comparison 2026",
-  "description": "A detailed comparison of Foragd and Inoreader covering pricing, features, and which is best for different use cases.",
-  "dateModified": "2026-04-09",
-  "author": {
-    "@type": "Organization",
-    "name": "Immanent Tech",
-    "url": "https://immanent.tech/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Foragd",
-    "url": "https://foragd.app/"
-  }
-}
-</script>
+	@partials.RenderJSONLD("vs-inoreader-meta",
+		&partials.ArticleJSONLD{
+			Context:      "https://schema.org",
+			Type:         "Article",
+			Headline:     "Foragd vs Inoreader: RSS Feed Reader Comparison 2026",
+			Description:  "A detailed comparison of Foragd and Inoreader covering pricing, features, and which is best for different use cases.",
+			DateModified: "2026-04-09",
+			Author: partials.AuthorJSONLD{
+				Type: "Organization",
+				Name: "Immanent Tech",
+				URL:  "https://immanent.tech/",
+			},
+			Publisher: partials.PublishedJSONLD{
+				Type: "Organization",
+				Name: "Foragd",
+				URL:  config.GetBaseURL(),
+			},
+		},
+	)
 }

@@ -12,6 +12,9 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/immanent-tech/foragd/web/templates/partials"
+import "github.com/immanent-tech/foragd/config"
+
 func Comparison(service string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -64,7 +67,7 @@ func Comparison(service string) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("Foragd vs " + service)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 9, Col: 137}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 12, Col: 137}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -93,7 +96,7 @@ func Comparison(service string) templ.Component {
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(service)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 18, Col: 45}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 21, Col: 45}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -182,7 +185,25 @@ func VsFeedlyMeta() templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Article\",\n  \"headline\": \"Foragd vs Feedly: RSS Feed Reader Comparison 2026\",\n  \"description\": \"A detailed comparison of Foragd and Feedly covering pricing, features, and which is best for different use cases.\",\n  \"dateModified\": \"2026-04-09\",\n  \"author\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Immanent Tech\",\n    \"url\": \"https://immanent.tech/\"\n  },\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Foragd\",\n    \"url\": \"https://foragd.app/\"\n  }\n}\n</script>")
+		templ_7745c5c3_Err = partials.RenderJSONLD("vs-feedly-meta",
+			&partials.ArticleJSONLD{
+				Context:      "https://schema.org",
+				Type:         "Article",
+				Headline:     "Foragd vs Feedly: RSS Feed Reader Comparison 2026",
+				Description:  "A detailed comparison of Foragd and Feedly covering pricing, features, and which is best for different use cases.",
+				DateModified: "2026-04-09",
+				Author: partials.AuthorJSONLD{
+					Type: "Organization",
+					Name: "Immanent Tech",
+					URL:  "https://immanent.tech/",
+				},
+				Publisher: partials.PublishedJSONLD{
+					Type: "Organization",
+					Name: "Foragd",
+					URL:  config.GetBaseURL(),
+				},
+			},
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -211,7 +232,7 @@ func VsInoreader() templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"prose mt-10\"><h2 class=\"text-lg/7 font-semibold\">Foragd vs Inoreader: Key Differences</h2><p>Foragd is a cheaper, higher-limit alternative to Feedly for independent readers who want RSS, newsletter, and search subscriptions in one place without per-feature caps.</p><p>Foragd and Inoreader are both web-based RSS feed readers aimed at power users who want to follow a large number of sources without relying on algorithmic curation. They're closer competitors than Foragd and Feedly. Inoreader is a more fully-featured product than Feedly's base tier, and the pricing difference is narrower. But the differences in how they handle filters, topic monitoring, and newsletters are significant enough to matter depending on how you read.</p><p>Inoreader's base plan starts at USD $7.50/month billed annually, compared to Foragd's $4.92/month. Inoreader supports up to 2,500 feed subscriptions versus Foragd's 3,000, includes up to 20 email newsletters versus Foragd's 50, and caps article filters at 30 across all subscriptions while Foragd applies unlimited filters per subscription. Both services support full-text search and remote article fetching. This page breaks down the key differences to help you decide which is the better fit for your reading habits.</p></div><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">Comparison Details</h2><div class=\"overflow-x-auto\"><table class=\"table w-full\"><caption class=\"sr-only\">Feature and pricing comparison between Foragd and Inoreader</caption> <thead><tr><th>Feature</th><th>Foragd</th><th>Inoreader</th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>$4.92/mo billed annually or $7.00/mo billed monthly</td><td>$7.50/mo billed annually or $9.99/mo billed monthly</td></tr><tr><td>Trial Period</td><td>14 days</td><td>15 days</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>2500</td></tr><tr><td>Email Newsletters</td><td>50</td><td>20</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td>Up to 30 filters across all subscriptions</td></tr><tr><td>Topic monitoring</td><td>Saved searches (up to subscription limit)</td><td>Up to 30 topic monitors</td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>Yes</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr></tbody></table></div></div><p class=\"prose text-sm/6\">Last updated: <time datetime=\"2026-04-09\">April 9, 2026</time></p><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">Which RSS Reader Should You Choose: Foragd or Inoreader?</h2><p>Foragd is the better choice for most independent readers comparing the two on value. At USD $4.92/month billed annually, it costs meaningfully less than Inoreader's $7.50/month while offering a higher feed limit, more email newsletter slots, and no arbitrary cap on article filters or saved searches. Inoreader's 30-filter limit across all subscriptions is a genuine constraint for anyone who follows a large number of sources and wants granular control over what they see. Foragd places no such limit, letting you create as many filters per subscription as you need.</p><p>Inoreader has the advantage of a longer track record, native mobile apps, and a larger feature surface for teams and enterprise users. But for an individual reader who wants a clean, fast, fully searchable feed reader without paying a premium for features they'll never use, Foragd delivers more at a lower price. If you're an existing Inoreader user, switching takes under two minutes — export your OPML from Inoreader's settings, import it into Foragd, and every feed you currently follow will be waiting for you.</p></div><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">How to Switch from Inoreader to Foragd</h2><p>Switching from Inoreader to Foragd takes about two minutes and requires no manual work. Every feed you currently follow in Inoreader can be moved to Foragd in a single file import.</p><ol><li><p class=\"font-semibold\">Export your feeds from Inoreader</p><p>Log into your Inoreader account and click your profile avatar in the top right corner. From the dropdown menu, select \"Preferences\", then navigate to the \"Subscriptions\" tab. At the bottom of the page you will find an \"Export\" button that downloads your feeds as an OPML file. This file contains every feed you currently subscribe to in Inoreader, organised into the same folder structure you've created. The export is available on all Inoreader plan tiers.</p></li><li><p class=\"font-semibold\">Import into Foragd</p><p>Log into your Foragd account and go to Settings, then Import. Select your OPML file and confirm the import. Foragd will read every feed in the file and add them to your subscriptions automatically, preserving your folder structure as categories. Depending on the number of feeds, this typically completes in under a minute.</p></li><li><p class=\"font-semibold\">You're done!</p><p>Every feed you followed in Inoreader is now in Foragd. New articles will start appearing as feeds are fetched. Your Inoreader account remains untouched, you still need to cancel any existing subscription. As such, you can move back to it at any time, or, keep both running in parallel until you're comfortable with the switch.</p></li></ol><p>Don't have a Foragd account yet? <a class=\"link\" href=\"/signup\">Start a free trial</a>.  No credit card required for a trial.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"prose mt-10\"><h2 class=\"text-lg/7 font-semibold\">Foragd vs Inoreader: Key Differences</h2><p>Foragd is a cheaper, higher-limit alternative to Feedly for independent readers who want RSS, newsletter, and search subscriptions in one place without per-feature caps.</p><p>Foragd and Inoreader are both web-based RSS feed readers aimed at power users who want to follow a large number of sources without relying on algorithmic curation. They're closer competitors than Foragd and Feedly. Inoreader is a more fully-featured product than Feedly's base tier, and the pricing difference is narrower. But the differences in how they handle filters, topic monitoring, and newsletters are significant enough to matter depending on how you read.</p><p>Inoreader's base plan starts at USD $7.50/month billed annually, compared to Foragd's $4.92/month. Inoreader supports up to 2,500 feed subscriptions versus Foragd's 3,000, includes up to 20 email newsletters versus Foragd's 50, and caps article filters at 30 across all subscriptions while Foragd applies unlimited filters per subscription. Both services support full-text search and remote article fetching. This page breaks down the key differences to help you decide which is the better fit for your reading habits.</p></div><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">Comparison Details</h2><div class=\"overflow-x-auto\"><table class=\"table w-full\"><caption class=\"sr-only\">Feature and pricing comparison between Foragd and Inoreader</caption> <thead><tr><th>Feature</th><th>Foragd</th><th>Inoreader</th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>$4.92/mo billed annually or $7.00/mo billed monthly</td><td>$7.50/mo billed annually or $9.99/mo billed monthly</td></tr><tr><td>Trial Period</td><td>14 days</td><td>15 days</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>2500</td></tr><tr><td>Email Newsletters</td><td>50</td><td>20</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td>Up to 30 filters across all subscriptions</td></tr><tr><td>Topic monitoring</td><td>Saved searches (up to subscription limit)</td><td>Up to 30 topic monitors</td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>Yes</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr></tbody></table></div></div><p class=\"prose text-sm/6\">Last updated: <time datetime=\"2026-04-09\">April 9, 2026</time></p><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">Which RSS Reader Should You Choose: Foragd or Inoreader?</h2><p>Foragd is the better choice for most independent readers comparing the two on value. At USD $4.92/month billed annually, it costs meaningfully less than Inoreader's $7.50/month while offering a higher feed limit, more email newsletter slots, and no arbitrary cap on article filters or saved searches. Inoreader's 30-filter limit across all subscriptions is a genuine constraint for anyone who follows a large number of sources and wants granular control over what they see. Foragd places no such limit, letting you create as many filters per subscription as you need.</p><p>Inoreader has the advantage of a longer track record, native mobile apps, and a larger feature surface for teams and enterprise users. But for an individual reader who wants a clean, fast, fully searchable feed reader without paying a premium for features they'll never use, Foragd delivers more at a lower price. If you're an existing Inoreader user, switching takes under two minutes — export your OPML from Inoreader's settings, import it into Foragd, and every feed you currently follow will be waiting for you.</p></div><div class=\"prose mt-10\"><h2 class=\"text-base font-semibold\">How to Switch from Inoreader to Foragd</h2><p>Switching from Inoreader to Foragd takes about two minutes and requires no manual work. Every feed you currently follow in Inoreader can be moved to Foragd in a single file import.</p><ol><li><p class=\"font-semibold\">Export your feeds from Inoreader</p><p>Log into your Inoreader account and click your profile avatar in the top right corner. From the dropdown menu, select \"Preferences\", then navigate to the \"Subscriptions\" tab. At the bottom of the page you will find an \"Export\" button that downloads your feeds as an OPML file. This file contains every feed you currently subscribe to in Inoreader, organised into the same folder structure you've created. The export is available on all Inoreader plan tiers.</p></li><li><p class=\"font-semibold\">Import into Foragd</p><p>Log into your Foragd account and go to Settings, then Import. Select your OPML file and confirm the import. Foragd will read every feed in the file and add them to your subscriptions automatically, preserving your folder structure as categories. Depending on the number of feeds, this typically completes in under a minute.</p></li><li><p class=\"font-semibold\">You're done!</p><p>Every feed you followed in Inoreader is now in Foragd. New articles will start appearing as feeds are fetched. Your Inoreader account remains untouched, you still need to cancel any existing subscription. As such, you can move back to it at any time, or, keep both running in parallel until you're comfortable with the switch.</p></li></ol><p>Don't have a Foragd account yet? <a class=\"link\" href=\"/signup\">Start a free trial</a>.  No credit card required for a trial.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -240,7 +261,25 @@ func VsInoreaderMeta() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Article\",\n  \"headline\": \"Foragd vs Inoreader: RSS Feed Reader Comparison 2026\",\n  \"description\": \"A detailed comparison of Foragd and Inoreader covering pricing, features, and which is best for different use cases.\",\n  \"dateModified\": \"2026-04-09\",\n  \"author\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Immanent Tech\",\n    \"url\": \"https://immanent.tech/\"\n  },\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Foragd\",\n    \"url\": \"https://foragd.app/\"\n  }\n}\n</script>")
+		templ_7745c5c3_Err = partials.RenderJSONLD("vs-inoreader-meta",
+			&partials.ArticleJSONLD{
+				Context:      "https://schema.org",
+				Type:         "Article",
+				Headline:     "Foragd vs Inoreader: RSS Feed Reader Comparison 2026",
+				Description:  "A detailed comparison of Foragd and Inoreader covering pricing, features, and which is best for different use cases.",
+				DateModified: "2026-04-09",
+				Author: partials.AuthorJSONLD{
+					Type: "Organization",
+					Name: "Immanent Tech",
+					URL:  "https://immanent.tech/",
+				},
+				Publisher: partials.PublishedJSONLD{
+					Type: "Organization",
+					Name: "Foragd",
+					URL:  config.GetBaseURL(),
+				},
+			},
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
