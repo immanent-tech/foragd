@@ -5,11 +5,16 @@ package android
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"cloud.google.com/go/auth/credentials/idtoken"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"google.golang.org/api/androidpublisher/v3"
 
@@ -27,7 +32,9 @@ const (
 // Config is the configuration for Android Billing.
 type Config struct {
 	// PackageName is what the app package is named in the Google Play Store.
-	PackageName string `koanf:"package_name" validate:"required"`
+	PackageName   string   `koanf:"packagename"   validate:"required"`
+	PubSubEmail   string   `koanf:"pubsubemail"   validate:"required,email"`
+	Subscriptions []string `koanf:"subscriptions" validate:"required"`
 }
 
 var cfg Config
@@ -63,16 +70,6 @@ type Entitlement struct {
 	GrantedAt     time.Time
 }
 
-// SKUDetails holds Play Store product metadata.
-type SKUDetails struct {
-	ID          string
-	Title       string
-	Description string
-	Price       string
-	Currency    string
-	Type        string // "subs" or "inapp"
-}
-
 var client *androidpublisher.Service
 
 func initClient(ctx context.Context) error {
@@ -88,66 +85,103 @@ func initClient(ctx context.Context) error {
 	return nil
 }
 
-// VerifyAndAcknowledgeProduct verifies a one-time product purchase and acknowledges it.
-// Must be called within 3 days of purchase or Google will refund automatically.
-func VerifyAndAcknowledgeProduct(
-	ctx context.Context,
-	user *models.User, sku, token string,
-) (*Entitlement, error) {
-	if err := initClient(ctx); err != nil {
-		return nil, fmt.Errorf("init client: %w", err)
+// HandleRTDN handles Real-Time Developer Notifications from Google Pub/Sub.
+// Configure a Pub/Sub push subscription pointing at /billing/rtdn in Play Console.
+func HandleRTDN(res http.ResponseWriter, req *http.Request) {
+	if err := loadConfig(); err != nil {
+		slogctx.Error(req.Context(), "Could not listen for notifications.",
+			slog.Any("error", err),
+		)
+		http.Error(res, "Unable to listen for notifications", http.StatusInternalServerError)
+		return
 	}
 
-	purchase, err := client.Purchases.Products.Get(cfg.PackageName, sku, token).Context(ctx).Do()
-	if err != nil {
-		return nil, fmt.Errorf("billing: verify product %s: %w", sku, err)
-	}
+	// Verify authentication in production.
+	if config.IsProduction() {
+		// Get the Cloud Pub/Sub-generated JWT in the "Authorization" header.
+		authHeader := req.Header.Get("Authorization")
+		if authHeader == "" || len(strings.Split(authHeader, " ")) != 2 {
+			http.Error(res, "Missing Authorization header", http.StatusBadRequest)
+			return
+		}
+		token := strings.Split(authHeader, " ")[1]
 
-	if PurchaseState(purchase.PurchaseState) != PurchaseStatePurchased {
-		return nil, fmt.Errorf("billing: purchase not in purchased state: %d", purchase.PurchaseState)
-	}
-
-	// Acknowledge if not already done (acknowledgement is idempotent)
-	if purchase.AcknowledgementState == 0 {
-		err = client.Purchases.Products.Acknowledge(
-			cfg.PackageName, sku, token,
-			&androidpublisher.ProductPurchasesAcknowledgeRequest{},
-		).Context(ctx).Do()
+		// Verify and decode the JWT.
+		payload, err := idtoken.Validate(req.Context(), token, config.GetBaseURL()+"/webhooks/googleplay")
 		if err != nil {
-			// Log but don't fail — we can retry acknowledgement later
-			slogctx.FromCtx(ctx).Error("Billing: acknowledge product failed.",
-				slog.String("sku", sku),
-				slog.Any("error", err),
-			)
+			http.Error(res, fmt.Sprintf("Invalid Token: %v", err), http.StatusBadRequest)
+			return
+		}
+		if payload.Issuer != "accounts.google.com" && payload.Issuer != "https://accounts.google.com" {
+			http.Error(res, "Wrong Issuer", http.StatusBadRequest)
+			return
+		}
+
+		// Ensure that `payload.Claims["email"]` is equal to the expected service account set up in the push
+		// subscription settings.
+		//
+		// Ensure that `payload.Claims["email_verified"]` is set to true.
+		if payload.Claims["email"] != cfg.PubSubEmail || payload.Claims["email_verified"] != true {
+			http.Error(res, "Unexpected email identity", http.StatusBadRequest)
+			return
 		}
 	}
 
-	ent := &Entitlement{
-		UserID:        user.GetID(),
-		SKU:           sku,
-		PurchaseToken: token,
-		GrantedAt:     time.Now().UTC(),
+	var msg struct {
+		Message struct {
+			Data []byte `json:"data"`
+		} `json:"message"`
 	}
 
-	if !user.HasValidSubscription() {
-		user.Subscription = &models.User_Subscription{}
+	if err := json.NewDecoder(req.Body).Decode(&msg); err != nil {
+		http.Error(res, "bad request", http.StatusBadRequest)
+		return
 	}
 
-	if err := user.Subscription.FromAndroidSubscription(models.AndroidSubscription{
-		PurchaseToken: token,
-		SKU:           sku,
-		GrantedAt:     time.Now().UTC(),
-	}); err != nil {
-		return nil, fmt.Errorf("update user android subscription: %w", err)
-	}
-	if err := service.UpdateUser(ctx, user, map[string]any{
-		"subscription_type": models.UserSubscriptionTypeAndroid,
-		"subscription":      user.Subscription},
-	); err != nil {
-		return nil, fmt.Errorf("update user: %w", err)
+	var notification struct {
+		PackageName              string `json:"packageName"`
+		EventTimeMillis          string `json:"eventTimeMillis"`
+		SubscriptionNotification *struct {
+			NotificationType int    `json:"notificationType"`
+			PurchaseToken    string `json:"purchaseToken"`
+			SubscriptionID   string `json:"subscriptionId"`
+		} `json:"subscriptionNotification"`
+		OneTimeProductNotification *struct {
+			NotificationType int    `json:"notificationType"`
+			PurchaseToken    string `json:"purchaseToken"`
+			SKU              string `json:"sku"`
+		} `json:"oneTimeProductNotification"`
 	}
 
-	return ent, nil
+	if err := json.Unmarshal(msg.Message.Data, &notification); err != nil {
+		http.Error(res, "bad payload", http.StatusBadRequest)
+		return
+	}
+
+	slogctx.Debug(req.Context(), "billing: RTDN received", slog.String("package", notification.PackageName))
+
+	if sn := notification.SubscriptionNotification; sn != nil {
+		switch sn.NotificationType {
+		case 1: // SUBSCRIPTION_RECOVERED
+			godump.Dump(notification)
+		case 2: // SUBSCRIPTION_RENEWED
+			godump.Dump(notification)
+		case 3: // SUBSCRIPTION_CANCELED
+			godump.Dump(notification)
+			// s.revokeByToken(sn.PurchaseToken)
+		case 4: // SUBSCRIPTION_PURCHASED
+			godump.Dump(notification)
+		case 12: // SUBSCRIPTION_EXPIRED
+			godump.Dump(notification)
+			// s.revokeByToken(sn.PurchaseToken)
+		case 13: // SUBSCRIPTION_REVOKED
+			godump.Dump(notification)
+			// s.revokeByToken(sn.PurchaseToken)
+		}
+	}
+
+	// Pub/Sub requires a 200 to acknowledge receipt
+	res.WriteHeader(http.StatusOK)
 }
 
 // VerifyAndAcknowledgeSubscription verifies a subscription purchase.
@@ -214,76 +248,3 @@ func VerifyAndAcknowledgeSubscription(
 
 	return ent, nil
 }
-
-// // GetEntitlement returns the current entitlement for a user, if any
-// func (s *PlayBillingService) GetEntitlement(userID string) *Entitlement {
-// 	s.mu.RLock()
-// 	defer s.mu.RUnlock()
-
-// 	ent, ok := s.entitlements[userID]
-// 	if !ok {
-// 		return nil
-// 	}
-
-// 	// Check if subscription has expired
-// 	if ent.ExpiresAt != nil && time.Now().After(*ent.ExpiresAt) {
-// 		return nil
-// 	}
-
-// 	return ent
-// }
-
-// // HandleRTDN handles Real-Time Developer Notifications from Google Pub/Sub.
-// // Configure a Pub/Sub push subscription pointing at /billing/rtdn in Play Console.
-// func (s *PlayBillingService) HandleRTDN(w http.ResponseWriter, r *http.Request) {
-// 	var msg struct {
-// 		Message struct {
-// 			Data []byte `json:"data"`
-// 		} `json:"message"`
-// 	}
-
-// 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-// 		http.Error(w, "bad request", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	var notification struct {
-// 		PackageName              string `json:"packageName"`
-// 		EventTimeMillis          string `json:"eventTimeMillis"`
-// 		SubscriptionNotification *struct {
-// 			NotificationType int    `json:"notificationType"`
-// 			PurchaseToken    string `json:"purchaseToken"`
-// 			SubscriptionID   string `json:"subscriptionId"`
-// 		} `json:"subscriptionNotification"`
-// 		OneTimeProductNotification *struct {
-// 			NotificationType int    `json:"notificationType"`
-// 			PurchaseToken    string `json:"purchaseToken"`
-// 			SKU              string `json:"sku"`
-// 		} `json:"oneTimeProductNotification"`
-// 	}
-
-// 	if err := json.Unmarshal(msg.Message.Data, &notification); err != nil {
-// 		http.Error(w, "bad payload", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	s.logger.Info("billing: RTDN received", "package", notification.PackageName)
-
-// 	if sn := notification.SubscriptionNotification; sn != nil {
-// 		switch sn.NotificationType {
-// 		case 1: // SUBSCRIPTION_RECOVERED
-// 		case 2: // SUBSCRIPTION_RENEWED
-// 			s.logger.Info("billing: subscription renewed", "sku", sn.SubscriptionID)
-// 		case 3: // SUBSCRIPTION_CANCELED
-// 			s.revokeByToken(sn.PurchaseToken)
-// 		case 4: // SUBSCRIPTION_PURCHASED
-// 		case 12: // SUBSCRIPTION_EXPIRED
-// 			s.revokeByToken(sn.PurchaseToken)
-// 		case 13: // SUBSCRIPTION_REVOKED
-// 			s.revokeByToken(sn.PurchaseToken)
-// 		}
-// 	}
-
-// 	// Pub/Sub requires a 200 to acknowledge receipt
-// 	w.WriteHeader(http.StatusOK)
-// }

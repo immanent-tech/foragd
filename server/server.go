@@ -21,6 +21,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	gcp "github.com/immanent-tech/foragd/providers/google"
+	"github.com/immanent-tech/foragd/providers/google/android"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -123,6 +124,8 @@ func Start(logger *slog.Logger) error {
 	router.Post("/mail/webhooks", handlers.HandleResendWebhook)
 	// Handle incoming webhooks from Paddle.
 	router.Post("/webhooks/paddle", handlers.HandlePaddleWebhook)
+	// Handle incoming Google Play Real Time Developer Notifications.
+	router.Post("/webhooks/googleplay", android.HandleRTDN)
 
 	// External Pages.
 	router.Group(func(r chi.Router) {
@@ -192,7 +195,6 @@ func Start(logger *slog.Logger) error {
 				r.Get("/", handlers.HandleChooseSubscription())
 				r.With(middlewares.RequireHTMX).Post("/", handlers.HandlePurchaseSubscription())
 				r.Get("/success", handlers.HandlePurchaseSubscriptionSuccess())
-				// r.Get("/cancel", handlers.HandleLanding())
 			})
 		})
 		// User routes that don't required authentication.

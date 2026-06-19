@@ -1,0 +1,92 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+templ androidCheckoutMonthlyButton() {
+	<button
+		aria-label="Activate a monthly subscription"
+		id="checkout-monthly"
+		type="submit"
+		class="btn btn-block btn-accent"
+		onclick={ purchaseSKU("foragd_monthly") }
+		data-sku="foragd_monthly"
+	>
+		Activate monthly subscription
+	</button>
+}
+
+templ androidCheckoutAnnualButton() {
+	<button
+		aria-label="Activate an annual subscription"
+		id="checkout-monthly"
+		type="submit"
+		class="btn btn-block btn-accent"
+		onclick={ purchaseSKU("foragd_annual") }
+		data-sku="foragd_annual"
+	>
+		Activate annual subscription
+	</button>
+}
+
+script purchaseSKU(skuID string) {
+	async function buy() {
+		// Only available inside TWA
+		if (!('getDigitalGoodsService' in window)) {
+			alert('In-app purchases are only available in the Foragd Android app.');
+			return;
+		}
+
+		let service;
+		try {
+			service = await window.getDigitalGoodsService('https://play.google.com/billing');
+		} catch (e) {
+			console.error('getDigitalGoodsService failed:', e);
+			return;
+		}
+
+		const paymentMethod = {
+			supportedMethods: 'https://play.google.com/billing',
+			data: { sku: skuID },
+		};
+
+		const request = new PaymentRequest([paymentMethod], {
+			total: { label: 'Total', amount: { currency: 'USD', value: '0' } },
+		});
+
+		let response;
+		try {
+			response = await request.show();
+		} catch (e) {
+			// User cancelled
+			return;
+		}
+
+		const { purchaseToken } = response.details;
+
+		// POST token to Go server for verification — response is an HTML fragment
+		const res = await fetch('/checkout', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'HX-Request': 'true',
+			},
+			body: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type="android"`,
+		});
+
+		const html = await res.text();
+
+		// Let HTMX process the response (handles OOB swaps)
+		// htmx.swap('#billing-result', html, { swapStyle: 'outerHTML' });
+
+		// Acknowledge or fail the payment
+		await response.complete(res.ok ? 'success' : 'fail');
+
+		// Dispatch event so entitlement badge refreshes (caught by hx-trigger)
+		if (res.ok) {
+			document.body.dispatchEvent(new CustomEvent('billingSuccess', { bubbles: true }));
+		}
+	}
+
+	buy();
+}

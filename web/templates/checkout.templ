@@ -203,6 +203,17 @@ templ showSubscriptionPlans(request *models.CheckoutRequest) {
 												<div class="group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
 													@paddleCheckoutAnnualButton()
 												</div>
+											case request.UserSubscriptionType == models.UserSubscriptionTypeAndroid:
+												<div class="group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
+													@androidCheckoutMonthlyButton()
+												</div>
+												<div class="group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
+													@androidCheckoutAnnualButton()
+												</div>
+											default:
+												<a href="/contact" class="btn btn-primary">
+													Contact Support <span aria-hidden="true">&rarr;</span>
+												</a>
 										}
 									</div>
 								</div>

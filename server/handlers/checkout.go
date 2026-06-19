@@ -57,6 +57,7 @@ func HandleChooseSubscription() http.HandlerFunc {
 // this endpoint validates the price ID and returns it for client-side use.
 func HandlePurchaseSubscription() http.HandlerFunc {
 	paddlePurchase := handlePaddlePurchase()
+	androidPurchase := HandleAndroidPurchase()
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := req.ParseForm(); err != nil {
@@ -75,6 +76,7 @@ func HandlePurchaseSubscription() http.HandlerFunc {
 		case "paddle":
 			paddlePurchase.ServeHTTP(res, req)
 		case "android":
+			androidPurchase.ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusBadRequest)
 			RenderPartial(
