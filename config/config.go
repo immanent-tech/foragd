@@ -35,7 +35,7 @@ const (
 const (
 	// EnvDevelopment represents a development environment.
 	EnvDevelopment Environment = "development"
-	// EnvProduction represents a production envrionment.
+	// EnvProduction represents a production environment.
 	EnvProduction Environment = "production"
 )
 
@@ -131,18 +131,15 @@ func IsProduction() bool {
 
 // Load will load a config via environment variables with the given prefix into an object of the given type.
 func Load[T any](envPrefix string, cfg T) error {
-	// Initialise the config  object.
+	// Initialize the config object.
 	configSrc := koanf.New(".")
 	// Load environment variables.
 	if err := configSrc.Load(env.Provider(".", env.Opt{
 		Prefix: envPrefix,
 		TransformFunc: func(key, value string) (string, any) {
-			// Transform the key.
-			key = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(key, envPrefix)), "_", ".")
-			// Transform the value into slices, if they contain spaces.
-			// Eg: MYVAR_TAGS="foo bar baz" -> tags: ["foo", "bar", "baz"]
-			// This is to demonstrate that string values can be transformed to any type
-			// where necessary.
+			// Lowercase and remove the prefix.
+			key = strings.ToLower(strings.TrimPrefix(key, envPrefix))
+			// Split space-separate values into a slice.
 			if strings.Contains(value, " ") {
 				return key, strings.Split(value, " ")
 			}
