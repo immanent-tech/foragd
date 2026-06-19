@@ -5,8 +5,36 @@ package partials
 
 import "encoding/json"
 
-templ RenderJSONLD(id string, data json.RawMessage) {
+templ RenderJSONLD(id string, data any) {
 	if data != nil {
-		@templ.JSONScript(id, data).WithType("application/ld+json")
+		switch data.(type) {
+			case json.RawMessage:
+				@templ.JSONScript(id, data).WithType("application/ld+json")
+			default:
+				{{ encoded, _ := json.MarshalIndent(data, "", "  ") }}
+				@templ.JSONScript(id, json.RawMessage(encoded)).WithType("application/ld+json")
+		}
 	}
+}
+
+type ArticleJSONLD struct {
+	Context      string          `json:"@context"`
+	Type         string          `json:"@type"`
+	Headline     string          `json:"headline"`
+	Description  string          `json:"description"`
+	DateModified string          `json:"dateModified"`
+	Author       AuthorJSONLD    `json:"author"`
+	Publisher    PublishedJSONLD `json:"publisher"`
+}
+
+type AuthorJSONLD struct {
+	Type string `json:"@type"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type PublishedJSONLD struct {
+	Type string `json:"@type"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }

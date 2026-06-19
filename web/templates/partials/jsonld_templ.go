@@ -14,7 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "encoding/json"
 
-func RenderJSONLD(id string, data json.RawMessage) templ.Component {
+func RenderJSONLD(id string, data any) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,13 +36,44 @@ func RenderJSONLD(id string, data json.RawMessage) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if data != nil {
-			templ_7745c5c3_Err = templ.JSONScript(id, data).WithType("application/ld+json").Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			switch data.(type) {
+			case json.RawMessage:
+				templ_7745c5c3_Err = templ.JSONScript(id, data).WithType("application/ld+json").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			default:
+				encoded, _ := json.MarshalIndent(data, "", "  ")
+				templ_7745c5c3_Err = templ.JSONScript(id, json.RawMessage(encoded)).WithType("application/ld+json").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 		}
 		return nil
 	})
+}
+
+type ArticleJSONLD struct {
+	Context      string          `json:"@context"`
+	Type         string          `json:"@type"`
+	Headline     string          `json:"headline"`
+	Description  string          `json:"description"`
+	DateModified string          `json:"dateModified"`
+	Author       AuthorJSONLD    `json:"author"`
+	Publisher    PublishedJSONLD `json:"publisher"`
+}
+
+type AuthorJSONLD struct {
+	Type string `json:"@type"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type PublishedJSONLD struct {
+	Type string `json:"@type"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 var _ = templruntime.GeneratedTemplate
