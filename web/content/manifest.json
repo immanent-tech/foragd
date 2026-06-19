@@ -113,9 +113,9 @@
   },
   "related_applications": [
     {
-      "id": "com.foragd.app",
+      "id": "app.foragd.twa",
       "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.foragd.app"
+      "url": "https://play.google.com/store/apps/details?id=app.foragd.twa"
     }
   ],
   "scope": "/",
