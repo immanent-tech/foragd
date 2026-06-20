@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.167.0](https://github.com/immanent-tech/foragd/compare/v0.166.0...v0.167.0) (2026-06-20)
+
+
+### Features
+
+* **server:** ✨ implement static file handler that can return hash filenames as needed ([6a47f8f](https://github.com/immanent-tech/foragd/commit/6a47f8fcd607c511df7501919e9bcaf66e10b4df))
+* **templates:** ✨ define reusable article json-ld schema ([884a7af](https://github.com/immanent-tech/foragd/commit/884a7af6af763e05ffc193da266b54d3f767ce70))
+
+
+### Bug Fixes
+
+* **assets:** 🔧 fix google play app reference in web manifest ([560b0d2](https://github.com/immanent-tech/foragd/commit/560b0d2e971c19fbc18fbccae2bb912942d8fc6b))
+
+
+### Performance Improvements
+
+* **server:** ⚡ don't compress woff2 ([0b4c5f7](https://github.com/immanent-tech/foragd/commit/0b4c5f7e8912037f831d3ac3abcbefe07518b020))
+
 ## [0.166.0](https://github.com/immanent-tech/foragd/compare/v0.165.0...v0.166.0) (2026-06-19)
 
 
