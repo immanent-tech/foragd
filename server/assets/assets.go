@@ -4,9 +4,9 @@
 package assets
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
-	"log"
 	"log/slog"
 	"net/http"
 	"path"
@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 )
 
@@ -106,11 +107,12 @@ func hashFilename(logical, hash string) string {
 //
 // If the asset isn't found, it logs and returns the logical name unchanged
 // so a missed rename fails loudly (404) rather than silently breaking the page.
-func GetPath(logical string) string {
+func GetPath(ctx context.Context, logical string) string {
 	logical = strings.TrimPrefix(logical, "/")
 	hashed, ok := manifest.pathFor[logical]
 	if !ok {
-		log.Printf("assets: no manifest entry for %q (check the filename / build output)", logical)
+		slogctx.Warn(ctx, "No manifest entry for file (check the filename / build output).",
+			slog.String("file", logical))
 		return logical
 	}
 	return hashed
@@ -204,6 +206,8 @@ func contentTypeFor(p string) string {
 		return "application/json; charset=utf-8"
 	case ".txt":
 		return "text/plain; charset=utf-8"
+	case ".ico":
+		return "image/vnd.microsoft.icon"
 	default:
 		return "application/octet-stream"
 	}

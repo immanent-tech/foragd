@@ -10,7 +10,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/veqryn/slog-context"
+	"log/slog"
 	"strconv"
 	"strings"
 )
@@ -44,8 +47,10 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	var err error
 
 	// Extract the key.
-	key, ok := ctx.Value(ImgProxyKey).(string)
-	if !ok {
+	key, err := imgproxy.GetKey()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy key failed",
+			slog.Any("error", err))
 		return url
 	}
 	if keyBin, err = hex.DecodeString(key); err != nil {
@@ -53,8 +58,10 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	}
 
 	// Extract the salt.
-	salt, ok := ctx.Value(ImgProxySalt).(string)
-	if !ok {
+	salt, err := imgproxy.GetSalt()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy salt failed",
+			slog.Any("error", err))
 		return url
 	}
 	if saltBin, err = hex.DecodeString(salt); err != nil {

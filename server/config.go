@@ -44,13 +44,6 @@ type Config struct {
 	BlockSignup          bool           `koanf:"blocksignup"`
 	BlockLogin           bool           `koanf:"blocklogin"`
 	EnableOTEL           bool           `koanf:"enableotel"`
-	ImgProxy             ImgProxyConfig
-}
-
-type ImgProxyConfig struct {
-	Key    string `koanf:"key"    validate:"required,base64rawurl"`
-	Salt   string `koanf:"salt"   validate:"required,base64rawurl"`
-	Prefix string `koanf:"prefix" validate:"required,url"`
 }
 
 // loadConfigOnce loads the server configuration and ensures this is only done
@@ -68,12 +61,6 @@ var loadConfigOnce = sync.OnceValue(func() error {
 			cfg.Port = port
 		}
 	}
-	// Load image proxy config into server config.
-	var imgProxyCfg ImgProxyConfig
-	if err := config.Load(imgProxyConfigEnvPrefix, &imgProxyCfg); err != nil {
-		return fmt.Errorf("load image proxy environment: %w", err)
-	}
-	cfg.ImgProxy = imgProxyCfg
 
 	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("validate config: %w", err)

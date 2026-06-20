@@ -23,7 +23,9 @@ import (
 	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/providers/google/android"
 	"github.com/immanent-tech/foragd/server/assets"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/handlers"
+	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
@@ -101,7 +103,6 @@ func Start(logger *slog.Logger) error {
 		middlewares.GeneralSecurity,
 		middlewares.PreventCSRF,
 		// middlewares.RateLimit,
-		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
@@ -111,8 +112,6 @@ func Start(logger *slog.Logger) error {
 
 	// Error handling.
 	router.NotFound(handlers.HandleNotFound())
-	// Image proxy.
-	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.Prefix))
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
@@ -127,12 +126,15 @@ func Start(logger *slog.Logger) error {
 	router.Handle("/fonts/*", assets.HandleAssets("", true))
 	router.Handle("/content/*", assets.HandleAssets("/content/", true))
 
+	// Image proxy.
+	router.Get("/img-proxy/*", imgproxy.HandleImage())
 	// Avatars
-	router.Get("/img/avatar/*", handlers.LoadCachedImage)
-	// User custom subscription images
-	router.Get("/img/subscription/*", handlers.LoadCachedImage)
-	// User uploaded screenshots
-	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
+	router.Get("/img/avatar/*", cache.HandleImage)
+	// User custom subscription images.
+	router.Get("/img/subscription/*", cache.HandleImage)
+	// User uploaded screenshots.
+	router.Get("/img/screenshots/*", cache.HandleImage)
+
 	// Handle incoming webhooks from Resend
 	router.Post("/mail/webhooks", handlers.HandleResendWebhook)
 	// Handle incoming webhooks from Paddle.

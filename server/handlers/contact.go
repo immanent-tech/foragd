@@ -59,7 +59,8 @@ func HandleSubmitContact() http.HandlerFunc {
 
 		// Build issue body.
 		var bodyBuilder strings.Builder
-		bodyBuilder.WriteString("Contact Email: " + request.ContactEmail)
+		bodyBuilder.WriteString("Contact Email: ")
+		bodyBuilder.WriteString(request.ContactEmail)
 		bodyBuilder.WriteRune('\n')
 		bodyBuilder.WriteString("Details:")
 		bodyBuilder.WriteRune('\n')

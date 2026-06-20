@@ -28,6 +28,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/service"
@@ -273,18 +274,6 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 
 		// If the user uploaded a new avatar, process it.
 		if avatar != nil {
-			if err := loadAvatarCache(); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("load server cache: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to save settings",
-							"This might be a temporary error, please try again.",
-						),
-					}).ServeHTTP(res, req)
-				return
-			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
 			avatarFileID := strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+"avatar")), 10)
 			// Read the uploaded data and store in the cache.
@@ -301,7 +290,18 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
-			avatarCache.Set(req.Context(), avatarFileID, avatarData)
+			if err := cache.SaveAvatar(req.Context(), avatarFileID, avatarData); err != nil {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("read avatar: %w", err),
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save settings",
+							"This might be a temporary error, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
+			}
 			// Construct a new full URL to the uploaded avatar on the local server.
 			request.AvatarURL = new(config.GetBaseURL() + "/img/avatar/" + avatarFileID)
 		}

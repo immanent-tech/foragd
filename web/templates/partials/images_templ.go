@@ -19,7 +19,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/veqryn/slog-context"
+	"log/slog"
 	"strconv"
 	"strings"
 )
@@ -73,7 +76,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(elem.ID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 33, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 36, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -91,7 +94,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(GenerateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 35, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 38, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
@@ -104,7 +107,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 36, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 39, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
@@ -144,8 +147,10 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	var err error
 
 	// Extract the key.
-	key, ok := ctx.Value(ImgProxyKey).(string)
-	if !ok {
+	key, err := imgproxy.GetKey()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy key failed",
+			slog.Any("error", err))
 		return url
 	}
 	if keyBin, err = hex.DecodeString(key); err != nil {
@@ -153,8 +158,10 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	}
 
 	// Extract the salt.
-	salt, ok := ctx.Value(ImgProxySalt).(string)
-	if !ok {
+	salt, err := imgproxy.GetSalt()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy salt failed",
+			slog.Any("error", err))
 		return url
 	}
 	if saltBin, err = hex.DecodeString(salt); err != nil {
@@ -268,7 +275,7 @@ func Thumbnail(img *models.RemoteImage, name string, size string) templ.Componen
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(name[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 99, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 106, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

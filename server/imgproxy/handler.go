@@ -1,7 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package handlers
+package imgproxy
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,22 +22,28 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/client"
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/reverseproxy"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/web"
 )
 
-func ImageProxy(proxyURLBase string) http.HandlerFunc {
+const cacheControlHeaderValue = "public, max-age=31536000, immutable"
+
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
+// HandleImage is handler that will attempt to proxy an image through the image proxy. It will fetch, store
+// and retrieve the image from the cache as needed.
+func HandleImage() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Load the image cache.
-		if err := loadImageCache(); err != nil {
+		if err := loadConfig(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load image cache failed.",
-				slog.Any("error", err),
-			)
-			return
+			slogctx.Error(req.Context(), "Load image proxy config failed.",
+				slog.Any("error", err))
 		}
 
 		// Get the URL parameters for the request.
@@ -62,7 +67,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 
 		var found bool
 		// Try to fetch the image from the cache. If found, return the cached image.
-		if err := imgCache.Copy(req.Context(), imgHash, imgBuf); err == nil {
+		if err := cache.GetImage(req.Context(), imgHash, imgBuf); err == nil {
 			found = true
 			// Write the image to the response.
 			if _, err := res.Write(imgBuf.Bytes()); err != nil {
@@ -73,16 +78,16 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 				return
 			}
 			// Return success.
-			res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
+			res.Header().Set("Cache-Control", cacheControlHeaderValue)
 			res.WriteHeader(http.StatusOK)
 			return
 		}
 
 		// Generate a URL to either send the image to the image proxy for processing or fetch it directly.
 		var proxiedURL string
-		if proxyURLBase != "" { // Generate image URL through proxy.
+		if cfg.Prefix != "" { // Generate image URL through proxy.
 			// Generate signed URL to pass to proxy.
-			proxiedURL = proxyURLBase + "/" + paramStr
+			proxiedURL = cfg.Prefix + "/" + paramStr
 		} else { // No proxy supplied, use direct image URL.
 			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
 			if err != nil {
@@ -124,7 +129,9 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Save to the cache if not saved already.
 		wg.Go(func() error {
 			if !found {
-				imgCache.Set(jobCtx, imgHash, imgBuf.Bytes())
+				if err := cache.SaveImage(jobCtx, imgHash, imgBuf.Bytes()); err != nil {
+					return fmt.Errorf("save image: %w", err)
+				}
 			}
 			return nil
 		})
@@ -136,89 +143,9 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
-		res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
+		res.Header().Set("Cache-Control", cacheControlHeaderValue)
 		res.WriteHeader(http.StatusOK)
 	}
-}
-
-// LoadCachedImage handles fetching and displaying an image from one of the image caches.
-func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
-	key := chi.URLParam(req, "*")
-
-	imgBuf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		res.WriteHeader(http.StatusInternalServerError)
-		slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
-		return
-	}
-	imgBuf.Reset()
-	defer bufPool.Put(imgBuf)
-
-	var err error
-	switch {
-	case strings.HasPrefix(req.URL.Path, "/img/avatar"):
-		// Load the image cache.
-		if err := loadAvatarCache(); err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
-		err = avatarCache.Copy(req.Context(), key, imgBuf)
-	case strings.HasPrefix(req.URL.Path, "/img/subscription"):
-		var thumbnailCache objectCache
-		// Load the image cache.
-		thumbnailCache, err = loadThumbnailCache()
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
-		err = thumbnailCache.Copy(req.Context(), key, imgBuf)
-	case strings.HasPrefix(req.URL.Path, "/img/screenshot"):
-		var screenshotCache objectCache
-		// Load the image cache.
-		screenshotCache, err = loadScreenshotCache()
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
-		err = screenshotCache.Copy(req.Context(), key, imgBuf)
-	default:
-		res.WriteHeader(http.StatusUnprocessableEntity)
-		slogctx.FromCtx(req.Context()).Error("Invalid image cache.")
-		return
-	}
-
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			http.NotFound(res, req)
-			return
-		}
-		res.WriteHeader(http.StatusInternalServerError)
-		slogctx.FromCtx(req.Context()).Error("Write image data.",
-			slog.Any("error", err),
-		)
-		return
-	}
-	_, err = res.Write(imgBuf.Bytes())
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		slogctx.FromCtx(req.Context()).Error("Write image data.",
-			slog.Any("error", err),
-		)
-		return
-	}
-
-	// Return success.
-	res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
-	res.WriteHeader(http.StatusOK)
 }
 
 // getRemoteImage fetches the image at the given url writes it into the image buffer.
@@ -291,89 +218,3 @@ func sendImagePlaceholder(ctx context.Context, res http.ResponseWriter, buf *byt
 	res.Header().Set("Content-Type", "image/webp")
 	res.Write(buf.Bytes())
 }
-
-var imgCache objectCache
-
-var loadImageCache = sync.OnceValue(func() error {
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("IMAGEPROXY_BUCKET")
-		var err error
-		imgCache, err = gcs.Connect(context.Background(), bucketName, "")
-		if err != nil {
-			return fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		imgCache, err = newDirCache("imgproxy")
-		if err != nil {
-			return fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return nil
-})
-
-var avatarCache objectCache
-
-var loadAvatarCache = sync.OnceValue(func() error {
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
-		var err error
-		avatarCache, err = gcs.Connect(context.Background(), bucketName, "avatars")
-		if err != nil {
-			return fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		avatarCache, err = newDirCache("avatars")
-		if err != nil {
-			return fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return nil
-})
-
-var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
-	var thumbnailCache objectCache
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
-		var err error
-		thumbnailCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
-		if err != nil {
-			return nil, fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		thumbnailCache, err = newDirCache("subscription_images")
-		if err != nil {
-			return nil, fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return thumbnailCache, nil
-})
-
-var loadScreenshotCache = sync.OnceValues(func() (objectCache, error) {
-	var screenshotCache objectCache
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
-		var err error
-		screenshotCache, err = gcs.Connect(context.Background(), bucketName, "screenshots")
-		if err != nil {
-			return nil, fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		screenshotCache, err = newDirCache("screenshots")
-		if err != nil {
-			return nil, fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return screenshotCache, nil
-})

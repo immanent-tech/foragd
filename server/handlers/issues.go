@@ -18,6 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -194,10 +195,6 @@ func processScreenshots(req *http.Request) (string, error) {
 	}
 	// If the user uploaded a new avatar, process it.
 	if image != nil {
-		screenshotCache, err := loadScreenshotCache()
-		if err != nil {
-			return "", fmt.Errorf("load screenshot cache: %w", err)
-		}
 		// Generate a unique ID for the avatar image in the cache using the user ID.
 		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(image.Header.Filename)), 10)
 		// Read the uploaded data and store in the cache.
@@ -205,7 +202,9 @@ func processScreenshots(req *http.Request) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("read image: %w", err)
 		}
-		screenshotCache.Set(req.Context(), imageFileID, imageData)
+		if err := cache.SaveScreenshot(req.Context(), imageFileID, imageData); err != nil {
+			return "", fmt.Errorf("save screenshot: %w", err)
+		}
 		// Construct a new full URL to the uploaded avatar on the local server.
 		return config.GetBaseURL() + "/img/screenshot/" + imageFileID, nil
 	}
