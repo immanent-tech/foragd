@@ -51,13 +51,14 @@ func (a *Article) favoriteAttributes() templ.Attributes {
 }
 
 // showContentAttributes are the htmx attributes for showing either the feed or remote article content.
-func (a *Article) showContentAttributes(remote bool) templ.Attributes {
+func (a *Article) showContentAttributes(value bool) templ.Attributes {
 	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodPost, "/view/article/"+a.GetID()),
+		htmx.WithHXMethod(http.MethodGet, "/view/article/"+a.GetID()),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("innerHTML transition:true"),
+		htmx.WithHXSwap("innerHTML transition:true show:top"),
 		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXVals(map[string]any{models.ParamFullArticleContent: remote}),
+		htmx.WithHXReplaceURL(),
+		htmx.WithHXVals(map[string]any{"show_full_content": value}),
 	).GetAttributes()
 }
 

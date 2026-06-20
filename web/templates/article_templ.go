@@ -1476,7 +1476,7 @@ func ArticleContent(a *models.Article) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						if content := article.GetContent(); content != "" {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<div data-disable-scripting hx-disable class=\"prose-article mt-4 px-2 sm:px-0\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<div data-disable-scripting hx-disable class=\"prose-article mt-4 px-2\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

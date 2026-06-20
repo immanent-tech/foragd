@@ -300,7 +300,6 @@ func Start(logger *slog.Logger) error {
 		r.With(middlewares.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.With(middlewares.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
-		r.Post("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		// General.
 		r.Get("/issue", handlers.HandleReportIssue())
