@@ -27,6 +27,7 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/server/middlewares"
+	"github.com/immanent-tech/foragd/server/middlewares/security"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web"
@@ -81,11 +82,6 @@ func Start(logger *slog.Logger) error {
 		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is disabled.")
 	}
 
-	// manifest, err := assets.New(web.StaticContentFS, "content")
-	// if err != nil {
-	// 	log.Fatalf("building asset manifest: %v", err)
-	// }
-
 	// Set up a new chi router.
 	router := chi.NewRouter()
 
@@ -97,11 +93,11 @@ func Start(logger *slog.Logger) error {
 		middleware.RequestID,
 		middlewares.Logger,
 		middlewares.Recoverer,
-		middlewares.SetupCORS,
-		middlewares.CrossOriginProtection,
-		middlewares.ContentSecurityPolicy,
-		middlewares.GeneralSecurity,
-		middlewares.PreventCSRF,
+		security.SetupCORS,
+		security.CrossOriginProtection,
+		security.ContentSecurityPolicy,
+		security.GeneralSecurity,
+		security.PreventCSRF,
 		// middlewares.RateLimit,
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
