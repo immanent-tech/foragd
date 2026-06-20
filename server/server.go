@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/providers/google/android"
+	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
@@ -59,6 +60,10 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
+	if err := assets.New(web.StaticContentFS, "content"); err != nil {
+		return fmt.Errorf("load assets: %w", err)
+	}
+
 	// Set up OpenTelemetry if specified in the config.
 	if cfg.EnableOTEL {
 		otelShutdown, err := otel.Setup(ctx)
@@ -73,6 +78,11 @@ func Start(logger *slog.Logger) error {
 	} else {
 		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is disabled.")
 	}
+
+	// manifest, err := assets.New(web.StaticContentFS, "content")
+	// if err != nil {
+	// 	log.Fatalf("building asset manifest: %v", err)
+	// }
 
 	// Set up a new chi router.
 	router := chi.NewRouter()
@@ -106,13 +116,16 @@ func Start(logger *slog.Logger) error {
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
-	router.Handle("/robots.txt", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
-	router.Handle("/favicon.ico", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
-	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
-	router.Handle("/.well-known/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
+	router.Handle("/robots.txt", assets.HandleAssets("", true))
+	router.Handle("/favicon.ico", assets.HandleAssets("", true))
+	router.Handle("/favicon.svg", assets.HandleAssets("", true))
+	router.Handle("/.well-known/*", assets.HandleAssets("", true))
 	router.Handle("/security.txt", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		http.Redirect(res, req, "/.well-known/security.txt", http.StatusMovedPermanently)
 	}))
+	router.Handle("/assets/*", assets.HandleAssets("/assets/", false)) // hashed filenames.
+	router.Handle("/fonts/*", assets.HandleAssets("", true))
+	router.Handle("/content/*", assets.HandleAssets("/content/", true))
 
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)

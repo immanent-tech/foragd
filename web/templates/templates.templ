@@ -6,7 +6,7 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web"
+	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
@@ -144,27 +144,21 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
-			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
-			<link rel="preload" href="/content/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
-			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
-			<link rel="preload" href="/content/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
-			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.GetVersion() }/></noscript>
-			<link rel="stylesheet" href={ templ.URL("/content/fonts/inter/inter.css?v=" + config.GetVersion()) }/>
-			<link rel="stylesheet" href={ templ.URL("/content/fonts/tex-gyre/pagella/pagella.css?v=" + config.GetVersion()) }/>
-			<link rel="stylesheet" href={ templ.URL("/content/fonts/nunito/nunito.css?v=" + config.GetVersion()) }/>
+			<link rel="preload" href="/fonts/inter/InterVariable.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/fonts/tex-gyre/pagella/texgyrepagella-bold.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			// Load style bundles from embedded FS.
-			for styleFile := range slices.Values(web.GetStyleFilenames()) {
-				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.GetVersion()) }/></noscript>
-				{{ styleURL, _ := url.JoinPath("/content", styleFile) }}
-				<link rel="stylesheet" href={ templ.URL(styleURL + "?v=" + config.GetVersion()) }/>
-			}
+			<link rel="preload" href={ "/assets/" + assets.GetPath("styles.css") } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			<noscript><link rel="stylesheet" href={ "/assets/" + assets.GetPath("styles.css") }/></noscript>
+			<link rel="preload" href="/fonts/inter/inter.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			<noscript><link rel="stylesheet" href="/fonts/inter/inter.css"/></noscript>
+			<link rel="preload" href="/fonts/tex-gyre/pagella/pagella.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			<noscript><link rel="stylesheet" href="/fonts/tex-gyre/pagella/pagella.css"/></noscript>
+			<link rel="preload" href="/fonts/nunito/nunito.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			<noscript><link rel="stylesheet" href="/fonts/nunito/nunito.css"/></noscript>
 			// Load script bundles from embedded FS.
-			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
-				{{ scriptURL, _ := url.JoinPath("/content", scriptFile) }}
-				<script src={ templ.URL(scriptURL + "?v=" + config.GetVersion()) } type="module"></script>
-			}
+			<script src={ "/assets/" + assets.GetPath("scripts.js") } type="module"></script>
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
 			if config.IsProduction() {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
