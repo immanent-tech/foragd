@@ -1101,7 +1101,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, " <div id=\"loading-items\" class=\"mt-4 flex w-full mx-auto justify-center\"><div class=\"show-loading text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div> <ul class=\"mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center\"><li><a class=\"rounded-field border border-neutral/15\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, " <div id=\"loading-items\" class=\"mt-4 flex w-full mx-auto justify-center\"><div class=\"show-loading text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div> <ul class=\"mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2\"><li><a class=\"rounded-field border border-neutral/15 text-sm\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
