@@ -23,7 +23,7 @@ var cfg = Config{
 	Port:                 7000,
 	Host:                 "0.0.0.0",
 	CompressionLevel:     5,
-	CompressionMimetypes: []string{"text/html", "text/css", "text/javascript", "font/woff2", "image/svg+xml"},
+	CompressionMimetypes: []string{"text/html", "text/css", "text/javascript", "image/svg+xml"},
 	ReadTimeout:          "30s",
 	WriteTimeout:         "120s",
 	IdleTimeout:          "900s",
