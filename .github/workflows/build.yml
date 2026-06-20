@@ -47,19 +47,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout source
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: 'true'
           persist-credentials: false
 
       - name: Set app version
-        id: set_version
         run: |
           if [ -n "${{ steps.release_please.outputs.tag_name }}" ]; then
-            echo "app_version=${{ steps.release_please.outputs.tag_name }}" >> $GITHUB_OUTPUT
+            RAW_VERSION="${{ steps.release_please.outputs.tag_name }}"
           else
-            echo "app_version=$(git describe --tags --always --long --dirty)" >> $GITHUB_OUTPUT
+            RAW_VERSION="$(git describe --tags --always --long --dirty)"
           fi
+
+          # Replace any character that isn't [a-zA-Z0-9_.-] with '-'
+          SAFE_VERSION=$(echo "$RAW_VERSION" | sed -e 's/[^a-zA-Z0-9_.-]/-/g')
+
+          # Tags can't start with '.' or '-'
+          SAFE_VERSION=$(echo "$SAFE_VERSION" | sed -e 's/^[.-]*//')
+
+          # Enforce 128 char max
+          SAFE_VERSION=$(echo "$SAFE_VERSION" | cut -c1-128)
+
+          echo "app_version=$SAFE_VERSION" >> "$GITHUB_OUTPUT"
 
   build_container:
     name: Build container (${{ matrix.service }})
@@ -81,7 +91,6 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
-      APPVERSION: ${{ needs.check_release.outputs.app_version }}
 
     timeout-minutes: 30
 
@@ -154,7 +163,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ env.APPVERSION }}
+            type=raw,value=${{ needs.check_release.outputs.app_version }}
           labels: |
             org.opencontainers.image.title=${{ github.repository }}-${{ matrix.service }}
             org.opencontainers.image.description=Foragd ${{ matrix.service }} component
@@ -176,7 +185,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           build-args: |
-            APPVERSION=${{ env.APPVERSION }}
+            APPVERSION=${{ needs.check_release.outputs.app_version }}
 
       - name: Sign image with a key
         run: |
@@ -230,9 +239,6 @@ jobs:
 
     permissions:
       contents: write
-
-    env:
-      APPVERSION: ${{ needs.check_release.outputs.app_version }}
 
     timeout-minutes: 30
 
@@ -300,7 +306,7 @@ jobs:
 
       - name: Set version code
         run: |
-          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"${{ env.APPVERSION }}\"/" android/twa-manifest.json
+          sed -i "s/\"appVersionName\": \"[^\"]*\"/\"appVersionName\": \"${{ needs.check_release.outputs.app_version }}\"/" android/twa-manifest.json
 
       - name: Inject secrets into twa-manifest
         run: |
