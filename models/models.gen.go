@@ -5,7 +5,6 @@ package models
 
 import (
 	"encoding/json"
-	"image"
 	"mime/multipart"
 	"time"
 
@@ -388,7 +387,9 @@ type ArticleArchive struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    *string  `json:"copyright,omitempty"`
+
+	// Copyright is a copyright notice for the content.
+	Copyright *string `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
@@ -409,7 +410,9 @@ type ArticleArchive struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID  `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// Language is the language the content is written in.
 	Language *string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -598,7 +601,9 @@ type Feed struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    *string  `json:"copyright,omitempty"`
+
+	// Copyright is a copyright notice for the content.
+	Copyright *string `json:"copyright,omitempty"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
@@ -616,7 +621,9 @@ type Feed struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// Items contains the list of items in the feed.
-	Items    []*Item `json:"-"`
+	Items []*Item `json:"-"`
+
+	// Language is the language the content is written in.
 	Language *string `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.
@@ -746,14 +753,6 @@ type GroupSubscriptionSuggestionRequest struct {
 	Text string `form:"text" json:"text"`
 }
 
-// HomeResponse contains the data for displaying the home page.
-type HomeResponse struct {
-	LatestArticles Articles                   `json:"latest_articles,omitempty"`
-	RareCategories CategoryCounts             `json:"rare_categories,omitempty"`
-	Subscriptions  Subscriptions              `json:"subscriptions,omitempty"`
-	TopCategories  map[CategoryCount]Articles `json:"top_categories,omitempty"`
-}
-
 // Item defines model for Item.
 type Item struct {
 	// Timestamp is when the document was created.
@@ -770,7 +769,9 @@ type Item struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    *string  `json:"copyright,omitempty"`
+
+	// Copyright is a copyright notice for the content.
+	Copyright *string `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
@@ -791,7 +792,9 @@ type Item struct {
 	Image *RemoteImage `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID  `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// Language is the language the content is written in.
 	Language *string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -838,14 +841,6 @@ type ItemExtensionYoutube struct {
 
 // ItemID is the unique ID of an item.
 type ItemID = string
-
-// JobState represents the stored state of a scheduled job.
-type JobState struct {
-	JobData json.RawMessage `json:"job_data,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
 
 // LastFetched indicates when an object was last fetched.
 type LastFetched = time.Time
@@ -997,14 +992,18 @@ type ObjectCommon struct {
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty"`
-	Copyright    *string  `json:"copyright,omitempty"`
+
+	// Copyright is a copyright notice for the content.
+	Copyright *string `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
 	// Image contains details about a remote image.
-	Image    *RemoteImage `json:"image,omitempty"`
-	Language *string      `json:"language,omitempty"`
+	Image *RemoteImage `json:"image,omitempty"`
+
+	// Language is the language the content is written in.
+	Language *string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -1143,11 +1142,6 @@ type SourceType string
 
 // State Tracks the state of an object.
 type State string
-
-// StoredImage is an image stored locally (i.e., the binary data to represent the image).
-type StoredImage struct {
-	Data image.Image `json:"data"`
-}
 
 // Subscription defines model for Subscription.
 type Subscription struct {

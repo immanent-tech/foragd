@@ -164,15 +164,6 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         form: 'nickname'
-    StoredImage:
-      description: >
-        is an image stored locally (i.e., the binary data to represent the image).
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          x-go-type: image.Image
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -706,8 +697,12 @@ components:
             type: string
           x-go-type-skip-optional-pointer: true
         language:
+          description: >
+            is the language the content is written in.
           type: string
         copyright:
+          description: >
+            is a copyright notice for the content.
           type: string
         source_type:
           $ref: '#/components/schemas/SourceType'
@@ -1308,18 +1303,6 @@ components:
               $ref: '#/components/schemas/UserID'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
-    JobState:
-      description: >
-        represents the stored state of a scheduled job.
-      type: object
-      required:
-        - updated_at
-      properties:
-        updated_at:
-          $ref: '#/components/schemas/UpdatedAt'
-        job_data:
-          x-go-type: json.RawMessage
-          x-go-type-skip-optional-pointer: true
     AddSubscriptionSearchFilterRequest:
       description: >
         contains the data for adding a new subscription filter to a search request.
@@ -1450,23 +1433,6 @@ components:
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
-    HomeResponse:
-      description: >
-        contains the data for displaying the home page.
-      type: object
-      properties:
-        subscriptions:
-          x-go-type: 'Subscriptions'
-          x-go-type-skip-optional-pointer: true
-        latest_articles:
-          x-go-type: 'Articles'
-          x-go-type-skip-optional-pointer: true
-        top_categories:
-          x-go-type: 'map[CategoryCount]Articles'
-          x-go-type-skip-optional-pointer: true
-        rare_categories:
-          x-go-type: 'CategoryCounts'
-          x-go-type-skip-optional-pointer: true
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.
