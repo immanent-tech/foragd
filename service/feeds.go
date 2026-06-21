@@ -1047,13 +1047,13 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	switch {
 	case bytes.Contains(feedBuf.Bytes(), []byte("<feed")):
 		// Atom feed.
-		feedData, err = feeds.NewFeedFromBytes[*atom.Feed](feedBuf.Bytes())
+		feedData, err = feeds.NewDecoder[*atom.Feed](feedBuf)
 		if err != nil && errors.Is(err, &validation.StructError{}) {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
 	case bytes.Contains(feedBuf.Bytes(), []byte("<rss")):
 		// RSS feed.
-		feedData, err = feeds.NewFeedFromBytes[*rss.RSS](feedBuf.Bytes())
+		feedData, err = feeds.NewDecoder[*rss.RSS](feedBuf)
 		if err != nil && errors.Is(err, &validation.StructError{}) {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
