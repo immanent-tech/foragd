@@ -1,6 +1,6 @@
 {
   "packageId": "app.foragd.twa",
-  "host": "foragd.app",
+  "host": "__FORAGD_DOMAIN__",
   "name": "Foragd - RSS & Feed Reader",
   "launcherName": "Foragd",
   "display": "standalone",
@@ -12,7 +12,7 @@
   "navigationDividerColorDark": "#1A1A1A",
   "backgroundColor": "#FCFAF7",
   "enableNotifications": true,
-  "startUrl": "/home?utm_source=pwa&utm_medium=homescreen",
+  "startUrl": "/home?utm_source=twa&utm_medium=homescreen",
   "iconUrl": "__FORAGD_BASEURL__/content/logo-vertical-light.png",
   "maskableIconUrl": "__FORAGD_BASEURL__/content/icons/maskable-512.png",
   "splashScreenFadeOutDuration": 300,
