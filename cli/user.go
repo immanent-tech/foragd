@@ -170,24 +170,26 @@ func (c *ListUserCmd) Run() error {
 			user.CreatedAt.Add(models.DefaultTrialPeriod+7*24*time.Hour).Format(time.DateTime),
 		)
 	default:
-		color.New(color.FgGreen).Fprintf(&output, "Active Subscription\n")
-		fmt.Fprintf(&output, "Subscription Type: %s\n", *user.UserSubscriptionType)
-		switch *user.UserSubscriptionType {
-		case models.UserSubscriptionTypePaddle:
-			if subscription, err := user.Subscription.AsPaddleSubscription(); err != nil {
-				slogctx.FromCtx(ctx).Error("Cannot parse Paddle subscription.", slog.Any("error", err))
-			} else {
-				fmt.Fprintf(
-					&output,
-					"Subscription ID: %s Customer ID: %s\n",
-					subscription.SubscriptionID,
-					subscription.CustomerID,
-				)
-				fmt.Fprintf(
-					&output,
-					"Backend Status: %s\n",
-					subscription.SubscriptionStatus,
-				)
+		if user.HasValidSubscription() {
+			color.New(color.FgGreen).Fprintf(&output, "Active Subscription\n")
+			fmt.Fprintf(&output, "Subscription Type: %s\n", *user.UserSubscriptionType)
+			switch *user.UserSubscriptionType {
+			case models.UserSubscriptionTypePaddle:
+				if subscription, err := user.Subscription.AsPaddleSubscription(); err != nil {
+					slogctx.FromCtx(ctx).Error("Cannot parse Paddle subscription.", slog.Any("error", err))
+				} else {
+					fmt.Fprintf(
+						&output,
+						"Subscription ID: %s Customer ID: %s\n",
+						subscription.SubscriptionID,
+						subscription.CustomerID,
+					)
+					fmt.Fprintf(
+						&output,
+						"Backend Status: %s\n",
+						subscription.SubscriptionStatus,
+					)
+				}
 			}
 		}
 	}
