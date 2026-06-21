@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.167.2](https://github.com/immanent-tech/foragd/compare/v0.167.1...v0.167.2) (2026-06-21)
+
+
+### Performance Improvements
+
+* **service/feeds:** 🔧 parse the buffer directly for decoding into a feed object ([0755e47](https://github.com/immanent-tech/foragd/commit/0755e4767edc61b038a15ed12fd7f6c04eae0a3d))
+
 ## [0.167.1](https://github.com/immanent-tech/foragd/compare/v0.167.0...v0.167.1) (2026-06-21)
 
 
