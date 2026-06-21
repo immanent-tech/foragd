@@ -14,6 +14,7 @@ type InternalLayoutProps struct {
 }
 
 templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
+	<a class="sr-only" href={ ContentID.Target() }>Skip to content</a>
 	@HeaderInternal(props)
 	@SideBar(nil)
 	<main
@@ -30,6 +31,7 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 }
 
 templ LayoutExternal(content ...templ.Component) {
+	<a class="sr-only" href={ ContentID.Target() }>Skip to content</a>
 	@HeaderExternal()
 	<main
 		aria-label="Main Content"
