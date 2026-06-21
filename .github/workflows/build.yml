@@ -69,6 +69,8 @@ jobs:
           # Enforce 128 char max
           SAFE_VERSION=$(echo "$SAFE_VERSION" | cut -c1-128)
 
+          echo "Version: ${SAFE_VERSION}"
+
           echo "app_version=$SAFE_VERSION" >> "$GITHUB_OUTPUT"
 
   build_container:
