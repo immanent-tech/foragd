@@ -37,7 +37,7 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 			templates.WithOpenGraphMetadata(opengraph.New(
 				title,
 				"website",
-				config.GetBaseURL()+"/about",
+				config.GetBaseURL()+"/viewer",
 				config.GetBaseURL()+"/content/logo-vertical-light.webp",
 				opengraph.WithDescription(description),
 				opengraph.WithSiteName(config.AppName),

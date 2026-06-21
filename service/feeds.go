@@ -135,11 +135,13 @@ func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastF
 		cmpopts.EquateEmpty(),
 		cmpopts.IgnoreUnexported(),
 	); diff != "" {
+		// Update feed data.
 		newData.LastFetched = lastFetched
 		if _, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), newData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 	} else {
+		// No changes. Just update last_fetched.
 		if err := UpdateFeed(ctx, newData.GetID(), map[string]any{
 			"last_fetched": lastFetched,
 		}); err != nil {

@@ -84,23 +84,22 @@ var ViewerFAQ = []partials.FAQEntry{
 templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@LayoutExternal() {
 		@container() {
-			<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": ["SoftwareApplication","WebApplication"],
-  "name": "Foragd",
-  "applicationCategory": "News & RSS Reader",
-  "operatingSystem": "Web",
-  "offers": {
-    "@type": "Offer",
-    "price": "59",
-    "priceCurrency": "USD",
-    "priceValidUntil": "2026-06-30"
-  },
-  "description": "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
-  "url": "https://foragd.app/"
-}
-</script>
+			@partials.RenderJSONLD("pricing",
+				&partials.PriceJSONLD{
+					Context:             "https://schema.org",
+					Type:                []string{"SoftwareApplication", "WebApplication"},
+					Name:                "Foragd",
+					ApplicationCategory: "News & RSS Reader",
+					OperatingSystem:     "Web",
+					Offers: []partials.OfferJSONLD{partials.OfferJSONLD{
+						Type:          "Offer",
+						Price:         "59",
+						PriceCurrency: "USD",
+					}},
+					Description: "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
+					URL:         "https://foragd.app/",
+				},
+			)
 			<div class="isolate">
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
 					<div class="soft-gradient-top"></div>
@@ -125,14 +124,26 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						hx-push-url="true"
 						hx-target="#viewer-results"
 						hx-swap="innerHTML"
+						hx-indicator="#search-button"
 						_="on htmx:beforeRequest set the innerHTML of #viewer-results to ''"
 					>
 						<div class="mt-12">
 							<label for="url" class="block text-sm/6 font-medium text-neutral">Website URL</label>
 							<div class="join mt-2 flex w-full">
 								<input id="url" type="url" name="url" placeholder="https://some.site..." class="input join-item w-full bg-base-300 brightness-95 input-primary"/>
-								<button type="submit" class="btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2">
-									Search
+								<button id="search-button" type="submit" class="btn btn-primary join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2">
+									<span class="show-loading items-center">
+										<span class="loading mr-3 loading-spinner"></span>
+										Searching
+									</span>
+									<span class="hide-loading">
+										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+											<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+											<path d="M21 21l-6 -6"></path>
+										</svg>
+										<span class="text-sm/6">Search</span>
+									</span>
 								</button>
 							</div>
 						</div>
@@ -177,7 +188,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						</div>
 					</form>
 				</section>
-				<section id="viewer-results" class="mx-auto mt-8 mb-24 overflow-y-auto sm:max-w-5xl">
+				<section aria-live="polite" id="viewer-results" class="mx-auto mt-8 mb-24 overflow-y-auto sm:max-w-5xl">
 					switch  {
 						case errMsg != nil:
 							@ViewerError(errMsg)

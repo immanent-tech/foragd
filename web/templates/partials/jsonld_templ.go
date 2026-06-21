@@ -76,4 +76,22 @@ type PublishedJSONLD struct {
 	URL  string `json:"url"`
 }
 
+type PriceJSONLD struct {
+	Context             string        `json:"@context"`
+	Type                []string      `json:"@type"`
+	Name                string        `json:"name"`
+	ApplicationCategory string        `json:"applicationCategory"`
+	OperatingSystem     string        `json:"operatingSystem"`
+	Offers              []OfferJSONLD `json:"offers"`
+	Description         string        `json:"description"`
+	URL                 string        `json:"url"`
+}
+
+type OfferJSONLD struct {
+	Type            string `json:"@type"`
+	Price           string `json:"price"`
+	PriceCurrency   string `json:"priceCurrency"`
+	PriceValidUntil string `json:"priceValidUntil,omitempty"`
+}
+
 var _ = templruntime.GeneratedTemplate
