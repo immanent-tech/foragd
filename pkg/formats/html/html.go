@@ -14,10 +14,11 @@ import (
 	"sync"
 
 	"codeberg.org/readeck/go-readability/v2"
-	"github.com/immanent-tech/go-syndication/client"
 	"github.com/immanent-tech/go-syndication/types"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+
+	"github.com/immanent-tech/foragd/client"
 )
 
 // Common HTML tags.
@@ -269,7 +270,7 @@ func FindFavicon(
 		if err != nil {
 			continue
 		}
-		resp, err := client.LoadHTTPClient().R().Get(abs)
+		resp, err := client.Load().R().Get(abs)
 		if err != nil {
 			continue
 		}
