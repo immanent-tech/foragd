@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.167.1](https://github.com/immanent-tech/foragd/compare/v0.167.0...v0.167.1) (2026-06-21)
+
+
+### Bug Fixes
+
+* ♻️ switch to using internal client package ([1a80ae0](https://github.com/immanent-tech/foragd/commit/1a80ae00562b927f466a265fd60c96dc392b2ff1))
+* **cli:** 🔧 handle users without subscriptions ([e6428cb](https://github.com/immanent-tech/foragd/commit/e6428cb1379384c431b3ae7d6217498d227c88a4))
+* **templates:** 🔧 accesibility improvements ([5d6f0cc](https://github.com/immanent-tech/foragd/commit/5d6f0cc501c6a5f950604563436d59f50b382603))
+
 ## [0.167.0](https://github.com/immanent-tech/foragd/compare/v0.166.0...v0.167.0) (2026-06-20)
 
 
