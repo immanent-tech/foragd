@@ -9,6 +9,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"runtime/debug"
 	"slices"
 	"strings"
@@ -49,6 +50,7 @@ func (e Environment) String() string {
 var (
 	ErrLoadConfig    = errors.New("error loading config")
 	ErrInvalidConfig = errors.New("invalid config")
+	kvPairRegex      = regexp.MustCompile(`([\w.-]+=[^;]+;)+[\w.-]+=[^;]+`)
 )
 
 type appConfig struct {
@@ -143,6 +145,12 @@ func Load[T any](envPrefix string, cfg T) error {
 			if strings.Contains(value, " ") {
 				return key, strings.Split(value, " ")
 			}
+			// Split key1=value1;key2=value2 pairs into a map.
+			if containsKeyValuePairs(value) {
+				if values, ok := parseKeyValuePairs(value); ok {
+					return key, values
+				}
+			}
 			return key, value
 		},
 	}), nil); err != nil {
@@ -154,4 +162,45 @@ func Load[T any](envPrefix string, cfg T) error {
 	}
 
 	return nil
+}
+
+// containsKeyValuePairs checks whether the input string matches the
+// key1=value1;key2=value2;... format.
+func containsKeyValuePairs(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return false
+	}
+	return kvPairRegex.MatchString(s)
+}
+
+// parseKeyValuePairs parses a string in the format
+// key1=value1;key2=value2;key3=value3 into a map[string]string.
+// It returns the map and a bool indicating whether parsing succeeded.
+func parseKeyValuePairs(s string) (map[string]string, bool) {
+	s = strings.TrimSpace(s)
+	if !containsKeyValuePairs(s) {
+		return nil, false
+	}
+
+	// Trim a single trailing semicolon, if present.
+	s = strings.TrimSuffix(s, ";")
+
+	result := make(map[string]string)
+	pairs := strings.SplitSeq(s, ";")
+
+	for pair := range pairs {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) != 2 {
+			return nil, false
+		}
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		if key == "" {
+			return nil, false
+		}
+		result[key] = value
+	}
+
+	return result, true
 }
