@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -15,20 +16,21 @@ import (
 
 // DetectClient detects the type of client accessing the app.
 func DetectClient(req *http.Request) models.ClientType {
-	// Explicit header — most reliable
-	if req.Header.Get("X-Twa-Client") != "" {
+	switch {
+	case req.Header.Get("X-Twa-Client") != "":
+		// Explicit header — most reliable
 		return models.ClientTypeTwa
-	}
-
-	// TWA WebView UA contains package ID and wv token
-	if ua := req.Header.Get("User-Agent"); strings.Contains(ua, "app.foragd.twa") && strings.Contains(ua, "wv") {
+	case req.FormValue("utm_source") == "twa":
+		// utm_source is set to "twa"; should be set by apk.
 		return models.ClientTypeTwa
-	}
-
-	// Standalone PWA (installed, not TWA)
-	if req.Header.Get("Sec-Fetch-Mode") == "navigate" &&
-		req.Header.Get("Sec-Fetch-Site") == "none" {
+	case req.Header.Get("Sec-Fetch-Mode") == "navigate" && req.Header.Get("Sec-Fetch-Site") == "none":
+		// Standalone PWA (installed, not TWA)
 		return models.ClientTypePwa
+	default:
+		// TWA WebView UA contains package ID and wv token
+		if ua := req.Header.Get("User-Agent"); strings.Contains(ua, "app.foragd.twa") && strings.Contains(ua, "wv") {
+			return models.ClientTypeTwa
+		}
 	}
 
 	return models.ClientTypeWeb
@@ -40,6 +42,7 @@ func SetClient(next http.Handler) http.Handler {
 		client := DetectClient(req)
 		ctx := models.ClientTypeToCtx(req.Context(), client)
 		ctx = slogctx.With(ctx, slog.String("client", string(client)))
+		godump.Dump(client)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
