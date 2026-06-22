@@ -117,7 +117,37 @@ func (u *User) InTrialGracePeriod() bool {
 // HasValidSubscription returns a boolean indicating whether the user has a valid subscription. A valid subscription
 // only indicates the user has a subscription of some type. It does not indicate the state of the subscription.
 func (u *User) HasValidSubscription() bool {
-	return u.Subscription != nil && u.UserSubscriptionType != nil && *u.UserSubscriptionType != ""
+	switch {
+	case u.Subscription == nil:
+		// No subscription data.
+		return false
+	case u.UserSubscriptionType != nil && *u.UserSubscriptionType != "":
+		// Has subscription data. Validate subscription data.
+		switch *u.UserSubscriptionType {
+		case UserSubscriptionTypePaddle:
+			subscription, err := u.Subscription.AsPaddleSubscription()
+			if err != nil {
+				return false
+			}
+			if err = validation.Validate.Struct(subscription); err != nil {
+				return false
+			}
+			return true
+		case UserSubscriptionTypeAndroid:
+			subscription, err := u.Subscription.AsAndroidSubscription()
+			if err != nil {
+				return false
+			}
+			if err = validation.Validate.Struct(subscription); err != nil {
+				return false
+			}
+			return true
+		}
+	default:
+		// Invalid or incomplete subscription data.
+		return false
+	}
+	return false
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
