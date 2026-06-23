@@ -97,6 +97,21 @@ func GetPriceID(frequency string) (string, error) {
 	return "", fmt.Errorf("%w: price frequency %s", ErrNotFound, frequency)
 }
 
+func IsValidSKU(sku string) bool {
+	if err := loadConfig(); err != nil {
+		return false
+	}
+
+	validSKU := false
+	for _, configuredID := range cfg.Pricing {
+		if configuredID == sku {
+			validSKU = true
+			break
+		}
+	}
+	return validSKU
+}
+
 // VerifyAndAcknowledgeSubscription verifies a subscription purchase.
 func VerifyAndAcknowledgeSubscription(
 	ctx context.Context,

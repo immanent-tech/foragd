@@ -87,7 +87,8 @@ templ androidPurchaseScript() {
     	    window.location.href = res.url;
     	} else {
     	    console.error('checkout verification failed, status:', res.status);
-			window.location.href = res.url;
+			const html = await res.text();
+    		htmx.swap("#content", html, { swapStyle: 'none' });
     	}
 		}
 	</script>

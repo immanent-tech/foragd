@@ -20,6 +20,17 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
+func TokenAlreadyGranted(ctx context.Context, token string) (bool, error) {
+	existing, err := getUserByPurchaseToken(ctx, token)
+	if err != nil {
+		return false, fmt.Errorf("check existing token: %w", err)
+	}
+	if existing != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
 // getUserByPurchaseToken retrieves the user associated with the given purchase token.
 func getUserByPurchaseToken(ctx context.Context, token string) (*models.User, error) {
 	// Retrieve the user associated with the customer ID.
