@@ -74,6 +74,18 @@ func HandleAndroidPurchase() http.HandlerFunc {
 			return
 		}
 
+		if user.HasValidSubscription() {
+			HandleInternalError(req.Referer(), &models.APIError{
+				InternalError: errors.New("user has existing subscription"),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to complete purchase",
+					"There was a problem with the request. Please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
 		// Verify we are processing an android subscription.
 		if subscriptionType := req.FormValue("subscription_type"); subscriptionType != "android" {
 			HandleInternalError(req.Referer(), &models.APIError{

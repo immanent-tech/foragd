@@ -56,6 +56,10 @@ func Start(logger *slog.Logger) error {
 		if err := gcp.InitErrorClient(ctx); err != nil {
 			return fmt.Errorf("init error client: %w", err)
 		}
+		// Set up the androidpublisher client for Google Play billing.
+		if err := android.StartClient(ctx); err != nil {
+			return fmt.Errorf("start androidpublisher client: %w", err)
+		}
 	}
 
 	// Set up the session manager.
