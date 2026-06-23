@@ -203,16 +203,16 @@ templ AccountSettings(user *models.User) {
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			switch  {
-				case user.InTrial():
+				case user.InTrial(),user.InTrialGracePeriod():
 					<div class="col-span-full mt-8 place-self-end">
 						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<a role="button" class="btn btn-primary" href="/checkout">Purchase a subscription</a>
-						</div>
-					</div>
-				case user.InTrialGracePeriod():
-					<div class="col-span-full mt-8 place-self-end">
-						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<a role="button" class="btn btn-primary" href="/checkout">Purchase a subscription</a>
+							<a
+								role="button"
+								class="btn btn-primary"
+								hx-get="/checkout"
+								hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
+								hx-target={ ContentID.Target() }
+							>Purchase a subscription</a>
 						</div>
 					</div>
 				default:

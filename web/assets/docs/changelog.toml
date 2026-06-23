@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.166"
+version   = "v0.167"
 date      = "June 19, 2026"
 type      = "patch"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Internal performance fixes.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Billing logic fixes.
+"""
+
+[[releases]]
+version = "v0.166"
+date    = "June 19, 2026"
+type    = "patch"
 [[releases.changes]]
 type = "fixed"
 description = """

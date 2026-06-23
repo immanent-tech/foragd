@@ -72,11 +72,11 @@ func HandlePaddleWebhook(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(`{"success": true}`))
 }
 
-func handleChoosePaddleSubscription() http.HandlerFunc {
+func HandleChoosePaddleSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleExternalError(&models.APIError{
+			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
@@ -90,30 +90,29 @@ func handleChoosePaddleSubscription() http.HandlerFunc {
 		// If ?_ptxn=txn_01... is present, this will be passed so the Paddle overlay is opened automatically for that
 		// transaction.
 		transactionID := req.FormValue("_ptxn")
-		// The paddle plan ID.
-		plan := req.FormValue("plan")
-
-		if _, err := paddle.GetPriceID(plan); err != nil {
-			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get price id: %w", err),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		} else {
-			// Assign annual pricing as default.
-			plan, _ = paddle.GetPriceID("annual")
+		var planID string
+		if frequency := req.FormValue("frequency"); frequency != "" {
+			var err error
+			planID, err = paddle.GetPriceID(frequency)
+			if err != nil {
+				HandleInternalError(req.Referer(), &models.APIError{
+					InternalError: fmt.Errorf("get price id: %w", err),
+					StatusCode:    http.StatusBadRequest,
+					UserMessage: models.NewErrorMessage(
+						"Unable to render form",
+						"There was a problem with the request. Please try again.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
 		}
 
 		checkout := &models.CheckoutRequest{UserSubscriptionType: models.UserSubscriptionTypePaddle}
 		if err := checkout.SubscriptionData.FromPaddleCheckout(models.PaddleCheckout{
-			PlanID:        plan,
+			PlanID:        planID,
 			TransactionID: &transactionID,
 		}); err != nil {
-			HandleExternalError(&models.APIError{
+			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: fmt.Errorf("generate checkout request: %w", err),
 				StatusCode:    http.StatusBadRequest,
 				UserMessage: models.NewErrorMessage(
@@ -124,7 +123,7 @@ func handleChoosePaddleSubscription() http.HandlerFunc {
 			return
 		}
 
-		RenderExternalPage(&ChooseSubscription{
+		RenderInternalPage(&ChooseSubscription{
 			user:    user,
 			request: checkout,
 		}).ServeHTTP(res, req)
@@ -147,8 +146,8 @@ func handlePaddlePurchase() http.HandlerFunc {
 			return
 		}
 
-		plan := req.FormValue("plan") // "monthly" or "annual"
-		priceID, err := paddle.GetPriceID(plan)
+		frequency := req.FormValue("frequency")
+		priceID, err := paddle.GetPriceID(frequency)
 		if err != nil {
 			res.WriteHeader(http.StatusBadRequest)
 			RenderPartial(

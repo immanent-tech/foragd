@@ -6,6 +6,7 @@ package android
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -29,15 +30,19 @@ const (
 	ConfigEnvPrefix = "ANDROID_"
 )
 
+var ErrNotFound = errors.New("not found")
+
 // Config is the configuration for Android Billing.
 type Config struct {
 	// PackageName is what the app package is named in the Google Play Store.
-	PackageName   string   `koanf:"packagename"   validate:"required"`
-	PubSubEmail   string   `koanf:"pubsubemail"   validate:"required,email"`
-	Subscriptions []string `koanf:"subscriptions" validate:"required"`
+	PackageName string            `koanf:"packagename" validate:"required"`
+	PubSubEmail string            `koanf:"pubsubemail" validate:"required,email"`
+	Pricing     map[string]string `koanf:"pricing"     validate:"required"`
 }
 
-var cfg Config
+var cfg = Config{
+	Pricing: make(map[string]string),
+}
 
 var loadConfig = sync.OnceValue(func() error {
 	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
@@ -83,6 +88,18 @@ func initClient(ctx context.Context) error {
 	}
 	slogctx.FromCtx(ctx).Info("Android billing client created.")
 	return nil
+}
+
+func GetPriceID(frequency string) (string, error) {
+	if err := loadConfig(); err != nil {
+		return "", fmt.Errorf("load config: %w", err)
+	}
+
+	if priceID, ok := cfg.Pricing[frequency]; ok {
+		return priceID, nil
+	}
+
+	return "", fmt.Errorf("%w: price frequency %s", ErrNotFound, frequency)
 }
 
 // HandleRTDN handles Real-Time Developer Notifications from Google Pub/Sub.
@@ -179,7 +196,6 @@ func HandleRTDN(res http.ResponseWriter, req *http.Request) {
 			// s.revokeByToken(sn.PurchaseToken)
 		}
 	}
-
 	// Pub/Sub requires a 200 to acknowledge receipt
 	res.WriteHeader(http.StatusOK)
 }
@@ -193,16 +209,19 @@ func VerifyAndAcknowledgeSubscription(
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
+	slogctx.Debug(ctx, "Verifying subscription purchase.",
+		slog.String("sku", sku))
+
 	sub, err := client.Purchases.Subscriptions.Get(cfg.PackageName, sku, token).Context(ctx).Do()
 	if err != nil {
-		return nil, fmt.Errorf("billing: verify subscription %s: %w", sku, err)
+		return nil, fmt.Errorf("verify subscription %s: %w", sku, err)
 	}
 
 	// Check expiry
 	expiryMs := sub.ExpiryTimeMillis
 	expiry := time.UnixMilli(expiryMs)
 	if time.Now().After(expiry) {
-		return nil, fmt.Errorf("billing: subscription expired at %s", expiry)
+		return nil, fmt.Errorf("subscription expired at %s", expiry)
 	}
 
 	// Acknowledge if needed
@@ -212,7 +231,7 @@ func VerifyAndAcknowledgeSubscription(
 			&androidpublisher.SubscriptionPurchasesAcknowledgeRequest{},
 		).Context(ctx).Do()
 		if err != nil {
-			slogctx.FromCtx(ctx).Error("billing: acknowledge subscription failed",
+			slogctx.FromCtx(ctx).Error("acknowledge subscription failed",
 				slog.String("sku", sku),
 				slog.Any("error", err),
 			)

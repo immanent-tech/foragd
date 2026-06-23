@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -42,7 +41,6 @@ func SetClient(next http.Handler) http.Handler {
 		client := DetectClient(req)
 		ctx := models.ClientTypeToCtx(req.Context(), client)
 		ctx = slogctx.With(ctx, slog.String("client", string(client)))
-		godump.Dump(client)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

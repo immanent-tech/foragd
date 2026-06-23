@@ -12,7 +12,9 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func androidCheckoutMonthlyButton() templ.Component {
+import "github.com/immanent-tech/foragd/providers/google/android"
+
+func androidCheckoutButton(frequency string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -33,20 +35,79 @@ func androidCheckoutMonthlyButton() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, purchaseSKU("foragd_monthly"))
+		priceID, err := android.GetPriceID(frequency)
+		if err != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("purchaseAndroidSKU", priceID))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button aria-label=\"Activate a monthly subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" onclick=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 templ.ComponentScript = purchaseSKU("foragd_monthly")
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2.Call)
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("Activate " + frequency + " subscription")
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 17, Col: 56}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" data-sku=\"foragd_monthly\">Activate monthly subscription</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("checkout-" + frequency)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 18, Col: 30}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" type=\"button\" class=\"btn btn-block btn-accent\" onclick=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 templ.ComponentScript = templ.JSFuncCall("purchaseAndroidSKU", priceID)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-sku=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(priceID)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 22, Col: 20}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">Activate ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(frequency)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 24, Col: 22}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " subscription</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -54,7 +115,7 @@ func androidCheckoutMonthlyButton() templ.Component {
 	})
 }
 
-func androidCheckoutAnnualButton() templ.Component {
+func androidPurchaseScript() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -70,25 +131,25 @@ func androidCheckoutAnnualButton() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, purchaseSKU("foragd_annual"))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script id=\"android-purchase\" nonce=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button aria-label=\"Activate an annual subscription\" id=\"checkout-monthly\" type=\"submit\" class=\"btn btn-block btn-accent\" onclick=\"")
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 29, Col: 58}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 templ.ComponentScript = purchaseSKU("foragd_annual")
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-sku=\"foragd_annual\">Activate annual subscription</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">\n\t\tasync function purchaseAndroidSKU(skuID) {\n\t\t// Only available inside TWA\n\t\tif (!('getDigitalGoodsService' in window)) {\n\t\t\talert('In-app purchases are only available in the Foragd Android app.');\n\t\t\treturn;\n\t\t}\n\n\t\tlet service;\n\t\ttry {\n\t\t\tservice = await window.getDigitalGoodsService('https://play.google.com/billing');\n\t\t} catch (e) {\n\t\t\tconsole.error('getDigitalGoodsService failed:', e);\n\t\t\treturn;\n\t\t}\n\n\t\tconst paymentMethod = {\n\t\t\tsupportedMethods: 'https://play.google.com/billing',\n\t\t\tdata: { sku: skuID },\n\t\t};\n\n\t\tconst request = new PaymentRequest([paymentMethod], {\n\t\t\ttotal: { label: 'Total', amount: { currency: 'USD', value: '0' } },\n\t\t});\n\n\t\tlet response;\n\t\ttry {\n\t\t\tresponse = await request.show();\n\t\t} catch (e) {\n\t\t\t// User cancelled\n\t\t\treturn;\n\t\t}\n\n\t\tconsole.log(response)\n\n\t\tconst { purchaseToken } = response.details;\n\n\t\t// POST token to Go server for verification — response is an HTML fragment\n\t\tconst res = await fetch('/checkout', {\n\t\t\tmethod: 'POST',\n\t\t\theaders: {\n\t\t\t\t'Content-Type': 'application/x-www-form-urlencoded',\n\t\t\t\t'HX-Request': 'true',\n\t\t\t},\n\t\t\tbody: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type=\"android\"`,\n\t\t});\n\n\t\tconst html = await res.text();\n\n\t\t// Let HTMX process the response (handles OOB swaps)\n\t\t// htmx.swap('#billing-result', html, { swapStyle: 'outerHTML' });\n\n\t\t// Acknowledge or fail the payment\n\t\tawait response.complete(res.ok ? 'success' : 'fail');\n\n\t\t// Dispatch event so entitlement badge refreshes (caught by hx-trigger)\n\t\tif (res.ok) {\n\t\t\tdocument.body.dispatchEvent(new CustomEvent('billingSuccess', { bubbles: true }));\n\t\t}\n\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,72 +157,33 @@ func androidCheckoutAnnualButton() templ.Component {
 	})
 }
 
-func purchaseSKU(skuID string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_purchaseSKU_3576`,
-		Function: `function __templ_purchaseSKU_3576(skuID){async function buy() {
-		// Only available inside TWA
-		if (!('getDigitalGoodsService' in window)) {
-			alert('In-app purchases are only available in the Foragd Android app.');
-			return;
+func androidPreCheckout() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
 		}
-
-		let service;
-		try {
-			service = await window.getDigitalGoodsService('https://play.google.com/billing');
-		} catch (e) {
-			console.error('getDigitalGoodsService failed:', e);
-			return;
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
 		}
-
-		const paymentMethod = {
-			supportedMethods: 'https://play.google.com/billing',
-			data: { sku: skuID },
-		};
-
-		const request = new PaymentRequest([paymentMethod], {
-			total: { label: 'Total', amount: { currency: 'USD', value: '0' } },
-		});
-
-		let response;
-		try {
-			response = await request.show();
-		} catch (e) {
-			// User cancelled
-			return;
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var9 == nil {
+			templ_7745c5c3_Var9 = templ.NopComponent
 		}
-
-		const { purchaseToken } = response.details;
-
-		// POST token to Go server for verification — response is an HTML fragment
-		const res = await fetch('/checkout', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				'HX-Request': 'true',
-			},
-			body: ` + "`" + `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type="android"` + "`" + `,
-		});
-
-		const html = await res.text();
-
-		// Let HTMX process the response (handles OOB swaps)
-		// htmx.swap('#billing-result', html, { swapStyle: 'outerHTML' });
-
-		// Acknowledge or fail the payment
-		await response.complete(res.ok ? 'success' : 'fail');
-
-		// Dispatch event so entitlement badge refreshes (caught by hx-trigger)
-		if (res.ok) {
-			document.body.dispatchEvent(new CustomEvent('billingSuccess', { bubbles: true }));
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = androidPurchaseScript().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
-	}
-
-	buy();
-}`,
-		Call:       templ.SafeScript(`__templ_purchaseSKU_3576`, skuID),
-		CallInline: templ.SafeScriptInline(`__templ_purchaseSKU_3576`, skuID),
-	}
+		return nil
+	})
 }
 
 var _ = templruntime.GeneratedTemplate

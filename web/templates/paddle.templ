@@ -5,17 +5,21 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
 )
 
-templ paddleCheckoutMonthlyButton() {
+templ paddleCheckoutButton(frequency string) {
 	<button
-		aria-label="Activate a monthly subscription"
-		id="checkout-monthly"
+		aria-label={ "Activate a " + frequency + "  subscription" }
+		id={ "checkout-" + frequency }
 		type="submit"
 		class="btn btn-block btn-accent"
 		hx-post="/checkout"
-		hx-vals='{"plan": "monthly","subscription_type":"paddle"}'
+		hx-vals={ templ.JSONString(map[string]string{
+			"frequency": frequency,
+			"subscription_type": "paddle",
+		}) }
 		hx-swap="none"
 		_="
 		on htmx:afterRequest
@@ -31,56 +35,88 @@ templ paddleCheckoutMonthlyButton() {
 			end
 		"
 	>
-		Activate monthly subscription
+		Activate { frequency } subscription
 	</button>
 }
 
-templ paddleCheckoutAnnualButton() {
-	<button
-		aria-label="Activate an annual subscription"
-		id="checkout-monthly"
-		type="submit"
-		class="btn btn-block btn-accent"
-		hx-post="/checkout"
-		hx-vals='{"plan": "annual","subscription_type":"paddle"}'
-		hx-swap="none"
-		_="
-		on htmx:afterRequest
-			if event.detail.successful
-				set response to event.detail.xhr.responseText
-				set data to JSON.parse(response)
-				Paddle.Checkout.open({
-					items: [{ priceId: data.priceId, quantity: 1 }],
-        	        customer: {email: data.email},
-					successUrl: data.successUrl,
-        	        allowLogout: false
-				})
-			end
-		"
-	>
-		Activate annual subscription
-	</button>
-}
-
-templ PaddleHead() {
-	<link rel="preconnect" href="https://cdn.paddle.com"/>
-	<script src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>
-	if !config.IsProduction() {
-		<script>
-					document.addEventListener("DOMContentLoaded", function() {
-						Paddle.Environment.set("sandbox");
-                        Paddle.Initialize({
-                          token: {{ paddle.GetClientToken() }}
-                        });
-                    });
-				</script>
+templ paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) {
+	@paddleScript()
+	{{ token, err := paddle.GetClientToken() }}
+	if err != nil {
+		// Could not extract checkout subscription data.
+		<div class="text-center">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" class="mx-auto size-12">
+				<path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+			<h3 class="mt-2 text-sm font-semibold">Unable to checkout!</h3>
+			<p class="mt-1 text-sm">There was a problem with the request data. This might be temporary, please try again.</p>
+			<div class="mt-6">
+				<a href="/contact" class="btn btn-primary">
+					Contact Support <span aria-hidden="true">&rarr;</span>
+				</a>
+			</div>
+		</div>
+		{{ checksFailed = true }}
 	} else {
-		<script>
-					document.addEventListener("DOMContentLoaded", function() {
-                        Paddle.Initialize({
-                          token: {{ paddle.GetClientToken() }}
-                        });
-					});
-				</script>
+		if !config.IsProduction() {
+			@templ.JSFuncCall("__initPaddle", "sandbox", token)
+		} else {
+			@templ.JSFuncCall("__initPaddle", "production", token)
+		}
+		if data, err := request.SubscriptionData.AsPaddleCheckout(); err != nil {
+			// Could not extract checkout subscription data.
+			<div class="text-center">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" class="mx-auto size-12">
+					<path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+				<h3 class="mt-2 text-sm font-semibold">Unable to checkout!</h3>
+				<p class="mt-1 text-sm">There was a problem with the request data. This might be temporary, please try again.</p>
+				<div class="mt-6">
+					<a href="/contact" class="btn btn-primary">
+						Contact Support <span aria-hidden="true">&rarr;</span>
+					</a>
+				</div>
+			</div>
+			{{ checksFailed = true }}
+		} else if data.TransactionID != nil && *data.TransactionID != "" {
+			// Non-nil TransactionID, display Paddle checkout immediately.
+			<div
+				id="txn-auto-open"
+				data-txn-id={ data.TransactionID }
+				data-success-url={ "/checkout/success" }
+				_="on load
+					set txnId to my @data-txn-id
+					set successUrl to my @data-success-url
+					wait 300ms -- small delay ensures Paddle.js is fully initialised
+					Paddle.Checkout.open({
+						transactionId: txnId,
+						successUrl: successUrl
+					})"
+			></div>
+		}
+	}
+}
+
+var paddleScriptOnce = templ.NewOnceHandle()
+
+templ paddleScript() {
+	@paddleScriptOnce.Once() {
+		<script id="paddle-js" src="https://cdn.paddle.com/paddle/v2/paddle.js" defer crossorigin="anonymous" nonce={ templ.GetNonce(ctx) }></script>
+		<script nonce={ templ.GetNonce(ctx) }>
+			// Resolves once cdn.paddle.com/paddle.js has actually executed.
+			window.__paddleReady = new Promise(function (resolve) {
+				document.getElementById('paddle-js').addEventListener('load', resolve)
+			})
+
+			window.__initPaddle = function (environment, token) {
+				window.__paddleReady.then(function () {
+					if (!window.__paddleInitialized) {
+						Paddle.Environment.set(environment)
+						Paddle.Initialize({ token: token })
+						window.__paddleInitialized = true
+					}
+				})
+			}
+		</script>
 	}
 }

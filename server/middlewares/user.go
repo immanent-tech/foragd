@@ -191,7 +191,6 @@ func RequireValidUser(next http.Handler) http.Handler {
 		case user.InTrialGracePeriod():
 			// Trial grace period. User can still use the app but will see a permanent (dismissable) notification that
 			// they need to buy a subscription.
-			slogctx.FromCtx(req.Context()).Warn("User in trial grace period.")
 			next.ServeHTTP(res, req)
 			return
 

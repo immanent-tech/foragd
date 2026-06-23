@@ -29,16 +29,19 @@ type Config struct {
 	// APIKey is the api key used to authorize requests with the paddle backend.
 	APIKey string `koanf:"apikey" validate:"required"`
 	// ClientToken is a token used for setting up paddle in the app.
-	ClientToken string `koanf:"clienttoken" validate:"required"`
-	// MonthlyPriceID is the ID of the monthly subscription object in the paddle backend.
-	MonthlyPriceID string `koanf:"monthlypriceid" validate:"required"`
-	// AnnualPriceID is the ID of the annual subscription object in the paddle backend.
-	AnnualPriceID string `koanf:"annualpriceid" validate:"required"`
+	ClientToken string            `koanf:"clienttoken" validate:"required"`
+	Pricing     map[string]string `koanf:"pricing"     validate:"required"`
+	// // MonthlyPriceID is the ID of the monthly subscription object in the paddle backend.
+	// MonthlyPriceID string `koanf:"monthlypriceid" validate:"required"`
+	// // AnnualPriceID is the ID of the annual subscription object in the paddle backend.
+	// AnnualPriceID string `koanf:"annualpriceid" validate:"required"`
 	// CustomerPortalURL is the URL that customers can use to manage their subscription.
 	CustomerPortalURL string `koanf:"customerportalurl" validate:"required"`
 }
 
-var cfg Config
+var cfg = Config{
+	Pricing: make(map[string]string),
+}
 
 var loadConfig = sync.OnceValue(func() error {
 	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
@@ -84,19 +87,16 @@ var loadClient = sync.OnceValue(func() error {
 	return errors.New("unsupported environment")
 })
 
-func GetPriceID(plan string) (string, error) {
+func GetPriceID(frequency string) (string, error) {
 	if err := loadConfig(); err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 
-	switch plan {
-	case "monthly":
-		return cfg.MonthlyPriceID, nil
-	case "annual":
-		return cfg.AnnualPriceID, nil
-	default:
-		return cfg.AnnualPriceID, nil
+	if priceID, ok := cfg.Pricing[frequency]; ok {
+		return priceID, nil
 	}
+
+	return "", fmt.Errorf("%w: price frequency %s", ErrNotFound, frequency)
 }
 
 func GetClientToken() (string, error) {

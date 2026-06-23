@@ -1,36 +1,33 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+
 package templates
 
-templ androidCheckoutMonthlyButton() {
+import "github.com/immanent-tech/foragd/providers/google/android"
+
+templ androidCheckoutButton(frequency string) {
+	{{ priceID, err := android.GetPriceID(frequency) }}
+	if err != nil {
+		<a href="/contact" class="btn btn-primary">
+			Contact Support <span aria-hidden="true">&rarr;</span>
+		</a>
+	}
 	<button
-		aria-label="Activate a monthly subscription"
-		id="checkout-monthly"
-		type="submit"
+		aria-label={ "Activate " + frequency + " subscription" }
+		id={ "checkout-" + frequency }
+		type="button"
 		class="btn btn-block btn-accent"
-		onclick={ purchaseSKU("foragd_monthly") }
-		data-sku="foragd_monthly"
+		onclick={ templ.JSFuncCall("purchaseAndroidSKU", priceID) }
+		data-sku={ priceID }
 	>
-		Activate monthly subscription
+		Activate { frequency } subscription
 	</button>
 }
 
-templ androidCheckoutAnnualButton() {
-	<button
-		aria-label="Activate an annual subscription"
-		id="checkout-monthly"
-		type="submit"
-		class="btn btn-block btn-accent"
-		onclick={ purchaseSKU("foragd_annual") }
-		data-sku="foragd_annual"
-	>
-		Activate annual subscription
-	</button>
-}
-
-script purchaseSKU(skuID string) {
-	async function buy() {
+templ androidPurchaseScript() {
+	<script id="android-purchase" nonce={ templ.GetNonce(ctx) }>
+		async function purchaseAndroidSKU(skuID) {
 		// Only available inside TWA
 		if (!('getDigitalGoodsService' in window)) {
 			alert('In-app purchases are only available in the Foragd Android app.');
@@ -62,6 +59,8 @@ script purchaseSKU(skuID string) {
 			return;
 		}
 
+		console.log(response)
+
 		const { purchaseToken } = response.details;
 
 		// POST token to Go server for verification — response is an HTML fragment
@@ -87,6 +86,9 @@ script purchaseSKU(skuID string) {
 			document.body.dispatchEvent(new CustomEvent('billingSuccess', { bubbles: true }));
 		}
 	}
+	</script>
+}
 
-	buy();
+templ androidPreCheckout() {
+	@androidPurchaseScript()
 }
