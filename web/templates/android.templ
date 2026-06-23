@@ -64,9 +64,9 @@ templ androidPurchaseScript() {
 		}
 
 		const { purchaseToken } = response.details;
-		const { subscriptionType } = "android"
+		const subscriptionType = "android";
 
-	    let res;
+		let res;
 	    try {
 	        res = await fetch('/checkout', {
 	            method: 'POST',
@@ -76,16 +76,19 @@ templ androidPurchaseScript() {
 	        });
 	    } catch (e) {
 	        // Network failure — tell Play Billing it failed, don't redirect
+			console.error('checkout fetch failed:', e);
 	        await response.complete('fail');
 	        return;
 	    }
 
 	    // fetch() follows redirects transparently and res.ok reflects the FINAL response
 	    await response.complete(res.ok ? 'success' : 'fail');
-
-	    if (res.ok) {
-	        window.location.href = res.url; // navigate to wherever the redirect chain landed
-	    }
+    	if (res.ok) {
+    	    window.location.href = res.url;
+    	} else {
+    	    console.error('checkout verification failed, status:', res.status);
+			window.location.href = res.url;
+    	}
 		}
 	</script>
 }
