@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.168.1](https://github.com/immanent-tech/foragd/compare/v0.168.0...v0.168.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* **android:** 🔧 google play billing fixes ([9253752](https://github.com/immanent-tech/foragd/commit/9253752debd3b97a832c614710e702c39682f355))
+
 ## [0.168.0](https://github.com/immanent-tech/foragd/compare/v0.167.2...v0.168.0) (2026-06-23)
 
 
