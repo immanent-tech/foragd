@@ -34,8 +34,8 @@ public class LauncherActivity
         @Override
         protected Map<String, Uri> getProtocolHandlers() {
             Map<String, Uri> registry = new HashMap<>();
-            registry.put("web+feed", Uri.parse("https://foragd.app/subscription/add?url=%s"));
-registry.put("web+rss", Uri.parse("https://foragd.app/subscription/add?url=%s"));
+            registry.put("web+feed", Uri.parse("https://foragd.app/subscription/add?utm_source=twa&url=%s"));
+registry.put("web+rss", Uri.parse("https://foragd.app/subscription/add?utm_source=twa&url=%s"));
             return registry;
         }
     

@@ -20,25 +20,25 @@
     "alias": "__ANDROID_KEYSTORE_ALIAS__",
     "path": "__ANDROID_KEYSTORE_PATH__"
   },
-  "appVersionName": "4",
-  "appVersionCode": 4,
+  "appVersionName": "0.167",
+  "appVersionCode": 9,
   "shortcuts": [
     {
       "name": "Go to Subscriptions",
       "shortName": "Feeds",
-      "url": "__FORAGD_BASEURL__/list/subscriptions",
+      "url": "__FORAGD_BASEURL__/list/subscriptions?utm_source=twa",
       "chosenIconUrl": "__FORAGD_BASEURL__/content/icons/subscriptions.png"
     },
     {
       "name": "Go to Articles",
       "shortName": "Articles",
-      "url": "__FORAGD_BASEURL__/list/articles",
+      "url": "__FORAGD_BASEURL__/list/articles?utm_source=twa",
       "chosenIconUrl": "__FORAGD_BASEURL__/content/icons/articles.png"
     },
     {
       "name": "Go to Favorites",
       "shortName": "Favorites",
-      "url": "__FORAGD_BASEURL__/list/favorites",
+      "url": "__FORAGD_BASEURL__/list/favorites?utm_source=twa",
       "chosenIconUrl": "__FORAGD_BASEURL__/content/icons/favorites.png"
     }
   ],
@@ -65,11 +65,11 @@
   "protocolHandlers": [
     {
       "protocol": "web+feed",
-      "url": "__FORAGD_BASEURL__/subscription/add?url=%s"
+      "url": "__FORAGD_BASEURL__/subscription/add?utm_source=twa&url=%s"
     },
     {
       "protocol": "web+rss",
-      "url": "__FORAGD_BASEURL__/subscription/add?url=%s"
+      "url": "__FORAGD_BASEURL__/subscription/add?utm_source=twa&url=%s"
     }
   ],
   "fileHandlers": [],
