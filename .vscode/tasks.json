@@ -228,7 +228,7 @@
     {
       "label": "bubblewrap: update",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} bash ./set-build-env.sh && bubblewrap update --manifest ./twa-manifest-generated.json",
+      "command": "dotenv -e ../.env.${input:environment} bash ./set-build-env.sh && bubblewrap update --manifest ./twa-manifest-generated.json && ./edit-launchactivity.sh",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -251,7 +251,7 @@
     {
       "label": "bubblewrap: build",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} bash ./set-build-env.sh && bubblewrap build --manifest ./twa-manifest-generated.json",
+      "command": "dotenv -e ../.env.${input:environment} bubblewrap build --manifest ./twa-manifest-generated.json",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
