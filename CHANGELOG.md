@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.168.0](https://github.com/immanent-tech/foragd/compare/v0.167.2...v0.168.0) (2026-06-23)
+
+
+### Features
+
+* **config:** ✨ support writing map[string]string config values ([06bb6fa](https://github.com/immanent-tech/foragd/commit/06bb6fa00bd61302afa3c66c665c886f83db3151))
+
+
+### Bug Fixes
+
+* ♻️ billing updates ([1193fbf](https://github.com/immanent-tech/foragd/commit/1193fbf50bd66ab5d8b992038d575d956e2f4745))
+* **android:** 🔧 twa fixes ([3b5e50b](https://github.com/immanent-tech/foragd/commit/3b5e50bddba2fe1d33233cf9f6c9547305f33394))
+* **middlewares:** 🔧 fix detection of twa ([b0bfa3c](https://github.com/immanent-tech/foragd/commit/b0bfa3cd7a5241394c8948e460ed248ea7512ba4))
+* **models:** 🔧 fix validation of user subscription ([7a4c5c2](https://github.com/immanent-tech/foragd/commit/7a4c5c2488a59c44dd22a7119ca325ef07eb73ef))
+
 ## [0.167.2](https://github.com/immanent-tech/foragd/compare/v0.167.1...v0.167.2) (2026-06-21)
 
 
