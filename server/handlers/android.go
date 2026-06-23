@@ -63,7 +63,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleExternalError(&models.APIError{
+			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusForbidden,
 				UserMessage: models.NewErrorMessage(
@@ -71,13 +71,28 @@ func HandleAndroidPurchase() http.HandlerFunc {
 					"There was a problem with the request. Please try again.",
 				),
 			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Verify we are processing an android subscription.
+		if subscriptionType := req.FormValue("subscription_type"); subscriptionType != "android" {
+			HandleInternalError(req.Referer(), &models.APIError{
+				InternalError: fmt.Errorf("handle purchase: invalid subscription type %s", subscriptionType),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to complete purchase",
+					"There was a problem with the request. Please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		sku := req.FormValue("sku")
 		token := req.FormValue("purchaseToken")
 
+		// Validate purchase parameters.
 		if sku == "" || token == "" {
-			HandleExternalError(&models.APIError{
+			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: errors.New("parse form values: sku and/or token missing"),
 				StatusCode:    http.StatusBadRequest,
 				UserMessage: models.NewErrorMessage(
@@ -95,7 +110,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 
 		_, err := android.VerifyAndAcknowledgeSubscription(req.Context(), user, sku, token)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: fmt.Errorf("billing verification: %w", err),
 				StatusCode:    http.StatusBadRequest,
 				UserMessage: models.NewErrorMessage(

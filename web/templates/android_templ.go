@@ -37,79 +37,80 @@ func androidCheckoutButton(frequency string) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		priceID, err := android.GetPriceID(frequency)
 		if err != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("purchaseAndroidSKU", priceID))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button aria-label=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("Activate " + frequency + " subscription")
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 17, Col: 56}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" id=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("checkout-" + frequency)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 18, Col: 30}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" type=\"button\" class=\"btn btn-block btn-accent\" onclick=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var4 templ.ComponentScript = templ.JSFuncCall("purchaseAndroidSKU", priceID)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-sku=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(priceID)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 22, Col: 20}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">Activate ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(frequency)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 24, Col: 22}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " subscription</button>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		} else {
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("purchaseAndroidSKU", priceID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button aria-label=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("Activate " + frequency + " subscription")
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 17, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("checkout-" + frequency)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 18, Col: 31}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" type=\"button\" class=\"btn btn-block btn-accent\" onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 templ.ComponentScript = templ.JSFuncCall("purchaseAndroidSKU", priceID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-sku=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(priceID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 22, Col: 21}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">Activate ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(frequency)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 24, Col: 23}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " subscription</button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		return nil
 	})
@@ -143,13 +144,13 @@ func androidPurchaseScript() templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 29, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 30, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">\n\t\tasync function purchaseAndroidSKU(skuID) {\n\t\t// Only available inside TWA\n\t\tif (!('getDigitalGoodsService' in window)) {\n\t\t\talert('In-app purchases are only available in the Foragd Android app.');\n\t\t\treturn;\n\t\t}\n\n\t\tlet service;\n\t\ttry {\n\t\t\tservice = await window.getDigitalGoodsService('https://play.google.com/billing');\n\t\t} catch (e) {\n\t\t\tconsole.error('getDigitalGoodsService failed:', e);\n\t\t\treturn;\n\t\t}\n\n\t\tconst paymentMethod = {\n\t\t\tsupportedMethods: 'https://play.google.com/billing',\n\t\t\tdata: { sku: skuID },\n\t\t};\n\n\t\tconst request = new PaymentRequest([paymentMethod], {\n\t\t\ttotal: { label: 'Total', amount: { currency: 'USD', value: '0' } },\n\t\t});\n\n\t\tlet response;\n\t\ttry {\n\t\t\tresponse = await request.show();\n\t\t} catch (e) {\n\t\t\t// User cancelled\n\t\t\treturn;\n\t\t}\n\n\t\tconsole.log(response)\n\n\t\tconst { purchaseToken } = response.details;\n\n\t\t// POST token to Go server for verification — response is an HTML fragment\n\t\tconst res = await fetch('/checkout', {\n\t\t\tmethod: 'POST',\n\t\t\theaders: {\n\t\t\t\t'Content-Type': 'application/x-www-form-urlencoded',\n\t\t\t\t'HX-Request': 'true',\n\t\t\t},\n\t\t\tbody: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type=\"android\"`,\n\t\t});\n\n\t\tconst html = await res.text();\n\n\t\t// Let HTMX process the response (handles OOB swaps)\n\t\t// htmx.swap('#billing-result', html, { swapStyle: 'outerHTML' });\n\n\t\t// Acknowledge or fail the payment\n\t\tawait response.complete(res.ok ? 'success' : 'fail');\n\n\t\t// Dispatch event so entitlement badge refreshes (caught by hx-trigger)\n\t\tif (res.ok) {\n\t\t\tdocument.body.dispatchEvent(new CustomEvent('billingSuccess', { bubbles: true }));\n\t\t}\n\t}\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">\n\t\tasync function purchaseAndroidSKU(skuID) {\n\t\t// Only available inside TWA\n\t\tif (!('getDigitalGoodsService' in window)) {\n\t\t\talert('In-app purchases are only available in the Foragd Android app.');\n\t\t\treturn;\n\t\t}\n\n\t\tlet service;\n\t\ttry {\n\t\t\tservice = await window.getDigitalGoodsService('https://play.google.com/billing');\n\t\t} catch (e) {\n\t\t\tconsole.error('getDigitalGoodsService failed:', e);\n\t\t\treturn;\n\t\t}\n\n\t\tconst paymentMethod = {\n\t\t\tsupportedMethods: 'https://play.google.com/billing',\n\t\t\tdata: { sku: skuID },\n\t\t};\n\n\t\t// The Payment Request API's spec requires a total parameter even when the actual payment method (Play Billing, in this\n\t\t// case) doesn't use it — it's a generic web payments API designed to work across many payment methods, some of which do\n\t\t// need a client-specified total (e.g. a custom checkout). Play Billing isn't one of them, so it discards yours.\n\t\tconst request = new PaymentRequest([paymentMethod], {\n\t\t\ttotal: { label: 'Total', amount: { currency: 'USD', value: '0' } },\n\t\t});\n\n\t\tlet response;\n\t\ttry {\n\t\t\tresponse = await request.show();\n\t\t} catch (e) {\n\t\t\t// User cancelled\n\t\t\treturn;\n\t\t}\n\n\t\tconst { purchaseToken } = response.details;\n\t\tconst { subscriptionType } = \"android\"\n\n\t    let res;\n\t    try {\n\t        res = await fetch('/checkout', {\n\t            method: 'POST',\n\t            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n\t\t\t\tbody: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type=${encodeURIComponent(subscriptionType)}`,\n\t            redirect: 'follow', // default, but explicit here\n\t        });\n\t    } catch (e) {\n\t        // Network failure — tell Play Billing it failed, don't redirect\n\t        await response.complete('fail');\n\t        return;\n\t    }\n\n\t    // fetch() follows redirects transparently and res.ok reflects the FINAL response\n\t    await response.complete(res.ok ? 'success' : 'fail');\n\n\t    if (res.ok) {\n\t        window.location.href = res.url; // navigate to wherever the redirect chain landed\n\t    }\n\t\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
