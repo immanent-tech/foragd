@@ -113,7 +113,7 @@ templ (a *Article) shareButton() {
 		      navigator.share({ title: me.dataset.title, url: me.dataset.url })
 		   end"
 	>
-		@tableroutline.Share(templ.Attributes{"class": "mr-3", "aria-hidden": "true"})
+		@tableroutline.Share(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"})
 		<span class="text-sm/6">Share</span>
 	</a>
 	// Desktop share action with modal and options.
@@ -122,7 +122,7 @@ templ (a *Article) shareButton() {
 		_="init if not navigator.share remove .hidden from me"
 		{ a.desktopShareAttributes()... }
 	>
-		@tableroutline.Share(templ.Attributes{"class": "mr-3", "aria-hidden": "true"})
+		@tableroutline.Share(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"})
 		<span class="text-sm/6">Share</span>
 	</a>
 }
@@ -137,7 +137,7 @@ templ (a *Article) viewOriginalButton() {
 		rel="noopener"
 		_="on click halt the event's bubbling"
 	>
-		@tableroutline.ExternalLink(templ.Attributes{"class": "mr-3", "aria-hidden": "true"})
+		@tableroutline.ExternalLink(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"})
 		<span class="text-sm/6">View Remote</span>
 	</a>
 }
@@ -163,7 +163,7 @@ templ (a *Article) showRemoteContentButton() {
 			Loading
 		</span>
 		<span class="hide-loading">
-			@tableroutline.Download(templ.Attributes{"class": "mr-3", "aria-hidden": "true"})
+			@tableroutline.Download(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"})
 			<span class="text-sm/6">Get Remote Content</span>
 		</span>
 	</a>
@@ -189,7 +189,7 @@ templ (a *Article) showFeedContentButton() {
 			Loading
 		</span>
 		<span class="hide-loading">
-			@tableroutline.FileRss(templ.Attributes{"class": "mr-3", "aria-hidden": "true"})
+			@tableroutline.FileRss(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"})
 			<span class="text-sm/6">Show Feed Content</span>
 		</span>
 	</a>
@@ -755,10 +755,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										</span>
 										<span class="hide-loading items-center">
 											if response.Filters.GetView() == models.ViewUnread {
-												@tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+												@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 												<span class="text-sm/6">Mark Articles Read</span>
 											} else {
-												@tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+												@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 												<span class="text-sm/6">Mark Articles Unread</span>
 											}
 										</span>
@@ -790,10 +790,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											</span>
 											<span class="hide-loading items-center">
 												if response.Filters.GetView() == models.ViewUnread {
-													@tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+													@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 													<span class="text-sm/6">Mark Subscription Read</span>
 												} else {
-													@tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+													@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 													<span class="text-sm/6">Mark Subscription Unread</span>
 												}
 											</span>

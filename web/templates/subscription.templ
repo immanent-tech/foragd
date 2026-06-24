@@ -370,10 +370,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</span>
 									<span class="hide-loading items-center">
 										if response.Filters.GetView() == models.ViewUnread {
-											@tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+											@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
 										} else {
-											@tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
+											@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>

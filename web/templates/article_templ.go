@@ -274,7 +274,7 @@ func (a *Article) shareButton() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": "mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -290,7 +290,7 @@ func (a *Article) shareButton() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": "mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -341,7 +341,7 @@ func (a *Article) viewOriginalButton() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": "mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -387,7 +387,7 @@ func (a *Article) showRemoteContentButton() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Download(templ.Attributes{"class": "mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Download(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -433,7 +433,7 @@ func (a *Article) showFeedContentButton() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.FileRss(templ.Attributes{"class": "mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.FileRss(templ.Attributes{"class": "stroke-1 mr-3", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2182,7 +2182,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							if response.Filters.GetView() == models.ViewUnread {
-								templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -2191,7 +2191,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 									return templ_7745c5c3_Err
 								}
 							} else {
-								templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -2253,7 +2253,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 									return templ_7745c5c3_Err
 								}
 								if response.Filters.GetView() == models.ViewUnread {
-									templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+									templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
@@ -2262,7 +2262,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 										return templ_7745c5c3_Err
 									}
 								} else {
-									templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+									templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
