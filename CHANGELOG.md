@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.169.1](https://github.com/immanent-tech/foragd/compare/v0.169.0...v0.169.1) (2026-06-24)
+
+
+### Bug Fixes
+
+* **templates/android:** 🔧 process oob swap return ([cd218f3](https://github.com/immanent-tech/foragd/commit/cd218f3b2ba799eed3fa97176cc6d4c98f9dca10))
+* **templates/subscription,templates/article:** 🎨 lighten icons for some buttons ([7d78288](https://github.com/immanent-tech/foragd/commit/7d782888c00abe45ef00b9972565c22b73030b19))
+* **templates/subscription:** 🎨 improved stats layout ([d34231c](https://github.com/immanent-tech/foragd/commit/d34231c85bfe8aa728645583bb291148149a6f05))
+
 ## [0.169.0](https://github.com/immanent-tech/foragd/compare/v0.168.3...v0.169.0) (2026-06-24)
 
 
