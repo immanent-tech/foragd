@@ -266,7 +266,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				// List actions.
 				if len(response.Subscriptions) > 0 {
-					<div id="list-actions" class="w-full flex justify-end">
+					<ul id="list-actions" class="menu menu-horizontal w-full flex justify-end">
 						if len(response.Subscriptions) > 0 {
 							{{
 								var mark models.Mark
@@ -276,26 +276,28 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									mark = models.MarkUnread
 								}
 							}}
-							<button
-								hx-post={ "/list/subscriptions/mark/" + string(mark) }
-								hx-target={ ContentID.Target() }
-								hx-include=".card > input"
-								hx-vals={ templ.JSONString(map[string]string{
+							<li>
+								<a
+									hx-post={ "/list/subscriptions/mark/" + string(mark) }
+									hx-target={ ContentID.Target() }
+									hx-include=".card > input"
+									hx-vals={ templ.JSONString(map[string]string{
 												"view": string(response.Filters.GetView()),
 												"mark": string(mark),
 											}) }
-								class="btn btn-neutral btn-outline btn-sm items-center"
-							>
-								if response.Filters.GetView() == models.ViewUnread {
-									@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-									Mark shown as Read
-								} else {
-									@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-									Mark shown as Unread
-								}
-							</button>
+									class="rounded-field border border-neutral/15 text-sm"
+								>
+									if response.Filters.GetView() == models.ViewUnread {
+										@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+										Mark shown as Read
+									} else {
+										@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+										Mark shown as Unread
+									}
+								</a>
+							</li>
 						}
-					</div>
+					</ul>
 				}
 				<section id="subscriptions-list" class="pt-4">
 					if len(response.Subscriptions) > 0 {
