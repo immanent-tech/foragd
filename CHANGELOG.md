@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.169.0](https://github.com/immanent-tech/foragd/compare/v0.168.3...v0.169.0) (2026-06-24)
+
+
+### Features
+
+* **android:** ✨ add a restore purchases workflow in account settings ([1ac06e1](https://github.com/immanent-tech/foragd/commit/1ac06e1ec0fb5dc43b371070b71b046eb2553c3a))
+
+
+### Bug Fixes
+
+* **templates/posts:** 🎨 fix spacing between created/updated timestamps ([51f051a](https://github.com/immanent-tech/foragd/commit/51f051a67c64fe8c4ee405ee6504ecad81f42231))
+* **templates/subscription,templates/article:** 🎨 reduce stroke width of small icons in actions menu on cards ([556b5f3](https://github.com/immanent-tech/foragd/commit/556b5f337708dd1e218ac6828c45ee319f69f783))
+* **templates/viewer:** 🎨 add arial-labels to collapse controls ([ea5501a](https://github.com/immanent-tech/foragd/commit/ea5501a9593b31d5fe11e511dd8cba48edaf45d7))
+* **templates:** 🎨 add arial-labels to collapse controls ([15a4d78](https://github.com/immanent-tech/foragd/commit/15a4d781ac8602e03dcce148590578b5ecdced08))
+* **templates:** 🎨 fix alignment of checkmarks ([f0ba59f](https://github.com/immanent-tech/foragd/commit/f0ba59f8b6ec49875ce4030413a19444cb504425))
+
 ## [0.168.3](https://github.com/immanent-tech/foragd/compare/v0.168.2...v0.168.3) (2026-06-24)
 
 
