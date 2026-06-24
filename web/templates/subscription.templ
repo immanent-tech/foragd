@@ -158,8 +158,8 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-						<div class="inline-grid grid-flow-row grid-cols-2 gap-x-2">
-							<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums">
+						<div class="inline-grid grid-flow-row grid-cols-2 gap-1 items-center">
+							<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
 								<relative-time
 									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 									format="relative"
@@ -168,13 +168,16 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								</relative-time>
 							</span>
 							if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-								<span class="col-span-1 justify-start text-xs/4 text-neutral">
+								<span class="col-span-1 badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
 									{ s.GetStats().UpdateFrequency() }
 								</span>
 							}
-							<span class="col-span-1 justify-end text-xs/4 text-neutral">
-								{ s.GetStats().UnreadTotal() }
-								Unread
+							<span class="col-span-1 badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
+								if s.GetStats().UnreadTotal() >= 100 {
+									99+ unread
+								} else {
+									{ s.GetStats().UnreadTotal() } unread
+								}
 							</span>
 						</div>
 					} else {
