@@ -122,7 +122,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 					}
 				</div>
 				// <h2 class="mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-				<h2 class="card-title font-serif leading-tight text-balance transition-colors transition-all group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif leading-tight text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 			</div>
@@ -194,7 +194,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 					// Mark action.
 					@s.subscriptionMarkToggle()
 					// Separator.
-					<div aria-hidden="true" class="h-4 w-px bg-neutral/20"></div>
+					<div aria-hidden="true" class="h-4 w-px bg-neutral/20 mx-1"></div>
 					// Context menu actions.
 					<div class="tooltip overflow-visible" data-tip="Subscription actions">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
@@ -223,21 +223,21 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								// Edit action.
 								@partials.MenuItem() {
 									<a { s.editAttributes(path)... }>
-										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a { s.unsubscribeAttributes()... }>
-										@tableroutline.Trash(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										@tableroutline.Trash(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										@tableroutline.Flag2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										@tableroutline.Flag2(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 										Report an issue
 									</a>
 								}

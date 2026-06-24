@@ -207,14 +207,14 @@ templ (a *Article) actionsMenu() {
 				// View original article action.
 				@partials.MenuItem() {
 					<a { a.viewOriginalAttributes()... }>
-						@tableroutline.ExternalLink(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						@tableroutline.ExternalLink(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 						Go To Article
 					</a>
 				}
 				// Find similar action.
 				@partials.MenuItem() {
 					<a { a.findSimilarAttributes()... }>
-						@tableroutline.Search(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						@tableroutline.Search(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 						Find similar...
 					</a>
 				}
@@ -230,21 +230,21 @@ templ (a *Article) actionsMenu() {
 		   					end
 							"
 					>
-						@tableroutline.Share(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						@tableroutline.Share(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 						Share
 					</a>
 				}
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
 					<a { a.desktopShareAttributes()... }>
-						@tableroutline.Share(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						@tableroutline.Share(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 						Share
 					</a>
 				}
 				// Report issue action.
 				@partials.MenuItem() {
 					<a { a.reportIssueAttributes()... }>
-						@tableroutline.Flag2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						@tableroutline.Flag2(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 						Report an issue
 					</a>
 				}
@@ -397,7 +397,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					// Toggle mark action.
 					@article.markToggle()
 					// Separator.
-					<div aria-hidden="true" class="h-4 w-px bg-neutral/20"></div>
+					<div aria-hidden="true" class="h-4 w-px bg-neutral/20 mx-1"></div>
 					// Actions menu.
 					@article.actionsMenu()
 				</div>
