@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.168.3](https://github.com/immanent-tech/foragd/compare/v0.168.2...v0.168.3) (2026-06-24)
+
+
+### Bug Fixes
+
+* **templates/subscription,templates/article:** 🎨 more subtle list actions ([5d8df5c](https://github.com/immanent-tech/foragd/commit/5d8df5cd2db29093af6048070632f0cdfb625181))
+
 ## [0.168.2](https://github.com/immanent-tech/foragd/compare/v0.168.1...v0.168.2) (2026-06-23)
 
 
