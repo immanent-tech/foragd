@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
@@ -45,9 +46,7 @@ templ paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) {
 	if err != nil {
 		// Could not extract checkout subscription data.
 		<div class="text-center">
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" class="mx-auto size-12">
-				<path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
-			</svg>
+			@tableroutline.ExclamationCircle(templ.Attributes{"class": "mx-auto size-12"})
 			<h3 class="mt-2 text-sm font-semibold">Unable to checkout!</h3>
 			<p class="mt-1 text-sm">There was a problem with the request data. This might be temporary, please try again.</p>
 			<div class="mt-6">
@@ -66,9 +65,7 @@ templ paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) {
 		if data, err := request.SubscriptionData.AsPaddleCheckout(); err != nil {
 			// Could not extract checkout subscription data.
 			<div class="text-center">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" class="mx-auto size-12">
-					<path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"></path>
-				</svg>
+				@tableroutline.ExclamationCircle(templ.Attributes{"class": "mx-auto size-12"})
 				<h3 class="mt-2 text-sm font-semibold">Unable to checkout!</h3>
 				<p class="mt-1 text-sm">There was a problem with the request data. This might be temporary, please try again.</p>
 				<div class="mt-6">

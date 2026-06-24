@@ -39,6 +39,8 @@ exclude_dir = [
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 # Exclude unchanged files.
 exclude_unchanged = true
+# Exclude files.
+exclude_file = ["web/assets/styles.css"]
 # Follow symlink for directories
 follow_symlink = true
 # Watch these filename extensions.
@@ -58,15 +60,17 @@ include_ext = [
 # This log file is placed in your tmp_dir.
 log = "server.air.log"
 # Array of commands to run before each build
-pre_cmd = ["npm run build:dev", "npm run templ:generate"]
+pre_cmd = [
+  "npm run css:generate",
+  "npm run build:dev",
+  "npm run templ:generate",
+]
 # Array of commands to run after ^C
 # post_cmd = ["echo 'hello air' > post_cmd.txt"]
 # Watch these directories if you specified.
 # include_dir = []
 # Watch these files.
 # include_file = []
-# Exclude files.
-# exclude_file = []
 # Poll files for changes instead of using fsnotify.
 poll = false
 # Poll interval (defaults to the minimum interval of 500ms).

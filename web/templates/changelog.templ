@@ -3,6 +3,8 @@
 
 package templates
 
+import "github.com/dimmerz92/go-icons/tabler-outline"
+
 // ChangeType represents the type of change in a release
 type ChangeType string
 
@@ -115,9 +117,7 @@ templ ChangelogPage(releases []Release) {
 			</div>
 			// Subscribe.
 			<div class="alert bg-base-200 border border-neutral/20 mb-8 py-3">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"></path>
-				</svg>
+				@tableroutline.Rss(templ.Attributes{"class": "size-5 shrink-0 text-base-content/50", "aria-hidden": "true"})
 				<span class="text-sm text-base-content/70 flex-1">Get notified when we ship something new.</span>
 				<a href="/changelog/feed" class="link link-primary text-sm font-medium">Subscribe to updates</a>
 			</div>

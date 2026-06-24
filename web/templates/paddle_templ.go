@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
@@ -46,7 +47,7 @@ func paddleCheckoutButton(frequency string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("Activate a " + frequency + "  subscription")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 14, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 15, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -59,7 +60,7 @@ func paddleCheckoutButton(frequency string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("checkout-" + frequency)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 15, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 16, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
@@ -75,7 +76,7 @@ func paddleCheckoutButton(frequency string) templ.Component {
 			"subscription_type": "paddle",
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 22, Col: 4}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 23, Col: 4}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
@@ -88,7 +89,7 @@ func paddleCheckoutButton(frequency string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(frequency)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 38, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 39, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -129,7 +130,15 @@ func paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) templ
 		}
 		token, err := paddle.GetClientToken()
 		if err != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div class=\"text-center\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\" class=\"mx-auto size-12\"><path d=\"M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z\" stroke-width=\"2\" vector-effect=\"non-scaling-stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><h3 class=\"mt-2 text-sm font-semibold\">Unable to checkout!</h3><p class=\"mt-1 text-sm\">There was a problem with the request data. This might be temporary, please try again.</p><div class=\"mt-6\"><a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div class=\"text-center\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tableroutline.ExclamationCircle(templ.Attributes{"class": "mx-auto size-12"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<h3 class=\"mt-2 text-sm font-semibold\">Unable to checkout!</h3><p class=\"mt-1 text-sm\">There was a problem with the request data. This might be temporary, please try again.</p><div class=\"mt-6\"><a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -146,44 +155,52 @@ func paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) templ
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if data, err := request.SubscriptionData.AsPaddleCheckout(); err != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"text-center\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\" class=\"mx-auto size-12\"><path d=\"M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z\" stroke-width=\"2\" vector-effect=\"non-scaling-stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><h3 class=\"mt-2 text-sm font-semibold\">Unable to checkout!</h3><p class=\"mt-1 text-sm\">There was a problem with the request data. This might be temporary, please try again.</p><div class=\"mt-6\"><a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " <div class=\"text-center\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = tableroutline.ExclamationCircle(templ.Attributes{"class": "mx-auto size-12"}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<h3 class=\"mt-2 text-sm font-semibold\">Unable to checkout!</h3><p class=\"mt-1 text-sm\">There was a problem with the request data. This might be temporary, please try again.</p><div class=\"mt-6\"><a href=\"/contact\" class=\"btn btn-primary\">Contact Support <span aria-hidden=\"true\">&rarr;</span></a></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				checksFailed = true
 			} else if data.TransactionID != nil && *data.TransactionID != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " <div id=\"txn-auto-open\" data-txn-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <div id=\"txn-auto-open\" data-txn-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(data.TransactionID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 85, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 82, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" data-success-url=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" data-success-url=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue("/checkout/success")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 86, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 83, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" _=\"on load\n\t\t\t\t\tset txnId to my @data-txn-id\n\t\t\t\t\tset successUrl to my @data-success-url\n\t\t\t\t\twait 300ms -- small delay ensures Paddle.js is fully initialised\n\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\ttransactionId: txnId,\n\t\t\t\t\t\tsuccessUrl: successUrl\n\t\t\t\t\t})\"></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" _=\"on load\n\t\t\t\t\tset txnId to my @data-txn-id\n\t\t\t\t\tset successUrl to my @data-success-url\n\t\t\t\t\twait 300ms -- small delay ensures Paddle.js is fully initialised\n\t\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\t\ttransactionId: txnId,\n\t\t\t\t\t\tsuccessUrl: successUrl\n\t\t\t\t\t})\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -228,33 +245,33 @@ func paddleScript() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<script id=\"paddle-js\" src=\"https://cdn.paddle.com/paddle/v2/paddle.js\" defer crossorigin=\"anonymous\" nonce=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<script id=\"paddle-js\" src=\"https://cdn.paddle.com/paddle/v2/paddle.js\" defer crossorigin=\"anonymous\" nonce=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 104, Col: 131}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 101, Col: 131}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"></script> <script nonce=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"></script> <script nonce=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 105, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/paddle.templ`, Line: 102, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\">\n\t\t\t// Resolves once cdn.paddle.com/paddle.js has actually executed.\n\t\t\twindow.__paddleReady = new Promise(function (resolve) {\n\t\t\t\tdocument.getElementById('paddle-js').addEventListener('load', resolve)\n\t\t\t})\n\n\t\t\twindow.__initPaddle = function (environment, token) {\n\t\t\t\twindow.__paddleReady.then(function () {\n\t\t\t\t\tif (!window.__paddleInitialized) {\n\t\t\t\t\t\tPaddle.Environment.set(environment)\n\t\t\t\t\t\tPaddle.Initialize({ token: token })\n\t\t\t\t\t\twindow.__paddleInitialized = true\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t}\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\">\n\t\t\t// Resolves once cdn.paddle.com/paddle.js has actually executed.\n\t\t\twindow.__paddleReady = new Promise(function (resolve) {\n\t\t\t\tdocument.getElementById('paddle-js').addEventListener('load', resolve)\n\t\t\t})\n\n\t\t\twindow.__initPaddle = function (environment, token) {\n\t\t\t\twindow.__paddleReady.then(function () {\n\t\t\t\t\tif (!window.__paddleInitialized) {\n\t\t\t\t\t\tPaddle.Environment.set(environment)\n\t\t\t\t\t\tPaddle.Initialize({ token: token })\n\t\t\t\t\t\twindow.__paddleInitialized = true\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t}\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

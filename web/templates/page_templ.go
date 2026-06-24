@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/immanent-tech/foragd/web/templates/element"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 // pageHeading renders a section appropriate for displaying a page title and actions.
 func pageHeading(options ...element.PropertiesOption) templ.Component {
@@ -108,7 +109,7 @@ func pageTitle(title string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 23, Col: 93}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 24, Col: 93}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -290,7 +291,7 @@ func sectionTitle(title string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 55, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 56, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -373,7 +374,15 @@ func buttonBackToTop() templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\t\totherwise\n\t\t\t\tadd .opacity-0 .translate-y-4 .pointer-events-none to me\n\t\tend\n\t\ton click scroll to the top of the body smoothly\n\t\t\" aria-label=\"Scroll to top\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-arrow-up text-secondary-content\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M18 11l-6 -6\"></path><path d=\"M6 11l6 -6\"></path></svg></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\t\totherwise\n\t\t\t\tadd .opacity-0 .translate-y-4 .pointer-events-none to me\n\t\tend\n\t\ton click scroll to the top of the body smoothly\n\t\t\" aria-label=\"Scroll to top\"><span class=\"sr-only\">Back to top</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.ArrowUp(templ.Attributes{"class": "text-secondary-content", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

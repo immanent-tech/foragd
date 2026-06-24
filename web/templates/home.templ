@@ -4,6 +4,7 @@
 package templates
 
 import (
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -109,8 +110,8 @@ templ UserHome(data *HomeData) {
 										hx-target={ ContentID.Target() }
 										hx-push-url="true"
 									>
-										<svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-										Add a feed
+										@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										<span>Add a feed</span>
 									</button>
 								</div>
 							</div>
@@ -177,23 +178,7 @@ templ NewUserHome() {
 							hx-swap="innerHTML show:window:top transition:true"
 							hx-push-url="true"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-plus rounded-selector bg-secondary p-1 text-secondary-content"
-								aria-hidden="true"
-							>
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-								<path d="M12 5l0 14"></path>
-								<path d="M5 12l14 0"></path>
-							</svg>
+							@tableroutline.Plus(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
 							<div>
 								<div class="card-title text-secondary">Add a feed</div>
 								<p class="text-base/7 text-secondary">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p>
@@ -207,23 +192,7 @@ templ NewUserHome() {
 							hx-swap="innerHTML show:window:top transition:true"
 							hx-push-url="true"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-cloud-download rounded-selector bg-secondary p-1 text-secondary-content"
-							>
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-								<path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
-								<path d="M12 13l0 9"></path>
-								<path d="M9 19l3 3l3 -3"></path>
-							</svg>
+							@tableroutline.CloudDownload(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
 							<div>
 								<div class="card-title text-secondary">Import from OPML</div>
 								<p class="text-base/7 text-secondary">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p>
@@ -250,25 +219,7 @@ templ NewUserHome() {
 										value="informed"
 										class="checkbox checkbox-sm checkbox-primary"
 									/>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="24"
-										height="24"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"
-										class="icon icon-tabler icons-tabler-outline icon-tabler-news text-secondary"
-									>
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-										<path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11"></path>
-										<path d="M8 8l4 0"></path>
-										<path d="M8 12l4 0"></path>
-										<path d="M8 16l4 0"></path>
-									</svg>
+									@tableroutline.News(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 									<label class="card-title text-secondary" for="informed">Informed</label>
 								</div>
 								<p class="text-sm/6">News and information from across the web.</p>
@@ -285,25 +236,7 @@ templ NewUserHome() {
 										value="inspired"
 										class="checkbox checkbox-sm checkbox-primary"
 									/>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="24"
-										height="24"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"
-										class="icon icon-tabler icons-tabler-outline icon-tabler-palette icon-tabler-news text-secondary"
-									>
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-										<path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"></path>
-										<path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
-										<path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
-										<path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
-									</svg>
+									@tableroutline.Palette(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 									<label class="card-title text-secondary" for="inspired">Inspired</label>
 								</div>
 								<p class="text-sm/6">Digital art, design and creative oddities.</p>
@@ -320,24 +253,7 @@ templ NewUserHome() {
 										value="enlightened"
 										class="checkbox checkbox-sm checkbox-primary"
 									/>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="24"
-										height="24"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"
-										class="icon icon-tabler icons-tabler-outline icon-tabler-atom text-secondary"
-									>
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-										<path d="M12 12v.01"></path>
-										<path d="M19.071 4.929c-1.562 -1.562 -6 .337 -9.9 4.243c-3.905 3.905 -5.804 8.337 -4.242 9.9c1.562 1.561 6 -.338 9.9 -4.244c3.905 -3.905 5.804 -8.337 4.242 -9.9"></path>
-										<path d="M4.929 4.929c-1.562 1.562 .337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561 -1.562 -.338 -6 -4.244 -9.9c-3.905 -3.905 -8.337 -5.804 -9.9 -4.242"></path>
-									</svg>
+									@tableroutline.Atom(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 									<label class="card-title text-secondary" for="enlightened">Enlightened</label>
 								</div>
 								<p class="text-sm/6">Alternative and fringe perspectives.</p>
@@ -358,12 +274,7 @@ templ NewUserHome() {
 								</span>
 								<span class="hide-loading">
 									<div class="flex flex-row items-center gap-x-3">
-										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
-											<path d="M9 12h6"></path>
-											<path d="M12 9v6"></path>
-										</svg>
+										@tableroutline.CirclePlus(templ.Attributes{"aria-hidden": "true"})
 										<span class="text-sm/6">Add Sets</span>
 									</div>
 								</span>

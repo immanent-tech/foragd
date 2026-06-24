@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "slices"
+import "github.com/dimmerz92/go-icons/tabler-filled"
 
 var featureGroups = []ListItem{
 	ListItem{
@@ -123,7 +124,7 @@ func Features() templ.Component {
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(group.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 78, Col: 20}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 79, Col: 20}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 					if templ_7745c5c3_Err != nil {
@@ -415,7 +416,7 @@ func NewFeaturePanel(id string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 166, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 167, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -495,7 +496,7 @@ func FeatureAddContent(flipped bool) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(`@TED`)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 197, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 198, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -525,7 +526,15 @@ func FeatureAddContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-addcontent.webp\" alt=\"Screenshot of add content page\" class=\"relative -z-20\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-addcontent.webp\" alt=\"Screenshot of add content page\" class=\"relative -z-20\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tablerfilled.PlayerPlay(templ.Attributes{"class": "absolute top-[30%] left-[35%] size-32 text-accent", "aria-label": "Play video"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -541,7 +550,7 @@ func FeatureAddContent(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-addcontent.webm\" type=\"video/webm\"></video>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-addcontent.webm\" type=\"video/webm\"></video>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -599,7 +608,7 @@ func FeatureEmailNewsletters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -612,7 +621,7 @@ func FeatureEmailNewsletters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Sign up for email newsletters</h2><p class=\"mt-2 text-lg/8 text-neutral\">Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to sign up to email newsletters. Use this email when signing up for newsletters to get your website and email updates in the one place. You can favorite and search through newsletters just like any other feed.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Sign up for email newsletters</h2><p class=\"mt-2 text-lg/8 text-neutral\">Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to sign up to email newsletters. Use this email when signing up for newsletters to get your website and email updates in the one place. You can favorite and search through newsletters just like any other feed.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -623,7 +632,7 @@ func FeatureEmailNewsletters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<img width=\"482\" height=\"381\" src=\"/content/screenshots/screenshot-feature-emailnewsletters.webp\" alt=\"Screenshot of email newsletter option\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<img width=\"482\" height=\"381\" src=\"/content/screenshots/screenshot-feature-emailnewsletters.webp\" alt=\"Screenshot of email newsletter option\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -636,7 +645,7 @@ func FeatureEmailNewsletters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -688,7 +697,7 @@ func FeatureImport(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -701,7 +710,7 @@ func FeatureImport(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Migrate from other services</h2><p class=\"mt-2 text-lg/8 text-neutral\">Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily. Foragd supports using the OPML file format, a widely used standard for imports and exports. You always own and control your data. Import and export your subscriptions freely.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Migrate from other services</h2><p class=\"mt-2 text-lg/8 text-neutral\">Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily. Foragd supports using the OPML file format, a widely used standard for imports and exports. You always own and control your data. Import and export your subscriptions freely.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -712,7 +721,7 @@ func FeatureImport(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"Desktop screenshot showing import results\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"Desktop screenshot showing import results\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -725,7 +734,7 @@ func FeatureImport(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -777,7 +786,7 @@ func FeatureGroupSubscriptions(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -790,7 +799,7 @@ func FeatureGroupSubscriptions(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Group subscriptions</h2><p class=\"mt-2 text-lg/8 text-neutral\">Group multiple site subscriptions together to view a unified feed of their articles. Great for combining sites on similar topics into one (e.g., all Android or Apple news). You can then apply <a class=\"link\" href=\"#feature-article-filters\">article filters</a> across all grouped subscriptions, further refining the list of articles displayed.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Group subscriptions</h2><p class=\"mt-2 text-lg/8 text-neutral\">Group multiple site subscriptions together to view a unified feed of their articles. Great for combining sites on similar topics into one (e.g., all Android or Apple news). You can then apply <a class=\"link\" href=\"#feature-article-filters\">article filters</a> across all grouped subscriptions, further refining the list of articles displayed.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -801,7 +810,7 @@ func FeatureGroupSubscriptions(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<img width=\"1920\" height=\"1080\" src=\"/content/screenshots/screenshot-feature-groupsubscription.webp\" alt=\"Screenshot showing adding multiple feeds to create a group subscription\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<img width=\"1920\" height=\"1080\" src=\"/content/screenshots/screenshot-feature-groupsubscription.webp\" alt=\"Screenshot showing adding multiple feeds to create a group subscription\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -814,7 +823,7 @@ func FeatureGroupSubscriptions(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -866,7 +875,7 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -879,7 +888,7 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Saved search subscriptions</h2><p class=\"mt-2 text-lg/8 text-neutral\">Use full text search across articles. Find that thing mentioned in that post on that blog a while ago easily.</p><p class=\"mt-2 text-lg/8 text-neutral\">Want to keep up to date when new posts arrive that match? Save the search as a <span class=\"italic\">Search Subscription</span> to keep up to date with new articles that match. This a great way to keep up to date with a topic across multiple sources or for research and data analysis.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Saved search subscriptions</h2><p class=\"mt-2 text-lg/8 text-neutral\">Use full text search across articles. Find that thing mentioned in that post on that blog a while ago easily.</p><p class=\"mt-2 text-lg/8 text-neutral\">Want to keep up to date when new posts arrive that match? Save the search as a <span class=\"italic\">Search Subscription</span> to keep up to date with new articles that match. This a great way to keep up to date with a topic across multiple sources or for research and data analysis.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -890,7 +899,7 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<button command=\"show-modal\" commandfor=\"feature-searchsubscription\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<button command=\"show-modal\" commandfor=\"feature-searchsubscription\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -903,7 +912,15 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-searchsubscription-thumbnail.webp\" alt=\"Screenshots of search subscription page\" class=\"relative -z-20\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-searchsubscription-thumbnail.webp\" alt=\"Screenshots of search subscription page\" class=\"relative -z-20\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tablerfilled.PlayerPlay(templ.Attributes{"class": "absolute top-[30%] left-[35%] size-32 text-accent", "aria-label": "Play video"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -919,7 +936,7 @@ func FeatureSearchSubscription(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-searchsubscription.webm\" type=\"video/webm\"></video>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-searchsubscription.webm\" type=\"video/webm\"></video>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -977,7 +994,7 @@ func FeatureArticleFilters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -990,7 +1007,7 @@ func FeatureArticleFilters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Article filtering</h2><p class=\"mt-2 text-lg/8 text-neutral\">Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and logic.</p><p class=\"mt-2 text-lg/8 text-neutral\">For example, <span class=\"italic\">`AI -chatgpt`</span> will filter for AI news, but not about ChatGPT.</p><p class=\"mt-2 text-lg/8 text-neutral\">Use <span class=\"italic\">`+python +tutorial`</span> to find articles that are only about python and are also tutorials.</p><p class=\"mt-2 text-lg/8 text-neutral\">Combine them for further refinement: <span class=\"italic\">`+python +tutorial AI -chatgpt`</span>.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Article filtering</h2><p class=\"mt-2 text-lg/8 text-neutral\">Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and logic.</p><p class=\"mt-2 text-lg/8 text-neutral\">For example, <span class=\"italic\">`AI -chatgpt`</span> will filter for AI news, but not about ChatGPT.</p><p class=\"mt-2 text-lg/8 text-neutral\">Use <span class=\"italic\">`+python +tutorial`</span> to find articles that are only about python and are also tutorials.</p><p class=\"mt-2 text-lg/8 text-neutral\">Combine them for further refinement: <span class=\"italic\">`+python +tutorial AI -chatgpt`</span>.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1001,7 +1018,7 @@ func FeatureArticleFilters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<img width=\"463\" height=\"261\" src=\"/content/screenshots/screenshot-feature-articlefiltering.webp\" alt=\"Screenshot showing example article filters with +/ keyword and phrase matching\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<img width=\"463\" height=\"261\" src=\"/content/screenshots/screenshot-feature-articlefiltering.webp\" alt=\"Screenshot showing example article filters with +/ keyword and phrase matching\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1014,7 +1031,7 @@ func FeatureArticleFilters(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1066,7 +1083,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1079,7 +1096,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Subscription customisation</h2><p class=\"mt-2 text-lg/8 text-neutral\">You can customise each subscription, choosing your own nickname and/or image to represent each. Useful where the feed does not include its own image or its name is verbose or generic.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Subscription customisation</h2><p class=\"mt-2 text-lg/8 text-neutral\">You can customise each subscription, choosing your own nickname and/or image to represent each. Useful where the feed does not include its own image or its name is verbose or generic.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1090,7 +1107,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<button command=\"show-modal\" commandfor=\"feature-subscriptioncustomisation\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<button command=\"show-modal\" commandfor=\"feature-subscriptioncustomisation\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1103,7 +1120,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-subscriptioncustomisation.webp\" alt=\"Screenshot showing subscription customisation options and settings\" class=\"relative -z-20\"></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-subscriptioncustomisation.webp\" alt=\"Screenshot showing subscription customisation options and settings\" class=\"relative -z-20\"></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1119,7 +1136,7 @@ func FeatureSubscriptionCustomisation(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-subscriptioncustomisation.webp\" alt=\"Screenshot showing subscription customisation options and settings\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-subscriptioncustomisation.webp\" alt=\"Screenshot showing subscription customisation options and settings\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1177,7 +1194,7 @@ func FeatureLayout(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1190,7 +1207,7 @@ func FeatureLayout(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Content comes first</h2><p class=\"mt-2 text-lg/8 text-neutral\">Foragd has an interface that stays out of the way, letting the content shine. Beautiful typography and large images.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Content comes first</h2><p class=\"mt-2 text-lg/8 text-neutral\">Foragd has an interface that stays out of the way, letting the content shine. Beautiful typography and large images.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1201,7 +1218,7 @@ func FeatureLayout(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<button command=\"show-modal\" commandfor=\"feature-layout-popover\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<button command=\"show-modal\" commandfor=\"feature-layout-popover\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1214,7 +1231,7 @@ func FeatureLayout(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\"><img width=\"2002\" height=\"1288\" src=\"/content/screenshots/screenshot-feature-layout.webp\" alt=\"Screenshot showing available themes\" class=\"relative -z-20\"></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\"><img width=\"2002\" height=\"1288\" src=\"/content/screenshots/screenshot-feature-layout.webp\" alt=\"Screenshot showing available themes\" class=\"relative -z-20\"></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1230,7 +1247,7 @@ func FeatureLayout(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<img width=\"2002\" height=\"1288\" src=\"/content/screenshots/screenshot-feature-layout.webp\" alt=\"Screenshot showing available themes\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<img width=\"2002\" height=\"1288\" src=\"/content/screenshots/screenshot-feature-layout.webp\" alt=\"Screenshot showing available themes\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1288,7 +1305,7 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1301,7 +1318,7 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Get remote content</h2><p class=\"mt-2 text-lg/8 text-neutral\">For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the remote content. Foragd tries to fetch all images and other relevant content to recreate the reading experience without needing to switch browser tabs.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Get remote content</h2><p class=\"mt-2 text-lg/8 text-neutral\">For subscriptions where only article summaries are shown, Foragd can attempt to fetch and display the remote content. Foragd tries to fetch all images and other relevant content to recreate the reading experience without needing to switch browser tabs.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1312,7 +1329,7 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<button command=\"show-modal\" commandfor=\"feature-fetchremote\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<button command=\"show-modal\" commandfor=\"feature-fetchremote\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1325,7 +1342,15 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-fetchremote.webp\" alt=\"Screenshot of article preview (before remote content fetched)\" class=\"relative -z-20\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-fetchremote.webp\" alt=\"Screenshot of article preview (before remote content fetched)\" class=\"relative -z-20\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tablerfilled.PlayerPlay(templ.Attributes{"class": "absolute top-[30%] left-[35%] size-32 text-accent", "aria-label": "Play video"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</div></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1341,7 +1366,7 @@ func FeatureFetchRemoteContent(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-fetchremote.webm\" type=\"video/webm\"></video>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-fetchremote.webm\" type=\"video/webm\"></video>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1399,7 +1424,7 @@ func FeatureFavorites(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1412,7 +1437,7 @@ func FeatureFavorites(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Favorites</h2><p class=\"mt-2 text-lg/8 text-neutral\">Favorite subscriptions to keep them top and center. Favorite articles to easily reference them later. Your favorite articles are kept forever, even if the source removes them from their feed.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Favorites</h2><p class=\"mt-2 text-lg/8 text-neutral\">Favorite subscriptions to keep them top and center. Favorite articles to easily reference them later. Your favorite articles are kept forever, even if the source removes them from their feed.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1423,7 +1448,7 @@ func FeatureFavorites(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<button command=\"show-modal\" commandfor=\"feature-favorites-popover\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<button command=\"show-modal\" commandfor=\"feature-favorites-popover\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1436,7 +1461,15 @@ func FeatureFavorites(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-favorites.webp\" alt=\"Screenshot of favorites page\" class=\"relative -z-20\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[30%] left-[35%] size-32 text-accent\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\"><div class=\"relative inline-block\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-favorites.webp\" alt=\"Screenshot of favorites page\" class=\"relative -z-20\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tablerfilled.PlayerPlay(templ.Attributes{"class": "absolute top-[30%] left-[35%] size-32 text-accent", "aria-label": "Play video"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1452,7 +1485,7 @@ func FeatureFavorites(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-favorites.webm\" type=\"video/webm\"></video>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/screencast-feature-favorites.webm\" type=\"video/webm\"></video>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1510,7 +1543,7 @@ func FeatureThemes(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1523,7 +1556,7 @@ func FeatureThemes(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Themes</h2><p class=\"mt-2 text-lg/8 text-neutral\">Choose from a selection of curated light and dark themes to your liking.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\"><h2 class=\"text-balancesm:text-4xl text-3xl font-semibold tracking-tight\">Themes</h2><p class=\"mt-2 text-lg/8 text-neutral\">Choose from a selection of curated light and dark themes to your liking.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1534,7 +1567,7 @@ func FeatureThemes(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<button command=\"show-modal\" commandfor=\"feature-themes-popover\" type=\"button\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<button command=\"show-modal\" commandfor=\"feature-themes-popover\" type=\"button\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1547,7 +1580,7 @@ func FeatureThemes(flipped bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-themes.webp\" alt=\"Screenshot showing available themes\" class=\"relative -z-20\"></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\"><img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-themes.webp\" alt=\"Screenshot showing available themes\" class=\"relative -z-20\"></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1563,7 +1596,7 @@ func FeatureThemes(flipped bool) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-themes.webp\" alt=\"Screenshot showing available themes\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<img width=\"1920\" height=\"1200\" src=\"/content/screenshots/screenshot-feature-themes.webp\" alt=\"Screenshot showing available themes\" decoding=\"async\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1604,20 +1637,20 @@ func imagePopup(id string) templ.Component {
 			templ_7745c5c3_Var87 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<el-dialog><dialog id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<el-dialog><dialog id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var88 string
 		templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 633, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 626, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var88)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"><div aria-hidden=\"true\" class=\"pointer-events-none absolute top-1/2 left-12 -z-10 -translate-y-1/2 transform-gpu blur-3xl lg:top-auto lg:-bottom-48 lg:translate-y-0\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"aspect-1155/678 w-288.75 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-25 dark:opacity-20\"></div></div></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"><div aria-hidden=\"true\" class=\"pointer-events-none absolute top-1/2 left-12 -z-10 -translate-y-1/2 transform-gpu blur-3xl lg:top-auto lg:-bottom-48 lg:translate-y-0\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"aspect-1155/678 w-288.75 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-25 dark:opacity-20\"></div></div></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1625,7 +1658,7 @@ func imagePopup(id string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</el-dialog-panel></div></div></dialog></el-dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</el-dialog-panel></div></div></dialog></el-dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

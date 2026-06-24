@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/immanent-tech/foragd/models"
 import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 // ReportIssue renders a form for reporting issues with the app.
 func ReportIssue(details *models.ReportIssueRequest) templ.Component {
@@ -80,7 +81,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var5 templ.SafeURL
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Issue")))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 21, Col: 125}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 22, Col: 125}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -93,7 +94,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue("/issue")
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 25, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 26, Col: 24}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 					if templ_7745c5c3_Err != nil {
@@ -106,7 +107,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 26, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 27, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 					if templ_7745c5c3_Err != nil {
@@ -119,7 +120,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var8 string
 					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 27, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 28, Col: 42}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 					if templ_7745c5c3_Err != nil {
@@ -132,7 +133,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(details.PageUrl)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 34, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 35, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 					if templ_7745c5c3_Err != nil {
@@ -150,7 +151,7 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 						var templ_7745c5c3_Var10 string
 						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(*details.ObjectID)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 36, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 37, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 						if templ_7745c5c3_Err != nil {
@@ -168,39 +169,47 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					var templ_7745c5c3_Var11 string
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(details.UserEmail)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 48, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 49, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" autocomplete=\"email\" required class=\"input input-primary bg-base-300 brightness-95\"></div></div><div class=\"sm:col-span-full\"><span class=\"block text-sm/6 font-medium\">Screenshot</span><div id=\"drop-zone\" class=\"group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg\" _=\"\n                                        on dragover\n                                          halt the event\n                                          add .bg-base-300 .border-accent to me\n                                        end\n\n                                        on dragleave\n                                          remove .bg-base-300 .border-accent from me\n                                        end\n\n                                        on drop\n                                          halt the event\n                                          remove .bg-base-300 .border-accent from me\n                                          set files to event.dataTransfer.files\n                                          set #screenshot-upload's files to files\n                                          set #file-name's textContent to files[0].name\n\t\t\t\t\t\t\t\t\t\t  set f to event.dataTransfer.files[0]\n\t\t\t\t\t\t\t\t\t      js(f)\n      \t\t\t\t\t\t\t\t\t\treturn new Promise(resolve => {\n      \t\t\t\t\t\t\t\t\t\t  if (!f.type.startsWith('image/')) { resolve(null); return; }\n      \t\t\t\t\t\t\t\t\t\t  const r = new FileReader();\n      \t\t\t\t\t\t\t\t\t\t  r.onload = e => resolve(e.target.result);\n      \t\t\t\t\t\t\t\t\t\t  r.readAsDataURL(f);\n      \t\t\t\t\t\t\t\t\t\t});\n    \t\t\t\t\t\t\t\t\t  end\n                                        end\n                                    \"><div class=\"text-center\"><div id=\"preview-area\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"group-hover:text-primary group-active:text-primary icon icon-tabler icons-tabler-outline icon-tabler-file-upload mx-auto size-12\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 3v4a1 1 0 0 0 1 1h4\"></path><path d=\"M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2\"></path><path d=\"M12 11v6\"></path><path d=\"M9.5 13.5l2.5 -2.5l2.5 2.5\"></path></svg><p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\"></span><div class=\"mt-4 flex items-center justify-center text-sm/6\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></div><div class=\"col-span-full\"><label for=\"about\" class=\"block text-sm/6 font-medium\">Describe the issue</label><div class=\"mt-2\"><textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95\"></textarea></div><p class=\"mt-3 text-sm/6 neutral\">Describe the issue in as much detail as possible.</p></div></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\" hx-get=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" autocomplete=\"email\" required class=\"input input-primary bg-base-300 brightness-95\"></div></div><div class=\"sm:col-span-full\"><span class=\"block text-sm/6 font-medium\">Screenshot</span><div id=\"drop-zone\" class=\"group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg\" _=\"\n                                        on dragover\n                                          halt the event\n                                          add .bg-base-300 .border-accent to me\n                                        end\n\n                                        on dragleave\n                                          remove .bg-base-300 .border-accent from me\n                                        end\n\n                                        on drop\n                                          halt the event\n                                          remove .bg-base-300 .border-accent from me\n                                          set files to event.dataTransfer.files\n                                          set #screenshot-upload's files to files\n                                          set #file-name's textContent to files[0].name\n\t\t\t\t\t\t\t\t\t\t  set f to event.dataTransfer.files[0]\n\t\t\t\t\t\t\t\t\t      js(f)\n      \t\t\t\t\t\t\t\t\t\treturn new Promise(resolve => {\n      \t\t\t\t\t\t\t\t\t\t  if (!f.type.startsWith('image/')) { resolve(null); return; }\n      \t\t\t\t\t\t\t\t\t\t  const r = new FileReader();\n      \t\t\t\t\t\t\t\t\t\t  r.onload = e => resolve(e.target.result);\n      \t\t\t\t\t\t\t\t\t\t  r.readAsDataURL(f);\n      \t\t\t\t\t\t\t\t\t\t});\n    \t\t\t\t\t\t\t\t\t  end\n                                        end\n                                    \"><div class=\"text-center\"><div id=\"preview-area\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = tableroutline.FileUpload(templ.Attributes{"class": "group-hover:text-primary group-active:text-primary mx-auto size-12 stroke-1"}).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\"></span><div class=\"mt-4 flex items-center justify-center text-sm/6 strok\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></div><div class=\"col-span-full\"><label for=\"about\" class=\"block text-sm/6 font-medium\">Describe the issue</label><div class=\"mt-2\"><textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea textarea-primary w-full sm:max-w-prose bg-base-300 brightness-95\"></textarea></div><p class=\"mt-3 text-sm/6 neutral\">Describe the issue in as much detail as possible.</p></div></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6 w-full sm:max-w-3xl\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\" hx-get=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(details.PageUrl)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 126, Col: 32}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 127, Col: 32}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var13 string
 					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 127, Col: 38}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 128, Col: 38}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-swap=\"innerHTML transition:true\"><span class=\"text-sm/6\">Back</span></button> <button type=\"submit\" class=\"btn btn-primary\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"hide-loading items-center\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"innerHTML transition:true\"><span class=\"text-sm/6\">Back</span></button> <button type=\"submit\" class=\"btn btn-primary\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"hide-loading items-center\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

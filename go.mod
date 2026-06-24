@@ -1,6 +1,6 @@
 module github.com/immanent-tech/foragd
 
-go 1.26
+go 1.26.1
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
@@ -55,6 +55,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dimmerz92/go-icons v0.26.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.11.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect

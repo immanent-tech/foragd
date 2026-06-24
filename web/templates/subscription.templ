@@ -4,6 +4,8 @@
 package templates
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-filled"
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -22,7 +24,7 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 			class="btn swap btn-square btn-ghost btn-md"
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
-    	on htmx:afterRequest(failed) toggle @checked on next <input[type='checkbox']/>
+    	on htmx:afterRequest(failed) toggle @checked on <input[type='checkbox'] in me/>
 		"
 			{ s.favoriteAttributes()... }
 		>
@@ -34,12 +36,8 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 				}
 				aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			/>
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
-			</svg>
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
-			</svg>
+			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 text-primary"})
+			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 text-primary"})
 		</label>
 	</div>
 }
@@ -74,7 +72,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 							set :mark.value to 'read'
 						end
 					else
-    			  		toggle @checked on next <input[type='checkbox']/> in me
+    			  		toggle @checked on <input[type='checkbox']/> in me
 					end
 				"
 				{ s.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
@@ -93,12 +91,8 @@ templ (s *Subscription) subscriptionMarkToggle() {
 					}
 					aria-label={ "Toggle mark status for " + s.GetTitle() }
 				/>
-				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
-				</svg>
-				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-				</svg>
+				@tablerfilled.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
+				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"})
 			</label>
 		</div>
 	}
@@ -209,9 +203,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								class="btn btn-ghost btn-sm"
 							>
 								<span class="sr-only">{ s.GetTitle() + " Actions" }</span>
-								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
-								</svg>
+								@tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
 							</button>
 							@partials.Menu(element.WithAttribute("id", "menu-"+s.GetID()+"-actions")) {
 								// View action.
@@ -223,9 +215,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 											target="_blank"
 											_="on click halt the event's bubbling"
 										>
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
-											</svg>
+											@tableroutline.ExternalLink(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 											Feed Website
 										</a>
 									}
@@ -233,27 +223,21 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								// Edit action.
 								@partials.MenuItem() {
 									<a { s.editAttributes(path)... }>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
-										</svg>
+										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a { s.unsubscribeAttributes()... }>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash size-4">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
-										</svg>
+										@tableroutline.Trash(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
-										</svg>
+										@tableroutline.Flag2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Report an issue
 									</a>
 								}
@@ -303,32 +287,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								class="btn btn-neutral btn-outline btn-sm items-center"
 							>
 								if response.Filters.GetView() == models.ViewUnread {
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="24"
-										height="24"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5"
-									><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path></svg>
+									@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 									Mark shown as Read
 								} else {
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="24"
-										height="24"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5"
-									><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path></svg>
+									@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 									Mark shown as Unread
 								}
 							</button>
@@ -406,14 +368,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</span>
 									<span class="hide-loading items-center">
 										if response.Filters.GetView() == models.ViewUnread {
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened mr-3 size-5">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
-											</svg>
+											@tablerfilled.MailOpened(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
 										} else {
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail mr-3 size-5">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-											</svg>
+											@tablerfilled.Mail(templ.Attributes{"class": "mr-3 size-5", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>
@@ -447,12 +405,8 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 				<p class="mt-1 max-w-2xl text-sm/6">Optional filtering of articles.</p>
 			</div>
 			<span class="ml-6 flex h-7 items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-				</svg>
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-				</svg>
+				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 			</span>
 		</button>
 		@partials.FormSection() {
@@ -544,9 +498,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						<div class="mt-2 w-full">
 							<div class="join flex w-full items-center sm:max-w-xl">
 								<div class="input w-full bg-base-300 brightness-95 input-primary">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search text-primary">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-									</svg>
+									@tableroutline.Search(templ.Attributes{"class": "text-primary"})
 									<input
 										id="add-subscription-search"
 										type="text"
@@ -654,18 +606,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						hx-push-url="true"
 					>
 						<div class="flex flex-row items-center gap-x-3">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus text-secondary"
-							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4h6v6h-6v-6"></path><path d="M14 4h6v6h-6v-6"></path><path d="M4 14h6v6h-6v-6"></path><path d="M14 17h6m-3 -3v6"></path></svg>
+							@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 							<div class="card-title text-secondary">Add a Group Subscription</div>
 						</div>
 						<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
@@ -678,41 +619,14 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						hx-push-url="true"
 					>
 						<div class="flex flex-row items-center gap-x-3">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-search text-secondary"
-							><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
+							@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 							<div class="card-title text-secondary">Add a Search Subscription</div>
 						</div>
 						<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
 					</div>
 					<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
 						<div class="flex flex-row items-center gap-x-3">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-mailbox text-secondary"
-							>
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-								<path d="M10 21v-6.5a3.5 3.5 0 0 0 -7 0v6.5h18v-6a4 4 0 0 0 -4 -4h-10.5"></path>
-								<path d="M12 11v-8h4l2 2l-2 2h-4"></path>
-								<path d="M6 15h1"></path>
-							</svg>
+							@tableroutline.Mailbox(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 							<div class="card-title text-secondary">Subscribe to email newsletters</div>
 						</div>
 						{{ user := models.UserFromCtx(ctx) }}
@@ -793,12 +707,8 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 						<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 					</div>
 					<span class="ml-6 flex h-7 items-center">
-						<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-						</svg>
-						<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-						</svg>
+						@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+						@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 					</span>
 				</button>
 				@partials.FormSection() {
@@ -864,12 +774,8 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 							<p class="mt-1 max-w-2xl text-sm/6">Additional subscription settings/tweaks.</p>
 						</div>
 						<span class="ml-6 flex h-7 items-center">
-							<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-							</svg>
-							<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-							</svg>
+							@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+							@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 						</span>
 					</button>
 					@partials.FormSection() {
@@ -1081,9 +987,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 
 templ ShowNoSuggestions(text string) {
 	<div class="text-center">
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-zoom-question mx-auto size-12 text-primary">
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3.072a8 8 0 0 1 2.32 11.834l5.387 5.387a1 1 0 0 1 -1.414 1.414l-5.388 -5.387a8 8 0 0 1 -12.905 -6.32l.005 -.285a8 8 0 0 1 11.995 -6.643m-4 8.928a1 1 0 0 0 -.993 .883l-.007 .127a1 1 0 0 0 1.993 .117l.007 -.127a1 1 0 0 0 -1 -1m-1.9 -5.123a1 1 0 0 0 1.433 1.389l.088 -.09a.5 .5 0 1 1 .379 .824a1 1 0 0 0 -.002 2a2.5 2.5 0 1 0 -1.9 -4.123"></path>
-		</svg>
+		@tablerfilled.ZoomQuestion(templ.Attributes{"class": "mx-auto size-12 text-primary"})
 		<h3 class="mt-2 text-sm font-semibold">No results</h3>
 		<p class="mt-1 text-sm text-neutral">We could not find any good matches for <strong>{ text }</strong>.</p>
 		if !strings.HasPrefix(text,"http") {
@@ -1186,12 +1090,8 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									<p class="mt-1 max-w-2xl text-sm/6">Add additional filters to the search.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-									</svg>
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 								</span>
 							</button>
 							@partials.FormSection() {
@@ -1323,12 +1223,8 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-									</svg>
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 								</span>
 							</button>
 							@partials.FormSection() {
@@ -1475,9 +1371,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 												class="btn join-item bg-base-100 brightness-95"
 												aria-label="Show subscription suggestions"
 											>
-												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
-												</svg>
+												@tableroutline.ChevronDown(templ.Attributes{"class": "transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 											</button>
 											<el-options popover anchor="bottom start" class="h-fit max-h-5/10 w-(--input-width) overflow-auto">
 												for subscription := range slices.Values(request.SuggestedSubscriptions) {
@@ -1500,9 +1394,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 											_="on htmx:afterRequest set #subscription-suggestion.value to ''"
 											aria-label="Add subscription to group"
 										>
-											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-											</svg>
+											@tableroutline.Plus(templ.Attributes{"aria-hidden": "true"})
 										</button>
 									</div>
 								}
@@ -1527,12 +1419,8 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-									</svg>
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
 								</span>
 							</button>
 							@partials.FormSection() {
@@ -1613,9 +1501,7 @@ templ AddSubscriptionToGroup(id, name string) {
 	>
 		<input type="hidden" name={ "subscriptions[" + id + "]" } value={ name }/>
 		{ name }
-		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x">
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
-		</svg>
+		@tableroutline.X(templ.Attributes{"aria-hidden": "true"})
 	</button>
 }
 
@@ -1718,9 +1604,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options
 	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
 			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
-				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-12">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path><path d="M12 16h.01"></path>
-				</svg>
+				@tableroutline.AlertTriangle(templ.Attributes{"class": "size-12"})
 			</span>
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 				<h3 id="dialog-title" class="text-lg font-medium">Unsubscribe confirmation</h3>

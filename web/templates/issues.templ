@@ -5,6 +5,7 @@ package templates
 
 import "github.com/immanent-tech/foragd/models"
 import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 // ReportIssue renders a form for reporting issues with the app.
 templ ReportIssue(details *models.ReportIssueRequest) {
@@ -88,11 +89,11 @@ templ ReportIssue(details *models.ReportIssueRequest) {
 									>
 										<div class="text-center">
 											<div id="preview-area">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-primary group-active:text-primary icon icon-tabler icons-tabler-outline icon-tabler-file-upload mx-auto size-12"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 11v6"></path><path d="M9.5 13.5l2.5 -2.5l2.5 2.5"></path></svg>
+												@tableroutline.FileUpload(templ.Attributes{"class": "group-hover:text-primary group-active:text-primary mx-auto size-12 stroke-1"})
 												<p id="preview-meta" style="font-size:0.85rem; color:#666;"></p>
 											</div>
 											<span id="file-name"></span>
-											<div class="mt-4 flex items-center justify-center text-sm/6">
+											<div class="mt-4 flex items-center justify-center text-sm/6 strok">
 												<label for="screenshot-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
 													<span class="btn btn-dash btn-neutral">Upload a file</span>
 													<input

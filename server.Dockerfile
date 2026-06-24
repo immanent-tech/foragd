@@ -34,6 +34,7 @@ COPY . .
 
 # install and build/bundle frontend assets
 RUN npm clean-install && \
+    npm run css:generate && \
     npm run build:prod && \
     npm version patch
 

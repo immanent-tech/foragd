@@ -4,6 +4,7 @@
 package templates
 
 import "github.com/immanent-tech/foragd/models"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 type listControls struct {
 	path    string
@@ -37,17 +38,9 @@ templ (c *listControls) viewFilters() {
 		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
 		<el-select id="select-view" _="on change send viewChanged(view: my value)" class="block">
 			<button class="btn inline-flex w-full justify-start btn-ghost" type="button">
-				<svg
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="currentColor"
-					class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"
-				>
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
-				</svg>
+				@tableroutline.ChevronDown(templ.Attributes{
+					"class":       "size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"aria-hidden": "true"})
 				<el-selectedcontent class="truncate capitalize">
 					{ string(currentView) }
 				</el-selectedcontent>
@@ -89,29 +82,22 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters.Values()) }
-			class="group/option pr-9"
+			class="group/option pr-5"
 		>
 			// For mobile screens where option is displayed in select menu.
-			<div class="sm:hidden">
-				<span class={ "block truncate font-normal capitalize pr-4", templ.KV("font-semibold",active) }>{ string(view) }</span>
-				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
-					<svg
-						class="size-5"
-						aria-hidden="true"
-						data-slot="icon"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-					>
-						<path
-							clip-rule="evenodd"
-							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-							fill-rule="evenodd"
-						></path>
-					</svg>
+			<div class="relative sm:hidden">
+				<span class={ "block truncate font-normal capitalize pr-5", templ.KV("font-semibold",active) }>{ string(view) }</span>
+				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
+					@tableroutline.Check(templ.Attributes{"class": "size-5"})
 				</span>
 			</div>
 			// For desktop screens where option is displayed in horizontal menu.
-			<span class={ "hidden sm:flex capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
+			<div class="relative hidden sm:flex pr-5">
+				<span class={ "block truncate font-normal capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
+				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 text-accent", templ.KV("hidden",!active) }>
+					@tableroutline.Check(templ.Attributes{"class": "size-5"})
+				</span>
+			</div>
 		</a>
 	</li>
 }
@@ -136,25 +122,18 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 		>
 			// For mobile screens where option is displayed in select menu.
 			<div class="sm:hidden">
-				<span class={ "block truncate font-normal", templ.KV("font-semibold",active) }>Favorites</span>
-				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
-					<svg
-						class="size-5"
-						aria-hidden="true"
-						data-slot="icon"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-					>
-						<path
-							clip-rule="evenodd"
-							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-							fill-rule="evenodd"
-						></path>
-					</svg>
+				<span class={ "block truncate font-normal pr-5", templ.KV("font-semibold",active) }>Favorites</span>
+				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
+					@tableroutline.Check(templ.Attributes{"class": "size-5"})
 				</span>
 			</div>
 			// For desktop screens where option is displayed in horizontal menu.
-			<span class={ "hidden sm:flex", templ.KV("font-semibold",active) }>Favorites</span>
+			<div class="relative hidden sm:flex pr-5">
+				<span class={ "block truncate font-normal", templ.KV("font-semibold",active) }>Favorites</span>
+				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 text-accent", templ.KV("hidden",!active) }>
+					@tableroutline.Check(templ.Attributes{"class": "size-5"})
+				</span>
+			</div>
 		</a>
 	</li>
 }
@@ -181,17 +160,9 @@ templ (c *listControls) sortOptions() {
 				<el-selectedcontent class="truncate">
 					{ currentSort.String() }
 				</el-selectedcontent>
-				<svg
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="currentColor"
-					class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"
-				>
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
-				</svg>
+				@tableroutline.ChevronDown(templ.Attributes{
+					"class":       "size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"aria-hidden": "true"})
 			</button>
 			<el-options
 				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
@@ -216,20 +187,8 @@ templ sortOption(sort, current models.Sort) {
 		<li class="group/option pr-5">
 			<div>
 				<span class={ "block truncate font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
-				<span class={ "absolute inset-y-0 right-0 flex items-center text-accent ", templ.KV("hidden",sort != current) }>
-					<svg
-						class="size-5"
-						aria-hidden="true"
-						data-slot="icon"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-					>
-						<path
-							clip-rule="evenodd"
-							d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-							fill-rule="evenodd"
-						></path>
-					</svg>
+				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent ", templ.KV("hidden",sort != current) }>
+					@tableroutline.Check(templ.Attributes{"class": "size-5"})
 				</span>
 			</div>
 		</li>

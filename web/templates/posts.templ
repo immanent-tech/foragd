@@ -120,7 +120,7 @@ templ Post(post *models.MarkdownFile) {
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
 				// Show a subtle reading progress bar across the top of the article.
 				@partials.ReadingProgress()
-				<div class="flex flex-1 items-center space-x-2 justify-self-end text-sm/6 text-neutral">
+				<div class="flex flex-1 flex-separated items-center space-x-2 justify-self-end text-sm/6 text-neutral">
 					<time
 						datetime={ post.Frontmatter.GetCreatedDate() }
 						itemprop="datePublished"
@@ -128,9 +128,6 @@ templ Post(post *models.MarkdownFile) {
 						Created: { post.Frontmatter.GetCreatedDate() }
 					</time>
 					if post.Frontmatter.UpdatedAt != nil {
-						<svg viewBox="0 0 2 2" class="size-0.5 flex-none fill-neutral">
-							<circle r="1" cx="1" cy="1"></circle>
-						</svg>
 						<time
 							datetime={ *post.Frontmatter.UpdatedAt }
 							itemprop="dateModified"

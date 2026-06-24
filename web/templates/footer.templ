@@ -3,7 +3,10 @@
 
 package templates
 
-import "time"
+import (
+	tabler "github.com/dimmerz92/go-icons/tabler-outline"
+	"time"
+)
 
 templ FooterExternal() {
 	<footer class="footer bg-base-200 p-10 text-base-content sm:footer-horizontal">
@@ -24,55 +27,15 @@ templ FooterExternal() {
 		<nav>
 			<h3 class="footer-title">Connect</h3>
 			<a href="https://github.com/immanent-tech/foragd" rel="me" class="flex link items-center link-hover">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="icon icon-tabler icons-tabler-outline icon-tabler-brand-github"
-					aria-hidden="true"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"></path>
-				</svg>
+				@tabler.BrandGithub(templ.Attributes{"aria-hidden": "true"})
 				<span>Github</span>
 			</a>
 			<a href="/contact" rel="me" class="flex link items-center link-hover">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="icon icon-tabler icons-tabler-outline icon-tabler-world"
-				>
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M3.6 9h16.8"></path><path d="M3.6 15h16.8"></path><path d="M11.5 3a17 17 0 0 0 0 18"></path><path d="M12.5 3a17 17 0 0 1 0 18"></path>
-				</svg>
+				@tabler.World(templ.Attributes{"aria-hidden": "true"})
 				<span>Contact us</span>
 			</a>
 			<a href="https://github.com/immanent-tech/foragd/security" class="flex link items-center link-hover">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="icon icon-tabler icons-tabler-outline icon-tabler-lock-exclamation"
-				>
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M15 21h-8a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2h10a2 2 0 0 1 1.734 1.002"></path><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"></path><path d="M8 11v-4a4 4 0 1 1 8 0v4"></path><path d="M19 16v3"></path><path d="M19 22v.01"></path>
-				</svg>
+				@tabler.LockExclamation(templ.Attributes{"aria-hidden": "true"})
 				<span>Report Security Issues</span>
 			</a>
 			<a

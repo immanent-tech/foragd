@@ -4,6 +4,8 @@
 package templates
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-filled"
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"strings"
@@ -30,9 +32,9 @@ templ Dock(options ...element.PropertiesOption) {
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-home size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.707 2.293l9 9c.63 .63 .184 1.707 -.707 1.707h-1v6a3 3 0 0 1 -3 3h-1v-7a3 3 0 0 0 -2.824 -2.995l-.176 -.005h-2a3 3 0 0 0 -3 3v7h-1a3 3 0 0 1 -3 -3v-6h-1c-.89 0 -1.337 -1.077 -.707 -1.707l9 -9a1 1 0 0 1 1.414 0m.293 11.707a1 1 0 0 1 1 1v7h-4v-7a1 1 0 0 1 .883 -.993l.117 -.007z"></path>
-				</svg>
+				@tablerfilled.Home(templ.Attributes{
+					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only font-display">Home</span>
 		</a>
@@ -50,9 +52,9 @@ templ Dock(options ...element.PropertiesOption) {
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
-				</svg>
+				@tableroutline.Rss(templ.Attributes{
+					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only font-display">Subscriptions</span>
 		</a>
@@ -72,9 +74,9 @@ templ Dock(options ...element.PropertiesOption) {
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z"></path>
-				</svg>
+				@tablerfilled.FileRss(templ.Attributes{
+					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only font-display">Articles</span>
 		</a>
@@ -89,9 +91,9 @@ templ Dock(options ...element.PropertiesOption) {
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
-				</svg>
+				@tablerfilled.Heart(templ.Attributes{
+					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only font-display">Favorites</span>
 		</a>
@@ -106,18 +108,9 @@ templ Dock(options ...element.PropertiesOption) {
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
 			<span class="hide-loading items-center">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]"
-				><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
+				@tableroutline.Plus(templ.Attributes{
+					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only font-display">Add</span>
 		</a>

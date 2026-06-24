@@ -18,7 +18,8 @@
   "scripts": {
     "build:prod": "parcel build --no-source-maps --target frontend",
     "build:dev": "parcel build --no-optimize --target frontend",
-    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
+    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web",
+    "css:generate": "sed \"s|__GOPATH__|$(go env GOPATH)|g\" web/assets/styles_tmpl.css > web/assets/styles.css"
   },
   "dependencies": {
     "@github/relative-time-element": "^5.2.0",

@@ -4,6 +4,7 @@
 package templates
 
 import (
+	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -137,11 +138,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 										Searching
 									</span>
 									<span class="hide-loading">
-										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search">
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
-											<path d="M21 21l-6 -6"></path>
-										</svg>
+										@tabler.Search(templ.Attributes{"aria-hidden": "true"})
 										<span class="text-sm/6">Search</span>
 									</span>
 								</button>
@@ -200,12 +197,8 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<button type="button" command="--toggle" commandfor="advanced-usage-info" class="flex w-full items-start justify-between text-left">
 						<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Advanced Usage</h2>
 						<span class="ml-6 flex h-7 items-center">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
-								<path d="M12 6v12m6-6H6" stroke-linecap="round" stroke-linejoin="round"></path>
-							</svg>
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
-								<path d="M18 12H6" stroke-linecap="round" stroke-linejoin="round"></path>
-							</svg>
+							@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden"})
+							@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden"})
 						</span>
 					</button>
 					<el-disclosure id="advanced-usage-info" class="contents" hidden>
@@ -304,9 +297,7 @@ templ ViewerResults(feed *models.Feed) {
 						class="btn flex link items-center link-hover btn-primary"
 					>
 						View Website
-						<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
-						</svg>
+						@tabler.ExternalLink()
 					</a>
 				</div>
 			</div>
@@ -424,9 +415,7 @@ templ viewerItemCard(item *models.Item) {
 					class="btn flex link items-center link-hover btn-primary"
 				>
 					View
-					<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
-					</svg>
+					@tabler.ExternalLink()
 				</a>
 			</div>
 		</div>

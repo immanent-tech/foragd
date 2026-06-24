@@ -4,6 +4,7 @@
 package templates
 
 import (
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -121,49 +122,49 @@ templ showSubscriptionPlans(request *models.CheckoutRequest) {
 										<ul class="mt-3 space-y-3">
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												3000 subscriptions.
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												50 email newsletters.
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												Fetch remote article content.
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												Add favorite subscriptions and articles.
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												Group subscriptions (combine multiple feeds into one).
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												Search subscriptions (save search results as a subscription).
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												Full text search through articles.
 											</li>
 											<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95">
 												<span class="inline-flex h-6 items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-check size-4"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0"></path></svg>
+													@tableroutline.Check(templ.Attributes{"class": "size-4 shrink-0 text-accent", "aria-hidden": "true"})
 												</span>
 												No ads, no recommended content, ever.
 											</li>

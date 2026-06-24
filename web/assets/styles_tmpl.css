@@ -1,5 +1,5 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
-@source '/home/vscode/go/pkg/mod/github.com/dimmerz92/go-icons@*/tabler-*/*.{go,templ}';
+@source '__GOPATH__/pkg/mod/github.com/dimmerz92/go-icons@*/tabler-*/*.{go,templ}';
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
 @plugin 'tailwindcss-visibility';

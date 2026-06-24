@@ -4,6 +4,7 @@
 package templates
 
 import (
+	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -14,9 +15,7 @@ templ HeaderExternal() {
 			<div class="flex lg:hidden">
 				<button aria-label="Open main menu" type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
 					<span class="sr-only">Open menu</span>
-					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary">
-						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
-					</svg>
+					@tabler.Menu2(templ.Attributes{"class": "icon text-primary", "aria-hidden": "true"})
 				</button>
 			</div>
 			<div class="hidden lg:flex lg:gap-x-12">
@@ -44,9 +43,7 @@ templ HeaderExternal() {
 							</a>
 							<button aria-label="Close menu" type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
 								<span class="sr-only">Close menu</span>
-								<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-x text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
-								</svg>
+								@tabler.X(templ.Attributes{"class": "icon text-primary", "aria-hidden": "true"})
 							</button>
 						</div>
 						<div class="mt-6 flow-root">
@@ -101,46 +98,14 @@ templ HeaderInternal(props *InternalLayoutProps) {
 					// Display a clickable warning popover to indicate the user's trial has expired and they need to purchase a subscription.
 					if !props.User.InTrial() && props.User.InTrialGracePeriod() {
 						<button popovertarget="trial-grace-period" type="button" class="btn btn-warning btn-square">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle text-warning-content"
-							>
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-								<path d="M12 9v4"></path>
-								<path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path>
-								<path d="M12 16h.01"></path>
-							</svg>
+							@tabler.AlertTriangle(templ.Attributes{"class": "icon text-warning-content"})
 						</button>
 						<el-popover popover id="trial-grace-period" anchor="bottom end" class="rounded-box [--anchor-gap:--spacing(2.5)]">
 							<div role="alert" class="alert alert-warning">
 								<div class="grid grid-cols-3">
-									<div class="col-span-full flex items-center">
+									<div class="col-span-full flex items-center gap-x-2">
 										<div class="shrink-0">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle text-warning-content"
-											>
-												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-												<path d="M12 9v4"></path>
-												<path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path>
-												<path d="M12 16h.01"></path>
-											</svg>
+											@tabler.AlertTriangle(templ.Attributes{"class": "icon text-warning-content"})
 										</div>
 										<span>
 											Warning: Your trial has expired and your access will be removed within the next seven
@@ -168,22 +133,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									hx-target={ ContentID.Target() }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-settings text-accent"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"></path>
-											<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
-										</svg>
+										@tabler.Settings(templ.Attributes{"class": "text-accent", "aria-hidden": "true"})
 										Settings
 									</div>
 								</a>
@@ -197,26 +147,8 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									hx-replace-url="true"
 								>
 									<div class="flex flex-1 items-center gap-x-2">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-lifebuoy text-accent"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
-											<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-											<path d="M15 15l3.35 3.35"></path>
-											<path d="M9 15l-3.35 3.35"></path>
-											<path d="M5.65 5.65l3.35 3.35"></path>
-											<path d="M18.35 5.65l-3.35 3.35"></path>
-										</svg> Help/Documentation
+										@tabler.Lifebuoy(templ.Attributes{"class": "text-accent", "aria-hidden": "true"})
+										Help/Documentation
 									</div>
 								</a>
 							}
@@ -225,24 +157,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									href="/changelog"
 								>
 									<div class="flex flex-1 items-center gap-x-2">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-transform text-accent"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M3 6a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
-											<path d="M21 11v-3a2 2 0 0 0 -2 -2h-6l3 3m0 -6l-3 3"></path>
-											<path d="M3 13v3a2 2 0 0 0 2 2h6l-3 -3m0 6l3 -3"></path>
-											<path d="M15 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
-										</svg>
+										@tabler.Transform(templ.Attributes{"class": "text-accent", "aria-hidden": "true"})
 										Changelog
 									</div>
 								</a>
@@ -255,22 +170,8 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									hx-replace-url="true"
 								>
 									<div class="flex flex-1 items-center gap-x-2">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-flag text-accent"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9"></path>
-											<path d="M5 21v-7"></path>
-										</svg> Report an issue
+										@tabler.Flag(templ.Attributes{"class": "text-accent", "aria-hidden": "true"})
+										Report an issue
 									</div>
 								</a>
 							}
@@ -285,23 +186,8 @@ templ HeaderInternal(props *InternalLayoutProps) {
 								"
 								>
 									<div class="flex flex-1 items-center gap-x-2">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											class="icon icon-tabler icons-tabler-outline icon-tabler-logout text-accent"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-											<path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-											<path d="M9 12h12l-3 -3"></path>
-											<path d="M18 15l3 -3"></path>
-										</svg> Log out
+										@tabler.Logout(templ.Attributes{"class": "text-accent", "aria-hidden": "true"})
+										Log out
 									</div>
 								</a>
 							}
