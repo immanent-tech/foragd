@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.167"
-date      = "June 19, 2026"
-type      = "patch"
+version   = "v0.169"
+date      = "June 25, 2026"
+type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+More subtle buttons and icons on subscriptions/articles list pages.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Better layout of stats when stats are shown on subscription cards.
+"""
+
+[[releases]]
+version = "v0.167"
+date    = "June 19, 2026"
+type    = "patch"
 [[releases.changes]]
 type = "improved"
 description = """
