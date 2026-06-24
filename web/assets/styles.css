@@ -80,6 +80,15 @@
       filter: brightness(1);
     }
   }
+
+  @keyframes anchor-flash {
+    0% {
+      background-color: var(--color-accent) / 30%;
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
 }
 
 /* Use page view transitions. */
@@ -315,6 +324,10 @@
   }
   .brightness-brighten {
     animation: brighten 300ms ease-in-out forwards;
+  }
+
+  .anchor-highlight {
+    animation: anchor-flash 1.8s ease-out;
   }
 }
 

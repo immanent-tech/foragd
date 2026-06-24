@@ -207,14 +207,24 @@ templ AccountSettings(user *models.User) {
 			switch  {
 				case user.InTrial(),user.InTrialGracePeriod():
 					<div class="col-span-full mt-8 place-self-end">
-						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<a
+						<div class="mt-2 sm:mt-0 flex items-center justify-end gap-x-6">
+							<button
 								role="button"
 								class="btn btn-primary"
 								hx-get="/checkout"
 								hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
 								hx-target={ ContentID.Target() }
-							>Purchase a subscription</a>
+							>
+								Purchase a subscription
+							</button>
+							@androidRestorePurchaseScript()
+							<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+								<button
+									role="button"
+									class="btn btn-secondary"
+									onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
+								>Restore purchases</button>
+							</div>
 						</div>
 					</div>
 				default:
@@ -240,6 +250,7 @@ templ AccountSettings(user *models.User) {
 					</div>
 			}
 		</div>
+		<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
 		// Account customisation.
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">

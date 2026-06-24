@@ -94,6 +94,79 @@ templ androidPurchaseScript() {
 	</script>
 }
 
+templ androidRestorePurchaseScript() {
+	<script id="restore-android-purchase" nonce={ templ.GetNonce(ctx) }>
+	async function restoreAndroidPurchases() {
+	const statusEl = document.getElementById('restore-status');
+
+	if (!('getDigitalGoodsService' in window)) {
+		statusEl.textContent = 'Restore is only available in the Android app.';
+		return;
+	}
+
+	statusEl.textContent = 'Checking for purchases…';
+
+	let service;
+	try {
+		service = await window.getDigitalGoodsService('https://play.google.com/billing');
+	} catch (e) {
+		console.error('getDigitalGoodsService failed:', e);
+		statusEl.textContent = 'Could not connect to Play Billing.';
+		return;
+	}
+
+	let purchases;
+	try {
+		purchases = await service.listPurchases();
+	} catch (e) {
+		console.error('listPurchases failed:', e);
+		statusEl.textContent = 'Could not retrieve purchase history.';
+		return;
+	}
+
+	if (!purchases || purchases.length === 0) {
+		statusEl.textContent = 'No purchases found for this Google account.';
+		return;
+	}
+
+	statusEl.textContent = `Found ${purchases.length} purchase(s). Restoring…`;
+
+	let restoredAny = false;
+
+	for (const purchase of purchases) {
+		// purchase.itemId is the SKU, purchase.purchaseToken / purchase.token
+		// is the token — the Digital Goods API names this `purchaseToken`
+		const sku = purchase.itemId;
+		const token = purchase.purchaseToken;
+
+		try {
+			const res = await fetch('/checkout', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: `sku=${encodeURIComponent(sku)}&purchaseToken=${encodeURIComponent(token)}&subscription_type=android`,
+				redirect: 'follow',
+			});
+
+			if (res.ok) {
+				restoredAny = true;
+			} else {
+				console.warn('restore failed for sku', sku, 'status', res.status);
+			}
+		} catch (e) {
+			console.error('restore request failed for sku', sku, e);
+		}
+	}
+
+	if (restoredAny) {
+		statusEl.textContent = 'Purchases restored. Reloading…';
+		window.location.reload();
+	} else {
+		statusEl.textContent = 'No purchases could be restored. Contact support if this seems wrong.';
+	}
+}
+</script>
+}
+
 templ androidPreCheckout() {
 	@androidPurchaseScript()
 }

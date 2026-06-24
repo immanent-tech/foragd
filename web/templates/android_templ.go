@@ -158,7 +158,7 @@ func androidPurchaseScript() templ.Component {
 	})
 }
 
-func androidPreCheckout() templ.Component {
+func androidRestorePurchaseScript() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -177,6 +177,48 @@ func androidPreCheckout() templ.Component {
 		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
 		if templ_7745c5c3_Var9 == nil {
 			templ_7745c5c3_Var9 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<script id=\"restore-android-purchase\" nonce=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/android.templ`, Line: 98, Col: 66}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\">\n\tasync function restoreAndroidPurchases() {\n\tconst statusEl = document.getElementById('restore-status');\n\n\tif (!('getDigitalGoodsService' in window)) {\n\t\tstatusEl.textContent = 'Restore is only available in the Android app.';\n\t\treturn;\n\t}\n\n\tstatusEl.textContent = 'Checking for purchases…';\n\n\tlet service;\n\ttry {\n\t\tservice = await window.getDigitalGoodsService('https://play.google.com/billing');\n\t} catch (e) {\n\t\tconsole.error('getDigitalGoodsService failed:', e);\n\t\tstatusEl.textContent = 'Could not connect to Play Billing.';\n\t\treturn;\n\t}\n\n\tlet purchases;\n\ttry {\n\t\tpurchases = await service.listPurchases();\n\t} catch (e) {\n\t\tconsole.error('listPurchases failed:', e);\n\t\tstatusEl.textContent = 'Could not retrieve purchase history.';\n\t\treturn;\n\t}\n\n\tif (!purchases || purchases.length === 0) {\n\t\tstatusEl.textContent = 'No purchases found for this Google account.';\n\t\treturn;\n\t}\n\n\tstatusEl.textContent = `Found ${purchases.length} purchase(s). Restoring…`;\n\n\tlet restoredAny = false;\n\n\tfor (const purchase of purchases) {\n\t\t// purchase.itemId is the SKU, purchase.purchaseToken / purchase.token\n\t\t// is the token — the Digital Goods API names this `purchaseToken`\n\t\tconst sku = purchase.itemId;\n\t\tconst token = purchase.purchaseToken;\n\n\t\ttry {\n\t\t\tconst res = await fetch('/checkout', {\n\t\t\t\tmethod: 'POST',\n\t\t\t\theaders: { 'Content-Type': 'application/x-www-form-urlencoded' },\n\t\t\t\tbody: `sku=${encodeURIComponent(sku)}&purchaseToken=${encodeURIComponent(token)}&subscription_type=android`,\n\t\t\t\tredirect: 'follow',\n\t\t\t});\n\n\t\t\tif (res.ok) {\n\t\t\t\trestoredAny = true;\n\t\t\t} else {\n\t\t\t\tconsole.warn('restore failed for sku', sku, 'status', res.status);\n\t\t\t}\n\t\t} catch (e) {\n\t\t\tconsole.error('restore request failed for sku', sku, e);\n\t\t}\n\t}\n\n\tif (restoredAny) {\n\t\tstatusEl.textContent = 'Purchases restored. Reloading…';\n\t\twindow.location.reload();\n\t} else {\n\t\tstatusEl.textContent = 'No purchases could be restored. Contact support if this seems wrong.';\n\t}\n}\n</script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func androidPreCheckout() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = androidPurchaseScript().Render(ctx, templ_7745c5c3_Buffer)

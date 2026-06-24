@@ -75,6 +75,13 @@ func HandleAndroidPurchase() http.HandlerFunc {
 		}
 
 		if user.HasValidSubscription() {
+			sub, err := user.Subscription.AsAndroidSubscription()
+			if err == nil && sub.PurchaseToken == req.FormValue("purchaseToken") {
+				// Restore of an already-active, already-matching subscription — no-op success.
+				http.Redirect(res, req, "/checkout/success", http.StatusSeeOther)
+				return
+			}
+
 			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: errors.New("user has existing subscription"),
 				StatusCode:    http.StatusUnprocessableEntity,
