@@ -407,8 +407,8 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 				<p class="mt-1 max-w-2xl text-sm/6">Optional filtering of articles.</p>
 			</div>
 			<span class="ml-6 flex h-7 items-center">
-				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 			</span>
 		</button>
 		@partials.FormSection() {
@@ -709,8 +709,8 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 						<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 					</div>
 					<span class="ml-6 flex h-7 items-center">
-						@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-						@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+						@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+						@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 					</span>
 				</button>
 				@partials.FormSection() {
@@ -776,8 +776,8 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 							<p class="mt-1 max-w-2xl text-sm/6">Additional subscription settings/tweaks.</p>
 						</div>
 						<span class="ml-6 flex h-7 items-center">
-							@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-							@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+							@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+							@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 						</span>
 					</button>
 					@partials.FormSection() {
@@ -1092,8 +1092,8 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									<p class="mt-1 max-w-2xl text-sm/6">Add additional filters to the search.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 								</span>
 							</button>
 							@partials.FormSection() {
@@ -1225,8 +1225,8 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 								</span>
 							</button>
 							@partials.FormSection() {
@@ -1421,8 +1421,8 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
 								<span class="ml-6 flex h-7 items-center">
-									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+									@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+									@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 								</span>
 							</button>
 							@partials.FormSection() {

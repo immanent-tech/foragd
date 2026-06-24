@@ -21,8 +21,8 @@ templ FormDisclosure(label string) {
 	<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
 		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">{ label }</h3>
 		<span class="ml-6 flex h-7 items-center">
-			@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden"})
-			@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden"})
+			@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden", "aria-label": "Expand content"})
+			@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 		</span>
 	</button>
 	<el-disclosure hidden id="customisation">

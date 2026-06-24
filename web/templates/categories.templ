@@ -21,8 +21,8 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 				<p class="mt-1 max-w-2xl text-sm/6">Add/remove categories to the subscription.</p>
 			</div>
 			<span class="ml-6 flex h-7 items-center">
-				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"})
-				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"})
+				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 			</span>
 		</button>
 		@partials.FormSection() {

@@ -47,11 +47,11 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
