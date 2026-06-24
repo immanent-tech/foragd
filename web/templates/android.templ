@@ -151,9 +151,13 @@ templ androidRestorePurchaseScript() {
 				restoredAny = true;
 			} else {
 				console.warn('restore failed for sku', sku, 'status', res.status);
+				const html = await res.text();
+    			htmx.swap("#content", html, { swapStyle: 'none' });
 			}
 		} catch (e) {
 			console.error('restore request failed for sku', sku, e);
+			const html = await res.text();
+   			htmx.swap("#content", html, { swapStyle: 'none' });
 		}
 	}
 
