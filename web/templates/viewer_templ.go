@@ -183,11 +183,11 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden", "aria-label": "Expand content"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden", "aria-label": "Collapse content"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

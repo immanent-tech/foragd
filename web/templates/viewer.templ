@@ -197,8 +197,8 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<button type="button" command="--toggle" commandfor="advanced-usage-info" class="flex w-full items-start justify-between text-left">
 						<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Advanced Usage</h2>
 						<span class="ml-6 flex h-7 items-center">
-							@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden"})
-							@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden"})
+							@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden", "aria-label": "Expand content"})
+							@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
 						</span>
 					</button>
 					<el-disclosure id="advanced-usage-info" class="contents" hidden>
