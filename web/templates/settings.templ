@@ -217,8 +217,8 @@ templ AccountSettings(user *models.User) {
 							>
 								Purchase a subscription
 							</button>
-							@androidRestorePurchaseScript()
 							<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+								@androidRestorePurchaseScript()
 								<button
 									role="button"
 									class="btn btn-secondary"
@@ -230,21 +230,32 @@ templ AccountSettings(user *models.User) {
 				default:
 					<div class="col-span-full mt-8 place-self-end">
 						<div class="mt-2 flex items-center justify-end gap-x-6">
-							if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
-								{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
-								<a
-									role="button"
-									class="btn btn-primary"
-									href="/contact"
-								>Contact Us</a>
-							} else {
-								<a
-									role="button"
-									class="btn btn-primary"
-									target="_blank"
-									rel="noopener"
-									href={ mgmtLink }
-								>Manage Subscription Plan</a>
+							switch *user.UserSubscriptionType {
+								case models.UserSubscriptionTypePaddle:
+									if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
+										{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
+										<a
+											role="button"
+											class="btn btn-primary"
+											href="/contact"
+										>Contact Us</a>
+									} else {
+										<a
+											role="button"
+											class="btn btn-primary"
+											target="_blank"
+											rel="noopener"
+											href={ mgmtLink }
+										>Manage Subscription Plan</a>
+									}
+								case models.UserSubscriptionTypeAndroid:
+									<a
+										role="button"
+										class="btn btn-primary"
+										target="_blank"
+										rel="noopener"
+										href="https://play.google.com/store/account/subscriptions"
+									>Manage Subscription Plan</a>
 							}
 						</div>
 					</div>

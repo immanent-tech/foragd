@@ -166,6 +166,8 @@ templ androidRestorePurchaseScript() {
 		window.location.reload();
 	} else {
 		statusEl.textContent = 'No purchases could be restored. Contact support if this seems wrong.';
+		const html = await res.text()
+		htmx.swap("#content", html, { swapStyle: 'innerHTML' });
 	}
 }
 </script>

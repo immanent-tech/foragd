@@ -58,7 +58,7 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 	}
 }
 
-// HandleAndroidPurchase  receives a purchaseToken from the client and verifies it server-side.
+// HandleAndroidPurchase receives a purchaseToken from the client and verifies it server-side.
 func HandleAndroidPurchase() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
@@ -74,6 +74,8 @@ func HandleAndroidPurchase() http.HandlerFunc {
 			return
 		}
 
+		// If the user already has a valid subscription and its an android subscription, redirect to restore the
+		// purchase (no-op if not needed). If it is not an android subscription, error.
 		if user.HasValidSubscription() {
 			sub, err := user.Subscription.AsAndroidSubscription()
 			if err == nil && sub.PurchaseToken == req.FormValue("purchaseToken") {
@@ -124,7 +126,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 
 		// Check token hasn't already been granted.
 		granted, err := android.TokenAlreadyGranted(req.Context(), token)
-		if err != nil {
+		if err != nil && !errors.Is(err, android.ErrNotFound) {
 			HandleInternalError(req.Referer(), &models.APIError{
 				InternalError: fmt.Errorf("handle purchase: check for existing token %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -161,7 +163,6 @@ func HandleAndroidPurchase() http.HandlerFunc {
 		}
 
 		slogctx.Info(req.Context(), "Verifying purchase.",
-			slog.String("user_id", user.GetID()),
 			slog.String("sku", sku),
 		)
 

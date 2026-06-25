@@ -81,6 +81,7 @@ func HandlePurchaseSubscription() http.HandlerFunc {
 	androidPurchase := HandleAndroidPurchase()
 
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Pre-parse form data and fail early if there is no form submission.
 		if err := req.ParseForm(); err != nil {
 			res.WriteHeader(http.StatusBadRequest)
 			RenderPartial(
@@ -93,6 +94,7 @@ func HandlePurchaseSubscription() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+		// Handle different checkout options as appropriate.
 		switch req.FormValue("subscription_type") {
 		case "paddle":
 			slogctx.Info(req.Context(), "Processing web subscription purchases.")

@@ -13,6 +13,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 	"google.golang.org/api/androidpublisher/v3"
+	"google.golang.org/api/option"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -48,7 +49,6 @@ var loadConfig = sync.OnceValue(func() error {
 		return fmt.Errorf("validate config: %w", err)
 	}
 
-	slog.Info("Android Billing config loaded.") //nolint:sloglint // we don't pass a context.
 	return nil
 })
 
@@ -77,7 +77,9 @@ func StartClient(ctx context.Context) error {
 		return fmt.Errorf("load config: %w", err)
 	}
 	var err error
-	client, err = androidpublisher.NewService(ctx)
+	client, err = androidpublisher.NewService(ctx,
+		option.WithScopes(androidpublisher.AndroidpublisherScope),
+	)
 	if err != nil {
 		return fmt.Errorf("load android billing: %w", err)
 	}

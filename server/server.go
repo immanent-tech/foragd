@@ -51,15 +51,13 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
-	if config.IsProduction() {
-		// Start the error client.
-		if err := gcp.InitErrorClient(ctx); err != nil {
-			return fmt.Errorf("init error client: %w", err)
-		}
-		// Set up the androidpublisher client for Google Play billing.
-		if err := android.StartClient(ctx); err != nil {
-			return fmt.Errorf("start androidpublisher client: %w", err)
-		}
+	// Start the error client.
+	if err := gcp.InitErrorClient(ctx); err != nil {
+		return fmt.Errorf("init error client: %w", err)
+	}
+	// Set up the androidpublisher client for Google Play billing.
+	if err := android.StartClient(ctx); err != nil {
+		return fmt.Errorf("start androidpublisher client: %w", err)
 	}
 
 	// Set up the session manager.
@@ -208,7 +206,7 @@ func Start(logger *slog.Logger) error {
 			)
 			r.Route("/checkout", func(r chi.Router) {
 				r.Get("/", handlers.HandleChooseSubscription())
-				r.With(middlewares.RequireHTMX).Post("/", handlers.HandlePurchaseSubscription())
+				r.Post("/", handlers.HandlePurchaseSubscription())
 				r.Get("/success", handlers.HandlePurchaseSubscriptionSuccess())
 			})
 		})
