@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.169"
+version   = "v0.170"
 date      = "June 25, 2026"
-type      = "minor"
+type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Add a button to edit the subscription when viewing all articles from a subscription.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Added a blog post about article filtering.
+"""
 [[releases.changes]]
 type = "improved"
 description = """
@@ -14,6 +24,11 @@ More subtle buttons and icons on subscriptions/articles list pages.
 type = "improved"
 description = """
 Better layout of stats when stats are shown on subscription cards.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+When clicking on a category badge on an article to filter by that category, the articles will be filtered to the category and that subscription, not all subscriptions.
 """
 
 [[releases]]
