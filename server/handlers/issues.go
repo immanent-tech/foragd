@@ -122,14 +122,18 @@ func HandleSubmitIssue() http.HandlerFunc {
 
 		// Build issue body.
 		var bodyBuilder strings.Builder
-		bodyBuilder.WriteString("User ID: " + user.GetID())
+		bodyBuilder.WriteString("User ID: ")
+		bodyBuilder.WriteString(user.GetID())
 		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString("Contact Email: " + request.UserEmail)
+		bodyBuilder.WriteString("Contact Email: ")
+		bodyBuilder.WriteString(request.UserEmail)
 		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString("Page URL: " + request.PageUrl)
+		bodyBuilder.WriteString("Page URL: ")
+		bodyBuilder.WriteString(request.PageUrl)
 		bodyBuilder.WriteRune('\n')
 		if request.ObjectID != nil && *request.ObjectID != "" {
-			bodyBuilder.WriteString("Object ID: " + *request.ObjectID)
+			bodyBuilder.WriteString("Object ID: ")
+			bodyBuilder.WriteString(*request.ObjectID)
 			bodyBuilder.WriteRune('\n')
 		}
 		if request.Details != nil {
@@ -140,7 +144,9 @@ func HandleSubmitIssue() http.HandlerFunc {
 			bodyBuilder.WriteRune('\n')
 		}
 		if request.ScreenshotURL != nil {
-			bodyBuilder.WriteString("![](" + screenshotURL + ")")
+			bodyBuilder.WriteString("![](")
+			bodyBuilder.WriteString(screenshotURL)
+			bodyBuilder.WriteString(")")
 			bodyBuilder.WriteRune('\n')
 		}
 
