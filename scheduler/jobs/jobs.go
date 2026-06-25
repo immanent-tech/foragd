@@ -17,7 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	gcp "github.com/immanent-tech/foragd/providers/google"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 )
 
 var (
@@ -164,9 +164,9 @@ func safeExecute(
 			// Log to GCP error console.
 			switch v := rvr.(type) {
 			case error:
-				gcp.ReportError(ctx, v)
+				gerror.ReportError(ctx, v)
 			default:
-				gcp.ReportError(ctx, fmt.Errorf("panic: %v", v))
+				gerror.ReportError(ctx, fmt.Errorf("panic: %v", v))
 			}
 		}
 	}()

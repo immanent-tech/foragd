@@ -20,8 +20,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
-	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/providers/google/android"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -52,11 +52,11 @@ func Start(logger *slog.Logger) error {
 	}
 
 	// Start the error client.
-	if err := gcp.InitErrorClient(ctx); err != nil {
+	if err := gerror.Init(); err != nil {
 		return fmt.Errorf("init error client: %w", err)
 	}
 	// Set up the androidpublisher client for Google Play billing.
-	if err := android.StartClient(ctx); err != nil {
+	if err := android.Init(); err != nil {
 		return fmt.Errorf("start androidpublisher client: %w", err)
 	}
 

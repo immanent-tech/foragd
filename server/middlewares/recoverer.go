@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 
-	gcp "github.com/immanent-tech/foragd/providers/google"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 )
 
 // Recoverer is a modified version of the standard chi Recoverer middleware that additional logs to the GCP error
@@ -28,9 +28,9 @@ func Recoverer(next http.Handler) http.Handler {
 				// Log to GCP error console.
 				switch v := rvr.(type) {
 				case error:
-					gcp.ReportError(req.Context(), v)
+					gerror.ReportError(req.Context(), v)
 				default:
-					gcp.ReportError(req.Context(), fmt.Errorf("panic: %v", v))
+					gerror.ReportError(req.Context(), fmt.Errorf("panic: %v", v))
 				}
 
 				logEntry := middleware.GetLogEntry(req)

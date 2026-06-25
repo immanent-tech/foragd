@@ -13,7 +13,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	gcp "github.com/immanent-tech/foragd/providers/google"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -41,7 +41,7 @@ func HandleInternalError(referer string, err error) http.HandlerFunc {
 			apiErr.WriteLog(req.Context())
 			// For 500+ errors, log to GCP error console.
 			if apiErr.HTTPStatus() >= 500 {
-				gcp.ReportError(req.Context(), apiErr)
+				gerror.ReportError(req.Context(), apiErr)
 			}
 			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())
@@ -119,7 +119,7 @@ func HandleExternalError(err error) http.HandlerFunc {
 			apiErr.WriteLog(req.Context())
 			// For 500+ errors, log to GCP error console.
 			if apiErr.HTTPStatus() >= 500 {
-				gcp.ReportError(req.Context(), apiErr)
+				gerror.ReportError(req.Context(), apiErr)
 			}
 			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())

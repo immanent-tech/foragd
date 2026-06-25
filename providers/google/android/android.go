@@ -17,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -72,20 +73,21 @@ type Entitlement struct {
 
 var client *androidpublisher.Service
 
-func StartClient(ctx context.Context) error {
+//nolint:sloglint // no context passed.
+var Init = sync.OnceValue(func() error {
 	if err := loadConfig(); err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
 	var err error
-	client, err = androidpublisher.NewService(ctx,
+	client, err = androidpublisher.NewService(context.Background(),
 		option.WithScopes(androidpublisher.AndroidpublisherScope),
 	)
 	if err != nil {
 		return fmt.Errorf("load android billing: %w", err)
 	}
-	slogctx.FromCtx(ctx).Info("Android billing client created.")
+	slog.Info("Android billing client created.")
 	return nil
-}
+})
 
 func GetPriceID(frequency string) (string, error) {
 	if err := loadConfig(); err != nil {
@@ -131,7 +133,7 @@ func VerifyAndAcknowledgeSubscription(
 		Context(ctx).
 		Do()
 	if err != nil {
-		return nil, fmt.Errorf("verify subscription %s: %w", sku, err)
+		return nil, gcp.APIError("verify subscription", err)
 	}
 
 	// Check there is an actual item purchased.
@@ -189,7 +191,7 @@ func acknowledgeSubscriptionPurchase(ctx context.Context, pkg, sku, token string
 		pkg, sku, token,
 		&androidpublisher.SubscriptionPurchasesAcknowledgeRequest{},
 	).Context(ctx).Do(); err != nil {
-		return fmt.Errorf("acknowledge subscription purchase: %w", err)
+		return gcp.APIError("acknowledge subscription purchase", err)
 	}
 
 	return nil

@@ -4,52 +4,24 @@
 package gcp
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"log/slog"
-	"sync"
+	"net/http"
 
-	"cloud.google.com/go/errorreporting"
-	slogctx "github.com/veqryn/slog-context"
+	"google.golang.org/api/googleapi"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
 )
 
-var errorClient *errorreporting.Client
-
-var InitErrorClient = func(ctx context.Context) error {
-	err := sync.OnceValue(func() error {
-		cfg, err := LoadConfig()
-		if err != nil {
-			return fmt.Errorf("load config: %w", err)
-		}
-		errorClient, err = errorreporting.NewClient(ctx, cfg.ProjectID, errorreporting.Config{
-			ServiceName:    cfg.Service,
-			ServiceVersion: config.GetVersion(),
-			OnError: func(err error) {
-				slogctx.FromCtx(ctx).Error("Create new error client failed.", slog.Any("error", err))
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("load error reporting client: %w", err)
-		}
-		slogctx.FromCtx(ctx).Info("GCP error client created.")
-		return nil
-	})()
-	if err != nil {
-		return err
+// APIError wraps the error returned by a GCP API endpoint in a models.APIError.
+func APIError(desc string, err error) error {
+	if apiError, ok := errors.AsType[*googleapi.Error](err); ok {
+		return models.NewAPIError(apiError.Code,
+			fmt.Errorf("%s: %w", desc, apiError),
+		)
 	}
-	return nil
-}
-
-// ReportError reports an error to the Cloud Console. The error client autopopulates the error context of the error. For
-// more details about the context see: https://cloud.google.com/error-reporting/reference/rest/v1beta1/ErrorContext.
-func ReportError(ctx context.Context, rawErr error) {
-	if errorClient == nil {
-		slogctx.FromCtx(ctx).Warn("Unable to report error to google cloud console.")
-		return
-	}
-	errorClient.Report(errorreporting.Entry{
-		Error: rawErr,
-	})
+	return models.NewAPIError(
+		http.StatusInternalServerError,
+		fmt.Errorf("%s: %w", desc, err),
+	)
 }
