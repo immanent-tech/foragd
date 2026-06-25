@@ -640,7 +640,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				if len(response.Articles) > 0 {
 					<ul
 						id="list-actions"
-						class="menu menu-horizontal w-full flex justify-end"
+						class="menu menu-horizontal w-full flex justify-end gap-x-1"
 						if response.Subscription != nil {
 							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
 						}
@@ -687,6 +687,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										mark = models.MarkUnread
 									}
 								}}
+								// Mark subscription action.
 								<li>
 									<a
 										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
@@ -704,6 +705,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 											Mark all unread
 										}
+									</a>
+								</li>
+								// Edit subscription action.
+								<li>
+									{{ s := Subscription{Subscription: response.Subscription} }}
+									<a { s.editAttributes("/list/articles")... } class="rounded-field border border-neutral/15 text-sm">
+										@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+										Edit Subscription
 									</a>
 								</li>
 							}
