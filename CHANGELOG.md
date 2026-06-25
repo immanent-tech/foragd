@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.170.0](https://github.com/immanent-tech/foragd/compare/v0.169.1...v0.170.0) (2026-06-25)
+
+
+### Features
+
+* **blog:** ✨ add a blog post about article filtering ([bd8215b](https://github.com/immanent-tech/foragd/commit/bd8215bf4c863c9db3563a43d6017ba4ec20ad5b))
+* **templates/article:** ✨ add edit subscription action on article list when viewing articles from a single subscription ([95ffeb9](https://github.com/immanent-tech/foragd/commit/95ffeb9d50ba223943d277326de34aded45e1d9d))
+
+
+### Bug Fixes
+
+* **android:** 🔧 small fixes for android subscription processing ([eadb056](https://github.com/immanent-tech/foragd/commit/eadb0564f8aa24274efe006bfd53f462793f51a3))
+* **templates/article:** 🐛 include subscription when filtering by category after clicking category badge on article ([fd0d7e6](https://github.com/immanent-tech/foragd/commit/fd0d7e6b136d84728526277cfd9af1430ede65b9))
+
 ## [0.169.1](https://github.com/immanent-tech/foragd/compare/v0.169.0...v0.169.1) (2026-06-24)
 
 
