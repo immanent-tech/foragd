@@ -320,6 +320,7 @@ templ ArticleCard(idx int, a *models.Article) {
 						{{
 							filters := models.NewListDisplayFilters()
 							filters.Categories = append(filters.Categories, category)
+							filters.Subscriptions = []models.SubscriptionID{a.SubscriptionID}
 							var extraClasses string
 							// Only show the first three categories, hide all others behind a button toggle.
 							if idx >= 3 {
