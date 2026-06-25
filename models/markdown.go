@@ -3,13 +3,17 @@
 
 package models
 
-func (fm *MarkdownFrontMatter) GetCreatedDate() string {
-	return fm.CreatedAt
+import "time"
+
+func (fm *MarkdownFrontMatter) GetCreatedDate() time.Time {
+	created, _ := time.Parse(time.DateOnly, fm.CreatedAt)
+	return created
 }
 
-func (fm *MarkdownFrontMatter) GetUpdatedDate() string {
+func (fm *MarkdownFrontMatter) GetUpdatedDate() time.Time {
 	if fm.UpdatedAt != nil {
-		return *fm.UpdatedAt
+		updated, _ := time.Parse(time.DateOnly, *fm.UpdatedAt)
+		return updated
 	}
-	return ""
+	return time.Time{}
 }

@@ -33,11 +33,6 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 			{{ postsJSONLD := make([]map[string]any, 0, len(posts)) }}
 			@grid(element.WithClasses("masonry-grid", "relative", "my-12"),
 				element.WithAttribute("_", "install MasonryGrid")) {
-				// <div
-				// 	id="grid-objects"
-				// 	_="install MasonryGrid"
-				// 	class="relative masonry-grid grid grid-cols-1 gap-4 sm:grid-cols-2 p-2 mt-12"
-				// >
 				for idx, post := range posts {
 					// Create a post JSON-LD document.
 					{{
@@ -65,7 +60,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 					) {
 						<div>
 							if post.Frontmatter.Image != nil {
-								<figure>
+								<figure class="relative overflow-hidden rounded-t-[inherit]">
 									<img
 										src={ *post.Frontmatter.Image }
 										alt={ post.Frontmatter.Title }
@@ -76,6 +71,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 										}
 										width="400"
 										height="300"
+										class="w-full aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
 									/>
 								</figure>
 							}
@@ -92,13 +88,32 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 								<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
 							}
 							<p class="mt-4">{ post.Frontmatter.Description }</p>
+						}
+						@partials.CardFooter() {
 							<div class="card-actions justify-end">
-								<time datetime={ post.Frontmatter.GetCreatedDate() } class="label">{ post.Frontmatter.GetCreatedDate() }</time>
+								{{ var ts time.Time }}
+								{{ var tsPrefix string }}
+								if !post.Frontmatter.GetUpdatedDate().IsZero() {
+									{{ ts = post.Frontmatter.GetUpdatedDate() }}
+									{{ tsPrefix = "Updated" }}
+								} else {
+									{{ ts = post.Frontmatter.GetCreatedDate() }}
+									{{ tsPrefix = "Created" }}
+								}
+								<span class="text-xs/4 text-neutral capitalize tabular-nums">
+									{ tsPrefix }
+									<relative-time
+										datetime={ ts.Format(time.DateOnly) }
+										format="relative"
+										class="shrink-0"
+									>
+										{ ts.Format("Jan _2, 2006") }
+									</relative-time>
+								</span>
 							</div>
 						}
 					}
 				}
-				// </div>
 			}
 			// Add all the posts JSON-LD documents to the index document.
 			{{
@@ -142,20 +157,28 @@ templ Post(post *models.MarkdownFile) {
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
 				// Show a subtle reading progress bar across the top of the article.
 				@partials.ReadingProgress()
-				<div class="flex flex-1 flex-separated items-center justify-self-end text-sm/6 text-neutral">
-					<time
-						datetime={ post.Frontmatter.GetCreatedDate() }
-						itemprop="datePublished"
-					>
-						Created: { post.Frontmatter.GetCreatedDate() }
-					</time>
-					if post.Frontmatter.UpdatedAt != nil {
-						<time
-							datetime={ *post.Frontmatter.UpdatedAt }
-							itemprop="dateModified"
+				<div class="flex flex-1 flex-separated items-center justify-self-end">
+					<span class="text-xs/4 text-neutral capitalize tabular-nums">
+						Created
+						<relative-time
+							datetime={ post.Frontmatter.GetCreatedDate().Format(time.DateOnly) }
+							format="datetime"
+							class="shrink-0"
 						>
-							Updated: { *post.Frontmatter.UpdatedAt }
-						</time>
+							{ post.Frontmatter.GetCreatedDate().Format("Jan _2, 2006") }
+						</relative-time>
+					</span>
+					if !post.Frontmatter.GetUpdatedDate().IsZero() {
+						<span class="text-xs/4 text-neutral capitalize tabular-nums">
+							Updated
+							<relative-time
+								datetime={ post.Frontmatter.GetUpdatedDate().Format(time.DateOnly) }
+								format="datetime"
+								class="shrink-0"
+							>
+								{ post.Frontmatter.GetUpdatedDate().Format("Jan _2, 2006") }
+							</relative-time>
+						</span>
 					}
 				</div>
 				<h1

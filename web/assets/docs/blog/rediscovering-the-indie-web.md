@@ -1,7 +1,7 @@
 +++
 title = "Rediscovering the Indie Web"
 page_title = "Rediscovering the Indie Web"
-description = "Some starting points for rediscovering, personal blogs and sites, and escaping algorithmic social media"
+description = "Some starting points for rediscovering, personal blogs and sites, and escaping algorithmic social media."
 created_at = "2026-06-03"
 updated_at = "2026-06-25"
 image = "/content/images/blog/wall-map-of-the-world.webp"

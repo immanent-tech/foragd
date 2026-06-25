@@ -97,8 +97,14 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 			config.GetBaseURL()+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithSiteName(config.AppName),
-			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.GetCreatedDate()),
-			opengraph.WithAdditionalProperty("article:modified_time", p.Frontmatter.GetUpdatedDate()),
+			opengraph.WithAdditionalProperty(
+				"article:published_time",
+				p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+			),
+			opengraph.WithAdditionalProperty(
+				"article:modified_time",
+				p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
+			),
 		)),
 	)).ServeHTTP(res, req.WithContext(ctx))
 }
@@ -272,13 +278,6 @@ func HandlePostsFeed() http.HandlerFunc {
 			if err != nil {
 				continue
 			}
-			var published time.Time
-			if published, err = time.Parse(time.DateOnly, data.Frontmatter.GetCreatedDate()); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to parse published date of post.",
-					slog.String("file", post.File),
-					slog.Any("error", err),
-				)
-			}
 
 			// Generate item for post.
 			item := rss.NewItem(
@@ -291,7 +290,7 @@ func HandlePostsFeed() http.HandlerFunc {
 					URL:   config.GetBaseURL() + *data.Frontmatter.Image,
 				}),
 				rss.WithItemContent(data.Content),
-				rss.WithItemPublishedDate(published),
+				rss.WithItemPublishedDate(data.Frontmatter.GetCreatedDate()),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}

@@ -1,9 +1,9 @@
 +++
 title = "Clearing the Noise: Article Filtering in Foragd"
 page_title = "Clearing the Noise: Article Filtering in Foragd"
-description = "A deep dive into how to configure and use article filtering in Foragd"
-created_at = "2026-06-30"
-updated_at = "2026-06-30"
+description = "A deep dive into how to configure and use article filtering in Foragd."
+created_at = "2026-06-25"
+updated_at = "2026-06-25"
 image = "/content/images/blog/noise-to-signal.webp"
 author = "Joshua Rich"
 +++

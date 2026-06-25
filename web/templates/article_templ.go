@@ -845,7 +845,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
 					element.WithAttribute(loadingAttrKey, loadingAttrValue),
-					element.WithClasses("w-full", "aspect-[4/3]", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
+					element.WithClasses("w-full", "aspect-4/3", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
