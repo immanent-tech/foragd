@@ -9,8 +9,8 @@ author = "Joshua Rich"
 +++
 
 RSS and Atom feeds differ from social media in one fundamental way: you choose every source you see, and no algorithm,
-advertiser, or platform decides what appears in your feed. Social media centralises content under corporate control,
-filtering and promoting based on engagement and revenue. RSS and Atom are distributed, open standards; meaning any
+advertiser, or platform decides what appears in your feed. Social media centralizes content under corporate control,
+filtering, and promoting based on engagement and revenue. RSS and Atom are distributed, open standards; meaning any
 website can publish one, any feed reader can consume it, and the content arrives in the order it was published, unranked
 and unfiltered.
 
@@ -26,14 +26,14 @@ and unfiltered.
 ## Are RSS and Atom Feeds Dead?
 
 Most of us spend a lot of time on Social Media services like Facebook, X/Twitter, Reddit and others. You might not spend
-much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom pre-date most
+much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom predate most
 Social Media. But their usage and interest has declined over time as the web moved to be dominated by Social Media.
 [Google Trends](https://trends.google.com.au/trends/explore?date=all&q=%2Fm%2F0n5tx,%2Fm%2F0fch0p&hl=en-AU) doesn’t lie:
 
 <img src="/content/images/blog/rss-atom-social-media-trends.webp" alt="Screenshot from Google Trends of the keywords RSS and Social Media"/>
 
 While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that
-these feeds are dead or dying are greatly exaggerated. What is more likely, is that the information we see is driven by
+these feeds are dead or dying are greatly exaggerated. What is likelier, is that the information we see is driven by
 market forces that favor Social Media platforms
 [1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639).
 Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and
@@ -42,7 +42,7 @@ compare that to Social Media.
 ## What Is RSS and Atom?
 
 There are a lot of similarities between RSS, Atom, and Social Media. Both are based on posts of content from different
-people. Those posts are usually some kind of list (the “feed”), with recent posts at the top. With extensions, RSS and
+people. Those posts are usually some kind of list (the “feed”), with recent posts at the top. With extensions, RSS, and
 Atom can provide some similar features to Social Media, such as easy commenting and sharing.
 
 RSS and Atom are essentially files that contain the list of articles/posts in a machine-readable format. You put the
@@ -91,7 +91,7 @@ only allow the user-generated content to be filtered, not the promoted content. 
 ## Centralization
 
 The most popular Social Media services are run by companies and companies don’t like working together. As such, Social
-Media is fractured, and you most likely have multiple accounts across different services to track all the content you
+Media is fractured, and you likely have multiple accounts across different services to track all the content you
 are interested in.
 
 Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, it’s much
@@ -112,7 +112,7 @@ Probably the biggest argument for using RSS and Atom feeds is **freedom**:
 - **Freedom to choose sources you see**: you subscribe only to what you want, with no suggested or promoted content from
   an algorithm.
 - **Freedom to filter which bits of the content you see and don’t see**: most feed readers let you filter by keyword,
-  category, or source, including any promoted content within feeds..
+  category, or source, including any promoted content within feeds.
 - **Freedom to control how that content is displayed**: behind the scenes, feeds are just text, meaning you can easily
   change how they are displayed.
 - **Freedom to manage your subscriptions wherever**: using the OPML format; an open standard that all major feed readers

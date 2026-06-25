@@ -72,7 +72,7 @@ you have your favorite site’s content streaming to your feed reader.
 ## Technique 2: Where’s Waldo
 
 Many websites display their RSS feed link in the footer as text or an RSS icon — look for the words 'Feed', 'RSS', or
-'Atom', or the orange RSS icon. For example one of the following:
+'Atom', or the orange RSS icon. For example, one of the following:
 
 <div class="flex mx-auto space-x-4 justify-center not-prose">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-8 flex text-orange-500 fill-orange-500 stroke-orange-500"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
@@ -85,7 +85,7 @@ Such links usually return the raw feed content, so they can be copied and pasted
 
 Despite the web being wonderfully diverse, the majority of websites use a handful of frameworks behind the scenes, and
 these have predictable URLs where their feeds are located. What does this mean? It means most websites have an RSS feed
-at a canonical URL or address. You can then utilise this to find the feed for any site. In most cases add one of the
+at a canonical URL or address. You can then utilize this to find the feed for any site. In most cases add one of the
 following onto the end of the site URL:
 
 - `/rss`
@@ -95,7 +95,7 @@ following onto the end of the site URL:
 Note that [Foragd](https://foragd.app?utm_source=blog) uses a bunch of techniques when it can’t find a feed natively, so
 that you don't need to use trial-and-error to find the feed URL yourself!
 
-### A Few Well-known URLs For Specific Sites
+### A Few Well-Known URLs for Specific Sites
 
 #### Reddit
 
@@ -122,8 +122,8 @@ There are a few dedicated search engines for feeds and sites with quality feed l
   itself will return a human-readable list of feeds for a given site.
 - [Feedspot](https://rss.feedspot.com/): A large database of RSS feeds. The categories are a bit dubious and IMO
   SEO-clickbaity but its possible to find some useful feed links among the lists.
-- [RSSHub](https://rsshub.app): Is both a search engine and tool you can self-host to provide feed links for sites, including
-  generating feed links for sites that don’t publish their own. There are [public
+- [RSSHub](https://rsshub.app): Is both a search engine and tool you can self-host to provide feed links for sites,
+  including generating feed links for sites that don’t publish their own. There are [public
   instances](https://docs.rsshub.app/guide/instances) you use to [browse](https://docs.rsshub.app/routes/) all available
   feed links for different sites. Quality can be hit-and-miss, so YMMV.
 - [Kagi Small Web](https://kagi.com/smallweb): is an old-school webring of independent sites. You can search or navigate
@@ -140,7 +140,7 @@ reader and let it auto-discover the feed; look for RSS or feed links in the site
 [feedle.world](https://feedle.world/), [feedsearch.dev](https://feedsearch.dev/), or [RSSHub](https://rsshub.app). In
 most cases, a good feed reader like [Foragd](https://foragd.app?utm_source=blog) will handle discovery automatically.
 
-If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](https://foragd.app?utm_source=blog) and start
-gathering your own collection of topics, news, and opinions!
+If you want to try out using RSS and Atom feeds, you can start a free trial of
+[Foragd](https://foragd.app?utm_source=blog) and start gathering your own collection of topics, news, and opinions!
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

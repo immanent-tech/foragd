@@ -17,3 +17,7 @@ file = "foragd-vs-inoreader-vs-feedly.md"
 [[file]]
 path = "rediscovering-the-indie-web"
 file = "rediscovering-the-indie-web.md"
+
+[[file]]
+path = "article-filtering-in-foragd"
+file = "article-filtering-in-foragd.md"

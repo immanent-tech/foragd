@@ -49,7 +49,7 @@ author = "Joshua Rich"
 }
 </script>
 
-Feed overload is one of the most common reasons people abandon RSS readers. Use your feed reader's tools to take back
+Feed overload is one of the commonest reasons people abandon RSS readers. Use your feed reader's tools to take back
 control and beat the overload. The six strategies below will help you go from a chaotic flood of articles to a calm,
 manageable reading list.
 
@@ -90,7 +90,7 @@ last week. So even with unread counts off, your articles never pile up.
 **Look for a feed reader where you can turn off unread counts. Foragd can, but many of the popular readers unfortunately
 don’t.**
 
-### Filter By Keywords/Phrase to Remove Noise
+### Filter by Keywords/Phrase to Remove Noise
 
 Often different subscription sources will contain some posts that you don’t want to see. Maybe it’s a topic or area you
 aren’t interested in, or, worse, promoted or sponsored content. In these cases, you need a way to filter posts. Ideally
@@ -105,7 +105,11 @@ just to say “don’t show me posts mentioning secret pizza parties”.
 Foragd makes this very easy. For any subscription, you can filter with “this not that” logic:
 
 <figure>
-  <img src="/content/screenshots/screenshot-feature-articlefiltering.webp" width="463" height="261 alt="Screenshot showing the article filtering options for a subscription in Foragd"/>
+  <img
+    src="/content/screenshots/screenshot-feature-articlefiltering.webp"
+    width="463"
+    height="261"
+    alt="Screenshot showing the article filtering options for a subscription in Foragd"/>
 </figure>
 
 In this screenshot, we are using the simple but powerful filtering features in Foragd to:
@@ -125,7 +129,11 @@ view. That allows for less context switching and potentially deduplication. In F
 Subscription*.
 
 <figure>
-  <img src="/content/screenshots/screenshot-add-group-subscription.webp" width="448" height="649 alt="Screenshot showing group subscription creation by selecting multiple individual subscriptions"/>
+  <img
+    src="/content/screenshots/screenshot-add-group-subscription.webp"
+    width="448"
+    height="649
+    alt="Screenshot showing group subscription creation by selecting multiple individual subscriptions"/>
 </figure>
 
 In Foragd, you can create a group subscription that combines many individual feeds into one stream of articles. You can
@@ -135,14 +143,18 @@ a “divide and conquer” approach across similar topics or sources.
 ### Use Search Subscriptions to Monitor Specific Topics
 
 Search is an underrated but extremely powerful tool for managing content overload. With powerful search, it becomes easy
-to not only filter, but hone in on content of interest.
+to not only filter, but home in on content of interest.
 
 Most feed readers provide some kind of search functionality. With Foragd, you can search within posts in addition for
-subscriptions, actions and other features of the app. While the search bar offers a way to quickly find content by a
+subscriptions, actions, and other features of the app. While the search bar offers a way to quickly find content by a
 keyword or phrase, there is are also useful filters to further what will be searched.
 
 <figure>
-  <img src="/content/screenshots/search-filters-desktop.webp" width="886 height="618" alt="Screenshot showing the advanced search filtering dialog"/>
+  <img
+    src="/content/screenshots/search-filters-desktop.webp"
+    width="886"
+    height="618"
+    alt="Screenshot showing the advanced search filtering dialog"/>
 </figure>
 
 The advanced search dialog in Foragd provides plenty of control over your search, from matching specific authors and
@@ -151,7 +163,7 @@ categories to filtering by when the articles were published or even their read s
 Additionally, in Foragd, **any search can be turned into a *Search Subscription***. That means once you find the
 content you are interested in, you can save that search to surface new content that also matches it.
 
-### Use Categories to Organise Without Overwhelming Yourself
+### Use Categories to Organize Without Overwhelming Yourself
 
 Finally, another way to manage content is to categorize it. With most feeds, the posts themselves contain categories
 assigned by the publisher. Foragd exposes these, and you can filter posts by these categories. Additionally, you can
@@ -168,7 +180,7 @@ each of those, consider 10 more specific categories to narrow things down. As an
 categories like *Work* and *Personal* with lots of subscriptions falling under these, and then more specific categories
 related to *Personal* like *Finances*, *Health*, *Fitness*, etc.
 
-### Review and Clean Up Your Subscriptions Occasionally
+### Review and Clean up Your Subscriptions Occasionally
 
 One of the most powerful tools for managing the overload isn't a tool feature; it's just a little bit of discipline.
 Occasionally, take some time to review your subscriptions and decide which ones might be worth culling. For example, if
@@ -186,9 +198,10 @@ As an example In Foragd:
   see.
 - **Create Group Subscriptions** to combine multiple related feeds into one view, then apply filters across all of them
   at once.
-- **Save searches as Search Subscriptions** to automatically surface new content matching your interests across all your feeds.
+- **Save searches as Search Subscriptions** to automatically surface new content matching your interests across all your
+  feeds.
 - **Use categories sparingly**: the Johnny Decimal approach of 10 broad and 10 specific categories per subscription
-  keeps organisation useful rather than overwhelming.
+  keeps organization useful rather than overwhelming.
 - **Take time to maintain your subscriptions**: spend some time occasionally reviewing all your subscriptions and
   unsubscribing from any heavily filtered or constantly skipped subscriptions that indicate low value or noisy sources.
 

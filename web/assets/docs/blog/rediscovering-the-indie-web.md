@@ -3,13 +3,13 @@ title = "Rediscovering the Indie Web"
 page_title = "Rediscovering the Indie Web"
 description = "Some starting points for rediscovering, personal blogs and sites, and escaping algorithmic social media"
 created_at = "2026-06-03"
-updated_at = "2026-06-03"
+updated_at = "2026-06-25"
 image = "/content/images/blog/wall-map-of-the-world.webp"
 author = "Joshua Rich"
 +++
 
 The web outside of social media is having a bit of a renaissance. As the major social media platforms continue to
-ensittify themselves further, reducing genuine human connections in favor of clicks and engagement metrics, people are
+enshittify themselves further, reducing genuine human connections in favor of clicks and engagement metrics, people are
 looking for alternatives. What they are rediscovering is what has been called the "indie web"; individual user blogs and
 websites, crafted by humans, not necessarily designed for maximum engagement but instead written and published through
 passion and interest.
@@ -26,8 +26,8 @@ passion and interest.
 ## What is the indie web?
 
 The "indie web" is a collective term for the websites and blogs that exist outside of the big social media websites.
-Rather than being optimised for search engine ranking and user engagement, these are sites by individuals for
-publicising their own expressions, opinions and creativity. There are no standard formats and no common platforms, but
+Rather than being optimized for search engine ranking and user engagement, these are sites by individuals for
+publicizing their own expressions, opinions, and creativity. There are no standard formats and no common platforms, but
 they do tend to provide syndication through feeds and loose connection through open standards like webmentions and
 microformats.
 
@@ -40,8 +40,8 @@ actually finding that cool author's personal blog, then finding similar sites an
 Fortunately, there are some great sites out there that act as both a jumping point and directory into the indie web
 sphere. From the content published on these sites, its easier to find and discover other sites and begin your journey
 into the indie web. This post contains a list of a few of them in no particular order that you can peruse yourself. All
-of the sites publish their own feeds, meaning you can also subscribe to them in [Foragd](/?utm_source=blog) to keep up
-to date as they publish new content.
+the sites publish their own feeds, meaning you can also subscribe to them in [Foragd](/?utm_source=blog) to keep up to
+date as they publish new content.
 
 ### Feedle World
 
@@ -94,5 +94,7 @@ to its feed in Foragd, and let it sit for a week. You'll quickly find yourself f
 topics, and corners of the web you didn't know existed. That's the indie web working exactly as it should; discovery
 driven by genuine human curiosity and not an algorithm. The web has always been bigger and stranger and more interesting
 than any platform's timeline. You just need a map.
+
+Foragd is free to try for 14 days — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
