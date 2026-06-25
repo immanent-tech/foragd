@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.170.1](https://github.com/immanent-tech/foragd/compare/v0.170.0...v0.170.1) (2026-06-25)
+
+
+### Performance Improvements
+
+* **handlers:** ⚡ improve issue report generation ([83f81ab](https://github.com/immanent-tech/foragd/commit/83f81abec4088b7b09d074c22970297a281eefbd))
+
 ## [0.170.0](https://github.com/immanent-tech/foragd/compare/v0.169.1...v0.170.0) (2026-06-25)
 
 
