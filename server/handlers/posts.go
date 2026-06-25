@@ -265,6 +265,7 @@ func HandlePostsFeed() http.HandlerFunc {
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("monthly"),
+			rss.WithUpdateFrequency(2),
 		)
 		for post := range slices.Values(posts.Files) {
 			data, err := readPost(post)
