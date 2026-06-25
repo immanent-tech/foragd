@@ -37,8 +37,11 @@ templ grid(options ...element.PropertiesOption) {
 	</div>
 }
 
+var masonryGridOnce = templ.NewOnceHandle()
+
 templ masonryGrid() {
-	<script type="text/hyperscript">
+	@masonryGridOnce.Once() {
+		<script type="text/hyperscript">
 behavior MasonryGrid
 
   def layout()
@@ -201,4 +204,5 @@ behavior MasonryGrid
 
 end
 </script>
+	}
 }

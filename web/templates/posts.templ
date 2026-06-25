@@ -8,7 +8,9 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -17,36 +19,25 @@ import (
 
 templ PostsIndex(posts []*models.MarkdownFile) {
 	@LayoutExternal() {
-		@container() {
-			<div class="mx-auto lg:mx-0">
-				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-					The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons
-				</h1>
-				<p class="mt-2 text-base">
-					The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons
-					with other feed readers, and practical strategies for taking back control of your reading in an era
-					of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find
-					guides and opinions here to help you get the most out of independent web reading.
-				</p>
-			</div>
-			<div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral/20 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-2">
-				{{
-					blogURL, _ := url.JoinPath(config.GetBaseURL(), "blog")
-					// Create an index JSON-LD document.
-					indexJSONLD := map[string]any{
-						"@context":    "https://schema.org",
-						"@type":       "Blog",
-						"name":        "The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons",
-						"description": "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
-						"url":         blogURL,
-						"publisher": map[string]any{
-							"@type": "Organization",
-							"name":  "Foragd",
-							"url":   config.GetBaseURL(),
-						},
-					}
-					postsJSONLD := make([]map[string]any, 0, len(posts))
-				}}
+		@container(element.WithClasses("pt-4")) {
+			@pageHeading() {
+				@pageTitle("The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons")
+			}
+			<p class="mt-2 text-base">
+				The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons
+				with other feed readers, and practical strategies for taking back control of your reading in an era
+				of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find
+				guides and opinions here to help you get the most out of independent web reading.
+			</p>
+			@masonryGrid()
+			{{ postsJSONLD := make([]map[string]any, 0, len(posts)) }}
+			@grid(element.WithClasses("masonry-grid", "relative", "my-12"),
+				element.WithAttribute("_", "install MasonryGrid")) {
+				// <div
+				// 	id="grid-objects"
+				// 	_="install MasonryGrid"
+				// 	class="relative masonry-grid grid grid-cols-1 gap-4 sm:grid-cols-2 p-2 mt-12"
+				// >
 				for idx, post := range posts {
 					// Create a post JSON-LD document.
 					{{
@@ -62,11 +53,17 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 						}
 						postsJSONLD = append(postsJSONLD, postJSONLD)
 					}}
-					<a href={ "/blog/" + post.Details.Path }>
-						<article
-							style={ "--i: " + strconv.Itoa(idx) }
-							class="card h-fit max-w-prose animate-fadeinup bg-base-200 card-border"
-						>
+					@partials.Card(element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+						element.WithClasses(
+							"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item", "w-full", "sm:w-400", "mx-auto"),
+						element.WithHXMethod(http.MethodGet, "/blog/"+post.Details.Path),
+						element.WithHXTarget(ContentID.Target()),
+						element.WithHXSwap("innerHTML show:window:top transition:true"),
+						element.WithHXTrigger("click"),
+						element.WithHXPushURL(true),
+						element.WithAttribute("hx-disinherit", "*"),
+					) {
+						<div>
 							if post.Frontmatter.Image != nil {
 								<figure>
 									<img
@@ -77,29 +74,54 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 										} else {
 											loading="lazy"
 										}
+										width="400"
+										height="300"
 									/>
 								</figure>
 							}
-							<div class="card-body">
-								<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
-								if post.Frontmatter.Author != nil {
-									<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
-								}
-								<p class="mt-4">{ post.Frontmatter.Description }</p>
-								<div class="card-actions justify-end">
-									<time datetime={ post.Frontmatter.GetCreatedDate() } class="label">{ post.Frontmatter.GetCreatedDate() }</time>
-								</div>
+						</div>
+						{{
+							var bodyClasses string
+							if post.Frontmatter.Image != nil {
+								bodyClasses = "flex-1"
+							}
+						}}
+						@partials.CardBody(element.WithClasses(bodyClasses)) {
+							<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
+							if post.Frontmatter.Author != nil {
+								<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
+							}
+							<p class="mt-4">{ post.Frontmatter.Description }</p>
+							<div class="card-actions justify-end">
+								<time datetime={ post.Frontmatter.GetCreatedDate() } class="label">{ post.Frontmatter.GetCreatedDate() }</time>
 							</div>
-						</article>
-					</a>
+						}
+					}
 				}
-				// Add all the posts JSON-LD documents to the index document.
-				{{ indexJSONLD["blogPost"] = postsJSONLD }}
-				if jsonLD, err := json.Marshal(indexJSONLD); err == nil {
-					{{ data := new(json.RawMessage(jsonLD)) }}
-					@partials.RenderJSONLD("posts-index", *data)
+				// </div>
+			}
+			// Add all the posts JSON-LD documents to the index document.
+			{{
+				blogURL, _ := url.JoinPath(config.GetBaseURL(), "blog")
+				// Create an index JSON-LD document.
+				indexJSONLD := map[string]any{
+					"@context":    "https://schema.org",
+					"@type":       "Blog",
+					"name":        "The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons",
+					"description": "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
+					"url":         blogURL,
+					"publisher": map[string]any{
+						"@type": "Organization",
+						"name":  "Foragd",
+						"url":   config.GetBaseURL(),
+					},
 				}
-			</div>
+				indexJSONLD["blogPost"] = postsJSONLD
+			}}
+			if jsonLD, err := json.Marshal(indexJSONLD); err == nil {
+				{{ data := new(json.RawMessage(jsonLD)) }}
+				@partials.RenderJSONLD("posts-index", *data)
+			}
 		}
 		@buttonBackToTop()
 	}
