@@ -1,7 +1,7 @@
 # Foragd Help
 
 - [Foragd Help](#foragd-help)
-  - [Where to get help](#where-to-get-help)
+  - [Where to Get Help](#where-to-get-help)
   - [Terminology](#terminology)
   - [Accounts](#accounts)
   - [How to Use Foragd](#how-to-use-foragd)
@@ -9,7 +9,7 @@
     - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
       - [About Search Results](#about-search-results)
     - [Managing Your Subscriptions](#managing-your-subscriptions)
-      - [Customising the Subscription Display](#customising-the-subscription-display)
+      - [Customizing the Subscription Display](#customizing-the-subscription-display)
       - [Filtering Articles Within a Subscription](#filtering-articles-within-a-subscription)
       - [Group Subscriptions](#group-subscriptions)
       - [Search Subscriptions](#search-subscriptions)
@@ -19,11 +19,13 @@
     - [Search Operators \& Filtering Guide](#search-operators--filtering-guide)
     - [Using Keyboard Shortcuts (on Desktops)](#using-keyboard-shortcuts-on-desktops)
   - [Policies and Terms of Service](#policies-and-terms-of-service)
+  - [Last Updated](#last-updated)
 
-## Where to get help
+## Where to Get Help
 
 - This document.
 - Email us at [support@immanent.tech](mailto:support@immanent.tech).
+- [Use the contact form](/contact).
 
 ## Terminology
 
@@ -38,11 +40,12 @@
 
 - You can manage your account at [Settings->Account](/user/settings#account).
 - You can change your plan level or cancel anytime.
-- Cancelling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
+- Canceling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
   reverse a cancellation during this period if you change your mind.
 
-**Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor. You will be taken to a hosted Paddle
-payment page for managing your subscriptions and payments.
+**Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor for website users and [Google Play
+Billing](https://myaccount.google.com/intro/payments-and-subscriptions) for Android app users. You will be taken to a
+hosted Paddle payment page, or your Play Billing Subscriptions, for managing your subscriptions and payments.
 
 ## How to Use Foragd
 
@@ -68,7 +71,7 @@ and status. See also [filtering](#filtering-articles-within-a-subscription) for 
 
 ### Managing Your Subscriptions
 
-#### Customising the Subscription Display
+#### Customizing the Subscription Display
 
 You can customize any subscription, by changing its name or adding/removing categories. To customize a subscription,
 choose **Edit Subscription** from the context menu of the Subscription card:
@@ -76,7 +79,7 @@ choose **Edit Subscription** from the context menu of the Subscription card:
 ![Screenshot of subscription customization](/content/screenshots/screenshot-subscription-customisation.png)
 
 Categories allow you to easily group and filter your subscriptions. Where possible, some suggested categories will be
-presented as auto-complete options in the **Add Categories** input. These will be taken from the most common categories
+presented as autocomplete options in the **Add Categories** input. These will be taken from the commonest categories
 on Articles within the feed.
 
 #### Filtering Articles Within a Subscription
@@ -88,7 +91,7 @@ and enter your filter terms in the appropriate inputs:
 
 See [filtering](#filtering-articles-within-a-subscription) for usage.
 
-**Note:** article filters are applied globally, meaning all searches, views and any group/search Subscriptions you
+**Note:** article filters are applied globally, meaning all searches, views, and any group/search Subscriptions you
 create will have the subscription article filters applied.
 
 #### Group Subscriptions
@@ -166,21 +169,28 @@ Some real examples:
 
 All operators can be combined, for e.g., `+python +tutorial "machine learning" -chatgpt`.
 
+For more guidance and further examples, see the blog post [Clearing the Noise: Article Filtering in
+Foragd](/blog/article-filtering-in-foragd).
+
 ### Using Keyboard Shortcuts (on Desktops)
 
 The following shortcut keys are available on desktop:
 
 | Key Combo | Action                                                                                                        |
 | --------- | ------------------------------------------------------------------------------------------------------------- |
-| `Alt+k`   | activates the global search input                                                                             |
-| `Alt+h`   | navigates to [Home](/home)                                                                                    |
-| `Alt+s`   | navigates to [Subscriptions](/list/subscriptions)                                                             |
-| `Alt+a`   | navigates to [Articles](/list/articles)                                                                       |
-| `Alt+f`   | navigates to [Favorites](/list/favorites)                                                                     |
-| `Alt+x`   | activates the actions menu (on [Subscriptions](/list/subscriptions) or [Articles](/list/articles) list pages) |
+| `Alt+k`   | Activates the global search input                                                                             |
+| `Alt+h`   | Navigates to [Home](/home)                                                                                    |
+| `Alt+s`   | Navigates to [Subscriptions](/list/subscriptions)                                                             |
+| `Alt+a`   | Navigates to [Articles](/list/articles)                                                                       |
+| `Alt+f`   | Navigates to [Favorites](/list/favorites)                                                                     |
+| `Alt+x`   | Activates the actions menu (on [Subscriptions](/list/subscriptions) or [Articles](/list/articles) list pages) |
 
 ## Policies and Terms of Service
 
 - [Acceptable Use Policy](/policies/acceptable-use).
 - [Terms of Service](/policies/tos).
 - [Privacy Policy](/policies/privacy).
+
+## Last Updated
+
+Jun 25th, 2026
