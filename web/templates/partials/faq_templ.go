@@ -51,7 +51,7 @@ func FAQ(entries []FAQEntry) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dl class=\"mt-16 divide-y divide-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dl class=\"mt-16 divide-y divide-accent/15\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -103,14 +103,14 @@ func faqEntry(entry FAQEntry) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"flex w-full items-start justify-between text-left\"><span class=\"prose font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Question)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/faq.templ`, Line: 40, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/faq.templ`, Line: 40, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -139,7 +139,7 @@ func faqEntry(entry FAQEntry) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><div class=\"text-base/7\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><div class=\"prose\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

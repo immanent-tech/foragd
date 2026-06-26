@@ -3,9 +3,28 @@
 
 package templates
 
-import "github.com/dimmerz92/go-icons/tabler-outline"
+import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
 
 templ pricing() {
+	@partials.RenderJSONLD("pricing",
+		&partials.PriceJSONLD{
+			Context:             "https://schema.org",
+			Type:                []string{"SoftwareApplication", "WebApplication"},
+			Name:                "Foragd",
+			ApplicationCategory: "News & RSS Reader",
+			OperatingSystem:     "Web",
+			Offers: []partials.OfferJSONLD{partials.OfferJSONLD{
+				Type:          "Offer",
+				Price:         "59",
+				PriceCurrency: "USD",
+			}},
+			Description: "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
+			URL:         "https://foragd.app/",
+		},
+	)
 	<form class="group/tiers">
 		<div class="mt-16 mb-8 flex justify-center">
 			<fieldset aria-label="Payment frequency">

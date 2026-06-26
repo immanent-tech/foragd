@@ -21,7 +21,7 @@ templ FAQ(entries []FAQEntry) {
 	//  JSON-LD structured data for search engines.
 	@RenderJSONLD("faq", faqJsonLD(entries))
 	// Human-readable data.
-	<dl class="mt-16 divide-y divide-accent">
+	<dl class="mt-16 divide-y divide-accent/15">
 		for entry := range slices.Values(entries) {
 			@faqEntry(entry)
 		}
@@ -37,7 +37,7 @@ templ faqEntry(entry FAQEntry) {
 				commandfor={ "faq-" + entry.ID }
 				class="flex w-full items-start justify-between text-left"
 			>
-				<span class="text-base/7 font-semibold">{ entry.Question }</span>
+				<span class="prose font-semibold">{ entry.Question }</span>
 				<span class="ml-6 flex h-7 items-center">
 					@tabler.ChevronDown(templ.Attributes{
 						"class":       "-mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
@@ -47,7 +47,7 @@ templ faqEntry(entry FAQEntry) {
 		</dt>
 		<el-disclosure id={ "faq-" + entry.ID } hidden class="contents">
 			<dd class="mt-2 pr-12">
-				<div class="text-base/7">
+				<div class="prose">
 					@templ.Raw(entry.Answer)
 				</div>
 			</dd>

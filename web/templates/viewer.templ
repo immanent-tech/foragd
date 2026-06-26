@@ -54,7 +54,9 @@ var ViewerFAQ = []partials.FAQEntry{
 		Answer: `
 					<p>Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its best to find
 					feed content, and uses a few tricks for this, there are still websites that cannot be parsed.</p>
-					`,
+
+					<p>Take a look at the blog post <a href="/blog/finding-feeds" class="link">Finding Feeds</a>, for
+					tips about how to find feeds for sites.</p> `,
 	},
 	{
 		ID:       "privacy",
@@ -107,16 +109,21 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 				</div>
 				<section id="viewer" class="mx-auto sm:max-w-5xl">
 					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-						Free RSS Feed Viewer: Preview Any Website's Feed
+						Free RSS Feed Viewer
 					</h1>
-					<div class="mx-auto text-pretty">
-						<p class="mt-4">
+					<div class="prose">
+						<p>
 							Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on
-							the site. The feed content, if found, will be displayed below.
+							any site. The feed content, if found, will be displayed below.
 						</p>
-						<p class="mt-4">
-							Want to keep track of feeds and email newsletters in one place? Search across content and discover
-							topics and interests? Try out <a href="https://foragd.app" class="link">Foragd</a>.
+						<p>
+							Free to use. Find and preview any site's feed. Browse the feed and get direct links to the
+							original posts.
+						</p>
+						<p>
+							Want to keep track of feeds and email newsletters in one place? Search across content and
+							discover topics and interests? Try out <a href="https://foragd.app" class="link">Foragd</a>.
+							Start a 14-day trial, no committment and no payment details required.
 						</p>
 					</div>
 					<form
