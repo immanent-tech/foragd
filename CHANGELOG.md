@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.171.2](https://github.com/immanent-tech/foragd/compare/v0.171.1...v0.171.2) (2026-06-26)
+
+
+### Bug Fixes
+
+* **android:** 🔧 expose google api error ([83a24dc](https://github.com/immanent-tech/foragd/commit/83a24dca46472b00dd0a7854da54eaa0b289a0c5))
+
 ## [0.171.1](https://github.com/immanent-tech/foragd/compare/v0.171.0...v0.171.1) (2026-06-26)
 
 
