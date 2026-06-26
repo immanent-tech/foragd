@@ -18,6 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	gcp "github.com/immanent-tech/foragd/providers/google"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -133,6 +134,7 @@ func VerifyAndAcknowledgeSubscription(
 		Context(ctx).
 		Do()
 	if err != nil {
+		gerror.ReportError(ctx, err)
 		return nil, gcp.APIError("verify subscription", err)
 	}
 
@@ -191,6 +193,7 @@ func acknowledgeSubscriptionPurchase(ctx context.Context, pkg, sku, token string
 		pkg, sku, token,
 		&androidpublisher.SubscriptionPurchasesAcknowledgeRequest{},
 	).Context(ctx).Do(); err != nil {
+		gerror.ReportError(ctx, err)
 		return gcp.APIError("acknowledge subscription purchase", err)
 	}
 
