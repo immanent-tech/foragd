@@ -117,3 +117,26 @@ templ paddleScript() {
 		</script>
 	}
 }
+
+templ showPaddleSubscriptionDetails(user *models.User) {
+	{{ subscription, err := user.Subscription.AsPaddleSubscription() }}
+	if err != nil {
+		<p class="mt-1 text-sm/6">
+			Unable to show subscription details! Please contact support.
+		</p>
+	} else {
+		<p class="mt-1 text-sm/6">
+			{ subscription.SubscriptionName } ({ subscription.PriceName })
+		</p>
+		<p class="mt-1 text-sm/6">
+			Next billing date:
+			<relative-time
+				datetime={ subscription.CurrentPeriodEnd }
+				format="relative"
+				class="tabular-nums"
+			>
+				{ subscription.CurrentPeriodEnd.Format("Jan _2, 2006") }
+			</relative-time>
+		</p>
+	}
+}

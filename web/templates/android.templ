@@ -4,7 +4,12 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/providers/google/android"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/google/android"
+	"strings"
+	"time"
+)
 
 templ androidCheckoutButton(frequency string) {
 	{{ priceID, err := android.GetPriceID(frequency) }}
@@ -175,4 +180,34 @@ templ androidRestorePurchaseScript() {
 
 templ androidPreCheckout() {
 	@androidPurchaseScript()
+}
+
+templ showAndroidSubscriptionDetails(user *models.User) {
+	{{ subscription, err := user.Subscription.AsAndroidSubscription() }}
+	if err != nil {
+		<p class="mt-1 text-sm/6">
+			Unable to show subscription details! Please contact support.
+		</p>
+	} else {
+		<p class="mt-1 text-sm/6">
+			switch  {
+				case strings.HasSuffix(subscription.SKU,"annual"):
+					Annual Subscription
+				case strings.HasSuffix(subscription.SKU,"monthly"):
+					Monthly Subscription
+			}
+		</p>
+		if expiresAt := subscription.ExpiresAt; expiresAt != nil {
+			<p class="mt-1 text-sm/6">
+				Next billing date:
+				<relative-time
+					datetime={ expiresAt.Format(time.RFC3339) }
+					format="relative"
+					class="tabular-nums"
+				>
+					{ subscription.ExpiresAt.Format("Jan _2, 2006") }
+				</relative-time>
+			</p>
+		}
+	}
 }

@@ -200,6 +200,8 @@ templ AccountSettings(user *models.User) {
 					switch *user.UserSubscriptionType {
 						case models.UserSubscriptionTypePaddle:
 							@showPaddleSubscriptionDetails(user)
+						case models.UserSubscriptionTypeAndroid:
+							@showAndroidSubscriptionDetails(user)
 					}
 			}
 		</div>
@@ -544,29 +546,6 @@ templ AccountSettings(user *models.User) {
 			</div>
 		</div>
 	</div>
-}
-
-templ showPaddleSubscriptionDetails(user *models.User) {
-	{{ subscription, err := user.Subscription.AsPaddleSubscription() }}
-	if err != nil {
-		<p class="mt-1 text-sm/6">
-			Unable to show subscription details! Please contact support.
-		</p>
-	} else {
-		<p class="mt-1 text-sm/6">
-			{ subscription.SubscriptionName } ({ subscription.PriceName })
-		</p>
-		<p class="mt-1 text-sm/6">
-			Next billing date:
-			<relative-time
-				datetime={ subscription.CurrentPeriodEnd }
-				format="relative"
-				class="tabular-nums"
-			>
-				{ subscription.CurrentPeriodEnd.Format("Jan _2, 2006") }
-			</relative-time>
-		</p>
-	}
 }
 
 templ DisplaySettings(user *models.User) {
