@@ -10,7 +10,6 @@ import (
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -50,68 +49,64 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 					}}
 					@partials.Card(element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 						element.WithClasses(
-							"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item", "w-full", "sm:w-400", "mx-auto"),
-						element.WithHXMethod(http.MethodGet, "/blog/"+post.Details.Path),
-						element.WithHXTarget(ContentID.Target()),
-						element.WithHXSwap("innerHTML show:window:top transition:true"),
-						element.WithHXTrigger("click"),
-						element.WithHXPushURL(true),
-						element.WithAttribute("hx-disinherit", "*"),
+							"group", "animate-fadeinup", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
 					) {
-						<div>
-							if post.Frontmatter.Image != nil {
-								<figure class="relative overflow-hidden rounded-t-[inherit]">
-									<img
-										src={ *post.Frontmatter.Image }
-										alt={ post.Frontmatter.Title }
-										if idx == 0 {
-											fetchpriority="high"
-										} else {
-											loading="lazy"
-										}
-										width="400"
-										height="300"
-										class="w-full aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
-									/>
-								</figure>
-							}
-						</div>
-						{{
-							var bodyClasses string
-							if post.Frontmatter.Image != nil {
-								bodyClasses = "flex-1"
-							}
-						}}
-						@partials.CardBody(element.WithClasses(bodyClasses)) {
-							<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
-							if post.Frontmatter.Author != nil {
-								<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
-							}
-							<p class="mt-4">{ post.Frontmatter.Description }</p>
-						}
-						@partials.CardFooter() {
-							<div class="card-actions justify-end">
-								{{ var ts time.Time }}
-								{{ var tsPrefix string }}
-								if !post.Frontmatter.GetUpdatedDate().IsZero() {
-									{{ ts = post.Frontmatter.GetUpdatedDate() }}
-									{{ tsPrefix = "Updated" }}
-								} else {
-									{{ ts = post.Frontmatter.GetCreatedDate() }}
-									{{ tsPrefix = "Created" }}
+						<a href={ "/blog/" + post.Details.Path }>
+							<div>
+								if post.Frontmatter.Image != nil {
+									<figure class="relative overflow-hidden rounded-t-[inherit]">
+										<img
+											src={ *post.Frontmatter.Image }
+											alt={ post.Frontmatter.Title }
+											if idx == 0 {
+												fetchpriority="high"
+											} else {
+												loading="lazy"
+											}
+											width="400"
+											height="300"
+											class="w-full aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
+										/>
+									</figure>
 								}
-								<span class="text-xs/4 text-neutral capitalize tabular-nums">
-									{ tsPrefix }
-									<relative-time
-										datetime={ ts.Format(time.DateOnly) }
-										format="relative"
-										class="shrink-0"
-									>
-										{ ts.Format("Jan _2, 2006") }
-									</relative-time>
-								</span>
 							</div>
-						}
+							{{
+								var bodyClasses string
+								if post.Frontmatter.Image != nil {
+									bodyClasses = "flex-1"
+								}
+							}}
+							@partials.CardBody(element.WithClasses(bodyClasses)) {
+								<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
+								if post.Frontmatter.Author != nil {
+									<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
+								}
+								<p class="mt-4">{ post.Frontmatter.Description }</p>
+							}
+							@partials.CardFooter() {
+								<div class="card-actions justify-end">
+									{{ var ts time.Time }}
+									{{ var tsPrefix string }}
+									if !post.Frontmatter.GetUpdatedDate().IsZero() {
+										{{ ts = post.Frontmatter.GetUpdatedDate() }}
+										{{ tsPrefix = "Updated" }}
+									} else {
+										{{ ts = post.Frontmatter.GetCreatedDate() }}
+										{{ tsPrefix = "Created" }}
+									}
+									<span class="text-xs/4 text-neutral capitalize tabular-nums">
+										{ tsPrefix }
+										<relative-time
+											datetime={ ts.Format(time.DateOnly) }
+											format="relative"
+											class="shrink-0"
+										>
+											{ ts.Format("Jan _2, 2006") }
+										</relative-time>
+									</span>
+								</div>
+							}
+						</a>
 					}
 				}
 			}
