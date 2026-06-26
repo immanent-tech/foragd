@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -39,15 +40,7 @@ func HeaderExternal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header id=\"page-header\" aria-label=\"Header\" class=\"absolute top-0 inset-x-safe-or-0 z-50 pt-safe\"><nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:hidden\"><button aria-label=\"Open main menu\" type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open menu</span>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Menu2(templ.Attributes{"class": "icon text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Blog</a> <a href=\"/changelog\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Changelog</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-300\"><div class=\"flex items-center justify-between\"><a href=\"/\" class=\"-m-1.5 p-1.5\" aria-label=\"Foragd home\"><div class=\"flex items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header id=\"page-header\" class=\"absolute inset-x-safe-or-0 top-0 z-50 pt-safe\"><nav aria-label=\"Navigation\" class=\"flex items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:flex-1\"><a href=\"/\" class=\"-m-1.5 p-1.5\" aria-label=\"Back to landing page\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,15 +48,31 @@ func HeaderExternal() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></a></div><div class=\"flex lg:hidden\"><button type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open main menu</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.X(templ.Attributes{"class": "icon text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Menu2(templ.Attributes{"class": "size-6 stroke-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Blog</a> <a href=\"/changelog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Changelog</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Blog</a> <a href=\"/changelog\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Changelog</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-secondary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-100 p-6 sm:max-w-sm sm:ring-1 sm:ring-neutral/10\"><div class=\"flex items-center justify-between\"><a href=\"#\" class=\"-m-1.5 p-1.5\"><span class=\"sr-only\">Foragd</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = partials.Logo(element.WithClasses("size-10")).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</a> <button type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"btn btn-ghost btn-square\"><span class=\"sr-only\">Close menu</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.X(templ.Attributes{"class": "size-6 stroke-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-gray-500/10 dark:divide-gray-500/30\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/blog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Blog</a> <a href=\"/changelog\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Changelog</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-secondary link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -92,20 +101,20 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<header id=\"page-header\" aria-label=\"Header\" class=\"fixed top-0 inset-x-safe-or-0 z-50 h-16 w-screen border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header id=\"page-header\" aria-label=\"Header\" class=\"fixed top-0 inset-x-safe-or-0 z-50 h-16 w-screen border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 80, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 90, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -113,7 +122,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"hidden font-serif text-xs font-bold text-primary sm:flex sm:text-lg\">foragd</span></div></a><div class=\"flex flex-1 justify-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"hidden font-serif text-xs font-bold text-primary sm:flex sm:text-lg\">foragd</span></div></a><div class=\"flex flex-1 justify-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -121,12 +130,12 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-popover-group class=\"flex items-center gap-x-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"mx-2 flex items-center justify-end space-x-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-popover-group class=\"flex items-center gap-x-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if !props.User.InTrial() && props.User.InTrialGracePeriod() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<button popovertarget=\"trial-grace-period\" type=\"button\" class=\"btn btn-warning btn-square\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<button popovertarget=\"trial-grace-period\" type=\"button\" class=\"btn btn-warning btn-square\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -134,7 +143,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button> <el-popover popover id=\"trial-grace-period\" anchor=\"bottom end\" class=\"rounded-box [--anchor-gap:--spacing(2.5)]\"><div role=\"alert\" class=\"alert alert-warning\"><div class=\"grid grid-cols-3\"><div class=\"col-span-full flex items-center gap-x-2\"><div class=\"shrink-0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button> <el-popover popover id=\"trial-grace-period\" anchor=\"bottom end\" class=\"rounded-box [--anchor-gap:--spacing(2.5)]\"><div role=\"alert\" class=\"alert alert-warning\"><div class=\"grid grid-cols-3\"><div class=\"col-span-full flex items-center gap-x-2\"><div class=\"shrink-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -142,12 +151,12 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><span>Warning: Your trial has expired and your access will be removed within the next seven days. To continue using the app, please purchase a subscription.</span></div><a class=\"col-start-2 col-span-2 justify-self-end link font-semibold\" href=\"/checkout\">Purchase a subscription</a> <a class=\"col-start-2 col-span-2 justify-self-end link font-semibold\" href=\"/contact\">Contact support</a></div></div></el-popover> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><span>Warning: Your trial has expired and your access will be removed within the next seven days. To continue using the app, please purchase a subscription.</span></div><a class=\"col-start-2 col-span-2 justify-self-end link font-semibold\" href=\"/checkout\">Purchase a subscription</a> <a class=\"col-start-2 col-span-2 justify-self-end link font-semibold\" href=\"/contact\">Contact support</a></div></div></el-popover> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<el-dropdown id=\"header-user-menu\" class=\"flex\"><button class=\"inline-flex btn-square w-full btn-ghost\"><span class=\"sr-only\">Open settings menu</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<el-dropdown id=\"header-user-menu\" class=\"flex\"><button class=\"inline-flex btn-square w-full btn-ghost\"><span class=\"sr-only\">Open settings menu</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -157,7 +166,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -173,7 +182,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -189,20 +198,20 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a hx-get=\"/user/settings\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<a hx-get=\"/user/settings\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 133, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 143, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -210,7 +219,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "Settings</div></a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "Settings</div></a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -220,7 +229,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -236,20 +245,20 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<a hx-get=\"/docs\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<a hx-get=\"/docs\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 145, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 155, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-swap=\"innerHTML transition:true\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" hx-swap=\"innerHTML transition:true\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -257,7 +266,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "Help/Documentation</div></a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "Help/Documentation</div></a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -267,7 +276,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -283,7 +292,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<a href=\"/changelog\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<a href=\"/changelog\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -291,7 +300,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "Changelog</div></a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "Changelog</div></a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -301,7 +310,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -317,20 +326,20 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<a hx-get=\"/issue\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<a hx-get=\"/issue\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 169, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 179, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -338,7 +347,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "Report an issue</div></a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "Report an issue</div></a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -348,7 +357,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -364,7 +373,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<a _=\"\n\t\t\t\t\t\t\t\ton click\n\t\t\t\t\t\t\t\t    js localStorage.clear() end\n\t\t\t\t\t\t\t\t    js sessionStorage.clear() end\n\t\t\t\t\t\t\t\t    then go to url '/logout'\n\t\t\t\t\t\t\t\t\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<a _=\"\n\t\t\t\t\t\t\t\ton click\n\t\t\t\t\t\t\t\t    js localStorage.clear() end\n\t\t\t\t\t\t\t\t    js sessionStorage.clear() end\n\t\t\t\t\t\t\t\t    then go to url '/logout'\n\t\t\t\t\t\t\t\t\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -372,7 +381,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "Log out</div></a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "Log out</div></a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -388,7 +397,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</el-dropdown></el-popover-group></div></div></header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</el-dropdown></el-popover-group></div></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
