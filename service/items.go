@@ -93,6 +93,7 @@ func SearchItems(
 		elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
 		elastic.WithSize(count),
+		elastic.WithCollapseField("title.raw"),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("search items: %w", err)
