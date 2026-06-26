@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.171.0](https://github.com/immanent-tech/foragd/compare/v0.170.1...v0.171.0) (2026-06-26)
+
+
+### Features
+
+* **providers/google:** ♻️ improved error reporting and package init methods ([fbdf6bf](https://github.com/immanent-tech/foragd/commit/fbdf6bf7149b2a0a084dd5e7c0f8d33b3f1dd291))
+* **templates/header:** 🎨 center-align and style the header menu shown on external pages ([90d199d](https://github.com/immanent-tech/foragd/commit/90d199dc018dde86a1a63e468f534df5c30b776d))
+
 ## [0.170.1](https://github.com/immanent-tech/foragd/compare/v0.170.0...v0.170.1) (2026-06-25)
 
 
