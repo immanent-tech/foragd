@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.171.1](https://github.com/immanent-tech/foragd/compare/v0.171.0...v0.171.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* **templates/blog:** 🐛 don't use htmx for blog post links ([7f16948](https://github.com/immanent-tech/foragd/commit/7f1694834e64200c7e8e4062d5c9c82f37e03430))
+* **templates:** 🎨 viewer page style improvements ([934cbe8](https://github.com/immanent-tech/foragd/commit/934cbe83e451e89a0d052651b1ad8eb29d075d0c))
+
 ## [0.171.0](https://github.com/immanent-tech/foragd/compare/v0.170.1...v0.171.0) (2026-06-26)
 
 
