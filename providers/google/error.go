@@ -17,7 +17,7 @@ import (
 func APIError(desc string, err error) error {
 	if apiError, ok := errors.AsType[*googleapi.Error](err); ok {
 		return models.NewAPIError(apiError.Code,
-			fmt.Errorf("%s: %w", desc, apiError),
+			fmt.Errorf("%d: %s\n%v", apiError.Code, apiError.Message, apiError.Body),
 		)
 	}
 	return models.NewAPIError(

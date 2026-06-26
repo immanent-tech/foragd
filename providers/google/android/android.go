@@ -7,12 +7,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"sync"
 	"time"
 
 	slogctx "github.com/veqryn/slog-context"
 	"google.golang.org/api/androidpublisher/v3"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 
 	"github.com/immanent-tech/foragd/config"
@@ -133,6 +135,18 @@ func VerifyAndAcknowledgeSubscription(
 		Get(cfg.PackageName, token).
 		Context(ctx).
 		Do()
+	if err != nil {
+		if apiErr, ok := errors.AsType[*googleapi.Error](err); ok {
+			log.Printf("Code: %d", apiErr.Code)
+			log.Printf("Message: %s", apiErr.Message)
+			log.Printf("Body: %s", apiErr.Body) // raw JSON response body
+			for _, e := range apiErr.Errors {
+				log.Printf("Detail: reason=%s message=%s", e.Reason, e.Message)
+			}
+		} else {
+			log.Printf("non-API error: %v", err)
+		}
+	}
 	if err != nil {
 		gerror.ReportError(ctx, err)
 		return nil, gcp.APIError("verify subscription", err)
