@@ -91,7 +91,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 					}
 					aria-label={ "Toggle mark status for " + s.GetTitle() }
 				/>
-				@tablerfilled.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
+				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
 				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"})
 			</label>
 		</div>
@@ -291,10 +291,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									class="rounded-field border border-neutral/15 text-sm"
 								>
 									if response.Filters.GetView() == models.ViewUnread {
-										@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+										@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Mark shown as Read
 									} else {
-										@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+										@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Mark shown as Unread
 									}
 								</a>
@@ -373,10 +373,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</span>
 									<span class="hide-loading items-center">
 										if response.Filters.GetView() == models.ViewUnread {
-											@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+											@tableroutline.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
 										} else {
-											@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+											@tableroutline.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>

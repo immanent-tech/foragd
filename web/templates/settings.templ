@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/dimmerz92/go-icons/tabler-filled"
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
@@ -840,7 +839,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										"view": string(models.ViewAll),
 									}) }
 										>
-											@tablerfilled.MailOpened(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+											@tableroutline.MailOpened(templ.Attributes{"class": "text-primary", "aria-hidden": "true"})
 										</button>
 									</div>
 									// Mark all unread action.
@@ -855,7 +854,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										"view": string(models.ViewAll),
 									}) }
 										>
-											@tablerfilled.Mail(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+											@tableroutline.Mail(templ.Attributes{"class": "text-primary", "aria-hidden": "true"})
 										</button>
 									</div>
 								</div>

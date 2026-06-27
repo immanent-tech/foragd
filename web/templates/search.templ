@@ -3,7 +3,6 @@
 package templates
 
 import (
-	"github.com/dimmerz92/go-icons/tabler-filled"
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -398,7 +397,7 @@ templ SearchResults(results *models.SearchResults) {
 													}) }
 											class="group/item flex items-center gap-x-2"
 										>
-											@tablerfilled.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 											Mark all Read
 										</a>
 									}
@@ -414,7 +413,7 @@ templ SearchResults(results *models.SearchResults) {
 													}) }
 											class="group/item flex items-center gap-x-2"
 										>
-											@tablerfilled.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 											Mark all Unread
 										</a>
 									}

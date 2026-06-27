@@ -251,7 +251,7 @@ func (s *Subscription) subscriptionMarkToggle() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1019,7 +1019,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 								return templ_7745c5c3_Err
 							}
 							if response.Filters.GetView() == models.ViewUnread {
-								templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1028,7 +1028,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 									return templ_7745c5c3_Err
 								}
 							} else {
-								templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1275,7 +1275,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 							return templ_7745c5c3_Err
 						}
 						if response.Filters.GetView() == models.ViewUnread {
-							templ_7745c5c3_Err = tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1284,7 +1284,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 								return templ_7745c5c3_Err
 							}
 						} else {
-							templ_7745c5c3_Err = tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

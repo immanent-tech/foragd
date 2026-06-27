@@ -94,7 +94,7 @@ templ (a *Article) markToggle() {
 				}
 				aria-label={ "Toggle mark status for " + a.GetTitle() }
 			/>
-			@tablerfilled.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
 			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"})
 		</label>
 	</div>
@@ -640,45 +640,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				if len(response.Articles) > 0 {
 					<ul
 						id="list-actions"
-						class="menu menu-horizontal w-full flex justify-end gap-x-1"
+						class="menu menu-horizontal w-full flex items-center justify-between gap-x-1"
 						if response.Subscription != nil {
 							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
 						}
 					>
 						// For viewing articles from multiple subscriptions, show a mark button that marks the displayed articles.
 						if response.Subscription == nil {
-							{{
-								var mark models.Mark
-								if response.Filters.GetView() == models.ViewUnread {
-									mark = models.MarkRead
-								} else {
-									mark = models.MarkUnread
-								}
-							}}
-							<li>
-								<a
-									if response.Filters.GetView() == models.ViewUnread {
-										hx-post="/list/articles/mark/read"
-									} else {
-										hx-post="/list/articles/mark/unread"
-									}
-									hx-target={ ContentID.Target() }
-									hx-include=".card > input"
-									hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-									class="rounded-field border border-neutral/15 text-sm"
-								>
-									if response.Filters.GetView() == models.ViewUnread {
-										@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-										Mark shown read
-									} else {
-										@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-										Mark shown unread
-									}
-								</a>
-							</li>
-						} else {
-							// For viewing articles from a single subscription, show a mark read/unread action when not viewing all articles.
-							if response.Filters.GetView() != models.ViewAll {
+							<div class="flex flex-1 justify-end">
 								{{
 									var mark models.Mark
 									if response.Filters.GetView() == models.ViewUnread {
@@ -687,35 +656,76 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										mark = models.MarkUnread
 									}
 								}}
-								// Mark subscription action.
 								<li>
 									<a
-										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-										hx-vals={ templ.JSONString(map[string]string{
+										if response.Filters.GetView() == models.ViewUnread {
+											hx-post="/list/articles/mark/read"
+										} else {
+											hx-post="/list/articles/mark/unread"
+										}
+										hx-target={ ContentID.Target() }
+										hx-include=".card > input"
+										hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
+										class="rounded-field border border-neutral/15"
+									>
+										if response.Filters.GetView() == models.ViewUnread {
+											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											<span class="text-sm">Mark shown read</span>
+										} else {
+											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											<span class="text-sm">Mark shown unread</span>
+										}
+									</a>
+								</li>
+							</div>
+						} else {
+							<el-dropdown>
+								<button type="button" class="btn btn-ghost">
+									@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+									<span class="text-sm font-normal">Options</span>
+								</button>
+								@partials.Menu(element.WithAttribute("anchor", "bottom start")) {
+									@partials.MenuItem() {
+										{{ s := Subscription{Subscription: response.Subscription} }}
+										<a { s.editAttributes("/list/articles")... } class="text-sm">
+											@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+											Edit Subscription
+										</a>
+									}
+								}
+							</el-dropdown>
+							<div class="flex justify-end">
+								if response.Filters.GetView() != models.ViewAll {
+									{{
+										var mark models.Mark
+										if response.Filters.GetView() == models.ViewUnread {
+											mark = models.MarkRead
+										} else {
+											mark = models.MarkUnread
+										}
+									}}
+									// Mark subscription action.
+									<li>
+										<a
+											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+											hx-vals={ templ.JSONString(map[string]string{
 														"mark": string(mark),
 														"subscription_id": response.Subscription.GetID(),
 														"view": string(response.Filters.GetView()),
 														}) }
-										class="rounded-field border border-neutral/15 text-sm"
-									>
-										if response.Filters.GetView() == models.ViewUnread {
-											@tablerfilled.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-											Mark all read
-										} else {
-											@tablerfilled.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-											Mark all unread
-										}
-									</a>
-								</li>
-								// Edit subscription action.
-								<li>
-									{{ s := Subscription{Subscription: response.Subscription} }}
-									<a { s.editAttributes("/list/articles")... } class="rounded-field border border-neutral/15 text-sm">
-										@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
-										Edit Subscription
-									</a>
-								</li>
-							}
+											class="rounded-field border border-neutral/15 text-sm"
+										>
+											if response.Filters.GetView() == models.ViewUnread {
+												@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+												Mark all read
+											} else {
+												@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+												Mark all unread
+											}
+										</a>
+									</li>
+								}
+							</div>
 						}
 					</ul>
 				}
@@ -765,10 +775,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										</span>
 										<span class="hide-loading items-center">
 											if response.Filters.GetView() == models.ViewUnread {
-												@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+												@tableroutline.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 												<span class="text-sm/6">Mark Articles Read</span>
 											} else {
-												@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+												@tableroutline.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 												<span class="text-sm/6">Mark Articles Unread</span>
 											}
 										</span>
@@ -800,10 +810,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											</span>
 											<span class="hide-loading items-center">
 												if response.Filters.GetView() == models.ViewUnread {
-													@tablerfilled.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+													@tableroutline.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 													<span class="text-sm/6">Mark Subscription Read</span>
 												} else {
-													@tablerfilled.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-5", "aria-hidden": "true"})
+													@tableroutline.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
 													<span class="text-sm/6">Mark Subscription Unread</span>
 												}
 											</span>
