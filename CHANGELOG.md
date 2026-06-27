@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.172.0](https://github.com/immanent-tech/foragd/compare/v0.171.2...v0.172.0) (2026-06-27)
+
+
+### Features
+
+* **service/items:** ✨ collapse on title to remove potential duplicate items from results ([efccf77](https://github.com/immanent-tech/foragd/commit/efccf773059f1938db5965ecd463e6580fb22599))
+
+
+### Bug Fixes
+
+* **handlers/articles:** 🔧 make sure subscription is set when listing articles for a single subscription ([9d55889](https://github.com/immanent-tech/foragd/commit/9d55889790bf94a5a03cd936eb1b34bfb248d6b8))
+* **templates/settings:** 🔧 show android subscription details in account settings ([96413c1](https://github.com/immanent-tech/foragd/commit/96413c1ed24ecabd1926d1e6e40adf6f3301ef5c))
+* **templates/subscription,templates/article:** 🎨 style fixes ([66ed639](https://github.com/immanent-tech/foragd/commit/66ed6393b0b40bce82179b733249186f87e6baa4))
+
+
+### Reverts
+
+* **service/items:** 🗑️ remove collapsing on title ([7b72963](https://github.com/immanent-tech/foragd/commit/7b729633a669238e1fa778f5a95cb9497b71b41f))
+
 ## [0.171.2](https://github.com/immanent-tech/foragd/compare/v0.171.1...v0.171.2) (2026-06-26)
 
 
