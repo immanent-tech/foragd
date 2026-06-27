@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.170"
-date      = "June 25, 2026"
-type      = "major"
+version   = "v0.173"
+date      = "June 29, 2026"
+type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Fetching remote content should result in better detection and extraction of the main article content and media.
+"""
+
+[[releases]]
+version = "v0.170"
+date    = "June 25, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
