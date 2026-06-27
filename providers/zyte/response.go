@@ -16,7 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// GetHTMLResponse retrieves the response body from a html request (created by the httpResponseBody Request option).
+// GetHTMLResponse retrieves the response body from an HTML request (created by the httpResponseBody Request option).
 func (r *Response) GetHTMLResponse() ([]byte, error) {
 	if r.HttpResponseBody != nil {
 		body, err := base64.StdEncoding.DecodeString(*r.HttpResponseBody)
@@ -37,16 +37,29 @@ func (r *Response) GetBrowserResponse() ([]byte, error) {
 }
 
 func (r *Response) GetURL() (*url.URL, error) {
-	if pageURL, err := url.Parse(r.URL); err != nil {
+	pageURL, err := url.Parse(r.URL)
+	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
-	} else {
-		return pageURL, nil
 	}
+	return pageURL, nil
 }
 
-// ExtractArticle extracts an Article from the Response using the readability package. It extracts the content from
-// either the responseHtml or browserHtml field of the response.
+// ExtractArticle extracts an Article from the Response. If the article was extracted automatically using Zyte AI
+// extraction, that data is returned. Else, the article is extracted using the readability package. It extracts the
+// content from either the browserHtml or responseHtml field of the response, tried in that order.
 func (r *Response) ExtractArticle() (*Article, error) {
+	if r.Article == nil {
+		article, err := r.extractWithReadability()
+		if err != nil {
+			return nil, fmt.Errorf("extract with readability: %w", err)
+		}
+		return article, nil
+	}
+
+	return r.Article, nil
+}
+
+func (r *Response) extractWithReadability() (*Article, error) {
 	var body []byte
 	htmlBody, htmlErr := r.GetHTMLResponse()
 	browserBody, browserErr := r.GetBrowserResponse()

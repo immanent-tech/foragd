@@ -68,6 +68,16 @@ func WithTag(key, value string) RequestOption {
 	}
 }
 
+// AsArticle will configure Zyte to perform automatic article extraction.
+func AsArticle(opts *ExtractOptions) RequestOption {
+	return func(r *Request) {
+		r.Article = new(true)
+		if opts != nil {
+			r.ArticleOptions = opts
+		}
+	}
+}
+
 // ExtractArticle attempts to extract an article from the given URL.
 func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption) (*Article, error) {
 	sourceURL, err := url.Parse(rawURL)
@@ -75,10 +85,6 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
 	}
 
-	options = append(options,
-		WithResponseBody(true),
-		WithFollowRedirects(true),
-	)
 	req := NewRequest(sourceURL.String(), options...)
 
 	if err := loadConfig(); err != nil {

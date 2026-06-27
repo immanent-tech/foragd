@@ -3,6 +3,7 @@
 
 package zyte
 
+// GetHTML gets the article content as HTML.
 func (a *Article) GetHTML() string {
 	if a.ArticleBodyHtml != nil {
 		return *a.ArticleBodyHtml
@@ -10,6 +11,7 @@ func (a *Article) GetHTML() string {
 	return ""
 }
 
+// GetText gets the article content as text.
 func (a *Article) GetText() string {
 	if a.ArticleBody != nil {
 		return *a.ArticleBody

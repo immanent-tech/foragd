@@ -235,7 +235,7 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 
 	// Try to load content from the article cache.
 	if err := loadArticleCache(); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to load article cache.",
+		slogctx.FromCtx(ctx).Debug("Unable to load article cache.",
 			slog.Any("error", err),
 		)
 		cached = false
@@ -262,6 +262,8 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 	if !cached {
 		extracted, err := zyte.ExtractArticle(ctx,
 			article.GetLink(),
+			zyte.WithBrowserHTML(true),
+			zyte.AsArticle(nil),
 			zyte.WithTag("item_id", article.GetID()),
 			zyte.WithTag("feed_id", article.GetFeedID()),
 		)
