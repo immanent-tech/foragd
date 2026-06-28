@@ -206,27 +206,18 @@ templ Landing() {
 					</div>
 					// Main screenshot.
 					<div class="mt-16 flow-root sm:mt-24">
-						<button command="show-modal" commandfor="main-screenshot" type="button">
-							<img
-								src="/content/screenshots/main.webp"
-								width="2250"
-								height="1304"
-								decoding="async"
-								fetchpriority="high"
-								alt="Foragd RSS feed reader showing subscription cards and article list on desktop and mobile"
-								class="rounded-box object-scale-down shadow-xl"
-							/>
-						</button>
-						@imagePopup("main-screenshot") {
-							<img
-								src="/content/screenshots/main.webp"
-								width="2250"
-								height="1304"
-								decoding="async"
-								alt="Foragd RSS feed reader showing subscription cards and article list on desktop and mobile"
-								class="mx-auto w-full object-scale-down sm:max-w-360"
-							/>
-						}
+						@featureImage("main-screenshot",
+							featureMedia{
+								url:    "/content/screenshots/main.webp",
+								alt:    "Foragd RSS feed reader showing subscription cards and article list on desktop and mobile",
+								width:  2250,
+								height: 1304,
+								Properties: element.NewProperties(
+									element.WithAttribute("decoding", "async"),
+									element.WithAttribute("fetchpriority", "high"),
+								),
+							},
+						)
 					</div>
 					// Main feature categories.
 					<div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
