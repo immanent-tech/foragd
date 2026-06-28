@@ -318,6 +318,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 				if err := setRedirect(res, htmxext.HXLocationRequest{
 					Path:   "/list/subscriptions",
 					Target: templates.ContentID.Target(),
+					Swap:   "innerHTML transition:true show:top",
 					Values: getListSubscriptionsFilters(req).Values(),
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
