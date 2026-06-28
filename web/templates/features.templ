@@ -139,6 +139,15 @@ templ FeaturesPageCollect() {
 						Whether its a Google News search, Youtube channel, or just a URL, Foragd will find any
 						available feeds for you to subscribe to. No need to hunt around for obscure URL links, formats and parameters.
 					</p>
+					<p>
+						Don't know where to get started? Select one or more of the curated feed sets on sign up to get a
+						selection of informing, inspiring and enlightening independent feeds.
+					</p>
+					<p>
+						See also <a href="/blog/finding-feeds">Finding Feeds</a> and <a
+	href="/blog/rediscovering-the-indie-web"
+>Rediscovering the Indie Web</a> on the blog.
+					</p>
 				}
 			</div>
 			@featureVideo("feature-addcontent-video",
@@ -184,6 +193,13 @@ templ FeaturesPageCollect() {
 						Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily.
 						Foragd supports using the OPML file format, a widely used standard for imports and exports. You always
 						own and control your data. Import and export your subscriptions freely.
+					</p>
+					<p>
+						If you haven't already, check out our comparisons of Foragd verses <a
+	href="/compare/feedly"
+>Feedly</a> and <a
+	href="/compare/inoreader"
+>Inoreader</a>.
 					</p>
 				}
 			</div>
@@ -305,10 +321,10 @@ templ FeaturesPageCurate() {
 						</span>.
 					</p>
 					<p>
-						More details:
+						See also
 						<a href="/blog/article-filtering-in-foragd">
 							Clearing the Noise: Article Filtering in Foragd
-						</a>
+						</a> on the blog.
 					</p>
 				}
 			</div>
@@ -412,8 +428,50 @@ templ FeaturesPageConsume() {
 				},
 			)
 		}
+		// Feature: Zero Pressure.
+		@featurePanel("feature-zero-pressure") {
+			<img
+				width="488"
+				height="733"
+				src="/content/screenshots/screenshot-settings-behaviour.webp"
+				alt="Screenshot showing the settings for controlling display of unread counts, automatic unread marking and selecting the timespan after which unread articles disappear"
+				class="rounded-xl shadow-xl ring-1 ring-neutral/10"
+			/>
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Zero Pressure Reading")
+				@featureText() {
+					<p>
+						Reading shouldn't feel like a chore. Foragd allows you to toggle unread counts on and off (off
+						by default). Zero pressure reading that doesn't feel like your inbox.
+					</p>
+					<p>
+						Toggle automatically settings articles as read after a short period when they are viewed.
+					</p>
+					<p>
+						Tame the backlog by setting the timespan after which articles will disappear from view. Reduce
+						the pressure and hidden obligation to clear your backlog.
+					</p>
+					<p>
+						See also
+						<a href="/blog/managing-feed-overload">
+							How to Manage Feed Overload: 6 Strategies for
+							Your RSS Reader
+						</a> on the blog.
+					</p>
+				}
+			</div>
+		}
 		// Feature: Favorites.
 		@featurePanel("feature-favorites") {
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Save Favorite Subscriptions and Articles")
+				@featureText() {
+					<p>
+						Favorite subscriptions to keep them top and center. Favorite articles to easily reference them
+						later. Your favorite articles are kept forever, even if the source removes them from their feed.
+					</p>
+				}
+			</div>
 			@featureVideo("feature-favorites-video",
 				featureMedia{
 					width:      1920,
@@ -428,26 +486,9 @@ templ FeaturesPageConsume() {
 					url:    "/content/screenshots/screencast-feature-favorites.webm",
 				},
 			)
-			<div class="w-full sm:min-w-1/2">
-				@featureTitle("Save Favorite Subscriptions and Articles")
-				@featureText() {
-					<p>
-						Favorite subscriptions to keep them top and center. Favorite articles to easily reference them
-						later. Your favorite articles are kept forever, even if the source removes them from their feed.
-					</p>
-				}
-			</div>
 		}
 		// Feature: Themes.
 		@featurePanel("feature-themes") {
-			<div class="w-full sm:min-w-1/2">
-				@featureTitle("Choose Your Theme")
-				@featureText() {
-					<p>
-						Choose from a selection of curated light and dark themes to your liking.
-					</p>
-				}
-			</div>
 			@featureImage("feature-themes-screenshot",
 				featureMedia{
 					width:      1920,
@@ -457,6 +498,14 @@ templ FeaturesPageConsume() {
 					Properties: element.NewProperties(),
 				},
 			)
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Choose Your Theme")
+				@featureText() {
+					<p>
+						Choose from a selection of curated light and dark themes to your liking.
+					</p>
+				}
+			</div>
 		}
 		// Navigation to other feature group pages.
 		<div class="text-center text-xl font-semibold">Check out other features:</div>
