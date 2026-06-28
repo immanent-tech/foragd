@@ -14,7 +14,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -142,7 +141,7 @@ func Features() templ.Component {
 						var templ_7745c5c3_Var5 templ.SafeURL
 						templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(group.URL)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 84, Col: 26}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 83, Col: 26}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 						if templ_7745c5c3_Err != nil {
@@ -185,7 +184,7 @@ func Features() templ.Component {
 							var templ_7745c5c3_Var7 string
 							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(group.Name)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 91, Col: 70}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 90, Col: 70}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 							if templ_7745c5c3_Err != nil {
@@ -250,7 +249,7 @@ func Features() templ.Component {
 							var templ_7745c5c3_Var10 templ.SafeURL
 							templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(group.URL)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 99, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 98, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 							if templ_7745c5c3_Err != nil {
@@ -403,7 +402,7 @@ func FeaturesPageCollect() templ.Component {
 					var templ_7745c5c3_Var16 string
 					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(`@TED`)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 139, Col: 15}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 138, Col: 15}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
@@ -1278,7 +1277,7 @@ func featurePanel(id string) templ.Component {
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 526, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 525, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var44)
 		if templ_7745c5c3_Err != nil {
@@ -1328,7 +1327,7 @@ func featureTitle(title string) templ.Component {
 		var templ_7745c5c3_Var46 string
 		templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 541, Col: 82}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 540, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 		if templ_7745c5c3_Err != nil {
@@ -1410,7 +1409,6 @@ func featureImage(id string, img featureMedia) templ.Component {
 			templ_7745c5c3_Var48 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		godump.Dump(img)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1418,7 +1416,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var49 templ.SafeURL
 		templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinURLErrs(img.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 562, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 560, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 		if templ_7745c5c3_Err != nil {
@@ -1440,7 +1438,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var51 string
 		templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 564, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 562, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var51)
 		if templ_7745c5c3_Err != nil {
@@ -1453,7 +1451,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var52 string
 		templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 565, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 563, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var52)
 		if templ_7745c5c3_Err != nil {
@@ -1466,7 +1464,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var53 string
 		templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 566, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 564, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var53)
 		if templ_7745c5c3_Err != nil {
@@ -1479,7 +1477,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var54 string
 		templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.alt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 567, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 565, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var54)
 		if templ_7745c5c3_Err != nil {
@@ -1515,7 +1513,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var56 string
 		templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 575, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 573, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var56)
 		if templ_7745c5c3_Err != nil {
@@ -1537,7 +1535,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var58 string
 		templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 577, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 575, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var58)
 		if templ_7745c5c3_Err != nil {
@@ -1550,7 +1548,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var59 string
 		templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 578, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 576, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var59)
 		if templ_7745c5c3_Err != nil {
@@ -1563,7 +1561,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var60 string
 		templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 579, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 577, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var60)
 		if templ_7745c5c3_Err != nil {
@@ -1576,7 +1574,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var61 string
 		templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.alt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 580, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 578, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var61)
 		if templ_7745c5c3_Err != nil {
@@ -1612,7 +1610,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var63 string
 		templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 588, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 586, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var63)
 		if templ_7745c5c3_Err != nil {
@@ -1634,7 +1632,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var65 string
 		templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 591, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 589, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var65)
 		if templ_7745c5c3_Err != nil {
@@ -1647,7 +1645,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var66 string
 		templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 592, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 590, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var66)
 		if templ_7745c5c3_Err != nil {
@@ -1660,7 +1658,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var67 string
 		templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 593, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 591, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var67)
 		if templ_7745c5c3_Err != nil {
@@ -1673,7 +1671,7 @@ func featureImage(id string, img featureMedia) templ.Component {
 		var templ_7745c5c3_Var68 string
 		templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.ResolveAttributeValue(img.alt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 594, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 592, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var68)
 		if templ_7745c5c3_Err != nil {
@@ -1738,7 +1736,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var71 string
 		templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 610, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 608, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var71)
 		if templ_7745c5c3_Err != nil {
@@ -1751,7 +1749,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var72 string
 		templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.ResolveAttributeValue(preview.width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 615, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 613, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var72)
 		if templ_7745c5c3_Err != nil {
@@ -1764,7 +1762,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var73 string
 		templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.ResolveAttributeValue(preview.height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 616, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 614, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var73)
 		if templ_7745c5c3_Err != nil {
@@ -1777,7 +1775,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var74 string
 		templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.ResolveAttributeValue(preview.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 617, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 615, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var74)
 		if templ_7745c5c3_Err != nil {
@@ -1790,7 +1788,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var75 string
 		templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.ResolveAttributeValue(preview.alt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 618, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 616, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var75)
 		if templ_7745c5c3_Err != nil {
@@ -1811,7 +1809,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var76 string
 		templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 623, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 621, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var76)
 		if templ_7745c5c3_Err != nil {
@@ -1824,7 +1822,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var77 string
 		templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.ResolveAttributeValue(video.height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 627, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 625, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var77)
 		if templ_7745c5c3_Err != nil {
@@ -1837,7 +1835,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var78 string
 		templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.ResolveAttributeValue(video.width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 628, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 626, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var78)
 		if templ_7745c5c3_Err != nil {
@@ -1850,7 +1848,7 @@ func featureVideo(id string, preview, video featureMedia) templ.Component {
 		var templ_7745c5c3_Var79 string
 		templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.ResolveAttributeValue(video.url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 630, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 628, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var79)
 		if templ_7745c5c3_Err != nil {

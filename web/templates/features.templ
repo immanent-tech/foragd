@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -558,7 +557,6 @@ type featureMedia struct {
 
 // featureImage renders an image as either a link that when clicked opens the image original size, or in a lightbox/dialog.
 templ featureImage(id string, img featureMedia) {
-	{{ godump.Dump(img) }}
 	<a href={ img.url } class="sm:hidden">
 		<img
 			width={ img.width }
