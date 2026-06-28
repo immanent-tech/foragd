@@ -23,13 +23,16 @@ import (
 type ForgetMe struct{}
 
 func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Forget Me | Foragd"
+	title := templates.PageTitle{
+		Summary:     "Forget Me Request",
+		Description: "Request removal of your account and personal data",
+	}
 	description := "Request deletion of your account and personal data."
 	templ.Handler(templates.CreatePage(templates.ForgetMe(),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
 		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
+			title.String(),
 			"website",
 			config.GetBaseURL()+"/forget-me",
 			config.GetBaseURL()+"/content/logo-vertical-light.webp",

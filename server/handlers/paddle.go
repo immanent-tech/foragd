@@ -15,6 +15,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // HandlePaddleWebhook handles incoming webhooks from paddle.
@@ -124,6 +125,10 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 		}
 
 		RenderInternalPage(&ChooseSubscription{
+			title: templates.PageTitle{
+				Summary:     "Choose Subscription Plan",
+				Description: "Pick whether to subscribe monthly or yearly",
+			},
 			user:    user,
 			request: checkout,
 		}).ServeHTTP(res, req)

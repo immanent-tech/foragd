@@ -40,7 +40,7 @@ import (
 
 // ListSubscriptions holds data for generating the subscriptions list page.
 type ListSubscriptions struct {
-	title    string
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -149,17 +149,24 @@ func HandleListSubscriptions() http.HandlerFunc {
 			LatestArticles: latestItems,
 		}
 
+		// If the list of articles is from a single subscription, update the page tile to include the subscription
+		// name.
+		title := templates.PageTitle{
+			Summary:     "Subscriptions",
+			Description: string(request.Filters.GetView()) + " | " + request.Filters.GetSort().String(),
+		}
+
 		// Choose rendering method based on method (get = page, post = partial).
 		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
-				title:    "Subscriptions",
+				title:    title,
 				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			RenderPartial(&ListSubscriptions{
-				title:    "Subscriptions",
+				title:    title,
 				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
 			// Update pagination control element as needed.
@@ -559,7 +566,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 
 // EditSubscription contains the data for rendering a page for editing a subscription.
 type EditSubscription struct {
-	title    string
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -610,7 +617,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			return
 		}
 		var template templ.Component
-		var pageTitle string
+		var pageTitle templates.PageTitle
 		ctx := req.Context()
 		switch existingSubscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
@@ -630,7 +637,10 @@ func HandleEditSubscription() http.HandlerFunc {
 			)
 			// Generate page template.
 			template = templates.EditFeedSubscription(request)
-			pageTitle = "Editing " + existingSubscription.GetTitle()
+			pageTitle = templates.PageTitle{
+				Summary:     "Edit Subscription",
+				Description: existingSubscription.GetTitle(),
+			}
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
@@ -667,7 +677,10 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
-			pageTitle = "Editing " + request.Customisation.GetNickname()
+			pageTitle = templates.PageTitle{
+				Summary:     "Edit Subscription",
+				Description: request.Customisation.GetNickname(),
+			}
 		case models.SubscriptionTypeGroup:
 			childSubscriptions, err := service.GetSubscriptionsByID(
 				ctx,
@@ -725,7 +738,10 @@ func HandleEditSubscription() http.HandlerFunc {
 
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
-			pageTitle = "Editing " + request.Customisation.GetNickname()
+			pageTitle = templates.PageTitle{
+				Summary:     "Edit Subscription",
+				Description: request.Customisation.GetNickname(),
+			}
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
@@ -743,7 +759,10 @@ func HandleEditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
 
 			template = templates.EditEmailSubscription(request)
-			pageTitle = "Editing " + request.Customisation.GetNickname()
+			pageTitle = templates.PageTitle{
+				Summary:     "Edit Subscription",
+				Description: request.Customisation.GetNickname(),
+			}
 		}
 		// Render the page.
 		RenderInternalPage(
@@ -939,7 +958,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 
 // AddSubscription contains the data for rendering a page for editing a subscription.
 type AddSubscription struct {
-	title    string
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -1003,7 +1022,10 @@ func HandleAddSubscription() http.HandlerFunc {
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		RenderInternalPage(
 			&AddSubscription{
-				title: "Add Feed Subscription",
+				title: templates.PageTitle{
+					Summary:     "Add Subscription",
+					Description: "New Feed Subscription",
+				},
 				template: templates.AddFeedSubscription(
 					&models.FeedSubscriptionRequest{
 						URL:                 url,
@@ -1267,7 +1289,10 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			// Render form.
 			RenderInternalPage(
 				&AddSubscription{
-					title: "Add Search Subscription",
+					title: templates.PageTitle{
+						Summary:     "Add Subscription",
+						Description: "New Search Subscription",
+					},
 					template: templates.AddSearchSubscription(
 						models.NewSearchSubscriptionRequest(*request, suggestedCategories),
 					),
@@ -1417,7 +1442,10 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 
 			RenderInternalPage(
 				&AddSubscription{
-					title: "Add Group Subscription",
+					title: templates.PageTitle{
+						Summary:     "Add Subscription",
+						Description: "New Group Subscription",
+					},
 					template: templates.AddGroupSubscription(
 						models.NewGroupSubscriptionRequest(suggestedSubscriptions, suggestedCategories),
 					),
@@ -1534,19 +1562,20 @@ func HandleAddSubscriptionToGroup() http.HandlerFunc {
 
 // ImportSubscriptions contains the data for rendering a page for importing subscriptions.
 type ImportSubscriptions struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
 func (h *ImportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(h.template,
-			templates.WithPageTitle("Import Subscriptions"),
+			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
 
 func (h *ImportSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Import Subscriptions")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 }
 
 type ImportSubscriptionsResults struct {
@@ -1587,6 +1616,10 @@ func HandleImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			RenderInternalPage(&ImportSubscriptions{
+				title: templates.PageTitle{
+					Summary:     "Import",
+					Description: "Choose source to import subscriptions",
+				},
 				template: templates.ImportSubscriptions(),
 			}).ServeHTTP(res, req)
 		// POST: process import.
@@ -1666,20 +1699,21 @@ func HandleImportSubscriptions() http.HandlerFunc {
 
 // ExportSubscriptions contains the data for rendering a page for exporting subscriptions.
 type ExportSubscriptions struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
 func (h *ExportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(h.template,
-			templates.WithPageTitle("Import Subscriptions"),
+			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
 
 func (h *ExportSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Import Subscriptions")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 }
 
 // HandleExportSubscriptions handles configuring and performing an export of user subscriptions.
@@ -1704,6 +1738,10 @@ func HandleExportSubscriptions() http.HandlerFunc {
 		case http.MethodGet:
 			RenderInternalPage(
 				&ExportSubscriptions{
+					title: templates.PageTitle{
+						Summary:     "Export",
+						Description: "Export your subscriptions as OPML",
+					},
 					template: templates.ExportSubscriptions(),
 				},
 			).ServeHTTP(res, req)

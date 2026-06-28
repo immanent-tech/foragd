@@ -29,7 +29,7 @@ import (
 )
 
 type Changelog struct {
-	title       string              `toml:"-"`
+	title       templates.PageTitle `toml:"-"`
 	description string              `toml:"-"`
 	Releases    []templates.Release `toml:"releases"`
 }
@@ -67,8 +67,11 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 func HandleChangelog() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
-			title:       "Foragd Changelog",
-			description: "Foragd updates and improvements — shipped often",
+			title: templates.PageTitle{
+				Summary:     "Changelog",
+				Description: "Latest release notes for Foragd",
+			},
+			description: "Latest release notes containing new features, updates and fixes for Foragd",
 			Releases:    make([]templates.Release, 0),
 		}
 
@@ -94,8 +97,11 @@ func HandleChangelog() http.HandlerFunc {
 func HandleChangelogFeed() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
-			title:       "Foragd Changelog",
-			description: "Foragd updates and improvements — shipped often",
+			title: templates.PageTitle{
+				Summary:     "Changelog",
+				Description: "Latest release notes for Foragd",
+			},
+			description: "Latest release notes containing new features, updates and fixes for Foragd",
 			Releases:    make([]templates.Release, 0),
 		}
 
@@ -112,7 +118,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 
 		// Generate RSS file.
 		rssFile := rss.NewRSS(
-			changelog.title,
+			changelog.title.String(),
 			changelog.description,
 			config.GetBaseURL(),
 			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),

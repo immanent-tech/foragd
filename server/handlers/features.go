@@ -14,22 +14,28 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type Features struct{}
+type Features struct {
+	title templates.PageTitle
+}
 
 func HandleFeatures() http.HandlerFunc {
-	return RenderExternalPage(&Features{})
+	return RenderExternalPage(&Features{
+		title: templates.PageTitle{
+			Summary:     "Features",
+			Description: "RSS Reader, Newsletter Aggregator & Feed Organiser",
+		},
+	})
 }
 
 func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Foragd Features | RSS Reader, Newsletter Aggregator & Feed Organiser"
 	description := "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
 	templ.Handler(templates.CreatePage(templates.Features(),
-		templates.WithPageTitle(title),
+		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
 		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
+			p.title.String(),
 			"website",
 			canonicalLink,
 			config.GetBaseURL()+"/content/logo-vertical-light.webp",
@@ -39,10 +45,17 @@ func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)).ServeHTTP(res, req)
 }
 
-type FeaturesCollect struct{}
+type FeaturesCollect struct {
+	title templates.PageTitle
+}
 
 func HandleFeaturesCollect() http.HandlerFunc {
-	return RenderExternalPage(&FeaturesCollect{})
+	return RenderExternalPage(&FeaturesCollect{
+		title: templates.PageTitle{
+			Summary:     "Collect",
+			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
+		},
+	})
 }
 
 func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -50,7 +63,7 @@ func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Reques
 	description := "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
 	templ.Handler(templates.CreatePage(templates.FeaturesPageCollect(),
-		templates.WithPageTitle(title),
+		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
 		templates.WithOpenGraphMetadata(opengraph.New(
@@ -64,10 +77,17 @@ func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Reques
 	)).ServeHTTP(res, req)
 }
 
-type FeaturesCurate struct{}
+type FeaturesCurate struct {
+	title templates.PageTitle
+}
 
 func HandleFeaturesCurate() http.HandlerFunc {
-	return RenderExternalPage(&FeaturesCurate{})
+	return RenderExternalPage(&FeaturesCurate{
+		title: templates.PageTitle{
+			Summary:     "Curate",
+			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
+		},
+	})
 }
 
 func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -75,7 +95,7 @@ func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request
 	description := "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
 	templ.Handler(templates.CreatePage(templates.FeaturesPageCurate(),
-		templates.WithPageTitle(title),
+		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
 		templates.WithOpenGraphMetadata(opengraph.New(
@@ -89,10 +109,17 @@ func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request
 	)).ServeHTTP(res, req)
 }
 
-type FeaturesConsume struct{}
+type FeaturesConsume struct {
+	title templates.PageTitle
+}
 
 func HandleFeaturesConsume() http.HandlerFunc {
-	return RenderExternalPage(&FeaturesConsume{})
+	return RenderExternalPage(&FeaturesConsume{
+		title: templates.PageTitle{
+			Summary:     "Consume",
+			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
+		},
+	})
 }
 
 func (p *FeaturesConsume) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -100,7 +127,7 @@ func (p *FeaturesConsume) FullResponse(res http.ResponseWriter, req *http.Reques
 	description := "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
 	templ.Handler(templates.CreatePage(templates.FeaturesPageConsume(),
-		templates.WithPageTitle(title),
+		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
 		templates.WithOpenGraphMetadata(opengraph.New(

@@ -37,13 +37,15 @@ import (
 )
 
 // UserSettings contains the data for rendering the user settings page.
-type UserSettings struct{}
+type UserSettings struct {
+	title templates.PageTitle
+}
 
 // FullResponse renders a full page (headers, footers and content).
 func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(templates.UserSettings(),
-			templates.WithPageTitle("Settings"),
+			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req)
 }
 
@@ -53,13 +55,18 @@ func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Reques
 	templ.Handler(templates.UserSettings(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Settings")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 }
 
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		RenderInternalPage(&UserSettings{}).ServeHTTP(res, req)
+		RenderInternalPage(&UserSettings{
+			title: templates.PageTitle{
+				Summary:     "Settings",
+				Description: "Configure the app",
+			},
+		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -683,7 +690,10 @@ func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) 
 	templ.Handler(
 		templates.CreatePage(
 			templates.UserAccountIssue(),
-			templates.WithPageTitle("Account Issue"),
+			templates.WithPageTitle(templates.PageTitle{
+				Summary:     "Account Issue",
+				Description: "There is a problem with your account",
+			}),
 		)).ServeHTTP(res, req)
 }
 
@@ -759,12 +769,14 @@ type Unsubscribe struct {
 }
 
 func (p *Unsubscribe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Unsubscribe Options"
 	description := "Unsubscribe from promotional emails from Foragd."
 	templ.Handler(
 		templates.CreatePage(
 			templates.Unsubscribe(p.Token),
-			templates.WithPageTitle(title),
+			templates.WithPageTitle(templates.PageTitle{
+				Summary:     "Unsubscribe Options",
+				Description: "Unsubscribe from promotional emails",
+			}),
 			templates.WithPageDescription(description),
 		),
 	).ServeHTTP(res, req)
@@ -776,12 +788,13 @@ type UnsubscribeResult struct {
 }
 
 func (p *UnsubscribeResult) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Unsubscribe Result"
 	description := "Unsubscribe from promotional emails from Foragd."
 	templ.Handler(
 		templates.CreatePage(
 			templates.UnsubscribeResult(p.Msg),
-			templates.WithPageTitle(title),
+			templates.WithPageTitle(templates.PageTitle{
+				Summary: "Unsubscribe Results",
+			}),
 			templates.WithPageDescription(description),
 		),
 	).ServeHTTP(res, req)

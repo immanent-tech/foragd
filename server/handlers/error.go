@@ -139,5 +139,6 @@ func HandleExternalError(err error) http.HandlerFunc {
 
 // FullResponse renders the error on a full page.
 func (p *ExternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(p.template, templates.WithPageTitle("Something went wrong"))).ServeHTTP(res, req)
+	templ.Handler(templates.CreatePage(p.template, templates.WithPageTitle(templates.PageTitle{Summary: "Whoops! Something went wrong"}))).
+		ServeHTTP(res, req)
 }

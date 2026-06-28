@@ -25,6 +25,7 @@ import (
 )
 
 type PageIssue struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -32,7 +33,7 @@ type PageIssue struct {
 func (t *PageIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(t.template,
-			templates.WithPageTitle("Report Page Issue"),
+			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req)
 }
 
@@ -41,7 +42,7 @@ func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Report Page Issue")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 }
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
@@ -65,6 +66,10 @@ func HandleReportIssue() http.HandlerFunc {
 
 		// Display the report issue form.
 		RenderInternalPage(&PageIssue{
+			title: templates.PageTitle{
+				Summary:     "Report Issue",
+				Description: "Report issues and problems with the site",
+			},
 			template: templates.ReportIssue(
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
 			),

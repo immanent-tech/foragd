@@ -54,7 +54,10 @@ type PostsIndex struct {
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "RSS Feed Reader Blog — Tips, Guides and Comparisons"
+	title := templates.PageTitle{
+		Summary:     "Blog",
+		Description: "RSS Reader Tips, Guides and Comparisons",
+	}
 	description := "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms."
 	templ.Handler(templates.CreatePage(
 		templates.PostsIndex(p.posts),
@@ -62,7 +65,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(config.GetBaseURL()+"/blog"),
 		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
+			title.String(),
 			"website",
 			config.GetBaseURL()+"/blog",
 			config.GetBaseURL()+"/content/logo-vertical-light.webp",
@@ -85,13 +88,18 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		slots.Header,
 		partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), *p.JsonLD),
 	)
+	title := templates.PageTitle{
+		Summary:     p.Frontmatter.PageTitle,
+		Description: "Blog",
+		Date:        p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+	}
 	templ.Handler(templates.CreatePage(
 		templates.Post(p.MarkdownFile),
-		templates.WithPageTitle(p.Frontmatter.PageTitle),
+		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
 		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Details.Path),
 		templates.WithOpenGraphMetadata(opengraph.New(
-			p.Frontmatter.PageTitle,
+			title.String(),
 			"article",
 			config.GetBaseURL()+"/blog/"+p.Details.Path,
 			config.GetBaseURL()+*p.Frontmatter.Image,

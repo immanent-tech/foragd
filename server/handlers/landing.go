@@ -20,11 +20,15 @@ type Landing struct {
 }
 
 func HandleLanding() http.HandlerFunc {
+	title := templates.PageTitle{
+		Summary:     "RSS and Atom Feed Reader",
+		Description: "View RSS, Atom and other syndicated content in your browser",
+	}
 	return RenderExternalPage(&Landing{
 		template: templates.CreatePage(templates.Landing(),
-			templates.WithPageTitle("A beautiful web-based feed reader"),
+			templates.WithPageTitle(title),
 			templates.WithOpenGraphMetadata(opengraph.New(
-				"Foragd",
+				title.String(),
 				"website",
 				config.GetBaseURL(),
 				config.GetBaseURL()+"/content/logo-vertical-light.webp",

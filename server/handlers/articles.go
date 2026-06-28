@@ -34,7 +34,7 @@ import (
 
 // ListArticles holds data for generating the articles list page.
 type ListArticles struct {
-	title    string
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -147,11 +147,15 @@ func HandleListArticles() http.HandlerFunc {
 
 		// If the list of articles is from a single subscription, update the page tile to include the subscription
 		// name.
-		var title string
+		var titleSummary string
 		if len(articles) > 0 && subscription != nil {
-			title = subscription.GetTitle() + " | Articles"
+			titleSummary = subscription.GetTitle() + " | Articles"
 		} else {
-			title = "Articles"
+			titleSummary = "Articles"
+		}
+		title := templates.PageTitle{
+			Summary:     titleSummary,
+			Description: string(request.Filters.GetView()) + " | " + request.Filters.GetSort().String(),
 		}
 
 		response := &models.ListArticlesResponse{
@@ -290,6 +294,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 }
 
 type SimilarArticles struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -297,7 +302,7 @@ type SimilarArticles struct {
 func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(h.template,
-			templates.WithPageTitle("Similar Articles"),
+			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
 
@@ -306,7 +311,7 @@ func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Reques
 func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Similar Articles")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
@@ -345,6 +350,9 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 		}
 		// Show results.
 		RenderInternalPage(&SimilarArticles{
+			title: templates.PageTitle{
+				Summary: "Similar Articles",
+			},
 			template: templates.SimilarArticles(articles),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -352,7 +360,7 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 
 // ArticleContent contains the data to view article content.
 type ArticleContent struct {
-	title    string
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -441,7 +449,10 @@ func HandleViewArticle() http.HandlerFunc {
 
 		// Render article content.
 		RenderInternalPage(&ArticleContent{
-			title:    article.GetTitle() + " | " + article.GetFeedTitle(),
+			title: templates.PageTitle{
+				Summary:     article.GetTitle(),
+				Description: article.GetFeedTitle(),
+			},
 			template: templates.ArticleContent(article),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP

@@ -146,13 +146,14 @@ func HandleSearchSuggestions() http.HandlerFunc {
 }
 
 type SearchResults struct {
+	title   templates.PageTitle
 	results *models.SearchResults
 }
 
 func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(templates.SearchResults(h.results),
-			templates.WithPageTitle("Search Results"),
+			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
 
@@ -169,7 +170,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 			)
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.UpdateTitle("Search Results")).ServeHTTP(res, req)
+		templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/search/paginate":
@@ -351,6 +352,10 @@ func HandleSearchResults() http.HandlerFunc {
 		}
 
 		RenderInternalPage(&SearchResults{
+			title: templates.PageTitle{
+				Summary:     "Search Results",
+				Description: search.Text,
+			},
 			results: &models.SearchResults{
 				Search:     *search,
 				Articles:   articles,

@@ -17,6 +17,7 @@ import (
 )
 
 type ChooseSubscription struct {
+	title   templates.PageTitle
 	user    *models.User
 	request *models.CheckoutRequest
 }
@@ -29,7 +30,7 @@ func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Req
 				&templates.InternalLayoutProps{User: t.user},
 				templates.Checkout(t.user, t.request),
 			),
-			templates.WithPageTitle("Choose a subscription plan"),
+			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req.WithContext(ctx))
 }
 
@@ -41,7 +42,7 @@ func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.
 			templates.Checkout(t.user, t.request),
 		),
 		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Choose a subscription plan")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
@@ -118,6 +119,7 @@ func HandlePurchaseSubscription() http.HandlerFunc {
 }
 
 type PurchaseSubscriptionSuccess struct {
+	title         templates.PageTitle
 	user          *models.User
 	transactionID string
 }
@@ -130,7 +132,7 @@ func (t *PurchaseSubscriptionSuccess) FullResponse(res http.ResponseWriter, req 
 				&templates.InternalLayoutProps{User: t.user},
 				templates.PurchaseSubscriptionSuccess(t.transactionID),
 			),
-			templates.WithPageTitle("Purchase success!"),
+			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req.WithContext(ctx))
 }
 
@@ -142,7 +144,7 @@ func (t *PurchaseSubscriptionSuccess) PartialResponse(res http.ResponseWriter, r
 			templates.PurchaseSubscriptionSuccess(t.transactionID),
 		),
 		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Purchase success!")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
@@ -163,6 +165,10 @@ func HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 		}
 
 		txID := req.URL.Query().Get("_ptxn")
-		RenderInternalPage(&PurchaseSubscriptionSuccess{user: user, transactionID: txID}).ServeHTTP(res, req)
+		RenderInternalPage(&PurchaseSubscriptionSuccess{
+			title: templates.PageTitle{
+				Summary: "Purchase subscription success",
+			},
+			user: user, transactionID: txID}).ServeHTTP(res, req)
 	}
 }

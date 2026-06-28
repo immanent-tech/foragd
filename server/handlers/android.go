@@ -13,6 +13,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/android"
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 func HandleChooseAndroidSubscription() http.HandlerFunc {
@@ -52,6 +53,10 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 		}
 
 		RenderInternalPage(&ChooseSubscription{
+			title: templates.PageTitle{
+				Summary:     "Choose Subscription Plan",
+				Description: "Pick whether to subscribe monthly or yearly",
+			},
 			user:    user,
 			request: checkout,
 		}).ServeHTTP(res, req)

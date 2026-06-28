@@ -19,6 +19,7 @@ import (
 )
 
 type Favorites struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -26,7 +27,7 @@ type Favorites struct {
 func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
-			templates.WithPageTitle("Favorites"),
+			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
 
@@ -35,7 +36,7 @@ func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Favorites")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
@@ -115,6 +116,10 @@ func HandleListFavorites() http.HandlerFunc {
 			LatestArticles: latestItems,
 		}
 		page := &Favorites{
+			title: templates.PageTitle{
+				Summary:     "Favorites",
+				Description: "All favorited Subscriptions and Articles",
+			},
 			template: templates.ListFavorites(response),
 		}
 

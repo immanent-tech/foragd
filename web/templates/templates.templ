@@ -13,6 +13,7 @@ import (
 	"github.com/immanent-tech/go-syndication/opengraph"
 	"net/url"
 	"slices"
+	"strings"
 )
 
 var (
@@ -45,13 +46,36 @@ type Page struct {
 	CanonicalLink string
 }
 
+type PageTitle struct {
+	Summary     string
+	Description string
+	Date        string
+}
+
+func (t PageTitle) String() string {
+	var title strings.Builder
+	title.WriteString(t.Summary)
+	if t.Description != "" {
+		title.WriteString(": ")
+		title.WriteString(t.Description)
+	}
+	if t.Date != "" {
+		title.WriteString(" (")
+		title.WriteString(t.Date)
+		title.WriteString(")")
+	}
+	title.WriteString(" | ")
+	title.WriteString(config.AppName)
+	return title.String()
+}
+
 // PageOption is a functional option applied to a page.
 type PageOption func(*Page)
 
 // WithPageTitle option sets the page title (displayed in the browser titlebar).
-func WithPageTitle(title string) PageOption {
+func WithPageTitle(title PageTitle) PageOption {
 	return func(p *Page) {
-		p.Title = config.AppName + " | " + title
+		p.Title = title.String()
 	}
 }
 
@@ -216,8 +240,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 	</html>
 }
 
-templ UpdateTitle(title string) {
-	<title>{ config.AppName + " | " + title }</title>
+templ UpdateTitle(title PageTitle) {
+	<title>{ title.String() }</title>
 }
 
 // NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a

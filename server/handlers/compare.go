@@ -26,7 +26,11 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 	caser := cases.Title(language.English)
 	service := caser.String(chi.RouteContext(req.Context()).URLParam("service"))
 	// Generate a page title and description.
-	title := "Foragd vs " + service + ": RSS Feed Reader Comparison " + time.Now().Format("2006")
+	title := templates.PageTitle{
+		Summary:     "Foragd vs " + service,
+		Description: "RSS Feed Reader Comparison",
+		Date:        time.Now().Format("2006"),
+	}
 	description := "A detailed comparison of Foragd and " + service + " covering pricing, features, and which is best for different use cases."
 
 	// Add appropriate additional header metadata.
@@ -45,7 +49,7 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 			templates.WithPageDescription(description),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 			templates.WithOpenGraphMetadata(opengraph.New(
-				title,
+				title.String(),
 				"article",
 				config.GetBaseURL()+req.URL.String(),
 				config.GetBaseURL()+"/content/logo-vertical-light.webp",

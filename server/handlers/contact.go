@@ -26,7 +26,10 @@ func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
 	title := "Contact | Foragd"
 	description := "Contact the developers of Foragd."
 	templ.Handler(templates.CreatePage(templates.Contact(),
-		templates.WithPageTitle(title),
+		templates.WithPageTitle(templates.PageTitle{
+			Summary:     "Contact Form",
+			Description: "Get in touch with the developer",
+		}),
 		templates.WithPageDescription(description),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			title,

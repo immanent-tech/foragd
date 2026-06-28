@@ -104,14 +104,18 @@ func PolicyDocsHandler() http.HandlerFunc {
 		}
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		title := templates.PageTitle{
+			Summary:     frontmatter.Title,
+			Description: "Service Policy",
+		}
 		template := templates.CreatePage(
 			templates.LayoutExternal(
 				templates.Document(policyBuf.Bytes()),
 			),
-			templates.WithPageTitle(frontmatter.Title),
+			templates.WithPageTitle(title),
 			templates.WithPageDescription(frontmatter.Description),
 			templates.WithOpenGraphMetadata(opengraph.New(
-				frontmatter.Title,
+				title.String(),
 				"website",
 				config.GetBaseURL()+"/"+metadata.Path,
 				config.GetBaseURL()+"/content/logo-vertical-light.webp",

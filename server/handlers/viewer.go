@@ -21,21 +21,25 @@ import (
 )
 
 type Viewer struct {
+	title  templates.PageTitle
 	feed   *models.Feed
 	errMsg *models.UserMessage
 }
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Free RSS Feed Viewer: Preview Any Website's Feed"
+	p.title = templates.PageTitle{
+		Summary:     "Free RSS Feed Viewer",
+		Description: "Preview Any Website's Feed",
+	}
 	description := "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required."
 	templ.Handler(
 		templates.CreatePage(
 			templates.Viewer(p.feed, p.errMsg),
-			templates.WithPageTitle(title),
+			templates.WithPageTitle(p.title),
 			templates.WithPageDescription(description),
 			templates.WithOpenGraphMetadata(opengraph.New(
-				title,
+				p.title.String(),
 				"website",
 				config.GetBaseURL()+"/viewer",
 				config.GetBaseURL()+"/content/logo-vertical-light.webp",

@@ -33,7 +33,7 @@ const (
 
 // Home contains data for generating a user home page.
 type Home struct {
-	title string
+	title templates.PageTitle
 	data  *templates.HomeData
 }
 
@@ -107,6 +107,10 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 func HandleHome() http.HandlerFunc {
 	return internalPageHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+			title := templates.PageTitle{
+				Summary:     "Your Home",
+				Description: "Latest Articles and Subscription Updates",
+			}
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
 				HandleInternalError(req.URL.Path,
@@ -258,7 +262,7 @@ func HandleHome() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderInternalPage(&Home{
-						title: "Home",
+						title: title,
 						data:  data,
 					}).ServeHTTP(res, req)
 					return
@@ -277,7 +281,7 @@ func HandleHome() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderInternalPage(&Home{
-						title: "Home",
+						title: title,
 						data:  data,
 					}).ServeHTTP(res, req)
 					return
@@ -391,7 +395,7 @@ func HandleHome() http.HandlerFunc {
 				slog.Duration("took", time.Since(start)))
 
 			RenderInternalPage(&Home{
-				title: "Home",
+				title: title,
 				data:  data,
 			}).ServeHTTP(res, req)
 		}).

@@ -21,6 +21,7 @@ import (
 )
 
 type Help struct {
+	title    templates.PageTitle
 	template templ.Component
 }
 
@@ -28,7 +29,7 @@ type Help struct {
 func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
-			templates.WithPageTitle("Help & Documentation: RSS Reader Guide"),
+			templates.WithPageTitle(p.title),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
 		)).ServeHTTP(res, req)
 }
@@ -38,7 +39,7 @@ func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle("Help & Documentation: RSS Reader Guide")).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
@@ -67,8 +68,14 @@ func DocumentationHandler() http.HandlerFunc {
 			return
 		}
 
+		title := templates.PageTitle{
+			Summary:     "Help & Documentation",
+			Description: "RSS Reader Guides and Usage",
+		}
+
 		if user := models.UserFromCtx(req.Context()); user != nil {
 			RenderInternalPage(&Help{
+				title: title,
 				template: templates.LayoutInternal(
 					&templates.InternalLayoutProps{User: user},
 					templates.Document(mdHTML),
@@ -76,6 +83,7 @@ func DocumentationHandler() http.HandlerFunc {
 			}).ServeHTTP(res, req.WithContext(req.Context()))
 		} else {
 			RenderExternalPage(&Help{
+				title: title,
 				template: templates.LayoutExternal(
 					templates.Document(mdHTML),
 				),
