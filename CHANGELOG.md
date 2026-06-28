@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.173.0](https://github.com/immanent-tech/foragd/compare/v0.172.0...v0.173.0) (2026-06-28)
+
+
+### Features
+
+* **help:** ♻️ update help documentation ([e4b011e](https://github.com/immanent-tech/foragd/commit/e4b011e9feb0834eac01b795ec2edc9b9a182ba6))
+* **templates/features:** ✨ improved feature descriptions ([21e2ea1](https://github.com/immanent-tech/foragd/commit/21e2ea1696acf053986a225a996d3312081a3860))
+* **templates/features:** ✨ improved feature pages ([3dd60b1](https://github.com/immanent-tech/foragd/commit/3dd60b16758d4b8e42aa65251775265ee84f2911))
+* **zyte:** ✨ make use of Zyte AI extraction for fetching article remote content ([3fc853d](https://github.com/immanent-tech/foragd/commit/3fc853d9de90e9334bd0c2222307ab9fdedd8b53))
+
+
+### Bug Fixes
+
+* **templates/landing:** 🔧 fix links to feature group pages ([b6e0dcb](https://github.com/immanent-tech/foragd/commit/b6e0dcb6661775fe8a76c03d97e2248f9f19d0a2))
+
 ## [0.172.0](https://github.com/immanent-tech/foragd/compare/v0.171.2...v0.172.0) (2026-06-27)
 
 
