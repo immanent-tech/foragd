@@ -23,7 +23,7 @@ import (
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/reverseproxy"
+	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/web"
 )
@@ -101,7 +101,7 @@ func HandleImage() http.HandlerFunc {
 		}
 
 		// Fetch the remote image.
-		if err := getRemoteImage(req.Context(), proxiedURL, imgBuf); err != nil {
+		if err := directFetchRemoteImage(req.Context(), proxiedURL, imgBuf); err != nil {
 			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 				res.WriteHeader(apiErr.StatusCode)
 			} else {
@@ -148,8 +148,8 @@ func HandleImage() http.HandlerFunc {
 	}
 }
 
-// getRemoteImage fetches the image at the given url writes it into the image buffer.
-func getRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
+// directFetchRemoteImage fetches the image at the given url writes it into the image buffer.
+func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
 	// Load the http client used for making requests to the image proxy.
 	httpClient := client.Load()
 
@@ -159,23 +159,15 @@ func getRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) er
 		SetDoNotParseResponse(true).
 		Get(remoteURL)
 	if err != nil {
-
 		return &models.APIError{
 			InternalError: err,
 			StatusCode:    http.StatusInternalServerError,
 		}
 	}
 	if resp.IsError() {
-		// When the error response is 403: Forbidden try again with our Cloudflare reverse proxy.
-		if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
-			proxiedURL, err := reverseproxy.GenerateProxyURL(remoteURL)
-			if err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("generate proxy url: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}
-			}
-			return getRemoteImage(ctx, proxiedURL, buf)
+		if resp.StatusCode() == http.StatusForbidden {
+			// If we get a forbidden response, try proxying the request.
+			return proxyFetchRemoteImage(ctx, remoteURL, buf)
 		}
 		return &models.APIError{
 			InternalError: errors.New(resp.Status()),
@@ -190,6 +182,45 @@ func getRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) er
 		return &models.APIError{
 			InternalError: errors.New(resp.Status()),
 			StatusCode:    resp.StatusCode(),
+		}
+	}
+	return nil
+}
+
+// proxyFetchRemoteImage fetches the image at the given url via a proxy and writes it into the image buffer.
+func proxyFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
+	resp, err := zyte.Proxy(
+		ctx,
+		remoteURL,
+		zyte.WithResponseBody(true),
+		zyte.WithFollowRedirects(true),
+		zyte.WithTag("proxy_image", "true"),
+	)
+	if err != nil {
+		return &models.APIError{
+			InternalError: fmt.Errorf("fetch image via proxy: %w", err),
+			StatusCode:    *resp.StatusCode,
+		}
+	}
+	if resp.HttpResponseBody != nil {
+		data, err := base64.RawStdEncoding.DecodeString(*resp.HttpResponseBody)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode base64 image: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}
+		}
+		_, err = io.Copy(buf, bytes.NewReader(data))
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("copy image data to buffer: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}
+		}
+	} else {
+		return &models.APIError{
+			InternalError: errors.New("empty response body"),
+			StatusCode:    http.StatusUnprocessableEntity,
 		}
 	}
 	return nil
