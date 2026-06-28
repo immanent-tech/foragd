@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.174.0](https://github.com/immanent-tech/foragd/compare/v0.173.0...v0.174.0) (2026-06-28)
+
+
+### Features
+
+* **handlers:** ✨ when needed, use Zyte to fetch remote images ([1d14a42](https://github.com/immanent-tech/foragd/commit/1d14a429d7265100fbc8aa558f0bce1aa0952489))
+* **templates:** ✨ adopt and enforce a standard page title format ([3955fcc](https://github.com/immanent-tech/foragd/commit/3955fcc153d5a0b31782da43655afe1cdfb52b54))
+
+
+### Bug Fixes
+
+* **templates/features:** 🗑️ remove debugging output ([958c872](https://github.com/immanent-tech/foragd/commit/958c87241d5c005c682eacc5889b5cd4da900e7e))
+
 ## [0.173.0](https://github.com/immanent-tech/foragd/compare/v0.172.0...v0.173.0) (2026-06-28)
 
 
