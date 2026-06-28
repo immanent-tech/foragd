@@ -12,7 +12,11 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/web/templates/element"
+)
 
 func RenderJSONLD(id string, data any) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -92,6 +96,78 @@ type OfferJSONLD struct {
 	Price           string `json:"price"`
 	PriceCurrency   string `json:"priceCurrency"`
 	PriceValidUntil string `json:"priceValidUntil,omitempty"`
+}
+
+type ListItemJSONLD struct {
+	Name        string
+	Description string
+	URL         string
+	Image       *element.Img
+}
+
+func ItemListJSONLD(name string, entries []ListItemJSONLD) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = RenderJSONLD("items", itemListJsonLD(name, entries)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func itemListJsonLD(name string, entries []ListItemJSONLD) json.RawMessage {
+	type mainEntity struct {
+		Type        string `json:"@type"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Position    int    `json:"position"`
+	}
+
+	type itemList struct {
+		Context    string       `json:"@context"`
+		Type       string       `json:"@type"`
+		Name       string       `json:"name"`
+		MainEntity []mainEntity `json:"itemListElement"`
+	}
+
+	list := itemList{
+		Context:    "https://schema.org",
+		Type:       "ItemList",
+		Name:       name,
+		MainEntity: make([]mainEntity, 0, len(entries)),
+	}
+
+	for idx, item := range entries {
+		entity := mainEntity{
+			Type:        "ListItem",
+			Position:    idx + 1,
+			Name:        item.Name,
+			Description: html.ToPlainText(item.Description),
+		}
+		list.MainEntity = append(list.MainEntity, entity)
+	}
+
+	b, _ := json.MarshalIndent(list, "", "  ")
+	return b
 }
 
 var _ = templruntime.GeneratedTemplate

@@ -6,51 +6,53 @@ package templates
 import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	"github.com/goforj/godump"
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
-var featureGroups = []ListItem{
-	ListItem{
+var featureGroups = []partials.ListItemJSONLD{
+	partials.ListItemJSONLD{
 		Name: "Collect",
-		Description: `
-<p class="mx-auto prose mt-12 text-neutral">
-	<span class="font-semibold">Collect everything from one place.</span> Add any website, blog, YouTube channel, Reddit
+		Description: `Collect everything from one place. Add any website, blog, YouTube channel, Reddit
 	subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
-	of tabs or missing posts because an algorithm buried them.
-</p>
-<p class="text-center mt-12 text-accent font-semibold">
-	<a class="link" href="/features/collect">Learn More <span aria-hidden="true">→</span></a>
-</p>
-`,
+	of tabs or missing posts because an algorithm buried them.`,
+		URL: config.GetBaseURL() + "/features/collect",
+		Image: element.NewImg(
+			config.GetBaseURL()+"/content/images/foragd-collect-feature.webp",
+			"Image representing the grouped collect features of Foragd",
+			1200,
+			680,
+		),
 	},
-	ListItem{
+	partials.ListItemJSONLD{
 		Name: "Curate",
-		Description: `
-<p class="mx-auto prose mt-12 text-neutral">
-	<span class="font-semibold">Organise your feeds your way.</span> Group subscriptions into a single unified feed.
+		Description: `Organise your feeds your way. Group subscriptions into a single unified feed.
 	Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
 	in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
-	algorithm, no sponsored suggestions.
-</p>
-<p class="text-center mt-12 text-accent font-semibold">
-	<a class="link" href="/features/curate">Learn More <span aria-hidden="true">→</span></a>
-</p>
-`,
+	algorithm, no sponsored suggestions.`,
+		URL: config.GetBaseURL() + "/features/curate",
+		Image: element.NewImg(
+			config.GetBaseURL()+"/content/images/foragd-curate-feature.webp",
+			"Image representing the grouped curate features of Foragd",
+			1200,
+			680,
+		),
 	},
-	ListItem{
+	partials.ListItemJSONLD{
 		Name: "Consume",
-		Description: `
-<p class="mx-auto prose mt-12 text-neutral">
-	<span class="font-semibold">Read without distractions.</span> Foragd can fetch the full
+		Description: `Read without distractions. Foragd can fetch the full
 	article text directly from the source, so you get clean, readable content even when a site
 	only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
-	mean the content always comes first. Save articles to read later, or share them with a link.
-</p>
-<p class="text-center mt-12 text-accent font-semibold">
-	<a class="link" href="/features/consume">Learn More <span aria-hidden="true">→</span></a>
-</p>
-`,
+	mean the content always comes first. Save articles to read later, or share them with a link.`,
+		URL: config.GetBaseURL() + "/features/consume",
+		Image: element.NewImg(
+			config.GetBaseURL()+"/content/images/foragd-consume-feature.webp",
+			"Image representing the grouped consume features of Foragd",
+			1200,
+			680,
+		),
 	},
 }
 
@@ -64,10 +66,10 @@ templ Features() {
 			<div class="lg:pb-40">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
-						<h1 class="text-5xl font-semibold tracking-tight text-primary">
+						<h1 class="text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
 							Everything you need to follow the web, on your terms
 						</h1>
-						<p class="prose mt-8 text-neutral">
+						<p class="prose prose-lg mt-8 text-neutral sm:prose-xl">
 							Foragd is a web-based RSS and feed reader for people who want to follow websites,
 							newsletters, and YouTube channels without algorithms or ads. It's designed as an alternative
 							to Feedly, Inoreader, and NewsBlur, with a focus on simplicity and clean reading.
@@ -76,20 +78,32 @@ templ Features() {
 				</div>
 			</div>
 			@container() {
-				<dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+				<div class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
 					for group := range slices.Values(featureGroups) {
-						<div class="flex flex-col">
-							<dt class="flex items-center gap-x-3 text-lg font-semibold text-secondary">
-								{ group.Name }
-							</dt>
-							<dd class="mt-4 flex flex-auto flex-col">
-								@templ.Raw(group.Description)
-							</dd>
-						</div>
+						@partials.Card(element.WithClasses("bg-transparent")) {
+							<a href={ group.URL }>
+								if group.Image != nil {
+									<figure class="relative overflow-hidden rounded-t-[inherit]">
+										@group.Image.Template()
+									</figure>
+								}
+								@partials.CardHeader() {
+									<h2 class="text-lg font-semibold text-secondary">{ group.Name }</h2>
+								}
+								@partials.CardBody() {
+									<div class="prose sm:prose-lg">
+										@templ.Raw(group.Description)
+									</div>
+								}
+								@partials.CardFooter(element.WithClasses("flex justify-end")) {
+									<a class="link link-hover" href={ group.URL }>Learn More <span aria-hidden="true">→</span></a>
+								}
+							</a>
+						}
 					}
-				</dl>
+				</div>
 			}
-			@ItemList("Foragd Features", featureGroups)
+			@partials.ItemListJSONLD("Foragd Features", featureGroups)
 			<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
 				<div class="soft-gradient-bottom"></div>
 			</div>
@@ -99,20 +113,16 @@ templ Features() {
 
 templ FeaturesPageCollect() {
 	@LayoutExternal() {
-		<div class="lg:pb-40">
-			<div class="mx-auto max-w-7xl px-6 lg:px-8">
-				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
-					<h1 class="text-5xl font-semibold tracking-tight text-primary">
-						Collect
-					</h1>
-					<p class="mx-auto prose prose-xl mt-12">
-						<span class="font-semibold">Collect everything from one place.</span> Add any website, blog, YouTube channel, Reddit
-						subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
-						of tabs or missing posts because an algorithm buried them.
-					</p>
-				</div>
-			</div>
-		</div>
+		@container() {
+			<h1 class="mx-auto mt-8 text-center text-5xl font-semibold tracking-tight text-primary">
+				Collect
+			</h1>
+			<p class="mx-auto prose prose-lg mt-12 sm:prose-xl">
+				<span class="font-semibold">Collect everything from one place.</span> Add any website, blog, YouTube
+				channel, Reddit subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for
+				you. No more checking dozens of tabs or missing posts because an algorithm buried them.
+			</p>
+		}
 		// Feature: Add Content.
 		@featurePanel("feature-add-content") {
 			<div class="w-full sm:min-w-1/2">
@@ -177,9 +187,10 @@ templ FeaturesPageCollect() {
 				@featureTitle("Sign up for email newsletters")
 				@featureText() {
 					<p>
-						Protect your email and your inbox. Each Foragd account can generate a unique masked email you can use to
-						sign up to email newsletters. Use this email when signing up for newsletters to get your website and
-						email updates in the one place. You can favorite and search through newsletters just like any other feed.
+						Protect your email and your inbox. Each Foragd account can generate a unique masked email you
+						can use to sign up to email newsletters. Use this email when signing up for newsletters to get
+						your website and email updates in the one place. You can favorite and search through newsletters
+						just like any other feed.
 					</p>
 				}
 			</div>
@@ -190,9 +201,9 @@ templ FeaturesPageCollect() {
 				@featureTitle("Migrate from other services")
 				@featureText() {
 					<p>
-						Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions easily.
-						Foragd supports using the OPML file format, a widely used standard for imports and exports. You always
-						own and control your data. Import and export your subscriptions freely.
+						Coming from Feedly, Inoreader or another service? Foragd can import your existing subscriptions
+						easily. Foragd supports using the OPML file format, a widely used standard for imports and
+						exports. You always own and control your data. Import and export your subscriptions freely.
 					</p>
 					<p>
 						If you haven't already, check out our comparisons of Foragd verses <a
@@ -226,31 +237,28 @@ templ FeaturesPageCollect() {
 
 templ FeaturesPageCurate() {
 	@LayoutExternal() {
-		<div class="lg:pb-40">
-			<div class="mx-auto max-w-7xl px-6 lg:px-8">
-				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
-					<h1 class="text-3xl sm:text-5xl font-semibold tracking-tight text-primary">
-						Curate
-					</h1>
-					<p class="mx-auto prose prose-lg sm:prose-xl mt-12">
-						<span class="font-semibold">Organise your feeds your way.</span> Group subscriptions into a single unified feed.
-						Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
-						in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
-						algorithm, no sponsored suggestions.
-					</p>
-				</div>
-			</div>
-		</div>
+		@container() {
+			<h1 class="mx-auto mt-8 text-center text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
+				Curate
+			</h1>
+			<p class="mx-auto prose prose-lg mt-12 sm:prose-xl">
+				<span class="font-semibold">Organise your feeds your way.</span> Group subscriptions into a single
+				unified feed. Search across every article you've ever received. Then save it as a subscription to follow
+				new articles as they come in. Filter out articles you aren't interested in with easy text-based options.
+				You're in control, no algorithm, no sponsored suggestions.
+			</p>
+		}
 		// Feature: Group Subscriptions.
 		@featurePanel("feature-group-subscriptions") {
 			<div class="w-full sm:min-w-1/2">
 				@featureTitle("Group Subscriptions")
 				@featureText() {
 					<p>
-						Group multiple site subscriptions together to view a unified feed of their articles. Great for combining
-						sites on similar topics into one (e.g., all Android or Apple news). You can then apply <a
-	href="#feature-article-filters"
->article filters</a> across all grouped subscriptions, further refining
+						Group multiple site subscriptions together to view a unified feed of their articles. Great for
+						combining sites on similar topics into one (e.g., all Android or Apple news). You can then apply
+						<a
+							href="#feature-article-filters"
+						>article filters</a> across all grouped subscriptions, further refining
 						the list of articles displayed.
 					</p>
 				}
@@ -302,8 +310,8 @@ templ FeaturesPageCurate() {
 				@featureTitle("Article Filtering")
 				@featureText() {
 					<p>
-						Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms and
-						logic.
+						Filter articles with straight-forward +/- keyword/phrase matching. No complicated AND/OR forms
+						and logic.
 					</p>
 					<p>
 						For example, <span class="italic">`AI -chatgpt`</span> will filter for AI news, but not about
@@ -351,8 +359,8 @@ templ FeaturesPageCurate() {
 				@featureTitle("Subscription Customisation")
 				@featureText() {
 					<p>
-						You can customise each subscription, choosing your own nickname and/or image to represent each. Useful
-						where the feed does not include its own image or its name is verbose or generic.
+						You can customise each subscription, choosing your own nickname and/or image to represent each.
+						Useful where the feed does not include its own image or its name is verbose or generic.
 					</p>
 				}
 			</div>
@@ -370,21 +378,17 @@ templ FeaturesPageCurate() {
 
 templ FeaturesPageConsume() {
 	@LayoutExternal() {
-		<div class="lg:pb-40">
-			<div class="mx-auto max-w-7xl px-6 lg:px-8">
-				<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
-					<h1 class="text-3xl sm:text-5xl font-semibold tracking-tight text-primary">
-						Consume
-					</h1>
-					<p class="mx-auto prose prose-lg sm:prose-xl mt-12">
-						<span class="font-semibold">Read without distractions.</span> Foragd can fetch the full
-						article text directly from the source, so you get clean, readable content even when a site
-						only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
-						mean the content always comes first. Save articles to read later, or share them with a link.
-					</p>
-				</div>
-			</div>
-		</div>
+		@container() {
+			<h1 class="mx-auto mt-8 text-center text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
+				Consume
+			</h1>
+			<p class="mx-auto prose prose-lg mt-12 sm:prose-xl">
+				<span class="font-semibold">Read without distractions.</span> Foragd can fetch the full article text
+				directly from the source, so you get clean, readable content even when a site only publishes a summary
+				in its feed. It has beautiful typography, theme support, and no ads mean the content always comes first.
+				Save articles to read later, or share them with a link.
+			</p>
+		}
 		// Feature: Layout.
 		// @featurePanel("feature-layout") {
 		// 	<div class="w-full sm:min-w-1/2">
@@ -522,7 +526,7 @@ templ featurePanel(id string) {
 	<div class="py-12" id={ id }>
 		<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
 			<div class="relative isolate overflow-hidden bg-base-200 px-6 py-20 sm:rounded-3xl sm:px-10 sm:py-24 lg:py-24 xl:px-24">
-				<div class="flex flex-col sm:flex-row items-center justify-between gap-12">
+				<div class="flex flex-col items-center justify-between gap-12 sm:flex-row">
 					{ children... }
 				</div>
 				<div aria-hidden="true" class="pointer-events-none absolute top-1/2 left-12 -z-10 -translate-y-1/2 transform-gpu blur-3xl lg:top-auto lg:-bottom-48 lg:translate-y-0">
@@ -534,11 +538,11 @@ templ featurePanel(id string) {
 }
 
 templ featureTitle(title string) {
-	<h2 class="text-balance text-xl sm:text-3xl font-semibold tracking-tight">{ title }</h2>
+	<h2 class="text-xl font-semibold tracking-tight text-balance sm:text-3xl">{ title }</h2>
 }
 
 templ featureText() {
-	<div class="mt-2 prose sm:prose-lg">
+	<div class="prose mt-2 sm:prose-lg">
 		{ children... }
 	</div>
 }
