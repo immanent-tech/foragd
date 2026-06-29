@@ -1133,7 +1133,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 														if templ_7745c5c3_Err != nil {
 															return templ_7745c5c3_Err
 														}
-														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\">")
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\">")
 														if templ_7745c5c3_Err != nil {
 															return templ_7745c5c3_Err
 														}
@@ -2631,7 +2631,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 						templ_7745c5c3_Err = partials.Card(
 							element.WithAttribute("hx-get", "/view/article/"+item.GetID()),
 							element.WithAttribute("hx-target", ContentID.Target()),
-							element.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
+							element.WithAttribute("hx-swap", "innerHTML scroll:#content:top transition:true"),
 							element.WithAttribute("hx-trigger", "click"),
 							element.WithAttribute("hx-push-url", "true"),
 							element.WithAttribute("hx-disinherit", "*"),
@@ -4762,7 +4762,7 @@ func subscriptionThumbnail(img *models.RemoteImage, name string) templ.Component
 func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "innerHTML scroll:#content:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {

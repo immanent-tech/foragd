@@ -374,7 +374,7 @@ func buttonBackToTop() templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\t\totherwise\n\t\t\t\tadd .opacity-0 .translate-y-4 .pointer-events-none to me\n\t\tend\n\t\ton click scroll to the top of the body smoothly\n\t\t\" aria-label=\"Scroll to top\"><span class=\"sr-only\">Back to top</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out\" _=\"\n\t\ton scroll from #content queue last\n  \t\t\tif the #content's scrollTop is greater than 20\n    \t\t\tremove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\t\totherwise\n\t\t\t\tadd .opacity-0 .translate-y-4 .pointer-events-none to me\n\t\tend\n  \t\ton click\n  \t\t\tjs(me)\n  \t\t    \tdocument.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })\n  \t\tend\" aria-label=\"Scroll to top\"><span class=\"sr-only\">Back to top</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

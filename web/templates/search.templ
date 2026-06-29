@@ -422,7 +422,7 @@ templ SearchResults(results *models.SearchResults) {
 										<a
 											hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
 											hx-target={ ContentID.Target() }
-											hx-swap="innerHTML show:window:top transition:true"
+											hx-swap="innerHTML scroll:#content:top transition:true"
 											class="group/item flex items-center gap-x-2"
 										>
 											@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})

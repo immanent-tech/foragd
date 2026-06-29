@@ -221,7 +221,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 link text-pretty link-hover\">")
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 link text-pretty link-hover\">")
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}
@@ -281,7 +281,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"btn mt-6 btn-primary\">Go to your subscriptions <span aria-hidden=\"true\">-></span></button></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"btn mt-6 btn-primary\">Go to your subscriptions <span aria-hidden=\"true\">-></span></button></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -359,7 +359,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"btn mt-6 btn-primary\">Go to your articles <span aria-hidden=\"true\">-></span></button></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"btn mt-6 btn-primary\">Go to your articles <span aria-hidden=\"true\">-></span></button></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

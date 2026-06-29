@@ -24,7 +24,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="innerHTML scroll:#content:top transition:true"
 			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home")) }
 		>
 			<span class="sr-only">Go to Home Page</span>
@@ -44,7 +44,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="innerHTML scroll:#content:top transition:true"
 			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 		>
 			<span class="sr-only">Go to Subscriptions</span>
@@ -62,7 +62,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="innerHTML scroll:#content:top transition:true"
 			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
 			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/view/article")) }
 			if strings.HasPrefix(pageURL, "/view/article") {
@@ -83,7 +83,7 @@ templ Dock(options ...element.PropertiesOption) {
 		<a
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="innerHTML scroll:#content:top transition:true"
 			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/favorites")) }
 		>
 			<span class="sr-only">Go to Favorites</span>
@@ -100,7 +100,7 @@ templ Dock(options ...element.PropertiesOption) {
 		<a
 			hx-get="/subscription/add"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="innerHTML scroll:#content:top transition:true"
 			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
 		>
 			<span class="sr-only">Add a Subscription</span>

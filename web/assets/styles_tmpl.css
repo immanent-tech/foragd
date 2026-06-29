@@ -109,6 +109,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  header#page-header,
+  footer#page-dock,
+  footer#page-sidebar {
+    view-transition-name: none;
+  }
+
   el-popover {
     @apply overscroll-contain transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
   }
@@ -232,91 +238,9 @@
     @apply opacity-0 transition-opacity duration-300 ease-out;
   }
 
-  .prose-article {
-    @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
-
-    /* Forced fixed width for pre and scrollable elements. */
-    pre {
-      @apply overflow-x-auto;
-    }
-    .scrollable {
-      @apply overflow-x-auto;
-    }
-    [style*='white-space-collapse'] {
-      @apply whitespace-normal!;
-    }
-
-    /* Format elements that are likely an author bio/info. */
-    [id*='author'] {
-      @apply text-sm/6;
-    }
-
-    /* Hide duplicate images (usually just different sizes). */
-    img + img {
-      display: none;
-    }
-
-    /* Remove empty list elements. */
-    li:empty {
-      display: none;
-    }
-  }
-
-  .prose-email {
-    @apply prose ugc-remove-trackers overflow-x-hidden text-pretty wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
-
-    /* Bust all hardcoded widths on tables */
-    table,
-    td,
-    tr {
-      @apply box-border! block! w-auto! max-w-100!;
-    }
-
-    /* Restore normal table rows where display:block breaks alignment */
-    tr {
-      @apply flex! flex-wrap!;
-    }
-
-    /* Captions under images */
-    td[align='center'] > p {
-      @apply mt-1 text-center text-sm/tight opacity-65;
-    }
-
-    /* Tighten paragraph spacing inside table cells */
-    td > p {
-      @apply my-1 text-base/tight;
-    }
-
-    /* Header row: date + read online link */
-    tr#header td {
-      @apply py-2;
-    }
-
-    /* Strip spacer rows (cells with only &nbsp;) */
-    td:empty,
-    td > *:only-child:empty {
-      @apply hidden!;
-    }
-  }
-
-  /* For formatting a short summary of article content. */
-  .prose-summary {
-    @apply prose prose-sm line-clamp-3 leading-relaxed dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
-    img,
-    figure,
-    video {
-      @apply hidden!;
-    }
-  }
-
   .flex-separated > * + *::before {
     @apply mx-2;
     content: '·';
-  }
-
-  /* For formatting help and policy documents. */
-  .prose-document {
-    @apply prose sm:prose-lg prose-headings:tracking-tight prose-headings:text-balance prose-h1:font-display prose-h1:text-2xl/7 prose-a:link prose-a:link-hover prose-img:shadow-md;
   }
 
   .brightness-dim {
@@ -328,6 +252,106 @@
 
   .anchor-highlight {
     animation: anchor-flash 1.8s ease-out;
+  }
+}
+
+/* For formatting article content. */
+@utility prose-article {
+  @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+
+  /* Forced fixed width for pre and scrollable elements. */
+  pre {
+    @apply overflow-x-auto;
+  }
+  .scrollable {
+    @apply overflow-x-auto;
+  }
+  [style*='white-space-collapse'] {
+    @apply whitespace-normal!;
+  }
+
+  /* Format elements that are likely an author bio/info. */
+  [id*='author'] {
+    @apply text-sm/6;
+  }
+
+  /* Hide duplicate images (usually just different sizes). */
+  img + img {
+    display: none;
+  }
+
+  /* Remove empty list elements. */
+  li:empty {
+    display: none;
+  }
+}
+
+/* For formatting email newsletters. */
+@utility prose-email {
+  @apply prose-article prose ugc-remove-trackers;
+
+  /* Bust all hardcoded widths on tables */
+  table,
+  td,
+  tr {
+    @apply box-border! block! w-auto! max-w-100!;
+  }
+
+  /* Restore normal table rows where display:block breaks alignment */
+  tr {
+    @apply flex! flex-wrap!;
+  }
+
+  /* Captions under images */
+  td[align='center'] > p {
+    @apply mt-1 text-center text-sm/tight opacity-65;
+  }
+
+  /* Tighten paragraph spacing inside table cells */
+  td > p {
+    @apply my-1 text-base/tight;
+  }
+
+  /* Header row: date + read online link */
+  tr#header td {
+    @apply py-2;
+  }
+
+  /* Strip spacer rows (cells with only &nbsp;) */
+  td:empty,
+  td > *:only-child:empty {
+    @apply hidden!;
+  }
+}
+
+/* For formatting a short summary of article content. */
+@utility prose-summary {
+  @apply prose prose-sm line-clamp-3 leading-relaxed dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+  img,
+  figure,
+  video {
+    @apply hidden!;
+  }
+}
+
+/* For formatting help and policy documents. */
+@utility prose-document {
+  @apply prose sm:prose-lg prose-headings:tracking-tight prose-headings:text-balance prose-h1:font-display prose-h1:text-2xl/7 prose-a:link prose-a:link-hover prose-img:shadow-md;
+}
+
+@utility ugc-remove-trackers {
+  /* Hide injected scripts/beacons that render as empty nodes */
+  script,
+  style,
+  link,
+  meta {
+    display: none !important;
+  }
+
+  /* Strip any injected tracking pixels */
+  img[width='1'],
+  img[height='1'] {
+    display: none !important;
   }
 }
 
@@ -373,22 +397,6 @@
     76.1% 97.7%,
     74.1% 44.1%
   );
-}
-
-@utility ugc-remove-trackers {
-  /* Hide injected scripts/beacons that render as empty nodes */
-  script,
-  style,
-  link,
-  meta {
-    display: none !important;
-  }
-
-  /* Strip any injected tracking pixels */
-  img[width='1'],
-  img[height='1'] {
-    display: none !important;
-  }
 }
 
 @utility animation-delay-none {

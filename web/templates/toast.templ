@@ -21,7 +21,10 @@ templ UpdatesToast(options ...element.PropertiesOption) {
 			<button
 				class="btn btn-square btn-soft btn-sm btn-info"
 				{ props.Attributes()... }
-				_="on click scroll to the top of the body smoothly"
+				_="on click
+		  			js(me)
+  				    	document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })
+  					end"
 			>
 				<span class="sr-only">Refresh</span>
 				@tabler.Refresh(templ.Attributes{"class": "hide-loading size-4 text-info", "aria-hidden": "true"})

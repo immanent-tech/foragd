@@ -141,7 +141,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		for option := range slices.Values(options) {
 			option(p)
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\" _=\"on load\n             set theme to localStorage.getItem('theme')\n             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end\n\t\t   on mutation of @data-theme send themeChange end\" class=\"h-full scrollbar-thumb-(--color-primary) scrollbar-gutter-stable\"><head><meta charset=\"UTF-8\"><meta name=\"description\" content=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\" _=\"on load\n             set theme to localStorage.getItem('theme')\n             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end\n\t\t   on mutation of @data-theme send themeChange end\" class=\"h-full scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none\"><head><meta charset=\"UTF-8\"><meta name=\"description\" content=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -324,7 +324,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</title></head><body class=\"flex h-full w-screen flex-col bg-base-100\" _=\"on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</title></head><body class=\"flex h-full w-screen flex-col bg-base-100 overscroll-y-none\" _=\"on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

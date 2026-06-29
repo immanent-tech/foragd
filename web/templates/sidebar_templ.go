@@ -84,7 +84,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome end\"><span class=\"sr-only\">Go to Home Page</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome end\"><span class=\"sr-only\">Go to Home Page</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -143,7 +143,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions end\"><span class=\"sr-only\">Go to Subscriptions</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions end\"><span class=\"sr-only\">Go to Subscriptions</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -201,7 +201,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles end\"><span class=\"sr-only\">Go to Articles</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles end\"><span class=\"sr-only\">Go to Articles</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -246,7 +246,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -291,7 +291,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end\"><span class=\"sr-only\">Add Subscription</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"group flex shrink-0 flex-col items-center justify-center p-2 cursor-pointer touch-manipulation\" _=\"on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end\"><span class=\"sr-only\">Add Subscription</span> <span class=\"show-loading items-center\"><span class=\"loading loading-xl loading-spinner text-primary\"></span></span> <span class=\"hide-loading items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

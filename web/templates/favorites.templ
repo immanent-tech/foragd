@@ -122,7 +122,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 																	<li
 																		hx-get={ "/view/article/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
-																		hx-swap="innerHTML show:window:top transition:true"
+																		hx-swap="innerHTML scroll:#content:top transition:true"
 																		hx-trigger="click"
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
@@ -148,7 +148,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 										type="button"
 										hx-get="/list/subscriptions"
 										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
+										hx-swap="innerHTML scroll:#content:top transition:true"
 										class="btn mt-6 btn-primary"
 									>
 										Go to your subscriptions <span aria-hidden="true">-></span>
@@ -177,7 +177,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 										type="button"
 										hx-get="/list/articles"
 										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
+										hx-swap="innerHTML scroll:#content:top transition:true"
 										class="btn mt-6 btn-primary"
 									>
 										Go to your articles <span aria-hidden="true">-></span>

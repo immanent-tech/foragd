@@ -55,7 +55,7 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, path),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("innerHTML show:window:top transition:true"),
+		htmx.WithHXSwap("innerHTML scroll:#content:top transition:true"),
 		htmx.WithHXPushURL(),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),
@@ -95,7 +95,7 @@ func (s *Subscription) editAttributes(path string) templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/subscription/edit/"+s.GetID()),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("innerHTML show:window:top transition:true"),
+		htmx.WithHXSwap("innerHTML scroll:#content:top transition:true"),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(map[string]string{"from": path}),
 	).GetAttributes()

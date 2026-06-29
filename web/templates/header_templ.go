@@ -114,7 +114,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -322,7 +322,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																	<a
 																		hx-get={ "/view/article/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
-																		hx-swap="innerHTML show:window:top transition:true"
+																		hx-swap="innerHTML scroll:#content:top transition:true"
 																		hx-trigger="click"
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
@@ -917,7 +917,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 								@partials.Card(
 									element.WithAttribute("hx-get", "/view/article/"+item.GetID()),
 									element.WithAttribute("hx-target", ContentID.Target()),
-									element.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
+									element.WithAttribute("hx-swap", "innerHTML scroll:#content:top transition:true"),
 									element.WithAttribute("hx-trigger", "click"),
 									element.WithAttribute("hx-push-url", "true"),
 									element.WithAttribute("hx-disinherit", "*"),
@@ -1675,7 +1675,7 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "innerHTML scroll:#content:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {

@@ -263,7 +263,7 @@ templ ArticleCard(idx int, a *models.Article) {
 			"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
-		element.WithHXSwap("innerHTML show:window:top transition:true"),
+		element.WithHXSwap("innerHTML scroll:#content:top transition:true"),
 		element.WithHXTrigger("click"),
 		element.WithHXPushURL(true),
 	) {
@@ -424,7 +424,7 @@ templ ArticleContent(a *models.Article) {
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML show:window:top transition:true"
+							hx-swap="innerHTML scroll:#content:top transition:true"
 							hx-vals={ templ.JSONString(map[string]any{
 									"view": filters.GetView(),
 									"count": filters.GetCount(),

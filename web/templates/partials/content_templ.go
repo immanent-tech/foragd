@@ -43,7 +43,7 @@ func NoContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">All caught up!</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Congratulations, you've read everything!</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a hx-get=\"/list/favorites\" hx-target=\"#content\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"btn btn-accent\">View favorites</a></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">All caught up!</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Congratulations, you've read everything!</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a hx-get=\"/list/favorites\" hx-target=\"#content\" hx-swap=\"innerHTML scroll:#content:top transition:true\" class=\"btn btn-accent\">View favorites</a></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
