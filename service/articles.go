@@ -262,8 +262,8 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 	if !cached {
 		extracted, err := zyte.ExtractArticle(ctx,
 			article.GetLink(),
-			zyte.WithBrowserHTML(true),
-			zyte.AsArticle(nil),
+			zyte.WithResponseBody(true),
+			zyte.WithFollowRedirects(true),
 			zyte.WithTag("item_id", article.GetID()),
 			zyte.WithTag("feed_id", article.GetFeedID()),
 		)
