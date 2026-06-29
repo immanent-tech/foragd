@@ -267,10 +267,9 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Build frontend files
+      - name: Install node packages
         run: |
           npm clean-install
-          npm run build:prod
 
       - name: Set up JDK
         uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
@@ -282,9 +281,6 @@ jobs:
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
         with:
           packages: 'tools platform-tools build-tools;34.0.0 cmdline-tools;latest platforms;android-34'
-
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
 
       - name: Configure Bubblewrap
         run: |
