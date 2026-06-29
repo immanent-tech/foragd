@@ -152,6 +152,15 @@ var (
 				),
 				templates.WithTemplateSettings(
 					templates.WithLifecycle("items_ilm_policy", ItemsIndexRW()),
+					templates.WithAnalysis(types.IndexSettingsAnalysis{
+						Analyzer: map[string]types.Analyzer{
+							htmlAnalyzer.Name:         htmlAnalyzer.Definition,
+							englishExactAnalyzer.Name: englishExactAnalyzer.Definition,
+						},
+						Tokenizer: map[string]types.Tokenizer{
+							emailTokenizer.Name: emailTokenizer.Definition,
+						},
+					}),
 				),
 			),
 		),
@@ -507,6 +516,7 @@ var (
 	englishExactAnalyzer = templates.CustomAnalyser{
 		Name: "english_exact",
 		Definition: types.CustomAnalyzer{
+			Type:      "custom",
 			Tokenizer: "standard",
 			Filter:    []string{"lowercase"},
 		},
@@ -514,15 +524,15 @@ var (
 
 	// emailTokenizer tokenizes text including emails and URLs.
 	emailTokenizer = templates.CustomTokenizer{
-		Name:       "email",
+		Name:       "email_tokenizer",
 		Definition: types.NewUaxEmailUrlTokenizer(),
 	}
 
 	// personAnalyzer recognizes email addresses for people.
 	personAnalyzer = templates.CustomAnalyser{
-		Name: "html",
+		Name: "author_contributor",
 		Definition: types.CustomAnalyzer{
-			Type:      "standard",
+			Type:      "custom",
 			Tokenizer: emailTokenizer.Name,
 			Filter:    []string{"lowercase", "stop"},
 		},
@@ -532,7 +542,7 @@ var (
 	htmlAnalyzer = templates.CustomAnalyser{
 		Name: "html",
 		Definition: types.CustomAnalyzer{
-			Type:       "standard",
+			Type:       "custom",
 			Tokenizer:  emailTokenizer.Name,
 			Filter:     []string{"lowercase", "stop"},
 			CharFilter: []string{"html_strip"},
@@ -541,7 +551,7 @@ var (
 
 	// domainTokenizer tokenizes (splits) domain names.
 	domainTokenizer = templates.CustomTokenizer{
-		Name: "domain",
+		Name: "domain_tokenizer",
 		Definition: types.CharGroupTokenizer{
 			TokenizeOnChars: []string{"."},
 		},
@@ -551,7 +561,7 @@ var (
 	domainNameAnalyzer = templates.CustomAnalyser{
 		Name: "domain",
 		Definition: types.CustomAnalyzer{
-			Type:      "standard",
+			Type:      "custom",
 			Tokenizer: domainTokenizer.Name,
 			Filter:    []string{"lowercase"},
 		},
