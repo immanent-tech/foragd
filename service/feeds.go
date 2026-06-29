@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,13 +26,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
-	"github.com/zeebo/xxh3"
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/rss"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/immanent-tech/go-syndication/validation"
 
 	"github.com/immanent-tech/foragd/client"
@@ -632,6 +629,9 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				),
 				// Match an existing subscription category.
 				query.Term("categories", text),
+				// Try to match the domain.
+				query.Match("domain", text),
+				query.Term("domain", text),
 			),
 		)
 	}
@@ -1085,7 +1085,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		feedData.SetSourceURL(sourceURL.String())
 	}
 
-	feed := NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
+	feed := models.NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
 
 	// For Atom, assume a default hourly update.
 	if feedData.SourceType == feeds.TypeAtom || feedData.SourceType == feeds.TypeJSONFeed {
@@ -1206,68 +1206,6 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	}
 	// Otherwise use the new feed.
 	return newFeed, true, nil
-}
-
-// NewFeed converts a feed source from the go-syndication library into a models.Feed object.
-func NewFeed(url string, id models.FeedID, source *feeds.Feed) *models.Feed {
-	if id == "" {
-		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
-	}
-	feed := &models.Feed{
-		FeedID:       id,
-		CreatedAt:    time.Now().UTC(),
-		LastFetched:  types.UnixEpoch,
-		Title:        source.GetTitle(),
-		Description:  new(source.GetDescription()),
-		SourceType:   models.SourceType(source.SourceType),
-		SourceURLs:   []string{source.GetSourceURL()},
-		URL:          source.GetLink(),
-		Authors:      source.GetAuthors(),
-		Contributors: source.GetContributors(),
-		Copyright:    source.GetRights(),
-		Language:     source.GetLanguage(),
-		Categories:   source.GetCategories(),
-	}
-	if pubDate := source.GetPublishedDate(); pubDate != nil {
-		feed.Published = pubDate.UTC()
-	} else {
-		feed.Published = models.UnixEpoch
-	}
-	if updatedDate := source.GetUpdatedDate(); updatedDate != nil {
-		feed.Updated = new(updatedDate.UTC())
-	}
-
-	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
-	// calls to fetch additional information (e.g., images).
-	var wg sync.WaitGroup
-	itemCh := make(chan models.Item)
-	for i := range slices.Values(source.GetItems()) {
-		wg.Go(func() {
-			item := NewFeedItem(&i, feed)
-			itemCh <- *item
-		})
-	}
-	go func() {
-		defer close(itemCh)
-		wg.Wait()
-	}()
-	for item := range itemCh {
-		feed.Items = append(feed.Items, &item)
-	}
-
-	// Add the url used to find the feed to the source URLs if needed.
-	if !slices.Contains(feed.SourceURLs, url) {
-		feed.SourceURLs = append(feed.SourceURLs, url)
-	}
-	// Add any image found.
-	if sourceImg := source.GetImage(); sourceImg != nil {
-		feed.Image = &models.RemoteImage{
-			URL:   new(sourceImg.GetURL()),
-			Title: new(sourceImg.GetTitle()),
-		}
-	}
-
-	return feed
 }
 
 // FeedSorting contains the sort options for sorting item search results.

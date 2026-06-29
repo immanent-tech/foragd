@@ -328,6 +328,14 @@ var (
 						templates.WithKeywordMapping("source_urls"),
 						templates.WithKeywordMapping("fetch_method"),
 						templates.WithFlattenedMapping("quirks"),
+						templates.WithTextMapping("domain", &types.TextProperty{
+							Type:     "text",
+							Analyzer: new("domainname"),
+							Fields: map[string]types.Property{
+								"raw":    types.NewKeywordProperty(),
+								"search": types.NewSearchAsYouTypeProperty(),
+							},
+						}),
 					),
 				),
 				templates.WithTemplateSettings(
@@ -336,6 +344,14 @@ var (
 							englishExactAnalyzerName: types.CustomAnalyzer{
 								Tokenizer: "standard",
 								Filter:    []string{"lowercase"},
+							},
+							"domainname": types.CustomAnalyzer{
+								Tokenizer: "domain",
+							},
+						},
+						Tokenizer: map[string]types.Tokenizer{
+							"domain": types.CharGroupTokenizer{
+								TokenizeOnChars: []string{"."},
 							},
 						},
 					}),

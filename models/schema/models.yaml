@@ -716,6 +716,7 @@ components:
         - type: object
           required:
             - feed_id
+            - domain
             - source_urls
             - web_urls
             - created_at
@@ -725,6 +726,11 @@ components:
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
+            domain:
+              description: is the domain name for the feed link
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: required,fqdn
             source_urls:
               description: >
                 is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the

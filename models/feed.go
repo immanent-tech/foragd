@@ -8,8 +8,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/zeebo/xxh3"
 )
@@ -50,6 +52,76 @@ func (f Feeds) ExcludeIDs(ids ...FeedID) Feeds {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)
+}
+
+// NewFeed converts a feed source from the go-syndication library into a models.Feed object.
+func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
+	if id == "" {
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
+	}
+	feed := &Feed{
+		FeedID:       id,
+		CreatedAt:    time.Now().UTC(),
+		LastFetched:  types.UnixEpoch,
+		Title:        source.GetTitle(),
+		Description:  new(source.GetDescription()),
+		SourceType:   SourceType(source.SourceType),
+		SourceURLs:   []string{source.GetSourceURL()},
+		URL:          source.GetLink(),
+		Authors:      source.GetAuthors(),
+		Contributors: source.GetContributors(),
+		Copyright:    source.GetRights(),
+		Language:     source.GetLanguage(),
+		Categories:   source.GetCategories(),
+	}
+
+	// Set the published date. If no published date in the source, set it to unix epoch.
+	if pubDate := source.GetPublishedDate(); pubDate != nil {
+		feed.Published = pubDate.UTC()
+	} else {
+		feed.Published = UnixEpoch
+	}
+
+	// Set the updated date (if found in the source).
+	if updatedDate := source.GetUpdatedDate(); updatedDate != nil {
+		feed.Updated = new(updatedDate.UTC())
+	}
+
+	// Extract the hostname from the link into the domain field.
+	link, _ := url.Parse(source.GetLink())
+	feed.Domain = link.Hostname()
+
+	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
+	// calls to fetch additional information (e.g., images).
+	var wg sync.WaitGroup
+	itemCh := make(chan Item)
+	for i := range slices.Values(source.GetItems()) {
+		wg.Go(func() {
+			item := NewFeedItem(&i, feed)
+			itemCh <- *item
+		})
+	}
+	go func() {
+		defer close(itemCh)
+		wg.Wait()
+	}()
+	for item := range itemCh {
+		feed.Items = append(feed.Items, &item)
+	}
+
+	// Add the url used to find the feed to the source URLs if needed.
+	if !slices.Contains(feed.SourceURLs, sourceURL) {
+		feed.SourceURLs = append(feed.SourceURLs, sourceURL)
+	}
+	// Add any image found.
+	if sourceImg := source.GetImage(); sourceImg != nil {
+		feed.Image = &RemoteImage{
+			URL:   new(sourceImg.GetURL()),
+			Title: new(sourceImg.GetTitle()),
+		}
+	}
+
+	return feed
 }
 
 // GetID returns the ID of the Feed.
@@ -134,7 +206,7 @@ func (f *Feed) GetRights() string {
 	return ""
 }
 
-// normaliseURL strips protocol handler schemes and cleans the URL
+// NormaliseFeedURL strips protocol handler schemes and cleans the URL.
 func NormaliseFeedURL(raw string) string {
 	// Strip protocol handler prefixes: web+feed://, web+rss://
 	for _, prefix := range []string{"web+feed://", "web+rss://", "web+feed:", "web+rss:"} {

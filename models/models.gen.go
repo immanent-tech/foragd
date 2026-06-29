@@ -611,6 +611,9 @@ type Feed struct {
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
+	// Domain is the domain name for the feed link
+	Domain string `json:"domain" validate:"required,fqdn"`
+
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 

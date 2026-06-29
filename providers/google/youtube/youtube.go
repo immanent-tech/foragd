@@ -5,9 +5,11 @@ package youtube
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"sync"
+	"time"
 
 	slogctx "github.com/veqryn/slog-context"
 	"google.golang.org/api/option"
@@ -82,4 +84,117 @@ func FindChannels(ctx context.Context, query string) ([]Channel, error) {
 	})
 
 	return results, nil
+}
+
+func FetchChannelVideosSince(ctx context.Context, channelID string, since time.Time) ([]*youtube.Video, error) {
+	if err := initClient(ctx); err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
+	}
+
+	// 1 unit
+	uploadsID, err := getUploadsPlaylistID(ctx, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 1 unit per 50 videos
+	videoIDs, err := getVideosSince(ctx, uploadsID, since)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(videoIDs) == 0 {
+		return nil, nil
+	}
+
+	// 1 unit per 50 videos
+	return getVideoDetails(ctx, videoIDs)
+}
+
+func getUploadsPlaylistID(ctx context.Context, channelID string) (string, error) {
+	if err := initClient(ctx); err != nil {
+		return "", fmt.Errorf("init client: %w", err)
+	}
+
+	resp, err := client.Channels.List([]string{"contentDetails"}).
+		Id(channelID).
+		Do()
+	if err != nil {
+		return "", err
+	}
+	if len(resp.Items) == 0 {
+		return "", errors.New("channel not found")
+	}
+	return resp.Items[0].ContentDetails.RelatedPlaylists.Uploads, nil
+}
+
+func getVideosSince(ctx context.Context, uploadsPlaylistID string, since time.Time) ([]string, error) {
+	if err := initClient(ctx); err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
+	}
+
+	var videoIDs []string
+	pageToken := ""
+
+	for {
+		call := client.PlaylistItems.List([]string{"contentDetails"}).
+			PlaylistId(uploadsPlaylistID).
+			MaxResults(50). // max allowed
+			PageToken(pageToken)
+
+		resp, err := call.Do()
+		if err != nil {
+			return nil, err
+		}
+
+		done := false
+		for _, item := range resp.Items {
+			publishedAt, err := time.Parse(time.RFC3339, item.ContentDetails.VideoPublishedAt)
+			if err != nil {
+				continue
+			}
+
+			// Playlist is newest-first, so stop once we go past our date
+			if publishedAt.Before(since) {
+				done = true
+				break
+			}
+
+			videoIDs = append(videoIDs, item.ContentDetails.VideoId)
+		}
+
+		if done || resp.NextPageToken == "" {
+			break
+		}
+		pageToken = resp.NextPageToken
+	}
+
+	return videoIDs, nil
+}
+
+func getVideoDetails(ctx context.Context, videoIDs []string) ([]*youtube.Video, error) {
+	if err := initClient(ctx); err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
+	}
+
+	var videos []*youtube.Video
+
+	// videos.list accepts up to 50 IDs per call
+	for i := 0; i < len(videoIDs); i += 50 {
+		end := i + 50
+		if end > len(videoIDs) {
+			end = len(videoIDs)
+		}
+		batch := videoIDs[i:end]
+
+		resp, err := client.Videos.List([]string{"snippet", "contentDetails", "statistics"}).
+			Id(batch...).
+			Do()
+		if err != nil {
+			return nil, fmt.Errorf("list videos: %w", err)
+		}
+		videos = append(videos, resp.Items...)
+	}
+
+	return videos, nil
 }
