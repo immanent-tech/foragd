@@ -4,8 +4,10 @@
 package elastic
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"sync"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
@@ -18,20 +20,46 @@ type API struct {
 
 var api API
 
+// Connect sets up a connection to Elasticsearch.
 var Connect = sync.OnceValue(func() error {
-	clientConfig, err := loadConfigOnce()
-	if err != nil {
+	if err := loadConfigOnce(); err != nil {
 		return fmt.Errorf("load config environment: %w", err)
 	}
 
-	esclient, err := elasticsearch.NewTypedClient(*clientConfig)
+	var options []elasticsearch.Option
+	options = append(options, elasticsearch.WithLogger(&Logger{EnableResponseBody: false, EnableRequestBody: false}))
+
+	switch {
+	case cfg.CloudID != "":
+		options = append(options,
+			elasticsearch.WithCloudID(cfg.CloudID),
+			elasticsearch.WithAPIKey(cfg.APIKey))
+	case len(cfg.URLs) > 0:
+		options = append(options, elasticsearch.WithAddresses(cfg.URLs...))
+		if cfg.CAFile != "" {
+			cert, err := os.ReadFile(cfg.CAFile)
+			if err != nil {
+				return fmt.Errorf("read CA cert: %w", err)
+			}
+			options = append(options, elasticsearch.WithCACert(cert))
+			if cfg.Username != "" && cfg.Password != "" {
+				options = append(options,
+					elasticsearch.WithBasicAuth(cfg.Username, cfg.Password),
+				)
+			}
+		}
+	default:
+		return errors.New("invalid config")
+	}
+
+	esclient, err := elasticsearch.NewTyped(options...)
 	if err != nil {
 		return fmt.Errorf("create typed client: %w", err)
 	}
 
 	api = API{TypedClient: esclient}
 
-	slog.Info("Elasticsearch connection created.")
+	slog.Info("Elasticsearch connection created.") //nolint:sloglint // we do not pass a context.
 
 	return nil
 })
@@ -39,15 +67,8 @@ var Connect = sync.OnceValue(func() error {
 // NewConnection will set up a new connection to Elasticsearch. It loads the config for the connection from the
 // environment.
 func NewConnection() (*API, error) {
-	clientConfig, err := loadConfigOnce()
-	if err != nil {
-		return nil, fmt.Errorf("load config environment: %w", err)
+	if err := Connect(); err != nil {
+		return nil, fmt.Errorf("connect: %w", err)
 	}
-
-	esclient, err := elasticsearch.NewTypedClient(*clientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("create typed client: %w", err)
-	}
-
-	return &API{TypedClient: esclient}, nil
+	return &api, nil
 }
