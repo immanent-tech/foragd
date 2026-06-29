@@ -134,7 +134,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 		)
 
 		for release := range slices.Values(changelog.Releases) {
-			timestamp, err := time.Parse("January 2, 2006", release.Date)
+			timestamp, err := time.Parse("Jan 2, 2006", release.Date)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse timestamp of release.",
 					slog.String("release_version", release.Version),
