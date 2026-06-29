@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.175.0](https://github.com/immanent-tech/foragd/compare/v0.174.0...v0.175.0) (2026-06-29)
+
+
+### Features
+
+* **assets:** ➕ add new feature image ([b9dcd2a](https://github.com/immanent-tech/foragd/commit/b9dcd2a28292c2f9cb175b7cd62d7a19a32b22ca))
+
+
+### Bug Fixes
+
+* 🔧 more stable scroll and header/footer on mobile ([486e86d](https://github.com/immanent-tech/foragd/commit/486e86dcf344e6a7ac25fc050959d844b9db5ff6))
+* **scripts:** 🔧 fix reading progress indicator ([4024979](https://github.com/immanent-tech/foragd/commit/4024979d1868582f48e3ad81f49934aeceef202d))
+* **templates/subscriptions:** 🔧 adjust swap when marking subscription from articles list ([ba5f106](https://github.com/immanent-tech/foragd/commit/ba5f1069b46db01d07af323ab2144c0bb6eed835))
+
 ## [0.174.0](https://github.com/immanent-tech/foragd/compare/v0.173.0...v0.174.0) (2026-06-28)
 
 
