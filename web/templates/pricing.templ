@@ -5,26 +5,10 @@ package templates
 
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
-	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/indaco/teseo/schemaorg"
 )
 
 templ pricing() {
-	@partials.RenderJSONLD("pricing",
-		&partials.PriceJSONLD{
-			Context:             "https://schema.org",
-			Type:                []string{"SoftwareApplication", "WebApplication"},
-			Name:                "Foragd",
-			ApplicationCategory: "News & RSS Reader",
-			OperatingSystem:     "Web",
-			Offers: []partials.OfferJSONLD{partials.OfferJSONLD{
-				Type:          "Offer",
-				Price:         "59",
-				PriceCurrency: "USD",
-			}},
-			Description: "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
-			URL:         "https://foragd.app/",
-		},
-	)
 	<form class="group/tiers">
 		<div class="mt-16 mb-8 flex justify-center">
 			<fieldset aria-label="Payment frequency">
@@ -53,6 +37,20 @@ templ pricing() {
 									<p>USD</p>
 									<p>annually (with 14 day free trial)</p>
 								</div>
+								{{
+									annualProduct := schemaorg.NewProduct(
+										`Foragd "The One" Plan`,
+										"Foragd subscription, billed annually",
+										nil,
+										"annual",
+										&schemaorg.Brand{Name: "Foragd"},
+										&schemaorg.Offer{Price: "59", PriceCurrency: "USD"},
+										"Subscription/Annual",
+										nil,
+										nil,
+									)
+								}}
+								@annualProduct.ToJsonLd()
 							</div>
 							<div class="mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
 								<div class="text-5xl font-semibold">$7</div>
@@ -60,6 +58,20 @@ templ pricing() {
 									<p>USD</p>
 									<p>per month (with 14 day free trial)</p>
 								</div>
+								{{
+									monthlyProduct := schemaorg.NewProduct(
+										`Foragd "The One" Plan`,
+										"Foragd subscription, billed monthly",
+										nil,
+										"monthly",
+										&schemaorg.Brand{Name: "Foragd"},
+										&schemaorg.Offer{Price: "7", PriceCurrency: "USD"},
+										"Subscription/Monthly",
+										nil,
+										nil,
+									)
+								}}
+								@monthlyProduct.ToJsonLd()
 							</div>
 							<p class="mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">
 								<span class="badge badge-sm text-warning-content badge-warning">Best value</span>

@@ -14,7 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
-	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/indaco/teseo/schemaorg"
 )
 
 func pricing() templ.Component {
@@ -38,50 +38,45 @@ func pricing() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = partials.RenderJSONLD("pricing",
-			&partials.PriceJSONLD{
-				Context:             "https://schema.org",
-				Type:                []string{"SoftwareApplication", "WebApplication"},
-				Name:                "Foragd",
-				ApplicationCategory: "News & RSS Reader",
-				OperatingSystem:     "Web",
-				Offers: []partials.OfferJSONLD{partials.OfferJSONLD{
-					Type:          "Offer",
-					Price:         "59",
-					PriceCurrency: "USD",
-				}},
-				Description: "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
-				URL:         "https://foragd.app/",
-			},
-		).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"group/tiers\"><div class=\"mt-16 mb-8 flex justify-center\"><fieldset aria-label=\"Payment frequency\"><div class=\"grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold inset-ring inset-ring-gray-200 dark:inset-ring-white/10\"><label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"monthly\" class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Monthly</span></label> <label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"annually\" checked class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Annually</span></label></div></fieldset></div><div class=\"grid grid-cols-1 gap-10 lg:grid-cols-2\"><div class=\"col-span-full -m-2 mx-auto grid max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 gap-4 rounded-4xl p-2\"><div class=\"group/tier card w-full bg-base-200 shadow-sm sm:w-lg\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span></h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually (with 14 day free trial)</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"group/tiers\"><div class=\"mt-16 mb-8 flex justify-center\"><fieldset aria-label=\"Payment frequency\"><div class=\"grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-xs/5 font-semibold inset-ring inset-ring-gray-200 dark:inset-ring-white/10\"><label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"monthly\" class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Monthly</span></label> <label class=\"group relative rounded-full px-2.5 py-1 has-checked:bg-primary\"><input type=\"radio\" name=\"frequency\" value=\"annually\" checked class=\"absolute inset-0 appearance-none rounded-full\"> <span class=\"group-has-checked:text-primary-content\">Annually</span></label></div></fieldset></div><div class=\"grid grid-cols-1 gap-10 lg:grid-cols-2\"><div class=\"col-span-full -m-2 mx-auto grid max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 gap-4 rounded-4xl p-2\"><div class=\"group/tier card w-full bg-base-200 shadow-sm sm:w-lg\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span></h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually (with 14 day free trial)</p></div></div><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month (with 14 day free trial)</p></div></div><p class=\"mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><span class=\"badge badge-sm text-warning-content badge-warning\">Best value</span> Save ~30% discount vs. monthly subscription.</p><div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		annualProduct := schemaorg.NewProduct(
+			`Foragd "The One" Plan`,
+			"Foragd subscription, billed annually",
+			nil,
+			"annual",
+			&schemaorg.Brand{Name: "Foragd"},
+			&schemaorg.Offer{Price: "59", PriceCurrency: "USD"},
+			"Subscription/Annual",
+			nil,
+			nil,
+		)
+		templ_7745c5c3_Err = annualProduct.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month (with 14 day free trial)</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "3000 subscriptions.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		monthlyProduct := schemaorg.NewProduct(
+			`Foragd "The One" Plan`,
+			"Foragd subscription, billed monthly",
+			nil,
+			"monthly",
+			&schemaorg.Brand{Name: "Foragd"},
+			&schemaorg.Offer{Price: "7", PriceCurrency: "USD"},
+			"Subscription/Monthly",
+			nil,
+			nil,
+		)
+		templ_7745c5c3_Err = monthlyProduct.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "50 email newsletters.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Fetch remote article content.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><p class=\"mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden\"><span class=\"badge badge-sm text-warning-content badge-warning\">Best value</span> Save ~30% discount vs. monthly subscription.</p><div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -89,7 +84,31 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Add favorite subscriptions and articles.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "3000 subscriptions.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "50 email newsletters.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Fetch remote article content.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.Check(templ.Attributes{"class": "size-4 text-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Add favorite subscriptions and articles.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -97,7 +116,7 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -105,7 +124,7 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -113,7 +132,7 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Full text search through articles.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Full text search through articles.</li><li class=\"group flex items-center gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -121,7 +140,7 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "No ads, no recommended content, ever.</li></ul></div><div class=\"mt-8\"><div class=\"my-2 text-center font-semibold text-primary\">Plan includes a 14 day free trial. Sign up now, pay nothing until end of trial period.</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "No ads, no recommended content, ever.</li></ul></div><div class=\"mt-8\"><div class=\"my-2 text-center font-semibold text-primary\">Plan includes a 14 day free trial. Sign up now, pay nothing until end of trial period.</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -129,7 +148,7 @@ func pricing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div></div></div></div></div></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div></div></div></div></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
