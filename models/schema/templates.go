@@ -37,9 +37,6 @@ var (
 						templates.WithTextMapping("description", &types.TextProperty{
 							Type:     "text",
 							Analyzer: &htmlAnalyzer.Name,
-							// Fields: map[string]types.Property{
-							// 	"semantic": types.NewSemanticTextProperty(),
-							// },
 						}),
 						templates.WithTextMapping("authors", &types.TextProperty{
 							Type:     "text",
@@ -141,10 +138,11 @@ var (
 						}),
 						templates.WithTextMapping("content", &types.TextProperty{
 							Type:     "text",
-							Analyzer: new("html"),
-							// Fields: map[string]types.Property{
-							// 	"semantic": types.NewSemanticTextProperty(),
-							// },
+							Analyzer: &htmlAnalyzer.Name,
+							CopyTo:   []string{"content_semantic"},
+						}),
+						templates.WithSemanticTextMapping("content_semantic", &types.SemanticTextProperty{
+							InferenceId: new(".jina-embeddings-v5-text-small"),
 						}),
 						templates.WithKeywordMapping("extension_type"),
 						templates.WithFlattenedMapping("extension_data"),
