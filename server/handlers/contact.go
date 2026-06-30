@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	"github.com/justinas/alice"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -23,22 +23,39 @@ import (
 type Contact struct{}
 
 func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Contact | Foragd"
-	description := "Contact the developers of Foragd."
+	title := templates.PageTitle{
+		Summary:     "Contact",
+		Description: "Contact the developers of Foragd.",
+	}
+	contactOG := opengraph.NewWebSite(
+		title.String(),
+		config.GetBaseURL()+"/contact",
+		title.Description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	contactJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+"/contact",
+		title.Summary,
+		title.Description,
+		title.Description,
+		"",
+		"",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(templates.Contact(),
-		templates.WithPageTitle(templates.PageTitle{
-			Summary:     "Contact Form",
-			Description: "Get in touch with the developer",
-		}),
-		templates.WithPageDescription(description),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
-			"website",
-			config.GetBaseURL()+"/contact",
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithPageTitle(title),
+		templates.WithPageDescription(title.Description),
+		templates.WithOpenGraphMetadata(contactOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			contactJsonLd,
+			orgJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }
 

@@ -7,12 +7,41 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/slots"
+)
+
+var sameAs = []string{
+	"https://github.com/immanent-tech",
+}
+
+var orgJsonLd = schemaorg.NewOrganization(
+	"Immanent Tech",
+	"https://immanent.tech",
+	"https://immanent.tech/content/immanent-tech-icon-dark.svg",
+	nil,
+	sameAs,
+)
+
+// JSON-LD schema for the landing page.
+var websiteJsonLd = schemaorg.NewWebSite(
+	config.GetBaseURL(),
+	config.AppName,
+	config.AppName+" RSS and Atom Feed Reader",
+	config.AppDescription,
+	nil,
+)
+
+// Opengraph schema for the landing page.
+var websiteOg = opengraph.NewWebSite(
+	config.AppName,
+	config.GetBaseURL(),
+	config.AppDescription,
+	config.GetBaseURL()+"/content/logo-vertical-light.webp",
 )
 
 type Landing struct {
@@ -27,14 +56,11 @@ func HandleLanding() http.HandlerFunc {
 	return RenderExternalPage(&Landing{
 		template: templates.CreatePage(templates.Landing(),
 			templates.WithPageTitle(title),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				title.String(),
-				"website",
-				config.GetBaseURL(),
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-				opengraph.WithDescription(config.AppDescription),
-				opengraph.WithSiteName(config.AppName),
-			)),
+			templates.WithOpenGraphMetadata(websiteOg),
+			templates.WithJSONLDSchema(
+				websiteJsonLd,
+				orgJsonLd,
+			),
 		),
 	})
 }

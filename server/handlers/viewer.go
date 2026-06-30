@@ -10,9 +10,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -33,19 +33,37 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Preview Any Website's Feed",
 	}
 	description := "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required."
+	viewerOG := opengraph.NewWebSite(
+		p.title.String(),
+		config.GetBaseURL()+"/viewer",
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	viewerJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+"/viewer",
+		p.title.Summary,
+		"Preview any website's feed",
+		description,
+		"",
+		"RSS,Atom,JSONFeed,Feed",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
+
 	templ.Handler(
 		templates.CreatePage(
 			templates.Viewer(p.feed, p.errMsg),
 			templates.WithPageTitle(p.title),
 			templates.WithPageDescription(description),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				p.title.String(),
-				"website",
-				config.GetBaseURL()+"/viewer",
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-				opengraph.WithDescription(description),
-				opengraph.WithSiteName(config.AppName),
-			)),
+			templates.WithOpenGraphMetadata(viewerOG),
+			templates.WithJSONLDSchema(
+				websiteJsonLd,
+				viewerJsonLd,
+			),
 		),
 	).ServeHTTP(res, req)
 }

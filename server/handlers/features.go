@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -30,18 +30,36 @@ func HandleFeatures() http.HandlerFunc {
 func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
 	description := "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
+	featuresOG := opengraph.NewWebSite(
+		p.title.String(),
+		canonicalLink,
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	featuresJsonLd := schemaorg.NewWebPage(
+		canonicalLink,
+		p.title.Summary,
+		p.title.String(),
+		description,
+		"",
+		"",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
+
 	templ.Handler(templates.CreatePage(templates.Features(),
 		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			p.title.String(),
-			"website",
-			canonicalLink,
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(featuresOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			featuresJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }
 
@@ -59,21 +77,37 @@ func HandleFeaturesCollect() http.HandlerFunc {
 }
 
 func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Collect | Foragd Features | RSS Reader, Newsletter Aggregator & Feed Organiser"
 	description := "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
+	collectOG := opengraph.NewWebSite(
+		p.title.String(),
+		canonicalLink,
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	collectJsonLd := schemaorg.NewWebPage(
+		canonicalLink,
+		p.title.Summary,
+		p.title.String(),
+		description,
+		"Foragd Features",
+		"Features",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(templates.FeaturesPageCollect(),
 		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
-			"website",
-			canonicalLink,
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(collectOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			collectJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }
 
@@ -91,21 +125,37 @@ func HandleFeaturesCurate() http.HandlerFunc {
 }
 
 func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Curate | Foragd Features | RSS Reader, Newsletter Aggregator & Feed Organiser"
 	description := "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
+	curateOG := opengraph.NewWebSite(
+		p.title.String(),
+		canonicalLink,
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	curateJsonLd := schemaorg.NewWebPage(
+		canonicalLink,
+		p.title.Summary,
+		p.title.String(),
+		description,
+		"Foragd Features",
+		"Features",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(templates.FeaturesPageCurate(),
 		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
-			"website",
-			canonicalLink,
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(curateOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			curateJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }
 
@@ -123,20 +173,36 @@ func HandleFeaturesConsume() http.HandlerFunc {
 }
 
 func (p *FeaturesConsume) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := "Consume | Foragd Features | RSS Reader, Newsletter Aggregator & Feed Organiser"
 	description := "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more."
 	canonicalLink := config.GetBaseURL() + req.URL.String()
+	consumeOG := opengraph.NewWebSite(
+		p.title.String(),
+		canonicalLink,
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	consumeJsonLd := schemaorg.NewWebPage(
+		canonicalLink,
+		p.title.Summary,
+		p.title.String(),
+		description,
+		"Foragd Features",
+		"Features",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(templates.FeaturesPageConsume(),
 		templates.WithPageTitle(p.title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(canonicalLink),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title,
-			"website",
-			canonicalLink,
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(consumeOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			consumeJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }

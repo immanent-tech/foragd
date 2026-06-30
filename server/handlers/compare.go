@@ -9,10 +9,10 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -32,6 +32,26 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 		Date:        time.Now().Format("2006"),
 	}
 	description := "A detailed comparison of Foragd and " + service + " covering pricing, features, and which is best for different use cases."
+	compareOG := opengraph.NewWebSite(
+		title.String(),
+		config.GetBaseURL()+req.URL.String(),
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	compareJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+req.URL.String(),
+		title.Summary,
+		title.Description,
+		description,
+		"",
+		"",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 
 	// Add appropriate additional header metadata.
 	ctx := req.Context()
@@ -48,13 +68,11 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				title.String(),
-				"article",
-				config.GetBaseURL()+req.URL.String(),
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-				opengraph.WithDescription(description),
-			)),
+			templates.WithOpenGraphMetadata(compareOG),
+			templates.WithJSONLDSchema(
+				websiteJsonLd,
+				compareJsonLd,
+			),
 		),
 	).ServeHTTP(res, req.WithContext(ctx))
 }

@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	"github.com/justinas/alice"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -28,17 +28,34 @@ func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Request removal of your account and personal data",
 	}
 	description := "Request deletion of your account and personal data."
+	forgetMeOG := opengraph.NewWebSite(
+		title.String(),
+		config.GetBaseURL()+"/forget-me",
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	forgetMeJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+"/forget-me",
+		title.Summary,
+		title.String(),
+		title.Description,
+		"",
+		"",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(templates.ForgetMe(),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title.String(),
-			"website",
-			config.GetBaseURL()+"/forget-me",
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(forgetMeOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			forgetMeJsonLd,
+		),
 	)).ServeHTTP(res, req)
 }
 

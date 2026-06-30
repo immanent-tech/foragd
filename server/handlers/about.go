@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-
-	"github.com/immanent-tech/go-syndication/opengraph"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -28,18 +28,35 @@ func HandleAbout() http.HandlerFunc {
 		Description: "Why I built Foragd",
 	}
 	description := "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd."
+	aboutOG := opengraph.NewWebSite(
+		title.String(),
+		config.GetBaseURL()+"/about",
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	aboutJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+"/about",
+		title.Summary,
+		title.Description,
+		description,
+		"",
+		"",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	return RenderExternalPage(&About{
 		template: templates.CreatePage(templates.About(),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				title.String(),
-				"website",
-				config.GetBaseURL()+"/about",
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-				opengraph.WithDescription(description),
-				opengraph.WithSiteName(config.AppName),
-			)),
+			templates.WithOpenGraphMetadata(aboutOG),
+			templates.WithJSONLDSchema(
+				websiteJsonLd,
+				aboutJsonLd,
+			),
 		),
 	})
 }

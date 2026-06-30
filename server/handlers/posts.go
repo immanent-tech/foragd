@@ -19,11 +19,12 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/yuin/goldmark/parser"
 	"go.abhg.dev/goldmark/frontmatter"
 
-	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/rss"
 
 	"github.com/immanent-tech/go-syndication/types"
@@ -59,19 +60,36 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "RSS Reader Tips, Guides and Comparisons",
 	}
 	description := "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms."
+	indexOG := opengraph.NewWebSite(
+		title.String(),
+		config.GetBaseURL()+"/blog",
+		description,
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+	)
+	indexJsonLd := schemaorg.NewWebPage(
+		config.GetBaseURL()+"/blog",
+		title.Summary,
+		title.String(),
+		description,
+		"",
+		"RSS,Atom,JSONFeed,IndieWeb",
+		"en",
+		config.GetBaseURL(),
+		"",
+		config.GetBaseURL()+"/content/logo-vertical-light.webp",
+		"",
+		"",
+	)
 	templ.Handler(templates.CreatePage(
 		templates.PostsIndex(p.posts),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
 		templates.WithCanonicalLink(config.GetBaseURL()+"/blog"),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title.String(),
-			"website",
-			config.GetBaseURL()+"/blog",
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			opengraph.WithDescription(description),
-			opengraph.WithSiteName(config.AppName),
-		)),
+		templates.WithOpenGraphMetadata(indexOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			indexJsonLd,
+		),
 	),
 	).ServeHTTP(res, req)
 }
@@ -93,27 +111,37 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Blog",
 		Date:        p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 	}
+	postOG := opengraph.NewArticle(
+		title.String(),
+		config.GetBaseURL()+"/blog/"+p.Details.Path,
+		p.Frontmatter.Description,
+		config.GetBaseURL()+*p.Frontmatter.Image,
+		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
+		"",
+		[]string{*p.Frontmatter.Author},
+		"Blog",
+		nil,
+	)
+	postJsonLd := schemaorg.NewArticle(
+		title.String(),
+		[]string{config.GetBaseURL() + *p.Frontmatter.Image},
+		nil,
+		nil,
+		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
+		p.Frontmatter.Description,
+	)
 	templ.Handler(templates.CreatePage(
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
 		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Details.Path),
-		templates.WithOpenGraphMetadata(opengraph.New(
-			title.String(),
-			"article",
-			config.GetBaseURL()+"/blog/"+p.Details.Path,
-			config.GetBaseURL()+*p.Frontmatter.Image,
-			opengraph.WithDescription(p.Frontmatter.Description),
-			opengraph.WithSiteName(config.AppName),
-			opengraph.WithAdditionalProperty(
-				"article:published_time",
-				p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
-			),
-			opengraph.WithAdditionalProperty(
-				"article:modified_time",
-				p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
-			),
-		)),
+		templates.WithOpenGraphMetadata(postOG),
+		templates.WithJSONLDSchema(
+			websiteJsonLd,
+			postJsonLd,
+		),
 	)).ServeHTTP(res, req.WithContext(ctx))
 }
 

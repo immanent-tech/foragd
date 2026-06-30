@@ -15,8 +15,10 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/indaco/teseo/schemaorg"
 )
 
 func HeaderExternal() templ.Component {
@@ -40,6 +42,21 @@ func HeaderExternal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		navJsonLd := schemaorg.NewSiteNavigationElementList(
+			"main",
+			[]schemaorg.SiteNavigationElement{
+				schemaorg.NewSimpleSiteNavigationElement(1, "Home", config.GetBaseURL()),
+				schemaorg.NewSimpleSiteNavigationElement(2, "About", config.GetBaseURL()+"/about"),
+				schemaorg.NewSimpleSiteNavigationElement(3, "Features", config.GetBaseURL()+"/features"),
+				schemaorg.NewSimpleSiteNavigationElement(4, "Blog", config.GetBaseURL()+"/blog"),
+				schemaorg.NewSimpleSiteNavigationElement(5, "Changelog", config.GetBaseURL()+"/changelog"),
+				schemaorg.NewSimpleSiteNavigationElement(6, "Viewer", config.GetBaseURL()+"/viewer"),
+			},
+		)
+		templ_7745c5c3_Err = navJsonLd.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header id=\"page-header\" class=\"absolute inset-x-safe-or-0 top-0 z-50 pt-safe\"><nav aria-label=\"Navigation\" class=\"flex items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:flex-1\"><a href=\"/\" class=\"-m-1.5 p-1.5\" aria-label=\"Back to landing page\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -108,7 +125,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 115, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 131, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
@@ -205,7 +222,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 168, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 184, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 				if templ_7745c5c3_Err != nil {
@@ -252,7 +269,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 180, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 196, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
@@ -333,7 +350,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 204, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 220, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {

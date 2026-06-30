@@ -4,88 +4,62 @@
 package handlers
 
 import (
-	"encoding/xml"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
 	"sync"
 
-	"github.com/immanent-tech/go-syndication/sitemap"
+	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
 //nolint:mnd // thes are individual page priorities.
 var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
-	// Set up default URLs.
-	site := sitemap.NewURLSet(
-		sitemap.URL{
-			Loc:      "https://foragd.app",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/features",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/features/collect",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/features/curate",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/features/consume",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/viewer",
-			Priority: 0.9,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/blog",
-			Priority: 0.9,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/about",
-			Priority: 0.75,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/help",
-			Priority: 0.6,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/compare/feedly",
-			Priority: 0.8,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/compare/inoreader",
-			Priority: 0.8,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/changelog",
-			Priority: 0.4,
-		},
+	links := make([]schemaorg.SiteNavigationElement, 0)
+	links = append(
+		links,
+		schemaorg.NewSimpleSiteNavigationElement(1, "Home", config.GetBaseURL()),
+		schemaorg.NewSimpleSiteNavigationElement(2, "About", config.GetBaseURL()+"/about"),
+		schemaorg.NewSimpleSiteNavigationElement(3, "Features", config.GetBaseURL()+"/features"),
+		schemaorg.NewSimpleSiteNavigationElement(4, "Features | Collect", config.GetBaseURL()+"/features/collect"),
+		schemaorg.NewSimpleSiteNavigationElement(5, "Features | Curate", config.GetBaseURL()+"/features/curate"),
+		schemaorg.NewSimpleSiteNavigationElement(6, "Features | Consume", config.GetBaseURL()+"/features/consume"),
+		schemaorg.NewSimpleSiteNavigationElement(7, "Blog", config.GetBaseURL()+"/blog"),
+		schemaorg.NewSimpleSiteNavigationElement(8, "Changelog", config.GetBaseURL()+"/changelog"),
+		schemaorg.NewSimpleSiteNavigationElement(10, "Viewer", config.GetBaseURL()+"/viewer"),
+		schemaorg.NewSimpleSiteNavigationElement(11, "Help", config.GetBaseURL()+"/help"),
+		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with Feedly", config.GetBaseURL()+"/compare/feedly"),
+		schemaorg.NewSimpleSiteNavigationElement(
+			13,
+			"Compare with Inoreader",
+			config.GetBaseURL()+"/compare/inoreader",
+		),
 	)
 	// Add all posts.
 	posts, err := getPosts()
 	if err != nil {
 		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
+	i := 13
 	for post := range slices.Values(posts.Files) {
-		site.URLs = append(site.URLs,
-			sitemap.URL{
-				Loc:      sitemap.LOC("https://foragd.app/blog/" + post.Path),
-				Priority: 0.5,
-			})
+		links = append(
+			links,
+			schemaorg.NewSimpleSiteNavigationElement(i, post.File, config.GetBaseURL()+"/"+post.Path),
+		)
+		i++
+
 	}
 
-	data, err := xml.Marshal(site)
+	sitemap := schemaorg.NewSiteNavigationElementList("main", links)
+
+	data, err := sitemap.ToSitemapBytes()
 	if err != nil {
 		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
-	return []byte(xml.Header + string(data)), nil
+	return data, nil
 })
 
 // HandleSitemap handles requests for sitemap.xml. In the future, it may handle more requests from non natural human

@@ -10,7 +10,7 @@ import (
 	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
-	"github.com/immanent-tech/go-syndication/opengraph"
+	"github.com/indaco/teseo/opengraph"
 	"net/url"
 	"slices"
 	"strings"
@@ -40,8 +40,10 @@ type Page struct {
 	Title string
 	// Description adds a meta tag with the given text.
 	Description string
-	// OGMetadata contains the Opengraph metadata for the page.
-	OpenGraph *opengraph.OpenGraph
+	// OpenGraph contains the Opengraph metadata for the page.
+	OpenGraph OpenGraphData
+	// JSONLDSchema contains the JSONLDSchema for the page.
+	JSONLDSchema []JSONLDSchema
 	// CanonicalLink is the link that will be used with <link rel="canonical> on the page.
 	CanonicalLink string
 }
@@ -69,6 +71,14 @@ func (t PageTitle) String() string {
 	return title.String()
 }
 
+type OpenGraphData interface {
+	ToMetaTags() templ.Component
+}
+
+type JSONLDSchema interface {
+	ToJsonLd() templ.Component
+}
+
 // PageOption is a functional option applied to a page.
 type PageOption func(*Page)
 
@@ -87,9 +97,16 @@ func WithPageDescription(desc string) PageOption {
 }
 
 // WithOpenGraphMetadata option sets the given metadata as appropriate Open Graph tags in the page header.
-func WithOpenGraphMetadata(metadata *opengraph.OpenGraph) PageOption {
+func WithOpenGraphMetadata(metadata OpenGraphData) PageOption {
 	return func(p *Page) {
 		p.OpenGraph = metadata
+	}
+}
+
+// WithJSONLDSchema option adds the given JSON-LD schemas to the page.
+func WithJSONLDSchema(schema ...JSONLDSchema) PageOption {
+	return func(p *Page) {
+		p.JSONLDSchema = append(p.JSONLDSchema, schema...)
 	}
 }
 
@@ -108,7 +125,12 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			Component:   template,
 			Title:       config.AppName,
 			Description: config.AppDescription,
-			OpenGraph:   NewOpenGraphMetadata(),
+			OpenGraph: opengraph.NewWebSite(
+				config.AppName,
+				config.GetBaseURL(),
+				config.AppDescription,
+				config.GetBaseURL()+"/content/logo-vertical-light.webp",
+			),
 		}
 
 		for option := range slices.Values(options) {
@@ -142,7 +164,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			// Indicate light/dark theme support.
 			<meta name="color-scheme" content="light dark"/>
 			if p.OpenGraph != nil {
-				@templ.Raw(p.OpenGraph.String())
+				@p.OpenGraph.ToMetaTags()
 			}
 			if p.CanonicalLink != "" {
 				<link rel="canonical" href={ templ.URL(p.CanonicalLink) }/>
@@ -213,6 +235,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				HistoryCacheSize: 10,
 			}) }
 			/>
+			for schema := range slices.Values(p.JSONLDSchema) {
+				@schema.ToJsonLd()
+			}
 			// Insert any additional header, if defined.
 			if slots.HasSlot(ctx,slots.Header) {
 				@slots.GetSlot(ctx, slots.Header)
@@ -242,20 +267,4 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 
 templ UpdateTitle(title PageTitle) {
 	<title>{ title.String() }</title>
-}
-
-// NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a
-// property is not set by an option, a default value will be used.
-func NewOpenGraphMetadata(options ...opengraph.Option) *opengraph.OpenGraph {
-	og := &opengraph.OpenGraph{
-		Title:       config.AppName,
-		ObjectType:  "website",
-		URL:         config.GetBaseURL(),
-		Image:       config.GetBaseURL() + "/content/logo-vertical-light.webp",
-		Description: new(config.AppDescription),
-	}
-	for option := range slices.Values(options) {
-		option(og)
-	}
-	return og
 }

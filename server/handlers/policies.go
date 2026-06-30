@@ -16,7 +16,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/immanent-tech/go-syndication/opengraph"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/yuin/goldmark/parser"
 	fm "go.abhg.dev/goldmark/frontmatter"
@@ -108,20 +109,38 @@ func PolicyDocsHandler() http.HandlerFunc {
 			Summary:     frontmatter.Title,
 			Description: "Service Policy",
 		}
+		policyOG := opengraph.NewArticle(
+			title.String(),
+			config.GetBaseURL()+"/"+metadata.Path,
+			frontmatter.Description,
+			config.GetBaseURL()+"/content/logo-vertical-light.webp",
+			"",
+			"",
+			"",
+			[]string{"Immanent Tech <hello@immanent.tech>"},
+			"Policies",
+			nil,
+		)
+		policyJsonLd := schemaorg.NewArticle(
+			title.String(),
+			nil,
+			nil,
+			orgJsonLd,
+			"",
+			"",
+			frontmatter.Description,
+		)
 		template := templates.CreatePage(
 			templates.LayoutExternal(
 				templates.Document(policyBuf.Bytes()),
 			),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(frontmatter.Description),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				title.String(),
-				"website",
-				config.GetBaseURL()+"/"+metadata.Path,
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-				opengraph.WithDescription(frontmatter.Description),
-				opengraph.WithSiteName(config.AppName),
-			)),
+			templates.WithOpenGraphMetadata(policyOG),
+			templates.WithJSONLDSchema(
+				websiteJsonLd,
+				policyJsonLd,
+			),
 		)
 		templ.Handler(template).ServeHTTP(res, req)
 	}
