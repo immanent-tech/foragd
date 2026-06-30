@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.176.0](https://github.com/immanent-tech/foragd/compare/v0.175.0...v0.176.0) (2026-06-30)
+
+
+### Features
+
+* ✨ add a domain field on feeds for search usage ([a895635](https://github.com/immanent-tech/foragd/commit/a8956354d39d64ba072dc42bc8dfebe2cbbff4f3))
+* ✨ improved JSON-LD and Opengraph schemas ([2e0eef3](https://github.com/immanent-tech/foragd/commit/2e0eef3a3efb08f254f9536b506942ff00133f33))
+* **schema:** ✨ improved feed/item schemas ([7176796](https://github.com/immanent-tech/foragd/commit/717679614485d4138b103d0f123e8c53beb180fa))
+
+
+### Bug Fixes
+
+* **changelog:** 🔧 fix parsing of dates for changelog feed ([e0301ed](https://github.com/immanent-tech/foragd/commit/e0301edac3929eafe3e8c95678a5925c5898c3ac))
+* **elastic:** 🔧 migrate from deprecated config/connection logic ([614138b](https://github.com/immanent-tech/foragd/commit/614138b7e01a151421be66d955e1e30e45ea62b3))
+* **handlers:** 🔧 add feature pages to sitemap ([7764ee3](https://github.com/immanent-tech/foragd/commit/7764ee3e766a25e17b15e5d57bff402020038f34))
+* **models/schema:** 🔧 fix references to custom analyzers ([4624ac4](https://github.com/immanent-tech/foragd/commit/4624ac48eaa87e5f3ecb0b6ecc6472c8ded19aa7))
+* **templates/layouts:** 🐛 fix scroll on external pages ([41fa2b8](https://github.com/immanent-tech/foragd/commit/41fa2b8c5cf36e0f9e08dc175501fb2adc37f5b0))
+
+
+### Reverts
+
+* **service:** ♻️ switch back to using readability for article content extraction ([b3a3a51](https://github.com/immanent-tech/foragd/commit/b3a3a51d3a11b8c940c4635b2a45b736ba0a5eae))
+
 ## [0.175.0](https://github.com/immanent-tech/foragd/compare/v0.174.0...v0.175.0) (2026-06-29)
 
 
