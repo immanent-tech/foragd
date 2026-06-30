@@ -9,7 +9,9 @@ import (
 	"log/slog"
 	"os"
 	"sync"
+	"time"
 
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 )
 
@@ -27,7 +29,18 @@ var Connect = sync.OnceValue(func() error {
 	}
 
 	var options []elasticsearch.Option
-	options = append(options, elasticsearch.WithLogger(&Logger{EnableResponseBody: false, EnableRequestBody: false}))
+	options = append(options,
+		// Add our custom logger.
+		elasticsearch.WithLogger(&Logger{EnableResponseBody: false, EnableRequestBody: false}),
+		// Retries with exponential backoff.
+		elasticsearch.WithRetry(5, 429, 502, 503, 504),
+		elasticsearch.WithTransportOptions(
+			elastictransport.WithRetryBackoff(func(attempt int) time.Duration {
+				// Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
+				return time.Duration(1<<uint(attempt)) * 100 * time.Millisecond
+			}),
+		),
+	)
 
 	switch {
 	case cfg.CloudID != "":
