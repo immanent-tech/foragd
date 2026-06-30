@@ -8,7 +8,12 @@ is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
-Searching for new feeds will now show results that match the site's domain (i.e., github, reddit, etc.)
+Searching for new feeds will now show results that match the site's domain (i.e., github, reddit, etc.).
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Relevance of results overall should be improved with more backend search tweaks.
 """
 
 [[releases]]
