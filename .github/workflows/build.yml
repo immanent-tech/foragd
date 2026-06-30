@@ -324,7 +324,7 @@ jobs:
       - name: Bubblewrap update
         working-directory: android
         run: |
-          bubblewrap update \
+          npx bubblewrap update \
             --skipVersionUpgrade
 
       - name: Bubblewrap build
@@ -333,7 +333,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          bubblewrap build \
+          npx bubblewrap build \
             --signingKeyPath android.keystore \
             --signingKeyAlias android \
             --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" \
