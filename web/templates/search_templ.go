@@ -1059,7 +1059,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, " class=\"p-4\"><h3 id=\"search-filters-dialog-title\" class=\"text-base font-semibold\">Advanced Search</h3><div class=\"grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2\"><fieldset class=\"col-span-full fieldset\"><legend class=\"fieldset-legend\">Includes the words</legend> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"advanced-search-text\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, " class=\"p-4\"><h3 id=\"search-filters-dialog-title\" class=\"text-base font-semibold\">Advanced Search</h3><div class=\"grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2\"><fieldset class=\"col-span-full fieldset\"><legend class=\"fieldset-legend\">Includes the words</legend> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"text\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1289,7 +1289,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,advanced-search-text\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-md btn-primary\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle text-info btn-ghost btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,#global-search\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-md btn-primary\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle text-info btn-ghost btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

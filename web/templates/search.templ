@@ -514,7 +514,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					rows="2"
 					id="search-text"
 					type="text"
-					name="advanced-search-text"
+					name="text"
 					placeholder={ `+keyword -"some phrase"` }
 					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
 					_="on change set #global-search's value to my value"
@@ -676,7 +676,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					hx-get="/search"
 					hx-target={ ContentID.Target() }
 					hx-include="[id='timezone'],#search-filters"
-					hx-params="not subscription-text,advanced-search-text"
+					hx-params="not subscription-text,#global-search"
 					_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
 				>
 					<button
