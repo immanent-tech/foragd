@@ -202,12 +202,7 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	// Update login count.
 	localUser.LoginCount = auth0User.GetUserResponseContent.GetLoginsCount()
 	// Update last login timestamp.
-	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to parse last login time from user profile data.",
-			slog.String("user_id", localUser.GetID()),
-			slog.Any("error", err),
-		)
-	} else {
+	if lastLogin := auth0User.GetUserResponseContent.GetLastLogin(); lastLogin.After(localUser.LastLogin) {
 		localUser.LastLogin = lastLogin
 	}
 	// Update user metadata.

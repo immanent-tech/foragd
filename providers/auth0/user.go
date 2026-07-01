@@ -6,13 +6,11 @@ package auth0
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/auth0/go-auth0/v2/management"
-	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
@@ -116,13 +114,8 @@ func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*mode
 
 	id := "user_" + strconv.FormatUint(xxh3.Hash([]byte(profile.GetID())), 10)
 	ts := time.Now().UTC()
-	lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to parse last login time from user profile data. Using unix epoch.",
-			slog.String("user_id", id),
-			slog.String("user_external_id", profile.GetID()),
-			slog.Any("error", err),
-		)
+	lastLogin := auth0User.GetUserResponseContent.GetLastLogin()
+	if lastLogin.IsZero() {
 		lastLogin = models.UnixEpoch
 	}
 	user := &models.User{
