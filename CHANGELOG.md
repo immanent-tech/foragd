@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.177.0](https://github.com/immanent-tech/foragd/compare/v0.176.0...v0.177.0) (2026-07-01)
+
+
+### Features
+
+* **models/schema:** ✨ add semantic text mapping of item content ([2d2f422](https://github.com/immanent-tech/foragd/commit/2d2f4228ae88cac732b4e7806ee7e585d2d6e0b4))
+* **search:** ✨ implement semantic search ([78bf0de](https://github.com/immanent-tech/foragd/commit/78bf0dec8c92840ec1632b2004ffb63483543f56))
+* **templates/features:** ➕ mention full-text and semantic search on "consume" features page ([353d4ea](https://github.com/immanent-tech/foragd/commit/353d4ea50f3843b18d3169ea7a94e65606e57cf1))
+
+
+### Bug Fixes
+
+* 🔧 update logic for changes in package dependencies ([54c51fb](https://github.com/immanent-tech/foragd/commit/54c51fb229ac6ad2b710cca4ca697ee4a5bec6a8))
+* **templates/search:** 🐛 actually include text from advanced search filters ([2c92a70](https://github.com/immanent-tech/foragd/commit/2c92a70f887866e5226d197b57289fb91f3e84d1))
+
+
+### Performance Improvements
+
+* **elastic:** ⚡ improved connection settings ([1b8cbbd](https://github.com/immanent-tech/foragd/commit/1b8cbbdb5b28cfa6afeaf4cd9e0fb16811e0a7ed))
+
 ## [0.176.0](https://github.com/immanent-tech/foragd/compare/v0.175.0...v0.176.0) (2026-06-30)
 
 
