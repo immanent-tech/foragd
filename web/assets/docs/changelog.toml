@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.176"
-date      = "June 29, 2026"
-type      = "minor"
+version   = "v0.177"
+date      = "Jul 1, 2026"
+type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Semantic search is here! In addition to traditional search by keywords and phrases, you can now search by topic or area of interest, like "current geopolitical events" to get articles about world events and breaking news.
+"""
+
+[[releases]]
+version   = "v0.176"
+date      = "Jun 29, 2026"
+type      = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -18,7 +28,7 @@ Relevance of results overall should be improved with more backend search tweaks.
 
 [[releases]]
 version = "v0.173"
-date    = "June 29, 2026"
+date    = "Jun 29, 2026"
 type    = "minor"
 [[releases.changes]]
 type = "improved"
@@ -28,7 +38,7 @@ Fetching remote content should result in better detection and extraction of the 
 
 [[releases]]
 version = "v0.170"
-date    = "June 25, 2026"
+date    = "Jun 25, 2026"
 type    = "major"
 [[releases.changes]]
 type = "new"
@@ -58,7 +68,7 @@ When clicking on a category badge on an article to filter by that category, the 
 
 [[releases]]
 version = "v0.167"
-date    = "June 19, 2026"
+date    = "Jun 19, 2026"
 type    = "patch"
 [[releases.changes]]
 type = "improved"
@@ -73,7 +83,7 @@ Billing logic fixes.
 
 [[releases]]
 version = "v0.166"
-date    = "June 19, 2026"
+date    = "Jun 19, 2026"
 type    = "patch"
 [[releases.changes]]
 type = "fixed"
@@ -83,7 +93,7 @@ Fixed the button on the add subscription page to generate your email address for
 
 [[releases]]
 version = "v0.164"
-date    = "June 18, 2026"
+date    = "Jun 18, 2026"
 type    = "patch"
 [[releases.changes]]
 type = "fixed"
@@ -98,7 +108,7 @@ On pages with back buttons, hitting the back button will load fresh content on t
 
 [[releases]]
 version = "v0.163"
-date    = "June 17, 2026"
+date    = "Jun 17, 2026"
 type    = "major"
 [[releases.changes]]
 type = "new"
@@ -113,7 +123,7 @@ When toggling read status of a subscription/article, the card will now change br
 
 [[releases]]
 version = "v0.160"
-date    = "June 15, 2026"
+date    = "Jun 15, 2026"
 type    = "major"
 [[releases.changes]]
 type = "new"
@@ -138,7 +148,7 @@ Styling improvements. Consistent page/section headings. Tooltips on card actions
 
 [[releases]]
 version = "v0.159"
-date    = "June 8, 2026"
+date    = "Jun 8, 2026"
 type    = "minor"
 [[releases.changes]]
 type = "new"
@@ -148,7 +158,7 @@ Foragd will now automically detect feeds for medium.com blogs/pages.
 
 [[releases]]
 version = "v0.158"
-date    = "June 8, 2026"
+date    = "Jun 8, 2026"
 type    = "minor"
 [[releases.changes]]
 type = "improved"
@@ -163,7 +173,7 @@ Backend changes for Android app support (app coming soon!)
 
 [[releases]]
 version = "v0.156"
-date    = "June 8, 2026"
+date    = "Jun 8, 2026"
 type    = "minor"
 [[releases.changes]]
 type = "improved"
@@ -183,7 +193,7 @@ On the add subscription page, the additional instructions are now source-specifi
 
 [[releases]]
 version = "v0.155"
-date    = "June 5, 2026"
+date    = "Jun 5, 2026"
 type    = "minor"
 [[releases.changes]]
 type = "improved"
@@ -193,7 +203,7 @@ More vibrant notifications. Notifications now have a color that reflects their s
 
 [[releases]]
 version = "v0.154"
-date    = "June 4, 2026"
+date    = "Jun 4, 2026"
 type    = "major"
 [[releases.changes]]
 type = "new"
@@ -203,7 +213,7 @@ You can now add Google News RSS feeds easily. On the <a class="link" href="/subs
 
 [[releases]]
 version = "v0.153"
-date    = "June 3, 2026"
+date    = "Jun 3, 2026"
 type    = "major"
 [[releases.changes]]
 type        = "new"
@@ -211,7 +221,7 @@ description = "Added a changelog page."
 
 [[releases]]
 version = "v0.152"
-date    = "June 3, 2026"
+date    = "Jun 3, 2026"
 type    = "patch"
 [[releases.changes]]
 type        = "improved"
