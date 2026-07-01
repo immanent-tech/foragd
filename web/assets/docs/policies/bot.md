@@ -1,6 +1,8 @@
 +++
 title = "Foragd Bot"
 description = "Foragd Bot Information"
+created_at = "2025-10-07"
+updated_at = "2026-02-06"
 +++
 
 # Foragd Bot Information

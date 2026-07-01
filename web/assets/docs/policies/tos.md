@@ -1,6 +1,8 @@
 +++
 title = "Terms of Service"
 description = "Terms of Service for using Foragd"
+created_at = "2025-10-07"
+updated_at = "2026-05-22"
 +++
 
 # Terms of Service

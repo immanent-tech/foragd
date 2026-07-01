@@ -114,8 +114,8 @@ func PolicyDocsHandler() http.HandlerFunc {
 			config.GetBaseURL()+"/"+metadata.Path,
 			frontmatter.Description,
 			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			"",
-			"",
+			frontmatter.CreatedAt,
+			*frontmatter.UpdatedAt,
 			"",
 			[]string{"Immanent Tech <hello@immanent.tech>"},
 			"Policies",
@@ -126,8 +126,8 @@ func PolicyDocsHandler() http.HandlerFunc {
 			nil,
 			nil,
 			orgJsonLd,
-			"",
-			"",
+			frontmatter.CreatedAt,
+			*frontmatter.UpdatedAt,
 			frontmatter.Description,
 		)
 		template := templates.CreatePage(

@@ -7,7 +7,7 @@ package templates
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
 	@templ.Fragment(ContentFragment) {
-		<article class="mx-auto p-4 prose-document">
+		<article class="mt-12 mx-auto p-4 prose-document">
 			@templ.Raw(string(data))
 		</article>
 		@buttonBackToTop()

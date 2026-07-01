@@ -1,6 +1,8 @@
 +++
 title = "Acceptable Use Policy"
 description = "Acceptable Use terms of Foragd"
+created_at = "2025-10-07"
+updated_at = "2026-05-22"
 +++
 
 # Foragd Acceptable Use Policy
@@ -26,7 +28,6 @@ agreement with us — the [Foragd Terms of Service](/policies/tos).
   - [8. Privacy](#8-privacy)
   - [9. Excessive Bandwidth Use](#9-excessive-bandwidth-use)
   - [11. User Protection](#11-user-protection)
-
 
 ## 1. Compliance with Laws and Regulations
 
