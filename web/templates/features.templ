@@ -431,15 +431,44 @@ templ FeaturesPageConsume() {
 				},
 			)
 		}
+		// Feature: Full-text Search.
+		@featurePanel("feature-full-text-search") {
+			@featureImage("feature-full-text-search-screenshot",
+				featureMedia{
+					width:      1440,
+					height:     900,
+					url:        "/content/screenshots/screenshot-feature-search.webp",
+					alt:        "Screenshot of advanced search filters on desktop",
+					Properties: element.NewProperties(),
+				},
+			)
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Full-text Search, for Humans")
+				@featureText() {
+					<p>
+						Full-text search through all articles. Search by keyword or phrases, filter by categories,
+						authors and time period.
+					</p>
+					<p>
+						Or, use semantic search, and search by topic or area of interest like <span
+	class="italic"
+>current geopolitical events</span> or
+						<span class="italic">
+							latest tech
+							news
+						</span>.
+					</p>
+					<p>
+						Want to keep up to date with new results? Save the results as a <a
+	href="/features/curate#feature-search-subscriptions"
+	class="link"
+>Search Subscription</a> and stay up to date, easily.
+					</p>
+				}
+			</div>
+		}
 		// Feature: Zero Pressure.
 		@featurePanel("feature-zero-pressure") {
-			<img
-				width="488"
-				height="733"
-				src="/content/screenshots/screenshot-settings-behaviour.webp"
-				alt="Screenshot showing the settings for controlling display of unread counts, automatic unread marking and selecting the timespan after which unread articles disappear"
-				class="rounded-xl shadow-xl ring-1 ring-neutral/10"
-			/>
 			<div class="w-full sm:min-w-1/2">
 				@featureTitle("Zero Pressure Reading")
 				@featureText() {
@@ -463,18 +492,16 @@ templ FeaturesPageConsume() {
 					</p>
 				}
 			</div>
+			<img
+				width="488"
+				height="733"
+				src="/content/screenshots/screenshot-settings-behaviour.webp"
+				alt="Screenshot showing the settings for controlling display of unread counts, automatic unread marking and selecting the timespan after which unread articles disappear"
+				class="rounded-xl shadow-xl ring-1 ring-neutral/10"
+			/>
 		}
 		// Feature: Favorites.
 		@featurePanel("feature-favorites") {
-			<div class="w-full sm:min-w-1/2">
-				@featureTitle("Save Favorite Subscriptions and Articles")
-				@featureText() {
-					<p>
-						Favorite subscriptions to keep them top and center. Favorite articles to easily reference them
-						later. Your favorite articles are kept forever, even if the source removes them from their feed.
-					</p>
-				}
-			</div>
 			@featureVideo("feature-favorites-video",
 				featureMedia{
 					width:      1920,
@@ -489,9 +516,26 @@ templ FeaturesPageConsume() {
 					url:    "/content/screenshots/screencast-feature-favorites.webm",
 				},
 			)
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Save Favorite Subscriptions and Articles")
+				@featureText() {
+					<p>
+						Favorite subscriptions to keep them top and center. Favorite articles to easily reference them
+						later. Your favorite articles are kept forever, even if the source removes them from their feed.
+					</p>
+				}
+			</div>
 		}
 		// Feature: Themes.
 		@featurePanel("feature-themes") {
+			<div class="w-full sm:min-w-1/2">
+				@featureTitle("Choose Your Theme")
+				@featureText() {
+					<p>
+						Choose from a selection of curated light and dark themes to your liking.
+					</p>
+				}
+			</div>
 			@featureImage("feature-themes-screenshot",
 				featureMedia{
 					width:      1920,
@@ -501,14 +545,6 @@ templ FeaturesPageConsume() {
 					Properties: element.NewProperties(),
 				},
 			)
-			<div class="w-full sm:min-w-1/2">
-				@featureTitle("Choose Your Theme")
-				@featureText() {
-					<p>
-						Choose from a selection of curated light and dark themes to your liking.
-					</p>
-				}
-			</div>
 		}
 		// Navigation to other feature group pages.
 		<div class="text-center text-xl font-semibold">Check out other features:</div>
