@@ -946,7 +946,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = pageActions(element.WithClasses("justify-between")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = pageActions(element.WithClasses("justify-between p-2")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -972,7 +972,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 							} else {
 								mark = models.MarkUnread
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<li><a hx-post=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<li><button hx-post=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1014,7 +1014,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" class=\"rounded-field border border-neutral/15 text-sm\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" class=\"btn btn-outline btn-sm border-neutral/15\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1037,7 +1037,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 									return templ_7745c5c3_Err
 								}
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</a></li>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</button></li>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1186,7 +1186,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, " <div id=\"loading-items\" class=\"mt-4 flex w-full mx-auto justify-center\"><div class=\"show-loading text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div> <ul class=\"mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2\"><li><a class=\"rounded-field border border-neutral/15 text-sm\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, " <div id=\"loading-items\" class=\"mt-4 flex w-full mx-auto justify-center\"><div class=\"show-loading text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div> <ul class=\"mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2\"><li><button class=\"btn btn-outline border-neutral/15\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1293,7 +1293,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</span></a></li></ul>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</span></button></li></ul>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

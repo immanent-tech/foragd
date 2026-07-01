@@ -631,7 +631,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						{{ title = "Articles" }}
 					}
 					@pageTitle(title)
-					@pageActions(element.WithClasses("justify-between")) {
+					@pageActions(element.WithClasses("justify-between p-2")) {
 						@controls.viewFilters()
 						@controls.sortOptions()
 					}
@@ -657,7 +657,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									}
 								}}
 								<li>
-									<a
+									<button
 										if response.Filters.GetView() == models.ViewUnread {
 											hx-post="/list/articles/mark/read"
 										} else {
@@ -666,21 +666,21 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-target={ ContentID.Target() }
 										hx-include=".card > input"
 										hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-										class="rounded-field border border-neutral/15"
+										class="btn btn-outline btn-sm border-neutral/15"
 									>
 										if response.Filters.GetView() == models.ViewUnread {
 											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											<span class="text-sm">Mark shown read</span>
+											Mark shown read
 										} else {
 											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											<span class="text-sm">Mark shown unread</span>
+											Mark shown unread
 										}
-									</a>
+									</button>
 								</li>
 							</div>
 						} else {
 							<el-dropdown>
-								<button type="button" class="btn btn-ghost">
+								<button type="button" class="btn btn-outline btn-sm border-neutral/15">
 									@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 									<span class="text-sm font-normal">Options</span>
 								</button>
@@ -706,14 +706,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									}}
 									// Mark subscription action.
 									<li>
-										<a
+										<button
 											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 											hx-vals={ templ.JSONString(map[string]string{
 														"mark": string(mark),
 														"subscription_id": response.Subscription.GetID(),
 														"view": string(response.Filters.GetView()),
 														}) }
-											class="rounded-field border border-neutral/15 text-sm"
+											class="btn btn-outline btn-sm border-neutral/15"
 										>
 											if response.Filters.GetView() == models.ViewUnread {
 												@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -722,7 +722,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 												Mark all unread
 											}
-										</a>
+										</button>
 									</li>
 								}
 							</div>

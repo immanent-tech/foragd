@@ -262,7 +262,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Show a page header.
 				@pageHeading() {
 					@pageTitle("Subscriptions")
-					@pageActions(element.WithClasses("justify-between")) {
+					@pageActions(element.WithClasses("justify-between p-2")) {
 						@controls.viewFilters()
 						@controls.sortOptions()
 					}
@@ -280,7 +280,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								}
 							}}
 							<li>
-								<a
+								<button
 									hx-post={ "/list/subscriptions/mark/" + string(mark) }
 									hx-target={ ContentID.Target() }
 									hx-include=".card > input"
@@ -288,7 +288,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												"view": string(response.Filters.GetView()),
 												"mark": string(mark),
 											}) }
-									class="rounded-field border border-neutral/15 text-sm"
+									class="btn btn-outline btn-sm border-neutral/15"
 								>
 									if response.Filters.GetView() == models.ViewUnread {
 										@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -297,7 +297,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										Mark shown as Unread
 									}
-								</a>
+								</button>
 							</li>
 						}
 					</ul>
@@ -351,8 +351,8 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 						<ul class="mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2">
 							// Mark all subscriptions action.
 							<li>
-								<a
-									class="rounded-field border border-neutral/15 text-sm"
+								<button
+									class="btn btn-outline border-neutral/15"
 									if response.Filters.GetView() == models.ViewUnread {
 										hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
 										hx-vals={ templ.JSONString(map[string]any{
@@ -380,7 +380,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>
-								</a>
+								</button>
 							</li>
 						</ul>
 						@buttonBackToTop()

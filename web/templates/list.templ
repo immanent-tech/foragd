@@ -31,15 +31,15 @@ templ (c *listControls) viewFilters() {
 		hx-swap="innerHTML transition:true"
 		hx-target={ ContentID.Target() }
 		hx-trigger="triggerMe"
-		class="min-w-fit grow sm:hidden"
+		class="flex sm:hidden"
 	>
 		<input id="sort-hidden" name="sort" type="hidden" value={ string(c.filters.GetSort()) }/>
 		<input id="view-hidden" name="view" type="hidden" value={ string(currentView) }/>
 		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
 		<el-select id="select-view" _="on change send viewChanged(view: my value)" class="block">
-			<button class="btn inline-flex w-full justify-start btn-ghost" type="button">
+			<button class="btn btn-outline btn-sm border-neutral/15" type="button">
 				@tableroutline.ChevronDown(templ.Attributes{
-					"class":       "size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
 					"aria-hidden": "true"})
 				<el-selectedcontent class="truncate capitalize">
 					{ string(currentView) }
@@ -150,18 +150,17 @@ templ (c *listControls) sortOptions() {
 		hx-swap="innerHTML transition:true"
 		hx-target={ ContentID.Target() }
 		hx-trigger="triggerMe"
-		class="min-w-fit grow"
 	>
 		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
 		<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
 		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
 		<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
-			<button class="btn inline-flex w-full justify-end btn-ghost" type="button">
+			<button class="btn btn-outline btn-sm border-neutral/15" type="button">
 				<el-selectedcontent class="truncate">
 					{ currentSort.String() }
 				</el-selectedcontent>
 				@tableroutline.ChevronDown(templ.Attributes{
-					"class":       "size-5 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
 					"aria-hidden": "true"})
 			</button>
 			<el-options
