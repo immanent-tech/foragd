@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
 
 var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
@@ -81,8 +82,40 @@ func SearchItems(
 		return nil, "", models.ErrInvalidParams
 	}
 	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx, schema.ItemsIndexRO(), query,
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO(),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query),
 		elastic.WithSort(NewItemSortOptions(sort)...),
+		elastic.WithSearchAfter(searchAfter...),
+		elastic.WithSize(count),
+	)
+	if err != nil {
+		return nil, "", fmt.Errorf("search items: %w", err)
+	}
+	// Parse last search after value into pagination.
+	newPagination, err := elastic.EncodePagination[models.Pagination](resp.Pagination)
+	if err != nil {
+		return nil, "", models.ErrInvalidParams
+	}
+	return resp.Results, newPagination, nil
+}
+
+func RetrieveItems(
+	ctx context.Context,
+	retriever retriever.Option,
+	count int,
+	sort *models.Sort,
+	pagination *models.Pagination,
+) (models.Items, models.Pagination, error) {
+	searchAfter, err := elastic.DecodePagination(pagination)
+	if err != nil {
+		return nil, "", models.ErrInvalidParams
+	}
+	// Perform search.
+	resp, err := elastic.Search[*models.Item](ctx,
+		schema.ItemsIndexRO(),
+		elastic.WithRetriever(retriever),
+		// elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
 		elastic.WithSize(count),
 	)
@@ -183,7 +216,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (mod
 
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
-		itemsQuery,
+		elastic.WithQueryOptions[*elastic.SearchRequest](itemsQuery),
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),

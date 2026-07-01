@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -16,6 +17,7 @@ import (
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
 
 // SearchResponse represents the results of a search request. In addition to exposing the raw API response, the object
@@ -31,7 +33,6 @@ type SearchResponse[O any] struct {
 func Search[O any](
 	ctx context.Context,
 	index string,
-	query query.Option,
 	options ...func(*SearchRequest),
 ) (*SearchResponse[O], error) {
 	// Connect to elasticsearch (if not already connected).
@@ -41,7 +42,6 @@ func Search[O any](
 
 	searchOptions := []func(*SearchRequest){
 		WithIndex[*SearchRequest](index),
-		WithQueryOptions[*SearchRequest](query),
 	}
 	searchOptions = append(searchOptions, options...)
 	req := NewSearchRequest(ctx, searchOptions...)
@@ -96,7 +96,7 @@ func SearchAll[O any](
 			WithTrackTotalHits(false),
 		}
 		searchOpts = append(searchOpts, options...)
-		resp, err := Search[O](ctx, index, query, searchOpts...)
+		resp, err := Search[O](ctx, index, searchOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("search all: %w", err)
 		}
@@ -154,6 +154,14 @@ func (r *SearchRequest) SetQueryOptions(options ...query.Option) {
 	if query := query.Build(options...); query != nil {
 		r.Search = r.Query(query)
 	}
+}
+
+func (r *SearchRequest) SetRetrieverOptions(options ...retriever.Option) {
+	retriever := &types.RetrieverContainer{}
+	for option := range slices.Values(options) {
+		option(retriever)
+	}
+	r.Search = r.Retriever(retriever)
 }
 
 func (r *SearchRequest) SetAggregations(aggs map[string]types.Aggregations) {

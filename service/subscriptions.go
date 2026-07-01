@@ -552,7 +552,7 @@ func getSearchSubscriptionLatestItems(
 				ctx,
 				user,
 				&subscription.SearchData.Search,
-				models.SearchResultsClause(&subscription.SearchData.Search),
+				StandardSearchResultsClause(&subscription.SearchData.Search),
 			)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				slogctx.FromCtx(ctx).Warn("Could not build search query for search subscription.",
@@ -662,25 +662,27 @@ func GetSubscriptionSuggestions(
 	resp, err := elastic.Search[*models.Subscription](
 		ctx,
 		schema.SubscriptionsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Bool(
-					query.Should(
-						query.Term("type", models.SubscriptionTypeEmail),
-						query.Term("type", models.SubscriptionTypeFeed),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Term("user_id", user.GetID()),
+					query.Bool(
+						query.Should(
+							query.Term("type", models.SubscriptionTypeEmail),
+							query.Term("type", models.SubscriptionTypeFeed),
+						),
 					),
 				),
-			),
-			query.Must(
-				query.Bool(
-					query.Should(
-						query.SearchAsYouType(text, "customisation.nickname"),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(text, "customisation.nickname"),
+						),
 					),
 				),
-			),
-			query.MustNot(
-				query.Terms("subscription_id", ignoredSubscriptions),
+				query.MustNot(
+					query.Terms("subscription_id", ignoredSubscriptions),
+				),
 			),
 		),
 		elastic.WithSort(newSubscriptionSortOptions(new(models.SortMostRelevant))...),
@@ -764,7 +766,7 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
 			request := subscription.SearchData.Search
 			// Build query to get unread count.
-			query, err := BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
+			query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -785,7 +787,7 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 			// Update query for getting last updated item (view: all, sort: newest first).
 			request.View = models.ViewAll
 			sort := models.SortNewestFirst
-			query, err = BuildSearchResultsQuery(jobCtx, user, &request, models.SearchResultsClause(&request))
+			query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",

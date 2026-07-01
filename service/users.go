@@ -31,8 +31,11 @@ var userCache = otter.Must(&otter.Options[string, models.User]{
 })
 
 func loadUser(ctx context.Context, id string) (models.User, error) {
-	switch resp, err := elastic.Search[*models.User](ctx, schema.UsersIndexRO(),
-		query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+	switch resp, err := elastic.Search[*models.User](ctx,
+		schema.UsersIndexRO(),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+		),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
@@ -84,7 +87,9 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Term("email", email),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Term("email", email),
+		),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
@@ -103,7 +108,9 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Terms("settings.subscription_email", emails),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Terms("settings.subscription_email", emails),
+		),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),
@@ -122,7 +129,9 @@ func GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, erro
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Term("subscription.subscription_id", id),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Term("subscription.subscription_id", id),
+		),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),

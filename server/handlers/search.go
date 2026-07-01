@@ -21,6 +21,7 @@ import (
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
@@ -97,7 +98,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 				req.Context(),
 				user,
 				search,
-				models.SearchSuggestionsClause(search),
+				service.SearchSuggestionsClause(search),
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Unable to build search results query.",
@@ -251,7 +252,27 @@ func HandleSearchResults() http.HandlerFunc {
 		// Find articles that match search request.
 		var articles models.Articles
 		var categories []models.Category
-		searchQuery, err := service.BuildSearchResultsQuery(ctx, user, search, models.SearchResultsClause(search))
+		// regularSearchQuery, err := service.BuildSearchResultsQuery(
+		// 	ctx,
+		// 	user,
+		// 	search,
+		// 	service.StandardSearchResultsClause(search),
+		// )
+		// if err != nil && !errors.Is(err, models.ErrNotFound) {
+		// 	HandleInternalError(req.URL.Path,
+		// 		&models.APIError{
+		// 			InternalError: fmt.Errorf("build articles search query: %w", err),
+		// 			StatusCode:    http.StatusInternalServerError,
+		// 		}).ServeHTTP(res, req)
+		// 	return
+		// }
+		// semanticSearchQuery, err := service.BuildSearchResultsQuery(
+		// 	ctx,
+		// 	user,
+		// 	search,
+		// 	service.SemanticSearchResultsClause(search),
+		// )
+		filterQuery, err := service.BuildSearchResultsQuery(ctx, user, search, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
@@ -261,42 +282,63 @@ func HandleSearchResults() http.HandlerFunc {
 			return
 		}
 
-		if searchQuery != nil {
-			searchJobs, jobCtx := errgroup.WithContext(req.Context())
-			defer jobCtx.Done()
+		// if regularSearchQuery != nil || semanticSearchQuery != nil {
+		searchJobs, jobCtx := errgroup.WithContext(req.Context())
+		defer jobCtx.Done()
 
-			// Search for articles.
-			searchJobs.Go(func() error {
-				var items models.Items
-				items, pagination, err = service.SearchItems(
-					ctx,
-					searchQuery,
-					defaultArticleResultsCount,
-					&search.Sort,
-					&pagination,
-				)
+		// Search for articles.
+		searchJobs.Go(func() error {
+			var items models.Items
+			items, pagination, err = service.RetrieveItems(
+				ctx,
+				retriever.WithReciprocalRankFusionRetriever(
+					retriever.WithRankWindowSize(30),
+					retriever.WithQueryFilters(filterQuery),
+					retriever.WithChildRetrievers(
+						retriever.WithStandardRetriever(
+							"rrf-regular",
+							query.Bool(service.StandardSearchResultsClause(search)),
+						),
+						retriever.WithStandardRetriever(
+							"rrf-semantic",
+							query.Bool(service.SemanticSearchResultsClause(search)),
+						),
+					),
+				),
+				defaultArticleResultsCount,
+				&search.Sort,
+				&pagination,
+			)
+			if err != nil {
+				return fmt.Errorf("search articles: %w", err)
+			}
+			if len(items) > 0 {
+				articles, err = service.GenerateArticles(ctx, items)
 				if err != nil {
-					return fmt.Errorf("search articles: %w", err)
+					return fmt.Errorf("generate articles: %w", err)
 				}
-				if len(items) > 0 {
-					articles, err = service.GenerateArticles(ctx, items)
-					if err != nil {
-						return fmt.Errorf("generate articles: %w", err)
-					}
-				}
-				return nil
-			})
+			}
+			return nil
+		})
 
-			// Generate top categories for articles.
-			searchJobs.Go(func() error {
-				termsField := "categories.raw"
-				termsCount := 10
-				// Perform aggregation.
-				resp, err := elastic.Search[*models.Item](ctx,
-					schema.ItemsIndexRO(),
+		// Generate top categories for articles.
+		searchJobs.Go(func() error {
+			regularSearchQuery, err := service.BuildSearchResultsQuery(
+				ctx,
+				user,
+				search,
+				service.StandardSearchResultsClause(search),
+			)
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				return fmt.Errorf("generate top categories: %w", err)
+			}
+			// Perform aggregation.
+			resp, err := elastic.Search[*models.Item](ctx,
+				schema.ItemsIndexRO(),
+				elastic.WithQueryOptions[*elastic.SearchRequest](
 					// Use the original search query but filter out common categories.
 					query.Bool(
-						query.Must(searchQuery),
+						query.Must(regularSearchQuery),
 						query.MustNot(
 							query.Terms(
 								"categories.raw",
@@ -304,52 +346,53 @@ func HandleSearchResults() http.HandlerFunc {
 							),
 						),
 					),
-					elastic.WithAggregations(
-						elastic.Aggs{
-							"TopCategories": estypes.Aggregations{
-								Terms: &estypes.TermsAggregation{
-									Field: &termsField,
-									Size:  &termsCount,
-								},
+				),
+				elastic.WithAggregations(
+					elastic.Aggs{
+						"TopCategories": estypes.Aggregations{
+							Terms: &estypes.TermsAggregation{
+								Field: new("categories.raw"),
+								Size:  new(10),
 							},
 						},
-					),
-					elastic.WithSize(0),
-					elastic.WithDocSorting(),
-				)
-				if err != nil {
-					return fmt.Errorf("aggregate articles: %w", err)
-				}
-
-				topCategoriesAgg, isTopCategoriesAgg := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
-				if !isTopCategoriesAgg {
-					return fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
-				}
-				topCategoriesBuckets, isTopCategoriesBuckets := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
-				if !isTopCategoriesBuckets {
-					return fmt.Errorf("extract buckets: %w", models.ErrInvalidAPIResult)
-				}
-
-				for bucket := range slices.Values(topCategoriesBuckets) {
-					if category, isCategoryBucket := bucket.Key.(models.Category); isCategoryBucket {
-						categories = append(categories, category)
-					}
-				}
-
-				return nil
-			})
-
-			// Run background requests in parallel and wait for results.
-			err = searchJobs.Wait()
+					},
+				),
+				elastic.WithSize(0),
+				elastic.WithDocSorting(),
+			)
 			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("search items: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}).ServeHTTP(res, req)
-				return
+				return fmt.Errorf("aggregate articles: %w", err)
 			}
+
+			topCategoriesAgg, isTopCategoriesAgg := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
+			if !isTopCategoriesAgg {
+				return fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
+			}
+			topCategoriesBuckets, isTopCategoriesBuckets := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
+			if !isTopCategoriesBuckets {
+				return fmt.Errorf("extract buckets: %w", models.ErrInvalidAPIResult)
+			}
+
+			for bucket := range slices.Values(topCategoriesBuckets) {
+				if category, isCategoryBucket := bucket.Key.(models.Category); isCategoryBucket {
+					categories = append(categories, category)
+				}
+			}
+
+			return nil
+		})
+
+		// Run background requests in parallel and wait for results.
+		err = searchJobs.Wait()
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("search items: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
+			return
 		}
+		// }
 
 		RenderInternalPage(&SearchResults{
 			title: templates.PageTitle{
@@ -394,7 +437,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 			req.Context(),
 			user,
 			request,
-			models.SearchResultsClause(request),
+			service.StandardSearchResultsClause(request),
 		)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot build search query.",

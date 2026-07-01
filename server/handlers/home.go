@@ -185,15 +185,18 @@ func HandleHome() http.HandlerFunc {
 					req.Context(),
 					schema.ItemsIndexRO(),
 					// Query is adapted from service.FilterArticles query to boost favorites and return unread only.
-					query.Bool(
-						query.Filter(
-							query.Terms(
-								"feed_id",
-								data.Subscriptions.GetFeedIDs(),
-								query.WithQueryName[*query.TermsQuery]("match-feed-id"),
-							),
-							query.Bool(
-								query.Should(service.BuildItemQueries(user, models.ViewUnread, data.Subscriptions)...),
+					elastic.WithQueryOptions[*elastic.SearchRequest](
+						query.Bool(
+							query.Filter(
+								query.Terms(
+									"feed_id",
+									data.Subscriptions.GetFeedIDs(),
+									query.WithQueryName[*query.TermsQuery]("match-feed-id"),
+								),
+								query.Bool(
+									query.Should(
+										service.BuildItemQueries(user, models.ViewUnread, data.Subscriptions)...),
+								),
 							),
 						),
 					),

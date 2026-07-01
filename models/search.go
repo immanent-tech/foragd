@@ -9,11 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -148,59 +145,4 @@ func (r *AddSubscriptionSearchFilterRequest) Sanitise() error {
 	r.SubscriptionName = sanitization.SanitizeString(r.SubscriptionName)
 	r.SubscriptionID = sanitization.SanitizeString(r.SubscriptionID)
 	return nil
-}
-
-func SearchResultsClause(search *SearchRequest) query.BoolOption {
-	// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
-	// search suggestion).
-	return query.Must(
-		// Search across title, description and content fields, with preference for match in that order (via field
-		// boosting).
-		query.Bool(
-			query.Should(
-				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.SimpleQueryString(
-					query.WithSimpleQueryStringText(&search.Text),
-					query.WithSimpleQueryStringFields("title^6", "description^3", "content"),
-					query.WithSimpleQueryStringOperator(&operator.And),
-				),
-				query.MultiMatch(
-					search.Text,
-					[]string{"description^3", "content"},
-					query.WithTextQueryType(textquerytype.Phrase),
-				),
-			),
-		),
-		// Search in categories.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Categories),
-			query.WithSimpleQueryStringFields("categories"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		// Search in authors, contributors.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Authors),
-			query.WithSimpleQueryStringFields("authors", "contributors"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-	)
-}
-
-func SearchSuggestionsClause(search *SearchRequest) query.BoolOption {
-	// Must match at least one of in title, description, content.
-	return query.Must(
-		query.Bool(
-			query.Should(
-				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.SearchAsYouType(search.Text, "title"),
-				query.SearchAsYouType(search.Text, "description"),
-				query.SimpleQueryString(
-					query.WithSimpleQueryStringText(&search.Text),
-					query.WithSimpleQueryStringFields("content"),
-					query.WithSimpleQueryStringOperator(&operator.And),
-				),
-			),
-		),
-	)
-
 }

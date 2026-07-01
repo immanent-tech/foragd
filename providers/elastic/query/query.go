@@ -531,7 +531,9 @@ func Bool(options ...BoolOption) Option {
 		boolQuery := &types.BoolQuery{}
 
 		for _, option := range options {
-			option(boolQuery)
+			if option != nil {
+				option(boolQuery)
+			}
 		}
 
 		if !reflect.DeepEqual(boolQuery, &types.BoolQuery{}) {

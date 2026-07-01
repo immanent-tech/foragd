@@ -11,6 +11,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
 
 // HasHeader represents a request that can set a header value.
@@ -52,6 +53,20 @@ type HasQuery interface {
 func WithQueryOptions[T HasQuery](options ...query.Option) func(T) {
 	return func(t T) {
 		t.SetQueryOptions(options...)
+	}
+}
+
+// HasRetriever represents a request that can specify a retriever option.
+type HasRetriever interface {
+	*SearchRequest
+
+	SetRetrieverOptions(options ...retriever.Option)
+}
+
+// WithRetriever option defines the retriever options that will be applied to the request.
+func WithRetriever[T HasRetriever](options ...retriever.Option) func(T) {
+	return func(t T) {
+		t.SetRetrieverOptions(options...)
 	}
 }
 

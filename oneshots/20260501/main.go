@@ -26,28 +26,30 @@ func main() {
 	resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Bool(
-			query.Filter(
-				// Account should be older than 30 days.
-				query.Before("created_at", time.Now().UTC().Add(-30*24*time.Hour)),
-				query.Bool(
-					// Match any of these.
-					query.Should(
-						// Account was created but has never logged in.
-						query.NumberRange("login_count", query.IntLessThan(2)),
-						query.Bool(
-							query.MustNot(
-								query.Exists("last_login"),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					// Account should be older than 30 days.
+					query.Before("created_at", time.Now().UTC().Add(-30*24*time.Hour)),
+					query.Bool(
+						// Match any of these.
+						query.Should(
+							// Account was created but has never logged in.
+							query.NumberRange("login_count", query.IntLessThan(2)),
+							query.Bool(
+								query.MustNot(
+									query.Exists("last_login"),
+								),
 							),
+							// Last login is more than 30 days ago.
+							query.Before("last_login", time.Now().UTC().Add(-30*24*time.Hour)),
 						),
-						// Last login is more than 30 days ago.
-						query.Before("last_login", time.Now().UTC().Add(-30*24*time.Hour)),
 					),
 				),
-			),
-			query.MustNot(
-				// Should not already be pending deletion.
-				query.Term("metadata.pending_deletion", true),
+				query.MustNot(
+					// Should not already be pending deletion.
+					query.Term("metadata.pending_deletion", true),
+				),
 			),
 		),
 	)

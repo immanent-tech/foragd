@@ -37,7 +37,7 @@ func getUserByPurchaseToken(ctx context.Context, token string) (*models.User, er
 	resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Term("subscription.purchase_token", token),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.purchase_token", token)),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),

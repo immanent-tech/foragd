@@ -282,11 +282,13 @@ func GetFeedLatestItems(
 ) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Terms("feed_id", feedIDs),
-				// extraQuery is ignored if nil.
-				extraQuery,
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs),
+					// extraQuery is ignored if nil.
+					extraQuery,
+				),
 			),
 		),
 		elastic.WithAggregations(
@@ -404,21 +406,23 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		schema.FeedsIndexRO(),
-		query.Bool(
-			query.MustNot(
-				// User must not already be subscribed.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-			),
-			query.Should(
-				// Match source_urls (preferred) or url.
-				query.Terms(
-					"source_urls",
-					urls,
-					query.WithQueryBoost[*query.TermsQuery](10.0),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.MustNot(
+					// User must not already be subscribed.
+					query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				),
-				query.Terms(
-					"url",
-					urls,
+				query.Should(
+					// Match source_urls (preferred) or url.
+					query.Terms(
+						"source_urls",
+						urls,
+						query.WithQueryBoost[*query.TermsQuery](10.0),
+					),
+					query.Terms(
+						"url",
+						urls,
+					),
 				),
 			),
 		),
@@ -497,21 +501,23 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		schema.FeedsIndexRO(),
-		query.Bool(
-			query.MustNot(
-				// User must not already be subscribed.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-			),
-			query.Should(
-				// Match source_urls (preferred) or url.
-				query.Term(
-					"source_urls",
-					newsURL.String(),
-					query.WithQueryBoost[*query.TermQuery](10.0),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.MustNot(
+					// User must not already be subscribed.
+					query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				),
-				query.Term(
-					"url",
-					newsURL.String(),
+				query.Should(
+					// Match source_urls (preferred) or url.
+					query.Term(
+						"source_urls",
+						newsURL.String(),
+						query.WithQueryBoost[*query.TermQuery](10.0),
+					),
+					query.Term(
+						"url",
+						newsURL.String(),
+					),
 				),
 			),
 		),
@@ -640,7 +646,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		schema.FeedsIndexRO(),
-		feedSearchQuery,
+		elastic.WithQueryOptions[*elastic.SearchRequest](feedSearchQuery),
 		elastic.WithSort(
 			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
@@ -755,10 +761,12 @@ func getFeedUnreadCounts(
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Bool(
-					query.Should(subscriptionQueries...),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Bool(
+						query.Should(subscriptionQueries...),
+					),
 				),
 			),
 		),
@@ -811,7 +819,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.F
 	resp, err := elastic.Search[*models.Item](
 		ctx,
 		schema.ItemsIndexRO(),
-		query.Terms("feed_id", ids),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.Terms("feed_id", ids)),
 		elastic.WithSize(len(ids)),
 		elastic.WithCollapseField("feed_id"),
 		elastic.WithSort(NewItemSortOptions(&sort)...),
@@ -877,7 +885,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
-		query,
+		elastic.WithQueryOptions[*elastic.SearchRequest](query),
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(len(ids)),
 		elastic.WithDocSorting(),
@@ -1188,10 +1196,12 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	// Find any existing feed.
 	resp, err := elastic.Search[*models.Feed](ctx,
 		schema.FeedsIndexRO(),
-		query.Bool(
-			query.Filter(
-				query.Bool(
-					query.Should(terms...),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Bool(
+						query.Should(terms...),
+					),
 				),
 			),
 		),

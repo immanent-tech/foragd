@@ -23,7 +23,7 @@ func GetUserByCustomerID(ctx context.Context, id string) (*models.User, error) {
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		schema.UsersIndexRO(),
-		query.Term("subscription.customer_id", id),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.customer_id", id)),
 		elastic.WithDocSorting(),
 		elastic.WithTrackTotalHits(false),
 		elastic.WithSize(1),

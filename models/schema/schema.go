@@ -5,14 +5,14 @@ package schema
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"slices"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -331,39 +331,61 @@ func migrateIndexData(
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
 	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, "")).
-		WaitForCompletion(true).
+		WaitForCompletion(false).
 		Conflicts(conflicts.Proceed).
-		RequestsPerSecond("500").
+		RequestsPerSecond("1000").
 		Do(ctx)
-	const statusCodeErrLevel = 500
-	switch {
-	case err != nil:
-		if getStatusCode(err) >= statusCodeErrLevel {
-			return fmt.Errorf("could not reindex: %w", err)
-		}
-		slogctx.FromCtx(ctx).Info("Reindex completed with warnings.",
-			slog.String("src", readAlias),
-			slog.String("dest", index),
-			slog.Int64("took", *reindexResp.Took),
-			slog.Any("warnings", err),
-		)
-	default:
-		slogctx.FromCtx(ctx).Info("Reindex completed.",
-			slog.String("src", readAlias),
-			slog.String("dest", index),
-			slog.Int64("took", *reindexResp.Took),
-		)
+	if err != nil {
+		return fmt.Errorf("reindex: %w", err)
 	}
+
+	// Wait for the reindex to complete.
+	if taskID := reindexResp.Task; taskID != nil {
+		for {
+			tasksResp, err := api.Tasks.Get(*taskID).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("get tasks: %w", err)
+			}
+
+			if tasksResp.Completed {
+				if tasksResp.Error != nil {
+					return fmt.Errorf("reindex: %w", err)
+				}
+				slogctx.Info(ctx, "Reindex complete!")
+				break
+			}
+
+			var status struct {
+				Total            int `json:"total"`
+				Created          int `json:"created"`
+				Updated          int `json:"updated"`
+				Deleted          int `json:"deleted"`
+				Batches          int `json:"batches"`
+				VersionConflicts int `json:"version_conflicts"`
+			}
+
+			if err := json.Unmarshal(tasksResp.Task.Status, &status); err != nil {
+				slogctx.Warn(ctx, "Unable to parse task status.",
+					slog.Any("error", err))
+			} else {
+				slogctx.Info(ctx, "Reindexing...",
+					slog.String("task_id", *taskID),
+					slog.Int("created", status.Created),
+					slog.Int("updated", status.Updated),
+					slog.Int("deleted", status.Deleted),
+					slog.Int("version_conflicts", status.VersionConflicts),
+					slog.Int("total", status.Total),
+				)
+			}
+			time.Sleep(10 * time.Second)
+		}
+	} else {
+		return errors.New("no reindex task")
+	}
+
 	// Update the read alias.
 	if err = elastic.UpdateIndexAlias(ctx, readAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 	return nil
-}
-
-func getStatusCode(err error) int {
-	if esErr, ok := errors.AsType[*types.ElasticsearchError](err); ok {
-		return esErr.Status
-	}
-	return http.StatusInternalServerError
 }

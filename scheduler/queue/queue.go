@@ -118,7 +118,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	resp, err := elastic.Search[*jobs.SerializedJob](
 		ctx,
 		schema.SchedulerIndexRO(),
-		query.MatchAll(),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
 		elastic.WithSize(1),
 	)

@@ -42,7 +42,7 @@ func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]C
 	// Perform aggregation.
 	resp, err := elastic.Search[*Item](ctx,
 		schema.ItemsIndexRO(),
-		searchQuery,
+		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
 		elastic.WithDocSorting(),
