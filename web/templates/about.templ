@@ -7,9 +7,9 @@ import "github.com/dimmerz92/go-icons/tabler-outline"
 
 templ About() {
 	@LayoutExternal() {
-		<div class="min-h-dvh overflow-y-scroll snap-y snap-mandatory md:snap-none">
+		<div class="min-h-dvh snap-y snap-mandatory overflow-y-scroll md:snap-none">
 			// Main Hero Section.
-			<section class="h-dvh hero snap-start md:snap-align-none">
+			<section class="hero h-dvh snap-start md:snap-align-none">
 				<div class="isolate">
 					<div aria-hidden="true" class="absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16">
 						<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"></div>
@@ -17,10 +17,10 @@ templ About() {
 				</div>
 				<div class="hero-content text-center">
 					<div class="max-w-md">
-						<div class="text-xs font-semibold tracking-widest uppercase text-primary/80 mb-5">
+						<div class="mb-5 text-xs font-semibold tracking-widest text-primary/80 uppercase">
 							Why I built Foragd
 						</div>
-						<h1 class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-balance font-display">
+						<h1 class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance">
 							Reading feeds shouldn't
 							<br class="hidden md:block"/>
 							be a chore
@@ -38,8 +38,8 @@ templ About() {
 					</div>
 				</div>
 			</section>
-			<section class="max-w-2xl mx-auto px-5 py-14 snap-start md:snap-align-none">
-				<div class="prose-none space-y-6 text-base-content/75 text-[17px] leading-relaxed">
+			<section class="mx-auto max-w-2xl snap-start px-5 py-14 md:snap-align-none">
+				<div class="prose-none space-y-6 text-[17px] leading-relaxed text-base-content/75">
 					<p>
 						I'm unsure where the idea that RSS and Atom feeds should feel like
 						email came from, but I'm tired of it.
@@ -53,14 +53,14 @@ templ About() {
 					</p>
 					<p>
 						Folders don't align with how I think about organising content. Often, something is both this
-						<span class="text-primary not-italic font-semibold">and</span> that.
+						<span class="font-semibold text-primary not-italic">and</span> that.
 					</p>
 				</div>
-				<blockquote class="font-display italic text-2xl md:text-3xl leading-snug text-base-content/90 my-12 border-l-2 border-primary/50 pl-6">
+				<blockquote class="my-12 border-l-2 border-primary/50 pl-6 font-display text-2xl leading-snug text-base-content/90 italic md:text-3xl">
 					Remember magazines? Social media, even? Neither has unread counts or
 					folders; that's moon-man business talk.
 				</blockquote>
-				<div class="space-y-6 text-base-content/75 text-[17px] leading-relaxed">
+				<div class="space-y-6 text-[17px] leading-relaxed text-base-content/75">
 					<p>
 						What they get right is simple: text that flows, in a UI that's less about organisation and more
 						about showing off the content. I don't want to be pressured into reading until a count hits
@@ -71,70 +71,70 @@ templ About() {
 					</p>
 				</div>
 			</section>
-			<section class="bg-base-200/40 border-y border-base-300/60 snap-start md:snap-align-none">
-				<div class="max-w-5xl mx-auto px-5 py-20">
-					<div class="text-center max-w-lg mx-auto mb-14">
-						<div class="text-xs font-semibold tracking-widest uppercase text-primary/80 mb-3">Foragd design</div>
-						<h2 class="font-display text-3xl md:text-4xl font-medium">Make reading and discovering content fun again</h2>
+			<section class="snap-start border-y border-base-300/60 bg-base-200/40 md:snap-align-none">
+				<div class="mx-auto max-w-5xl px-5 py-20">
+					<div class="mx-auto mb-14 max-w-lg text-center">
+						<div class="mb-3 text-xs font-semibold tracking-widest text-primary/80 uppercase">Foragd design</div>
+						<h2 class="font-display text-3xl font-medium md:text-4xl">Make reading and discovering content fun again</h2>
 					</div>
-					<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-primary/15 border border-primary/40 text-primary flex items-center justify-center mb-4">
+					<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary">
 								@tableroutline.AlertCircleOff(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">No pressure</h3>
-							<p class="text-sm text-base-content/65 mt-2">No unread counts by default. Read what you want, when you want.</p>
+							<p class="mt-2 text-sm text-base-content/65">No unread counts by default. Read what you want, when you want.</p>
 						</div>
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-secondary/15 border border-secondary/40 text-secondary flex items-center justify-center mb-4">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary">
 								@tableroutline.Category(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">Flexible organisation</h3>
-							<p class="text-sm text-base-content/65 mt-2">Organising content with categories should be natural, not rigid.</p>
+							<p class="mt-2 text-sm text-base-content/65">Organising content with categories should be natural, not rigid.</p>
 						</div>
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-accent/15 border border-accent/40 text-accent flex items-center justify-center mb-4">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent">
 								@tableroutline.Map(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">Exploration encouraged</h3>
-							<p class="text-sm text-base-content/65 mt-2">No algorithms or recommendations deciding what you see next.</p>
+							<p class="mt-2 text-sm text-base-content/65">No algorithms or recommendations deciding what you see next.</p>
 						</div>
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-primary/15 border border-primary/40 text-primary flex items-center justify-center mb-4">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary">
 								@tableroutline.Search(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">Search first</h3>
-							<p class="text-sm text-base-content/65 mt-2">Search is powerful, functional, and treated as first-class.</p>
+							<p class="mt-2 text-sm text-base-content/65">Search is powerful, functional, and treated as first-class.</p>
 						</div>
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-secondary/15 border border-secondary/40 text-secondary flex items-center justify-center mb-4">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary">
 								@tableroutline.Typeface(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">Content focused</h3>
-							<p class="text-sm text-base-content/65 mt-2">Beautiful typography that makes reading online pleasurable again.</p>
+							<p class="mt-2 text-sm text-base-content/65">Beautiful typography that makes reading online pleasurable again.</p>
 						</div>
-						<div class="card bg-base-200 border border-base-300 p-6">
-							<span class="w-9 h-9 rounded-full bg-accent/15 border border-accent/40 text-accent flex items-center justify-center mb-4">
+						<div class="card border border-base-300 bg-base-200 p-6">
+							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent">
 								@tableroutline.Heart(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
 							<h3 class="font-display text-lg">1,000 true fans</h3>
-							<p class="text-sm text-base-content/65 mt-2">Making something for people, not for profit.</p>
+							<p class="mt-2 text-sm text-base-content/65">Making something for people, not for profit.</p>
 						</div>
 					</div>
 				</div>
 			</section>
-			<section class="max-w-4xl mx-auto px-5 py-16 text-center  snap-start md:snap-align-none">
-				<p class="text-base-content/60 text-sm mb-6">Built in the open</p>
+			<section class="mx-auto max-w-4xl snap-start px-5 py-16 text-center md:snap-align-none">
+				<p class="mb-6 text-sm text-base-content/60">Built in the open</p>
 				<div class="flex flex-wrap items-center justify-center gap-4">
-					<a href="https://github.com/immanent-tech/foragd" class="btn btn-outline btn-sm gap-2">
+					<a href="https://github.com/immanent-tech/foragd" class="btn gap-2 btn-outline btn-sm">
 						@tableroutline.BrandGithub(templ.Attributes{"class": "size-4"})
 						View on GitHub
 					</a>
-					<a href="/contact" class="btn btn-outline btn-sm gap-2">
+					<a href="/contact" class="btn gap-2 btn-outline btn-sm">
 						@tableroutline.MessageCircle(templ.Attributes{"class": "size-4"})
 						Contact us
 					</a>
-					<a href="https://www.producthunt.com/products/foragd-beta" class="opacity-90 hover:opacity-100 transition-opacity">
+					<a href="https://www.producthunt.com/products/foragd-beta" class="opacity-90 transition-opacity hover:opacity-100">
 						<img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1118376&theme=neutral" alt="Foragd on Product Hunt" class="h-11" loading="lazy"/>
 					</a>
 				</div>
