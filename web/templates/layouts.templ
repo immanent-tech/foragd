@@ -20,7 +20,7 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 	<main
 		aria-label="Main Content"
 		id={ ContentID.String() }
-		class="w-screen flex-1 scroll-mt-16 scroll-mb-20 pt-16 px-safe pb-20 lg:pl-36 overflow-y-scroll"
+		class="w-dvw flex-1 scroll-mt-16 scroll-mb-20 pt-16 px-safe pb-20 lg:pl-36 overflow-y-scroll"
 	>
 		if len(content) > 0 {
 			@templ.Join(content...)
@@ -36,12 +36,13 @@ templ LayoutExternal(content ...templ.Component) {
 	<main
 		aria-label="Main Content"
 		id={ ContentID.String() }
-		class="w-screen flex-1 scroll-mt-16 pt-16 px-safe pb-20"
+		class="w-dvw flex-1 scroll-mt-16 pt-16 px-safe pb-20"
 	>
 		if len(content) > 0 {
 			@templ.Join(content...)
 		}
 		{ children... }
+		`
 	</main>
 	@FooterExternal()
 }

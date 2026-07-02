@@ -12,10 +12,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	tabler "github.com/dimmerz92/go-icons/tabler-outline"
-	"time"
-)
+import "time"
 
 func FooterExternal() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,44 +35,20 @@ func FooterExternal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer class=\"footer bg-base-200 p-10 text-base-content sm:footer-horizontal\"><nav><h3 class=\"footer-title\">App</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/changelog\" class=\"link link-hover\">Changelog</a> <a href=\"/viewer\" class=\"link link-hover\">Feed Viewer</a></nav><nav><h3 class=\"footer-title\">Docs</h3><a href=\"/help\" class=\"link link-hover\">Help/Documentation</a> <a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><nav><h3 class=\"footer-title\">Connect</h3><a href=\"https://github.com/immanent-tech/foragd\" rel=\"me\" class=\"flex link items-center link-hover\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.BrandGithub(templ.Attributes{"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span>Github</span></a> <a href=\"/contact\" rel=\"me\" class=\"flex link items-center link-hover\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.World(templ.Attributes{"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span>Contact us</span></a> <a href=\"https://github.com/immanent-tech/foragd/security\" class=\"flex link items-center link-hover\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.LockExclamation(templ.Attributes{"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span>Report Security Issues</span></a> <a href=\"https://www.producthunt.com/products/foragd-beta?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-foragd\" target=\"_blank\" rel=\"noopener noreferrer me\"><img alt=\"Foragd - A beautiful, web based, online feed reader. | Product Hunt\" width=\"250\" height=\"54\" src=\"https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1118376&amp;theme=neutral&amp;t=1775624521428\" loading=\"lazy\"></a></nav></footer><footer class=\"footer bg-base-200 pt-4 pb-safe-or-4 text-base-content\"><aside class=\"mx-auto text-center\"><p>Copyright © ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer class=\"footer bg-base-200 p-10 text-base-content sm:footer-horizontal\"><aside><img src=\"/content/logo-horizontal-light.webp\" alt=\"Foragd logo\" width=\"256\" height=\"66\" class=\"object-scale-down\" loading=\"lazy\"><p><p>Copyright © ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 58, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 20, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " - <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></aside></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<br><a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></p></aside><nav><h3 class=\"footer-title\">Product</h3><a href=\"/features/collect\" class=\"link link-hover\">Collect</a> <a href=\"/features/curate\" class=\"link link-hover\">Curate</a> <a href=\"/features/consume\" class=\"link link-hover\">Consume</a> <a href=\"/#pricing\" class=\"link link-hover\">Pricing</a></nav><nav><h3 class=\"footer-title\">Info</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/help\" class=\"link link-hover\">Help/Documentation</a></nav><nav><h3 class=\"footer-title\">Legal</h3><a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a> <a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a></nav></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

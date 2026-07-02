@@ -163,7 +163,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		for option := range slices.Values(options) {
 			option(p)
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\" _=\"on load\n             set theme to localStorage.getItem('theme')\n             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end\n\t\t   on mutation of @data-theme send themeChange end\" class=\"h-full scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none\"><head><meta charset=\"UTF-8\"><meta name=\"description\" content=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\" _=\"on load\n             set theme to localStorage.getItem('theme')\n             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end\n\t\t   on mutation of @data-theme send themeChange end\" class=\"min-h-dvh scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none\"><head><meta charset=\"UTF-8\"><meta name=\"description\" content=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -352,14 +352,14 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</title></head><body class=\"flex h-full w-screen flex-col bg-base-100 overscroll-y-none\" _=\"on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</title><script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": [\"SoftwareApplication\",\"WebApplication\"],\n  \"name\": \"Foragd\",\n  \"applicationCategory\": \"New & RSS Reader\",\n  \"operatingSystem\": \"Web\",\n  \"description\": \"Foragd is a web-based reader that combines RSS and Atom feeds, YouTube channels, subreddits and email newsletters into one searchable view, without ads or an algorithmic feed.\"\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"59\",\n    \"priceCurrency\": \"USD\",\n    \"priceValidUntil\": \"2026-10-31\"\n  },\n}\n</script></head><body class=\"flex min-h-dvh w-dvw flex-col bg-base-100 overscroll-y-none\" _=\"on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 255, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 271, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -398,7 +398,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(NotificationsID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 262, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 278, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 		if templ_7745c5c3_Err != nil {
@@ -440,7 +440,7 @@ func UpdateTitle(title PageTitle) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(title.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 269, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 285, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {

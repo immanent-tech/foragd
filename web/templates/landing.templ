@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -97,6 +96,15 @@ var LandingPageFAQ = []partials.FAQEntry{
 				import and export).</p> `,
 	},
 	{
+		ID:       "updates",
+		Question: "How often are my subscriptions updated?",
+		Answer: `
+		<p>Foragd respects any update interval the source website specifies.</p>
+
+		<p>Where a website doesn't specify an interval, Foragd tries to calculate an appropriate one based on the
+		frequency of updates, or 5 minutes if that value is not reasonable.</p> `,
+	},
+	{
 		ID:       "opensource",
 		Question: "Is Foragd open source?",
 		Answer: `
@@ -143,156 +151,127 @@ var LandingPageFAQ = []partials.FAQEntry{
 	},
 }
 
-// Landing is the landing page layout.
 templ Landing() {
 	@LayoutExternal() {
-		<div class="isolate">
-			<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-				<div class="soft-gradient-top"></div>
+		<div class="relative isolate">
+			<div aria-hidden="true" class="absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16">
+				<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-base-100) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"></div>
 			</div>
-			<div class="relative pt-14">
-				<div class="lg:pb-40">
-					<div class="mx-auto max-w-7xl px-6 lg:px-8">
-						<div class="mx-auto mt-12 max-w-2xl text-center sm:mt-24">
-							<p class="text-2xl font-semibold tracking-tight text-balance text-secondary sm:text-3xl">
-								Algorithms decide.
-								<br/>
-								You scroll.
-							</p>
-							<h1 class="mt-2 font-display text-3xl font-bold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-								foragd: A Private and Powerful RSS & Feed Reader for the Web
-							</h1>
-							<p class="mt-8 text-base/7 text-neutral">
-								Foragd is a web-based feed reader that aggregates RSS and feeds alongside email
-								newsletters into a single interface. Unlike social platforms, it shows only content you
-								choose, with no algorithmic suggestions, no ads, and full-text search across all
-								articles.
-							</p>
-							<div class="mx-auto my-16 flow-root items-center">
-								@partials.Logo(element.WithClasses("size-56", "mx-auto"))
-							</div>
-							<nav class="mt-10 flex items-center justify-center gap-x-6" aria-label="Primary actions">
-								<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
-									Start a free trial
-								</a>
-								<a href="/features" class="btn text-sm/6 font-semibold btn-outline">
-									See features
-								</a>
-							</nav>
-							<div class="mt-5 text-sm/6 font-semibold">
-								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
-							</div>
-							<a class="flex mx-auto justify-center mt-4" href="https://play.google.com/store/apps/details?id=app.foragd.twa">
-								<img width="240" height="120" src="/content/googleplay.png" alt="Link to app in Google Play"/>
+		</div>
+		<div class="min-h-dvh overflow-y-scroll snap-y snap-mandatory md:snap-none">
+			// Main Hero Section.
+			<section class="h-dvh hero snap-start md:snap-align-none">
+				<div class="hero-content text-center">
+					<div class="max-w-md">
+						<p class="text-base/7 font-semibold text-primary">
+							Algorithms decide.
+							<br/>
+							You scroll.
+						</p>
+						<h1 class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-balance font-display">
+							<span class="font-serif">foragd</span>: A calmer way to	follow the web
+						</h1>
+						<p class="mt-6 text-lg/8 text-secondary">
+							Foragd gathers every RSS feed, YouTube channel, subreddit and email newsletter into one
+							searchable place, with no unread-count guilt and no algorithm quietly reordering what you see.
+						</p>
+						<div class="mt-6 flex items-center justify-center gap-x-6" aria-label="Primary actions">
+							<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
+								Start a free trial
 							</a>
+							<a href="/features" class="btn text-sm/6 font-semibold btn-outline">
+								See features
+							</a>
+						</div>
+						<p class="text-sm/6 text-base-content/50 mt-4">
+							No credit card required · Cancel anytime · Import from Feedly, Inoreader or another service in minutes.
+						</p>
+						<div class="mt-2 text-sm/6 font-semibold text-accent">
+							Already have an account?&nbsp;<a href="/login" class="link">Log in</a>
 						</div>
 					</div>
 				</div>
-			</div>
-			// Features.
-			<div id="features" class="mt-32 sm:mt-56">
-				<div class="mx-auto mb-12 max-w-7xl px-6 lg:px-8">
-					<div class="mx-auto max-w-2xl lg:text-center">
-						<h2 class="text-base/7 font-semibold text-secondary">
-							Features
-						</h2>
-						<p class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-							See content YOU choose. Not what platforms push.
-						</p>
-						<p class="mt-6 text-lg/8 text-neutral">
-							Your internet, your way. One place for every feed, newsletter, and article. All fully
-							searchable, always in sync, never algorithmic.
-						</p>
-					</div>
-					// Main screenshot.
-					<div class="mt-16 flow-root sm:mt-24">
-						@featureImage("main-screenshot",
-							featureMedia{
-								url:    "/content/screenshots/main.webp",
-								alt:    "Foragd RSS feed reader showing subscription cards and article list on desktop and mobile",
-								width:  2250,
-								height: 1304,
-								Properties: element.NewProperties(
-									element.WithAttribute("decoding", "async"),
-									element.WithAttribute("fetchpriority", "high"),
-								),
-							},
-						)
-					</div>
-					// Main feature categories.
-					<div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-						<dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-							<div class="flex flex-col">
-								<dt class="text-xl font-semibold text-primary sm:text-2xl">
-									Collect
-								</dt>
-								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
-									<p class="flex-auto">
-										Subscribe to websites, Youtube channels, Reddit subreddits and even email
-										newletters.
-									</p>
-									<p class="mt-6">
-										<a href="/features/collect" class="text-sm/6 font-semibold text-secondary">
-											Learn more <span aria-hidden="true">→</span>
-										</a>
-									</p>
-								</dd>
-							</div>
-							<div class="flex flex-col">
-								<dt class="text-xl font-semibold text-primary sm:text-2xl">
-									Curate
-								</dt>
-								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
-									<p class="flex-auto">
-										Group subscriptions into single feeds, search across articles,
-										then save the results as a subscription. Organise and filter by categories.
-									</p>
-									<p class="mt-6">
-										<a href="/features/curate" class="text-sm/6 font-semibold text-secondary">
-											Learn more <span aria-hidden="true">→</span>
-										</a>
-									</p>
-								</dd>
-							</div>
-							<div class="flex flex-col">
-								<dt class="text-xl font-semibold text-primary sm:text-2xl">
-									Consume
-								</dt>
-								<dd class="mt-1 flex flex-auto flex-col text-base/7 text-neutral">
-									<p class="flex-auto">
-										Beautiful typography and design. Content comes first. Fetch article content from
-										websites. Save and share your favorites.
-									</p>
-									<p class="mt-6">
-										<a href="/features/consume" class="text-sm/6 font-semibold text-secondary">
-											Learn more <span aria-hidden="true">→</span>
-										</a>
-									</p>
-								</dd>
-							</div>
-						</dl>
+			</section>
+			// Feature Image Section.
+			<section id="feature-image" class="relative snap-start md:snap-align-none">
+				<img
+					width="1440"
+					height="900"
+					src="/content/screenshots/main.webp"
+					alt="Foragd RSS feed reader showing subscription cards and article list on desktop and mobile"
+					class="mx-auto rounded-box object-scale-down shadow-xl"
+					decoding="async"
+					fetchpriority="high"
+				/>
+				<div class="border-y border-base-300/60 bg-base-200/40">
+					<div class="max-w-6xl mx-auto px-5 py-6 flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm text-base-content/55">
+						// <span class="flex items-center gap-2">★★★★★ <span class="text-base-content/70">rated on Product Hunt</span></span>
+						<a href="https://github.com/immanent-tech/foragd" class="link">Open source</a>
+						<span>Built by <a href="https://joshuarich.pages.dev" class="link">one indie developer</a>, not a growth team</span>
+						<span>Your data is yours — exportable anytime</span>
 					</div>
 				</div>
-			</div>
-			// Pricing.
-			<div class="py-24 sm:pt-48">
-				<div class="mx-auto max-w-7xl px-6 lg:px-8">
-					<div class="mx-auto max-w-2xl lg:text-center">
-						<h2 id="pricing" class="text-base/7 font-semibold text-secondary">
-							Pricing
-						</h2>
-						<p class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-							Keep up to date without breaking the bank.
-						</p>
-						<p class="mt-6 text-lg/8 text-neutral">
-							Foragd has a simple single subscription with all features included. USD $7/month or $59/year,
-							with a 14 day free trial period.
-						</p>
-						<p class="mt-6 text-lg/8 text-neutral">
-							Sign up and try it out for free. Cancel before the end of your trial to avoid any charges.
-						</p>
+			</section>
+			// About/Manifesto Section.
+			<section id="manifesto" class="hero h-dvh snap-start md:snap-align-none">
+				<div class="hero-content flex-col sm:flex-row text-center">
+					<div class="sm:w-1/3">
+						<h2 class="text-xs font-semibold tracking-widest uppercase text-primary/80">Why Foragd</h2>
 					</div>
-					<div class="mt-4">
+					<div class="sm:w-2/3">
+						<p class="font-display italic text-2xl md:text-3xl leading-snug text-base-content/90">
+							Social Media shoves content in your face. Traditional feed readers pretend to be an inbox. Both
+							suck.
+						</p>
+						<p class="mt-6 text-base-content/70">
+							No unread count guilting you into "clearing the queue." No rigid folders you have to maintain.
+							No feed silently reordered by an algorithm you can't see. Foragd just holds the sources you
+							chose, organized your way, in an interface built for reading.
+						</p>
+						// <a href="#" class="link link-primary text-sm font-medium mt-5 inline-block">Read the full story →</a>
+					</div>
+				</div>
+			</section>
+			// Features/Pillars Section.
+			<section id="pillars" class="min-h-dvh max-w-6xl mx-auto px-5 py-4 pb-24 snap-start md:snap-align-none">
+				<div class="text-center max-w-xl mx-auto mb-14">
+					<h2 class="font-display text-3xl md:text-4xl font-medium">Your internet, gathered on purpose</h2>
+					<p class="text-base-content/65 mt-3">
+						Foragd uses three pillars to build your private library.
+					</p>
+				</div>
+				@featuresLists()
+			</section>
+			// Comparisons Section.
+			<section id="comparison" class="h-dvh hero snap-start md:snap-align-none">
+				<div class="hero-content text-center">
+					<div class="max-w-md">
+						<p class="text-base/7 font-semibold text-primary"></p>
+						<h2 class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-balance font-display">
+							Built different on purpose
+						</h2>
+						<p class="mt-6 text-lg/8 text-secondary">
+							No ads sold against your attention, no algorithmic ranking, just your feeds. See exactly how
+							that compares to Feedly and Inoreader.
+						</p>
+						<div class="mt-6 flex items-center justify-center gap-x-6" aria-label="Primary actions">
+							<a href="/compare/feedly" class="btn btn-outline btn-primary mt-6">vs Feedly</a>
+							<a href="/compare/inoreader" class="btn btn-outline btn-primary mt-6">vs Inoreader</a>
+						</div>
+					</div>
+				</div>
+			</section>
+			// Pricing Section.
+			<section id="pricing" class="max-w-3xl min-h-dvh mx-auto px-5 py-4 pb-24 snap-start md:snap-align-none">
+				<div class="hero-content text-center">
+					<div class="max-w-lg">
+						<p class="text-base/7 font-semibold text-primary"></p>
+						<h2 class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-balance font-display">
+							Simple, honest pricing
+						</h2>
+						<p class="mt-6 text-lg/8 text-secondary">
+							One plan. Every feature. No tiers designed to make you feel behind.
+						</p>
 						@pricing() {
 							<a
 								role="button"
@@ -305,162 +284,26 @@ templ Landing() {
 						}
 					</div>
 				</div>
-			</div>
-			<div id="compare" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-				<div class="mx-auto max-w-2xl lg:text-center">
-					<h2 class="text-base/7 font-semibold text-secondary">
-						Compare
-					</h2>
-					<p class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-						Compare Foragd with Feedly and Inoreader.
-					</p>
-					<p class="mt-6 text-lg/8 text-neutral">
-						See how the features of Foragd compare against some of the most popular feed readers out there.
-					</p>
-				</div>
-				<div class="mx-auto mt-10 flex max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none">
-					<div class="text-2xl">vs <a class="link font-semibold link-hover" href="/compare/feedly">Feedly</a></div>
-					<div class="text-2xl">vs <a class="link font-semibold link-hover" href="/compare/inoreader">Inoreader</a></div>
-				</div>
-			</div>
-			<div id="faq" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-				<div class="mx-auto max-w-2xl lg:text-center">
-					<h2 class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-						Frequently Asked Questions
-					</h2>
-				</div>
+			</section>
+			// FAQ Section.
+			<section id="faq" class="max-w-3xl min-h-dvh mx-auto px-5 pb-24 snap-start md:snap-align-none">
+				<h2 class="font-display text-3xl font-medium text-center mb-10">Frequently Asked Questions</h2>
 				<div class="mx-auto max-w-4xl">
 					@partials.FAQ(slices.Concat(LandingPageFAQ, BillingFAQ))
 				</div>
-			</div>
-			// Blog section.
-			<div class="py-24 sm:py-32">
-				<div class="mx-auto max-w-7xl px-6 lg:px-8">
-					<div class="mx-auto max-w-2xl lg:text-center">
-						// <h2 class="text-base/7 font-semibold text-secondary">
-						// 	Features
-						// </h2>
-						<h2 class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty text-primary sm:text-5xl lg:text-balance">
-							From the blog
-						</h2>
-						// <p class="mt-6 text-lg/8 text-neutral">
-						// 	Your internet, your way. One place for every feed, newsletter, and article. All fully
-						// 	searchable, always in sync, never algorithmic.
-						// </p>
-					</div>
-					<div class="mx-auto mt-16 grid max-w-2xl auto-rows-fr grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-						<article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-base-300 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80">
-							<img
-								src="/content/images/blog/raphaels-school-of-athens.webp"
-								alt="Raphael's School of Athens (1508–11)"
-								class="absolute inset-0 -z-10 size-full object-cover"
-							/>
-							<div class="absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40"></div>
-							<div class="absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-neutral-900/10"></div>
-							<div class="flex flex-wrap flex-separated items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-								<time datetime="2026-01-27" class="mr-8">Jan 27, 2026</time>
-								<div class="-ml-4 flex items-center gap-x-4">
-									<div class="flex gap-x-2.5">
-										Joshua Rich
-									</div>
-								</div>
-							</div>
-							<h3 class="mt-3 text-lg/6 font-semibold text-white">
-								<a href="/blog/feeds-vs-social-media">
-									<span class="absolute inset-0"></span>
-									RSS & Atom vs Social Media: Freedom, Control and Privacy
-								</a>
-							</h3>
-						</article>
-						<article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800">
-							<img
-								src="/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
-								alt="Ferdinand Magellan's fleet"
-								class="absolute inset-0 -z-10 size-full object-cover"
-							/>
-							<div class="absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40"></div>
-							<div class="absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10"></div>
-							<div class="flex flex-wrap flex-separated items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-								<time datetime="2026-02-02" class="mr-8">Feb 2, 2026</time>
-								<div class="-ml-4 flex items-center gap-x-4">
-									<div class="flex gap-x-2.5">
-										Joshua Rich
-									</div>
-								</div>
-							</div>
-							<h3 class="mt-3 text-lg/6 font-semibold text-white">
-								<a href="/blog/finding-feeds">
-									<span class="absolute inset-0"></span>
-									How to Find RSS and Atom Feeds for any website
-								</a>
-							</h3>
-						</article>
-						<article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80 dark:bg-gray-800">
-							<img
-								src="/content/images/blog/picture-gallery-with-views-of-modern-rome.webp"
-								alt="Picture Gallery with Views of Modern Rome - Giovanni Paolo Pannini"
-								class="absolute inset-0 -z-10 size-full object-cover"
-							/>
-							<div class="absolute inset-0 -z-10 bg-linear-to-t from-gray-900 via-gray-900/40 dark:from-black/80 dark:via-black/40"></div>
-							<div class="absolute inset-0 -z-10 rounded-2xl inset-ring inset-ring-gray-900/10 dark:inset-ring-white/10"></div>
-							<div class="flex flex-wrap flex-separated items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-								<time datetime="2026-02-06" class="mr-8">Feb 6, 2026</time>
-								<div class="-ml-4 flex items-center gap-x-4">
-									<div class="flex gap-x-2.5">
-										Joshua Rich
-									</div>
-								</div>
-							</div>
-							<h3 class="mt-3 text-lg/6 font-semibold text-white">
-								<a href="/blog/managing-feed-overload">
-									<span class="absolute inset-0"></span>
-									How to Manage Feed Overload: 6 Strategies for Your RSS Reader
-								</a>
-							</h3>
-						</article>
-					</div>
-				</div>
-			</div>
-			// CTA.
-			<div>
-				<div class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:justify-between lg:px-8">
-					<h2 class="max-w-2xl font-display text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-						Escape the algorithm.
-						<br/>
-						Start your free trial today.
-					</h2>
-					<div class="mt-10 flex items-center gap-x-6 lg:mt-0 lg:shrink-0">
-						<a href="/signup" class="btn btn-primary">Sign up</a>
-						<a href="/features" class="btn btn-outline">
-							Learn more
-							<span aria-hidden="true">→</span>
-						</a>
-					</div>
-				</div>
-			</div>
-			<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-				<div class="soft-gradient-bottom"></div>
-			</div>
+			</section>
+			// Final CTA Section
+			@ctaBanner()
 		</div>
 	}
 }
 
-templ LandingHeaderSlot() {
-	<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": ["SoftwareApplication","WebApplication"],
-  "name": "Foragd",
-  "applicationCategory": "News & RSS Reader",
-  "operatingSystem": "Web",
-  "offers": {
-    "@type": "Offer",
-    "price": "59",
-    "priceCurrency": "USD",
-    "priceValidUntil": "2026-06-30"
-  },
-  "description": "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
-  "url": "https://foragd.app/"
-}
-</script>
+templ ctaBanner() {
+	<section class="bg-primary/10 border-y border-primary/20 snap-start md:snap-align-none">
+		<div class="max-w-3xl mx-auto px-5 py-20 text-center">
+			<h2 class="font-display text-3xl md:text-4xl font-medium">Ready to read without the noise?</h2>
+			<p class="text-base-content/65 mt-3">Start free. No credit card, no algorithm, no catch.</p>
+			<a href="/signup" class="btn btn-primary mt-7">Start your free trial</a>
+		</div>
+	</section>
 }

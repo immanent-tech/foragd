@@ -12,7 +12,6 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 var sameAs = []string{
@@ -66,6 +65,5 @@ func HandleLanding() http.HandlerFunc {
 }
 
 func (p *Landing) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slots.WithSlot(req.Context(), slots.Header, templates.LandingHeaderSlot())
-	templ.Handler(p.template).ServeHTTP(res, req.WithContext(ctx))
+	templ.Handler(p.template).ServeHTTP(res, req)
 }

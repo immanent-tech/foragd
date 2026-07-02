@@ -32,7 +32,6 @@
       transform: translateY(0);
     }
   }
-
   @keyframes grow-bar {
     from {
       transform: scaleX(0);
@@ -41,7 +40,6 @@
       transform: scaleX(1);
     }
   }
-
   @keyframes tab-fade-out {
     from {
       opacity: 1;
@@ -52,7 +50,6 @@
       transform: translateY(-6px);
     }
   }
-
   @keyframes tab-fade-in {
     from {
       opacity: 0;
@@ -63,7 +60,6 @@
       transform: translateY(0);
     }
   }
-
   @keyframes dim {
     from {
       filter: brightness(1);
@@ -80,7 +76,6 @@
       filter: brightness(1);
     }
   }
-
   @keyframes anchor-flash {
     0% {
       background-color: var(--color-accent) / 30%;
@@ -336,7 +331,7 @@
 
 /* For formatting help and policy documents. */
 @utility prose-document {
-  @apply prose-headings:font-display prose sm:prose-lg prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-img:shadow-md;
+  @apply prose sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-img:shadow-md;
 }
 
 @utility ugc-remove-trackers {

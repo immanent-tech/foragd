@@ -3,59 +3,41 @@
 
 package templates
 
-import (
-	tabler "github.com/dimmerz92/go-icons/tabler-outline"
-	"time"
-)
+import "time"
 
 templ FooterExternal() {
 	<footer class="footer bg-base-200 p-10 text-base-content sm:footer-horizontal">
+		<aside>
+			<img
+				src="/content/logo-horizontal-light.webp"
+				alt="Foragd logo"
+				width="256"
+				height="66"
+				class="object-scale-down"
+				loading="lazy"
+			/>
+			<p>
+				<p>Copyright © { time.Now().Format("2006") } <br/> <a class="link" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
+			</p>
+		</aside>
 		<nav>
-			<h3 class="footer-title">App</h3>
+			<h3 class="footer-title">Product</h3>
+			<a href="/features/collect" class="link link-hover">Collect</a>
+			<a href="/features/curate" class="link link-hover">Curate</a>
+			<a href="/features/consume" class="link link-hover">Consume</a>
+			<a href="/#pricing" class="link link-hover">Pricing</a>
+		</nav>
+		<nav>
+			<h3 class="footer-title">Info</h3>
 			<a href="/about" class="link link-hover">About</a>
 			<a href="/blog" class="link link-hover">Blog</a>
-			<a href="/changelog" class="link link-hover">Changelog</a>
-			<a href="/viewer" class="link link-hover">Feed Viewer</a>
+			<a href="/help" class="link link-hover">Help/Documentation</a>
 		</nav>
 		<nav>
-			<h3 class="footer-title">Docs</h3>
-			<a href="/help" class="link link-hover">Help/Documentation</a>
+			<h3 class="footer-title">Legal</h3>
+			<a href="/policies/privacy" class="link link-hover">Privacy Policy</a>
 			<a href="/policies/tos" class="link link-hover">Terms of Service</a>
 			<a href="/policies/acceptable-use" class="link link-hover">Acceptable Use</a>
-			<a href="/policies/privacy" class="link link-hover">Privacy Policy</a>
 		</nav>
-		<nav>
-			<h3 class="footer-title">Connect</h3>
-			<a href="https://github.com/immanent-tech/foragd" rel="me" class="flex link items-center link-hover">
-				@tabler.BrandGithub(templ.Attributes{"aria-hidden": "true"})
-				<span>Github</span>
-			</a>
-			<a href="/contact" rel="me" class="flex link items-center link-hover">
-				@tabler.World(templ.Attributes{"aria-hidden": "true"})
-				<span>Contact us</span>
-			</a>
-			<a href="https://github.com/immanent-tech/foragd/security" class="flex link items-center link-hover">
-				@tabler.LockExclamation(templ.Attributes{"aria-hidden": "true"})
-				<span>Report Security Issues</span>
-			</a>
-			<a
-				href="https://www.producthunt.com/products/foragd-beta?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-foragd"
-				target="_blank"
-				rel="noopener noreferrer me"
-			>
-				<img
-					alt="Foragd - A beautiful, web based, online feed reader. | Product Hunt"
-					width="250"
-					height="54"
-					src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1118376&amp;theme=neutral&amp;t=1775624521428"
-					loading="lazy"
-				/>
-			</a>
-		</nav>
-	</footer>
-	<footer class="footer bg-base-200 pt-4 pb-safe-or-4 text-base-content">
-		<aside class="mx-auto text-center">
-			<p>Copyright © { time.Now().Format("2006") } - <a class="link" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
-		</aside>
 	</footer>
 }
