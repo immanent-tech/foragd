@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.179.0](https://github.com/immanent-tech/foragd/compare/v0.178.0...v0.179.0) (2026-07-02)
+
+
+### Features
+
+* **templates/about:** 🎨 improved about page ([d566be4](https://github.com/immanent-tech/foragd/commit/d566be46b2e713521e7b3b28d6645b78953e8604))
+
+
+### Bug Fixes
+
+* 🔧 fix product/pricing json-ld schema ([ae0bcca](https://github.com/immanent-tech/foragd/commit/ae0bccaa3fc2fdc60e21f3489bd9280d1635cdee))
+* **templates/landing:** 🔧 remove dual scrollbar ([86a6ad0](https://github.com/immanent-tech/foragd/commit/86a6ad033a921b74982d6de1b49e0f0e73c71741))
+
 ## [0.178.0](https://github.com/immanent-tech/foragd/compare/v0.177.0...v0.178.0) (2026-07-02)
 
 
