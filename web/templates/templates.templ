@@ -248,15 +248,45 @@ templ CreatePage(template templ.Component, options ...PageOption) {
   "@context": "https://schema.org",
   "@type": ["SoftwareApplication","WebApplication"],
   "name": "Foragd",
-  "applicationCategory": "New & RSS Reader",
+  "applicationCategory": "News & RSS Reader",
   "operatingSystem": "Web",
   "description": "Foragd is a web-based reader that combines RSS and Atom feeds, YouTube channels, subreddits and email newsletters into one searchable view, without ads or an algorithmic feed."
+  "browserRequirements": "Requires JavaScript",
   "offers": {
-    "@type": "Offer",
-    "price": "59",
+    "@type": "AggregateOffer",
     "priceCurrency": "USD",
-    "priceValidUntil": "2026-10-31"
-  },
+    "lowPrice": "7.00",
+    "highPrice": "59.00",
+    "offerCount": 2,
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Monthly plan",
+        "price": "7.00",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "7.00",
+          "priceCurrency": "USD",
+          "billingDuration": "P1M"
+        },
+        "url": "https://foragd.app/#pricing"
+      },
+      {
+        "@type": "Offer",
+        "name": "Annual plan",
+        "price": "59.00",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "59.00",
+          "priceCurrency": "USD",
+          "billingDuration": "P1Y"
+        },
+        "url": "https://foragd.app/#pricing"
+      }
+    ]
+  }
 }
 </script>
 		</head>
