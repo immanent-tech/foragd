@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.180"
+date      = "Jul 3, 2026"
+type      = "major"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+On the home page and the subscriptions/articles list pages, you can now pull down to refresh the content and see any new updates.
+"""
+
+[[releases]]
 version   = "v0.177"
 date      = "Jul 1, 2026"
 type      = "major"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
