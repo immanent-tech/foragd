@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.178.0](https://github.com/immanent-tech/foragd/compare/v0.177.0...v0.178.0) (2026-07-02)
+
+
+### Features
+
+* **templates/landing,templates/features:** ✨ improved landing and features pages ([c2f3816](https://github.com/immanent-tech/foragd/commit/c2f381613a00b564a823192c75285ad30e0696e2))
+
 ## [0.177.0](https://github.com/immanent-tech/foragd/compare/v0.176.0...v0.177.0) (2026-07-01)
 
 
