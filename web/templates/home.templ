@@ -25,7 +25,10 @@ type HomeData struct {
 templ UserHome(data *HomeData) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container(element.WithClasses("pt-4")) {
+			@buttonBackToTop()
+			@pullToRefreshScript()
+			@container(element.WithClasses("pt-4 ptr-scroll"),
+				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				if len(data.LatestArticles) == 0 {
 					// User has no unread content, show a message and link to favorites.
 					@partials.NoContent()
@@ -36,7 +39,19 @@ templ UserHome(data *HomeData) {
 							<p class="mt-0.5 text-sm text-base-content/50">{ time.Now().Format("Mon, 02 Jan 2006") }</p>
 						}
 					}
-					<div class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8 pt-4">
+					<div id="refreshing" class="mt-4 flex w-full mx-auto justify-center">
+						<div class="show-loading text-center">
+							<span class="loading mr-3 loading-xl loading-bars"></span>
+							<p class="text-lg/loose font-semibold">Refreshing...</p>
+						</div>
+					</div>
+					<div
+						class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8 pt-4 ptr-content"
+						hx-get="/home"
+						hx-target={ ContentID.Target() }
+						hx-trigger="refresh"
+						hx-indicator="#refreshing"
+					>
 						// Left Column.
 						<div class="space-y-8 sm:col-span-2">
 							// Section: Latest Articles.
@@ -140,7 +155,6 @@ templ UserHome(data *HomeData) {
 						</aside>
 					</div>
 				}
-				@buttonBackToTop()
 			}
 			// Updates Toast.
 			{{ filters := new(models.NewListDisplayFilters()) }}

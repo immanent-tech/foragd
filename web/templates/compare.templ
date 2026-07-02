@@ -8,6 +8,7 @@ import "github.com/immanent-tech/foragd/config"
 
 templ Comparison(service string) {
 	@LayoutExternal() {
+		@buttonBackToTop()
 		@narrowContainer() {
 			<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ "Foragd vs "+service } feed reader comparison</h1>
 			// Render content based on service. For a service that does not have a dedicated comparison, provide text and link for user to submit request for comparison.
@@ -40,7 +41,6 @@ templ Comparison(service string) {
 				<p class="my-4">See also: <a class="link" href="/blog/foragd-vs-inoreader-vs-feedly">Foragd vs Inoreader vs Feedly: a feed reader comparison</a>.</p>
 			</nav>
 		}
-		@buttonBackToTop()
 	}
 }
 

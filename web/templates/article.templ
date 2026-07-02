@@ -412,6 +412,7 @@ templ ArticleContent(a *models.Article) {
 	{{ article := &Article{Article: a} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			@buttonBackToTop()
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
@@ -591,7 +592,6 @@ templ ArticleContent(a *models.Article) {
 					}
 				</article>
 				<div class="p-4">
-					@buttonBackToTop()
 					// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 					// read and mark it so (when the user has set this option).
 					if article.IsUnread() && article.MarkArticleReadOnView {
@@ -621,7 +621,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 	{{ controls := &listControls{path: "/list/articles", filters: response.Filters} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container(element.WithClasses("pt-4")) {
+			@buttonBackToTop()
+			@pullToRefreshScript()
+			@container(element.WithClasses("pt-4 ptr-scroll"),
+				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
 				@pageHeading() {
 					{{ var title string }}
@@ -729,11 +732,22 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						}
 					</ul>
 				}
-				<section id="articles-list" class="pt-4">
+				<section id="articles-list" class="pt-4 ptr-content">
+					<div id="refreshing" class="mt-4 flex w-full mx-auto justify-center">
+						<div class="show-loading text-center">
+							<span class="loading mr-3 loading-xl loading-bars"></span>
+							<p class="text-lg/loose font-semibold">Refreshing...</p>
+						</div>
+					</div>
 					if len(response.Articles) > 0 {
 						@masonryGrid()
 						@grid(element.WithClasses("masonry-grid", "relative"),
-							element.WithAttribute("_", "install MasonryGrid")) {
+							element.WithAttribute("_", "install MasonryGrid"),
+							element.WithHXMethod(http.MethodGet, "/list/articles"),
+							element.WithHXTarget(ContentID.Target()),
+							element.WithHXTrigger("refresh"),
+							element.WithHXIndicator("#refreshing"),
+						) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, article := range response.Articles {
 									@ArticleCard(idx, article)
@@ -822,7 +836,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								}
 							}
 						</ul>
-						@buttonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
 						@partials.NoContent()

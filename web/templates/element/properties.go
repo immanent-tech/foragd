@@ -192,3 +192,10 @@ func WithHXPushURL(value bool) PropertiesOption {
 		}
 	}
 }
+
+// WithHXIndicator sets a "hx-indicator" attribute.
+func WithHXIndicator(indicator string) PropertiesOption {
+	return func(p *Properties) {
+		p.setAttribute("hx-indicator", indicator)
+	}
+}

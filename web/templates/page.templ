@@ -68,24 +68,132 @@ templ sectionActions() {
 
 // buttonBackToTop adds a "back to top" button that is only shown when the user has scrolled down the page.
 templ buttonBackToTop() {
-	<button
-		class="btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10
-			opacity-0 translate-y-4 pointer-events-none
-			transition-[opacity,transform] duration-200 ease-out"
+	<div
+		id="scroll-sentinel"
+		style="height:1px;"
 		_="
-		on scroll from #content queue last
-  			if the #content's scrollTop is greater than 20
-    			remove .opacity-0 .translate-y-4 .pointer-events-none from me
-  			otherwise
-				add .opacity-0 .translate-y-4 .pointer-events-none to me
+		on intersection(intersecting)
+			if intersecting
+				send scrollSentinelVisible
+			else
+				send scrollSentinelHidden
+			end
 		end
-  		on click
-  			js(me)
-  		    	document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })
-  		end"
-		aria-label="Scroll to top"
+		"
+	></div>
+	<button
+		class="btn fixed z-50 right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10
+			opacity-0 translate-y-4 pointer-events-none
+			transition-[opacity,transform] duration-200 ease-out hover:animate-bounce"
+		_="
+  		on scrollSentinelHidden from #scroll-sentinel
+  		  remove .opacity-0 .translate-y-4 .pointer-events-none from me
+  		end
+  		on scrollSentinelVisible from #scroll-sentinel
+  		  add .opacity-0 .translate-y-4 .pointer-events-none to me
+  		end
+  		on click scroll to top of #content smoothly
+  		"
 	>
 		<span class="sr-only">Back to top</span>
 		@tableroutline.ArrowUp(templ.Attributes{"class": "text-secondary-content", "aria-hidden": "true"})
 	</button>
+}
+
+templ pullToRefreshScript() {
+	<script type="text/hyperscript">
+  behavior PullToRefresh(threshold)
+
+    init
+      set my.startY to 0
+      set my.pulling to false
+      set my.refreshing to false
+      set my.content to the first <.ptr-content/> in me
+    end
+
+    on touchstart
+      -- only start tracking a pull if the container is already at the top
+      if my.scrollTop <= 0 and not my.refreshing
+        set my.startY to event.touches[0].clientY
+        set my.pulling to true
+      end
+    end
+
+    on touchmove
+      if my.pulling and not my.refreshing
+        set dy to event.touches[0].clientY - my.startY
+        if dy > 0
+          -- we're pulling down on an already-topped-out list: take over the gesture
+          halt the event
+          set drag to Math.min(dy * 0.45, threshold * 1.6)
+          set my.content's *transform to `translateY(${drag}px)`
+          if drag >= threshold
+            add .armed to me
+          else
+            remove .armed from me
+          end
+        end
+      end
+    end
+
+    on touchend or touchcancel
+      if my.pulling and not my.refreshing
+        set my.pulling to false
+        if I match .armed
+          set my.refreshing to true
+          remove .armed from me
+          add .refreshing to me
+          set my.content's *transform to `translateY(${threshold}px)`
+          trigger refresh on the first <[hx-trigger~="refresh"]/> in me
+          -- safety net in case the request never resolves / no htmx target
+          wait for refreshComplete or 6s
+          remove .refreshing from me
+          set my.content's *transform to `translateY(0px)`
+          set my.refreshing to false
+        else
+          set my.content's *transform to `translateY(0px)`
+        end
+      end
+    end
+
+    -- also support desktop testing with a mouse-drag simulation
+    on mousedown
+      if my.scrollTop <= 0 and not my.refreshing
+        set my.startY to event.clientY
+        set my.pulling to true
+        set my.mouseSim to true
+      end
+    end
+    on mousemove from the document
+      if my.pulling and my.mouseSim and not my.refreshing
+        set dy to event.clientY - my.startY
+        if dy > 0
+          set drag to Math.min(dy * 0.45, threshold * 1.6)
+          set my.content's *transform to `translateY(${drag}px)`
+          if drag >= threshold then add .armed to me else remove .armed from me end
+        end
+      end
+    end
+    on mouseup from the document
+      if my.pulling and my.mouseSim and not my.refreshing
+        set my.pulling to false
+        set my.mouseSim to false
+        if I match .armed
+          set my.refreshing to true
+          remove .armed from me
+          add .refreshing to me
+          set my.content's *transform to `translateY(${threshold}px)`
+          trigger refresh on the first <[hx-trigger~="refresh"]/> in me
+          wait for refreshComplete or 6s
+          remove .refreshing from me
+          set my.content's *transform to `translateY(0px)`
+          set my.refreshing to false
+        else
+          set my.content's *transform to `translateY(0px)`
+        end
+      end
+    end
+
+  end
+</script>
 }

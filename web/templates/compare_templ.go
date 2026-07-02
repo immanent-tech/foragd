@@ -48,6 +48,14 @@ func Comparison(service string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -60,20 +68,20 @@ func Comparison(service string) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("Foragd vs " + service)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 12, Col: 137}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 13, Col: 137}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " feed reader comparison</h1> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " feed reader comparison</h1> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -89,39 +97,31 @@ func Comparison(service string) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				default:
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"mt-16 text-center text-lg/8 font-semibold\">We don't have a comparison of ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-16 text-center text-lg/8 font-semibold\">We don't have a comparison of ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(service)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 21, Col: 45}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 22, Col: 45}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " yet. <a class=\"link\" href=\"mailto:hello@foragd.app?subject=Service Comparison Request\">Email us</a> to request it!</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " yet. <a class=\"link\" href=\"mailto:hello@foragd.app?subject=Service Comparison Request\">Email us</a> to request it!</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "  <div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-outline\" href=\"/#features\">More Foragd features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a></div> <nav class=\"mt-10 text-center\" aria-label=\"Related comparisons\"><h2 class=\"my-4 text-lg/8 font-semibold\">Compare Foragd with more services:</h2><ul><li><a class=\"link\" href=\"/compare/feedly\">Foragd vs Feedly</a></li><li><a class=\"link\" href=\"/compare/inoreader\">Foragd vs Inoreader</a></li></ul><p class=\"my-4\">See also: <a class=\"link\" href=\"/blog/foragd-vs-inoreader-vs-feedly\">Foragd vs Inoreader vs Feedly: a feed reader comparison</a>.</p></nav>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "  <div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-outline\" href=\"/#features\">More Foragd features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a></div> <nav class=\"mt-10 text-center\" aria-label=\"Related comparisons\"><h2 class=\"my-4 text-lg/8 font-semibold\">Compare Foragd with more services:</h2><ul><li><a class=\"link\" href=\"/compare/feedly\">Foragd vs Feedly</a></li><li><a class=\"link\" href=\"/compare/inoreader\">Foragd vs Inoreader</a></li></ul><p class=\"my-4\">See also: <a class=\"link\" href=\"/blog/foragd-vs-inoreader-vs-feedly\">Foragd vs Inoreader vs Feedly: a feed reader comparison</a>.</p></nav>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
 			templ_7745c5c3_Err = narrowContainer().Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

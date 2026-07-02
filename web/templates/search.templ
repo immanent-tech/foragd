@@ -347,6 +347,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 templ SearchResults(results *models.SearchResults) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			@buttonBackToTop()
 			@container() {
 				if len(results.Articles) == 0 {
 					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
@@ -494,7 +495,6 @@ templ SearchResults(results *models.SearchResults) {
 							</span>
 						</div>
 						// Button to go back to top.
-						@buttonBackToTop()
 					</section>
 				}
 			}
@@ -750,6 +750,7 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@buttonBackToTop()
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Show a page header.
@@ -780,7 +781,6 @@ templ SimilarArticles(articles models.Articles) {
 								@ArticleCard(idx, article)
 							}
 						}
-						@buttonBackToTop()
 					</section>
 				}
 			}

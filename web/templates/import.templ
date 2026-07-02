@@ -98,6 +98,7 @@ templ ImportSubscriptions() {
 
 // ImportSubscriptionsResults renders the results of importing the users subscriptions.
 templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
+	@buttonBackToTop()
 	// Generate seperate lists of successful/failed/warning imports.
 	{{
 		successfulResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
@@ -194,5 +195,4 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			}
 		</ul>
 	</div>
-	@buttonBackToTop()
 }

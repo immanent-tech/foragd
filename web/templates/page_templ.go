@@ -374,7 +374,7 @@ func buttonBackToTop() templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"btn fixed right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out\" _=\"\n\t\ton scroll from #content queue last\n  \t\t\tif the #content's scrollTop is greater than 20\n    \t\t\tremove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\t\totherwise\n\t\t\t\tadd .opacity-0 .translate-y-4 .pointer-events-none to me\n\t\tend\n  \t\ton click\n  \t\t\tjs(me)\n  \t\t    \tdocument.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })\n  \t\tend\" aria-label=\"Scroll to top\"><span class=\"sr-only\">Back to top</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"scroll-sentinel\" style=\"height:1px;\" _=\"\n\t\ton intersection(intersecting)\n\t\t\tif intersecting\n\t\t\t\tsend scrollSentinelVisible\n\t\t\telse\n\t\t\t\tsend scrollSentinelHidden\n\t\t\tend\n\t\tend\n\t\t\"></div><button class=\"btn fixed z-50 right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out hover:animate-bounce\" _=\"\n  \t\ton scrollSentinelHidden from #scroll-sentinel\n  \t\t  remove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\tend\n  \t\ton scrollSentinelVisible from #scroll-sentinel\n  \t\t  add .opacity-0 .translate-y-4 .pointer-events-none to me\n  \t\tend\n  \t\ton click scroll to top of #content smoothly\n  \t\t\"><span class=\"sr-only\">Back to top</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -383,6 +383,35 @@ func buttonBackToTop() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func pullToRefreshScript() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<script type=\"text/hyperscript\">\n  behavior PullToRefresh(threshold)\n\n    init\n      set my.startY to 0\n      set my.pulling to false\n      set my.refreshing to false\n      set my.content to the first <.ptr-content/> in me\n    end\n\n    on touchstart\n      -- only start tracking a pull if the container is already at the top\n      if my.scrollTop <= 0 and not my.refreshing\n        set my.startY to event.touches[0].clientY\n        set my.pulling to true\n      end\n    end\n\n    on touchmove\n      if my.pulling and not my.refreshing\n        set dy to event.touches[0].clientY - my.startY\n        if dy > 0\n          -- we're pulling down on an already-topped-out list: take over the gesture\n          halt the event\n          set drag to Math.min(dy * 0.45, threshold * 1.6)\n          set my.content's *transform to `translateY(${drag}px)`\n          if drag >= threshold\n            add .armed to me\n          else\n            remove .armed from me\n          end\n        end\n      end\n    end\n\n    on touchend or touchcancel\n      if my.pulling and not my.refreshing\n        set my.pulling to false\n        if I match .armed\n          set my.refreshing to true\n          remove .armed from me\n          add .refreshing to me\n          set my.content's *transform to `translateY(${threshold}px)`\n          trigger refresh on the first <[hx-trigger~=\"refresh\"]/> in me\n          -- safety net in case the request never resolves / no htmx target\n          wait for refreshComplete or 6s\n          remove .refreshing from me\n          set my.content's *transform to `translateY(0px)`\n          set my.refreshing to false\n        else\n          set my.content's *transform to `translateY(0px)`\n        end\n      end\n    end\n\n    -- also support desktop testing with a mouse-drag simulation\n    on mousedown\n      if my.scrollTop <= 0 and not my.refreshing\n        set my.startY to event.clientY\n        set my.pulling to true\n        set my.mouseSim to true\n      end\n    end\n    on mousemove from the document\n      if my.pulling and my.mouseSim and not my.refreshing\n        set dy to event.clientY - my.startY\n        if dy > 0\n          set drag to Math.min(dy * 0.45, threshold * 1.6)\n          set my.content's *transform to `translateY(${drag}px)`\n          if drag >= threshold then add .armed to me else remove .armed from me end\n        end\n      end\n    end\n    on mouseup from the document\n      if my.pulling and my.mouseSim and not my.refreshing\n        set my.pulling to false\n        set my.mouseSim to false\n        if I match .armed\n          set my.refreshing to true\n          remove .armed from me\n          add .refreshing to me\n          set my.content's *transform to `translateY(${threshold}px)`\n          trigger refresh on the first <[hx-trigger~=\"refresh\"]/> in me\n          wait for refreshComplete or 6s\n          remove .refreshing from me\n          set my.content's *transform to `translateY(0px)`\n          set my.refreshing to false\n        else\n          set my.content's *transform to `translateY(0px)`\n        end\n      end\n    end\n\n  end\n</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

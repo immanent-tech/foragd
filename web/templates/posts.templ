@@ -19,6 +19,7 @@ import (
 templ PostsIndex(posts []*models.MarkdownFile) {
 	@LayoutExternal() {
 		@container(element.WithClasses("pt-4")) {
+			@buttonBackToTop()
 			@pageHeading() {
 				@pageTitle("The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons")
 			}
@@ -133,7 +134,6 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 				@partials.RenderJSONLD("posts-index", *data)
 			}
 		}
-		@buttonBackToTop()
 	}
 }
 
@@ -142,6 +142,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
 templ Post(post *models.MarkdownFile) {
 	@LayoutExternal() {
+		@buttonBackToTop()
 		@narrowContainer() {
 			<div class="breadcrumbs text-sm">
 				<ul>
@@ -205,7 +206,6 @@ templ Post(post *models.MarkdownFile) {
 				</div>
 				@templ.Raw(string(post.Content))
 			</article>
-			@buttonBackToTop()
 		}
 	}
 }

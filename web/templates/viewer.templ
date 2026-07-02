@@ -250,6 +250,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 
 templ ViewerResults(feed *models.Feed) {
 	<div aria-live="polite">
+		@buttonBackToTop()
 		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
 		<div class="p-6">
 			<div class="sm:flex sm:items-center sm:justify-between">
@@ -338,7 +339,6 @@ templ ViewerResults(feed *models.Feed) {
 				@viewerItemCard(item)
 			}
 		}
-		@buttonBackToTop()
 	}
 }
 
