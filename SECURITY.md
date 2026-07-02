@@ -8,12 +8,15 @@ Only the latest released version of Foragd will be supported with security updat
 
 ## Reporting a Vulnerability
 
-Security issues and vulnerabilities can be reported privately by following the
-GitHub documentation: [Privately reporting a security
-vulnerability](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability#privately-reporting-a-security-vulnerability).
+If you discover a security vulnerability, we'd appreciate a non-public disclosure. systemd developers can be contacted
+privately by creating a new [Security Advisory on
+GitHub](https://github.com/systemd/immanent-tech/foragd/advisories/new) (preferred) or via the
+[security@immanent.tech](mailto:security@immanent.tech) email address.
 
 **Please do not report security vulnerabilities through public GitHub issues,
 discussions, or pull requests.**
+
+### Information to Include
 
 Please include as much of the information listed below as you can to help us
 better understand and resolve the issue:
@@ -28,12 +31,15 @@ better understand and resolve the issue:
 
 This information will help us triage your report more quickly.
 
-Security issues and vulnerabilities will be addressed with reasonable effort but no guarantees are made with regards to
-resolution of reports within any time frame or a fix at all.
+### Requirements for a Valid Report
 
-## Permissions and Capabilities
-
-### Cannot be run as root user
-
-Foragd cannot be run as root or a user with effective root permissions. Go Hass Agent will detect this situation
-and refuse to start.
+- Please ensure the issue is reproducible on main.
+- Please ensure a fully working, end-to-end reproducer is provided.
+- Please ensure the reproducer is real-world and not simulated or abstracted.
+- Please ensure the reproducer demonstrably violates a security boundary.
+- Please understand that most of our maintainers are volunteers and already have a heavy review burden. While we will
+  try to triage and fix issues in a timely manner, we cannot guarantee any fixed timeline for issue resolution.
+- While modern industry practices around coordinated disclosures encourage public disclosure to avoid vendors
+stonewalling researchers, we are an open source project that would gain little from needlessly stonewalling researchers.
+We thus kindly request that reporters do not publicly disclose issues they have reported to us before an agreed-to
+disclosure date.
