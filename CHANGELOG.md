@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.180.0](https://github.com/immanent-tech/foragd/compare/v0.179.0...v0.180.0) (2026-07-02)
+
+
+### Features
+
+* ✨ usability features and fixes ([9c0c528](https://github.com/immanent-tech/foragd/commit/9c0c52853638bddd9b5b8e55c21153837c56e6c2))
+
 ## [0.179.0](https://github.com/immanent-tech/foragd/compare/v0.178.0...v0.179.0) (2026-07-02)
 
 
