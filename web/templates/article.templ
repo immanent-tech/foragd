@@ -266,6 +266,7 @@ templ ArticleCard(idx int, a *models.Article) {
 		element.WithHXSwap("innerHTML scroll:#content:top transition:true"),
 		element.WithHXTrigger("click"),
 		element.WithHXPushURL(true),
+		element.WithHXIndicator("this"),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>

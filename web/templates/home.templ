@@ -92,6 +92,7 @@ templ UserHome(data *HomeData) {
 											class="group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform]"
 											style={ "--i: " + strconv.Itoa(idx) }
 											id={ subscription.GetID() }
+											hx-indicator="this"
 											{ s.viewAttributes()... }
 										>
 											<div class="flex flex-1">
@@ -121,9 +122,10 @@ templ UserHome(data *HomeData) {
 									<button
 										class="btn flex w-full items-center justify-center gap-1.5 text-base-content/50 btn-ghost btn-xs"
 										aria-label="Add a new feed"
-										hx-get="/subscription/add/feed"
+										hx-get="/subscription/add"
 										hx-target={ ContentID.Target() }
 										hx-push-url="true"
+										hx-indicator="this"
 									>
 										@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										<span>Add a feed</span>
@@ -146,6 +148,7 @@ templ UserHome(data *HomeData) {
 												element.WithHXMethod(http.MethodGet, "/list/articles"),
 												element.WithHXTarget(ContentID.Target()),
 												element.WithHXValues(filters.Values()),
+												element.WithHXIndicator("this"),
 												element.WithAttribute("_", "on click halt the event's bubbling"),
 											)
 										}

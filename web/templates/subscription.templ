@@ -106,6 +106,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithClasses("group", "animate-fadeinup", "masonry-item"),
+		element.WithHXIndicator("this"),
 	) {
 		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
 		// Card header.
