@@ -6,6 +6,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -25,7 +26,13 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	// Redirect user to logout URL.
 	slogctx.FromCtx(req.Context()).Info("User logged out.")
+	if htmx.IsHTMX(req) {
+		res.Header().Set("HX-Redirect", logoutURL.String())
+		res.WriteHeader(http.StatusOK)
+		return
+	}
 	http.Redirect(res, req, logoutURL.String(), http.StatusTemporaryRedirect)
 }
