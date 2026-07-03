@@ -123,3 +123,17 @@ func (r *ContactRequest) Sanitise() error {
 	r.Details = validation.SanitizeString(r.Details)
 	return nil
 }
+
+func (r *DeactivationRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("contact request invalid: %w", err)
+	}
+	return nil
+}
+
+func (r *DeactivationRequest) Sanitise() error {
+	if r.Comments != nil {
+		r.Comments = new(validation.SanitizeString(*r.Comments))
+	}
+	return nil
+}

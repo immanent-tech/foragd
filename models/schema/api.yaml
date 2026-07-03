@@ -469,4 +469,28 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'details'
             validate: 'required'
-
+    DeactivationRequest:
+      description: is a request from a user to deactivate their account.
+      type: object
+      required:
+        - confirmed
+      properties:
+        confirmed:
+          description: whether the user has confirmed the deactivation.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: confirmed
+        reasons:
+          description: >
+            is a list of reasons selected by the user as to why they are deactivating.
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: reasons[]
+        comments:
+          description: is any comments left by the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: comments

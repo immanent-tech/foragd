@@ -331,7 +331,7 @@ func Start(logger *slog.Logger) error {
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
 			})
-			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.HandleDeactivateAccount())
+			r.With(middlewares.RequireHTMX).Post("/deactivate", handlers.HandleDeactivateAccount())
 		})
 	})
 

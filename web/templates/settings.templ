@@ -173,312 +173,278 @@ templ UserSettings() {
 }
 
 templ AccountSettings(user *models.User) {
-	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-		// Subscription management.
-		<div>
-			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-				Subscription Plan
-			</h3>
-			switch  {
-				case user.InTrial():
-					<p>
-						Trial, ending:
-						<relative-time
-							datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod) }
-							format="relative"
-							class="tabular-nums"
-						>
-							{ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") }
-						</relative-time>
-						({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
-					</p>
-				case user.InTrialGracePeriod():
-					<span class="badge badge-warning">Trial Expired</span>
-					<p>Please purchase a subscription to maintain access to your account.</p>
-				default:
-					switch *user.UserSubscriptionType {
-						case models.UserSubscriptionTypePaddle:
-							@showPaddleSubscriptionDetails(user)
-						case models.UserSubscriptionTypeAndroid:
-							@showAndroidSubscriptionDetails(user)
-					}
-			}
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-			switch  {
-				case user.InTrial(),user.InTrialGracePeriod():
-					<div class="col-span-full mt-8 place-self-end">
-						<div class="mt-2 sm:mt-0 flex items-center justify-end gap-x-6">
-							<button
-								role="button"
-								class="btn btn-primary"
-								hx-get="/checkout"
-								hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
-								hx-target={ ContentID.Target() }
-							>
-								Purchase a subscription
-							</button>
-							<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
-								@androidRestorePurchaseScript()
+	@narrowContainer() {
+		<div id="account-settings" class="divide-y divide-base-content/15 space-y-8">
+			<div class="flex flex-col py-8">
+				<div>
+					// Subscription Details.
+					<h3 class="text-lg font-medium">
+						Subscription Plan
+					</h3>
+					switch  {
+						case user.InTrial():
+							<p>
+								Trial, ending:
+								<relative-time
+									datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod) }
+									format="relative"
+									class="tabular-nums"
+								>
+									{ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") }
+								</relative-time>
+								({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
+							</p>
+							<div class="flex w-full justify-end">
 								<button
 									role="button"
-									class="btn btn-secondary"
-									onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
-								>Restore purchases</button>
+									class="btn btn-primary"
+									hx-get="/checkout"
+									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
+									hx-target={ ContentID.Target() }
+								>
+									Purchase a subscription
+								</button>
+								<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+									@androidRestorePurchaseScript()
+									<button
+										role="button"
+										class="btn btn-secondary"
+										onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
+									>Restore purchases</button>
+								</div>
 							</div>
-						</div>
-					</div>
-				default:
-					<div class="col-span-full mt-8 place-self-end">
-						<div class="mt-2 flex items-center justify-end gap-x-6">
+						case user.InTrialGracePeriod():
+							<span class="badge badge-warning">Trial Expired</span>
+							<p>Please purchase a subscription to maintain access to your account.</p>
+							<div class="flex w-full justify-end">
+								<button
+									role="button"
+									class="btn btn-primary"
+									hx-get="/checkout"
+									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
+									hx-target={ ContentID.Target() }
+								>
+									Purchase a subscription
+								</button>
+								<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+									@androidRestorePurchaseScript()
+									<button
+										role="button"
+										class="btn btn-secondary"
+										onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
+									>Restore purchases</button>
+								</div>
+							</div>
+						default:
 							switch *user.UserSubscriptionType {
 								case models.UserSubscriptionTypePaddle:
-									if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
-										{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
+									@showPaddleSubscriptionDetails(user)
+									<div class="flex w-full justify-end mt-4">
+										if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
+											{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
+											<a
+												role="button"
+												class="btn btn-primary w-fit"
+												href="/contact"
+											>Contact Us</a>
+										} else {
+											<a
+												role="button"
+												class="btn btn-primary w-fit"
+												target="_blank"
+												rel="noopener"
+												href={ mgmtLink }
+											>Manage Subscription Plan</a>
+										}
+									</div>
+								case models.UserSubscriptionTypeAndroid:
+									@showAndroidSubscriptionDetails(user)
+									<div class="flex w-full justify-end mt-4">
 										<a
 											role="button"
-											class="btn btn-primary"
-											href="/contact"
-										>Contact Us</a>
-									} else {
-										<a
-											role="button"
-											class="btn btn-primary"
+											class="btn btn-primary w-fit"
 											target="_blank"
 											rel="noopener"
-											href={ mgmtLink }
+											href="https://play.google.com/store/account/subscriptions"
 										>Manage Subscription Plan</a>
-									}
-								case models.UserSubscriptionTypeAndroid:
-									<a
-										role="button"
-										class="btn btn-primary"
-										target="_blank"
-										rel="noopener"
-										href="https://play.google.com/store/account/subscriptions"
-									>Manage Subscription Plan</a>
+									</div>
+									<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
 							}
-						</div>
-					</div>
-			}
-		</div>
-		<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
-		// Account customisation.
-		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
-			<div class="col-span-full">
-				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-					Edit Account
-				</h3>
-				<p>
-					Your account is provided by an external service provider such as Google or Facebook, please log in
-					to your account on the external service to make changes to your nickname, email, avatar or password.
-				</p>
-			</div>
-		} else {
-			<div>
-				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-					Edit Account
-				</h3>
-				<p>
-					Use an email address that can receive messages.
-				</p>
-			</div>
-			<form
-				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
-				hx-encoding="multipart/form-data"
-			>
-				// Edit nickname.
-				<div class="sm:col-span-full">
-					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
-					<div class="mt-2">
-						<input
-							id="nickname"
-							type="text"
-							class="validator input bg-base-content/10 input-primary invalid:input-error"
-							placeholder="Nickname"
-							name="nickname"
-							autocomplete="name"
-							required
-							value={ user.GetNickname() }
-						/>
-						<p class="validator-hint">Nickname is required</p>
-					</div>
+					}
 				</div>
-				// Edit email.
-				<div class="sm:col-span-full">
-					<label for="email" class="block text-sm/6 font-medium">Email</label>
-					<div class="mt-2">
-						<input
-							id="email"
-							type="email"
-							class="validator input bg-base-content/10 input-primary invalid:input-error"
-							placeholder="Email"
-							name="email"
-							required
-							autocomplete="email"
-							value={ user.GetEmail() }
-						/>
-						<p class="validator-hint">Must be a valid email address</p>
-					</div>
-				</div>
-				// Edit avatar.
-				<div class="sm:col-span-full">
-					<span class="block text-sm/6 font-medium">Avatar</span>
-					<div
-						id="drop-zone"
-						class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg"
-						_="
-                                        on dragover
-                                          halt the event
-                                          add .bg-base-300 .border-accent to me
-                                        end
-
-                                        on dragleave
-                                          remove .bg-base-300 .border-accent from me
-                                        end
-
-                                        on drop
-                                          halt the event
-                                          remove .bg-base-300 .border-accent from me
-                                          set files to event.dataTransfer.files
-                                          set #avatar-upload's files to files
-                                          set #file-name's textContent to files[0].name
+			</div>
+			// Account Details.
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Edit Account</legend>
+				if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
+					<p>
+						Your account is provided by an external service provider such as Google or Facebook, please log in
+						to your account on the external service to make changes to your nickname, email, avatar or password.
+					</p>
+				} else {
+					<form hx-encoding="multipart/form-data" class="min-w-0">
+						<label class="fieldset">
+							<span class="label">Nickname</span>
+							<input
+								id="nickname"
+								type="text"
+								class="validator input bg-base-content/10 input-primary invalid:input-error"
+								placeholder="Nickname"
+								name="nickname"
+								autocomplete="name"
+								required
+								value={ user.GetNickname() }
+							/>
+							<span class="validator-hint">Nickname is required</span>
+						</label>
+						<label class="fieldset">
+							<span class="label">Email</span>
+							<input
+								id="email"
+								type="email"
+								class="validator input bg-base-content/10 input-primary invalid:input-error"
+								placeholder="Email"
+								name="email"
+								required
+								autocomplete="email"
+								value={ user.GetEmail() }
+							/>
+							<span class="validator-hint">Must be a valid email address</span>
+						</label>
+						<label class="fieldset">
+							<span class="label">Avatar</span>
+							<div
+								id="drop-zone"
+								class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 max-w-full sm:max-w-lg"
+								_="
+						                on dragover
+						                  halt the event
+						                  add .bg-base-300 .border-accent to me
+						                end
+						                on dragleave
+						                  remove .bg-base-300 .border-accent from me
+						                end
+						                on drop
+						                  halt the event
+						                  remove .bg-base-300 .border-accent from me
+						                  set files to event.dataTransfer.files
+						                  set #avatar-upload's files to files
+						                  set #file-name's textContent to files[0].name
 										  set f to event.dataTransfer.files[0]
 									      js(f)
-      										return new Promise(resolve => {
-      										  if (!f.type.startsWith('image/')) { resolve(null); return; }
-      										  const r = new FileReader();
-      										  r.onload = e => resolve(e.target.result);
-      										  r.readAsDataURL(f);
-      										});
-    									  end
-    									  if it
-    									    set #preview-img's src to it
-    									  end
-                                        end
-                                    "
-					>
-						<div class="text-center">
-							<div id="preview-area">
-								@partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
-									"rs:auto:48:48/sh:0.5/ext:webp",
-									element.WithClasses("mask mask-squircle"),
-									element.WithAttribute("width", "48"),
-									element.WithAttribute("height", "48"),
-									element.WithAttribute("id", "preview-img"),
-								)
-								<p id="preview-meta" style="font-size:0.85rem; color:#666;"></p>
+											return new Promise(resolve => {
+											  if (!f.type.startsWith('image/')) { resolve(null); return; }
+											  const r = new FileReader();
+											  r.onload = e => resolve(e.target.result);
+											  r.readAsDataURL(f);
+											});
+										  end
+										  if it
+										    set #preview-img's src to it
+										  end
+						                end
+						            "
+							>
+								<div class="text-center">
+									<div id="preview-area">
+										@partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
+											"rs:auto:48:48/sh:0.5/ext:webp",
+											element.WithClasses("mask mask-squircle"),
+											element.WithAttribute("width", "48"),
+											element.WithAttribute("height", "48"),
+											element.WithAttribute("id", "preview-img"),
+										)
+										<p id="preview-meta" style="font-size:0.85rem; color:#666;"></p>
+									</div>
+									<span id="file-name" class="block max-w-full truncate"></span>
+									<div class="mt-4 flex flex-wrap items-center justify-center text-sm/6">
+										<label for="avatar-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
+											<span class="btn btn-outline btn-neutral">Upload a file</span>
+											<input
+												id="avatar-upload"
+												type="file"
+												name="avatar"
+												class="sr-only"
+												_="on change set #file-name's textContent to my files[0].name"
+											/>
+										</label>
+										<p class="pl-1">or drag and drop</p>
+									</div>
+									<p class="text-xs/5">JPG, PNG or WEBP up to 10MB</p>
+								</div>
 							</div>
-							<span id="file-name"></span>
-							<div class="mt-4 flex items-center justify-center text-sm/6">
-								<label for="avatar-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
-									<span class="btn btn-dash btn-neutral">Upload a file</span>
-									<input
-										id="avatar-upload"
-										type="file"
-										name="source"
-										class="sr-only"
-										_="on change set #file-name's textContent to my files[0].name"
-									/>
-								</label>
-								<p class="pl-1">or drag and drop</p>
-							</div>
-							<p class="text-xs/5">JPG, PNG or WEBP up to 10MB</p>
+						</label>
+						<label class="fieldset">
+							<span class="label">Promotional Emails</span>
+							<input
+								id="settings-account-promotional-emails"
+								type="checkbox"
+								name="promotional_email"
+								if user.Metadata.PromotionalEmail {
+									checked
+								}
+								class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
+							/>
+							<p class="label">
+								Allow promotional emails. Even if this setting is off, you
+								will still receive important administrative and account emails.
+							</p>
+						</label>
+						<div class="flex w-full justify-end mt-4">
+							<button
+								hx-post="/user/settings/account"
+								hx-swap="none"
+								type="submit"
+								class="btn btn-primary"
+							>
+								<span class="show-loading items-center">
+									<span class="loading mr-3 loading-spinner"></span>
+									<span class="text-sm/6">Processing</span>
+								</span>
+								<span class="hide-loading items-center">
+									<span class="text-sm/6">Save</span>
+								</span>
+							</button>
 						</div>
-					</div>
-				</div>
-				// Edit promotional email.
-				<div class="sm:col-span-full">
-					<label for="settings-account-promotional-emails" class="block text-sm/6 font-medium">Promotional Emails</label>
-					<p
-						class="text-sm/6 text-base-content/80"
-					>
-						Allow promotional emails. Even if this setting is off, you
-						will still receive important administrative and account emails.
-					</p>
-					<div
-						class="mt-2 flex items-center space-x-2"
-					>
-						<input
-							id="settings-account-promotional-emails"
-							type="checkbox"
-							name="promotional_email"
-							if user.Metadata.PromotionalEmail {
-								checked
-							}
-							class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
-						/>
-					</div>
-				</div>
-				// Buttons.
-				<div class="col-span-full inline-grid grid-flow-col items-center gap-x-2 place-self-end">
-					<button
-						hx-post="/user/settings/account"
-						hx-swap="none"
-						type="submit"
-						class="btn btn-primary"
-					>
-						<span class="show-loading items-center">
-							<span class="loading mr-3 loading-spinner"></span>
-							<span class="text-sm/6">Processing</span>
-						</span>
-						<span class="hide-loading items-center">
-							<span class="text-sm/6">Save</span>
-						</span>
-					</button>
-				</div>
-			</form>
-			// Change password.
-			<div>
-				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-					Change Password
-				</h3>
-				<p>Update your password associated with your account.</p>
-			</div>
-			<form
-				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
-			>
-				<div class="sm:col-span-full">
-					<label for="new-password" class="block text-sm/6 font-medium">New Password</label>
-					<div class="mt-2">
+					</form>
+				}
+			</fieldset>
+			// Change Password.
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Change Password</legend>
+				<form>
+					<label class="fieldset">
+						<span class="label">New Password</span>
 						<input id="new-password" type="password" class="input bg-base-content/10 input-primary" name="new_password" required/>
-					</div>
-				</div>
-				<div class="sm:col-span-full">
-					<label for="confirm-new-password" class="block text-sm/6 font-medium">Confirm New Password</label>
-					<div class="mt-2">
+					</label>
+					<label class="fieldset">
+						<span class="label">Confirm New Password</span>
 						<input id="confirm-new-password" type="password" class="input bg-base-content/10 input-primary" name="confirm_new_password" required/>
+					</label>
+					<div class="flex w-full justify-end mt-4">
+						<button
+							type="submit"
+							class="btn btn-primary"
+							hx-post="/user/settings/password"
+							hx-swap="none"
+						>
+							<span class="show-loading items-center">
+								<span class="loading mr-3 loading-spinner"></span>
+								<span class="text-sm/6">Processing</span>
+							</span>
+							<span class="hide-loading items-center">
+								<span class="text-sm/6">Change password</span>
+							</span>
+						</button>
 					</div>
-				</div>
-				<div class="col-span-full place-self-end">
-					<button
-						type="submit"
-						class="btn btn-primary"
-						hx-post="/user/settings/password"
-						hx-swap="none"
-					>
-						<span class="show-loading items-center">
-							<span class="loading mr-3 loading-spinner"></span>
-							<span class="text-sm/6">Processing</span>
-						</span>
-						<span class="hide-loading items-center">
-							<span class="text-sm/6">Change password</span>
-						</span>
-					</button>
-				</div>
-			</form>
-		}
-		// Subscription Email
-		<div>
-			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-				Subscribe to Email Newsletters
-			</h3>
-			<p>Use or generate an email for subscribing to email newsletters.</p>
-		</div>
-		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full mt-8 place-self-end">
-				<div class="mt-2 sm:mt-0 flex flex-col items-start gap-y-3">
-					if user.Settings.SubscriptionEmail == nil {
+				</form>
+			</fieldset>
+			// Newsletter Subscriptions.
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Newsletter Email</legend>
+				<p class="text-sm/6 font-semibold">Use or generate an email for subscribing to email newsletters.</p>
+				if user.Settings.SubscriptionEmail == nil {
+					<div class="flex w-full justify-end mt-4">
 						<button
 							hx-post="/user/settings/subscriptionemail"
 							hx-target="#subscription-email"
@@ -493,21 +459,15 @@ templ AccountSettings(user *models.User) {
 								<span class="text-sm/6">Generate email address</span>
 							</span>
 						</button>
-					} else {
-						@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
-					}
-				</div>
-			</div>
-		</div>
-		// Show action to deactivate account.
-		<div>
-			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-				Deactivate Account
-			</h3>
-			<p>No longer want to use our service? You can deactivate your account here.</p>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full prose">
+					</div>
+				} else {
+					@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
+				}
+			</fieldset>
+			// Deactivate Account.
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Deactivate Account</legend>
+				<p class="text-sm/6 font-semibold">No longer want to use our service? You can deactivate your account here.</p>
 				switch  {
 					case user.InTrial():
 						<p class="text-sm/6">
@@ -529,22 +489,22 @@ templ AccountSettings(user *models.User) {
 							be permanently deleted. You will no longer be able to log in.
 						</p>
 				}
-			</div>
-			<div class="col-span-full mt-8 place-self-end">
-				<div class="mt-2 flex items-center justify-end gap-x-6">
-					<button
-						hx-get={ models.RouteUserDeactivateAccount }
-						hx-target={ partials.ModalContainerID.Target() }
-						hx-vals={ templ.JSONString(map[string]string{"confirmed": "no"}) }
-						type="submit"
-						class="btn btn-error"
-					>
-						<span class="text-sm/6">Yes, deactivate my account</span>
-					</button>
+				<div class="flex w-full justify-end mt-4">
+					<form>
+						<button
+							hx-post={ models.RouteUserDeactivateAccount }
+							hx-target={ partials.ModalContainerID.Target() }
+							hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
+							type="submit"
+							class="btn btn-error"
+						>
+							<span class="text-sm/6">Yes, deactivate my account</span>
+						</button>
+					</form>
 				</div>
-			</div>
+			</fieldset>
 		</div>
-	</div>
+	}
 }
 
 templ DisplaySettings(user *models.User) {

@@ -12,11 +12,13 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -221,49 +223,6 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 //nolint:funlen
 func HandleSaveAccountSettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode request.
-		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode edit user request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"One or more of the inputs is invalid. Please check and try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
-		avatar, err := forms.DecodeMultipartFile(req, "avatar")
-		if err != nil && !errors.Is(err, http.ErrMissingFile) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode avatar: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"Unable to read uploaded avatar data. Please check the file and try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-		// Maximum size of an avatar image is 1MB.
-		const maxAvatarSizeBytes = 1000000
-		if avatar.GetSize() > maxAvatarSizeBytes {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: models.ErrFileTooLarge,
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"Uploaded avatar image is too large (> 1MB).",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -279,8 +238,50 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			return
 		}
 
-		// If the user uploaded a new avatar, process it.
+		// Decode request.
+		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
+		if err != nil || !valid {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode edit user request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"One or more of the inputs is invalid. Please check and try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		// Parse and process avatar.
+		avatar, err := forms.DecodeMultipartFile(req, "avatar")
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode avatar: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"Unable to read uploaded avatar data. Please check the file and try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
 		if avatar != nil {
+			// Maximum size of an avatar image is 1MB.
+			const maxAvatarSizeBytes = 1000000
+			if avatar.GetSize() > maxAvatarSizeBytes {
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: models.ErrFileTooLarge,
+						StatusCode:    http.StatusUnprocessableEntity,
+						UserMessage: models.NewErrorMessage(
+							"Unable to save settings",
+							"Uploaded avatar image is too large (> 1MB).",
+						),
+					}).ServeHTTP(res, req)
+				return
+			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
 			avatarFileID := strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+"avatar")), 10)
 			// Read the uploaded data and store in the cache.
@@ -420,8 +421,23 @@ func HandleChangePassword() http.HandlerFunc {
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		switch req.FormValue("confirmed") {
-		case "yes":
+		request, valid, err := forms.DecodeForm[*models.DeactivationRequest](req)
+		if err != nil || !valid {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode deactivation request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to deactivate account",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		godump.Dump(request)
+
+		switch request.Confirmed {
+		case true:
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
@@ -436,8 +452,48 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
+
+			// If the user added reasons or comments for deactivation, send an email containing those.
+			if len(request.Reasons) > 0 || request.Comments != nil {
+				var bodyBuilder strings.Builder
+				bodyBuilder.WriteString("User ID: ")
+				bodyBuilder.WriteString(user.GetID())
+				bodyBuilder.WriteRune('\n')
+				bodyBuilder.WriteString("Contact Email: ")
+				bodyBuilder.WriteString(user.GetEmail())
+				bodyBuilder.WriteRune('\n')
+				bodyBuilder.WriteRune('\n')
+				if len(request.Reasons) > 0 {
+					bodyBuilder.WriteString("Reasons: ")
+					bodyBuilder.WriteString(strings.Join(request.Reasons, ","))
+					bodyBuilder.WriteRune('\n')
+				}
+				if request.Comments != nil {
+					bodyBuilder.WriteRune('\n')
+					bodyBuilder.WriteString("Comments:")
+					bodyBuilder.WriteRune('\n')
+					bodyBuilder.WriteString(*request.Comments)
+					bodyBuilder.WriteRune('\n')
+				}
+
+				if err := resend.SendEmail(req.Context(),
+					resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
+					resend.WithReplyTo[*resend.Email](user.GetEmail()),
+					resend.WithTo("support@immanent.tech"),
+					resend.WithSubject[*resend.Email]("Deactivation Details for "+user.GetNickname()),
+					resend.WithTextContent(bodyBuilder.String()),
+					resend.WithTag(resend.TagCategory, resend.TagCategorySupport),
+					resend.WithTag(resend.TagUserID, user.GetID()),
+				); err != nil {
+					slogctx.Warn(req.Context(), "Unable to send email containing deactivation reasons.",
+						slog.Any("error", err))
+				}
+			}
+
+			// Handle deactivation appropriately.
 			switch {
 			case user.InTrial():
+				// User in trial. Just delete from Elasticsearch and Auth0 then send confirmation email.
 				// Delete from Elasticsearch backend.
 				if err := service.DeleteUser(req.Context(), user); err != nil {
 					HandleInternalError(req.URL.Path,
@@ -451,7 +507,6 @@ func HandleDeactivateAccount() http.HandlerFunc {
 						}).ServeHTTP(res, req)
 					return
 				}
-
 				// Delete from Auth0 backend
 				if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
 					HandleInternalError(req.URL.Path,
@@ -466,31 +521,12 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					return
 				}
 
-				// Create and send deactivation email confirmation.
-				email, err := resend.NewTemplatedEmail(
-					"user-deactivated",
-					resend.WithTo(user.GetEmail()),
-					resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
-					resend.WithTag(resend.TagUserID, user.GetID()),
-				)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
-						slog.String("user_id", user.GetID()),
-						slog.Any("error", err),
-					)
-				}
-				if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
-						slog.String("user_id", user.GetID()),
-						slog.Any("error", err),
-					)
-				}
-
 				slogctx.FromCtx(req.Context()).Info("Deleted trial user.")
 
 				// Pass to logout handler.
 				Logout(res, req)
 			default:
+				// Paid user. Cancel their subscription appropriately and notify.
 				var timeLeft *time.Time
 				switch *user.UserSubscriptionType {
 				case models.UserSubscriptionTypePaddle:
@@ -531,6 +567,26 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 
 				slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
+			}
+
+			// Create and send deactivation email confirmation.
+			email, err := resend.NewTemplatedEmail(
+				"user-deactivated",
+				resend.WithTo(user.GetEmail()),
+				resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+				resend.WithTag(resend.TagUserID, user.GetID()),
+			)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
+					slog.String("user_id", user.GetID()),
+					slog.Any("error", err),
+				)
+			}
+			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
+					slog.String("user_id", user.GetID()),
+					slog.Any("error", err),
+				)
 			}
 		default:
 			RenderPartial(&Modal{

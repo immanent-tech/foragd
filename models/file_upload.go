@@ -36,6 +36,9 @@ func (f *FileUpload) GetSize() int64 {
 
 // ParseMimetype attempts to parse and return the mimetype of the file from its mime header.
 func (f *FileUpload) ParseMimetype() (string, error) {
+	if f == nil {
+		return "unknown", errors.New("cannot parse mime type of file: invalid file")
+	}
 	mediaType, _, err := mime.ParseMediaType(f.Header.Header.Get("Content-Type"))
 	if err != nil {
 		return "unknown", fmt.Errorf("cannot parse mime type of file %s: %w", f.Header.Filename, err)

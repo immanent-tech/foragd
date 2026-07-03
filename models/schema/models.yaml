@@ -266,7 +266,6 @@ components:
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            validate: 'required'
             form: 'promotional_email'
     UserSettings:
       description: >

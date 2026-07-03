@@ -38,41 +38,100 @@ templ UserAccountIssue() {
 
 templ DeactivateAccountModal() {
 	@partials.Modal("deactivate-account", true) {
-		<div class="sm:flex sm:items-start">
-			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
-				@tabler.AlertTriangle(templ.Attributes{"class": "size-12"})
-			</span>
-			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-				<h3 id="dialog-title" class="text-lg font-medium">Deactivate Account Confirmation</h3>
-				<div class="mt-2">
-					<p class="text-sm">Are you sure you want to deactivate your account?</p>
+		<form>
+			<div class="flex flex-col sm:items-start">
+				<div class="flex">
+					<span class="mx-auto size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
+						@tabler.AlertTriangle(templ.Attributes{"class": "size-12 error"})
+					</span>
+					<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+						<h3 id="dialog-title" class="text-lg font-medium">Deactivate Account Confirmation</h3>
+					</div>
 				</div>
+				<p class="mt-4 text-sm/6">
+					Are you sure you want to deactivate your account?
+				</p>
+				<p class="mt-4 text-sm/6 text-base-content/70">
+					If you have a moment, please tell us why you are deactivating your account (optional, select all that apply).
+				</p>
+				<fieldset class="mt-4">
+					<legend class="sr-only">Deactivation Reason</legend>
+					<div class="space-y-5">
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="too-expensive" type="checkbox" name="reasons[]" value="too_expensive" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="too-expensive" class="text-sm/6">Too expensive for what I use</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="missing-features" type="checkbox" name="reasons[]" value="missing_features" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="missing-features" class="text-sm/6">Missing a feature I need</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="switching" type="checkbox" name="reasons[]" value="switching_services" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="switching" class="text-sm/6">Switching to another feed reader</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="not-using" type="checkbox" name="reasons[]" value="no_longer_using" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="not-using" class="text-sm/6">Not using it enough / don't read as much anymore</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="complicated" type="checkbox" name="reasons[]" value="too_complicated" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="complicated" class="text-sm/6">Too complicated / hard to use</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="buggy" type="checkbox" name="reasons[]" value="buggy" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="buggy" class="text-sm/6">Ran into bugs or reliability issues</label>
+						</div>
+						<div class="flex gap-3 items-center">
+							<div class="flex h-6 shrink-0 items-center">
+								<input id="trying-out" type="checkbox" name="reasons[]" value="just_trying_out" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+							</div>
+							<label for="trying-out" class="text-sm/6">Just trying it out (never intended to stick around)</label>
+						</div>
+						<label>
+							<span class="text-sm/6">Other:</span>
+							<textarea class="textarea w-full bg-base-content/10" name="comments" placeholder="Other comments, reasons..."></textarea>
+						</label>
+					</div>
+				</fieldset>
 			</div>
-		</div>
-		<div class="mt-5 justify-center gap-x-2 sm:mt-4 sm:flex sm:justify-end">
-			<button
-				type="button"
-				_="on click remove @open from  the closest <el-dialog/>"
-				class="btn btn-ghost"
-			>
-				<span class="text-sm/6">No</span>
-			</button>
-			<a
-				role="button"
-				hx-get="/user/deactivate?confirmed=yes"
-				hx-swap="none"
-				_="on htmx:afterRequest remove @open from  the closest <el-dialog/>"
-				class="btn btn-error"
-			>
-				<span class="show-loading items-center">
-					<span class="loading mr-3 loading-spinner"></span>
-					<span class="text-sm/6">Processing</span>
-				</span>
-				<span class="hide-loading items-center">
-					<span class="text-sm/6">Yes</span>
-				</span>
-			</a>
-		</div>
+			<div class="mt-5 justify-center gap-x-2 sm:mt-4 sm:flex sm:justify-end">
+				<button
+					type="button"
+					_="on click remove @open from  the closest <el-dialog/>"
+					class="btn btn-ghost"
+				>
+					<span class="text-sm/6">No</span>
+				</button>
+				<button
+					type="submit"
+					hx-post="/user/deactivate"
+					hx-swap="none"
+					hx-vals={ templ.JSONString(map[string]any{"confirmed": true}) }
+					_="on htmx:afterRequest remove @open from  the closest <el-dialog/>"
+					class="btn btn-error"
+				>
+					<span class="show-loading items-center">
+						<span class="loading mr-3 loading-spinner"></span>
+						<span class="text-sm/6">Processing</span>
+					</span>
+					<span class="hide-loading items-center">
+						<span class="text-sm/6">Yes</span>
+					</span>
+				</button>
+			</div>
+		</form>
 	}
 }
 

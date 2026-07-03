@@ -1311,7 +1311,7 @@ type User struct {
 	Nickname string `form:"nickname" json:"nickname" validate:"required"`
 
 	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
-	PromotionalEmail bool `form:"promotional_email" json:"promotional_email" validate:"required"`
+	PromotionalEmail bool `form:"promotional_email" json:"promotional_email"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
@@ -1347,7 +1347,7 @@ type UserCustomisation struct {
 	Nickname string `form:"nickname" json:"nickname" validate:"required"`
 
 	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
-	PromotionalEmail bool `form:"promotional_email" json:"promotional_email" validate:"required"`
+	PromotionalEmail bool `form:"promotional_email" json:"promotional_email"`
 }
 
 // UserID is the unique ID of a user.

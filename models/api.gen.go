@@ -103,6 +103,18 @@ type ContactRequest struct {
 	Details string `form:"details" json:"details" validate:"required"`
 }
 
+// DeactivationRequest is a request from a user to deactivate their account.
+type DeactivationRequest struct {
+	// Comments is any comments left by the user.
+	Comments *string `form:"comments" json:"comments,omitempty"`
+
+	// Confirmed whether the user has confirmed the deactivation.
+	Confirmed bool `form:"confirmed" json:"confirmed"`
+
+	// Reasons is a list of reasons selected by the user as to why they are deactivating.
+	Reasons []string `form:"reasons[]" json:"reasons,omitempty"`
+}
+
 // FeedSubscriptionRequest is a request to add a new feed subscription.
 type FeedSubscriptionRequest struct {
 	// URL is the URL of the feed data. Used when adding a new feed subscription.
