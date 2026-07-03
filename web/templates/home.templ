@@ -25,6 +25,19 @@ type HomeData struct {
 templ UserHome(data *HomeData) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			<div
+				id="ptr-sentinel"
+				style="height:1px;"
+				_="
+		on intersection(intersecting)
+			if intersecting
+				send ptrSentinelVisible
+			else
+				send ptrSentinelHidden
+			end
+		end
+		"
+			></div>
 			@buttonBackToTop()
 			@pullToRefreshScript()
 			@container(element.WithClasses("pt-4 ptr-scroll"),

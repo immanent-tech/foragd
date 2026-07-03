@@ -103,17 +103,25 @@ templ buttonBackToTop() {
 templ pullToRefreshScript() {
 	<script type="text/hyperscript">
   behavior PullToRefresh(threshold)
-
     init
       set my.startY to 0
       set my.pulling to false
       set my.refreshing to false
       set my.content to the first <.ptr-content/> in me
+      set my.canPtr to false
+    end
+
+    on ptrSentinelVisible from #ptr-sentinel
+      set my.canPtr to true
+    end
+
+    on ptrSentinelHidden from #ptr-sentinel
+      set my.canPtr to false
     end
 
     on touchstart
       -- only start tracking a pull if the container is already at the top
-      if my.scrollTop <= 0 and not my.refreshing
+      if my.canPtr and not my.refreshing
         set my.startY to event.touches[0].clientY
         set my.pulling to true
       end
@@ -158,7 +166,7 @@ templ pullToRefreshScript() {
 
     -- also support desktop testing with a mouse-drag simulation
     on mousedown
-      if my.scrollTop <= 0 and not my.refreshing
+      if my.canPtr <= 0 and not my.refreshing
         set my.startY to event.clientY
         set my.pulling to true
         set my.mouseSim to true

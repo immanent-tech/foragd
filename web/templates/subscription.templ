@@ -259,10 +259,22 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			<div
+				id="ptr-sentinel"
+				style="height:1px;"
+				_="
+		on intersection(intersecting)
+			if intersecting
+				send ptrSentinelVisible
+			else
+				send ptrSentinelHidden
+			end
+		end
+		"
+			></div>
 			@buttonBackToTop()
 			@pullToRefreshScript()
-			@container(element.WithClasses("pt-4 ptr-scroll"),
-				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
+			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
 				@pageHeading() {
 					@pageTitle("Subscriptions")
@@ -307,7 +319,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					</ul>
 				}
 				<section id="subscriptions-list" class="pt-4 ptr-content">
-					<div id="refreshing" class="mt-4 flex w-full mx-auto justify-center">
+					<div id="refreshing" class="py-4 flex w-full mx-auto justify-center">
 						<div class="show-loading text-center">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
