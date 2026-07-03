@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.181.1](https://github.com/immanent-tech/foragd/compare/v0.181.0...v0.181.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **templates:** 🐛 stop pull to refresh triggering when scrolled down the page ([cae1538](https://github.com/immanent-tech/foragd/commit/cae153813a28f0cb7407ebfd1e8e0e41f72c3e72))
+
 ## [0.181.0](https://github.com/immanent-tech/foragd/compare/v0.180.0...v0.181.0) (2026-07-03)
 
 
