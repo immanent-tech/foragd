@@ -14,79 +14,69 @@ import (
 )
 
 templ CategoryManagement(suggested []models.Category, existing []models.Category) {
-	<div>
-		<button type="button" command="--toggle" commandfor="categories" class="flex w-full items-center justify-between text-left">
-			<div>
-				<h2 class="text-base/7 font-semibold">Categories</h2>
-				<p class="mt-1 max-w-2xl text-sm/6">Add/remove categories to the subscription.</p>
-			</div>
-			<span class="ml-6 flex h-7 items-center">
-				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
-				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
-			</span>
-		</button>
-		@partials.FormSection() {
-			<el-disclosure
-				hidden
-				id="categories"
-			>
-				<div class="space-y-8 border-b border-neutral/20 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
-					@partials.FormField() {
-						<label for="category-suggestion" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
-						<div class="join mt-2 sm:col-span-2 sm:mt-0">
-							<el-autocomplete class="join join-item sm:col-span-4">
-								<input
-									id="category-suggestion"
-									name="category"
-									class="input join-item bg-base-300 brightness-95 input-primary"
-									placeholder="Category..."
-									_="on keydown[key=='Enter'] send categorySuggestionSelected then halt the event"
-								/>
-								<button
-									type="button"
-									if len(suggested) == 0 {
-										disabled
-									}
-									class="btn join-item bg-base-100 brightness-95"
-								>
-									<span class="sr-only">Show category suggestions</span>
-									@tableroutline.ChevronDown(templ.Attributes{
-										"class":       "transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-										"aria-hidden": "true"})
-								</button>
-								<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
-									for category := range slices.Values(suggested) {
-										<el-option value={ category }>{ category }</el-option>
-									}
-								</el-options>
-							</el-autocomplete>
-							<button
-								hx-post="/subscription/category"
-								hx-params={ strings.Join([]string{"category", models.ParamCustomisationCategories}, ",") }
-								hx-target="#current-categories"
-								hx-swap="beforeend"
-								hx-trigger="click, categorySuggestionSelected from:body"
-								type="button"
-								class="btn join-item btn-primary"
-								_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
-							>
-								<span class="sr-only">Add category</span>
-								@tableroutline.Plus(templ.Attributes{"aria-hidden": "true"})
-							</button>
-						</div>
-					}
-					@partials.FormField() {
-						<label for="categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
-						<div id="current-categories" class="mt-2 flex flex-row flex-wrap gap-2 p-2 sm:col-span-2 sm:mt-0">
-							for category := range slices.Values(existing) {
-								@AddCategory(category)
+	<fieldset class="fieldset min-w-0 py-8">
+		<legend class="text-lg font-medium">Categories</legend>
+		<label class="fieldset">
+			<span class="label">Add category</span>
+			<div class="join mt-2 sm:col-span-2 sm:mt-0">
+				<el-autocomplete class="join join-item sm:col-span-4">
+					<input
+						id="category-suggestion"
+						name="category"
+						class="input join-item bg-base-300 brightness-95 input-primary"
+						placeholder="Category..."
+						_="on keydown[key=='Enter'] send categorySuggestionSelected then halt the event"
+					/>
+					<button
+						type="button"
+						if len(suggested) == 0 {
+							disabled
+						}
+						class="btn join-item bg-base-100 brightness-95"
+					>
+						<span class="sr-only">Show category suggestions</span>
+						@tableroutline.ChevronDown(templ.Attributes{
+							"class":       "transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+							"aria-hidden": "true"})
+					</button>
+					<el-options
+						popover
+						anchor="bottom start"
+						class="max-h-60 w-(--input-width) overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+					>
+						<ul class="menu">
+							for category := range slices.Values(suggested) {
+								<li>
+									<el-option value={ category }>{ category }</el-option>
+								</li>
 							}
-						</div>
-					}
-				</div>
-			</el-disclosure>
-		}
-	</div>
+						</ul>
+					</el-options>
+				</el-autocomplete>
+				<button
+					hx-post="/subscription/category"
+					hx-params={ strings.Join([]string{"category", models.ParamCustomisationCategories}, ",") }
+					hx-target="#current-categories"
+					hx-swap="beforeend"
+					hx-trigger="click, categorySuggestionSelected from:body"
+					type="button"
+					class="btn join-item btn-primary"
+					_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
+				>
+					<span class="sr-only">Add category</span>
+					@tableroutline.Plus(templ.Attributes{"aria-hidden": "true"})
+				</button>
+			</div>
+		</label>
+		<label class="fieldset">
+			<span class="label">Existing Categories</span>
+			<div id="current-categories" class="mt-2 flex flex-row flex-wrap gap-2 p-2 sm:col-span-2 sm:mt-0">
+				for category := range slices.Values(existing) {
+					@AddCategory(category)
+				}
+			</div>
+		</label>
+	</fieldset>
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.
