@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.181.0](https://github.com/immanent-tech/foragd/compare/v0.180.0...v0.181.0) (2026-07-03)
+
+
+### Features
+
+* ✨ add optional reason submission when deactivating account ([2d431e8](https://github.com/immanent-tech/foragd/commit/2d431e874f0df2929b366579fa8c2aebbb472ad9))
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix logout when htmx is involved ([58683c6](https://github.com/immanent-tech/foragd/commit/58683c60bb89e216134ada8cb9d404d7ec942f28))
+* **templates/home:** 🔧 fix clicking feedset cards on new user home ([6527d8b](https://github.com/immanent-tech/foragd/commit/6527d8b2630f20b0302875a56d6197dcde1693e0))
+* **templates/landing,templates/features:** 🔧 fix clicking links ([10a055a](https://github.com/immanent-tech/foragd/commit/10a055a35f5f1510ab017e4663226f8fc6d0f5b6))
+* **templates:** 🔧 don't trigger loading indicators for unrelated requests ([4c5dbc2](https://github.com/immanent-tech/foragd/commit/4c5dbc2901f55996b3b96703d3c368581ac9dbad))
+* **templates:** 🔧 switch scroll:#content:top -&gt; show:top ([2c08559](https://github.com/immanent-tech/foragd/commit/2c08559dd906a67a4ab37de9ed59be667a36c68c))
+
 ## [0.180.0](https://github.com/immanent-tech/foragd/compare/v0.179.0...v0.180.0) (2026-07-02)
 
 
