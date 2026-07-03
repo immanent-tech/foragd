@@ -492,183 +492,185 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container(element.WithClasses("pt-4")) {
+			@narrowContainer(element.WithClasses("pt-4")) {
 				@pageHeading() {
 					@pageTitle("Add a subscription")
 				}
-				<form
-					hx-post="/subscription/add/suggestions"
-					hx-target="#subscription-suggestions"
-					hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms from:#add-subscription-search, changed from:#add-subscription-search"
-					hx-sync="this:replace"
-					_="
+				<div id="add-subscription" class="divide-y divide-base-content/15 space-y-8">
+					<fieldset class="fieldset min-w-0 py-8">
+						<form
+							hx-post="/subscription/add/suggestions"
+							hx-target="#subscription-suggestions"
+							hx-trigger="load[document.getElementById('add-subscription-search').value !== ''], keyup delay:500ms from:#add-subscription-search, changed from:#add-subscription-search"
+							hx-sync="this:replace"
+							_="
 					on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
 					on keydown[key=='Enter'] halt the event
 					"
-				>
-					<div class="mt-4">
-						<ol>
-							<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
-							<li>Enter search terms (see notes below) as appropriate.</li>
-						</ol>
-						<label for="add-subscription-search" class="block text-sm/6 font-medium text-neutral mt-4">
-							Source search terms:
-						</label>
-						<div class="mt-2 w-full">
-							<div class="join flex w-full items-center sm:max-w-xl">
-								<div class="input w-full bg-base-300 brightness-95 input-primary">
-									@tableroutline.Search(templ.Attributes{"class": "text-primary"})
-									<input
-										id="add-subscription-search"
-										type="text"
-										name="suggestion_text"
-										if request.URL != "" {
-											value={ request.URL }
-										}
-										autocomplete="off"
-										placeholder="Text, phrase or URL..."
-										class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
-									/>
-								</div>
-								<label for="suggestion-source" class="sr-only">Source</label>
-								<select
-									id="suggestion-source"
-									name="suggestion_source"
-									aria-label="Source"
-									class="select join-item w-auto shrink-0 select-primary"
-									_="
+						>
+							<ol class="text-sm/6">
+								<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
+								<li>Enter search terms (see notes below) as appropriate.</li>
+							</ol>
+							<label for="add-subscription-search" class="mt-4 label">
+								Source search terms:
+							</label>
+							<div class="mt-2 w-full">
+								<div class="join flex w-full items-center sm:max-w-xl">
+									<div class="input w-full bg-base-300 brightness-95 input-primary">
+										@tableroutline.Search(templ.Attributes{"class": "text-primary"})
+										<input
+											id="add-subscription-search"
+											type="text"
+											name="suggestion_text"
+											if request.URL != "" {
+												value={ request.URL }
+											}
+											autocomplete="off"
+											placeholder="Text, phrase or URL..."
+											class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
+										/>
+									</div>
+									<label for="suggestion-source" class="sr-only">Source</label>
+									<select
+										id="suggestion-source"
+										name="suggestion_source"
+										aria-label="Source"
+										class="select join-item w-auto shrink-0 select-primary"
+										_="
 									on change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end
 									on change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end
 									on change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end
 									"
-								>
-									<option disabled selected value="web">Source...</option>
-									<option value="web">Web</option>
-									<option value="youtube">Youtube</option>
-									<option value="gnews">Google News</option>
-								</select>
+									>
+										<option disabled selected value="web">Source...</option>
+										<option value="web">Web</option>
+										<option value="youtube">Youtube</option>
+										<option value="gnews">Google News</option>
+									</select>
+								</div>
 							</div>
-						</div>
-						<ul class="mt-4 block list-inside list-disc text-sm/6 text-neutral">
-							<div _="on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me">
-								<li>
-									Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
-								</li>
-								<li>
-									Enter a URL to fetch and parse the website for a suitable feed.
-								</li>
-							</div>
-							<div _="on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me" hidden>
-								<li>
-									Enter <span class="italic">{ `@ChannelName` }</span> to fetch a channel's feed.
-								</li>
-								<li>
-									Enter keywords or a phrase to search YouTube for channels that match.
-								</li>
-							</div>
-							<div _="on change from #suggestion-source if its value is 'gnews' remove @hidden from me else add @hidden to me" hidden>
-								<li>
-									Enter search terms to fetch and generate a feed with matching articles.
-								</li>
-								<li>
-									For example: <span class="italic">when:24h site:reuters.com "World Events"</span>.
-								</li>
-							</div>
-						</ul>
-					</div>
-					<div class="show-loading w-full sm:max-w-5xl">
-						<div class="my-4 w-full">
-							<div class="flex flex-1 p-6">
-								<div class="sm:flex sm:items-center sm:justify-between">
-									<div class="sm:flex sm:space-x-5">
-										<div class="flex">
-											<div class="mr-4 shrink-0 self-center">
-												<div class="h-24 w-24 skeleton"></div>
+							<ul class="mt-4 block list-inside list-disc text-sm/6 text-neutral">
+								<div _="on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me">
+									<li>
+										Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
+									</li>
+									<li>
+										Enter a URL to fetch and parse the website for a suitable feed.
+									</li>
+								</div>
+								<div _="on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me" hidden>
+									<li>
+										Enter <span class="italic">{ `@ChannelName` }</span> to fetch a channel's feed.
+									</li>
+									<li>
+										Enter keywords or a phrase to search YouTube for channels that match.
+									</li>
+								</div>
+								<div _="on change from #suggestion-source if its value is 'gnews' remove @hidden from me else add @hidden to me" hidden>
+									<li>
+										Enter search terms to fetch and generate a feed with matching articles.
+									</li>
+									<li>
+										For example: <span class="italic">when:24h site:reuters.com "World Events"</span>.
+									</li>
+								</div>
+							</ul>
+							<div class="show-loading w-full sm:max-w-5xl">
+								<div class="my-4 w-full">
+									<div class="flex flex-1 p-6">
+										<div class="sm:flex sm:items-center sm:justify-between">
+											<div class="sm:flex sm:space-x-5">
+												<div class="flex">
+													<div class="mr-4 shrink-0 self-center">
+														<div class="h-24 w-24 skeleton"></div>
+													</div>
+													<div class="space-y-2">
+														<div class="h-4 w-28 skeleton"></div>
+														<div class="h-4 w-full skeleton sm:w-96"></div>
+													</div>
+												</div>
 											</div>
-											<div class="space-y-2">
-												<div class="h-4 w-28 skeleton"></div>
-												<div class="h-4 w-full skeleton sm:w-96"></div>
-											</div>
+										</div>
+									</div>
+									<div class="grid grid-cols-1 justify-center gap-4 sm:grid-cols-3">
+										<div class="flex w-full flex-col gap-4">
+											<div class="h-32 w-full skeleton"></div>
+											<div class="h-4 w-28 skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
+										</div>
+										<div class="flex w-full flex-col gap-4">
+											<div class="h-32 w-full skeleton"></div>
+											<div class="h-4 w-28 skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
+										</div>
+										<div class="flex w-full flex-col gap-4">
+											<div class="h-32 w-full skeleton"></div>
+											<div class="h-4 w-28 skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
+											<div class="h-4 w-full skeleton"></div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="grid grid-cols-1 justify-center gap-4 sm:grid-cols-3">
-								<div class="flex w-full flex-col gap-4">
-									<div class="h-32 w-full skeleton"></div>
-									<div class="h-4 w-28 skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-								</div>
-								<div class="flex w-full flex-col gap-4">
-									<div class="h-32 w-full skeleton"></div>
-									<div class="h-4 w-28 skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-								</div>
-								<div class="flex w-full flex-col gap-4">
-									<div class="h-32 w-full skeleton"></div>
-									<div class="h-4 w-28 skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-									<div class="h-4 w-full skeleton"></div>
-								</div>
+						</form>
+						<div id="subscription-suggestions" class="mt-8 overflow-x-auto"></div>
+					</fieldset>
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						<div
+							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+							hx-get="/subscription/add/group"
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+						>
+							<div class="flex flex-row items-center gap-x-3">
+								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+								<div class="card-title text-secondary">Add a Group Subscription</div>
 							</div>
+							<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
 						</div>
-					</div>
-				</form>
-				<div id="subscription-suggestions" class="mt-8"></div>
-				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-					<div
-						class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
-						hx-get="/subscription/add/group"
-						hx-target={ ContentID.Target() }
-						hx-push-url="true"
-					>
-						<div class="flex flex-row items-center gap-x-3">
-							@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-							<div class="card-title text-secondary">Add a Group Subscription</div>
+						<div
+							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+							hx-get="/subscription/add/search"
+							hx-target={ ContentID.Target() }
+							hx-include="#search-filters"
+							hx-push-url="true"
+						>
+							<div class="flex flex-row items-center gap-x-3">
+								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+								<div class="card-title text-secondary">Add a Search Subscription</div>
+							</div>
+							<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
 						</div>
-						<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
-					</div>
-					<div
-						class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
-						hx-get="/subscription/add/search"
-						hx-target={ ContentID.Target() }
-						hx-include="#search-filters"
-						hx-push-url="true"
-					>
-						<div class="flex flex-row items-center gap-x-3">
-							@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-							<div class="card-title text-secondary">Add a Search Subscription</div>
-						</div>
-						<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
-					</div>
-					<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
-						<div class="flex flex-row items-center gap-x-3">
-							@tableroutline.Mailbox(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-							<div class="card-title text-secondary">Subscribe to email newsletters</div>
-						</div>
-						{{ user := models.UserFromCtx(ctx) }}
-						<div id="subscription-email">
-							if user.Settings.SubscriptionEmail == nil {
-								<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
-								<button
-									hx-post="/user/settings/subscriptionemail"
-									hx-target="#subscription-email"
-									hx-swap="innerHTML transition:true"
-									class="btn btn-primary"
-								>
-									<span class="show-loading items-center">
-										<span class="loading mr-3 loading-spinner"></span>
-										<span class="text-sm/6">Processing</span>
-									</span>
-									<span class="hide-loading items-center">
-										<span class="text-sm/6">Generate email address</span>
-									</span>
-								</button>
-							} else {
-								@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
-							}
+						<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
+							<div class="flex flex-row items-center gap-x-3">
+								@tableroutline.Mailbox(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+								<div class="card-title text-secondary">Subscribe to email newsletters</div>
+							</div>
+							{{ user := models.UserFromCtx(ctx) }}
+							<div id="subscription-email">
+								if user.Settings.SubscriptionEmail == nil {
+									<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
+									<button
+										hx-post="/user/settings/subscriptionemail"
+										hx-target="#subscription-email"
+										hx-swap="innerHTML transition:true"
+										class="btn btn-primary"
+									>
+										<span class="show-loading items-center">
+											<span class="loading mr-3 loading-spinner"></span>
+											<span class="text-sm/6">Processing</span>
+										</span>
+										<span class="hide-loading items-center">
+											<span class="text-sm/6">Generate email address</span>
+										</span>
+									</button>
+								} else {
+									@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
+								}
+							</div>
 						</div>
 					</div>
 				</div>
