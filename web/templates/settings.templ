@@ -174,7 +174,7 @@ templ UserSettings() {
 
 templ AccountSettings(user *models.User) {
 	@narrowContainer() {
-		<div id="account-settings" class="divide-y divide-base-content/15 space-y-8">
+		<div id="account-settings" class="mt-12 divide-y divide-base-content/15 space-y-8">
 			<div class="flex flex-col py-8">
 				<div>
 					// Subscription Details.
@@ -508,119 +508,109 @@ templ AccountSettings(user *models.User) {
 }
 
 templ DisplaySettings(user *models.User) {
-	<div id="display-settings">
-		// Display settings.
-		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			<div>
-				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-					Behaviour
-				</h3>
-				<p>Settings that control the display behaviour in the app.</p>
-			</div>
-			<form
-				hx-post="/user/settings/display"
-				hx-swap="none"
-				hx-include="#theme-settings"
-				class="col-span-full space-y-10 md:col-span-2"
-			>
-				<div class="flex items-center gap-x-4">
-					<input
-						id="setting-show-subscription-stats"
-						type="checkbox"
-						name="show_subscription_stats"
-						if user.GetSettings().ShowSubscriptionStats {
-							checked
-						}
-						aria-describedby="setting-show-subscription-stats-description"
-						class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
-					/>
-					<div class="flex-1 text-sm/6">
-						<label for="setting-show-subscription-stats" class="font-medium">Show Subscription Stats</label>
-						<p id="setting-show-subscription-stats-description" class="text-base-content/80">
+	@narrowContainer() {
+		<div id="display-settings" class="mt-12 divide-y divide-base-content/15 space-y-8">
+			// Behaviour Settings.
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Behavior</legend>
+				<form
+					hx-post="/user/settings/display"
+					hx-swap="none"
+					hx-include="#theme-settings"
+				>
+					<label class="fieldset py-4">
+						<div class="flex items-center gap-x-4">
+							<span class="label">Show Subscription Stats</span>
+							<input
+								id="setting-show-subscription-stats"
+								type="checkbox"
+								name="show_subscription_stats"
+								if user.GetSettings().ShowSubscriptionStats {
+									checked
+								}
+								aria-describedby="setting-show-subscription-stats-description"
+								class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
+							/>
+						</div>
+						<p id="setting-show-subscription-stats-description" class="text-sm/6">
 							Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.
 						</p>
-					</div>
-				</div>
-				<div class="flex items-center gap-x-4">
-					<input
-						id="setting-mark-article-read-on-view"
-						type="checkbox"
-						name="mark_article_read_on_view"
-						if user.GetSettings().MarkArticleReadOnView {
-							checked
-						}
-						aria-describedby="setting-mark-article-read-on-view-description"
-						class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
-					/>
-					<div class="flex-1 text-sm/6">
-						<label for="setting-mark-article-read-on-view" class="font-medium">Mark Article Read on View</label>
-						<p id="setting-mark-article-read-on-view-description" class="text-base-content/80">
+					</label>
+					<label class="fieldset py-4">
+						<div class="flex items-center gap-x-4">
+							<span class="label">Mark Article Read on View</span>
+							<input
+								id="setting-mark-article-read-on-view"
+								type="checkbox"
+								name="mark_article_read_on_view"
+								if user.GetSettings().MarkArticleReadOnView {
+									checked
+								}
+								aria-describedby="setting-mark-article-read-on-view-description"
+								class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
+							/>
+						</div>
+						<p id="setting-mark-article-read-on-view-description" class="text-sm/6">
 							When viewing an article, mark it as read automatically when viewed.
 						</p>
-					</div>
-				</div>
-				<div class="flex flex-col items-center space-y-4 space-x-4 sm:flex-row">
-					<div class="flex-1 text-sm/6">
-						<label for="setting-max-view-history" class="font-medium">Max View History</label>
-						<p id="setting-mark-article-read-on-view-description" class="text-base-content/80">
+					</label>
+					<label class="fieldset py-4">
+						<span class="label">Max View History</span>
+						<select class="select" name="max_view_history">
+							// NOTE: these are in hours for readability, need to be multiplied to nanoseconds before storing.
+							<option
+								value="168"
+								if user.GetSettings().MaxViewHistory.Hours() == 168 {
+									selected
+								}
+							>Last week</option>
+							<option
+								value="730"
+								if user.GetSettings().MaxViewHistory.Hours() == 730 {
+									selected
+								}
+							>Last month</option>
+							<option
+								value="4383"
+								if user.GetSettings().MaxViewHistory.Hours() == 4383 {
+									selected
+								}
+							>Last six months</option>
+						</select>
+						<p id="setting-mark-article-read-on-view-description" class="text-sm/6">
 							Controls the max age of articles to show (read or unread). It does not affect searches.
 						</p>
+					</label>
+					<div class="flex w-full justify-end mt-4">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-md loading-spinner"></span>
+						</div>
+						<div class="mt-2 flex items-center justify-end gap-x-6">
+							<button type="submit" class="btn btn-primary">Save</button>
+						</div>
 					</div>
-					<select class="select" name="max_view_history">
-						// NOTE: these are in hours for readability, need to be multiplied to nanoseconds before storing.
-						<option
-							value="168"
-							if user.GetSettings().MaxViewHistory.Hours() == 168 {
-								selected
-							}
-						>Last week</option>
-						<option
-							value="730"
-							if user.GetSettings().MaxViewHistory.Hours() == 730 {
-								selected
-							}
-						>Last month</option>
-						<option
-							value="4383"
-							if user.GetSettings().MaxViewHistory.Hours() == 4383 {
-								selected
-							}
-						>Last six months</option>
-					</select>
+				</form>
+			</fieldset>
+			// Theme settings.
+			<div id="theme-settings" class="min-w-0 py-8">
+				<div class="text-lg font-medium">Theme</div>
+				<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+				// * Changing themes here also requires updating the list in styles.css.
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+					@themePreview("greenhouse")
+					@themePreview("light")
+					@themePreview("dark")
+					@themePreview("grove")
+					@themePreview("forest")
+					@themePreview("catppuccin-mocha")
+					@themePreview("catppuccin-latte")
+					@themePreview("dracula")
+					@themePreview("solarized-dark")
 				</div>
-				<div class="col-span-full place-self-end">
-					<div id="processing" class="htmx-indicator">
-						Processing...
-						<span class="loading loading-md loading-spinner"></span>
-					</div>
-					<div class="mt-2 flex items-center justify-end gap-x-6">
-						<button type="submit" class="btn btn-primary">Save</button>
-					</div>
-				</div>
-			</form>
-		</div>
-		// Theme settings.
-		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			<div class="md:col-span-full">
-				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-					Theme
-				</h3>
-				<p>Choose a theme from the selection below. It will be applied instantly.</p>
-			</div>
-			// * Changing themes here also requires updating the list in styles.css.
-			<div class="col-span-full grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
-				@themePreview("greenhouse")
-				@themePreview("light")
-				@themePreview("dark")
-				@themePreview("grove")
-				@themePreview("forest")
-				@themePreview("catppuccin-mocha")
-				@themePreview("catppuccin-latte")
-				@themePreview("dracula")
-				@themePreview("solarized-dark")
 			</div>
 		</div>
-	</div>
+	}
 }
 
 type SubscriptionSettingsData struct {
