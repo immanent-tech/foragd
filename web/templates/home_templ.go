@@ -690,7 +690,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<form><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-3 pt-4\"><div class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" _=\"on click toggle @checked on <input/> in me\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<form><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-3 pt-4\"><label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -698,7 +698,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<label class=\"card-title text-secondary\" for=\"informed\">Informed</label></div><p class=\"text-sm/6\">News and information from across the web.</p></div><div class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" _=\"on click toggle @checked on <input/> in me\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"card-title text-secondary\" for=\"informed\">Informed</div></div><p class=\"text-sm/6\">News and information from across the web.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -706,7 +706,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<label class=\"card-title text-secondary\" for=\"inspired\">Inspired</label></div><p class=\"text-sm/6\">Digital art, design and creative oddities.</p></div><div class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" _=\"on click toggle @checked on <input/> in me\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"card-title text-secondary\" for=\"inspired\">Inspired</div></div><p class=\"text-sm/6\">Digital art, design and creative oddities.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -714,7 +714,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<label class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</label></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></div></div><div class=\"mt-4 animate-fadeinup transition-transform duration-300 ease-in-out\" style=\"--i: 2\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</div></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></label></div><div class=\"mt-4 animate-fadeinup transition-transform duration-300 ease-in-out\" style=\"--i: 2\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
