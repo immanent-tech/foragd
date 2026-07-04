@@ -17,7 +17,7 @@ import (
 )
 
 templ (s *Subscription) subscriptionFavoriteToggle() {
-	<div class="tooltip" data-tip="Toggle favorite">
+	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
 		<label
 			id={ s.GetID() + "-toggle-favorite" }
 			aria-label={ "Toggle favorite status for " + s.GetTitle() }
@@ -53,7 +53,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 				mark = models.MarkUnread
 			}
 		}}
-		<div class="tooltip" data-tip={ "Toggle mark" }>
+		<div class="tooltip tooltip-top tooltip-end" data-tip={ "Toggle mark" }>
 			<label
 				id={ s.GetID() + "-toggle-mark" }
 				aria-label={ "Toggle mark status for " + s.GetTitle() }
@@ -200,7 +200,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
-					<div class="tooltip overflow-visible" data-tip="Subscription actions">
+					<div class="tooltip tooltip-top tooltip-end" data-tip="Subscription actions">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
 							<button
 								id={ "btn-" + s.GetID() + "-actions" }

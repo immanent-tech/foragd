@@ -46,7 +46,7 @@ func (s *Subscription) subscriptionFavoriteToggle() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"tooltip\" data-tip=\"Toggle favorite\"><label id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Toggle favorite\"><label id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -151,14 +151,14 @@ func (s *Subscription) subscriptionMarkToggle() templ.Component {
 			} else {
 				mark = models.MarkUnread
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"tooltip\" data-tip=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue("Toggle mark")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 56, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 56, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
@@ -583,7 +583,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div aria-hidden=\"true\" class=\"mx-1 h-4 w-px bg-neutral/20\"></div><div class=\"tooltip overflow-visible\" data-tip=\"Subscription actions\"><el-dropdown class=\"relative touch-manipulation\" _=\"on click halt the event's bubbling\"><button id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div aria-hidden=\"true\" class=\"mx-1 h-4 w-px bg-neutral/20\"></div><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Subscription actions\"><el-dropdown class=\"relative touch-manipulation\" _=\"on click halt the event's bubbling\"><button id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
