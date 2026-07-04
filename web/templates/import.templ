@@ -7,6 +7,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"slices"
 	"strconv"
 )
@@ -16,44 +17,49 @@ import (
 templ ImportSubscriptions() {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@container() {
-				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Import Subscriptions</h1>
-				<p>You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p>
-				<form
-					id="import-subscriptions-form"
-					hx-encoding="multipart/form-data"
-					hx-post="/user/import"
-					hx-target="#import-results"
-					hx-indicator="#processing"
-					hx-push-url="false"
-				>
-					<div class="space-y-12 sm:space-y-16 text-center">
+			@narrowContainer(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					@pageTitle("Import Subscriptions")
+				}
+				<p class="mt-4 text-sm/6">
+					You can import your existing subscriptions from an OPML file. Most feed services support
+					generating an OPML file you can use.
+				</p>
+				<fieldset class="fieldset min-w-0 py-8">
+					<form
+						id="import-subscriptions-form"
+						hx-encoding="multipart/form-data"
+						hx-post="/user/import"
+						hx-target="#import-results"
+						hx-indicator="#import-button"
+						hx-push-url="false"
+					>
 						<div
 							id="drop-zone"
-							class="group mt-2 mx-auto flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-prose"
+							class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 max-w-full sm:max-w-lg"
 							_="
-                                        on dragover
-                                          halt the event
-                                          add .bg-base-300 .border-accent to me
-                                        end
+                            on dragover
+                              halt the event
+                              add .bg-base-300 .border-accent to me
+                            end
 
-                                        on dragleave
-                                          remove .bg-base-300 .border-accent from me
-                                        end
+                            on dragleave
+                              remove .bg-base-300 .border-accent from me
+                            end
 
-                                        on drop
-                                          halt the event
-                                          remove .bg-base-300 .border-accent from me
-                                          set files to event.dataTransfer.files
-                                          set #opml-upload's files to files
-                                          set #file-name's textContent to files[0].name
-                                        end
-                                    "
+                            on drop
+                              halt the event
+                              remove .bg-base-300 .border-accent from me
+                              set files to event.dataTransfer.files
+                              set #opml-upload's files to files
+                              set #file-name's textContent to files[0].name
+                            end
+                            "
 						>
 							<div class="text-center">
 								@tablerfilled.FileRss(templ.Attributes{"class": "mx-auto size-12 group-hover:fill-primary group-active:fill-primary"})
-								<span id="file-name"></span>
-								<div class="mt-4 flex items-center text-sm/6">
+								<span id="file-name" class="block max-w-full truncate"></span>
+								<div class="mt-4 flex flex-wrap items-center justify-center text-sm/6">
 									<label for="opml-upload" class="relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary">
 										<span class="btn btn-outline btn-neutral">Upload a file</span>
 										<input
@@ -69,27 +75,19 @@ templ ImportSubscriptions() {
 								<p class="text-xs/5">.opml up to 10MB</p>
 							</div>
 						</div>
-					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-md loading-spinner"></span>
+						<div class="flex w-full justify-end mt-4">
+							<button id="import-button" type="submit" class="btn btn-primary">
+								<span class="show-loading items-center">
+									<span class="loading mr-3 loading-spinner"></span>
+									<span class="text-sm/6">Processing</span>
+								</span>
+								<span class="hide-loading items-center">
+									<span class="text-sm/6">Import</span>
+								</span>
+							</button>
 						</div>
-						// Back button.
-						<button
-							type="button"
-							class="btn btn-secondary hover:btn-error"
-							hx-get={ FromPathFromCtx(ctx) }
-							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML transition:true"
-							hx-push-url="true"
-						>
-							Back
-						</button>
-						// Import button.
-						<button type="submit" class="btn btn-primary">Import</button>
-					</div>
-				</form>
+					</form>
+				</fieldset>
 				<div id="import-results"></div>
 			}
 		}
@@ -153,7 +151,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			for result := range slices.Values(successfulResults) {
 				<li class="list-row items-center">
 					<div class="flex items-center space-x-2">
-						@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-10 text-success", "aria-hidden": "true"})
+						@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-6 text-success", "aria-hidden": "true"})
 						<div class="space-y-2">
 							<p>Subscription Created:</p>
 							<p>{ result.Subscription.GetTitle() }</p>
@@ -164,7 +162,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			for result := range slices.Values(failedResults) {
 				<li class="list-row items-center">
 					<div class="flex items-center space-x-2">
-						@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-10 text-error", "aria-hidden": "true"})
+						@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-6 text-error", "aria-hidden": "true"})
 						{{ msg := result.Error.GetUserMessage() }}
 						<div class="space-y-2">
 							<div>{ msg.Summary }</div>
@@ -180,7 +178,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			for result := range slices.Values(warningResults) {
 				<li class="list-row items-center">
 					<div class="flex items-center space-x-2">
-						@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-10 text-warning", "aria-hidden": "true"})
+						@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-6 text-warning", "aria-hidden": "true"})
 						{{ msg := result.Error.GetUserMessage() }}
 						<div class="space-y-2">
 							<div>{ msg.Summary }</div>
