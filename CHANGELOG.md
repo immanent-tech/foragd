@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.181.2](https://github.com/immanent-tech/foragd/compare/v0.181.1...v0.181.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **templates/import:** 🎨 update import form to be consistent with other pages ([d7132f7](https://github.com/immanent-tech/foragd/commit/d7132f7a245a1cb30c0aa9b5f6fefac5c9b2c3b8))
+* **templates/issues:** 🎨 update issues form to be consistent with other pages ([0ce934e](https://github.com/immanent-tech/foragd/commit/0ce934edd57722f891f2ba1eeaf3b3e5b5bb59a9))
+* **templates/subscriptions,templates/articles:** 🎨 consolidate buttons at top of lists ([ff900a9](https://github.com/immanent-tech/foragd/commit/ff900a9a3383597da6565f88b24f1278918784c1))
+* **templates:** 🔧 fix page heading and actions layout ([b1d1612](https://github.com/immanent-tech/foragd/commit/b1d1612893687b569ba92777d965c5508396174d))
+
 ## [0.181.1](https://github.com/immanent-tech/foragd/compare/v0.181.0...v0.181.1) (2026-07-03)
 
 
