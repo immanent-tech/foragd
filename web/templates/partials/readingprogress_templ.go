@@ -33,7 +33,7 @@ func ReadingProgress() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"progress-bar fixed top-16 left-0 lg:left-36 z-10 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"progress-bar fixed top-16 left-0 right-0 lg:left-36 z-10 h-1 bg-accent origin-left transition-transform duration-50 ease-linear\" style=\"transform: scaleX(0)\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

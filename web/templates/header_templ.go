@@ -118,7 +118,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header id=\"page-header\" aria-label=\"Header\" class=\"fixed top-0 inset-x-safe-or-0 z-50 h-16 w-screen border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header id=\"page-header\" aria-label=\"Header\" class=\"fixed top-0 inset-x-safe-or-0 z-50 h-16 border-b border-neutral/10 bg-base-200 pt-safe shadow-sm\"><div class=\"flex w-full items-center justify-between\"><a hx-get=\"/home\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

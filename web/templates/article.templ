@@ -24,7 +24,7 @@ import (
 
 // favoriteToggle renders a button toggle for toggling the favorite status of an article.
 templ (a *Article) favoriteToggle() {
-	<div class="tooltip" data-tip="Toggle favorite">
+	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
 		<label
 			class="btn swap btn-square btn-ghost btn-sm"
 			{ a.favoriteAttributes()... }
@@ -57,7 +57,7 @@ templ (a *Article) markToggle() {
 			mark = models.MarkUnread
 		}
 	}}
-	<div class="tooltip" data-tip="Toggle read status">
+	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
 		<label
 			id={ a.GetID() + "-mark-toggle" }
 			class="btn swap btn-square btn-ghost btn-sm"
@@ -197,7 +197,7 @@ templ (a *Article) showFeedContentButton() {
 
 // actionsMenu renders a menu containing article-specific actions.
 templ (a *Article) actionsMenu() {
-	<div class="tooltip overflow-visible" data-tip="Article actions">
+	<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
 		<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 			<button id={ a.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
 				<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
@@ -484,8 +484,8 @@ templ ArticleContent(a *models.Article) {
 						}
 					</div>
 					// Byline and actions.
-					<div class="grid grid-cols-2 items-center justify-between border-b border-neutral/20 p-1">
-						<div class="flex items-center">
+					<div class="flex items-center justify-between border-b border-neutral/20 p-1">
+						<div class="shrink items-center">
 							if article.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
 								if len(article.GetAuthors()) > 0 {
@@ -495,14 +495,14 @@ templ ArticleContent(a *models.Article) {
 											authors = append(authors, author.String())
 										}
 									}}
-									<strong class="truncate text-sm/6">
+									<div class="truncate text-sm/6">
 										{ strings.Join(authors,",") }
-									</strong>
+									</div>
 								}
 							}
 						</div>
 						// Actions.
-						<div class="col-start-2 ml-auto flex shrink-0 items-center">
+						<div class="ml-auto content-end items-center">
 							// Toggle favorite action.
 							@article.favoriteToggle()
 							// Toggle mark action.

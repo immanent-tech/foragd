@@ -99,6 +99,11 @@
     }
   }
 
+  /* For debugging overflow issues. Disable in production. */
+  /* * {
+    outline: 1px solid red;
+  } */
+
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
