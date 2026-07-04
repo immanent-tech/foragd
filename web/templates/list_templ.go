@@ -361,7 +361,7 @@ func (c *listControls) Show(actions templ.Component, buttons templ.Component) te
 			return templ_7745c5c3_Err
 		}
 		if buttons != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"flex flex-1 justify-end\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"flex flex-1 justify-end gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

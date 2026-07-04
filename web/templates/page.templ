@@ -11,7 +11,7 @@ templ pageHeading(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-heading"
-		class={ "flex md:flex-row md:items-center md:justify-between", props.Classes() }
+		class={ "md:flex md:items-center md:justify-between", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
@@ -20,7 +20,7 @@ templ pageHeading(options ...element.PropertiesOption) {
 
 // pageTitle renders a page title and any additional/supporting content.
 templ pageTitle(title string) {
-	<div id="page-title" class="min-w-0 flex-1 self-center sm:self-start">
+	<div id="page-title" class="min-w-0 flex-1">
 		<h1 class="font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">{ title }</h1>
 		{ children... }
 	</div>
@@ -32,7 +32,7 @@ templ pageActions(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-actions"
-		class={ "flex flex-col sm:flex-row justify-end sm:justify-start items-center", props.Classes() }
+		class={ "mt-4 flex md:mt-0 md:ml-4", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }

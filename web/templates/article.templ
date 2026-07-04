@@ -648,12 +648,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						{{ title = "Articles" }}
 					}
 					@pageTitle(title)
-					@pageActions(element.WithClasses("justify-between p-2")) {
-						@listArticlesActions(response)
-					}
 				}
 				if len(response.Articles) >0 {
-					@controls.Show(nil, listArticlesButtons(response))
+					@controls.Show(listArticlesActions(response), listArticlesButtons(response))
 				}
 				<section id="articles-list" class="ptr-content pt-4">
 					<div id="refreshing" class="mx-auto flex w-full justify-center">
@@ -780,11 +777,16 @@ templ ListArticles(response *models.ListArticlesResponse) {
 
 templ listArticlesActions(response *models.ListArticlesResponse) {
 	if response.Subscription != nil {
-		{{ s := Subscription{Subscription: response.Subscription} }}
-		<button { s.editAttributes("/list/articles")... } class="btn border-neutral/15 btn-outline btn-sm">
-			@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
-			Edit Subscription
-		</button>
+		<li class="menu-title">Actions</li>
+		<ul>
+			<li>
+				{{ s := Subscription{Subscription: response.Subscription} }}
+				<a { s.editAttributes("/list/articles")... }>
+					@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+					Edit Subscription
+				</a>
+			</li>
+		</ul>
 	}
 }
 
@@ -798,6 +800,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		}
 	}}
 	if response.Subscription == nil {
+		// Mark all button.
 		<button
 			if response.Filters.GetView() == models.ViewUnread {
 				hx-post="/list/articles/mark/read"
@@ -818,6 +821,13 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			}
 		</button>
 	} else {
+		// Edit subscription button. Only shown on desktop screens (in mobile dialog on smaller screens).
+		{{ s := Subscription{Subscription: response.Subscription} }}
+		<button { s.editAttributes("/list/articles")... } class="btn border-neutral/15 btn-outline btn-sm hidden sm:flex">
+			@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+			Edit Subscription
+		</button>
+		// Mark all button.
 		if response.Filters.GetView() != models.ViewAll {
 			<button
 				hx-post={ "/mark/subscription/" + response.Subscription.GetID() }

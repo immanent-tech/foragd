@@ -38,7 +38,7 @@ func pageHeading(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"flex md:flex-row md:items-center md:justify-between", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"md:flex md:items-center md:justify-between", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -102,7 +102,7 @@ func pageTitle(title string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"page-title\" class=\"min-w-0 flex-1 self-center sm:self-start\"><h1 class=\"font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"page-title\" class=\"min-w-0 flex-1\"><h1 class=\"font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -155,7 +155,7 @@ func pageActions(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var7 = []any{"flex flex-col sm:flex-row justify-end sm:justify-start items-center", props.Classes()}
+		var templ_7745c5c3_Var7 = []any{"mt-4 flex md:mt-0 md:ml-4", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var7...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
