@@ -175,104 +175,99 @@ templ UserSettings() {
 templ AccountSettings(user *models.User) {
 	@narrowContainer() {
 		<div id="account-settings" class="mt-12 divide-y divide-base-content/15 space-y-8">
-			<div class="flex flex-col py-8">
-				<div>
-					// Subscription Details.
-					<h3 class="text-lg font-medium">
-						Subscription Plan
-					</h3>
-					switch  {
-						case user.InTrial():
-							<p>
-								Trial, ending:
-								<relative-time
-									datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod) }
-									format="relative"
-									class="tabular-nums"
-								>
-									{ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") }
-								</relative-time>
-								({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
-							</p>
-							<div class="flex w-full justify-end">
+			<fieldset class="fieldset min-w-0 py-8">
+				<legend class="text-lg font-medium">Subscription Plan</legend>
+				switch  {
+					case user.InTrial():
+						<p>
+							Trial, ending:
+							<relative-time
+								datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod) }
+								format="relative"
+								class="tabular-nums"
+							>
+								{ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") }
+							</relative-time>
+							({ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("Jan _2, 2006") })
+						</p>
+						<div class="flex w-full justify-end">
+							<button
+								role="button"
+								class="btn btn-primary"
+								hx-get="/checkout"
+								hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
+								hx-target={ ContentID.Target() }
+							>
+								Purchase a subscription
+							</button>
+							<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+								@androidRestorePurchaseScript()
 								<button
 									role="button"
-									class="btn btn-primary"
-									hx-get="/checkout"
-									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
-									hx-target={ ContentID.Target() }
-								>
-									Purchase a subscription
-								</button>
-								<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
-									@androidRestorePurchaseScript()
-									<button
-										role="button"
-										class="btn btn-secondary"
-										onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
-									>Restore purchases</button>
-								</div>
+									class="btn btn-secondary"
+									onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
+								>Restore purchases</button>
 							</div>
-						case user.InTrialGracePeriod():
-							<span class="badge badge-warning">Trial Expired</span>
-							<p>Please purchase a subscription to maintain access to your account.</p>
-							<div class="flex w-full justify-end">
+						</div>
+					case user.InTrialGracePeriod():
+						<span class="badge badge-warning">Trial Expired</span>
+						<p>Please purchase a subscription to maintain access to your account.</p>
+						<div class="flex w-full justify-end">
+							<button
+								role="button"
+								class="btn btn-primary"
+								hx-get="/checkout"
+								hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
+								hx-target={ ContentID.Target() }
+							>
+								Purchase a subscription
+							</button>
+							<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
+								@androidRestorePurchaseScript()
 								<button
 									role="button"
-									class="btn btn-primary"
-									hx-get="/checkout"
-									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
-									hx-target={ ContentID.Target() }
-								>
-									Purchase a subscription
-								</button>
-								<div class="hidden" _="init if window.getDigitalGoodsService remove .hidden from me end">
-									@androidRestorePurchaseScript()
-									<button
-										role="button"
-										class="btn btn-secondary"
-										onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
-									>Restore purchases</button>
-								</div>
+									class="btn btn-secondary"
+									onclick={ templ.JSFuncCall("restoreAndroidPurchases") }
+								>Restore purchases</button>
 							</div>
-						default:
-							switch *user.UserSubscriptionType {
-								case models.UserSubscriptionTypePaddle:
-									@showPaddleSubscriptionDetails(user)
-									<div class="flex w-full justify-end mt-4">
-										if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
-											{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
-											<a
-												role="button"
-												class="btn btn-primary w-fit"
-												href="/contact"
-											>Contact Us</a>
-										} else {
-											<a
-												role="button"
-												class="btn btn-primary w-fit"
-												target="_blank"
-												rel="noopener"
-												href={ mgmtLink }
-											>Manage Subscription Plan</a>
-										}
-									</div>
-								case models.UserSubscriptionTypeAndroid:
-									@showAndroidSubscriptionDetails(user)
-									<div class="flex w-full justify-end mt-4">
+						</div>
+					default:
+						switch *user.UserSubscriptionType {
+							case models.UserSubscriptionTypePaddle:
+								@showPaddleSubscriptionDetails(user)
+								<div class="flex w-full justify-end mt-4">
+									if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
+										{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
+										<a
+											role="button"
+											class="btn btn-primary w-fit"
+											href="/contact"
+										>Contact Us</a>
+									} else {
 										<a
 											role="button"
 											class="btn btn-primary w-fit"
 											target="_blank"
 											rel="noopener"
-											href="https://play.google.com/store/account/subscriptions"
+											href={ mgmtLink }
 										>Manage Subscription Plan</a>
-									</div>
-									<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
-							}
-					}
-				</div>
-			</div>
+									}
+								</div>
+							case models.UserSubscriptionTypeAndroid:
+								@showAndroidSubscriptionDetails(user)
+								<div class="flex w-full justify-end mt-4">
+									<a
+										role="button"
+										class="btn btn-primary w-fit"
+										target="_blank"
+										rel="noopener"
+										href="https://play.google.com/store/account/subscriptions"
+									>Manage Subscription Plan</a>
+								</div>
+								<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
+						}
+				}
+			</fieldset>
 			// Account Details.
 			<fieldset class="fieldset min-w-0 py-8">
 				<legend class="text-lg font-medium">Edit Account</legend>
