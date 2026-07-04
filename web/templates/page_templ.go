@@ -38,7 +38,7 @@ func pageHeading(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"md:flex md:items-center md:justify-between", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"flex md:flex-row md:items-center md:justify-between", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -102,7 +102,7 @@ func pageTitle(title string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"page-title\" class=\"min-w-0 flex-1\"><h1 class=\"font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"page-title\" class=\"min-w-0 flex-1 self-center sm:self-start\"><h1 class=\"font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -155,7 +155,7 @@ func pageActions(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var7 = []any{"mt-4 flex items-center md:mt-0 md:ml-4", props.Classes()}
+		var templ_7745c5c3_Var7 = []any{"flex flex-col sm:flex-row justify-end sm:justify-start items-center", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var7...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -374,7 +374,7 @@ func buttonBackToTop() templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"scroll-sentinel\" style=\"height:1px;\" _=\"\n\t\ton intersection(intersecting)\n\t\t\tif intersecting\n\t\t\t\tsend scrollSentinelVisible\n\t\t\telse\n\t\t\t\tsend scrollSentinelHidden\n\t\t\tend\n\t\tend\n\t\t\"></div><button class=\"btn fixed z-50 right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10 opacity-0 translate-y-4 pointer-events-none transition-[opacity,transform] duration-200 ease-out hover:animate-bounce\" _=\"\n  \t\ton scrollSentinelHidden from #scroll-sentinel\n  \t\t  remove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\tend\n  \t\ton scrollSentinelVisible from #scroll-sentinel\n  \t\t  add .opacity-0 .translate-y-4 .pointer-events-none to me\n  \t\tend\n  \t\ton click scroll to top of #content smoothly\n  \t\t\"><span class=\"sr-only\">Back to top</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"scroll-sentinel\" style=\"height:1px;\" _=\"\n\t\ton intersection(intersecting)\n\t\t\tif intersecting\n\t\t\t\tsend scrollSentinelVisible\n\t\t\telse\n\t\t\t\tsend scrollSentinelHidden\n\t\t\tend\n\t\tend\n\t\t\"></div><button class=\"btn pointer-events-none fixed right-5 bottom-20 z-50 btn-circle translate-y-4 opacity-0 transition-[opacity,transform] duration-200 ease-out btn-secondary hover:animate-bounce sm:right-10 lg:bottom-10\" _=\"\n  \t\ton scrollSentinelHidden from #scroll-sentinel\n  \t\t  remove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\tend\n  \t\ton scrollSentinelVisible from #scroll-sentinel\n  \t\t  add .opacity-0 .translate-y-4 .pointer-events-none to me\n  \t\tend\n  \t\ton click scroll to top of #content smoothly\n  \t\t\"><span class=\"sr-only\">Back to top</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

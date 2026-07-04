@@ -57,7 +57,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 			<label
 				id={ s.GetID() + "-toggle-mark" }
 				aria-label={ "Toggle mark status for " + s.GetTitle() }
-				class="btn btn-square btn-ghost btn-md swap"
+				class="btn swap btn-square btn-ghost btn-md"
 				_="
 				  on htmx:afterRequest
     				if event.detail.successful
@@ -159,8 +159,8 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 				<div class="flex min-w-0 flex-col">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-						<div class="inline-grid grid-flow-row grid-cols-2 gap-1 items-center">
-							<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
+						<div class="inline-grid grid-flow-row grid-cols-2 items-center gap-1">
+							<span class="col-span-full badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
 								<relative-time
 									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 									format="relative"
@@ -169,11 +169,11 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								</relative-time>
 							</span>
 							if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-								<span class="col-span-1 badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
+								<span class="col-span-1 badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
 									{ s.GetStats().UpdateFrequency() }
 								</span>
 							}
-							<span class="col-span-1 badge badge-neutral badge-soft badge-sm tabular-nums justify-start">
+							<span class="col-span-1 badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
 								if s.GetStats().UnreadTotal() >= 100 {
 									99+ unread
 								} else {
@@ -182,7 +182,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 							</span>
 						</div>
 					} else {
-						<span class="col-span-full badge badge-neutral badge-soft badge-sm tabular-nums">
+						<span class="col-span-full badge badge-soft badge-sm tabular-nums badge-neutral">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
@@ -198,7 +198,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 					// Mark action.
 					@s.subscriptionMarkToggle()
 					// Separator.
-					<div aria-hidden="true" class="h-4 w-px bg-neutral/20 mx-1"></div>
+					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
 					<div class="tooltip overflow-visible" data-tip="Subscription actions">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
@@ -278,48 +278,13 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Show a page header.
 				@pageHeading() {
 					@pageTitle("Subscriptions")
-					@pageActions(element.WithClasses("justify-between p-2")) {
-						@controls.viewFilters()
-						@controls.sortOptions()
-					}
 				}
 				// List actions.
 				if len(response.Subscriptions) > 0 {
-					<ul id="list-actions" class="menu menu-horizontal w-full flex justify-end">
-						if len(response.Subscriptions) > 0 {
-							{{
-								var mark models.Mark
-								if response.Filters.GetView() == models.ViewUnread {
-									mark = models.MarkRead
-								} else {
-									mark = models.MarkUnread
-								}
-							}}
-							<li>
-								<button
-									hx-post={ "/list/subscriptions/mark/" + string(mark) }
-									hx-target={ ContentID.Target() }
-									hx-include=".card > input"
-									hx-vals={ templ.JSONString(map[string]string{
-												"view": string(response.Filters.GetView()),
-												"mark": string(mark),
-											}) }
-									class="btn btn-outline btn-sm border-neutral/15"
-								>
-									if response.Filters.GetView() == models.ViewUnread {
-										@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-										Mark shown as Read
-									} else {
-										@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-										Mark shown as Unread
-									}
-								</button>
-							</li>
-						}
-					</ul>
+					@controls.Show(nil, listSubscriptionsButtons(response))
 				}
-				<section id="subscriptions-list" class="pt-4 ptr-content">
-					<div id="refreshing" class="flex w-full mx-auto justify-center">
+				<section id="subscriptions-list" class="ptr-content pt-4">
+					<div id="refreshing" class="mx-auto flex w-full justify-center">
 						<div class="show-loading py-4 text-center">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
@@ -345,7 +310,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 													<div class="mt-auto h-full">
 														<ul class="latest-items menu">
 															for item := range slices.Values(items) {
-																<li class="my-1 text-base border-l-2 border-accent/40 pl-3">
+																<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
 																	<a
 																		hx-get={ "/view/article/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
@@ -368,18 +333,18 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							}
 						}
 						@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
+						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
 							<div class="show-loading text-center">
 								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</div>
 						</div>
 						// Show some actions at the bottom of the list.
-						<ul class="mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2">
+						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 							// Mark all subscriptions action.
 							<li>
 								<button
-									class="btn btn-outline border-neutral/15"
+									class="btn border-neutral/15 btn-outline"
 									if response.Filters.GetView() == models.ViewUnread {
 										hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
 										hx-vals={ templ.JSONString(map[string]any{
@@ -426,6 +391,35 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 			></div>
 		}
 	}
+}
+
+templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
+	{{
+		var mark models.Mark
+		if response.Filters.GetView() == models.ViewUnread {
+			mark = models.MarkRead
+		} else {
+			mark = models.MarkUnread
+		}
+	}}
+	<button
+		hx-post={ "/list/subscriptions/mark/" + string(mark) }
+		hx-target={ ContentID.Target() }
+		hx-include=".card > input"
+		hx-vals={ templ.JSONString(map[string]string{
+			"view": string(response.Filters.GetView()),
+			"mark": string(mark),
+		}) }
+		class="btn border-neutral/15 btn-outline btn-sm"
+	>
+		if response.Filters.GetView() == models.ViewUnread {
+			@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+			Mark shown as Read
+		} else {
+			@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+			Mark shown as Unread
+		}
+	</button>
 }
 
 templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
@@ -487,7 +481,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				@pageHeading() {
 					@pageTitle("Add a subscription")
 				}
-				<div id="add-subscription" class="divide-y divide-base-content/15 space-y-8">
+				<div id="add-subscription" class="space-y-8 divide-y divide-base-content/15">
 					<fieldset class="fieldset min-w-0 py-8">
 						<form
 							hx-post="/subscription/add/suggestions"
@@ -503,7 +497,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
 								<li>Enter search terms (see notes below) as appropriate.</li>
 							</ol>
-							<label for="add-subscription-search" class="mt-4 label">
+							<label for="add-subscription-search" class="label mt-4">
 								Source search terms:
 							</label>
 							<div class="mt-2 w-full">
@@ -611,7 +605,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 					</fieldset>
 					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<div
-							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+							class="card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/subscription/add/group"
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
@@ -623,7 +617,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
 						</div>
 						<div
-							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98] cursor-pointer touch-manipulation"
+							class="card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/subscription/add/search"
 							hx-target={ ContentID.Target() }
 							hx-include="#search-filters"
@@ -635,7 +629,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							</div>
 							<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
 						</div>
-						<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
+						<div class="col-span-full card-body justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
 							<div class="flex flex-row items-center gap-x-3">
 								@tableroutline.Mailbox(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 								<div class="card-title text-secondary">Subscribe to email newsletters</div>
@@ -693,7 +687,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 		}
 		@pageTitle(title)
 	}
-	<div class="mt-12 divide-y divide-base-content/15 space-y-8">
+	<div class="mt-12 space-y-8 divide-y divide-base-content/15">
 		<form
 			id="add-subscription"
 			if action == "add" {
@@ -724,7 +718,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 							value={ request.Customisation.GetNickname() }
 						}
 						placeholder="My cool subscription…"
-						class="input bg-base-content/10 input-primary w-full"
+						class="input w-full bg-base-content/10 input-primary"
 					/>
 					<p class="text-sm/6">Add a nickname for the subscription.</p>
 				</label>
@@ -784,7 +778,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					</label>
 				</fieldset>
 			}
-			<div class="flex w-full justify-end mt-4 gap-4">
+			<div class="mt-4 flex w-full justify-end gap-4">
 				<button
 					type="button"
 					class="btn btn-secondary hover:btn-error"
@@ -999,7 +993,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 					}
 					@pageTitle(title)
 				}
-				<div class="mt-12 divide-y divide-base-content/15 space-y-8">
+				<div class="mt-12 space-y-8 divide-y divide-base-content/15">
 					<form
 						id="add-subscription"
 						if action == "add" {
@@ -1029,7 +1023,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 										value={ request.Customisation.GetNickname() }
 									}
 									placeholder="My cool subscription…"
-									class="input bg-base-content/10 input-primary w-full"
+									class="input w-full bg-base-content/10 input-primary"
 								/>
 								<p class="text-sm/6">Add a nickname for the subscription.</p>
 							</label>
@@ -1171,7 +1165,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						} else {
 							@CategoryManagement(request.SuggestedCategories, nil)
 						}
-						<div class="flex w-full justify-end mt-4 gap-4">
+						<div class="mt-4 flex w-full justify-end gap-4">
 							<button
 								type="button"
 								class="btn btn-secondary hover:btn-error"
@@ -1232,7 +1226,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 					}
 					@pageTitle(title)
 				}
-				<div class="mt-12 divide-y divide-base-content/15 space-y-8">
+				<div class="mt-12 space-y-8 divide-y divide-base-content/15">
 					<form
 						id="add-subscription"
 						if action == "add" {
@@ -1264,7 +1258,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										value={ request.Customisation.GetNickname() }
 									}
 									placeholder="My cool subscription…"
-									class="input bg-base-content/10 input-primary w-full"
+									class="input w-full bg-base-content/10 input-primary"
 								/>
 								<p class="text-sm/6">Add a nickname for the subscription.</p>
 							</label>
@@ -1360,7 +1354,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						}
 						// Article Filters.
 						@subscriptionArticleFiltersFields(request.ArticleFilters)
-						<div class="flex w-full justify-end mt-4 gap-4">
+						<div class="mt-4 flex w-full justify-end gap-4">
 							<button
 								type="button"
 								class="btn btn-secondary hover:btn-error"

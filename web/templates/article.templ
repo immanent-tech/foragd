@@ -26,7 +26,7 @@ import (
 templ (a *Article) favoriteToggle() {
 	<div class="tooltip" data-tip="Toggle favorite">
 		<label
-			class="btn btn-square btn-ghost btn-sm swap"
+			class="btn swap btn-square btn-ghost btn-sm"
 			{ a.favoriteAttributes()... }
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
@@ -60,7 +60,7 @@ templ (a *Article) markToggle() {
 	<div class="tooltip" data-tip="Toggle read status">
 		<label
 			id={ a.GetID() + "-mark-toggle" }
-			class="btn btn-square btn-ghost btn-sm swap"
+			class="btn swap btn-square btn-ghost btn-sm"
 			_="
 			  on htmx:afterRequest
 			  	if event.detail.successful
@@ -104,7 +104,7 @@ templ (a *Article) markToggle() {
 templ (a *Article) shareButton() {
 	// Mobile share action via navigator API.
 	<a
-		class="border border-neutral/15 hidden text-sm rounded-field"
+		class="hidden rounded-field border border-neutral/15 text-sm"
 		data-title={ a.GetTitle() }
 		data-url={ a.GetLink() }
 		_="init if navigator.share remove .hidden from me end
@@ -118,7 +118,7 @@ templ (a *Article) shareButton() {
 	</a>
 	// Desktop share action with modal and options.
 	<a
-		class="border border-neutral/15 hidden text-sm rounded-field"
+		class="hidden rounded-field border border-neutral/15 text-sm"
 		_="init if not navigator.share remove .hidden from me"
 		{ a.desktopShareAttributes()... }
 	>
@@ -131,7 +131,7 @@ templ (a *Article) shareButton() {
 templ (a *Article) viewOriginalButton() {
 	<a
 		role="button"
-		class="border border-neutral/15 text-sm rounded-field"
+		class="rounded-field border border-neutral/15 text-sm"
 		href={ a.GetLink() }
 		target="_blank"
 		rel="noopener"
@@ -146,7 +146,7 @@ templ (a *Article) viewOriginalButton() {
 templ (a *Article) showRemoteContentButton() {
 	<a
 		id="show-remote-content-button"
-		class="border border-neutral/15 text-sm rounded-field"
+		class="rounded-field border border-neutral/15 text-sm"
 		_="
 	    on htmx:beforeRequest from me
 	      add .in-flight-request to me
@@ -173,7 +173,7 @@ templ (a *Article) showRemoteContentButton() {
 templ (a *Article) showFeedContentButton() {
 	<a
 		id="show-feed-content-button"
-		class="border border-neutral/15 text-sm rounded-field"
+		class="rounded-field border border-neutral/15 text-sm"
 		_="
 	    on htmx:beforeRequest from me
 	      add .in-flight-request to me
@@ -298,7 +298,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 					// Overlay the feed name on the image.
 					<div class="absolute top-2.5 left-2.5">
-						<span class="badge badge-neutral badge-soft badge-sm font-medium backdrop-blur-sm">{ article.Item.FeedTitle }</span>
+						<span class="badge badge-soft badge-sm font-medium backdrop-blur-sm badge-neutral">{ article.Item.FeedTitle }</span>
 					</div>
 				</figure>
 			} else {
@@ -399,7 +399,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					// Toggle mark action.
 					@article.markToggle()
 					// Separator.
-					<div aria-hidden="true" class="h-4 w-px bg-neutral/20 mx-1"></div>
+					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Actions menu.
 					@article.actionsMenu()
 				</div>
@@ -553,7 +553,7 @@ templ ArticleContent(a *models.Article) {
 									@templ.Raw(article.GetDescription())
 								</div>
 							}
-							<ul class="mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2">
+							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 								<li>
 									@article.shareButton()
 								</li>
@@ -570,7 +570,7 @@ templ ArticleContent(a *models.Article) {
 								</div>
 							}
 							<div class="mt-8 w-full border-t border-neutral/20"></div>
-							<ul class="mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2">
+							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
 									<li>
@@ -649,105 +649,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					}
 					@pageTitle(title)
 					@pageActions(element.WithClasses("justify-between p-2")) {
-						@controls.viewFilters()
-						@controls.sortOptions()
+						@listArticlesActions(response)
 					}
 				}
-				// List actions.
-				if len(response.Articles) > 0 {
-					<ul
-						id="list-actions"
-						class="menu menu-horizontal w-full flex items-center justify-between gap-x-1"
-						if response.Subscription != nil {
-							hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
-						}
-					>
-						// For viewing articles from multiple subscriptions, show a mark button that marks the displayed articles.
-						if response.Subscription == nil {
-							<div class="flex flex-1 justify-end">
-								{{
-									var mark models.Mark
-									if response.Filters.GetView() == models.ViewUnread {
-										mark = models.MarkRead
-									} else {
-										mark = models.MarkUnread
-									}
-								}}
-								<li>
-									<button
-										if response.Filters.GetView() == models.ViewUnread {
-											hx-post="/list/articles/mark/read"
-										} else {
-											hx-post="/list/articles/mark/unread"
-										}
-										hx-target={ ContentID.Target() }
-										hx-include=".card > input"
-										hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-										class="btn btn-outline btn-sm border-neutral/15"
-									>
-										if response.Filters.GetView() == models.ViewUnread {
-											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark shown read
-										} else {
-											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark shown unread
-										}
-									</button>
-								</li>
-							</div>
-						} else {
-							<el-dropdown>
-								<button type="button" class="btn btn-outline btn-sm border-neutral/15">
-									@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-									<span class="text-sm font-normal">Options</span>
-								</button>
-								@partials.Menu(element.WithAttribute("anchor", "bottom start")) {
-									@partials.MenuItem() {
-										{{ s := Subscription{Subscription: response.Subscription} }}
-										<a { s.editAttributes("/list/articles")... } class="text-sm">
-											@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
-											Edit Subscription
-										</a>
-									}
-								}
-							</el-dropdown>
-							<div class="flex justify-end">
-								if response.Filters.GetView() != models.ViewAll {
-									{{
-										var mark models.Mark
-										if response.Filters.GetView() == models.ViewUnread {
-											mark = models.MarkRead
-										} else {
-											mark = models.MarkUnread
-										}
-									}}
-									// Mark subscription action.
-									<li>
-										<button
-											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-											hx-vals={ templ.JSONString(map[string]string{
-														"mark": string(mark),
-														"subscription_id": response.Subscription.GetID(),
-														"view": string(response.Filters.GetView()),
-														}) }
-											class="btn btn-outline btn-sm border-neutral/15"
-										>
-											if response.Filters.GetView() == models.ViewUnread {
-												@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-												Mark all read
-											} else {
-												@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-												Mark all unread
-											}
-										</button>
-									</li>
-								}
-							</div>
-						}
-					</ul>
+				if len(response.Articles) >0 {
+					@controls.Show(nil, listArticlesButtons(response))
 				}
-				<section id="articles-list" class="pt-4 ptr-content">
-					<div id="refreshing" class="flex w-full mx-auto justify-center">
+				<section id="articles-list" class="ptr-content pt-4">
+					<div id="refreshing" class="mx-auto flex w-full justify-center">
 						<div class="show-loading py-4 text-center">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
@@ -769,14 +678,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							}
 						}
 						@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="mt-4 flex w-full mx-auto justify-center">
+						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
 							<div class="show-loading text-center">
 								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</div>
 						</div>
 						// Show some actions at the bottom of the list.
-						<ul class="mt-8 menu menu-vertical sm:menu-horizontal w-full justify-center items-center gap-2">
+						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 							// Mark all subscriptions action.
 							if response.Subscription == nil {
 								// Mark all articles action.
@@ -865,6 +774,68 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				hx-trigger="every 5m"
 				hx-target="#updates"
 			></div>
+		}
+	}
+}
+
+templ listArticlesActions(response *models.ListArticlesResponse) {
+	if response.Subscription != nil {
+		{{ s := Subscription{Subscription: response.Subscription} }}
+		<button { s.editAttributes("/list/articles")... } class="btn border-neutral/15 btn-outline btn-sm">
+			@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+			Edit Subscription
+		</button>
+	}
+}
+
+templ listArticlesButtons(response *models.ListArticlesResponse) {
+	{{
+		var mark models.Mark
+		if response.Filters.GetView() == models.ViewUnread {
+			mark = models.MarkRead
+		} else {
+			mark = models.MarkUnread
+		}
+	}}
+	if response.Subscription == nil {
+		<button
+			if response.Filters.GetView() == models.ViewUnread {
+				hx-post="/list/articles/mark/read"
+			} else {
+				hx-post="/list/articles/mark/unread"
+			}
+			hx-target={ ContentID.Target() }
+			hx-include=".card > input"
+			hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
+			class="btn border-neutral/15 btn-outline btn-sm"
+		>
+			if response.Filters.GetView() == models.ViewUnread {
+				@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+				Mark shown read
+			} else {
+				@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+				Mark shown unread
+			}
+		</button>
+	} else {
+		if response.Filters.GetView() != models.ViewAll {
+			<button
+				hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+				hx-vals={ templ.JSONString(map[string]string{
+					"mark": string(mark),
+					"subscription_id": response.Subscription.GetID(),
+					"view": string(response.Filters.GetView()),
+				}) }
+				class="btn border-neutral/15 btn-outline btn-sm"
+			>
+				if response.Filters.GetView() == models.ViewUnread {
+					@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+					Mark all read
+				} else {
+					@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+					Mark all unread
+				}
+			</button>
 		}
 	}
 }

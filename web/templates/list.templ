@@ -11,59 +11,119 @@ type listControls struct {
 	filters models.ListFilters
 }
 
-templ (c *listControls) viewFilters() {
-	{{ currentView := c.filters.GetView() }}
-	// On desktop screen sizes, show a horizontal menu of view options.
-	<ul class="menu menu-horizontal hidden sm:flex">
-		@viewFilterOption(c.path, models.ViewUnread, c.filters)
-		@viewFilterOption(c.path, models.ViewRead, c.filters)
-		@viewFilterOption(c.path, models.ViewAll, c.filters)
-		@viewFilterFavorites(c.path, c.filters)
-	</ul>
-	// On mobile screen sizes, show a select menu for view options.
-	<div
-		_="
-        on viewChanged(view) set #view-hidden.value to view then send triggerMe
-        "
-		hx-get={ c.path }
-		hx-include="#sort-hidden,#view-hidden,#count-hidden"
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-target={ ContentID.Target() }
-		hx-trigger="triggerMe"
-		class="flex sm:hidden"
-	>
-		<input id="sort-hidden" name="sort" type="hidden" value={ string(c.filters.GetSort()) }/>
-		<input id="view-hidden" name="view" type="hidden" value={ string(currentView) }/>
-		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
-		<el-select id="select-view" _="on change send viewChanged(view: my value)" class="block">
-			<button class="btn btn-outline btn-sm border-neutral/15" type="button">
-				@tableroutline.ChevronDown(templ.Attributes{
-					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-					"aria-hidden": "true"})
-				<el-selectedcontent class="truncate capitalize">
-					{ string(currentView) }
-				</el-selectedcontent>
-			</button>
-			<el-options
-				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-				anchor="bottom start"
-				popover
-			>
-				<div class="menu">
-					<el-option value={ string(models.ViewUnread) }>
-						@viewFilterOption(c.path, models.ViewUnread, c.filters)
-					</el-option>
-					<el-option value={ string(models.ViewRead) }>
-						@viewFilterOption(c.path, models.ViewRead, c.filters)
-					</el-option>
-					<el-option value={ string(models.ViewAll) }>
-						@viewFilterOption(c.path, models.ViewAll, c.filters)
-					</el-option>
-					@viewFilterFavorites(c.path, c.filters)
+templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
+	{{ mobilePanelID := "mobile-options" }}
+	{{ currentSort := c.filters.GetSort() }}
+	<div class="p-2">
+		// Mobile screen dialog containing filters, sorting and custom actions.
+		<el-dialog>
+			<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
+				<el-dialog-backdrop></el-dialog-backdrop>
+				<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
+					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-200 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
+						<div class="flex justify-end">
+							<button type="button" command="close" commandfor={ mobilePanelID } class="btn btn-square btn-ghost">
+								<span class="sr-only">Close menu</span>
+								@tableroutline.X(templ.Attributes{"class": "size-6", "aria-hidden": true})
+							</button>
+						</div>
+						<ul class="menu">
+							<li class="menu-title">View</li>
+							<ul>
+								@viewFilterOption(c.path, models.ViewUnread, c.filters)
+								@viewFilterOption(c.path, models.ViewRead, c.filters)
+								@viewFilterOption(c.path, models.ViewAll, c.filters)
+								@viewFilterFavorites(c.path, c.filters)
+							</ul>
+							<li class="menu-title">Sort</li>
+							<ul>
+								@sortOption(models.SortNewestFirst, currentSort)
+								@sortOption(models.SortOldestFirst, currentSort)
+								if c.path == "/list/subscriptions" {
+									@sortOption(models.SortMostUnread, currentSort)
+									@sortOption(models.SortLeastUnread, currentSort)
+								}
+							</ul>
+							if actions != nil {
+								@actions
+							}
+						</ul>
+					</el-dialog-panel>
 				</div>
-			</el-options>
-		</el-select>
+			</dialog>
+		</el-dialog>
+		<div class="flex items-center justify-between">
+			// Button for toggling mobile filters dialog. Only shown on mobile.
+			<button
+				type="button"
+				command="show-modal"
+				commandfor={ mobilePanelID }
+				class="btn items-center border-neutral/15 btn-outline btn-sm sm:hidden"
+			>
+				@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": true})
+				Options
+			</button>
+			// Desktop menu containing sorting and filtering.
+			<div class="hidden sm:flex sm:items-center">
+				<div
+					_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
+					hx-get={ c.path }
+					hx-include="#sort-hidden,#view-hidden,#count-hidden"
+					hx-replace-url="true"
+					hx-swap="innerHTML transition:true"
+					hx-target={ ContentID.Target() }
+					hx-trigger="triggerMe"
+				>
+					<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
+					<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
+					<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
+					<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
+						<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
+							<el-selectedcontent class="truncate">
+								{ currentSort.String() }
+							</el-selectedcontent>
+							@tableroutline.ChevronDown(templ.Attributes{
+								"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+								"aria-hidden": "true"})
+						</button>
+						<el-options
+							class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+							anchor="bottom start"
+							popover
+						>
+							<div class="menu">
+								<el-option value={ string(models.SortNewestFirst) }>
+									@sortOption(models.SortNewestFirst, currentSort)
+								</el-option>
+								<el-option value={ string(models.SortOldestFirst) }>
+									@sortOption(models.SortOldestFirst, currentSort)
+								</el-option>
+								if c.path == "/list/subscriptions" {
+									<el-option value={ string(models.SortMostUnread) }>
+										@sortOption(models.SortMostUnread, currentSort)
+									</el-option>
+									<el-option value={ string(models.SortLeastUnread) }>
+										@sortOption(models.SortLeastUnread, currentSort)
+									</el-option>
+								}
+							</div>
+						</el-options>
+					</el-select>
+				</div>
+				<ul class="menu menu-horizontal">
+					@viewFilterOption(c.path, models.ViewUnread, c.filters)
+					@viewFilterOption(c.path, models.ViewRead, c.filters)
+					@viewFilterOption(c.path, models.ViewAll, c.filters)
+					@viewFilterFavorites(c.path, c.filters)
+				</ul>
+			</div>
+			// Custom button actions.
+			if buttons != nil {
+				<div class="flex flex-1 justify-end">
+					@buttons
+				</div>
+			}
+		</div>
 	</div>
 }
 
@@ -82,22 +142,12 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters.Values()) }
-			class="group/option pr-5"
+			class="flex justify-between gap-2"
 		>
-			// For mobile screens where option is displayed in select menu.
-			<div class="relative sm:hidden">
-				<span class={ "block truncate font-normal capitalize pr-5", templ.KV("font-semibold",active) }>{ string(view) }</span>
-				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
-					@tableroutline.Check(templ.Attributes{"class": "size-5"})
-				</span>
-			</div>
-			// For desktop screens where option is displayed in horizontal menu.
-			<div class="relative hidden sm:flex pr-5">
-				<span class={ "block truncate font-normal capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
-				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 text-accent", templ.KV("hidden",!active) }>
-					@tableroutline.Check(templ.Attributes{"class": "size-5"})
-				</span>
-			</div>
+			<span class={ "font-normal capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
+			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
+				@tableroutline.Check(templ.Attributes{"class": "size-5"})
+			</span>
 		</a>
 	</li>
 }
@@ -118,80 +168,25 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(values) }
-			class="group/option pr-5"
+			class="flex justify-between gap-2"
 		>
-			// For mobile screens where option is displayed in select menu.
-			<div class="sm:hidden">
-				<span class={ "block truncate font-normal pr-5", templ.KV("font-semibold",active) }>Favorites</span>
-				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent", templ.KV("hidden",!active) }>
-					@tableroutline.Check(templ.Attributes{"class": "size-5"})
-				</span>
-			</div>
-			// For desktop screens where option is displayed in horizontal menu.
-			<div class="relative hidden sm:flex pr-5">
-				<span class={ "block truncate font-normal", templ.KV("font-semibold",active) }>Favorites</span>
-				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 text-accent", templ.KV("hidden",!active) }>
-					@tableroutline.Check(templ.Attributes{"class": "size-5"})
-				</span>
-			</div>
+			<span class={ "font-normal", templ.KV("font-semibold",active) }>Favorites</span>
+			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
+				@tableroutline.Check(templ.Attributes{"class": "size-5"})
+			</span>
 		</a>
 	</li>
 }
 
-templ (c *listControls) sortOptions() {
-	{{ currentSort := c.filters.GetSort() }}
-	<div
-		_="
-        on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe
-        "
-		hx-get={ c.path }
-		hx-include="#sort-hidden,#view-hidden,#count-hidden"
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-target={ ContentID.Target() }
-		hx-trigger="triggerMe"
-	>
-		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
-		<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
-		<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
-		<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
-			<button class="btn btn-outline btn-sm border-neutral/15" type="button">
-				<el-selectedcontent class="truncate">
-					{ currentSort.String() }
-				</el-selectedcontent>
-				@tableroutline.ChevronDown(templ.Attributes{
-					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-					"aria-hidden": "true"})
-			</button>
-			<el-options
-				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-				anchor="bottom end"
-				popover
-			>
-				<div class="menu">
-					@sortOption(models.SortNewestFirst, currentSort)
-					@sortOption(models.SortOldestFirst, currentSort)
-					if c.path == "/list/subscriptions" {
-						@sortOption(models.SortMostUnread, currentSort)
-						@sortOption(models.SortLeastUnread, currentSort)
-					}
-				</div>
-			</el-options>
-		</el-select>
-	</div>
-}
-
 templ sortOption(sort, current models.Sort) {
-	<el-option value={ string(sort) }>
-		<li class="group/option pr-5">
-			<div>
-				<span class={ "block truncate font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
-				<span aria-hidden="true" class={ "absolute inset-y-0 right-0 flex items-center text-accent ", templ.KV("hidden",sort != current) }>
-					@tableroutline.Check(templ.Attributes{"class": "size-5"})
-				</span>
-			</div>
-		</li>
-	</el-option>
+	<li class="flex justify-between gap-2">
+		<div>
+			<span class={ "font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
+			<span aria-hidden="true" class={ "text-accent ", templ.KV("hidden",sort != current) }>
+				@tableroutline.Check(templ.Attributes{"class": "size-5"})
+			</span>
+		</div>
+	</li>
 }
 
 // ListPaginationControl renders a sentinel element for controlling pagination of a list. It should be added as an OOB

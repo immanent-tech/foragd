@@ -127,7 +127,7 @@
   }
 
   el-dialog-backdrop {
-    @apply fixed inset-0 bg-base-300/50 transition duration-200 data-closed:opacity-0;
+    @apply fixed inset-0 bg-base-300/50 transition duration-200 ease-linear data-closed:opacity-0;
   }
 
   el-dialog-panel {

@@ -11,7 +11,7 @@ templ pageHeading(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-heading"
-		class={ "md:flex md:items-center md:justify-between", props.Classes() }
+		class={ "flex md:flex-row md:items-center md:justify-between", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
@@ -20,7 +20,7 @@ templ pageHeading(options ...element.PropertiesOption) {
 
 // pageTitle renders a page title and any additional/supporting content.
 templ pageTitle(title string) {
-	<div id="page-title" class="min-w-0 flex-1">
+	<div id="page-title" class="min-w-0 flex-1 self-center sm:self-start">
 		<h1 class="font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">{ title }</h1>
 		{ children... }
 	</div>
@@ -32,7 +32,7 @@ templ pageActions(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-actions"
-		class={ "mt-4 flex items-center md:mt-0 md:ml-4", props.Classes() }
+		class={ "flex flex-col sm:flex-row justify-end sm:justify-start items-center", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
@@ -82,9 +82,7 @@ templ buttonBackToTop() {
 		"
 	></div>
 	<button
-		class="btn fixed z-50 right-5 bottom-20 btn-circle btn-secondary sm:right-10 lg:bottom-10
-			opacity-0 translate-y-4 pointer-events-none
-			transition-[opacity,transform] duration-200 ease-out hover:animate-bounce"
+		class="btn pointer-events-none fixed right-5 bottom-20 z-50 btn-circle translate-y-4 opacity-0 transition-[opacity,transform] duration-200 ease-out btn-secondary hover:animate-bounce sm:right-10 lg:bottom-10"
 		_="
   		on scrollSentinelHidden from #scroll-sentinel
   		  remove .opacity-0 .translate-y-4 .pointer-events-none from me
