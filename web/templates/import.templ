@@ -36,7 +36,7 @@ templ ImportSubscriptions() {
 					>
 						<div
 							id="drop-zone"
-							class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 max-w-full sm:max-w-lg"
+							class="group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg"
 							_="
                             on dragover
                               halt the event
@@ -75,7 +75,7 @@ templ ImportSubscriptions() {
 								<p class="text-xs/5">.opml up to 10MB</p>
 							</div>
 						</div>
-						<div class="flex w-full justify-end mt-4">
+						<div class="mt-4 flex w-full justify-end">
 							<button id="import-button" type="submit" class="btn btn-primary">
 								<span class="show-loading items-center">
 									<span class="loading mr-3 loading-spinner"></span>
