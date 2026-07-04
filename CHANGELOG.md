@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.3](https://github.com/immanent-tech/foragd/compare/v0.181.2...v0.181.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix horizontal overflow on article view ([7772bc1](https://github.com/immanent-tech/foragd/commit/7772bc1a8a6b417ba554d4fd27bb7357ea4351dc))
+* **templates:** 🔧 fix horizontal overflow on subscription list ([f5b42ac](https://github.com/immanent-tech/foragd/commit/f5b42ac08f8af8b91f075fccad546aafe0b537e1))
+
 ## [0.181.2](https://github.com/immanent-tech/foragd/compare/v0.181.1...v0.181.2) (2026-07-04)
 
 
