@@ -27,23 +27,6 @@ window.addEventListener('pageshow', (event) => {
   }
 })
 
-// Listen for scroll events and update the progress bar on article views.
-const content = document.getElementById('content')
-window.addEventListener('scroll', () => {
-  if (!window.location.pathname.startsWith('/view/article/')) return
-
-  const max = content.scrollHeight - content.clientHeight
-  const pct = max > 0 ? (content.scrollTop / max) * 100 : 0
-  const pb = document.querySelector('.progress-bar')
-  if (pb) pb.style.width = pct + '%'
-})
-document.body.addEventListener('htmx:afterSettle', () => {
-  if (window.location.pathname.startsWith('/view/article/')) {
-    const pb = document.querySelector('.progress-bar')
-    if (pb) pb.style.width = '0%'
-  }
-})
-
 // import axe from 'axe-core'
 
 // htmx.onLoad(function (content) {

@@ -142,6 +142,20 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
 templ Post(post *models.MarkdownFile) {
 	@LayoutExternal() {
+		// Show a subtle reading progress bar across the top of the article.
+		<div
+			id="progress-bar"
+			class="fixed top-0 left-0 h-1 w-0 bg-accent z-9999 transition-[width] duration-50 ease-linear"
+			_="on scroll from the window debounced at 20ms
+          set my.style.width to
+            ((document.documentElement.scrollTop /
+             (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
+        end
+
+        on load
+          trigger scroll on the window
+        end"
+		></div>
 		@buttonBackToTop()
 		@narrowContainer() {
 			<div class="breadcrumbs text-sm">
@@ -151,8 +165,6 @@ templ Post(post *models.MarkdownFile) {
 				</ul>
 			</div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
-				// Show a subtle reading progress bar across the top of the article.
-				@partials.ReadingProgress()
 				<div class="flex flex-1 flex-separated items-center justify-self-end">
 					<span class="text-xs/4 text-neutral capitalize tabular-nums">
 						Created

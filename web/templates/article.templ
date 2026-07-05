@@ -413,13 +413,25 @@ templ ArticleContent(a *models.Article) {
 	{{ article := &Article{Article: a} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			// Show a subtle reading progress bar across the top of the article.
+			<div
+				id="progress-bar"
+				class="fixed top-16 lg:left-36 left-0 h-1 w-0 bg-accent z-9999 transition-[width] duration-50 ease-linear"
+				_="on scroll from the window debounced at 20ms
+          set my.style.width to
+            ((document.documentElement.scrollTop /
+             (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
+        end
+
+        on load
+          trigger scroll on the window
+        end"
+			></div>
 			@buttonBackToTop()
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
-					// Show a subtle reading progress bar across the top of the article.
-					@partials.ReadingProgress()
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center font-display text-sm/6 text-neutral">
 						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
