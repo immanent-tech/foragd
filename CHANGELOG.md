@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.5](https://github.com/immanent-tech/foragd/compare/v0.181.4...v0.181.5) (2026-07-06)
+
+
+### Bug Fixes
+
+* **templates/account:** 🔧 improved account deactivation guidance ([e1cce64](https://github.com/immanent-tech/foragd/commit/e1cce64b0b922921e496ae1b167a57daf06c25af))
+* **templates/subscriptions:** 🎨 fix add feed input layout ([2247886](https://github.com/immanent-tech/foragd/commit/2247886a1e5f3f3a98fb1058d3b3d3a437e6c4a9))
+
 ## [0.181.4](https://github.com/immanent-tech/foragd/compare/v0.181.3...v0.181.4) (2026-07-06)
 
 
