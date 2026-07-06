@@ -31,7 +31,7 @@ import (
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/rss"
-	"github.com/immanent-tech/go-syndication/validation"
+	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/config"
@@ -1052,20 +1052,27 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 
 	// Parse the response as a feed type.
 	var feedData *feeds.Feed
-	switch {
-	case bytes.Contains(feedBuf.Bytes(), []byte("<feed")):
+	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(feedBuf.Bytes())); {
+	case err != nil:
+		return nil, fmt.Errorf("detect feed type: %w", err)
+	case feedType == types.SourceTypeUnknown:
+		return nil, models.NewAPIError(
+			http.StatusUnsupportedMediaType,
+			errors.New("cannot determine feed type"),
+		)
+	case feedType == types.SourceTypeAtom:
 		// Atom feed.
 		feedData, err = feeds.NewDecoder[*atom.Feed](feedBuf)
-		if err != nil && errors.Is(err, &validation.StructError{}) {
+		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
-	case bytes.Contains(feedBuf.Bytes(), []byte("<rss")):
+	case feedType == types.SourceTypeRSS:
 		// RSS feed.
 		feedData, err = feeds.NewDecoder[*rss.RSS](feedBuf)
-		if err != nil && errors.Is(err, &validation.StructError{}) {
+		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case bytes.Contains(feedBuf.Bytes(), []byte("<html")):
+	case feedType == types.SourceTypeHTML:
 		// HTML webpage. Use "autodiscovery" to find feed.
 		if newURL, err := html.DiscoverFeedURL(
 			sourceURL,
@@ -1096,12 +1103,12 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	feed := models.NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
 
 	// For Atom, assume a default hourly update.
-	if feedData.SourceType == feeds.TypeAtom || feedData.SourceType == feeds.TypeJSONFeed {
+	if feedData.SourceType == types.SourceTypeAtom || feedData.SourceType == types.SourceTypeJSONFeed {
 		feed.UpdateInterval = int64(time.Hour)
 	}
 
 	// For RSS use either the reasonable interval given by the feed or a reasonable default.
-	if feedData.SourceType == feeds.TypeRSS {
+	if feedData.SourceType == types.SourceTypeRSS {
 		switch interval := feedData.GetUpdateInterval(); {
 		case interval < time.Minute:
 			// Set really short update intervals to every 5 minutes.
