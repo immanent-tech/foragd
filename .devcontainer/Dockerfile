@@ -1,46 +1,44 @@
 # Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-# https://mcr.microsoft.com/artifact/mar/devcontainers/base
-ARG CONTAINER_VERSION=dev-ubuntu26.04@sha256:08b927560c4f83bcdaa324d95c25bbb8a3857aff53c2ffae5a9d9cd9bec6850b
-# https://hub.docker.com/_/golang
-ARG GO_VERSION=1.26.4@sha256:792443b89f65105abba56b9bd5e97f680a80074ac62fc844a584212f8c8102c3
+ARG ALPINE_VERSION=3.23.4@sha256:4d889c14e7d5a73929ab00be2ef8ff22437e7cbc545931e52554a7b00e123d8b
+ARG GO_VERSION=1.26.4-alpine3.23@sha256:103c743516b0d9dd69c203ed64f730eb342cae4b85d3f6c5cb376d91abbc6bcb
 
-FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
-FROM mcr.microsoft.com/devcontainers/base:${CONTAINER_VERSION} AS builder
-
-ARG NODE_VERSION=v24.18.0
-
-# Install additional packages
-RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
-    apt -y install fish micro graphviz ca-certificates dotenv-cli \
-    python3
-
-# Add the Zyte CA cert.
-ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
-RUN update-ca-certificates
+FROM docker.io/golang:${GO_VERSION} AS golang
+FROM docker.io/alpine:${ALPINE_VERSION} AS builder
 
 # Copy go from official image
 COPY --from=golang /usr/local/go/ /usr/local/go/
 
-# Download and install node:
-RUN sudo curl -L -o- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz \
-    | tar xJvf - --strip-components=1 --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md -C /usr/local
+# Install additional packages
+RUN apk update && apk add sudo openssh curl git bash fish micro graphviz nodejs npm python3
 
-# Dowload and install starship.
-RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
+# Add the Zyte CA cert.
+ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
+RUN update-ca-certificates
 
 # # Add non-root user
 ARG USER_NAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+RUN addgroup --gid $USER_GID $USER_NAME \
+    && adduser --uid $USER_UID --ingroup $USER_NAME --shell /usr/bin/fish $USER_NAME \
+    --disabled-password --gecos "" \
+    && mkdir -p /etc/sudoers.d \
+    && echo "$USER_NAME ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER_NAME \
+    && chmod 0440 /etc/sudoers.d/$USER_NAME
+
+ENV XDG_RUNTIME_DIR=/run/user/$USER_UID
+RUN mkdir -p $XDG_RUNTIME_DIR && chmod 0700 $XDG_RUNTIME_DIR && chown $USER_UID:$USER_GID $XDG_RUNTIME_DIR
+
 USER $USER_NAME
 
 ENV _CONTAINERS_USERNS_CONFIGURED=""
 
-# The base container sets XDG_CACHE_HOME XDG_CONFIG_HOME specifically for the root user, we can't unset them in a way that vscode will pick up, so we set them to values for the new user.
-# Installing go extensions via vscode use these paths so if we just leave it set to /root/.cache we'll get permission errors.
+# The base container sets XDG_CACHE_HOME XDG_CONFIG_HOME specifically for the root user, we can't unset them in a way
+# that vscode will pick up, so we set them to values for the new user. Installing go extensions via vscode use these
+# paths so if we just leave it set to /root/.cache we'll get permission errors.
 ENV XDG_CONFIG_HOME=/home/$USER_NAME/.config
 ENV XDG_CACHE_HOME=/home/$USER_NAME/.cache
 # Set up XDG_RUNTIME_DIR
@@ -48,9 +46,5 @@ RUN export XDG_RUNTIME_DIR=/tmp/$USER_UID-runtime-dir \
     && mkdir $XDG_RUNTIME_DIR \
     && chmod 0700 $XDG_RUNTIME_DIR
 ENV XDG_RUNTIME_DIR=/tmp/$USER_UID-runtime-dir
-# Set up shell(s).
-RUN mkdir -p ~/.config/fish \
-    && echo "starship init fish | source" >>~/.config/fish/config.fish \
-    && echo 'eval "$(starship init bash)"' >>~/.bashrc
 
 ENTRYPOINT ["/usr/bin/fish"]

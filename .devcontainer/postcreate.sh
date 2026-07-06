@@ -28,3 +28,10 @@ cd $HOME && \
     rm google-cloud-cli-linux-x86_64.tar.gz && \
     google-cloud-sdk/install.sh --usage-reporting false --quiet --additional-components app-engine-go && \
     echo 'source /home/vscode/google-cloud-sdk/path.fish.inc' >> ~/.config/fish/config.fish
+
+
+# Set up shell(s).
+mkdir -p ~/.local/bin && curl -s https://ohmyposh.dev/install.sh | bash -s
+mkdir -p ~/.config/fish \
+    && echo "~/.local/bin/oh-my-posh init fish | source" >>~/.config/fish/config.fish \
+    && echo 'eval "$(~/.local/bin/oh-my-posh init bash)""' >>~/.bashrc
