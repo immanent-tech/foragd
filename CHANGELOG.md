@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.181.6](https://github.com/immanent-tech/foragd/compare/v0.181.5...v0.181.6) (2026-07-06)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 don't perform extra steps for new feeds ([d1809b9](https://github.com/immanent-tech/foragd/commit/d1809b9b80b6a3344ce80eee19a2b4740d35270c))
+* **handlers:** 🗑️ remove debugging log ([5de3712](https://github.com/immanent-tech/foragd/commit/5de3712d6c70bdeb9918453213ffad96a04266c6))
+
+
+### Performance Improvements
+
+* **service/feeds:** ⚡ improved feed source type detection ([1103066](https://github.com/immanent-tech/foragd/commit/1103066e7d9cbfef521d99c8bf4d84753b48ff41))
+
 ## [0.181.5](https://github.com/immanent-tech/foragd/compare/v0.181.4...v0.181.5) (2026-07-06)
 
 
