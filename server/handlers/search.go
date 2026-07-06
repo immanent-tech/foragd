@@ -13,7 +13,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
@@ -205,8 +204,6 @@ func HandleSearchResults() http.HandlerFunc {
 		if txt := req.FormValue("advanced-search-text"); txt != "" {
 			search.Text = txt
 		}
-
-		godump.Dump(search)
 
 		// Retrieve the user object.
 		user := models.UserFromCtx(req.Context())
