@@ -3,6 +3,22 @@
   "version": "0.0.0",
   "description": "Foragd is a web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
   "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "rss",
+    "atom",
+    "feed",
+    "golang",
+    "templ",
+    "htmx"
+  ],
+  "homepage": "https://github.com/immanent-tech/foragd#README",
+  "bugs": {
+    "url": "https://github.com/immanent-tech/foragd/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/immanent-tech/foragd.git"
+  },
   "browserslist": "last 2 years, not dead, > 0.2%",
   "type": "module",
   "source": [
@@ -16,10 +32,11 @@
     }
   },
   "scripts": {
+    "server:run": "air -c server.air.toml",
+    "scheduler:run": "air -c scheduler.air.toml",
     "build:prod": "parcel build --no-source-maps --target frontend",
     "build:dev": "parcel build --no-optimize --target frontend",
-    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web",
-    "css:generate": "sed \"s|__GOPATH__|$(go env GOPATH)|g\" web/assets/styles_tmpl.css > web/assets/styles.css"
+    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
   },
   "dependencies": {
     "@github/relative-time-element": "^5.2.0",

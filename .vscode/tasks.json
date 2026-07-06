@@ -18,9 +18,9 @@
       }
     },
     {
-      "label": "server: run",
+      "label": "server:run",
       "type": "shell",
-      "command": "air -c server.air.toml",
+      "command": "npm run server:run",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -32,9 +32,9 @@
       }
     },
     {
-      "label": "scheduler: run",
+      "label": "scheduler:run",
       "type": "shell",
-      "command": "air -c scheduler.air.toml",
+      "command": "npm run scheduler:run",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
