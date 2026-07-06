@@ -50,7 +50,7 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 			schemaorg.NewSimpleSiteNavigationElement(
 				i,
 				post.Frontmatter.Title,
-				config.GetBaseURL()+"/"+post.Frontmatter.Slug,
+				config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug,
 			),
 		)
 		i++
