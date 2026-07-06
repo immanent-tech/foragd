@@ -64,9 +64,9 @@ type subscriptionNotification struct {
 //
 // https://developer.android.com/google/play/billing/rtdn-reference
 func HandleRTDN(res http.ResponseWriter, req *http.Request) {
-	if client == nil {
+	if err := initClient(); err != nil {
 		slogctx.Error(req.Context(), "Could not listen for notifications.",
-			slog.Any("error", ErrClientNotStarted),
+			slog.Any("error", err),
 		)
 		http.Error(res, "Unable to listen for notifications", http.StatusInternalServerError)
 		return
@@ -226,8 +226,8 @@ func lookupSubscriptionFromRTDN(
 	ctx context.Context,
 	purchaseToken string,
 ) (*androidpublisher.SubscriptionPurchaseV2, error) {
-	if client == nil {
-		return nil, ErrClientNotStarted
+	if err := initClient(); err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
 	}
 
 	if err := loadConfig(); err != nil {

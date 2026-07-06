@@ -22,7 +22,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 )
@@ -56,11 +55,6 @@ func (m *manager) Clear(ctx context.Context) error {
 
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
-	// Start the error client.
-	if err := gerror.Init(); err != nil {
-		return fmt.Errorf("init error client: %w", err)
-	}
-
 	if err := NewManager(ctx); err != nil {
 		return fmt.Errorf("create scheduler: %w", err)
 	}

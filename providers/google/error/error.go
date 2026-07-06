@@ -19,7 +19,7 @@ import (
 var errorClient *errorreporting.Client
 
 //nolint:sloglint // no context passed.
-var Init = sync.OnceValue(func() error {
+var initClient = sync.OnceValue(func() error {
 	cfg, err := gcp.LoadConfig()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
@@ -27,9 +27,6 @@ var Init = sync.OnceValue(func() error {
 	errorClient, err = errorreporting.NewClient(context.Background(), cfg.ProjectID, errorreporting.Config{
 		ServiceName:    cfg.Service,
 		ServiceVersion: config.GetVersion(),
-		OnError: func(err error) {
-			slog.Error("Create new error client failed.", slog.Any("error", err))
-		},
 	})
 	if err != nil {
 		return fmt.Errorf("load error reporting client: %w", err)
@@ -41,8 +38,9 @@ var Init = sync.OnceValue(func() error {
 // ReportError reports an error to the Cloud Console. The error client auto populates the error context of the error. For
 // more details about the context see: https://cloud.google.com/error-reporting/reference/rest/v1beta1/ErrorContext.
 func ReportError(ctx context.Context, rawErr error) {
-	if errorClient == nil {
-		slogctx.FromCtx(ctx).Warn("Unable to report error to google cloud console.")
+	if err := initClient(); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to report error to google cloud console.",
+			slog.Any("error", err))
 		return
 	}
 	errorClient.Report(errorreporting.Entry{

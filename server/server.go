@@ -21,7 +21,6 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/google/android"
-	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -49,15 +48,6 @@ func Start(logger *slog.Logger) error {
 	// Load the server config.
 	if err := loadConfigOnce(); err != nil {
 		return fmt.Errorf("unable to load server config: %w", err)
-	}
-
-	// Start the error client.
-	if err := gerror.Init(); err != nil {
-		return fmt.Errorf("init error client: %w", err)
-	}
-	// Set up the androidpublisher client for Google Play billing.
-	if err := android.Init(); err != nil {
-		return fmt.Errorf("start androidpublisher client: %w", err)
 	}
 
 	// Set up the session manager.

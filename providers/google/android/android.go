@@ -28,7 +28,6 @@ const (
 )
 
 var ErrNotFound = errors.New("not found")
-var ErrClientNotStarted = errors.New("client not started")
 
 // Config is the configuration for Android Billing.
 type Config struct {
@@ -75,7 +74,7 @@ type Entitlement struct {
 var client *androidpublisher.Service
 
 //nolint:sloglint // no context passed.
-var Init = sync.OnceValue(func() error {
+var initClient = sync.OnceValue(func() error {
 	if err := loadConfig(); err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
@@ -122,8 +121,8 @@ func VerifyAndAcknowledgeSubscription(
 	ctx context.Context,
 	user *models.User, sku, token string,
 ) (*Entitlement, error) {
-	if client == nil {
-		return nil, ErrClientNotStarted
+	if err := initClient(); err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
 	}
 
 	slogctx.Debug(ctx, "Verifying subscription purchase.",
@@ -185,8 +184,8 @@ func VerifyAndAcknowledgeSubscription(
 }
 
 func acknowledgeSubscriptionPurchase(ctx context.Context, pkg, sku, token string) error {
-	if client == nil {
-		return ErrClientNotStarted
+	if err := initClient(); err != nil {
+		return fmt.Errorf("init client: %w", err)
 	}
 
 	if err := client.Purchases.Subscriptions.Acknowledge(

@@ -91,8 +91,8 @@ func updateSubscription(
 	purchase *androidpublisher.SubscriptionPurchaseV2,
 	token string,
 ) error {
-	if client == nil {
-		return ErrClientNotStarted
+	if err := initClient(); err != nil {
+		return fmt.Errorf("init client: %w", err)
 	}
 
 	// Get user's existing subscription.
