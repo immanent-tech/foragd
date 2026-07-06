@@ -150,7 +150,7 @@ func Features() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"max-w-md\"><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Your internet, gathered on purpose</h1><p class=\"mt-6 text-lg/8 text-secondary\">Foragd uses three pillars to build your private library.</p><button class=\"btn mt-12 btn-circle animate-bounce btn-secondary\" _=\"on click scroll to #features-summary smoothly\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75\"></div></div></div><div class=\"max-w-md z-10\"><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Your internet, gathered on purpose</h1><p class=\"mt-6 text-lg/8 text-secondary\">Foragd uses three pillars to build your private library.</p><button class=\"btn mt-12 btn-circle animate-bounce btn-secondary\" _=\"on click scroll to #features-summary smoothly\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -158,7 +158,7 @@ func Features() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button></div></div></section><div id=\"features-summary\" class=\"mb-24\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button></div><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75\"></div></div></div></div></section><div id=\"features-summary\" class=\"mb-24\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -225,7 +225,7 @@ func FeaturesPageCollect() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Collect everything, from one place</h1><p class=\"mt-6 text-lg/8 text-primary\">Add any website, blog, YouTube channel, subreddit, or email newsletter. Foragd does the heavy lifting of finding the feed for you. No more checking dozens of tabs, or missing posts because an algorithm buried them.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#add-content\" class=\"btn text-sm/6 font-semibold btn-outline\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Collect everything, from one place</h1><p class=\"mt-6 text-lg/8 text-primary\">Add any website, blog, YouTube channel, subreddit, or email newsletter. Foragd does the heavy lifting of finding the feed for you. No more checking dozens of tabs, or missing posts because an algorithm buried them.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#add-content\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #add-content smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -256,7 +256,7 @@ func FeaturesPageCollect() templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(`@TED`)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 318, Col: 16}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 332, Col: 16}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -429,7 +429,7 @@ func FeaturesPageCurate() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Organize your feeds your way</h1><p class=\"mt-6 text-lg/8 text-secondary\">Group subscriptions into a single unified feed. Search across every article you've ever received, then save it as a subscription to follow new matches as they arrive. You're in control. No algorithm and no sponsored suggestions overriding you.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#group-subscriptions\" class=\"btn text-sm/6 font-semibold btn-outline\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Organize your feeds your way</h1><p class=\"mt-6 text-lg/8 text-secondary\">Group subscriptions into a single unified feed. Search across every article you've ever received, then save it as a subscription to follow new matches as they arrive. You're in control. No algorithm and no sponsored suggestions overriding you.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#group-subscriptions\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #group-subscriptions smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -654,7 +654,7 @@ func FeaturesPageConsume() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Read without distractions</h1><p class=\"mt-6 text-lg/8 text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn text-sm/6 font-semibold btn-outline\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Read without distractions</h1><p class=\"mt-6 text-lg/8 text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #full-content smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -884,7 +884,7 @@ func featurePanel(id string) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 767, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 789, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 		if templ_7745c5c3_Err != nil {
@@ -934,7 +934,7 @@ func featureTitle(title string) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 773, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 795, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
