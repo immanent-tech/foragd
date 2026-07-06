@@ -6,6 +6,7 @@ created_at = "2026-06-03"
 updated_at = "2026-06-25"
 image = "/content/images/blog/wall-map-of-the-world.webp"
 author = "Joshua Rich"
+slug = "rediscovering-the-indie-web"
 +++
 
 The web outside of social media is having a bit of a renaissance. As the major social media platforms continue to

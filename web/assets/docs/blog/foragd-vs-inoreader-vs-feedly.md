@@ -6,6 +6,7 @@ created_at = "2026-02-18"
 updated_at = "2026-05-25"
 image = "/content/images/blog/scribe-comparing-manuscripts.webp"
 author = "Joshua Rich"
+slug = "foragd-vs-inoreader-vs-feedly"
 +++
 
 

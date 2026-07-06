@@ -4,118 +4,63 @@
 package handlers
 
 import (
-	"bytes"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"path/filepath"
 	"slices"
-	"strings"
 	"sync"
 
-	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
-	"github.com/yuin/goldmark/parser"
-	fm "go.abhg.dev/goldmark/frontmatter"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-var getPolicyDocs = sync.OnceValues(func() (*models.FileIndex, error) {
-	var policies models.FileIndex
-	if _, err := toml.DecodeFS(web.DocsFS, "assets/docs/policies/directory.toml", &policies); err != nil {
-		return nil, fmt.Errorf("read policy docs directory.toml: %w", err)
-	}
-	return &policies, nil
+var getPolicyDocs = sync.OnceValues(func() ([]*markdown.File, error) {
+	var policiesPath = "assets/docs/policies"
+	return markdown.ReadDir(web.DocsFS, policiesPath)
 })
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
 func PolicyDocsHandler() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
 		polices, err := getPolicyDocs()
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
-				slog.String("doc", doc),
+			slogctx.FromCtx(req.Context()).Error("Could not read policy documents.",
 				slog.Any("error", err),
 			)
 			http.NotFound(res, req)
 		}
 
-		idx := slices.IndexFunc(polices.Files, func(e models.FileDetails) bool {
-			return strings.HasPrefix(e.File, doc)
+		idx := slices.IndexFunc(polices, func(p *markdown.File) bool {
+			return chi.URLParam(req, "*") == p.Frontmatter.Slug
 		})
 		if idx == -1 {
 			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		metadata := polices.Files[idx]
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets/docs/policies", metadata.File))
-		if err != nil {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		mdw := markdown.LoadMarkdownWriter()
-
-		policyBuf, ok := bufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Could not write policy.")
-			return
-		}
-		policyBuf.Reset()
-		defer bufPool.Put(policyBuf)
-
-		parserCtx := parser.NewContext()
-		if err := mdw.Convert(contents, policyBuf, parser.WithContext(parserCtx)); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		d := fm.Get(parserCtx)
-		var frontmatter models.MarkdownFrontMatter
-		if err := d.Decode(&frontmatter); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		policyFile := polices[idx]
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		title := templates.PageTitle{
-			Summary:     frontmatter.Title,
+			Summary:     policyFile.Frontmatter.Title,
 			Description: "Service Policy",
 		}
 		policyOG := opengraph.NewArticle(
 			title.String(),
-			config.GetBaseURL()+"/"+metadata.Path,
-			frontmatter.Description,
+			config.GetBaseURL()+"/"+policyFile.Frontmatter.Slug,
+			policyFile.Frontmatter.Description,
 			config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			frontmatter.CreatedAt,
-			*frontmatter.UpdatedAt,
+			policyFile.Frontmatter.GetCreatedDate().String(),
+			policyFile.Frontmatter.GetUpdatedDate().String(),
 			"",
 			[]string{"Immanent Tech <hello@immanent.tech>"},
 			"Policies",
@@ -126,16 +71,16 @@ func PolicyDocsHandler() http.HandlerFunc {
 			nil,
 			nil,
 			orgJsonLd,
-			frontmatter.CreatedAt,
-			*frontmatter.UpdatedAt,
-			frontmatter.Description,
+			policyFile.Frontmatter.GetCreatedDate().String(),
+			policyFile.Frontmatter.GetUpdatedDate().String(),
+			policyFile.Frontmatter.Description,
 		)
 		template := templates.CreatePage(
 			templates.LayoutExternal(
-				templates.Document(policyBuf.Bytes()),
+				templates.Document(policyFile.Content),
 			),
 			templates.WithPageTitle(title),
-			templates.WithPageDescription(frontmatter.Description),
+			templates.WithPageDescription(policyFile.Frontmatter.Description),
 			templates.WithOpenGraphMetadata(policyOG),
 			templates.WithJSONLDSchema(
 				websiteJsonLd,

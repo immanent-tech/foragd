@@ -44,10 +44,14 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
 	i := 13
-	for post := range slices.Values(posts.Files) {
+	for post := range slices.Values(posts) {
 		links = append(
 			links,
-			schemaorg.NewSimpleSiteNavigationElement(i, post.File, config.GetBaseURL()+"/"+post.Path),
+			schemaorg.NewSimpleSiteNavigationElement(
+				i,
+				post.Frontmatter.Title,
+				config.GetBaseURL()+"/"+post.Frontmatter.Slug,
+			),
 		)
 		i++
 

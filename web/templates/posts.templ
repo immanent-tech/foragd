@@ -6,7 +6,7 @@ package templates
 import (
 	"encoding/json"
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-templ PostsIndex(posts []*models.MarkdownFile) {
+templ PostsIndex(posts []*markdown.File) {
 	@LayoutExternal() {
 		@container(element.WithClasses("pt-4")) {
 			@buttonBackToTop()
@@ -39,7 +39,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 						postJSONLD := map[string]any{
 							"@type":         "BlogPosting",
 							"headline":      post.Frontmatter.Title,
-							"url":           config.GetBaseURL() + "/blog/" + post.Details.Path,
+							"url":           config.GetBaseURL() + "/blog/" + post.Frontmatter.Slug,
 							"datePublished": post.Frontmatter.GetCreatedDate(),
 							"author": map[string]any{
 								"@type": "Person",
@@ -52,7 +52,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 						element.WithClasses(
 							"group", "animate-fadeinup", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
 					) {
-						<a href={ "/blog/" + post.Details.Path }>
+						<a href={ "/blog/" + post.Frontmatter.Slug }>
 							<div>
 								if post.Frontmatter.Image != nil {
 									<figure class="relative overflow-hidden rounded-t-[inherit]">
@@ -140,7 +140,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 // Post renders a post.
 //
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
-templ Post(post *models.MarkdownFile) {
+templ Post(post *markdown.File) {
 	@LayoutExternal() {
 		// Show a subtle reading progress bar across the top of the article.
 		<div

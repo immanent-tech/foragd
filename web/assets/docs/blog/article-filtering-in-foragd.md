@@ -6,6 +6,7 @@ created_at = "2026-06-25"
 updated_at = "2026-06-25"
 image = "/content/images/blog/noise-to-signal.webp"
 author = "Joshua Rich"
+slug = "article-filtering-in-foragd"
 +++
 
 As we've [discussed before](/blog/managing-feed-overload), it can be easy to get overwhelmed by the constant stream of

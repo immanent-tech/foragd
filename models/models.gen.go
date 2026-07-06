@@ -702,24 +702,6 @@ type FeedSubscription struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
-// FileDetails contains a mapping of a file in an embedded FS to the URL path it is served from.
-type FileDetails struct {
-	// File is the path in an embedded FS to the file.
-	File string `json:"file" toml:"file" validate:"required,filepath"`
-
-	// Path is the relative URL path from where this document should be served.
-	Path string `json:"path" toml:"path" validate:"required,filepath"`
-}
-
-// FileIndex contains a listing of files in a directory of an embedded FS.
-type FileIndex struct {
-	// Files is a list of details for files.
-	Files []FileDetails `json:"files,omitempty" toml:"file"`
-
-	// UpdatedAt indicates when the index was last updated.
-	UpdatedAt *time.Time `json:"updated_at,omitempty" toml:"updated_at"`
-}
-
 // FileUpload represents a file upload by a user.
 type FileUpload struct {
 	// Data is the file data/content.
@@ -942,44 +924,6 @@ type MarkSubscriptionsRequest struct {
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
-}
-
-// MarkdownFile contains the raw markdown file data and its frontmatter.
-type MarkdownFile struct {
-	Content []byte `json:"content"`
-
-	// Details contains a mapping of a file in an embedded FS to the URL path it is served from.
-	Details FileDetails `json:"details"`
-
-	// Frontmatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
-	Frontmatter MarkdownFrontMatter `json:"frontmatter" toml:"doc_metadata"`
-
-	// JsonLD is the JSON-LD format for the file.
-	JsonLD *json.RawMessage `json:"jsonLD,omitempty"`
-}
-
-// MarkdownFrontMatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
-type MarkdownFrontMatter struct {
-	// Author the person who wrote or is responsible for the document.
-	Author *string `json:"author,omitempty" toml:"author"`
-
-	// CreatedAt is when the post was created.
-	CreatedAt string `json:"created_at" toml:"created_at" validate:"required,datetime=2006-01-02"`
-
-	// Description is a description of the document, used in metadata headers of the page.
-	Description string `json:"description" toml:"description" validate:"required"`
-
-	// Image is a URL to an image to represent the file.
-	Image *string `json:"image,omitempty" toml:"image" validate:"omitempty,url"`
-
-	// PageTitle is the title rendered in the page header (i.e., <title/>).
-	PageTitle string `json:"page_title" toml:"page_title" validate:"required"`
-
-	// Title is the in-page title of the document.
-	Title string `json:"title" toml:"title" validate:"required"`
-
-	// UpdatedAt is when the post was updated.
-	UpdatedAt *string `json:"updated_at,omitempty" toml:"updated_at" validate:"omitempty,datetime=2006-01-02"`
 }
 
 // Nickname is an optional friendly name.

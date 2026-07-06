@@ -6,6 +6,7 @@ created_at = "2026-02-02"
 updated_at = "2026-04-28"
 image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
 author = "Joshua Rich"
+slug = "finding-feeds"
 +++
 
 <script id="finding-feeds-faq" type="application/ld+json">

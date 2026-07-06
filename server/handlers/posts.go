@@ -4,33 +4,25 @@
 package handlers
 
 import (
-	"bytes"
-	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
-	"github.com/yuin/goldmark/parser"
-	"go.abhg.dev/goldmark/frontmatter"
 
 	"github.com/immanent-tech/go-syndication/rss"
 
 	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -38,19 +30,14 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
-var postsPath = "assets/docs/blog"
-
-var getPosts = sync.OnceValues(func() (*models.FileIndex, error) {
-	var posts models.FileIndex
-	if _, err := toml.DecodeFS(web.DocsFS, filepath.Join(postsPath, "directory.toml"), &posts); err != nil {
-		return nil, fmt.Errorf("read posts docs directory.toml: %w", err)
-	}
-	return &posts, nil
+var getPosts = sync.OnceValues(func() ([]*markdown.File, error) {
+	var postsPath = "assets/docs/blog"
+	return markdown.ReadDir(web.DocsFS, postsPath)
 })
 
 // PostsIndex is the index of all posts.
 type PostsIndex struct {
-	posts []*models.MarkdownFile
+	posts []*markdown.File
 }
 
 // FullResponse renders the posts index.
@@ -96,7 +83,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 // Post is an individual post.
 type Post struct {
-	*models.MarkdownFile
+	*markdown.File
 }
 
 // FullResponse renders an individual post.
@@ -113,7 +100,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	}
 	postOG := opengraph.NewArticle(
 		title.String(),
-		config.GetBaseURL()+"/blog/"+p.Details.Path,
+		config.GetBaseURL()+"/blog/"+p.Frontmatter.Slug,
 		p.Frontmatter.Description,
 		config.GetBaseURL()+*p.Frontmatter.Image,
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
@@ -133,10 +120,10 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		p.Frontmatter.Description,
 	)
 	templ.Handler(templates.CreatePage(
-		templates.Post(p.MarkdownFile),
+		templates.Post(p.File),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Details.Path),
+		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Frontmatter.Slug),
 		templates.WithOpenGraphMetadata(postOG),
 		templates.WithJSONLDSchema(
 			websiteJsonLd,
@@ -148,13 +135,11 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 // HandlePosts handles showing the posts index or individual posts.
 func HandlePosts() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
 		posts, err := getPosts()
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read post document.",
-				slog.String("doc", doc),
+			slogctx.FromCtx(req.Context()).Error("Could not read posts.",
 				slog.Any("error", err),
 			)
 			http.NotFound(res, req)
@@ -162,27 +147,15 @@ func HandlePosts() http.HandlerFunc {
 		}
 
 		// Show index when no specific post has been requested.
-		switch doc {
+		switch slug := chi.URLParam(req, "*"); slug {
 		case "":
 			// Posts index.
-			index := &PostsIndex{posts: make([]*models.MarkdownFile, 0, len(posts.Files))}
-			for file := range slices.Values(posts.Files) {
-				post, err := readPost(file)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not read post details.",
-						slog.String("file", file.File),
-						slog.Any("error", err),
-					)
-					continue
-				}
-				index.posts = append(index.posts, post)
-			}
+			index := &PostsIndex{posts: posts}
 			RenderExternalPage(index).ServeHTTP(res, req)
 		default:
 			// Individual post.
-
-			idx := slices.IndexFunc(posts.Files, func(e models.FileDetails) bool {
-				return strings.HasPrefix(e.File, doc)
+			idx := slices.IndexFunc(posts, func(p *markdown.File) bool {
+				return p.Frontmatter.Slug == slug
 			})
 			if idx == -1 {
 				res.WriteHeader(http.StatusNotFound)
@@ -191,86 +164,9 @@ func HandlePosts() http.HandlerFunc {
 
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
-
-			post, err := readPost(posts.Files[idx])
-			if err != nil {
-				// If file is not found, return HTTP 404 error.
-				slogctx.FromCtx(req.Context()).Error("Could not read post document.",
-					slog.String("doc", doc),
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			RenderExternalPage(&Post{MarkdownFile: post}).ServeHTTP(res, req)
+			RenderExternalPage(&Post{File: posts[idx]}).ServeHTTP(res, req)
 		}
 	}
-}
-
-func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
-	contents, err := web.DocsFS.ReadFile(filepath.Join(postsPath, details.File))
-	if err != nil {
-		return nil, fmt.Errorf("read file contents: %w", err)
-	}
-
-	mdw := markdown.LoadMarkdownWriter()
-	buf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		return nil, fmt.Errorf("allocate buffer: %w", err)
-	}
-	defer func() {
-		buf.Reset()
-		bufPool.Put(buf)
-	}()
-
-	parserCtx := parser.NewContext()
-	if err := mdw.Convert(contents, buf, parser.WithContext(parserCtx)); err != nil {
-		return nil, fmt.Errorf("convert markdown: %w", err)
-	}
-
-	d := frontmatter.Get(parserCtx)
-	var frontmatter models.MarkdownFrontMatter
-	if err := d.Decode(&frontmatter); err != nil {
-		return nil, fmt.Errorf("decode frontmatter: %w", err)
-	}
-
-	jsonld, err := generateJSONLD(&frontmatter, &details)
-	if err != nil {
-		return nil, fmt.Errorf("generate json-ld data: %w", err)
-	}
-
-	return &models.MarkdownFile{
-		Frontmatter: frontmatter,
-		Details:     details,
-		JsonLD:      &jsonld,
-		Content:     buf.Bytes(),
-	}, nil
-}
-
-func generateJSONLD(fm *models.MarkdownFrontMatter, details *models.FileDetails) (json.RawMessage, error) {
-	data := map[string]any{
-		"@context":      "https://schema.org",
-		"@type":         "Article",
-		"headline":      fm.Title,
-		"description":   fm.Description,
-		"image":         config.GetBaseURL() + *fm.Image,
-		"datePublished": fm.GetCreatedDate(),
-		"dateModified":  fm.GetUpdatedDate(),
-		"author": map[string]any{
-			"@type": "Person",
-			"name":  fm.Author,
-		},
-		"publisher": map[string]any{
-			"@type": "Organization",
-			"name":  "Foragd",
-			"url":   config.GetBaseURL(),
-		},
-		"mainEntityOfPage": map[string]any{
-			"@type": "WebPage",
-			"@id":   config.GetBaseURL() + "/blog/" + details.Path,
-		},
-	}
-	return json.Marshal(data)
 }
 
 // HandlePostsFeed handles showing an RSS file for posts.
@@ -309,24 +205,19 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithUpdatePeriod("monthly"),
 			rss.WithUpdateFrequency(2),
 		)
-		for post := range slices.Values(posts.Files) {
-			data, err := readPost(post)
-			if err != nil {
-				continue
-			}
-
+		for post := range slices.Values(posts) {
 			// Generate item for post.
 			item := rss.NewItem(
-				rss.WithItemTitle(data.Frontmatter.Title),
-				rss.WithItemDescription(data.Frontmatter.Description),
-				rss.WithItemLink(config.GetBaseURL()+"/blog/"+data.Details.Path),
-				rss.WithItemGUID(rss.GenerateGUID(config.GetBaseURL()+"/blog/"+data.Details.Path, true)),
+				rss.WithItemTitle(post.Frontmatter.Title),
+				rss.WithItemDescription(post.Frontmatter.Description),
+				rss.WithItemLink(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug),
+				rss.WithItemGUID(rss.GenerateGUID(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug, true)),
 				rss.WithItemImage(&types.ImageInfo{
-					Title: data.Frontmatter.Title,
-					URL:   config.GetBaseURL() + *data.Frontmatter.Image,
+					Title: post.Frontmatter.Title,
+					URL:   config.GetBaseURL() + *post.Frontmatter.Image,
 				}),
-				rss.WithItemContent(data.Content),
-				rss.WithItemPublishedDate(data.Frontmatter.GetCreatedDate()),
+				rss.WithItemContent(post.Content),
+				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}

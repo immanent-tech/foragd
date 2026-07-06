@@ -6,6 +6,7 @@ created_at = "2026-01-27"
 updated_at = "2026-04-28"
 image = "/content/images/blog/raphaels-school-of-athens.webp"
 author = "Joshua Rich"
+slug = "feeds-vs-social-media"
 +++
 
 RSS and Atom feeds differ from social media in one fundamental way: you choose every source you see, and no algorithm,

@@ -3,6 +3,7 @@ title = "Privacy Policy"
 description = "Privacy Policy for Foragd"
 created_at = "2025-10-07"
 updated_at = "2026-06-17"
+slug = "privacy"
 +++
 
 # Foragd Privacy Policy

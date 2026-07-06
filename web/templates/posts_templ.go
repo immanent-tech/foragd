@@ -15,7 +15,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"encoding/json"
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-func PostsIndex(posts []*models.MarkdownFile) templ.Component {
+func PostsIndex(posts []*markdown.File) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -133,7 +133,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 						postJSONLD := map[string]any{
 							"@type":         "BlogPosting",
 							"headline":      post.Frontmatter.Title,
-							"url":           config.GetBaseURL() + "/blog/" + post.Details.Path,
+							"url":           config.GetBaseURL() + "/blog/" + post.Frontmatter.Slug,
 							"datePublished": post.Frontmatter.GetCreatedDate(),
 							"author": map[string]any{
 								"@type": "Person",
@@ -158,9 +158,9 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var7 templ.SafeURL
-							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs("/blog/" + post.Details.Path)
+							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs("/blog/" + post.Frontmatter.Slug)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 55, Col: 44}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 55, Col: 48}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 							if templ_7745c5c3_Err != nil {
@@ -436,7 +436,7 @@ func PostsIndex(posts []*models.MarkdownFile) templ.Component {
 // Post renders a post.
 //
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
-func Post(post *models.MarkdownFile) templ.Component {
+func Post(post *markdown.File) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

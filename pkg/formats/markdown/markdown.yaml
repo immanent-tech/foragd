@@ -1,0 +1,98 @@
+openapi: '3.0.3'
+info:
+  version: 1.0.0
+  title: Markdown Format
+  description: >
+    Markdown formatting objects.
+  license:
+    name: 'AGPL 3.0'
+    idenfiier: AGPL-3.0-or-later
+  contact:
+    name: 'Immanent Tech'
+components:
+  schemas:
+    FrontMatter:
+      description: >
+        contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
+      type: object
+      required:
+        - title
+        - page_title
+        - description
+        - created_at
+        - slug
+      properties:
+        title:
+          description: >
+            is the in-page title of the document.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'title'
+            validate: 'required'
+        page_title:
+          description: >
+            is the title rendered in the page header (i.e., <title/>).
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'page_title'
+            validate: 'required'
+        description:
+          description: >
+            is a description of the document, used in metadata headers of the page.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'description'
+            validate: 'required'
+        created_at:
+          description: >
+            is when the post was created.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'created_at'
+            validate: 'required,datetime=2006-01-02'
+        updated_at:
+          description: >
+            is when the post was updated.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'updated_at'
+            validate: 'omitempty,datetime=2006-01-02'
+        author:
+          description: >
+            the person who wrote or is responsible for the document.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'author'
+        image:
+          description: >
+            is a URL to an image to represent the file.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'image'
+            validate: 'omitempty,url'
+        slug:
+          description: >
+            is a URL safe slug to indicate the path to the file.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'slug'
+            validate: required
+      x-oapi-codegen-extra-tags:
+        toml: 'doc_metadata'
+    File:
+      description: >
+        contains the raw markdown file data and its frontmatter.
+      type: object
+      required:
+        - frontmatter
+        - details
+        - content
+      properties:
+        jsonLD:
+          description: >
+            is the JSON-LD format for the file.
+          x-go-type: json.RawMessage
+        frontmatter:
+          $ref: '#/components/schemas/FrontMatter'
+        content:
+          x-go-type: '[]byte'
