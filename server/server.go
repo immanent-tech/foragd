@@ -50,11 +50,6 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
-	// Set up the session manager.
-	if err := session.NewSessionManager(); err != nil {
-		return fmt.Errorf("unable to set up session api: %w", err)
-	}
-
 	if err := assets.New(web.StaticContentFS, "content"); err != nil {
 		return fmt.Errorf("load assets: %w", err)
 	}
