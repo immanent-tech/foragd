@@ -9,12 +9,12 @@ ARG GO_VERSION=1.26.4@sha256:792443b89f65105abba56b9bd5e97f680a80074ac62fc844a58
 FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
 FROM mcr.microsoft.com/devcontainers/base:${CONTAINER_VERSION} AS builder
 
-ARG NODE_VERSION=v24.16.0
+ARG NODE_VERSION=v24.18.0
 
 # Install additional packages
 RUN DEBIAN_FRONTEND=noninteractive apt -y update && \
     apt -y install fish micro graphviz ca-certificates dotenv-cli \
-    python3 openjdk-17-jdk-headless openjdk-17-jre-headless
+    python3
 
 # Add the Zyte CA cert.
 ADD https://docs.zyte.com/_static/zyte-ca.crt /usr/local/share/ca-certificates/zyte-ca.crt
@@ -27,9 +27,6 @@ COPY --from=golang /usr/local/go/ /usr/local/go/
 RUN sudo curl -L -o- https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz \
     | tar xJvf - --strip-components=1 --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md -C /usr/local
 
-# Download and install docker.
-RUN cd /tmp && curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh ./get-docker.sh && rm /tmp/get-docker.sh
-
 # Dowload and install starship.
 RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 
@@ -37,9 +34,6 @@ RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 ARG USER_NAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-
-RUN echo $USER_UID:100000:65536 > /etc/subuid
-RUN echo $USER_GID:100000:65536 > /etc/subgid
 
 USER $USER_NAME
 

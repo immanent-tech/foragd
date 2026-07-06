@@ -26,7 +26,6 @@
     "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.6.13",
     "date-fns": "^4.4.0",
-    "grid-rows-masonry": "^1.2.11",
     "htmx.org": "^2.0.10",
     "hyperscript.org": "^0.9.93",
     "tailwindcss": "^4.3.2",
@@ -34,7 +33,6 @@
     "tailwindcss-visibility": "^1.0.3"
   },
   "devDependencies": {
-    "@bubblewrap/cli": "^1.24.1",
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.3.2",

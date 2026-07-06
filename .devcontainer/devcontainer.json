@@ -36,7 +36,6 @@
         "dz4k.vscode-hyperscript-org",
         "DotJoshJohnson.xml",
         "redhat.vscode-xml",
-        "davidlday.languagetool-linter",
         "eliostruyf.vscode-front-matter",
         "cossssmin.posthtml",
         "ms-azuretools.vscode-containers",
@@ -44,7 +43,6 @@
         "oderwat.indent-rainbow",
         "adam-bender.commit-message-editor",
         "kamikillerto.vscode-colorize",
-        "PWABuilder.pwa-studio"
       ]
     }
   }

@@ -28,18 +28,3 @@ cd $HOME && \
     rm google-cloud-cli-linux-x86_64.tar.gz && \
     google-cloud-sdk/install.sh --usage-reporting false --quiet --additional-components app-engine-go && \
     echo 'source /home/vscode/google-cloud-sdk/path.fish.inc' >> ~/.config/fish/config.fish
-
-# Setup bubblewrap.
-mkdir -p ~/.bubblewrap && \
-    cat > ~/.bubblewrap/config.json << EOF
-          {
-            "jdkPath": "/usr/lib/jvm/java-17-openjdk-amd64",
-          }
-EOF
-
-# Setup docker buildx.
-docker buildx create --name default-rootless --driver=docker-container --driver-opt=image=moby/buildkit:buildx-stable-1-rootless --driver-opt default-load=true \
-    && docker buildx use default-rootless \
-    && docker buildx inspect --bootstrap default-rootless
-
-exit 0
