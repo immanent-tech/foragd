@@ -140,7 +140,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
 	github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d // indirect
-	github.com/elastic/go-elasticsearch/v9 v9.4.1
+	github.com/elastic/go-elasticsearch/v9 v9.4.2
 	github.com/fatih/color v1.19.0
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/getkin/kin-openapi v0.133.0 // indirect
