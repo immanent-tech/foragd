@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.181.4](https://github.com/immanent-tech/foragd/compare/v0.181.3...v0.181.4) (2026-07-06)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix missing comma in json-ld application schema ([c41bc89](https://github.com/immanent-tech/foragd/commit/c41bc89aceaf08f84cecb7347261b592dc90aa13))
+* **templates:** 🔧 fix reading progress indicator ([9344ec1](https://github.com/immanent-tech/foragd/commit/9344ec1d18d5b17f8e1264ce3b866677ef39b79e))
+
+
+### Performance Improvements
+
+* ♻️ lazy load session manager ([87033ac](https://github.com/immanent-tech/foragd/commit/87033acbc6f78bbbd76f31f35095394543df126c))
+* ♻️ switch back to lazy loading google helper services ([937d98e](https://github.com/immanent-tech/foragd/commit/937d98e54442cef6c2828455fe87e87f35ab1e48))
+
 ## [0.181.3](https://github.com/immanent-tech/foragd/compare/v0.181.2...v0.181.3) (2026-07-04)
 
 
