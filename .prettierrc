@@ -13,8 +13,7 @@
     "prettier-plugin-organize-imports",
     "prettier-plugin-tailwindcss-extra-plus",
     "prettier-plugin-tailwindcss",
-    "@prettier/plugin-xml",
-    "prettier-plugin-templ"
+    "@prettier/plugin-xml"
   ],
   "tailwindStylesheet": "./web/assets/styles.css"
 }
