@@ -272,8 +272,8 @@ templ AccountSettings(user *models.User) {
 			<fieldset class="fieldset min-w-0 py-8">
 				<legend class="text-lg font-medium">Edit Account</legend>
 				if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
-					<p>
-						Your account is provided by an external service provider such as Google or Facebook, please log in
+					<p class="text-sm/6 font-semibold">
+						Your account is provided by an external service provider such as Google or Microsoft, please log in
 						to your account on the external service to make changes to your nickname, email, avatar or password.
 					</p>
 				} else {
@@ -472,31 +472,75 @@ templ AccountSettings(user *models.User) {
 						<p class="text-sm/6">
 							You will be automatically logged out. You will no longer be able to log in.
 						</p>
+						<div class="flex w-full justify-end mt-4">
+							<form>
+								<button
+									hx-post={ models.RouteUserDeactivateAccount }
+									hx-target={ partials.ModalContainerID.Target() }
+									hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
+									type="submit"
+									class="btn btn-error"
+								>
+									<span class="text-sm/6">Yes, deactivate my account</span>
+								</button>
+							</form>
+						</div>
 					default:
-						<p class="text-sm/6">
-							Any active subscription will be cancelled and stop at your next billing period.
-						</p>
-						<p class="text-sm/6">
-							Until then, you can continue to use your account.
-						</p>
-						<p class="text-sm/6">
-							After the cancellation date, your account (including all subscriptions, favorites and settings) will
-							be permanently deleted. You will no longer be able to log in.
-						</p>
+						switch *user.UserSubscriptionType {
+							case models.UserSubscriptionTypePaddle:
+								<p class="text-sm/6">
+									Any active subscription will be cancelled and stop at your next billing period.
+								</p>
+								<p class="text-sm/6">
+									Until then, you can continue to use your account.
+								</p>
+								<p class="text-sm/6">
+									After the cancellation date, your account (including all subscriptions, favorites and settings) will
+									be permanently deleted. You will no longer be able to log in.
+								</p>
+								<div class="flex w-full justify-end mt-4">
+									<form>
+										<button
+											hx-post={ models.RouteUserDeactivateAccount }
+											hx-target={ partials.ModalContainerID.Target() }
+											hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
+											type="submit"
+											class="btn btn-error"
+										>
+											<span class="text-sm/6">Yes, deactivate my account</span>
+										</button>
+									</form>
+								</div>
+							case models.UserSubscriptionTypeAndroid:
+								<p class="text-sm/6">
+									You will need to manually cancel your subscription in Google Play. See <a
+	href="https://support.google.com/googleplay/answer/7018481?hl=en&co=GENIE.Platform%3DAndroid#"
+	target="_blank"
+	rel="noopener"
+	class="link"
+>Cancel a subscription (Google Support)</a>
+								</p>
+								<p class="text-sm/6">
+									Any active subscription will be cancelled and stop at your next billing period.
+								</p>
+								<p class="text-sm/6">
+									Until then, you can continue to use your account.
+								</p>
+								<p class="text-sm/6">
+									After the cancellation date, your account (including all subscriptions, favorites and settings) will
+									be permanently deleted. You will no longer be able to log in.
+								</p>
+								<div class="flex w-full justify-end mt-4">
+									<a
+										role="button"
+										class="btn btn-primary w-fit"
+										target="_blank"
+										rel="noopener"
+										href="https://play.google.com/store/account/subscriptions"
+									>Manage Subscription Plan (Google Play)</a>
+								</div>
+						}
 				}
-				<div class="flex w-full justify-end mt-4">
-					<form>
-						<button
-							hx-post={ models.RouteUserDeactivateAccount }
-							hx-target={ partials.ModalContainerID.Target() }
-							hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
-							type="submit"
-							class="btn btn-error"
-						>
-							<span class="text-sm/6">Yes, deactivate my account</span>
-						</button>
-					</form>
-				</div>
 			</fieldset>
 		</div>
 	}

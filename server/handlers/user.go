@@ -18,7 +18,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -434,8 +433,6 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 			return
 		}
-		godump.Dump(request)
-
 		switch request.Confirmed {
 		case true:
 			// Get user account details.
@@ -454,7 +451,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 			}
 
 			// If the user added reasons or comments for deactivation, send an email containing those.
-			if len(request.Reasons) > 0 || request.Comments != nil {
+			if len(request.Reasons) > 0 || (request.Comments != nil && *request.Comments != "") {
 				var bodyBuilder strings.Builder
 				bodyBuilder.WriteString("User ID: ")
 				bodyBuilder.WriteString(user.GetID())
@@ -468,7 +465,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					bodyBuilder.WriteString(strings.Join(request.Reasons, ","))
 					bodyBuilder.WriteRune('\n')
 				}
-				if request.Comments != nil {
+				if *request.Comments != "" {
 					bodyBuilder.WriteRune('\n')
 					bodyBuilder.WriteString("Comments:")
 					bodyBuilder.WriteRune('\n')
@@ -523,13 +520,33 @@ func HandleDeactivateAccount() http.HandlerFunc {
 
 				slogctx.FromCtx(req.Context()).Info("Deleted trial user.")
 
+				// Create and send deactivation email confirmation.
+				email, err := resend.NewTemplatedEmail(
+					"user-deactivated",
+					resend.WithTo(user.GetEmail()),
+					resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+					resend.WithTag(resend.TagUserID, user.GetID()),
+				)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
+						slog.String("user_id", user.GetID()),
+						slog.Any("error", err),
+					)
+				}
+				if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
+						slog.String("user_id", user.GetID()),
+						slog.Any("error", err),
+					)
+				}
+
 				// Pass to logout handler.
 				Logout(res, req)
 			default:
 				// Paid user. Cancel their subscription appropriately and notify.
-				var timeLeft *time.Time
 				switch *user.UserSubscriptionType {
 				case models.UserSubscriptionTypePaddle:
+					var timeLeft *time.Time
 					userSubscription, err := user.Subscription.AsPaddleSubscription()
 					if err != nil {
 						HandleInternalError(req.URL.Path,
@@ -558,36 +575,18 @@ func HandleDeactivateAccount() http.HandlerFunc {
 						}
 					}
 					timeLeft = userSubscription.CurrentPeriodEnd
+					res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
+					res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
+					RenderPartial(&PartialTemplate{
+						template: templates.DeactivateResult(user, timeLeft),
+					}).ServeHTTP(res, req)
+
+					slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
+				case models.UserSubscriptionTypeAndroid:
+					return
 				}
-
-				res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
-				res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-				RenderPartial(&PartialTemplate{
-					template: templates.DeactivateResult(user, timeLeft),
-				}).ServeHTTP(res, req)
-
-				slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
 			}
 
-			// Create and send deactivation email confirmation.
-			email, err := resend.NewTemplatedEmail(
-				"user-deactivated",
-				resend.WithTo(user.GetEmail()),
-				resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
-				resend.WithTag(resend.TagUserID, user.GetID()),
-			)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
-					slog.String("user_id", user.GetID()),
-					slog.Any("error", err),
-				)
-			}
-			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
-					slog.String("user_id", user.GetID()),
-					slog.Any("error", err),
-				)
-			}
 		default:
 			RenderPartial(&Modal{
 				template: templates.DeactivateAccountModal(),

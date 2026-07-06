@@ -51,60 +51,7 @@ templ DeactivateAccountModal() {
 				<p class="mt-4 text-sm/6">
 					Are you sure you want to deactivate your account?
 				</p>
-				<p class="mt-4 text-sm/6 text-base-content/70">
-					If you have a moment, please tell us why you are deactivating your account (optional, select all that apply).
-				</p>
-				<fieldset class="mt-4">
-					<legend class="sr-only">Deactivation Reason</legend>
-					<div class="space-y-5">
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="too-expensive" type="checkbox" name="reasons[]" value="too_expensive" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="too-expensive" class="text-sm/6">Too expensive for what I use</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="missing-features" type="checkbox" name="reasons[]" value="missing_features" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="missing-features" class="text-sm/6">Missing a feature I need</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="switching" type="checkbox" name="reasons[]" value="switching_services" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="switching" class="text-sm/6">Switching to another feed reader</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="not-using" type="checkbox" name="reasons[]" value="no_longer_using" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="not-using" class="text-sm/6">Not using it enough / don't read as much anymore</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="complicated" type="checkbox" name="reasons[]" value="too_complicated" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="complicated" class="text-sm/6">Too complicated / hard to use</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="buggy" type="checkbox" name="reasons[]" value="buggy" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="buggy" class="text-sm/6">Ran into bugs or reliability issues</label>
-						</div>
-						<div class="flex gap-3 items-center">
-							<div class="flex h-6 shrink-0 items-center">
-								<input id="trying-out" type="checkbox" name="reasons[]" value="just_trying_out" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
-							</div>
-							<label for="trying-out" class="text-sm/6">Just trying it out (never intended to stick around)</label>
-						</div>
-						<label>
-							<span class="text-sm/6">Other:</span>
-							<textarea class="textarea w-full bg-base-content/10" name="comments" placeholder="Other comments, reasons..."></textarea>
-						</label>
-					</div>
-				</fieldset>
+				@deactivationReasonForm()
 			</div>
 			<div class="mt-5 justify-center gap-x-2 sm:mt-4 sm:flex sm:justify-end">
 				<button
@@ -133,6 +80,63 @@ templ DeactivateAccountModal() {
 			</div>
 		</form>
 	}
+}
+
+templ deactivationReasonForm() {
+	<p class="mt-4 text-sm/6 text-base-content/70">
+		If you have a moment, please tell us why you are deactivating your account (optional, select all that apply).
+	</p>
+	<fieldset class="mt-4">
+		<legend class="sr-only">Deactivation Reason</legend>
+		<div class="space-y-5">
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="too-expensive" type="checkbox" name="reasons[]" value="too_expensive" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="too-expensive" class="text-sm/6">Too expensive for what I use</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="missing-features" type="checkbox" name="reasons[]" value="missing_features" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="missing-features" class="text-sm/6">Missing a feature I need</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="switching" type="checkbox" name="reasons[]" value="switching_services" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="switching" class="text-sm/6">Switching to another feed reader</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="not-using" type="checkbox" name="reasons[]" value="no_longer_using" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="not-using" class="text-sm/6">Not using it enough / don't read as much anymore</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="complicated" type="checkbox" name="reasons[]" value="too_complicated" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="complicated" class="text-sm/6">Too complicated / hard to use</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="buggy" type="checkbox" name="reasons[]" value="buggy" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="buggy" class="text-sm/6">Ran into bugs or reliability issues</label>
+			</div>
+			<div class="flex gap-3 items-center">
+				<div class="flex h-6 shrink-0 items-center">
+					<input id="trying-out" type="checkbox" name="reasons[]" value="just_trying_out" class="col-start-1 row-start-1 checkbox checkbox-sm"/>
+				</div>
+				<label for="trying-out" class="text-sm/6">Just trying it out (never intended to stick around)</label>
+			</div>
+			<label>
+				<span class="text-sm/6">Other:</span>
+				<textarea class="textarea w-full bg-base-content/10" name="comments" placeholder="Other comments, reasons..."></textarea>
+			</label>
+		</div>
+	</fieldset>
 }
 
 templ DeactivateResult(user *models.User, timeLeft *time.Time) {
