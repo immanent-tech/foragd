@@ -74,19 +74,20 @@ func (c *FetchFeedCmd) Run() error {
 
 	showFeedDetails(feed)
 
-	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-		slogctx.FromCtx(ctx).Info("Feed has new items.",
-			slog.Int("count", len(newItems)),
-		)
-		// Try to add images to any items missing an image.
-		for item := range slices.Values(newItems) {
-			if item.GetImage() == nil {
-				if imgURL, err := service.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
-					item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+	if details != nil {
+		if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+			slogctx.FromCtx(ctx).Info("Feed has new items.",
+				slog.Int("count", len(newItems)),
+			)
+			// Try to add images to any items missing an image.
+			for item := range slices.Values(newItems) {
+				if item.GetImage() == nil {
+					if imgURL, err := service.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+						item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+					}
 				}
 			}
 		}
-
 	}
 
 	return nil
