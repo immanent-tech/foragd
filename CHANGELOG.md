@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.186.8](https://github.com/immanent-tech/foragd/compare/v0.186.7...v0.186.8) (2026-07-06)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix path to blogs in sitemap ([13f6fe1](https://github.com/immanent-tech/foragd/commit/13f6fe1a31761e9d84593e39517f6680d93af961))
+* **templates/checkout:** 🔧 fix spelling ([f92ba73](https://github.com/immanent-tech/foragd/commit/f92ba738c4b3f215d1fc03ae7e880c6e7c5d655c))
+
 ## [0.186.7](https://github.com/immanent-tech/foragd/compare/v0.181.6...v0.186.7) (2026-07-06)
 
 
