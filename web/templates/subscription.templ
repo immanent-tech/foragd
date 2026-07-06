@@ -497,43 +497,39 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
 								<li>Enter search terms (see notes below) as appropriate.</li>
 							</ol>
-							<label for="add-subscription-search" class="label mt-4">
-								Source search terms:
-							</label>
-							<div class="mt-2 w-full">
-								<div class="join flex w-full items-center sm:max-w-xl">
-									<div class="input w-full bg-base-300 brightness-95 input-primary">
-										@tableroutline.Search(templ.Attributes{"class": "text-primary"})
-										<input
-											id="add-subscription-search"
-											type="text"
-											name="suggestion_text"
-											if request.URL != "" {
-												value={ request.URL }
-											}
-											autocomplete="off"
-											placeholder="Text, phrase or URL..."
-											class="join-item min-w-0 flex-1 pl-3 text-base sm:text-sm/6"
-										/>
-									</div>
-									<label for="suggestion-source" class="sr-only">Source</label>
+							<div class="join join-vertical mt-2 sm:join-horizontal w-full items-center">
+								<label class="input w-full sm:w-2/3 p-2 sm:p-0 input-primary join-item">
+									<span class="label">
+										@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 text-primary"})
+									</span>
+									<input
+										id="add-subscription-search"
+										type="text"
+										name="suggestion_text"
+										if request.URL != "" {
+											value={ request.URL }
+										}
+										autocomplete="off"
+										placeholder="Text, phrase or URL..."
+									/>
+								</label>
+								<label class="select w-full sm:w-1/3 select-primary join-item">
+									<span class="label">Source:</span>
 									<select
 										id="suggestion-source"
 										name="suggestion_source"
-										aria-label="Source"
-										class="select join-item w-auto shrink-0 select-primary"
+										class="shrink"
 										_="
 									on change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end
 									on change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end
 									on change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end
 									"
 									>
-										<option disabled selected value="web">Source...</option>
-										<option value="web">Web</option>
+										<option value="web" selected>Web</option>
 										<option value="youtube">Youtube</option>
 										<option value="gnews">Google News</option>
 									</select>
-								</div>
+								</label>
 							</div>
 							<ul class="mt-4 block list-inside list-disc text-sm/6 text-neutral">
 								<div _="on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me">
