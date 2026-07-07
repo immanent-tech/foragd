@@ -647,9 +647,6 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		ctx,
 		schema.FeedsIndexRO(),
 		elastic.WithQueryOptions[*elastic.SearchRequest](feedSearchQuery),
-		elastic.WithSort(
-			NewFeedSortOptions(new(models.SortMostRelevant))...,
-		),
 		elastic.WithSize(5),
 	)
 	if err != nil {
