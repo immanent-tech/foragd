@@ -1,10 +1,35 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.187"
+date      = "Jul 7, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Reworked add subscription page. Feed previews are more compact and avoid horizontal scrolling.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Backend improvements for feed parsing should increase Foragd's ability to pass malformed and gnarly feeds much better.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Reading progress indicator was broken and is now fixed!
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Removed errant hoziontal scrolling on certain pages.
+"""
+
+[[releases]]
 version   = "v0.180"
 date      = "Jul 3, 2026"
 type      = "major"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
