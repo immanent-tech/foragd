@@ -40,7 +40,7 @@ exclude_regex = ["_test\\.go", "_templ\\.go"]
 # Exclude unchanged files.
 exclude_unchanged = true
 # Exclude files.
-exclude_file = ["web/assets/styles.css"]
+# exclude_file = ["web/assets/styles.css"]
 # Follow symlink for directories
 follow_symlink = true
 # Watch these filename extensions.
