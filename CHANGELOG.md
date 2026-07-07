@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.187.0](https://github.com/immanent-tech/foragd/compare/v0.186.8...v0.187.0) (2026-07-07)
+
+
+### Features
+
+* ➕ add getting started video on landing and help pages ([189f1bc](https://github.com/immanent-tech/foragd/commit/189f1bc7362716df19ede38eb045745c565dfd30))
+
+
+### Bug Fixes
+
+* **templates/footer:** ➕ add social media links in external footer ([f161ff7](https://github.com/immanent-tech/foragd/commit/f161ff7e93c6dfcae9d0070ca33f76868aee07a8))
+* **templates/header:** 🔧 fix link to landing in mobile menu ([22b3832](https://github.com/immanent-tech/foragd/commit/22b3832e4c2d21573819669b45d473dfac8ba19f))
+* **templates/subscriptions:** 🎨 improved feed previews when adding new feeds ([faf9ef0](https://github.com/immanent-tech/foragd/commit/faf9ef0b4f0c66e950ac33920280d7d0ab585d7d))
+
 ## [0.186.8](https://github.com/immanent-tech/foragd/compare/v0.186.7...v0.186.8) (2026-07-06)
 
 
