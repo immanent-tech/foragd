@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.187.1](https://github.com/immanent-tech/foragd/compare/v0.187.0...v0.187.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* **templates/home:** 🎨 improved subscription list layout ([c7a9279](https://github.com/immanent-tech/foragd/commit/c7a9279d506d33d1568e417da7c9fe88d38cabbe))
+* **templates/search:** 🔧 improved advanced search layout and fix published within options ([d6a69aa](https://github.com/immanent-tech/foragd/commit/d6a69aa8e828739fdce23af65bd8e37ef4d48920))
+* **templates/subscription:** 🔧 show either description or content summary on items in suggested feeds ([716f0a6](https://github.com/immanent-tech/foragd/commit/716f0a64892478479bc5ecc6f54d82913539f340))
+* **templates/subscriptions:** 🔧 clean up add subscriptions form ([4d16b38](https://github.com/immanent-tech/foragd/commit/4d16b38e4163718b41577c9e32a79223b58f3e7a))
+
 ## [0.187.0](https://github.com/immanent-tech/foragd/compare/v0.186.8...v0.187.0) (2026-07-07)
 
 
