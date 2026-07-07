@@ -4,6 +4,7 @@
 package templates
 
 import "time"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 templ FooterExternal() {
 	<footer class="footer bg-base-200 p-10 text-base-content sm:footer-horizontal">
@@ -38,6 +39,18 @@ templ FooterExternal() {
 			<a href="/policies/privacy" class="link link-hover">Privacy Policy</a>
 			<a href="/policies/tos" class="link link-hover">Terms of Service</a>
 			<a href="/policies/acceptable-use" class="link link-hover">Acceptable Use</a>
+		</nav>
+	</footer>
+	<footer class="footer bg-base-200 p-10">
+		<nav class="place-self-center">
+			<div class="flex gap-4">
+				<a href="https://github.com/immanent-tech/foragd" rel="noopener" target="_blank">
+					@tableroutline.BrandGithub()
+				</a>
+				<a href="https://www.youtube.com/@JoshRichImmanentTech" rel="noopener" target="_blank">
+					@tableroutline.BrandYoutube()
+				</a>
+			</div>
 		</nav>
 	</footer>
 }

@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "time"
+import "github.com/dimmerz92/go-icons/tabler-outline"
 
 func FooterExternal() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -42,13 +43,29 @@ func FooterExternal() templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 20, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 21, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<br><a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></p></aside><nav><h3 class=\"footer-title\">Product</h3><a href=\"/features/collect\" class=\"link link-hover\">Collect</a> <a href=\"/features/curate\" class=\"link link-hover\">Curate</a> <a href=\"/features/consume\" class=\"link link-hover\">Consume</a> <a href=\"/#pricing\" class=\"link link-hover\">Pricing</a></nav><nav><h3 class=\"footer-title\">Info</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/help\" class=\"link link-hover\">Help/Documentation</a></nav><nav><h3 class=\"footer-title\">Legal</h3><a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a> <a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a></nav></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<br><a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></p></aside><nav><h3 class=\"footer-title\">Product</h3><a href=\"/features/collect\" class=\"link link-hover\">Collect</a> <a href=\"/features/curate\" class=\"link link-hover\">Curate</a> <a href=\"/features/consume\" class=\"link link-hover\">Consume</a> <a href=\"/#pricing\" class=\"link link-hover\">Pricing</a></nav><nav><h3 class=\"footer-title\">Info</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/help\" class=\"link link-hover\">Help/Documentation</a></nav><nav><h3 class=\"footer-title\">Legal</h3><a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a> <a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a></nav></footer><footer class=\"footer bg-base-200 p-10\"><nav class=\"place-self-center\"><div class=\"flex gap-4\"><a href=\"https://github.com/immanent-tech/foragd\" rel=\"noopener\" target=\"_blank\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.BrandGithub().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</a> <a href=\"https://www.youtube.com/@JoshRichImmanentTech\" rel=\"noopener\" target=\"_blank\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tableroutline.BrandYoutube().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</a></div></nav></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
