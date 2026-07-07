@@ -154,6 +154,10 @@
       scroll-behavior: auto !important;
     }
   }
+
+  mux-player {
+    @apply block aspect-video w-full rounded-box;
+  }
 }
 
 /* Custom Component Classes */

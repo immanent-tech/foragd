@@ -3,6 +3,7 @@
 - [Foragd Help](#foragd-help)
   - [Where to Get Help](#where-to-get-help)
   - [Terminology](#terminology)
+  - [Getting Started](#getting-started)
   - [Accounts](#accounts)
   - [Getting Around the Interface](#getting-around-the-interface)
   - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
@@ -37,6 +38,13 @@
   - **Group Subscription**: a subscription that aggregates the articles from other subscriptions.
   - **Search Subscription**: a subscription created from a particular set of search terms.
 - **Article**: is a single item from a subscription (i.e., an article, blog post, etc.).
+
+## Getting Started
+
+Watch the quick start video showing how to sign-up and add the curated feed sets to get started using Foragd:
+
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
+<mux-player crossorigin playback-id="2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM" metadata-video-title="Getting Started"></mux-player>
 
 ## Accounts
 

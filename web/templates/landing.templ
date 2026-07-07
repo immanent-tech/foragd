@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/immanent-tech/foragd/web/components/mux"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -208,6 +209,14 @@ templ Landing() {
 					decoding="async"
 					fetchpriority="high"
 				/>
+				<div class="flex flex-col pt-12">
+					<span class="mx-auto  text-lg font-semibold text-center text-accent">Get started in less than two minutes:</span>
+					@mux.MuxPlayer(mux.MuxVideo{
+						ID:            "2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM",
+						Title:         "Getting Started",
+						ThumbnailTime: new(1),
+					})
+				</div>
 				<div class="border-y border-base-300/60 bg-base-200/40">
 					<div class="mx-auto flex max-w-6xl flex-wrap justify-center gap-x-10 gap-y-3 px-5 py-6 text-sm text-base-content/55">
 						// <span class="flex items-center gap-2">★★★★★ <span class="text-base-content/70">rated on Product Hunt</span></span>
@@ -218,7 +227,7 @@ templ Landing() {
 				</div>
 			</section>
 			// About/Manifesto Section.
-			<section id="manifesto" class="hero h-dvh snap-start md:snap-align-none">
+			<section id="manifesto" class="mx-auto hero min-h-dvh snap-start md:snap-align-none">
 				<div class="hero-content flex-col text-center sm:flex-row">
 					<div class="sm:w-1/3">
 						<h2 class="text-xs font-semibold tracking-widest text-primary/80 uppercase">Why Foragd</h2>

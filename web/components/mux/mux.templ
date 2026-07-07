@@ -1,0 +1,30 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package mux
+
+var muxScriptOnce = templ.NewOnceHandle()
+
+type MuxVideo struct {
+	ID            string
+	Title         string
+	UserID        *string
+	ThumbnailTime *int
+}
+
+templ MuxPlayer(video MuxVideo) {
+	@muxScriptOnce.Once() {
+		<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
+	}
+	<mux-player
+		crossorigin
+		playback-id={ video.ID }
+		metadata-video-title={ video.Title }
+		if video.UserID != nil {
+			metadata-viewer-user-id={ *video.UserID }
+		}
+		if video.ThumbnailTime != nil {
+			thumbnail-time={ *video.ThumbnailTime }
+		}
+	></mux-player>
+}
