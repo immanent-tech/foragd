@@ -504,29 +504,28 @@ templ SearchResults(results *models.SearchResults) {
 
 templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
-	<div id="search-filters" { attributes... } class="p-4">
-		<h3 id="search-filters-dialog-title" class="text-base font-semibold">Advanced Search</h3>
-		<div class="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2">
-			// Full text search filter.
-			<fieldset class="col-span-full fieldset">
-				<legend class="fieldset-legend">Includes the words</legend>
-				<textarea
-					rows="2"
-					id="search-text"
-					type="text"
-					name="text"
-					placeholder={ `+keyword -"some phrase"` }
-					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
-					_="on change set #global-search's value to my value"
-				>
-					if request.Text != "" {
-						{ request.Text }
-					}
-				</textarea>
-			</fieldset>
+	<fieldset id="search-filters" { attributes... } class="min-w-0 p-4">
+		// Full text search filter.
+		<label class="fieldset">
+			<span class="label col-span-full">Includes the words:</span>
+			<textarea
+				rows="2"
+				id="search-text"
+				type="text"
+				name="text"
+				placeholder={ `+keyword -"some phrase"` }
+				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
+				_="on change set #global-search's value to my value"
+			>
+				if request.Text != "" {
+					{ request.Text }
+				}
+			</textarea>
+		</label>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 			// Categories filter.
-			<fieldset class="fieldset sm:col-span-3">
-				<legend class="fieldset-legend">Categories</legend>
+			<label class="fieldset">
+				<span class="label col-span-full">Categories:</span>
 				<textarea
 					id="search-categories"
 					type="text"
@@ -538,10 +537,10 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 						{ *request.Categories }
 					}
 				</textarea>
-			</fieldset>
+			</label>
 			// Authors filter.
-			<fieldset class="fieldset sm:col-span-3">
-				<legend class="fieldset-legend">Authors</legend>
+			<label class="fieldset">
+				<span class="label col-span-full">Authors:</span>
 				<textarea
 					id="search-authors"
 					type="text"
@@ -553,10 +552,13 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 						{ *request.Authors }
 					}
 				</textarea>
-			</fieldset>
-			<fieldset class="fieldset sm:col-span-2">
-				<legend class="fieldset-legend">View</legend>
-				<div class="flex items-center gap-x-3">
+			</label>
+		</div>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			// View filter.
+			<div class="fieldset">
+				<span class="label col-span-full">View:</span>
+				<label class="fieldset flex">
 					<input
 						id="search-view-unread"
 						type="radio"
@@ -565,153 +567,122 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 						if request.View == models.ViewUnread {
 							checked
 						}
-						class="radio radio-sm radio-primary"
+						class="radio radio-sm radio-primary shrink"
 					/>
-					<label for="search-view-unread" class="block text-xs font-medium">Unread</label>
-				</div>
-				<div class="flex items-center gap-x-3">
+					<span class="label flex-1">Unread</span>
+				</label>
+				<label class="fieldset flex">
 					<input
-						id="search-view-read"
+						id="search-view-unread"
 						type="radio"
 						name="view"
 						value="read"
 						if request.View == models.ViewRead {
 							checked
 						}
-						class="radio radio-sm radio-primary"
+						class="radio radio-sm radio-primary shrink"
 					/>
-					<label for="search-view-read" class="block text-xs font-medium">Read</label>
-				</div>
-				<div class="flex items-center gap-x-3">
+					<span class="label flex-1">Read</span>
+				</label>
+				<label class="fieldset flex">
 					<input
-						id="search-view-all"
+						id="search-view-unread"
 						type="radio"
 						name="view"
 						value="all"
 						if request.View == models.ViewAll {
 							checked
 						}
-						class="radio radio-sm radio-primary"
+						class="radio radio-sm radio-primary shrink"
 					/>
-					<label for="search-view-all" class="block text-xs font-medium">All</label>
-				</div>
-			</fieldset>
+					<span class="label flex-1">All</span>
+				</label>
+			</div>
 			// Date range filter.
-			<fieldset class="fieldset sm:col-span-2">
-				<legend class="fieldset-legend">Published Within</legend>
+			<label class="fieldset">
+				<span class="label col-span-full">Published within:</span>
 				<select id="search-published-within" name="published_within" class="select my-2 bg-base-300 select-sm brightness-95 select-primary">
 					<option
-						value="last_hour"
+						value={ models.SearchRequestPublishedWithinLastHour }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
 							selected
 						}
 					>Last hour</option>
 					<option
-						value="last_half_day"
+						value={ models.SearchRequestPublishedWithinLast12hours }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLast12hours {
 							selected
 						}
 					>Last 12 hours</option>
 					<option
-						value="last_day"
+						value={ models.SearchRequestPublishedWithinLastDay }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastDay {
 							selected
 						}
 					>Last day</option>
 					<option
-						value="last_week"
+						value={ models.SearchRequestPublishedWithinLastWeek }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastWeek {
 							selected
 						}
 					>Last week</option>
 					<option
-						value="last_month"
+						value={ models.SearchRequestPublishedWithinLastMonth }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastMonth {
 							selected
 						}
 					>Last month</option>
 					<option
-						value="all_time"
+						value={ models.SearchRequestPublishedWithinAllTime }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinAllTime || request.PublishedWithin == "" {
 							selected
 						}
 					>All time</option>
 				</select>
-			</fieldset>
-			// Sort option.
-			<fieldset class="fieldset sm:col-span-2">
-				<legend class="fieldset-legend">Sort By</legend>
-				<select id="search-sort" name="sort" class="select my-2 bg-base-300 select-sm brightness-95 select-primary">
-					<option
-						value={ string(models.SortMostRelevant) }
-						if request.Sort == models.SortMostRelevant {
-							selected
-						}
-					>
-						Most Relevant
-					</option>
-					<option
-						value={ string(models.SortNewestFirst) }
-						if request.Sort == models.SortNewestFirst {
-							selected
-						}
-					>Newest First</option>
-					<option
-						value={ string(models.SortOldestFirst) }
-						if request.Sort == models.SortOldestFirst {
-							selected
-						}
-					>Oldest First</option>
-				</select>
-			</fieldset>
-			<div class="col-span-full mt-6 flex items-center justify-end gap-x-6">
-				// <button
-				// 	type="button"
-				// 	class="btn btn-sm btn-secondary hover:btn-error"
-				// 	command="close"
-				// 	commandfor="advanced-search-dialog"
-				// >Cancel</button>
-				<form
-					id="search-results"
-					hx-get="/search"
-					hx-target={ ContentID.Target() }
-					hx-include="[id='timezone'],#search-filters"
-					hx-params="not subscription-text,#global-search"
-					_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
-				>
-					<button
-						type="submit"
-						class="btn btn-md btn-primary"
-					>Apply</button>
-				</form>
-			</div>
-			// Help dialog.
-			<div class="absolute top-2 right-2">
-				<button
-					id="filter-operators-help-button"
-					popovertarget="filter-operators-help"
-					type="button"
-					class="btn btn-circle text-info btn-ghost btn-md"
-					aria-label="Search filters help"
-				>
-					<span class="sr-only">Show help</span>
-					@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
-				</button>
-				<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
-					<div class="card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap">
-						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-						<ul>
-							<li>+ signifies AND operation (i.e., food AND beverages)</li>
-							<li>| signifies OR operation (i.e., food OR beverages)</li>
-							<li>- negates the word (i.e., NOT alcoholic)</li>
-							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-							<li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li>
-						</ul>
-					</div>
-				</el-popover>
-			</div>
+			</label>
 		</div>
-	</div>
+		// Submit button.
+		<div class="mt-4 flex w-full justify-end gap-4">
+			<form
+				id="search-results"
+				hx-get="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="[id='timezone'],#search-filters"
+				hx-params="not subscription-text,#global-search"
+				_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
+			>
+				<button
+					type="submit"
+					class="btn btn-primary btn-sm"
+				>Apply</button>
+			</form>
+		</div>
+		// Help popover.
+		<div class="absolute top-2 right-2">
+			<button
+				id="filter-operators-help-button"
+				popovertarget="filter-operators-help"
+				type="button"
+				class="btn btn-circle text-info btn-ghost btn-md"
+				aria-label="Search filters help"
+			>
+				<span class="sr-only">Show help</span>
+				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
+			</button>
+			<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
+				<div class="card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap">
+					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+					<ul>
+						<li>+ signifies AND operation (i.e., food AND beverages)</li>
+						<li>| signifies OR operation (i.e., food OR beverages)</li>
+						<li>- negates the word (i.e., NOT alcoholic)</li>
+						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+						<li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li>
+					</ul>
+				</div>
+			</el-popover>
+		</div>
+	</fieldset>
 }
 
 templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
