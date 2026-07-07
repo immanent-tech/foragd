@@ -891,11 +891,14 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 												(no title)
 											}
 										</h3>
-										if content := item.GetContent(); content != "" {
-											<div class="prose-summary mb-3 line-clamp-2">
-												@templ.Raw(content)
-											</div>
-										}
+										<div class="prose-summary mb-3 line-clamp-2">
+											switch  {
+												case item.GetDescription() != "":
+													@templ.Raw(item.GetDescription())
+												case item.GetContent() != "":
+													@templ.Raw(item.GetContent())
+											}
+										</div>
 									</div>
 								</div>
 							}
