@@ -52,14 +52,14 @@ templ UserHome(data *HomeData) {
 							<p class="mt-0.5 text-sm text-base-content/50">{ time.Now().Format("Mon, 02 Jan 2006") }</p>
 						}
 					}
-					<div id="refreshing" class="flex w-full mx-auto justify-center">
+					<div id="refreshing" class="mx-auto flex w-full justify-center">
 						<div class="show-loading py-4 text-center">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
 						</div>
 					</div>
 					<div
-						class="grid grid-cols-1 items-start gap-6 px-2 sm:grid-cols-3 sm:gap-8 pt-4 ptr-content"
+						class="ptr-content grid grid-cols-1 items-start gap-6 px-2 pt-4 sm:grid-cols-3 sm:gap-8"
 						hx-get="/home"
 						hx-target={ ContentID.Target() }
 						hx-trigger="refresh"
@@ -81,7 +81,7 @@ templ UserHome(data *HomeData) {
 									}
 								}
 								@masonryGrid()
-								<div class="grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2 masonry-grid relative" _="install MasonryGrid">
+								<div class="masonry-grid relative grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2" _="install MasonryGrid">
 									for idx, article := range data.LatestArticles {
 										@ArticleCard(idx, article)
 									}
@@ -108,32 +108,37 @@ templ UserHome(data *HomeData) {
 											hx-indicator="this"
 											{ s.viewAttributes()... }
 										>
-											<div class="flex flex-1">
-												<div class="ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.05]">
-													if subscription.GetImage() == "" {
-														@subscriptionThumbnail(nil, subscription.GetTitle())
-													} else {
-														@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
-													}
+											<div class="flex">
+												<div class="mr-4 shrink-0 self-center">
+													<div class="ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.05]">
+														if subscription.GetImage() == "" {
+															@subscriptionThumbnail(nil, subscription.GetTitle())
+														} else {
+															@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
+														}
+													</div>
 												</div>
-												<h2 class="font-xl flex-1 font-serif text-lg font-bold text-balance">{ subscription.GetTitle() }</h2>
+												<div class="flex flex-1 flex-col">
+													<h2 class="font-xl flex-1 font-serif text-lg font-bold text-balance">{ subscription.GetTitle() }</h2>
+													<span class="mt-1 badge self-end badge-soft text-right badge-sm badge-neutral">
+														Updated&nbsp;
+														<relative-time
+															datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+															format="relative"
+															class="tabular-nums"
+														>
+															{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
+														</relative-time>
+													</span>
+												</div>
 											</div>
-											<span class="mt-1 self-end text-right badge badge-neutral badge-soft">
-												<relative-time
-													datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-													format="relative"
-													class="tabular-nums"
-												>
-													{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-												</relative-time>
-											</span>
 										</li>
 									}
 								</ul>
 								// Quick Add Feed Action.
 								<div class="border-t border-base-content/6 px-4 py-3">
 									<button
-										class="btn flex w-full items-center justify-center gap-1.5 text-base-content/50 btn-ghost btn-xs"
+										class="btn flex w-full items-center justify-center gap-1.5 btn-ghost text-base-content/50 btn-xs"
 										aria-label="Add a new feed"
 										hx-get="/subscription/add"
 										hx-target={ ContentID.Target() }
@@ -200,7 +205,7 @@ templ NewUserHome() {
 					@sectionHeading() {
 						@sectionTitle("Add subscriptions")
 					}
-					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-4">
+					<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
 						<a
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/subscription/add"
@@ -236,7 +241,7 @@ templ NewUserHome() {
 						@sectionTitle("Or start with a curated set")
 					}
 					<form>
-						<div class="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-4">
+						<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
 							<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
 								<div class="flex flex-row items-center gap-x-3">
 									<input
