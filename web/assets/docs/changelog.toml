@@ -1,10 +1,30 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.188"
+date      = "Jul 9, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Added a blog post comparing RSS and Atom formats.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Improved controls on search results page.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Fixed search results pagination.
+"""
+
+[[releases]]
 version   = "v0.187"
 date      = "Jul 7, 2026"
 type      = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """
