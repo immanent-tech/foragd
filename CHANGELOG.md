@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.188.0](https://github.com/immanent-tech/foragd/compare/v0.187.1...v0.188.0) (2026-07-08)
+
+
+### Features
+
+* **blog:** ➕ add rss vs atom post ([a28e441](https://github.com/immanent-tech/foragd/commit/a28e441964dd9d2b6f78322d4b1bf968ea00955b))
+* **search:** 🎨 improved controls layout for search results ([ed94b67](https://github.com/immanent-tech/foragd/commit/ed94b672575cafb68cb88f6b521bfb3d11a4c134))
+
+
+### Bug Fixes
+
+* **search:** 🔧 fix pagination of search results ([13bad11](https://github.com/immanent-tech/foragd/commit/13bad11ee56c31ef6bd95fbb5f5e203b07d96b0e))
+* **templates/favorites:** 🔧 fix width of container when user has no favorites ([2ecb92d](https://github.com/immanent-tech/foragd/commit/2ecb92dbb95d01ca7bc4018ab88f649090c56f17))
+
 ## [0.187.1](https://github.com/immanent-tech/foragd/compare/v0.187.0...v0.187.1) (2026-07-07)
 
 
