@@ -276,7 +276,10 @@ type SearchResults struct {
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Search represents a search request by the user.
-	Search        SearchRequest `form:"search" json:"search" validate:"required"`
+	Search SearchRequest `form:"search" json:"search" validate:"required"`
+
+	// Subscription represents any kind of subscription.
+	Subscription  *Subscription `json:"subscription,omitempty"`
 	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 

@@ -365,7 +365,11 @@ templ SearchResults(results *models.SearchResults) {
 			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
 				@pageHeading() {
-					@pageTitle("Search Results")
+					if results.Subscription != nil {
+						@pageTitle(results.Subscription.GetTitle())
+					} else {
+						@pageTitle("Search Results")
+					}
 				}
 				if len(results.Articles) == 0 {
 					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
@@ -385,77 +389,7 @@ templ SearchResults(results *models.SearchResults) {
 						hx-trigger="every 5m"
 						hx-target="#updates"
 					></div>
-					<div class="mt-4 flex items-center justify-between">
-						// Actions menu.
-						<el-dropdown class="inline-block">
-							<button class="btn btn-wide">
-								Actions
-								@tableroutline.ChevronDown(templ.Attributes{
-									"class":       "-mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-									"aria-hidden": "true"})
-							</button>
-							@partials.Menu() {
-								if results.Search.SubscriptionID != nil {
-									// Mark all read action.
-									@partials.MenuItem() {
-										<a
-											hx-post="/list/articles/mark/read"
-											hx-target={ ContentID.Target() }
-											hx-include="#grid-objects"
-											hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewUnread),
-														"mark": string(models.MarkRead),
-													}) }
-											class="group/item flex items-center gap-x-2"
-										>
-											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark all Read
-										</a>
-									}
-									// Mark all unread action.
-									@partials.MenuItem() {
-										<a
-											hx-post="/list/articles/mark/unread"
-											hx-target={ ContentID.Target() }
-											hx-include="#grid-objects"
-											hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewRead),
-														"mark": string(models.MarkUnread),
-													}) }
-											class="group/item flex items-center gap-x-2"
-										>
-											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark all Unread
-										</a>
-									}
-									// Edit action.
-									@partials.MenuItem() {
-										<a
-											hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
-											hx-target={ ContentID.Target() }
-											hx-swap="innerHTML show:top transition:true"
-											class="group/item flex items-center gap-x-2"
-										>
-											@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Edit Subscription
-										</a>
-									}
-								} else {
-									@partials.MenuItem() {
-										<a
-											hx-get="/subscription/add/search"
-											hx-target={ ContentID.Target() }
-											hx-include="#search-filters"
-											class="group/item flex items-center gap-x-2"
-										>
-											@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Add Subscription
-										</a>
-									}
-								}
-							}
-						</el-dropdown>
-					</div>
+					@SearchControls(results)
 					if len(results.Articles) > 1 {
 						<div class="m-2 flex justify-center gap-2 p-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center gap-2 p-2">
@@ -507,6 +441,147 @@ templ SearchResults(results *models.SearchResults) {
 			}
 		}
 	}
+}
+
+templ SearchControls(results *models.SearchResults) {
+	{{ mobilePanelID := "mobile-options" }}
+	<div class="p-2">
+		// Search Options: Mobile.
+		if results.Subscription != nil {
+			{{ s := Subscription{Subscription: results.Subscription} }}
+			<el-dialog>
+				<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
+					<el-dialog-backdrop></el-dialog-backdrop>
+					<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
+						<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-200 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
+							<div class="flex justify-end">
+								<button type="button" command="close" commandfor={ mobilePanelID } class="btn btn-square btn-ghost">
+									<span class="sr-only">Close menu</span>
+									@tableroutline.X(templ.Attributes{"class": "size-6", "aria-hidden": true})
+								</button>
+							</div>
+							<ul class="menu">
+								<li class="menu-title">Actions</li>
+								if results.Search.View == models.ViewUnread {
+									// Mark all read action.
+									<li>
+										<a
+											hx-post="/list/articles/mark/read"
+											hx-target={ ContentID.Target() }
+											hx-include="#grid-objects"
+											hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewUnread),
+														"mark": string(models.MarkRead),
+													}) }
+											class="group/item flex items-center gap-x-2"
+										>
+											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											Mark all Read
+										</a>
+									</li>
+								}
+								if results.Search.View == models.ViewRead {
+									// Mark all unread action.
+									<li>
+										<a
+											hx-post="/list/articles/mark/unread"
+											hx-target={ ContentID.Target() }
+											hx-include="#grid-objects"
+											hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewRead),
+														"mark": string(models.MarkUnread),
+													}) }
+											class="group/item flex items-center gap-x-2"
+										>
+											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+											Mark all Unread
+										</a>
+									</li>
+								}
+								// Edit action.
+								<li>
+									<a
+										{ s.editAttributes("/search?"+results.Search.Query())... }
+										class="group/item flex items-center gap-x-2"
+									>
+										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										Edit Subscription
+									</a>
+								</li>
+							</ul>
+						</el-dialog-panel>
+					</div>
+				</dialog>
+			</el-dialog>
+		}
+		<div class="flex items-center justify-between">
+			if results.Subscription != nil {
+				{{ s := Subscription{Subscription: results.Subscription} }}
+				// Show options button on mobile.
+				<button
+					type="button"
+					command="show-modal"
+					commandfor={ mobilePanelID }
+					class="btn items-center border-neutral/15 btn-outline btn-sm sm:hidden"
+				>
+					@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": true})
+					Options
+				</button>
+				// Show all options on desktop.
+				<div class="hidden sm:flex flex-1 items-center justify-end gap-2">
+					if results.Search.View == models.ViewUnread {
+						<button
+							hx-post="/list/articles/mark/read"
+							hx-target={ ContentID.Target() }
+							hx-include="#grid-objects"
+							hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewUnread),
+														"mark": string(models.MarkRead),
+													}) }
+							class="btn border-neutral/15 btn-outline btn-sm"
+						>
+							@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+							Mark all Read
+						</button>
+					}
+					if results.Search.View == models.ViewRead {
+						// Mark all unread action.
+						<button
+							hx-post="/list/articles/mark/unread"
+							hx-target={ ContentID.Target() }
+							hx-include="#grid-objects"
+							hx-vals={ templ.JSONString(map[string]string{
+														"view": string(models.ViewRead),
+														"mark": string(models.MarkUnread),
+													}) }
+							class="btn border-neutral/15 btn-outline btn-sm"
+						>
+							@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+							Mark all Unread
+						</button>
+					}
+					// Edit action.
+					<button
+						{ s.editAttributes("/search?"+results.Search.Query())... }
+						class="btn border-neutral/15 btn-outline btn-sm"
+					>
+						@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						Edit Subscription
+					</button>
+				</div>
+			} else {
+				<button
+					hx-get="/subscription/add/search"
+					hx-target={ ContentID.Target() }
+					hx-include="#search-filters"
+					class="btn border-neutral/15 btn-outline btn-sm"
+				>
+					@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+					Add Subscription
+				</button>
+			}
+		</div>
+	</div>
 }
 
 templ SearchPaginationControl(search *models.SearchRequest, pagination models.Pagination) {

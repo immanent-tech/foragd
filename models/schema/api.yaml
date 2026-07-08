@@ -364,6 +364,8 @@ components:
       properties:
         search:
           $ref: 'models.yaml#/components/schemas/SearchRequest'
+        subscription:
+          $ref: 'models.yaml#/components/schemas/Subscription'
         articles:
           x-go-type: Articles
           x-go-type-skip-optional-pointer: true

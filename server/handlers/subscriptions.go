@@ -1247,10 +1247,23 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			// Get the details.
 			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 			switch {
-			case err != nil && !valid && request != nil:
+			case request == nil:
+				request = models.NewSearchRequest()
+			case err != nil:
 				HandleInternalError(req.URL.Path,
 					&models.APIError{
 						InternalError: fmt.Errorf("decode add search subscription request: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}).ServeHTTP(res, req)
+				return
+			case !valid:
+				HandleInternalError(req.URL.Path,
+					&models.APIError{
+						InternalError: fmt.Errorf("validate search subscription request: %w", err),
 						StatusCode:    http.StatusUnprocessableEntity,
 						UserMessage: models.NewErrorMessage(
 							"Unable to add subscription",
@@ -1258,8 +1271,6 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 						),
 					}).ServeHTTP(res, req)
 				return
-			default:
-				request = models.NewSearchRequest()
 			}
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()

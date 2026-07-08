@@ -405,16 +405,26 @@ func HandleSearchResults() http.HandlerFunc {
 		}
 		// }
 
+		var subscription *models.Subscription
+		if search.SubscriptionID != nil {
+			subscription, err = service.GetSubscription(req.Context(), *search.SubscriptionID)
+			if err != nil {
+				slogctx.Warn(req.Context(), "Unable to retrieve search subscription details.",
+					slog.Any("error", err))
+			}
+		}
+
 		RenderInternalPage(&SearchResults{
 			title: templates.PageTitle{
 				Summary:     "Search Results",
 				Description: search.Text,
 			},
 			results: &models.SearchResults{
-				Search:     *search,
-				Articles:   articles,
-				Categories: categories,
-				Pagination: &newPagination,
+				Search:       *search,
+				Subscription: subscription,
+				Articles:     articles,
+				Categories:   categories,
+				Pagination:   &newPagination,
 			},
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
