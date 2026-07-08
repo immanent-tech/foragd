@@ -138,7 +138,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 									}
 								}
 							} else {
-								<div class="pt-12 max-w-md text-center">
+								<div class="pt-12 text-center">
 									@tableroutline.QuestionMark(templ.Attributes{"class": "mx-auto size-16 text-secondary"})
 									<h3 class="mt-6 text-xl font-bold">No favorite subscriptions</h3>
 									<p class="mt-4 text-pretty">
@@ -167,7 +167,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 									}
 								}
 							} else {
-								<div class="pt-12 max-w-md text-center">
+								<div class="pt-12 text-center">
 									@tableroutline.QuestionMark(templ.Attributes{"class": "mx-auto size-16 text-secondary"})
 									<h3 class="mt-6 text-xl font-bold">No favorite articles</h3>
 									<p class="mt-4 text-pretty">
