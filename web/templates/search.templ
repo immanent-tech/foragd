@@ -347,8 +347,26 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 templ SearchResults(results *models.SearchResults) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
+			<div
+				id="ptr-sentinel"
+				style="height:1px;"
+				_="
+		on intersection(intersecting)
+			if intersecting
+				send ptrSentinelVisible
+			else
+				send ptrSentinelHidden
+			end
+		end
+		"
+			></div>
 			@buttonBackToTop()
-			@container() {
+			@pullToRefreshScript()
+			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
+				// Show a page header.
+				@pageHeading() {
+					@pageTitle("Search Results")
+				}
 				if len(results.Articles) == 0 {
 					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
 						<div class="text-center">
@@ -367,15 +385,7 @@ templ SearchResults(results *models.SearchResults) {
 						hx-trigger="every 5m"
 						hx-target="#updates"
 					></div>
-					<div id="header" class="mt-4 flex items-center justify-between">
-						// Page title.
-						<div class="md:flex md:items-center md:justify-between">
-							<div class="min-w-0 flex-1">
-								<h1 class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-									Search Results
-								</h1>
-							</div>
-						</div>
+					<div class="mt-4 flex items-center justify-between">
 						// Actions menu.
 						<el-dropdown class="inline-block">
 							<button class="btn btn-wide">
@@ -462,44 +472,59 @@ templ SearchResults(results *models.SearchResults) {
 						</div>
 					}
 					// Articles grid.
-					<section class="mt-4">
-						@grid() {
+					<section id="search-results" class="pt-4 ptr-content">
+						<div id="refreshing" class="mx-auto flex w-full justify-center">
+							<div class="show-loading py-4 text-center">
+								<span class="loading mr-3 loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Refreshing...</p>
+							</div>
+						</div>
+						@masonryGrid()
+						@grid(element.WithClasses("masonry-grid", "relative"),
+							element.WithAttribute("_", "install MasonryGrid"),
+							element.WithHXMethod(http.MethodGet, "/search"),
+							element.WithHXTarget(ContentID.Target()),
+							element.WithHXTrigger("refresh"),
+							element.WithHXIndicator("#refreshing"),
+							element.WithHXValues(results.Search.Values()),
+						) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, article := range results.Articles {
 									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 									@ArticleCard(idx, article)
 								}
-								if results.Pagination != nil && len(results.Articles) == 15 {
-									<form
-										hx-post="/search/paginate"
-										hx-vals={ templ.JSONString(results.Search) }
-										hx-trigger="intersect once"
-										hx-target="#grid-objects"
-										hx-swap="beforeend transition:false"
-										hx-indicator="#loading-results"
-										preload
-										preload-images="true"
-										_="on htmx:afterRequest remove me"
-										class="invisible"
-									>
-										<input type="hidden" name="pagination" value={ *results.Pagination }/>
-									</form>
-								}
 							}
 						}
-						// Loading results indicator.
-						<div id="loading-results" class="text-center">
-							<span class="show-loading items-center">
+						@SearchPaginationControl(&results.Search, *results.Pagination)
+						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
+							<div class="show-loading text-center">
 								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
-							</span>
+							</div>
 						</div>
-						// Button to go back to top.
 					</section>
 				}
 			}
 		}
 	}
+}
+
+templ SearchPaginationControl(search *models.SearchRequest, pagination models.Pagination) {
+	{{
+		values := search.Values()
+		values["pagination"] = pagination
+	}}
+	<div
+		id="pagination-sentinel-wrapper"
+		hx-swap-oob="true"
+		hx-post="/search/paginate"
+		hx-vals={ templ.JSONString(values) }
+		hx-trigger="intersect once"
+		hx-target="#grid-objects"
+		hx-swap="beforeend transition:false"
+		hx-indicator="#loading-items"
+		hx-sync="#grid-objects:abort"
+	></div>
 }
 
 templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) {

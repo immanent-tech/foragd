@@ -180,6 +180,12 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 		} else {
 			templ.Handler(templates.SearchResults(h.results), templ.WithFragments(templates.PaginateFragment)).
 				ServeHTTP(res, req)
+			RenderPartial(&PartialTemplate{
+				template: templates.SearchPaginationControl(
+					&h.results.Search,
+					*h.results.Pagination,
+				),
+			}).ServeHTTP(res, req)
 		}
 	}
 }
@@ -242,9 +248,9 @@ func HandleSearchResults() http.HandlerFunc {
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
 
-		// Retrieve pagination.
-		pagination := req.FormValue(models.ParamPagination)
-		if err := validation.Validate.Var(pagination, "omitempty,url_encoded"); err != nil {
+		// Retrieve currentPagination.
+		currentPagination := req.FormValue(models.ParamPagination)
+		if err := validation.Validate.Var(currentPagination, "omitempty,url_encoded"); err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
 					InternalError: fmt.Errorf("get pagination: %w", err),
@@ -255,6 +261,7 @@ func HandleSearchResults() http.HandlerFunc {
 		// Find articles that match search request.
 		var articles models.Articles
 		var categories []models.Category
+		var newPagination models.Pagination
 		// regularSearchQuery, err := service.BuildSearchResultsQuery(
 		// 	ctx,
 		// 	user,
@@ -292,10 +299,11 @@ func HandleSearchResults() http.HandlerFunc {
 		// Search for articles.
 		searchJobs.Go(func() error {
 			var items models.Items
-			items, pagination, err = service.RetrieveItems(
+
+			items, newPagination, err = service.RetrieveItems(
 				ctx,
 				retriever.WithReciprocalRankFusionRetriever(
-					retriever.WithRankWindowSize(30),
+					retriever.WithRankWindowSize(150),
 					retriever.WithQueryFilters(filterQuery),
 					retriever.WithChildRetrievers(
 						retriever.WithStandardRetriever(
@@ -310,7 +318,7 @@ func HandleSearchResults() http.HandlerFunc {
 				),
 				defaultArticleResultsCount,
 				&search.Sort,
-				&pagination,
+				&currentPagination,
 			)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
@@ -406,7 +414,7 @@ func HandleSearchResults() http.HandlerFunc {
 				Search:     *search,
 				Articles:   articles,
 				Categories: categories,
-				Pagination: &pagination,
+				Pagination: &newPagination,
 			},
 		}).ServeHTTP(res, req)
 	}).ServeHTTP

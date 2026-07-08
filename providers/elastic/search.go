@@ -172,6 +172,10 @@ func (r *SearchRequest) SetSize(size int) {
 	r.Search = r.Size(size)
 }
 
+func (r *SearchRequest) SetFrom(from int) {
+	r.Search = r.From(from)
+}
+
 func (r *SearchRequest) SetSearchAfter(values ...types.FieldValueVariant) {
 	r.Search = r.SearchAfter(values...)
 }

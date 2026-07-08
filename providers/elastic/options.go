@@ -84,6 +84,20 @@ func WithAggregations[T HasAggregations](aggs map[string]types.Aggregations) fun
 	}
 }
 
+// HasFrom represents a request that can define a from value for the starting document offset.
+type HasFrom interface {
+	*SearchRequest
+
+	SetFrom(from int)
+}
+
+// WithFrom option specifies the starting document offset.
+func WithFrom[T HasFrom](from int) func(T) {
+	return func(t T) {
+		t.SetFrom(from)
+	}
+}
+
 // HasSize represents a request that can define a size for number of results returned.
 type HasSize interface {
 	*SearchRequest

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"sync"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -107,26 +108,31 @@ func RetrieveItems(
 	sort *models.Sort,
 	pagination *models.Pagination,
 ) (models.Items, models.Pagination, error) {
-	searchAfter, err := elastic.DecodePagination(pagination)
-	if err != nil {
-		return nil, "", models.ErrInvalidParams
+	var from int
+	if pagination == nil || *pagination == "" {
+		from = 0
+	} else {
+		var err error
+		from, err = strconv.Atoi(*pagination)
+		// searchAfter, err := elastic.DecodePagination(pagination)
+		if err != nil {
+			return nil, "", models.ErrInvalidParams
+		}
 	}
+
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
 		elastic.WithRetriever(retriever),
 		// elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter(searchAfter...),
+		elastic.WithFrom(from),
 		elastic.WithSize(count),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("search items: %w", err)
 	}
 	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[models.Pagination](resp.Pagination)
-	if err != nil {
-		return nil, "", models.ErrInvalidParams
-	}
+	newPagination := strconv.Itoa(from + count)
 	return resp.Results, newPagination, nil
 }
 
