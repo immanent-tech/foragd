@@ -3,7 +3,10 @@
 
 package schema
 
-import "github.com/immanent-tech/foragd/config"
+import (
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/elastic/ilm"
+)
 
 // Index constants.
 
@@ -20,6 +23,21 @@ const (
 	// indexReadSuffix is the suffix appended to indices that are used for read (search, get) operations.
 	indexReadSuffix = "_ro"
 )
+
+var allIndices = []string{
+	feedsIndexPrefix,
+	itemsSchemaPrefix,
+	favoritesSchemaPrefix,
+	usersSchemaPrefix,
+	subscriptionsSchemaPrefix,
+	schedulerIndexPrefix,
+	sessionsSchemaPrefix,
+}
+
+// IndicesOptions contains the options for performing index schema operations.
+type IndicesOptions struct {
+	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
+}
 
 func FeedsIndexRO() string {
 	return feedsIndexPrefix + "_" + config.GetEnvironment().String() + indexReadSuffix
@@ -74,4 +92,13 @@ func SchedulerIndexRO() string {
 
 func SchedulerIndexRW() string {
 	return schedulerIndexPrefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
+}
+
+var allILMPolicies = map[string]*ilm.Policy{
+	"logs": logsILMPolicy,
+}
+
+// ILMOptions contains the options for performing ILM schema operations.
+type ILMOptions struct {
+	Policies []string `arg:"" default:"all" enum:"all,logs"`
 }

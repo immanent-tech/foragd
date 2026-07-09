@@ -26,15 +26,6 @@ import (
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T)
 
-var allILMPolicies = map[string]*ilm.Policy{
-	"logs": logsILMPolicy,
-}
-
-// ILMOptions contains the options for performing ILM schema operations.
-type ILMOptions struct {
-	Policies []string `arg:"" default:"all" enum:"all,logs"`
-}
-
 // UpdateILMPolicies will update all the specified ILM policies.
 func UpdateILMPolicies(ctx context.Context, api *elasticsearch.TypedClient, opts *ILMOptions) error {
 	// If no migrations are specified, perform migrations for all items.
@@ -65,21 +56,6 @@ func UpdateILMPolicies(ctx context.Context, api *elasticsearch.TypedClient, opts
 	}
 
 	return nil
-}
-
-var allIndices = []string{
-	feedsIndexPrefix,
-	itemsSchemaPrefix,
-	favoritesSchemaPrefix,
-	usersSchemaPrefix,
-	subscriptionsSchemaPrefix,
-	schedulerIndexPrefix,
-	sessionsSchemaPrefix,
-}
-
-// IndicesOptions contains the options for performing index schema operations.
-type IndicesOptions struct {
-	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
 }
 
 // CreateIndices creates indices and appropriate read/write aliases.
