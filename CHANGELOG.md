@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.188.1](https://github.com/immanent-tech/foragd/compare/v0.188.0...v0.188.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **blog:** 🔧 fix sorting of blog posts on index page ([3f8f69a](https://github.com/immanent-tech/foragd/commit/3f8f69ad3509f9096d548181cd1a4b919df5b844))
+* **templates/subscriptions:** 🔧 add feed fixes ([d93fb1a](https://github.com/immanent-tech/foragd/commit/d93fb1ab20b1b525a396c8b7f8ecc13dd1c8e0b0))
+
 ## [0.188.0](https://github.com/immanent-tech/foragd/compare/v0.187.1...v0.188.0) (2026-07-08)
 
 
