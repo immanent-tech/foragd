@@ -503,9 +503,10 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									placeholder="Text, phrase or URL..."
 									hx-post="/subscription/add/suggestions"
 									hx-target="#subscription-suggestions"
-									hx-trigger="keyup changed delay:300ms, search, load[this.value != '']"
+									hx-trigger="keyup changed delay:500ms, search, load[this.value != '']"
 									hx-sync="this:replace"
 									hx-indicator="#suggestions-loading"
+									hx-include="[name='suggestion_source']"
 									_="
 									on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
 									on keydown[key=='Enter'] halt the event
