@@ -1,200 +1,158 @@
-<!--
- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
- SPDX-License-Identifier: 	AGPL-3.0-or-later
--->
-
-<div align="center">
-
-  <img src="/web/assets/logo-color.svg" alt="logo" width="200" height="auto" />
-  <h1>Foragd</h1>
-  <p>
-    A beautiful, web based, online feed reader.
-  </p>
-  <p>
-    Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.
-  </p>
-
-<!-- Badges -->
-<p>
-  <a href="https://github.com/immanent-tech/foragd/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/immanent-tech/foragd" alt="contributors" />
-  </a>
-  <a href="">
-    <img src="https://img.shields.io/github/last-commit/immanent-tech/foragd" alt="last update" />
-  </a>
-  <a href="https://github.com/immanent-tech/foragd/network/members">
-    <img src="https://img.shields.io/github/forks/immanent-tech/foragd" alt="forks" />
-  </a>
-  <a href="https://github.com/immanent-tech/foragd/stargazers">
-    <img src="https://img.shields.io/github/stars/immanent-tech/foragd" alt="stars" />
-  </a>
-  <a href="https://github.com/immanent-tech/foragd/issues/">
-    <img src="https://img.shields.io/github/issues/immanent-tech/foragd" alt="open issues" />
-  </a>
-  <a href="https://github.com/immanent-tech/foragd/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/immanent-tech/foragd.svg" alt="license" />
+<p align="center">
+  <a href="https://foragd.app">
+    <img src="https://github.com/immanent-tech/foragd/raw/main/web/assets/play-feature-image.webp" alt="Foragd hero image" width="1024" height="500">
   </a>
 </p>
 
-<h4>
-    <a href="https://foragd.app/">Homepage</a>
-  <!-- <span> · </span> -->
-    <!-- <a href="https://github.com/Louis3797/awesome-readme-template">Documentation</a>
-  <span> · </span>
-    <a href="https://github.com/Louis3797/awesome-readme-template/issues/">Report Bug</a>
-  <span> · </span>
-    <a href="https://github.com/Louis3797/awesome-readme-template/issues/">Request Feature</a>
-  </h4> -->
-</div>
+<h1 align="center">Foragd</h1>
 
-<br />
+<p align="center">
+  A beautiful, web based, online feed reader.
+  <br />
+  Keep your RSS, Atom, and other syndication sources in one place — stay up to date across mobile, tablet, desktop, and laptop.
+  <br />
+  <br />
+  <a href="https://foragd.app"><strong>foragd.app »</strong></a>
+</p>
 
-<!-- Table of Contents -->
-# :notebook_with_decorative_cover: Table of Contents
+<p align="center">
+  <a href="https://github.com/immanent-tech/foragd/graphs/contributors"><img src="https://img.shields.io/github/contributors/immanent-tech/foragd" alt="Contributors"></a>
+  <a href="https://github.com/immanent-tech/foragd/blob/main"><img src="https://img.shields.io/github/last-commit/immanent-tech/foragd" alt="Last update"></a>
+  <a href="https://github.com/immanent-tech/foragd/network/members"><img src="https://img.shields.io/github/forks/immanent-tech/foragd" alt="Forks"></a>
+  <a href="https://github.com/immanent-tech/foragd/stargazers"><img src="https://img.shields.io/github/stars/immanent-tech/foragd" alt="Stars"></a>
+  <a href="https://github.com/immanent-tech/foragd/issues"><img src="https://img.shields.io/github/issues/immanent-tech/foragd" alt="Open issues"></a>
+  <a href="https://github.com/immanent-tech/foragd/blob/main/LICENSE"><img src="https://img.shields.io/github/license/immanent-tech/foragd" alt="License"></a>
+</p>
 
-- [:notebook\_with\_decorative\_cover: Table of Contents](#notebook_with_decorative_cover-table-of-contents)
-  - [:star2: About the Project](#star2-about-the-project)
-    - [What Makes Foragd Different?](#what-makes-foragd-different)
-    - [:camera: Screenshots](#camera-screenshots)
-    - [:space\_invader: Tech Stack](#space_invader-tech-stack)
-    - [:dart: Features](#dart-features)
-  - [:toolbox: Getting Started](#toolbox-getting-started)
-    - [:bangbang: Prerequisites](#bangbang-prerequisites)
-    - [:gear: Installation](#gear-installation)
-    - [:test\_tube: Running Tests](#test_tube-running-tests)
-    - [:running: Run Locally](#running-run-locally)
-    - [:triangular\_flag\_on\_post: Deployment](#triangular_flag_on_post-deployment)
-  - [:eyes: Usage](#eyes-usage)
-  - [:wave: Contributing](#wave-contributing)
-    - [:scroll: Code of Conduct](#scroll-code-of-conduct)
-  - [:warning: License](#warning-license)
-  - [:handshake: Contact](#handshake-contact)
-  - [:gem: Acknowledgements](#gem-acknowledgements)
+---
 
-<!-- About the Project -->
-## :star2: About the Project
+## 📔 Table of Contents
+
+- [📔 Table of Contents](#-table-of-contents)
+- [🌟 About the Project](#-about-the-project)
+  - [What Makes Foragd Different?](#what-makes-foragd-different)
+  - [📷 Screenshots](#-screenshots)
+  - [👾 Tech Stack](#-tech-stack)
+  - [🎯 Features](#-features)
+- [🧰 Getting Started](#-getting-started)
+  - [‼️ Prerequisites](#️-prerequisites)
+  - [⚙️ Installation](#️-installation)
+  - [🧪 Running Tests](#-running-tests)
+  - [🏃 Run Locally](#-run-locally)
+  - [🚩 Deployment](#-deployment)
+- [👀 Usage](#-usage)
+- [👋 Contributing](#-contributing)
+  - [📜 Code of Conduct](#-code-of-conduct)
+- [⚠️ License](#️-license)
+- [🤝 Contact](#-contact)
+- [💎 Acknowledgements](#-acknowledgements)
+
+## 🌟 About the Project
 
 Foragd is an online, web-based feed reader for all syndication formats (RSS, Atom, JSONFeed).
 
 ### What Makes Foragd Different?
 
-- **Focused on reading content, not tracking totals:** not trying to shoehorn feeds into an email-like interface and not showing unread counts. Straightforward homepage, subscription, and article views.
-- **Powerful Search:** fast and powerful searching. Find that article mentioning that thing from that site a while back, easily.
-- **Easy Filtering:** easily filter articles within a subscription by keyword, phrase, category, or author. No complex filter building, just easy `+/-` operators. For example: `alcoholic drinks + -"rum based" +daiquiri`
+- **Focused on reading content, not tracking totals.** No shoehorning feeds into an email-like inbox, no unread-count badges to chase. Just a straightforward homepage, subscription view, and article view.
+- **Powerful search.** Fast, full-text search across subscriptions and articles — find that one article, from that one site, about that one thing, without digging.
+- **Easy filtering.** Filter articles within a subscription by keyword, phrase, category, or author, using simple `+/-` operators — no complex filter builder required. For example:
+  `alcoholic drinks + -"rum based" +daiquiri`
 
-<!-- Screenshots -->
-### :camera: Screenshots
+### 📷 Screenshots
 
-<div align="center">
-  <img src="/web/content/screenshots/home-desktop-mobile.png" alt="Home page on desktop and mobile" />
-</div>
+<p align="center">
+  <img src="https://github.com/immanent-tech/foragd/raw/main/web/content/screenshots/main.webp" alt="Foragd home page on desktop and mobile" width="800">
+</p>
 
-<!-- TechStack -->
-### :space_invader: Tech Stack
+### 👾 Tech Stack
 
-<details>
-  <summary>Server</summary>
-  <ul>
-    <li><a href="https://go.dev/">Golang</a></li>
-    <li><a href="https://go-chi.io">Chi</a></li>
-    <li><a href="https://tailwindcss.com/">TailwindCSS</a></li>
-    <li><a href="https://daisyui.com">Daisy UI</a></li>
-  </ul>
-</details>
+**Server**
 
-<details>
-<summary>Database</summary>
-  <ul>
-    <li><a href="https://elastic.co/">Elasticsearch</a></li>
-  </ul>
-</details>
+- [Go](https://go.dev/)
+- [Chi](https://go-chi.io/)
+- [templ](https://templ.guide/)
+- [htmx](https://htmx.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Daisy UI](https://daisyui.com/)
 
-<details>
-<summary>Backend</summary>
-  <ul>
-    <li><a href="https://auth0.com/">Auth0</a></li>
-    <li><a href="https://stripe.com/">Stripe</a></li>
-    <li><a href="https://resend.com/">Resend</a></li>
-  </ul>
-</details>
+**Data store**
 
-<!-- Features -->
-### :dart: Features
+- [Elasticsearch](https://www.elastic.co/)
 
-- **Mobile and Desktop Friendly.** Foragd is a web based online app. It works in any browser on any device, anywhere.
-- **Article Filtering.** Filter articles in subscriptions by text/phrase, category or authors, with easy to use operators.
-- **Content Comes First.** Simple UI. Big images. Beautiful typography. Let the content shine.
-- **Powerful Search.** Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from the search bar.
-- **Subscription customisation.** Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.
-- **Subscription and article favorites.** Mark subscriptions and articles as favorites, to quickly access them later.
-- **Group subscriptions.** Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.
-- **Search subscriptions.** Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.
+**Backend services**
 
-<!-- Getting Started -->
-## 	:toolbox: Getting Started
+- [Auth0](https://auth0.com/) — authentication
+- [Stripe](https://stripe.com/) — billing
+- [Resend](https://resend.com/) — transactional email
 
-<!-- Prerequisites -->
-### :bangbang: Prerequisites
+### 🎯 Features
 
-- Podman/Docker.
-- Elasticsearch.
-- Auth0.
-- Stripe.
-- Resend.
-- GCP.
+- **Mobile and desktop friendly.** Foragd is a web based app that works in any modern browser, on any device.
+- **Article filtering.** Filter articles in a subscription by text/phrase, category, or author with simple, powerful operators.
+- **Content comes first.** A simple UI, big images, and clean typography let the content shine.
+- **Powerful search.** Full-text search across subscriptions and articles, with quick access and actions right from the search bar.
+- **Subscription customisation.** Give subscriptions a nickname and organise them with your own categories.
+- **Favorites.** Mark subscriptions and articles as favorites for quick access later.
+- **Grouped subscriptions.** Combine multiple subscriptions into a single unified view — great for following several sources on the same topic.
+- **Search subscriptions.** Save a search as a subscription so new matching articles keep showing up automatically. Perfect for tracking news or topics across many sources at once.
 
-<!-- Installation -->
-### :gear: Installation
+## 🧰 Getting Started
+
+### ‼️ Prerequisites
+
+To run Foragd, you'll need:
+
+- [Podman](https://podman.io/) or [Docker](https://www.docker.com/)
+- An [Elasticsearch](https://www.elastic.co/) instance
+- An [Auth0](https://auth0.com/) account
+- A [Stripe](https://stripe.com/) account
+- A [Resend](https://resend.com/) account
+- A GCP project (for supporting cloud services)
+
+### ⚙️ Installation
 
 TBA.
 
-<!-- Running Tests -->
-### :test_tube: Running Tests
+### 🧪 Running Tests
 
 TBA.
 
-<!-- Run Locally -->
-### :running: Run Locally
+### 🏃 Run Locally
 
 TBA.
 
-<!-- Deployment -->
-### :triangular_flag_on_post: Deployment
+### 🚩 Deployment
 
 TBA.
 
-<!-- Usage -->
-## :eyes: Usage
+## 👀 Usage
 
-TBA.
+Foragd is available today at **[foragd.app](https://foragd.app)**. Sign up, add your first feeds, and start reading.
 
-<!-- Contributing -->
-## :wave: Contributing
+## 👋 Contributing
 
 <a href="https://github.com/immanent-tech/foragd/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=immanent-tech/foragd" />
+  <img src="https://contrib.rocks/image?repo=immanent-tech/foragd" alt="Contributors" />
 </a>
 
 Contributions are always welcome!
 
 See `contributing.md` for ways to get started.
 
-<!-- Code of Conduct -->
-### :scroll: Code of Conduct
+### 📜 Code of Conduct
 
 TBA.
 
-<!-- License -->
-## :warning: License
+## ⚠️ License
 
-Distributed under the AGPL-3.0-or-later License. See [LICENSE](./LICENSE) for more information.
+Distributed under the AGPL-3.0-or-later License. See [LICENSE](https://github.com/immanent-tech/foragd/blob/main/LICENSE) for more information.
 
-<!-- Contact -->
-## :handshake: Contact
+## 🤝 Contact
 
-Immanent Tech — <hello@immanent.tech>
+Immanent Tech — [hello@immanent.tech](mailto:hello@immanent.tech)
 
-Project Link: [https://github.com/immanent-tech/foragd](https://github.com/immanent-tech/foragd)
+Project Link: [github.com/immanent-tech/foragd](https://github.com/immanent-tech/foragd)
 
-<!-- Acknowledgments -->
-## :gem: Acknowledgements
+## 💎 Acknowledgements
+
+TBA.
