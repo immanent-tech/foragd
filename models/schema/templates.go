@@ -149,7 +149,6 @@ var (
 					),
 				),
 				templates.WithTemplateSettings(
-					templates.WithLifecycle("items_ilm_policy", ItemsIndexRW()),
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
 						Analyzer: map[string]types.Analyzer{
 							htmlAnalyzer.Name:         htmlAnalyzer.Definition,
