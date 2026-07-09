@@ -22,6 +22,7 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/goforj/godump"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
@@ -41,6 +42,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/google/language"
 	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/zyte"
@@ -74,11 +76,8 @@ func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 // GetFeeds retrieves the Feeds matching the given FeedIDs. It will fetch any cached versions before fetching from
 // Elasticsearch (and then caching those).
 func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	var (
-		feeds    models.Feeds
-		err      error
-		unCached []models.FeedID
-	)
+	feeds := make(models.Feeds, 0, len(ids))
+	unCached := make([]models.FeedID, 0)
 
 	// Fetch feeds from cache.
 	for id := range slices.Values(ids) {
@@ -90,11 +89,11 @@ func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	}
 	// If there are feeds missing from the cache, fetch and cache them.
 	if len(unCached) > 0 {
-		feeds, err = elastic.GetDocs[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), ids...)
+		fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), unCached...)
 		if err != nil {
 			return nil, fmt.Errorf("get items: %w", err)
 		}
-		for feed := range slices.Values(feeds) {
+		for feed := range slices.Values(fetched) {
 			feeds = append(feeds, feed)
 			feedCache.Set(feed.GetID(), feed)
 		}
@@ -127,6 +126,11 @@ func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) e
 // UpdateFeedDetails takes a copy of a feed that has been recently fetched/refreshed and checks/updates various fields.
 // If there are updates, these are then saved.
 func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+	// If the feed does not have categories, use the classifier to generate some.
+	if len(newData.GetCategories()) == 0 {
+		newData.Categories = ClassifyFeed(ctx, newData)
+	}
+	// Compare new/old feed data and update as appropriate.
 	if diff := cmp.Diff(*oldData, *newData,
 		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
 		cmpopts.EquateEmpty(),
@@ -709,6 +713,8 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 		return nil, fmt.Errorf("get feeds: %w", err)
 	}
 
+	godump.Dump(feeds)
+
 	// Create outlines for all subscriptions.
 	outlines := make([]opml.Outline, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
@@ -734,6 +740,46 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 	data = []byte(xml.Header + string(data))
 
 	return data, nil
+}
+
+// ClassifyFeed will add appropriate categories to a feed by classifying the item content.
+func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
+	if len(feed.GetItems()) == 0 {
+		return nil
+	}
+
+	var (
+		itemText strings.Builder
+	)
+	// Append together all item content for classification.
+	for item := range slices.Values(feed.GetItems()) {
+		switch {
+		case item.GetContent() != "":
+			itemText.WriteString(item.GetContent())
+			itemText.WriteRune('\n')
+		case item.GetDescription() != "":
+			itemText.WriteString(item.GetDescription())
+			itemText.WriteRune('\n')
+		}
+	}
+
+	classifications, err := language.Classify(ctx, itemText.String())
+	if err != nil {
+		slogctx.Error(ctx, "Could not classify feed.",
+			slog.Any("error", err))
+		return nil
+	}
+
+	categories := make(models.Categories, 0, len(classifications))
+	for classification := range slices.Values(classifications) {
+		// Only use classifications with a relatively high confidence.
+		if classification.GetConfidence() > 0.5 {
+			c := strings.Split(strings.TrimPrefix(classification.GetName(), "/"), "/")
+			categories = append(categories, c...)
+		}
+	}
+
+	return categories
 }
 
 func getFeedUnreadCounts(

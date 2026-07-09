@@ -15,6 +15,8 @@ cloud.google.com/go/errorreporting v0.9.0 h1:LlE2SVIbz0k+OSeNTksk34inr3Fy62JMhHU
 cloud.google.com/go/errorreporting v0.9.0/go.mod h1:V7ojx7z76JITDZNGyDNkIIa9nNEkQzF6Yj+VHl2YF84=
 cloud.google.com/go/iam v1.11.0 h1:KieQ9Pb+LLPak1O3Rv3GgCxhnmkYf7Xyh0P5HfF1jFM=
 cloud.google.com/go/iam v1.11.0/go.mod h1:KP+nKGugNJW4LcLx1uEZcq1ok5sQHFaQehQNl4QDgV4=
+cloud.google.com/go/language v1.18.0 h1:q58bL7rmxvw6Q6VHt+wjFsAE1Tj/JkuAEIR4+84rx9U=
+cloud.google.com/go/language v1.18.0/go.mod h1:xSeiVB4UiA9wYmFy2GWjf1Mb1K3uR1Yi/80qoqTxH04=
 cloud.google.com/go/logging v1.18.0 h1:KhzZq+1cSkPH9YUaKLLhLtQxIHitVayBmk0sGfoM9+k=
 cloud.google.com/go/logging v1.18.0/go.mod h1:ZGKnpBaURITh+g/uom2VhbiFoFWvejcrHPDhxFtU/gI=
 cloud.google.com/go/longrunning v1.1.0 h1:qJ0R0IA8ONaRCNWTRPAS0iAmt1bj3TVgJ40z7ZGRslE=
