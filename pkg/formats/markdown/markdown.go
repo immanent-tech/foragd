@@ -48,7 +48,7 @@ var LoadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	)
 })
 
-// ToHTML treats the given string data input as markdown formatted plain-text and returns an appropriate HTML
+// ToHTML treats the given string data input as Markdown formatted plain-text and returns an appropriate HTML
 // representation.
 func ToHTML(input []byte) ([]byte, error) {
 	converter := LoadMarkdownWriter()
@@ -79,13 +79,16 @@ func (fm *FrontMatter) GetUpdatedDate() time.Time {
 	return time.Time{}
 }
 
-// ReadDir reads a list of markdown files from the given path in an embed.FS.
+// ReadDir reads a list of Markdown files from the given path in an embed.FS.
 func ReadDir(dir embed.FS, path string) ([]*File, error) {
+	// Get the list of files at the given path.
 	fileList, err := dir.ReadDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("read directory: %w", err)
 	}
-	policies := make([]*File, 0, len(fileList))
+
+	// Extract each file's Markdown content.
+	files := make([]*File, 0, len(fileList))
 	for file := range slices.Values(fileList) {
 		policy, err := ReadFile(dir, path, file)
 		if err != nil {
@@ -93,9 +96,10 @@ func ReadDir(dir embed.FS, path string) ([]*File, error) {
 				slog.Any("error", err))
 			continue
 		}
-		policies = append(policies, policy)
+		files = append(files, policy)
 	}
-	return policies, nil
+
+	return files, nil
 }
 
 // ReadFile reads a file at the given path in an embed.FS.
@@ -158,5 +162,10 @@ func generateJSONLD(frontmatter *FrontMatter) (json.RawMessage, error) {
 			"@id":   config.GetBaseURL() + "/blog/" + frontmatter.Slug,
 		},
 	}
-	return json.Marshal(data)
+
+	jsonLD, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("marshal frontmatter: %w", err)
+	}
+	return jsonLD, nil
 }

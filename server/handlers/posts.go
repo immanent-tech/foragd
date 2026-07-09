@@ -146,6 +146,12 @@ func HandlePosts() http.HandlerFunc {
 			return
 		}
 
+		// Sort by created date (most recent to least recent).
+		slices.SortFunc(posts, func(a, b *markdown.File) int {
+			return a.Frontmatter.GetCreatedDate().Compare(b.Frontmatter.GetCreatedDate())
+		})
+		slices.Reverse(posts)
+
 		// Show index when no specific post has been requested.
 		switch slug := chi.URLParam(req, "*"); slug {
 		case "":
