@@ -75,7 +75,6 @@ func ExecuteDeleteExpiredSessions(ctx context.Context, job *SerializedJob) error
 		job.JobDetail().JobKey().String(),
 		job,
 		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(true),
 	); err != nil {
 		return fmt.Errorf("update job: %w", err)
 	}

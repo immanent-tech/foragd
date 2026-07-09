@@ -76,7 +76,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		job.JobDetail().JobKey().String(),
 		serialized,
 		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(true),
+		elastic.WithRefresh(elastic.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}

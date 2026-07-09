@@ -155,7 +155,7 @@ func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) 
 
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), user.GetID(), updates,
-		elastic.WithRefresh(true),
+		// elastic.WithRefresh(elastic.RefreshTrue),
 		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)

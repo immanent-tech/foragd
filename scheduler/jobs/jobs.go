@@ -146,7 +146,7 @@ func (j *SerializedJob) shouldExecute(ctx context.Context) (bool, error) {
 			j.JobDetail().JobKey().String(),
 			j,
 			elastic.WithDocAsUpsert(true),
-			elastic.WithRefresh(true),
+			elastic.WithRefresh(elastic.RefreshTrue),
 		); err != nil {
 			return false, fmt.Errorf("update job: %w", err)
 		}

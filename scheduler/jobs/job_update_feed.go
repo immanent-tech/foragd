@@ -84,11 +84,11 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			job.JobDetail().JobKey().String(),
 			job,
 			elastic.WithDocAsUpsert(true),
-			elastic.WithRefresh(true),
 		); updateErr != nil {
 			return fmt.Errorf("update job: %w", updateErr)
 		}
 		slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.")
+		return nil
 	case err != nil:
 		return fmt.Errorf("get feed doc: %w", err)
 	}

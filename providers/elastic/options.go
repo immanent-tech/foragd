@@ -234,6 +234,18 @@ func WithIDs[T HasIDs](ids ...string) func(T) {
 	}
 }
 
+const (
+	// RefreshFalse (default) leaves Elasticsearch to handle shard refreshes as normal.
+	RefreshFalse Refresh = iota
+	// RefreshTrue will force Elasticsearch to immediately refresh any affected shards.
+	RefreshTrue
+	// RefreshWaitFor will force the request to wait for the next shard refresh performed by Elasticsearch.
+	RefreshWaitFor
+)
+
+// Refresh indicates how the operation will handle any required shard refreshes.
+type Refresh int
+
 // HasRefresh represents a request that can set a refresh state for affected shards after completion.
 type HasRefresh interface {
 	*UpdateRequest
@@ -241,22 +253,16 @@ type HasRefresh interface {
 	SetRefresh(refresh refresh.Refresh)
 }
 
-// WithRefresh option sets the refresh option. Note that while any value is accepted, only valid values of true, false
-// or the string "waitfor" will have any effect.
-func WithRefresh[T HasRefresh](value any) func(T) {
+// WithRefresh option sets the refresh option.
+func WithRefresh[T HasRefresh](value Refresh) func(T) {
 	return func(t T) {
-		switch v := value.(type) {
-		case bool:
-			switch value {
-			case true:
-				t.SetRefresh(refresh.True)
-			case false:
-				t.SetRefresh(refresh.False)
-			}
-		case string:
-			if v == "waitfor" {
-				t.SetRefresh(refresh.Waitfor)
-			}
+		switch value {
+		case RefreshTrue:
+			t.SetRefresh(refresh.True)
+		case RefreshWaitFor:
+			t.SetRefresh(refresh.Waitfor)
+		case RefreshFalse:
+			t.SetRefresh(refresh.False)
 		}
 	}
 }

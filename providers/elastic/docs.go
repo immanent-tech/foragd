@@ -136,7 +136,7 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T) error {
 
 	resp, err := api.Delete(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
-		Refresh(refresh.True).
+		Refresh(refresh.Waitfor).
 		Do(ctx)
 	if err != nil {
 		return fmt.Errorf("delete doc: %w", err)

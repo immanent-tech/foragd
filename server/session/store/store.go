@@ -104,7 +104,7 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 			"updated_at": time.Now().UTC(),
 		},
 		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(true),
+		// elastic.WithRefresh(elastic.RefreshTrue),
 	); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
