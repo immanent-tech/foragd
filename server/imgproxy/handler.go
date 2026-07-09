@@ -187,7 +187,7 @@ func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Bu
 	return nil
 }
 
-// proxyFetchRemoteImage fetches the image at the given url via a proxy and writes it into the image buffer.
+// proxyFetchRemoteImage fetches the image at the given URL via a proxy and writes it into the image buffer.
 func proxyFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
 	resp, err := zyte.Proxy(
 		ctx,
@@ -199,7 +199,7 @@ func proxyFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buf
 	if err != nil {
 		return &models.APIError{
 			InternalError: fmt.Errorf("fetch image via proxy: %w", err),
-			StatusCode:    *resp.StatusCode,
+			StatusCode:    http.StatusInternalServerError,
 		}
 	}
 	if resp.HttpResponseBody != nil {
