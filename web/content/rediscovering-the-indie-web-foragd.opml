@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+    <body>
+        <outline htmlUrl="https://feedle.world/top-stories"
+            text="feedle | Top Stories"
+            title="feedle | Top Stories"
+            type="rss"
+            xmlUrl="https://feedle.world/top-stories/rss"></outline>
+        <outline text="Kagi Small Web"
+            title="Kagi Small Web"
+            type="rss"
+            xmlUrl="https://kagi.com/api/v1/smallweb/feed"></outline>
+        <outline htmlUrl="https://kottke.org/"
+            text="kottke.org"
+            title="kottke.org"
+            type="rss"
+            xmlUrl="https://feeds.kottke.org/main"></outline>
+        <outline htmlUrl="https://webcurios.co.uk"
+            text="webcurios"
+            title="webcurios"
+            type="rss"
+            xmlUrl="https://webcurios.co.uk/feed/"></outline>
+        <outline htmlUrl="https://waxy.org/"
+            text="Waxy.org"
+            title="Waxy.org"
+            type="rss"
+            xmlUrl="https://waxy.org/feed/"></outline>
+    </body>
+    <head>
+        <dateCreated>09 Jul 2026 14:27 +1000</dateCreated>
+        <dateModified>09 Jul 2026 14:27 +1000</dateModified>
+        <title>Rediscovering the Indie Web - Foragd</title>
+    </head>
+</opml>

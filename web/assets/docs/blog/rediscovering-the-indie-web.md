@@ -3,7 +3,7 @@ title = "Rediscovering the Indie Web"
 page_title = "Rediscovering the Indie Web"
 description = "Some starting points for rediscovering, personal blogs and sites, and escaping algorithmic social media."
 created_at = "2026-06-03"
-updated_at = "2026-06-25"
+updated_at = "2026-07-09"
 image = "/content/images/blog/wall-map-of-the-world.webp"
 author = "Joshua Rich"
 slug = "rediscovering-the-indie-web"
@@ -97,5 +97,8 @@ driven by genuine human curiosity and not an algorithm. The web has always been 
 than any platform's timeline. You just need a map.
 
 Foragd is free to try for 14 days — no commitment needed. [Sign up](/signup?utm_source=blog).
+
+*Using a different feed reader? Download an OPML file you can use to import all the feeds above
+[here](/content/rediscovering-the-indie-web-foragd.opml).*
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
