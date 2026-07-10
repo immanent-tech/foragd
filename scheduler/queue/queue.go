@@ -48,35 +48,11 @@ var (
 type JobQueue struct {
 	logger *slog.Logger
 	cache  *otter.Cache[*quartz.JobKey, *jobs.SerializedJob]
+	loader otter.LoaderFunc[*quartz.JobKey, *jobs.SerializedJob]
 }
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
 var _ quartz.JobQueue = (*JobQueue)(nil)
-
-// loader is an Otter loader to fetch a job from the backend if not found in the cache.
-var loader = otter.LoaderFunc[*quartz.JobKey, *jobs.SerializedJob](
-	func(ctx context.Context, key *quartz.JobKey) (*jobs.SerializedJob, error) {
-		getCtx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
-		defer cancel()
-		job, err := elastic.GetDoc[string, *jobs.SerializedJob](
-			getCtx,
-			schema.SchedulerIndexRO(),
-			key.String(),
-		)
-		if err != nil {
-			if errors.Is(err, elastic.ErrNotFound) {
-				return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, elastic.ErrNotFound)
-			}
-			return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
-		}
-
-		slogctx.FromCtx(ctx).Debug("Retrieved job from backend.",
-			slog.String("job_key", job.JobDetail().JobKey().String()),
-		)
-
-		return job, nil
-	},
-)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
@@ -100,6 +76,24 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 				)
 			},
 		}),
+		loader: func(ctx context.Context, key *quartz.JobKey) (*jobs.SerializedJob, error) {
+			getCtx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
+			defer cancel()
+			job, err := elastic.GetDoc[string, *jobs.SerializedJob](
+				getCtx,
+				schema.SchedulerIndexRO(),
+				key.String(),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %w: %w", ErrGetJobFailed, otter.ErrNotFound, err)
+			}
+
+			slogctx.FromCtx(ctx).Debug("Retrieved job from backend.",
+				slog.String("job_key", job.JobDetail().JobKey().String()),
+			)
+
+			return job, nil
+		},
 	}
 
 	// Get all existing jobs from the backend.
@@ -155,9 +149,6 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	// Update in cache.
 	jq.cache.Set(job.JobDetail().JobKey(), serialized)
 
-	jq.logger.Debug("Pushed job to queue.",
-		slog.String("job_key", job.JobDetail().JobKey().String()))
-
 	return nil
 }
 
@@ -171,9 +162,6 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 	// Invalidate it in the cache so it will be fetched from the backend next time.
 	jq.cache.Invalidate(job.JobDetail().JobKey())
-
-	jq.logger.Debug("Popped job from queue.",
-		slog.String("job_key", job.JobDetail().JobKey().String()))
 
 	return job, nil
 }
@@ -202,7 +190,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	// Fetch the job from the cache, loading from the backend if needed.
-	job, err := jq.cache.Get(ctx, jobKey, loader)
+	job, err := jq.cache.Get(ctx, jobKey, jq.loader)
 	if err != nil {
 		if errors.Is(err, otter.ErrNotFound) {
 			return nil, fmt.Errorf("%w: %w: %w", ErrGetJobFailed, quartz.ErrJobNotFound, err)
