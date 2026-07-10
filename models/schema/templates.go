@@ -403,6 +403,17 @@ var (
 						),
 					),
 				),
+				templates.WithTemplateSettings(
+					templates.WithAnalysis(types.IndexSettingsAnalysis{
+						Analyzer: map[string]types.Analyzer{
+							htmlAnalyzer.Name:         htmlAnalyzer.Definition,
+							englishExactAnalyzer.Name: englishExactAnalyzer.Definition,
+						},
+						Tokenizer: map[string]types.Tokenizer{
+							emailTokenizer.Name: emailTokenizer.Definition,
+						},
+					}),
+				),
 			),
 		),
 	)

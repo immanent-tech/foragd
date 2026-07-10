@@ -104,7 +104,7 @@ func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, op
 			if err := migrateIndexTemplates(ctx, api,
 				itemsComponentTemplate,
 				itemsIndexTemplate,
-				itemsILMPolicy,
+				// itemsILMPolicy,
 			); err != nil {
 				return fmt.Errorf("could not migrate items: %w", err)
 			}
