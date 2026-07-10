@@ -24,7 +24,7 @@ import (
 
 const (
 	// defaultRequestTimeout is the maximum time a background action can run before its context is cancelled.
-	defaultRequestTimeout = 5 * time.Second
+	defaultRequestTimeout = 10 * time.Second
 	// defaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
 )
 
@@ -53,7 +53,10 @@ var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
-	return &JobQueue{logger: slogctx.FromCtx(ctx)}, nil
+	return &JobQueue{
+			logger: slogctx.FromCtx(ctx),
+		},
+		nil
 }
 
 // Push inserts a new scheduled job to the queue. This method is also used by the Scheduler to reschedule existing jobs
@@ -101,6 +104,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
+
 	jq.logger.Log(context.Background(), logging.LevelTrace, "Popped job from queue.",
 		slog.Group("job",
 			slog.String("id", job.JobDetail().JobKey().String()),
@@ -134,9 +138,9 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // Get returns the scheduled job with the specified key without removing it
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
+	// Retrieve from backend.
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
-
 	job, err := elastic.GetDoc[string, *jobs.SerializedJob](
 		ctx,
 		schema.SchedulerIndexRO(),
@@ -166,6 +170,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
+
 	jq.logger.Log(ctx, logging.LevelTrace, "Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
 
