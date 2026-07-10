@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.189.1](https://github.com/immanent-tech/foragd/compare/v0.189.0...v0.189.1) (2026-07-10)
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ implement otter cache for job queue ([40fb5ee](https://github.com/immanent-tech/foragd/commit/40fb5eeff5e872ea49e3e065a3aa6671f5923abc))
+
 ## [0.189.0](https://github.com/immanent-tech/foragd/compare/v0.188.1...v0.189.0) (2026-07-10)
 
 
