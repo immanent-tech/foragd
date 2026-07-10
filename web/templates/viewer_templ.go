@@ -15,7 +15,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -540,7 +540,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var img *models.RemoteImage
 		img = item.GetImage()
 		if img == nil {
-			url, alt, err := html.ExtractImageFromHTML(item.GetContent())
+			url, alt, err := htmlx.ExtractImageFromHTML(item.GetContent())
 			if err != nil {
 				img = models.NewRemoteImage(url, alt)
 			}

@@ -14,7 +14,7 @@ import (
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -233,8 +233,8 @@ func (i *Item) GetTitle() string {
 func (i *Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
-		case html.IsHTML(*i.Description):
-			sanitizedDesc, err := html.SanitizeHTMLString(*i.Description)
+		case htmlx.IsHTML(*i.Description):
+			sanitizedDesc, err := htmlx.SanitizeHTMLString(*i.Description)
 			if err != nil {
 				return ""
 			}
@@ -293,8 +293,8 @@ func (i *Item) GetContent() string {
 		return ""
 	}
 	switch {
-	case html.IsHTML(*i.Content):
-		sanitizedDesc, err := html.SanitizeHTMLString(*i.Content)
+	case htmlx.IsHTML(*i.Content):
+		sanitizedDesc, err := htmlx.SanitizeHTMLString(*i.Content)
 		if err != nil {
 			return ""
 		}

@@ -13,7 +13,7 @@ import (
 	language "cloud.google.com/go/language/apiv1"
 	"cloud.google.com/go/language/apiv1/languagepb"
 
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 )
 
 var client *language.Client
@@ -65,7 +65,7 @@ func newDocument(text string) *languagepb.Document {
 	}
 
 	// Determine if the document contains HTML and set the type appropriately.
-	switch html.IsHTML(text) {
+	switch htmlx.IsHTML(text) {
 	case true:
 		doc.Type = languagepb.Document_HTML
 	case false:

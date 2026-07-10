@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
@@ -210,7 +210,7 @@ func (a *Article) GetContent() string {
 func (a *Article) formatContent() string {
 	switch content := a.Item.GetContent(); {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
-		return html.CleanRedditHTML(a.Item.GetContent())
+		return htmlx.CleanRedditHTML(a.Item.GetContent())
 	case a.SourceType == SourceTypeEmail:
 		// For emails, perform extra content cleanup.
 		return stripPreheaderPadding(content)
@@ -231,7 +231,7 @@ func (a *Article) GetImage() *RemoteImage {
 	}
 
 	// Try to extract an image from the content.
-	switch url, alt, err := html.ExtractImageFromHTML(a.GetContent()); {
+	switch url, alt, err := htmlx.ExtractImageFromHTML(a.GetContent()); {
 	case err != nil:
 		return nil
 	case url != "":

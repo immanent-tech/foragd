@@ -6,7 +6,7 @@ package templates
 import (
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -360,7 +360,7 @@ templ viewerItemCard(item *models.Item) {
 		{{ img = item.GetImage() }}
 		if img == nil {
 			{{
-				url, alt, err := html.ExtractImageFromHTML(item.GetContent())
+				url, alt, err := htmlx.ExtractImageFromHTML(item.GetContent())
 				if err != nil {
 					img = models.NewRemoteImage(url, alt)
 				}

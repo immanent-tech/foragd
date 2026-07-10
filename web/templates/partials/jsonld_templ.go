@@ -14,7 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"encoding/json"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
@@ -161,7 +161,7 @@ func itemListJsonLD(name string, entries []ListItemJSONLD) json.RawMessage {
 			Type:        "ListItem",
 			Position:    idx + 1,
 			Name:        item.Name,
-			Description: html.ToPlainText(item.Description),
+			Description: htmlx.ToPlainText(item.Description),
 		}
 		list.MainEntity = append(list.MainEntity, entity)
 	}

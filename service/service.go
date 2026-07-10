@@ -22,7 +22,7 @@ import (
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 )
 
 // ExtractMainImage will attempt to extract a URL to what is likely the "main" image of a page (i.e., typically used on
@@ -81,7 +81,7 @@ func ExtractMainImage(ctx context.Context, rawURL string) (string, error) {
 
 	// Try to find the "main" image in the page content.
 	if foundURL == "" {
-		foundURL, _ = html.FindMainImage(pageBuf.Bytes(), rawURL)
+		foundURL, _ = htmlx.FindMainImage(pageBuf.Bytes(), rawURL)
 	}
 
 	// Parse the found URL.
@@ -151,7 +151,7 @@ func ExtractFavicon(ctx context.Context, rawURL string) (string, error) {
 		}
 	}
 
-	_, faviconURL, _, err := html.FindFavicon(pageBuf.Bytes(), rawURL)
+	_, faviconURL, _, err := htmlx.FindFavicon(pageBuf.Bytes(), rawURL)
 	if err != nil {
 		return "", fmt.Errorf("find favicon: %w", err)
 	}

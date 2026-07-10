@@ -1,7 +1,7 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package html
+package htmlx
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ import (
 )
 
 // checkMediumSignals walks the HTML tree and counts Medium-specific markers.
-func checkMediumSignals(n *html.Node) int {
+func CheckMediumSignals(n *html.Node) int {
 	count := 0
 
 	var walk func(*html.Node)
