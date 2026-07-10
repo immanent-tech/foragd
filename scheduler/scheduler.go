@@ -34,7 +34,8 @@ const (
 type manager struct {
 	quartz.Scheduler
 
-	queue quartz.JobQueue
+	queue          quartz.JobQueue
+	misfiredJobsCh chan quartz.ScheduledJob
 }
 
 var Manager *manager
@@ -44,12 +45,6 @@ func (m *manager) Clear(ctx context.Context) error {
 	if err := m.queue.Clear(); err != nil {
 		return fmt.Errorf("clear job queue: %w", err)
 	}
-	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), "clear_deleted_feeds_state"); err != nil {
-		return fmt.Errorf("clear job clear_delete_feeds state: %w", err)
-	}
-	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), "get_new_feeds_state"); err != nil {
-		return fmt.Errorf("clear job get_new_feeds state: %w", err)
-	}
 	return nil
 }
 
@@ -58,6 +53,27 @@ func Run(ctx context.Context) error {
 	if err := NewManager(ctx); err != nil {
 		return fmt.Errorf("create scheduler: %w", err)
 	}
+
+	// Start a goroutine to process misfired jobs.
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case job := <-Manager.misfiredJobsCh:
+				slogctx.FromCtx(ctx).Warn("Running misfired job.",
+					slog.String("job_key", job.JobDetail().JobKey().String()),
+				)
+				// Immediately run misfired job.
+				if err := job.JobDetail().Job().Execute(ctx); err != nil {
+					slogctx.FromCtx(ctx).Error("Misfired job failed.",
+						slog.String("job_key", job.JobDetail().JobKey().String()),
+						slog.Any("error", err),
+					)
+				}
+			}
+		}
+	}()
 
 	if err := RunStartupTasks(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
@@ -92,20 +108,24 @@ func NewManager(ctx context.Context) error {
 		return fmt.Errorf("new job queue: %w", err)
 	}
 
+	misfiredJobsCh := make(chan quartz.ScheduledJob)
+
 	// Create scheduler instance.
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithRetryInterval(500*time.Millisecond),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
 		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
+		quartz.WithMisfiredChan(misfiredJobsCh),
 	)
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
 
 	Manager = &manager{
-		Scheduler: scheduler,
-		queue:     jobQueue,
+		Scheduler:      scheduler,
+		queue:          jobQueue,
+		misfiredJobsCh: misfiredJobsCh,
 	}
 
 	return nil
