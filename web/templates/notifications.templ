@@ -45,41 +45,57 @@ templ Notification(msg *models.UserMessage, options ...notificationOption) {
 	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
 		<div
 			role="alert"
-			class={ "transition-transform duration-800 ease-in-out pointer-events-auto w-full max-w-sm alert", templ.KV("alert-info",msg.IsInfo()), templ.KV("alert-success",msg.IsSuccess()), templ.KV("alert-warning",msg.IsWarning()), templ.KV("alert-error",msg.IsError()) }
-			if opts.timeout != 0 {
-				_={ "on load wait for " + opts.timeout.String() + " then remove me" }
-			} else {
-				_={ "on load wait for " + DefaultNotificationTimeout.String() + " then remove me" }
-			}
+			class={ "flex transition-transform duration-800 ease-in-out pointer-events-auto w-full sm:max-w-sm alert",
+			templ.KV("alert-info",msg.IsInfo()),
+			templ.KV("alert-success",msg.IsSuccess()),
+			templ.KV("alert-warning",msg.IsWarning()),
+			templ.KV("alert-error",msg.IsError()) }
+			data-timeout={ opts.timeout.String() }
+			_="
+			on load wait for @data-timeout then remove me end
+			on closeMe remove me end
+			"
 		>
-			switch msg.Status {
-				case models.UserMessageStatusSuccess:
-					@tableroutline.CircleCheck(templ.Attributes{"class": "size-6 text-success-content", "aria-hidden": "true"})
-				case models.UserMessageStatusError:
-					@tableroutline.ExclamationCircle(templ.Attributes{"class": "size-6 text-error-content", "aria-hidden": "true"})
-				case models.UserMessageStatusWarning:
-					@tableroutline.AlertTriangle(templ.Attributes{"class": "size-6 text-warning-content", "aria-hidden": "true"})
-				default:
-					@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info-content", "aria-hidden": "true"})
-			}
-			<div>
-				<h3 class={ "text-sm font-medium", templ.KV("info-content",msg.IsInfo()), templ.KV("success-content",msg.IsSuccess()), templ.KV("warning-content",msg.IsWarning()), templ.KV("error-content",msg.IsError()) }>
-					{ msg.Summary }
-				</h3>
-				if msg.HasDetails() {
-					<div class={ "mt-2 text-sm", templ.KV("info-content",msg.IsInfo()), templ.KV("success-content",msg.IsSuccess()), templ.KV("warning-content",msg.IsWarning()), templ.KV("error-content",msg.IsError()) }>
-						{ *msg.Details }
+			<div class="flex flex-1">
+				<div class="mr-4 shrink-0">
+					switch msg.Status {
+						case models.UserMessageStatusSuccess:
+							@tableroutline.CircleCheck(templ.Attributes{"class": "size-6 text-success-content", "aria-hidden": "true"})
+						case models.UserMessageStatusError:
+							@tableroutline.ExclamationCircle(templ.Attributes{"class": "size-6 text-error-content", "aria-hidden": "true"})
+						case models.UserMessageStatusWarning:
+							@tableroutline.AlertTriangle(templ.Attributes{"class": "size-6 text-warning-content", "aria-hidden": "true"})
+						default:
+							@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info-content", "aria-hidden": "true"})
+					}
+				</div>
+				<div class="flex flex-1 justify-between">
+					<div class="flex-1">
+						<h3 class={ "text-sm font-medium", templ.KV("info-content",msg.IsInfo()), templ.KV("success-content",msg.IsSuccess()), templ.KV("warning-content",msg.IsWarning()), templ.KV("error-content",msg.IsError()) }>
+							{ msg.Summary }
+						</h3>
+						if msg.HasDetails() {
+							<div class={ "mt-2 text-sm", templ.KV("info-content",msg.IsInfo()), templ.KV("success-content",msg.IsSuccess()), templ.KV("warning-content",msg.IsWarning()), templ.KV("error-content",msg.IsError()) }>
+								{ *msg.Details }
+							</div>
+						}
 					</div>
-				}
+					<div class="ml-4 shrink-0">
+						<button
+							type="button"
+							class={ "btn btn-square btn-ghost size-6",
+					templ.KV("text-success-content",msg.Status == models.UserMessageStatusSuccess),
+					templ.KV("text-error-content",msg.Status == models.UserMessageStatusError),
+					templ.KV("text-warning-content",msg.Status == models.UserMessageStatusWarning),
+					templ.KV("text-info-content",msg.Status == models.UserMessageStatusInfo) }
+							_="on click settle then send closeMe"
+						>
+							<span class="sr-only">Close</span>
+							@tableroutline.X(templ.Attributes{"aria-hidden": "true"})
+						</button>
+					</div>
+				</div>
 			</div>
-			<button
-				type="button"
-				class="btn btn-square btn-outline btn-sm"
-				_="on click settle then remove the closest parent <div/>"
-			>
-				<span class="sr-only">Close</span>
-				@tableroutline.X(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-			</button>
 		</div>
 	</div>
 }
