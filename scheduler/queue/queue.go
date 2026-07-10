@@ -115,7 +115,7 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 
 	slogctx.FromCtx(ctx).Debug("Job queue started.",
 		slog.Time("start_time", time.Now().UTC()),
-		slog.Int("job_count", len(jobs)))
+		slog.Int("job_count", queue.cache.EstimatedSize()))
 
 	return queue, nil
 }
@@ -141,7 +141,6 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		job.JobDetail().JobKey().String(),
 		serialized,
 		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(elastic.RefreshWaitFor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
