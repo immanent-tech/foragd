@@ -101,6 +101,7 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 	slogctx.FromCtx(ctx).Debug("Running execution method for job.",
 		slog.String("job_key", j.JobKey),
 		slog.String("job_description", *j.JobDescription),
+		slog.String("job_trigger", string(j.JobTriggerType)),
 	)
 	switch j.JobType {
 	case JobTypeGetNewFeeds:
