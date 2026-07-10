@@ -48,7 +48,7 @@
     {
       "label": "elastic: update indices",
       "type": "shell",
-      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -70,7 +70,7 @@
     {
       "label": "elastic: migrate indices",
       "type": "shell",
-      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -92,7 +92,7 @@
     {
       "label": "elastic: create indices",
       "type": "shell",
-      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -114,7 +114,7 @@
     {
       "label": "elastic: update ilm",
       "type": "shell",
-      "command": "dotenv -e .env.${input:environment} go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -136,7 +136,7 @@
     {
       "label": "email: run",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} npx maizzle serve ${input:environment}",
+      "command": "dotenv -f ../.env.${input:environment} run npx maizzle serve ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -159,7 +159,7 @@
     {
       "label": "email: build",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} mage build ${input:environment}",
+      "command": "dotenv -f ../.env.${input:environment} run mage build ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -182,7 +182,7 @@
     {
       "label": "email: install",
       "type": "shell",
-      "command": "dotenv -e ../.env.${input:environment} mage install ${input:environment}",
+      "command": "dotenv -f ../.env.${input:environment} run mage install ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
