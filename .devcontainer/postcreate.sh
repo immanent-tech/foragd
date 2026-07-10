@@ -2,6 +2,13 @@
 
 set -x
 
+# Set up shell(s).
+mkdir -p ~/.local/bin && curl -s https://ohmyposh.dev/install.sh | bash -s
+mkdir -p ~/.config/fish \
+    && echo "~/.local/bin/oh-my-posh init fish | source" >>~/.config/fish/config.fish \
+    && echo 'eval "$(~/.local/bin/oh-my-posh init bash)""' >>~/.bashrc
+
+
 cd /workspace
 
 # Update JS packages with bun.
@@ -29,9 +36,8 @@ cd $HOME && \
     google-cloud-sdk/install.sh --usage-reporting false --quiet --additional-components app-engine-go && \
     echo 'source /home/vscode/google-cloud-sdk/path.fish.inc' >> ~/.config/fish/config.fish
 
+# Authenticate with gcloud.
+source /home/vscode/google-cloud-sdk/path.bash.inc && \
+    gcloud auth application-default login --scopes=https://www.googleapis.com/auth/androidpublisher,https://www.googleapis.com/auth/cloud-platform && \
+    gcloud auth application-default set-quota-project foragd
 
-# Set up shell(s).
-mkdir -p ~/.local/bin && curl -s https://ohmyposh.dev/install.sh | bash -s
-mkdir -p ~/.config/fish \
-    && echo "~/.local/bin/oh-my-posh init fish | source" >>~/.config/fish/config.fish \
-    && echo 'eval "$(~/.local/bin/oh-my-posh init bash)""' >>~/.bashrc
