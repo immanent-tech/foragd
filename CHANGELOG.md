@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.189.0](https://github.com/immanent-tech/foragd/compare/v0.188.1...v0.189.0) (2026-07-10)
+
+
+### Features
+
+* **service/feeds:** ✨ enable automatic categorization of feeds without their own categories ([73093a4](https://github.com/immanent-tech/foragd/commit/73093a4ecfbe4603004070e7c7087a82dcf3288f))
+
+
+### Bug Fixes
+
+* **imgproxy:** 🔧 fix generation of status code for error response ([df71a0a](https://github.com/immanent-tech/foragd/commit/df71a0af8e06f3dc2701bbf81e7bf95942b09f99))
+* **schema:** 🔧 schema fixes ([c38bbb2](https://github.com/immanent-tech/foragd/commit/c38bbb2b0fc604f3a35b02efa9752e20221ab33d))
+* **templates/notifications:** 🎨 improved notification layout ([195e73e](https://github.com/immanent-tech/foragd/commit/195e73e3cd20adadcfe3e9ffd464ae01f998e59c))
+
+
+### Performance Improvements
+
+* **elastic:** ⚡ tune refresh handling for different update scenarios ([22eebb2](https://github.com/immanent-tech/foragd/commit/22eebb270a78cb1fd9e9691b2976eec543e0f4d4))
+* **scheduler:** ⚡ adjust default timeout to be longer than elasticsearch max shard refresh time wait ([446d9c0](https://github.com/immanent-tech/foragd/commit/446d9c02c82e9dbdc5940551dc39fca16a5271dc))
+
 ## [0.188.1](https://github.com/immanent-tech/foragd/compare/v0.188.0...v0.188.1) (2026-07-09)
 
 
