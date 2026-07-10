@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.190.0](https://github.com/immanent-tech/foragd/compare/v0.189.1...v0.190.0) (2026-07-10)
+
+
+### Features
+
+* **scheduler:** ✨ handle misfired jobs ([1769f86](https://github.com/immanent-tech/foragd/commit/1769f86f634960018a7b5d7025df932b2e42913d))
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ don't wait for refresh after updating job ([5ef9eee](https://github.com/immanent-tech/foragd/commit/5ef9eee795ea5daf77a01765c72b00aa4a8066df))
+
 ## [0.189.1](https://github.com/immanent-tech/foragd/compare/v0.189.0...v0.189.1) (2026-07-10)
 
 
