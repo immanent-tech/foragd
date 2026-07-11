@@ -96,96 +96,18 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Add additional feed details to logs.
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
-	// Set fetch options.
-	var (
-		proxyRequest bool
-	)
-	if details.FetchMethod == models.FeedFetchMethodProxied {
-		proxyRequest = true
-	}
-
-	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
-	var (
-		feed    *models.Feed
-		feedURL models.URL
-	)
-	for feedURL = range slices.Values(details.GetSourceURLs()) {
-		var err error
-		feed, err = service.FetchFeed(
-			ctx,
-			feedURL,
-			service.FetchWithFeedID(data.FeedID),
-			service.FetchWithProxy(proxyRequest),
-		)
-		if err != nil {
-			logMsg := &feedStatusLogMsg{
-				FeedStatus: &models.FeedStatus{
-					Timestamp: time.Now().UTC(),
-					FeedID:    details.GetID(),
-					URL:       feedURL,
-				},
-				Labels: map[string]string{
-					"env":  config.GetEnvironment().String(),
-					"type": "feed-status",
-				},
-			}
-			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-				logMsg.StatusCode = apiErr.StatusCode
-				logMsg.StatusMessage = new(apiErr.Error())
-			} else {
-				logMsg.StatusCode = http.StatusInternalServerError
-				logMsg.StatusMessage = new(err.Error())
-			}
-			if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-					slog.Any("error", err),
-				)
-			}
-			continue
-		}
-		break
+	// Get new feed data.
+	feed, feedURL, err := fetchNewFeedData(ctx, data, details)
+	if err != nil {
+		return err
 	}
 
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	// Create a new FeedStatus for this update.
-	logMsg := &feedStatusLogMsg{
-		FeedStatus: &models.FeedStatus{
-			Timestamp: time.Now().UTC(),
-			FeedID:    details.GetID(),
-			URL:       feedURL,
-		},
-		Labels: map[string]string{
-			"env":  config.GetEnvironment().String(),
-			"type": "feed-status",
-		},
-	}
-
-	// If no feed details were returned, fail the job.
-	if feed == nil {
-		if logMsg.StatusCode == 0 {
-			logMsg.StatusCode = http.StatusInternalServerError
-		}
-		if logMsg.StatusMessage != nil {
-			logMsg.StatusMessage = new("no feed data returned by any URL: " + *logMsg.StatusMessage)
-			logMsg.StatusCode = http.StatusNotFound
-		} else {
-			logMsg.StatusMessage = new("no feed data returned by any URL")
-			logMsg.StatusCode = http.StatusNotFound
-		}
-		if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-				slog.Any("error", err),
-			)
-		}
-		return fmt.Errorf(
-			"%w: %s (%s)",
-			ErrFetchFailed,
-			*logMsg.StatusMessage,
-			strings.Join(details.GetSourceURLs(), ","),
-		)
-	}
+	logMsg := newFeedStatusMsg(details.GetID())
+	logMsg.FeedStatus.URL = feedURL
 
 	// Add any new items since the last feed update.
 	if len(feed.GetItems()) == 0 {
@@ -251,8 +173,80 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	return nil
 }
 
+func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.Feed) (*models.Feed, models.URL, error) {
+	// Set fetch options.
+	var (
+		proxyRequest bool
+	)
+	if details.FetchMethod == models.FeedFetchMethodProxied {
+		proxyRequest = true
+	}
+
+	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
+	var (
+		feed    *models.Feed
+		feedURL models.URL
+	)
+	for feedURL = range slices.Values(details.GetSourceURLs()) {
+		var err error
+		feed, err = service.FetchFeed(
+			ctx,
+			feedURL,
+			service.FetchWithFeedID(data.FeedID),
+			service.FetchWithProxy(proxyRequest),
+		)
+		if err != nil {
+			logMsg := newFeedStatusMsg(details.GetID())
+			logMsg.FeedStatus.URL = feedURL
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+				logMsg.StatusCode = apiErr.StatusCode
+				logMsg.StatusMessage = new(apiErr.Error())
+			} else {
+				logMsg.StatusCode = http.StatusInternalServerError
+				logMsg.StatusMessage = new(err.Error())
+			}
+			if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+					slog.Any("error", err),
+				)
+			}
+			continue
+		}
+		return feed, feedURL, nil
+	}
+
+	// No feed data returned by any url. Log and return error.
+	logMsg := newFeedStatusMsg(details.GetID())
+	logMsg.StatusMessage = new("no feed data returned by any URL")
+	logMsg.StatusCode = http.StatusNotFound
+	if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
+	return nil, "", fmt.Errorf(
+		"%w: %s (%s)",
+		ErrFetchFailed,
+		*logMsg.StatusMessage,
+		strings.Join(details.GetSourceURLs(), ","),
+	)
+}
+
 type feedStatusLogMsg struct {
 	*models.FeedStatus
 
 	Labels map[string]string `json:"labels"`
+}
+
+func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
+	return &feedStatusLogMsg{
+		FeedStatus: &models.FeedStatus{
+			Timestamp: time.Now().UTC(),
+			FeedID:    id,
+		},
+		Labels: map[string]string{
+			"env":  config.GetEnvironment().String(),
+			"type": "feed-status",
+		},
+	}
 }
