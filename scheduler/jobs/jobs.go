@@ -40,6 +40,7 @@ type SchedulerAPI interface {
 	GetScheduledJob(jobKey *quartz.JobKey) (quartz.ScheduledJob, error)
 	ScheduleJob(jobDetail *quartz.JobDetail, trigger quartz.Trigger) error
 	DeleteJob(jobKey *quartz.JobKey) error
+	PauseJob(jobKey *quartz.JobKey) error
 }
 
 func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.Context {
@@ -159,7 +160,7 @@ func safeExecute(
 	ctx context.Context,
 	job *SerializedJob,
 	executeFn func(ctx context.Context, job *SerializedJob) error,
-) (err error) {
+) error {
 	defer func() {
 		if rvr := recover(); rvr != nil {
 			// Log to GCP error console.

@@ -29,17 +29,6 @@ type SchedulerCmd struct {
 // RunSchedulerCmd is a cli command for running the scheduler component.
 type RunSchedulerCmd struct{}
 
-// ClearSchedulerCmd is a cli command for clearing the scheduled jobs queue.
-type ClearSchedulerCmd struct{}
-
-// InitSchedulerCmd is a cli command to init the scheduler backend (for a new installation), without starting the
-// scheduler.
-type InitSchedulerCmd struct{}
-
-// ListJobsSchedulerCmd is a cli command for listing all scheduled jobs.
-type ListJobsSchedulerCmd struct{}
-
-// Run contains logic for setup and execution of the scheduler.
 func (c *RunSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -53,7 +42,9 @@ func (c *RunSchedulerCmd) Run(opts *Arguments) error {
 	return nil
 }
 
-// Run runs the clear command that will remove all scheduled jobs.
+// ClearSchedulerCmd is a cli command for clearing the scheduled jobs queue.
+type ClearSchedulerCmd struct{}
+
 func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -70,24 +61,36 @@ func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
 	return nil
 }
 
-// Run runs the clear command that will remove all scheduled jobs.
+// InitSchedulerCmd is a cli command to init the scheduler backend (for a new installation), without starting the
+// scheduler.
+type InitSchedulerCmd struct{}
+
 func (c *InitSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
+	// Set up and create scheduler instance.
 	if err := setupScheduler(ctx, opts); err != nil {
-		return fmt.Errorf("could not setup scheduler: %w", err)
+		return fmt.Errorf("setup scheduler: %w", err)
 	}
-	// Clear job queue.
-	if err := scheduler.RunStartupTasks(ctx); err != nil {
-		return fmt.Errorf("could not init scheduler: %w", err)
+	// Load admin jobs.
+	if err := scheduler.LoadAdminJobs(ctx); err != nil {
+		return fmt.Errorf("load admin jobs: %w", err)
 	}
+
+	// Load feed update jobs.
+	if err := scheduler.LoadUpdateFeedJobs(ctx); err != nil {
+		return fmt.Errorf("load update feed jobs: %w", err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Scheduler initialised.")
 	return nil
 }
 
-// Run runs the clear command that will remove all scheduled jobs.
+// ListJobsSchedulerCmd is a cli command for listing all scheduled jobs.
+type ListJobsSchedulerCmd struct{}
+
 func (c *ListJobsSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

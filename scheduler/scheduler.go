@@ -9,8 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
+	"slices"
 	"sync"
 	"time"
 
@@ -20,8 +22,10 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 )
@@ -75,7 +79,7 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
-	if err := RunStartupTasks(ctx); err != nil {
+	if err := LoadAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
 
@@ -140,9 +144,9 @@ func LoadManager(ctx context.Context) error {
 	})()
 }
 
-// RunStartupTasks will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
+// LoadAdminJobs will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
 // seeds the job queue with some required jobs for scheduler functionality and maintenance.
-func RunStartupTasks(ctx context.Context) error {
+func LoadAdminJobs(ctx context.Context) error {
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
@@ -212,6 +216,76 @@ func RunStartupTasks(ctx context.Context) error {
 
 	if err := startupTasks.Wait(); err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
+	}
+
+	return nil
+}
+
+func LoadUpdateFeedJobs(ctx context.Context) error {
+	// Get all feeds.
+	feeds, err := elastic.SearchAll[*models.Feed](ctx, schema.FeedsIndexRO(), query.MatchAll(), 5000)
+	if err != nil {
+		return fmt.Errorf("get feeds: %w", err)
+	}
+
+	for feed := range slices.Values(feeds) {
+		// Add additional feed details to logs.
+		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
+		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
+
+		// Create a job for the feed.
+		jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
+		// Check if there is an existing scheduled job.
+		switch existingJob, err := Manager.GetScheduledJob(jobKey); {
+		case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
+			// If we cannot ascertain if there is an existing scheduled job, skip this feed.
+			slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err),
+			)
+		case errors.Is(err, quartz.ErrJobNotFound):
+			// If there is no existing scheduled newJob, create one.
+			newJob, err := jobs.NewUpdateFeedJob(ctx, feed.GetID())
+			if err != nil {
+				slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
+					slog.Any("error", err),
+				)
+				continue
+			}
+
+			// Schedule the new job.
+			if err = Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
+				slogctx.FromCtx(feedCtx).Error("Failed to schedule new job for feed.",
+					slog.String("job_id", newJob.JobDetail().JobKey().String()),
+					slog.String("job_schedule", newJob.Trigger().Description()),
+					slog.Any("error", err),
+				)
+				continue
+			}
+			slogctx.FromCtx(feedCtx).Debug("Added new job for feed.",
+				slog.String("job_id", newJob.JobDetail().JobKey().String()),
+				slog.String("job_schedule", newJob.Trigger().Description()),
+			)
+			// // Do an initial run of the job.
+			// if err = newJob.JobDetail().Job().Execute(ctx); err != nil {
+			// 	slogctx.FromCtx(feedCtx).Error("Failed initial run of update feed job.",
+			// 		slog.String("job_id", newJob.JobDetail().JobKey().String()),
+			// 		slog.String("job_schedule", newJob.Trigger().Description()),
+			// 		slog.Any("error", err),
+			// 	)
+			// }
+		case existingJob != nil:
+			// Existing job found, ignore.
+			slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
+				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
+				slog.String("feed_id", feed.GetID()),
+			)
+		default:
+			// Unhandled result.
+			slogctx.FromCtx(feedCtx).Debug("Unhandled result.",
+				slog.String("feed_id", feed.GetID()),
+			)
+		}
 	}
 
 	return nil
