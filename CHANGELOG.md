@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.190.2](https://github.com/immanent-tech/foragd/compare/v0.190.1...v0.190.2) (2026-07-11)
+
+
+### Bug Fixes
+
+* 🔧 make sure when creating an update feed job, the poll interval is every 5 minutes minimum ([d732e70](https://github.com/immanent-tech/foragd/commit/d732e70a703d7fd79f32e5599bcc1184a86d8994))
+
 ## [0.190.1](https://github.com/immanent-tech/foragd/compare/v0.190.0...v0.190.1) (2026-07-11)
 
 
