@@ -33,7 +33,7 @@ func NewUpdateFeedJob(ctx context.Context, id models.FeedID) (*SerializedJob, er
 		return nil, fmt.Errorf("get feed: %w", err)
 	}
 
-	trigger := NewPollTrigger(feed.UpdateInterval, DefaultPollJitter)
+	trigger := NewPollTrigger(feed.GetUpdateInterval(), DefaultPollJitter)
 
 	// Create the update feed job.
 	job := &SerializedJob{

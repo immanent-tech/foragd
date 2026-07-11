@@ -61,17 +61,19 @@ func (t *OneShotTrigger) NextFireTime(prev int64) (int64, error) {
 // asDuration will attempt to parse the given input value as a duration. If the value cannot be parsed, the given
 // fallback will be returned instead.
 func asDuration(input any, fallback time.Duration) time.Duration {
+	var poll time.Duration
 	switch value := input.(type) {
 	case time.Duration:
-		return value
+		poll = value
 	case int64:
-		return time.Duration(value)
+		poll = time.Duration(value)
 	case string:
-		dur, err := time.ParseDuration(value)
-		if err != nil {
-			return fallback
+		if dur, err := time.ParseDuration(value); err != nil {
+			poll = fallback
+		} else {
+			poll = dur
 		}
-		return dur
 	}
-	return fallback
+
+	return poll
 }

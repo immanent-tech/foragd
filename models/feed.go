@@ -206,6 +206,16 @@ func (f *Feed) GetRights() string {
 	return ""
 }
 
+// GetUpdateInterval returns the update interval of the feed. This will be a minimum of every 5 minutes, even if the
+// actual update interval is less than 5 minutes.
+func (f *Feed) GetUpdateInterval() time.Duration {
+	interval := time.Duration(f.UpdateInterval)
+	if interval < 5*time.Minute {
+		return 5 * time.Minute
+	}
+	return interval
+}
+
 // NormaliseFeedURL strips protocol handler schemes and cleans the URL.
 func NormaliseFeedURL(raw string) string {
 	// Strip protocol handler prefixes: web+feed://, web+rss://

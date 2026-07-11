@@ -1251,23 +1251,16 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 
 	feed := models.NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
 
-	// For Atom, assume a default hourly update.
-	if feedData.SourceType == types.SourceTypeAtom || feedData.SourceType == types.SourceTypeJSONFeed {
-		feed.UpdateInterval = int64(time.Hour)
-	}
-
-	// For RSS use either the reasonable interval given by the feed or a reasonable default.
-	if feedData.SourceType == types.SourceTypeRSS {
-		switch interval := feedData.GetUpdateInterval(); {
-		case interval < time.Minute:
-			// Set really short update intervals to every 5 minutes.
-			feed.UpdateInterval = int64(5 * time.Minute)
-		case interval > 24*time.Hour:
-			// Set really long update intervals to daily.
-			feed.UpdateInterval = int64(24 * time.Hour)
-		default:
-			feed.UpdateInterval = int64(interval)
-		}
+	// Set the feed update interval to an appropriate value.
+	switch interval := feedData.GetUpdateInterval(); {
+	case interval < time.Minute:
+		// Set really short update intervals to every 5 minutes.
+		feed.UpdateInterval = int64(5 * time.Minute)
+	case interval > 24*time.Hour:
+		// Set really long update intervals to daily.
+		feed.UpdateInterval = int64(24 * time.Hour)
+	default:
+		feed.UpdateInterval = int64(interval)
 	}
 
 	// Set the method used to fetch the feed.
