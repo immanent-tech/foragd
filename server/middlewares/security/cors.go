@@ -62,7 +62,7 @@ var corsCfg = CORS{
 }
 
 var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
-	if err := config.Load(config.ConfigEnvPrefix+"CORS_", &corsCfg); err != nil {
+	if err := config.Load("CORS_", &corsCfg); err != nil {
 		return nil, fmt.Errorf("load cors config: %w", err)
 	}
 

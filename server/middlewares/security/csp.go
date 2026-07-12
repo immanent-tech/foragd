@@ -182,7 +182,7 @@ func (csp CSP) String(scriptNonce, styleNonce string) string {
 var (
 	cspCfg  CSP
 	loadCSP = sync.OnceValues(func() (CSP, error) {
-		if err := config.Load(config.ConfigEnvPrefix+"CSP_", &cspCfg); err != nil {
+		if err := config.Load("CSP_", &cspCfg); err != nil {
 			return cspCfg, fmt.Errorf("load csp config: %w", err)
 		}
 		return cspCfg, nil
