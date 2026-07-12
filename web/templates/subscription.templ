@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"fmt"
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
@@ -131,24 +132,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 		// Card body.
 		@partials.CardBody(element.WithClasses("flex-1")) {
 			// Display up to 5 of the subscription categories.
-			if len(s.GetCategories(0)) > 0 {
-				<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
-					for category := range slices.Values(s.GetCategories(5)) {
-						{{
-							filters := models.NewListDisplayFilters()
-							filters.Subscriptions = nil
-							filters.Categories = append(filters.Categories, category)
-						}}
-						@CategoryBadge(category,
-							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-							element.WithHXTarget(ContentID.Target()),
-							element.WithHXValues(filters.Values()),
-							element.WithHXParams("not subscriptions"),
-							element.WithAttribute("_", "on click halt the event's bubbling"),
-						)
-					}
-				</div>
-			}
+			@SubscriptionCategoryBadges(subscription)
 			// Any custom body.
 			if templ.GetChildren(ctx) != nil {
 				{ children... }
@@ -251,6 +235,52 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 				</div>
 			</div>
 		}
+	}
+}
+
+templ SubscriptionCategoryBadges(subscription *models.Subscription) {
+	{{ categoryLimit := 10 }}
+	{{ categories := subscription.GetCategories(categoryLimit) }}
+	// Category Badges (up to 10).
+	if len(categories) > 0 {
+		<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
+			for idx, category := range categories {
+				{{
+					filters := models.NewListDisplayFilters()
+					filters.Categories = append(filters.Categories, category)
+					var extraClasses string
+					// Only show the first three categories, hide all others behind a button toggle.
+					if idx >= 3 {
+						extraClasses = "hidden"
+					}
+				}}
+				@CategoryBadge(category,
+					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					element.WithHXTarget(ContentID.Target()),
+					element.WithHXValues(filters.Values()),
+					element.WithClasses(extraClasses),
+					element.WithAttribute("_", "on click halt the event's bubbling"),
+				)
+			}
+			// Add a button to reveal all categories when clicked.
+			if len(categories) > 3 {
+				<button
+					class="toggle-categories-btn btn btn-outline btn-xs"
+					_="
+							on click
+							  halt the event's bubbling
+          					  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
+							  for tag in :tags
+							   remove .hidden from tag
+							  end
+							  remove me
+							end
+							"
+				>
+					{ fmt.Sprintf("+ %d more",len(categories)-3) }
+				</button>
+			}
+		</div>
 	}
 }
 
