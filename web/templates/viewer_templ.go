@@ -419,7 +419,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				for item := range slices.Values(feed.GetItems()) {
+				for item := range slices.Values(feed.GetItems().SortByTimestamp()) {
 					templ_7745c5c3_Err = viewerItemCard(item).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err

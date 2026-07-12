@@ -475,7 +475,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 			continue
 		}
 		// Retrieve the latest 3 articles for each feed.
-		if items := newFeed.GetItems(); len(items) > 0 {
+		if items := newFeed.GetItems().SortByTimestamp(); len(items) > 0 {
 			// Truncate to 3 items.
 			if len(items) > 3 {
 				items = items[:3]
@@ -565,7 +565,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 		return nil, fmt.Errorf("unable to fetch google news RSS feed: %w", err)
 	}
 	// Retrieve the latest 3 articles for each feed.
-	if items := newFeed.GetItems(); len(items) > 0 {
+	if items := newFeed.GetItems().SortByTimestamp(); len(items) > 0 {
 		// Truncate to 3 items.
 		if len(items) > 3 {
 			items = items[:3]
@@ -688,7 +688,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
 			latestItems := make(map[models.FeedID]models.Items)
-			if items := newFeed.GetItems(); len(items) > 0 {
+			if items := newFeed.GetItems().SortByTimestamp(); len(items) > 0 {
 				// Truncate to 3 items.
 				if len(items) > 3 {
 					items = items[:3]

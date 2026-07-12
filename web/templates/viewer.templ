@@ -333,7 +333,7 @@ templ ViewerResults(feed *models.Feed) {
 	</div>
 	if len(feed.GetItems()) > 0 {
 		@grid(element.WithClasses("items-stretch")) {
-			for item := range slices.Values(feed.GetItems()) {
+			for item := range slices.Values(feed.GetItems().SortByTimestamp()) {
 				@viewerItemCard(item)
 			}
 		}
