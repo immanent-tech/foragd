@@ -4,15 +4,18 @@
 package elastic
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 // API is an object that provides access to the Elasticsearch API.
@@ -20,7 +23,10 @@ type API struct {
 	*elasticsearch.TypedClient
 }
 
-var api API
+var (
+	api         API
+	initialized atomic.Bool
+)
 
 // Connect sets up a connection to Elasticsearch.
 var Connect = sync.OnceValue(func() error {
@@ -71,8 +77,9 @@ var Connect = sync.OnceValue(func() error {
 	}
 
 	api = API{TypedClient: esclient}
+	initialized.Store(true)
 
-	slog.Info("Elasticsearch connection created.") //nolint:sloglint // we do not pass a context.
+	slog.Debug("Elasticsearch connection created.") //nolint:sloglint // we do not pass a context.
 
 	return nil
 })
@@ -84,4 +91,16 @@ func GetAPI() (*API, error) {
 		return nil, fmt.Errorf("connect: %w", err)
 	}
 	return &api, nil
+}
+
+// Shutdown gracefully closes the Elasticsearch connection (if it has been initialized/created).
+func Shutdown(ctx context.Context) error {
+	if initialized.Load() {
+		if err := api.Close(ctx); err != nil && !errors.Is(err, elasticsearch.ErrAlreadyClosed) {
+			return fmt.Errorf("close elasticsearch connection: %w", err)
+		}
+	}
+	initialized.Store(false)
+	slogctx.FromCtx(ctx).Debug("Elasticsearch connection shutdown.")
+	return nil
 }
