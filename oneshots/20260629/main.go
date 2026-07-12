@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
@@ -48,9 +47,9 @@ func main() {
 			slog.String("domain", feed.Domain))
 	}
 
-	results, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), feeds...)
-	if err != nil {
-		godump.Dump(results)
-		panic(err)
-	}
+	// results, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), feeds...)
+	// if err != nil {
+	// 	godump.Dump(results)
+	// 	panic(err)
+	// }
 }

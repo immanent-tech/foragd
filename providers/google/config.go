@@ -59,7 +59,7 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		return nil, fmt.Errorf("google: unable to validate config: %w", err)
 	}
 
-	slog.Info("GCP config loaded.") //nolint:sloglint // we don't pass a context.
+	slog.Debug("GCP config loaded.") //nolint:sloglint // we don't pass a context.
 	return &cfg, nil
 })
 

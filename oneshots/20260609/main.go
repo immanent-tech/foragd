@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
@@ -51,11 +50,11 @@ func main() {
 	if err := elastic.UpdateIndexAlias(ctx, schema.UsersIndexRW(), newIndexName); err != nil {
 		panic(err)
 	}
-	results, err := elastic.BulkUpdate(ctx, schema.UsersIndexRW(), users...)
-	if err != nil {
-		godump.Dump(results)
-		panic(err)
-	}
+	// results, err := elastic.BulkUpdate(ctx, schema.UsersIndexRW(), users...)
+	// if err != nil {
+	// 	godump.Dump(results)
+	// 	panic(err)
+	// }
 	if err = elastic.UpdateIndexAlias(ctx, schema.UsersIndexRO(), newIndexName); err != nil {
 		panic(err)
 	}

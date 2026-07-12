@@ -81,7 +81,7 @@ func New(fsys fs.FS, root string) error {
 			return fmt.Errorf("build: %w", err)
 		}
 
-		slog.Info("Assets loaded and hashed.")
+		slog.Debug("Assets loaded and hashed.")
 
 		return nil
 	})()
