@@ -11,14 +11,12 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -138,7 +136,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		if err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}
-		if len(results) > 0 {
+		if len(results["new"]) > 0 || len(results["updated"]) > 0 {
 			slogctx.FromCtx(ctx).Debug("Added new/updated items.",
 				slog.Time("since", details.LastFetched),
 				slog.Int("new", len(results["new"])),
@@ -163,10 +161,8 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			}
 			logMsg.Items = allItems.GetIDs()
 		}
-		// Update FeedStatus.
 		logMsg.StatusCode = http.StatusOK
 	} else {
-		// Update FeedStatus.
 		logMsg.StatusCode = http.StatusNoContent
 	}
 	// Index FeedStatus for this update.
@@ -278,38 +274,11 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	// Collect new items.
 	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
 
-	wg, jobCtx := errgroup.WithContext(ctx)
-	defer jobCtx.Done()
+	// Index all items.
 	results := make(map[string]models.Items)
-	var mu sync.Mutex
-
-	// Update updated items.
-	if len(updatedItems) > 0 {
-		wg.Go(func() error {
-			if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), updatedItems...); err != nil {
-				return fmt.Errorf("bulk update items: %w", err)
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			results["updated"] = updatedItems
-			return nil
-		})
-	}
-
-	// Add new items.
-	if len(newItems) > 0 {
-		wg.Go(func() error {
-			if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), newItems...); err != nil {
-				return fmt.Errorf("bulk add items: %w", err)
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			results["new"] = newItems
-			return nil
-		})
-	}
-
-	if err := wg.Wait(); err != nil {
+	results["updated"] = updatedItems
+	results["new"] = newItems
+	if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), slices.Concat(updatedItems, newItems)...); err != nil {
 		return nil, fmt.Errorf("add/update items: %w", err)
 	}
 
