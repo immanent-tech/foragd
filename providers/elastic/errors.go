@@ -10,6 +10,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
+var ErrNotFound = errors.New("not found")
+
 func getStatusCode(err error) int {
 	if esErr, ok := errors.AsType[*types.ElasticsearchError](err); ok {
 		return esErr.Status

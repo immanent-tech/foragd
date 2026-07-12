@@ -30,24 +30,13 @@ var (
 
 const (
 	defaultJobTimeout = 5 * time.Minute
-
-	schedulerAPICtxKey contextKey = "scheduler_api"
 )
 
-type contextKey string
-
-type SchedulerAPI interface {
-	GetScheduledJob(jobKey *quartz.JobKey) (quartz.ScheduledJob, error)
-	ScheduleJob(jobDetail *quartz.JobDetail, trigger quartz.Trigger) error
-	DeleteJob(jobKey *quartz.JobKey) error
-	PauseJob(jobKey *quartz.JobKey) error
-}
-
-func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.Context {
-	return context.WithValue(ctx, schedulerAPICtxKey, schedulerAPI)
-}
-
 var _ quartz.ScheduledJob = (*SerializedJob)(nil)
+
+func (j *SerializedJob) GetID() string {
+	return j.JobDetail().JobKey().String()
+}
 
 func (j *SerializedJob) JobDetail() *quartz.JobDetail {
 	return quartz.NewJobDetail(j, j.getJobKey())

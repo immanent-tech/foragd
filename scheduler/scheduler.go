@@ -25,6 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
@@ -58,6 +59,16 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("create scheduler: %w", err)
 	}
 
+	// Create an indexer that jobs can use and store it in the context for access by jobs.
+	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
+	if err != nil {
+		return fmt.Errorf("create indexer: %w", err)
+	}
+	ctx = jobs.IndexerToCtx(ctx, indexer)
+
+	// Store the scheduler in the context for access by jobs.
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+
 	// Start a goroutine to process misfired jobs.
 	go func() {
 		for {
@@ -79,23 +90,22 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
+	// Load all admin jobs as needed.
 	if err := LoadAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
 
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
-
+	// Start scheduling jobs.
 	Manager.Start(ctx)
-
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.",
 		slog.String("version", config.GetVersion()),
 		slog.Time("start_time", time.Now()),
 	)
 
+	// Wait until we get a signal to stop.
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.",
 		slog.Time("stop_time", time.Now()),
 	)

@@ -77,9 +77,9 @@ var Connect = sync.OnceValue(func() error {
 	return nil
 })
 
-// NewConnection will set up a new connection to Elasticsearch. It loads the config for the connection from the
+// GetAPI will set up a new connection to Elasticsearch. It loads the config for the connection from the
 // environment.
-func NewConnection() (*API, error) {
+func GetAPI() (*API, error) {
 	if err := Connect(); err != nil {
 		return nil, fmt.Errorf("connect: %w", err)
 	}

@@ -16,6 +16,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -134,7 +136,7 @@ func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) erro
 
 	// Create an Item from the email and index it.
 	item := models.NewEmailItem(email, subscription)
-	if _, err := service.AddItems(ctx, models.Items{item}); err != nil {
+	if err := elastic.CreateDoc(ctx, schema.ItemsIndexRW(), item.GetID(), item); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
 	return nil

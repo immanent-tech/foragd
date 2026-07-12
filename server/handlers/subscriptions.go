@@ -934,8 +934,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 
 		// Update the subscription object.
 		subscription.UpdatedAt = new(time.Now().UTC())
-		_, err = service.UpdateSubscriptions(req.Context(), subscription)
-		if err != nil {
+		if err = service.UpdateSubscriptions(req.Context(), subscription); err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{
 					InternalError: fmt.Errorf("update subscription: %w", err),

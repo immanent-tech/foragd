@@ -23,8 +23,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/goforj/godump"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/html"
@@ -129,35 +127,35 @@ func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) e
 	return nil
 }
 
-// UpdateFeedDetails takes a copy of a feed that has been recently fetched/refreshed and checks/updates various fields.
-// If there are updates, these are then saved.
-func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
-	// If the feed does not have categories, use the classifier to generate some.
-	if len(newData.GetCategories()) == 0 {
-		newData.Categories = ClassifyFeed(ctx, newData)
-	}
-	// Compare new/old feed data and update as appropriate.
-	if diff := cmp.Diff(*oldData, *newData,
-		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
-		cmpopts.EquateEmpty(),
-		cmpopts.IgnoreUnexported(),
-	); diff != "" {
-		// Update feed data.
-		newData.LastFetched = lastFetched
-		if _, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), newData); err != nil {
-			return fmt.Errorf("update feed: %w", err)
-		}
-	} else {
-		// No changes. Just update last_fetched.
-		if err := UpdateFeed(ctx, newData.GetID(), map[string]any{
-			"last_fetched": lastFetched,
-		}); err != nil {
-			return fmt.Errorf("update feed last_fetched: %w", err)
-		}
-	}
+// // UpdateFeedDetails takes a copy of a feed that has been recently fetched/refreshed and checks/updates various fields.
+// // If there are updates, these are then saved.
+// func UpdateFeedDetails(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+// 	// If the feed does not have categories, use the classifier to generate some.
+// 	if len(newData.GetCategories()) == 0 {
+// 		newData.Categories = ClassifyFeed(ctx, newData)
+// 	}
+// 	// Compare new/old feed data and update as appropriate.
+// 	if diff := cmp.Diff(*oldData, *newData,
+// 		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
+// 		cmpopts.EquateEmpty(),
+// 		cmpopts.IgnoreUnexported(),
+// 	); diff != "" {
+// 		// Update feed data.
+// 		newData.LastFetched = lastFetched
+// 		if _, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), newData); err != nil {
+// 			return fmt.Errorf("update feed: %w", err)
+// 		}
+// 	} else {
+// 		// No changes. Just update last_fetched.
+// 		if err := UpdateFeed(ctx, newData.GetID(), map[string]any{
+// 			"last_fetched": lastFetched,
+// 		}); err != nil {
+// 			return fmt.Errorf("update feed last_fetched: %w", err)
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
 func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionRequest) []models.FeedSubscriptionResult {

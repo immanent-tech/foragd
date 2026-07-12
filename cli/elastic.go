@@ -36,7 +36,7 @@ func (r *UpdateIndexSchemaCmd) Run(opts *UpdateIndexSchemaCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.NewConnection()
+	elasticClient, err := elastic.GetAPI()
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -57,7 +57,7 @@ func (r *MigrateIndexCmd) Run(opts *MigrateIndexCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.NewConnection()
+	elasticClient, err := elastic.GetAPI()
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -97,7 +97,7 @@ func (r *UpdateILMPoliciesCmd) Run(opts *UpdateILMPoliciesCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.NewConnection()
+	elasticClient, err := elastic.GetAPI()
 	if err != nil {
 		return fmt.Errorf("connect to elasticsearch: %w", err)
 	}

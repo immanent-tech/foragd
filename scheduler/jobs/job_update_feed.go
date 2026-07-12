@@ -11,15 +11,20 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -78,14 +83,17 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		if marshalErr := job.JobData.FromUpdateFeedJob(data); marshalErr != nil {
 			return fmt.Errorf("update job data: %w", marshalErr)
 		}
-		if updateErr := elastic.UpdateDoc(
-			ctx,
-			schema.SchedulerIndexRW(),
-			job.JobDetail().JobKey().String(),
-			job,
-			elastic.WithDocAsUpsert(true),
-		); updateErr != nil {
-			return fmt.Errorf("update job: %w", updateErr)
+		if bulkErr := bulk.AddAction(ctx,
+			bulk.NewAction(
+				job,
+				bulk.AsOperation[string](bulk.OpIndex),
+				bulk.ToIndex[string](schema.SchedulerIndexRW()),
+			),
+		); bulkErr != nil {
+			return fmt.Errorf("update feed: %w", bulkErr)
+		}
+		if flushErr := bulk.Flush(ctx); flushErr != nil {
+			return fmt.Errorf("update feed job: %w", flushErr)
 		}
 		slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.")
 		return nil
@@ -126,7 +134,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		}
 
 		// Add new items.
-		results, err := service.AddItems(ctx, newItems)
+		results, err := addItems(ctx, newItems)
 		if err != nil {
 			return fmt.Errorf("add new items: %w", err)
 		}
@@ -142,7 +150,8 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			}
 			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 			// newer articles where a feed lags behind real-time.
-			if err := service.UpdateFeedDetails(
+
+			if err := updateFeed(
 				ctx,
 				details,
 				feed,
@@ -161,10 +170,14 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		logMsg.StatusCode = http.StatusNoContent
 	}
 	// Index FeedStatus for this update.
-	if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+	if err := logMsg.log(ctx); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
+	}
+
+	if err := bulk.Flush(ctx); err != nil {
+		return fmt.Errorf("update feed job: flush updates: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Finished update feed job.",
@@ -205,7 +218,7 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 				logMsg.StatusCode = http.StatusInternalServerError
 				logMsg.StatusMessage = new(err.Error())
 			}
-			if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+			if err := logMsg.log(ctx); err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 					slog.Any("error", err),
 				)
@@ -219,17 +232,130 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 	logMsg := newFeedStatusMsg(details.GetID())
 	logMsg.StatusMessage = new("no feed data returned by any URL")
 	logMsg.StatusCode = http.StatusNotFound
-	if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
+	if err := logMsg.log(ctx); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
 	}
+
 	return nil, "", fmt.Errorf(
 		"%w: %s (%s)",
 		ErrFetchFailed,
 		*logMsg.StatusMessage,
 		strings.Join(details.GetSourceURLs(), ","),
 	)
+}
+
+func addItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+	// Get any existing versions of the items.
+	existingItems, err := service.GetItems(ctx, items.GetIDs()...)
+	if err != nil {
+		slogctx.FromCtx(ctx).
+			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
+				slog.Any("error", err),
+			)
+		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
+			return nil, fmt.Errorf("bulk add items: %w", err)
+		}
+		return map[string]models.Items{"updated": items}, nil
+	}
+
+	// Collect updated items. Ignore noop updates like timestamp changes.
+	// TODO: add a custom comparer when ExtensionData contains information worth updating.
+	updatedItems := make(models.Items, 0, len(existingItems))
+	for existingItem := range slices.Values(existingItems) {
+		if newItem := items.FindByID(existingItem.GetID()); newItem != nil {
+			if diff := cmp.Diff(*existingItem, *newItem,
+				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp", "ExtensionData"),
+				cmpopts.EquateEmpty(),
+				cmpopts.IgnoreUnexported(),
+			); diff != "" {
+				updatedItems = append(updatedItems, newItem)
+			}
+		}
+	}
+
+	// Collect new items.
+	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
+
+	wg, jobCtx := errgroup.WithContext(ctx)
+	defer jobCtx.Done()
+	results := make(map[string]models.Items)
+	var mu sync.Mutex
+
+	// Update updated items.
+	if len(updatedItems) > 0 {
+		wg.Go(func() error {
+			if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), updatedItems...); err != nil {
+				return fmt.Errorf("bulk update items: %w", err)
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			results["updated"] = updatedItems
+			return nil
+		})
+	}
+
+	// Add new items.
+	if len(newItems) > 0 {
+		wg.Go(func() error {
+			if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), newItems...); err != nil {
+				return fmt.Errorf("bulk add items: %w", err)
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			results["new"] = newItems
+			return nil
+		})
+	}
+
+	if err := wg.Wait(); err != nil {
+		return nil, fmt.Errorf("add/update items: %w", err)
+	}
+
+	return results, nil
+}
+
+func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+	// If the feed does not have categories, use the classifier to generate some.
+	if len(newData.GetCategories()) == 0 {
+		newData.Categories = service.ClassifyFeed(ctx, newData)
+	}
+	// Compare new/old feed data and update as appropriate.
+	if diff := cmp.Diff(*oldData, *newData,
+		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
+		cmpopts.EquateEmpty(),
+		cmpopts.IgnoreUnexported(),
+	); diff != "" {
+		// Update feed data.
+		newData.LastFetched = lastFetched
+		if err := bulk.AddAction(ctx,
+			bulk.NewAction(
+				newData,
+				bulk.AsOperation[models.FeedID](bulk.OpIndex),
+				bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+			),
+		); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
+	} else {
+		// No changes. Just update last_fetched.
+		if err := bulk.AddAction(ctx,
+			bulk.NewAction(&bulk.PartialDocument{
+				Parts: map[string]any{
+					"last_fetched": lastFetched,
+				},
+				ID: newData.GetID(),
+			},
+				bulk.AsOperation[string](bulk.OpUpdate),
+				bulk.ToIndex[string](schema.FeedsIndexRW()),
+			),
+		); err != nil {
+			return fmt.Errorf("update feed last_fetched: %w", err)
+		}
+	}
+
+	return nil
 }
 
 type feedStatusLogMsg struct {
@@ -249,4 +375,17 @@ func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
 			"type": "feed-status",
 		},
 	}
+}
+
+func (l *feedStatusLogMsg) log(ctx context.Context) error {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			l,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string]("logs"),
+		),
+	); err != nil {
+		return fmt.Errorf("add bulk action: %w", err)
+	}
+	return nil
 }

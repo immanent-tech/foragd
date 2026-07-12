@@ -6,18 +6,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
-	"sync"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
-	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -136,76 +130,78 @@ func RetrieveItems(
 	return resp.Results, newPagination, nil
 }
 
-// AddItems wraps an elastic bulk update to index items.
-func AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
-	// Get any existing versions of the items.
-	existingItems, err := GetItems(ctx, items.GetIDs()...)
-	if err != nil {
-		slogctx.FromCtx(ctx).
-			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
-				slog.Any("error", err),
-			)
-		if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), items...); err != nil {
-			return nil, fmt.Errorf("bulk add items: %w", err)
-		}
-		return map[string]models.Items{"updated": items}, nil
-	}
+// // AddItems wraps an elastic bulk update to index items.
+// func AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+// 	// Get any existing versions of the items.
+// 	existingItems, err := GetItems(ctx, items.GetIDs()...)
+// 	if err != nil {
+// 		slogctx.FromCtx(ctx).
+// 			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
+// 				slog.Any("error", err),
+// 			)
+// 		if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), items...); err != nil {
+// 			return nil, fmt.Errorf("bulk add items: %w", err)
+// 		}
+// 		return map[string]models.Items{"updated": items}, nil
+// 	}
 
-	// Collect updated items. Ignore noop updates like timestamp changes.
-	// TODO: add a custom comparer when ExtensionData contains information worth updating.
-	updatedItems := make(models.Items, 0, len(existingItems))
-	for existingItem := range slices.Values(existingItems) {
-		if newItem := items.FindByID(existingItem.GetID()); newItem != nil {
-			if diff := cmp.Diff(*existingItem, *newItem,
-				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp", "ExtensionData"),
-				cmpopts.EquateEmpty(),
-				cmpopts.IgnoreUnexported(),
-			); diff != "" {
-				updatedItems = append(updatedItems, newItem)
-			}
-		}
-	}
+// 	// Collect updated items. Ignore noop updates like timestamp changes.
+// 	// TODO: add a custom comparer when ExtensionData contains information worth updating.
+// 	updatedItems := make(models.Items, 0, len(existingItems))
+// 	for existingItem := range slices.Values(existingItems) {
+// 		if newItem := items.FindByID(existingItem.GetID()); newItem != nil {
+// 			if diff := cmp.Diff(*existingItem, *newItem,
+// 				cmpopts.IgnoreFields(models.Item{}, "Updated", "Published", "Timestamp", "ExtensionData"),
+// 				cmpopts.EquateEmpty(),
+// 				cmpopts.IgnoreUnexported(),
+// 			); diff != "" {
+// 				updatedItems = append(updatedItems, newItem)
+// 			}
+// 		}
+// 	}
 
-	// Collect new items.
-	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
+// 	// Collect new items.
+// 	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
 
-	wg, jobCtx := errgroup.WithContext(ctx)
-	defer jobCtx.Done()
-	results := make(map[string]models.Items)
-	var mu sync.Mutex
+// 	wg, jobCtx := errgroup.WithContext(ctx)
+// 	defer jobCtx.Done()
+// 	results := make(map[string]models.Items)
+// 	var mu sync.Mutex
 
-	// Update updated items.
-	if len(updatedItems) > 0 {
-		wg.Go(func() error {
-			if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), updatedItems...); err != nil {
-				return fmt.Errorf("bulk update items: %w", err)
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			results["updated"] = updatedItems
-			return nil
-		})
-	}
+// 	// bulkn.IndexDocuments(ctx, schema.ItemsIndexRW(), updatedItems...)
 
-	// Add new items.
-	if len(newItems) > 0 {
-		wg.Go(func() error {
-			if _, err := elastic.BulkAdd(ctx, schema.ItemsIndexRW(), newItems...); err != nil {
-				return fmt.Errorf("bulk add items: %w", err)
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			results["new"] = newItems
-			return nil
-		})
-	}
+// 	// Update updated items.
+// 	if len(updatedItems) > 0 {
+// 		wg.Go(func() error {
+// 			if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW(), updatedItems...); err != nil {
+// 				return fmt.Errorf("bulk update items: %w", err)
+// 			}
+// 			mu.Lock()
+// 			defer mu.Unlock()
+// 			results["updated"] = updatedItems
+// 			return nil
+// 		})
+// 	}
 
-	if err := wg.Wait(); err != nil {
-		return nil, fmt.Errorf("add/update items: %w", err)
-	}
+// 	// Add new items.
+// 	if len(newItems) > 0 {
+// 		wg.Go(func() error {
+// 			if _, err := elastic.BulkAdd(ctx, schema.ItemsIndexRW(), newItems...); err != nil {
+// 				return fmt.Errorf("bulk add items: %w", err)
+// 			}
+// 			mu.Lock()
+// 			defer mu.Unlock()
+// 			results["new"] = newItems
+// 			return nil
+// 		})
+// 	}
 
-	return results, nil
-}
+// 	if err := wg.Wait(); err != nil {
+// 		return nil, fmt.Errorf("add/update items: %w", err)
+// 	}
+
+// 	return results, nil
+// }
 
 func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error) {
 	// Build elastic.

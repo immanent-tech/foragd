@@ -224,7 +224,7 @@ func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	if _, err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
+	if err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
 		return fmt.Errorf("update subscriptions: %w", err)
 	}
 	// Disable onboarding once a subscription has been added.
@@ -270,20 +270,20 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
-) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+) error {
 	if otel.IsEnabled() {
 		_, span := otel.TracerProvider.Tracer("").
 			Start(ctx, "update-subscriptions")
 		defer span.End()
 	}
 
-	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW(), subscriptions...)
-	if err != nil {
-		return nil, ElasticsearchToAPIError(err)
+	if err := bulk.IndexDocuments(ctx, schema.SubscriptionsIndexRW(), subscriptions...); err != nil {
+		return ElasticsearchToAPIError(err)
 	}
+
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
 	// // Update the subscription dynamic info
@@ -301,7 +301,7 @@ func UpdateSubscriptions(
 		}
 	}
 
-	return resp, nil
+	return nil
 }
 
 // MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
@@ -334,7 +334,7 @@ func MarkSubscriptions(
 			}
 		} else {
 			subscription.Mark(user, mark)
-			if _, err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
+			if err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
 				return fmt.Errorf("update subscription data: %w", err)
 			}
 		}
@@ -353,8 +353,7 @@ func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, f
 
 	subscription.Favorite = favorite
 
-	_, err = UpdateSubscriptions(ctx, subscription)
-	if err != nil {
+	if err := UpdateSubscriptions(ctx, subscription); err != nil {
 		return ElasticsearchToAPIError(err)
 	}
 

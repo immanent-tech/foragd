@@ -690,7 +690,7 @@ func markArticles(
 	}
 	subscription.MarkItems(mark, itemIDs...)
 
-	if _, err = service.UpdateSubscriptions(ctx, subscription); err != nil {
+	if err = service.UpdateSubscriptions(ctx, subscription); err != nil {
 		return fmt.Errorf("update subscription data: %w", err)
 	}
 
