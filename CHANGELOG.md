@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.190.3](https://github.com/immanent-tech/foragd/compare/v0.190.2...v0.190.3) (2026-07-12)
+
+
+### Bug Fixes
+
+* 🔧 improve logic for normalizing feed url for new feeds ([9e7f7f6](https://github.com/immanent-tech/foragd/commit/9e7f7f60446c56f4c5abf8723d85dfc90a164178))
+* 🔧 sort items by timestamp (newest first) in various places before processing ([5fc6e97](https://github.com/immanent-tech/foragd/commit/5fc6e9782eeee912c95fd21d9c48ea6e342f4ac9))
+* **scheduler:** 🔧 only classify feed when its existing data does not contain categories ([226985a](https://github.com/immanent-tech/foragd/commit/226985a2c83f8e880557d2f2f19e7d9305f1448a))
+* **templates/viewer:** 🔧 fix title and description display ([11f1668](https://github.com/immanent-tech/foragd/commit/11f1668205a1ccb846a909f4004676c5ad2e0015))
+
+
+### Performance Improvements
+
+* ✨ improved startup and shutdown ([157ad7f](https://github.com/immanent-tech/foragd/commit/157ad7f5264e78f26c43600a2bf08e2435eac022))
+* **elastic:** ✨ improved bulk usage ([79b4ac8](https://github.com/immanent-tech/foragd/commit/79b4ac854d37d9c8576b55f3484aef80c35a6d73))
+* **elastic:** ✨ improved connection management ([d5a91bc](https://github.com/immanent-tech/foragd/commit/d5a91bcbfc4dac93ec6e47430e45583241cdb0d1))
+* **elastic:** ✨ use bulk indexer helper ([5794f1d](https://github.com/immanent-tech/foragd/commit/5794f1deaacce008c38435de93aaa50dae8f4e16))
+* **scheduler:** ♻️ simplify update feed job logic ([24f956c](https://github.com/immanent-tech/foragd/commit/24f956c01b8e066c8bc6f71b9ffdbb3c91ba0dfc))
+
 ## [0.190.2](https://github.com/immanent-tech/foragd/compare/v0.190.1...v0.190.2) (2026-07-11)
 
 
