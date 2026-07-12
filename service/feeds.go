@@ -679,7 +679,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 
 	// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
 	if strings.HasPrefix(text, "http") {
-		if newFeedURL, err := url.Parse(text); err == nil {
+		if newFeedURL, err := NormalizeFeedURL(text); err == nil {
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
@@ -884,6 +884,41 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 		}
 	}
 	return feedURL.String(), nil
+}
+
+// NormalizeFeedURL parses the given URL string into a url.URL object, applying some additional rules for known domains on
+// where to find their feeds.
+func NormalizeFeedURL(urlStr string) (*url.URL, error) {
+	// Parse the URL.
+	feedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	// For some popular sites that have an API or special URL for feeds, handle those.
+	switch {
+	case strings.Contains(feedURL.Host, "reddit.com"):
+		switch {
+		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
+			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
+			}
+		}
+	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		if feedURL.Path != "/rss" {
+			feedURL.Path = "/rss"
+		}
+	case strings.Contains(feedURL.Host, "medium.com") && !strings.Contains(feedURL.Path, "feed"):
+		// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics.
+		var err error
+		if feedURL.Path, err = url.JoinPath("/feed", feedURL.Path); err != nil {
+			return nil, fmt.Errorf("generate RSS feed for medium.com URL: %w", err)
+		}
+	}
+
+	return feedURL, nil
 }
 
 func getFeedUnreadCounts(
@@ -1103,7 +1138,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	}
 
 	// Parse the URL to ensure its valid.
-	sourceURL, err := feedURLParser(feedURL)
+	sourceURL, err := url.Parse(feedURL)
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
 	}
@@ -1269,46 +1304,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	}
 
 	return feed, nil
-}
-
-// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on
-// where to find their feeds.
-func feedURLParser(urlStr string) (*url.URL, error) {
-	// Parse the URL.
-	feedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse url: %w", err)
-	}
-
-	// For some popular sites that have an API or special URL for feeds, handle those.
-	switch {
-	case strings.Contains(feedURL.Host, "reddit.com"):
-		switch {
-		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
-			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
-			var err error
-			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
-				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
-			}
-		}
-	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
-		switch {
-		case !strings.HasPrefix(feedURL.Path, "rss") && !strings.HasPrefix(feedURL.Path, "rss/"):
-			// Tumblr blogs usually have their feed at the "/feed" path.
-			var err error
-			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/rss"); err != nil {
-				return nil, fmt.Errorf("generate RSS feed for tumblr.com URL: %w", err)
-			}
-		}
-	case strings.Contains(feedURL.Host, "medium.com") && !strings.Contains(feedURL.Path, "feed"):
-		// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics.
-		var err error
-		if feedURL.Path, err = url.JoinPath("/feed", feedURL.Path); err != nil {
-			return nil, fmt.Errorf("generate RSS feed for medium.com URL: %w", err)
-		}
-	}
-
-	return feedURL, nil
 }
 
 // addFetchOptions returns fetch options that are source-specific. This will append or overide existing fetch options to

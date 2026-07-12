@@ -99,8 +99,19 @@ func HandleViewer() http.HandlerFunc {
 				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
 				return
 			}
+			feedURL, err := service.NormalizeFeedURL(chi.URLParam(req, "*"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
+					slog.Any("error", err),
+				)
+				RenderExternalPage(&Viewer{
+					errMsg: fetchErr,
+				}).ServeHTTP(res, req)
+				return
+			}
+
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), chi.URLParam(req, "*"))
+			feed, err := service.FetchFeed(req.Context(), feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -117,7 +128,18 @@ func HandleViewer() http.HandlerFunc {
 
 		case http.MethodPost:
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), req.FormValue("url"))
+			feedURL, err := service.NormalizeFeedURL(req.FormValue("url"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
+					slog.Any("error", err),
+				)
+				RenderPartial(&ViewerError{
+					msg: fetchErr,
+				}).ServeHTTP(res, req)
+				return
+			}
+
+			feed, err := service.FetchFeed(req.Context(), feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

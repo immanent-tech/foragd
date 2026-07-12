@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
 	"os"
 	"os/signal"
 	"slices"
@@ -25,7 +24,7 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// FeedCmd contains sub commands for interacting with feeds.
+// FeedCmd contains subcommands for interacting with feeds.
 type FeedCmd struct {
 	Fetch        FetchFeedCmd        `cmd:"fetch"         help:"fetch a feed (by either URL or ID)"`
 	ResetUpdates ResetFeedUpdatesCmd `cmd:"reset-updates" help:"reset the feed updates job"`
@@ -60,7 +59,7 @@ func (c *FetchFeedCmd) Run() error {
 			return fmt.Errorf("fetch feed: %w", err)
 		}
 	case c.FeedURL != "":
-		feedURL, err := url.Parse(c.FeedURL)
+		feedURL, err := service.NormalizeFeedURL(c.FeedURL)
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
@@ -167,7 +166,7 @@ func showFeedDetails(feed *models.Feed) {
 	fmt.Fprintf(os.Stdout, "%s", str.String())
 }
 
-// ResetFeedUpdatesCmd is a cli command to reset the updates for a feed. It will reset the last_fetched timestamp on the
+// ResetFeedUpdatesCmd is a CLI command to reset the updates for a feed. It will reset the last_fetched timestamp on the
 // feed and delete any scheduled job for feed updates.
 type ResetFeedUpdatesCmd struct {
 	FeedID models.FeedID `help:"ID of feed"`
