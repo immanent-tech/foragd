@@ -1,0 +1,60 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package components
+
+// BrowserWindow renders a mock browser window. Insert an image with `class="w-full block"` as a child.
+templ BrowserWindow(address string) {
+	<div class="rounded-2xl overflow-hidden shadow-xl border border-base-300 bg-base-100">
+		// Title bar.
+		<div class="flex items-center gap-3 px-4 py-3 bg-base-200 border-b border-base-300">
+			// Traffic lights.
+			<div class="flex gap-2">
+				<span class="w-3 h-3 rounded-full bg-error/70"></span>
+				<span class="w-3 h-3 rounded-full bg-warning/70"></span>
+				<span class="w-3 h-3 rounded-full bg-success/70"></span>
+			</div>
+			// Address bar.
+			<div class="flex-1 flex items-center gap-2 bg-base-100 rounded-full px-3 py-1.5 text-sm text-base-content/60 border border-base-300 max-w-md mx-auto">
+				<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path>
+				</svg>
+				<span class="truncate">{ address }</span>
+			</div>
+			// Spacer to balance traffic lights so address bar stays centered.
+			<div class="w-12 hidden sm:block"></div>
+		</div>
+		// Screenshot.
+		{ children... }
+		// <img
+		// 	src="https://picsum.photos/1200/750"
+		// 	alt="App screenshot"
+		// 	class="w-full block"
+		// />
+	</div>
+}
+
+// Mobile renders a mock mobile. Insert an image with `class="w-full block aspect-[9/19.5] object-cover"` as a child.
+templ Mobile() {
+	<div class="mx-auto w-80">
+		<div class="relative rounded-[2.5rem] border-8 border-neutral bg-neutral shadow-xl overflow-hidden">
+			// Notch.
+			<div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-neutral rounded-b-2xl z-20"></div>
+			// Status Bar.
+			<div class="relative bg-base-100 flex items-center justify-between px-6 pt-3 pb-1 text-[11px] font-medium text-base-content z-10">
+				<span>9:41</span>
+				<div class="flex items-center gap-1">
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2z"></path></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 00-6 0z"></path></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-3.5" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1.5">
+						<rect x="1" y="1" width="19" height="10" rx="2"></rect><rect x="3" y="3" width="13" height="6" fill="currentColor" stroke="none"></rect><path d="M22 4v4" stroke-linecap="round"></path>
+					</svg>
+				</div>
+			</div>
+			// Screenshot.
+			{ children... }
+			// Navigation Bar.
+			<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 rounded-full bg-base-content/60 z-20"></div>
+		</div>
+	</div>
+}
