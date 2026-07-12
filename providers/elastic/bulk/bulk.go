@@ -31,6 +31,7 @@ const (
 	OpIndex  Operation = "index"
 	OpCreate Operation = "create"
 	OpUpdate Operation = "update"
+	OpDelete Operation = "delete"
 )
 
 // Operation is the type of bulk operation for a given action.
@@ -65,6 +66,19 @@ func NewIndexer(ctx context.Context, options ...IndexerOption) (*Indexer, error)
 	}
 
 	return indexer, nil
+}
+
+// Shutdown gracefully closes the indexer (if it has been initialized/created).
+func Shutdown(ctx context.Context) error {
+	if initialized.Load() {
+		if err := indexer.Close(ctx); err != nil {
+			return fmt.Errorf("close indexer: %w", err)
+		}
+	}
+	initialized.Store(false)
+	slogctx.FromCtx(ctx).Debug("Bulk indexer shutdown.",
+		slog.Time("stop_time", time.Now().UTC()))
+	return nil
 }
 
 func initIndexer(ctx context.Context, options ...IndexerOption) error {
@@ -103,15 +117,8 @@ func setupIndexer(ctx context.Context, api esapi.Transport, options ...IndexerOp
 			return nil, fmt.Errorf("init indexer: %w", err)
 		}
 
-		// Handle graceful shutdown.
-		go func() {
-			<-ctx.Done()
-			if err := indexer.Close(context.Background()); err != nil {
-				slogctx.FromCtx(context.Background()).Error("Could not gracefully close indexer.",
-					slog.Any("error", err))
-			}
-		}()
-		slogctx.FromCtx(ctx).Debug("Bulk indexer created.")
+		slogctx.FromCtx(ctx).Debug("Bulk indexer created.",
+			slog.Time("start_time", time.Now().UTC()))
 
 		return &Indexer{BulkIndexer: indexer}, nil
 	})
