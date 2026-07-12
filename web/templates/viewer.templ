@@ -255,46 +255,44 @@ templ ViewerResults(feed *models.Feed) {
 		<div class="p-6">
 			<div class="sm:flex sm:items-center sm:justify-between">
 				<div class="sm:flex sm:space-x-5">
-					if img := feed.GetImage(); img != nil {
-						<div class="flex">
-							<div class="mr-4 shrink-0 self-center">
-								if img := feed.GetImage(); img != nil {
-									// If the source has an image, use that as the avatar.
-									<div class="avatar">
-										<div class="mask w-12 mask-squircle">
-											// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
-											// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-											// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-											// sm:1 - strip metadata
-											// kcr:1 - keep copyright
-											// scp:1 - convert color profile to sRGB
-											@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
-												element.WithAttribute("width", "48"),
-												element.WithAttribute("height", "48"),
-												element.WithAttribute("loading", "lazy"),
-												element.WithAttribute("decoding", "async"),
-											)
-										</div>
+					<div class="flex">
+						<div class="mr-4 shrink-0 self-center">
+							if img := feed.GetImage(); img != nil {
+								// If the source has an image, use that as the avatar.
+								<div class="avatar">
+									<div class="mask w-12 mask-squircle">
+										// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+										// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+										// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+										// sm:1 - strip metadata
+										// kcr:1 - keep copyright
+										// scp:1 - convert color profile to sRGB
+										@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
+											element.WithAttribute("width", "48"),
+											element.WithAttribute("height", "48"),
+											element.WithAttribute("loading", "lazy"),
+											element.WithAttribute("decoding", "async"),
+										)
 									</div>
-								} else {
-									// Otherwise, take the first letter of the title and create a placeholder avatar.
-									<div class="avatar avatar-placeholder">
-										<div class="mask w-12 bg-neutral mask-squircle text-neutral-content">
-											<span class="text-3xl capitalize">{ feed.GetTitle()[0:1] }</span>
-										</div>
+								</div>
+							} else {
+								// Otherwise, take the first letter of the title and create a placeholder avatar.
+								<div class="avatar avatar-placeholder">
+									<div class="mask w-12 bg-neutral mask-squircle text-neutral-content">
+										<span class="text-3xl capitalize">{ feed.GetTitle()[0:1] }</span>
 									</div>
-								}
-							</div>
-							<div>
-								<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
-									{ feed.GetTitle() }
-								</h2>
-								if feed.GetDescription() != "" {
-									<p>{ feed.GetDescription() }</p>
-								}
-							</div>
+								</div>
+							}
 						</div>
-					}
+						<div>
+							<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+								{ feed.GetTitle() }
+							</h2>
+							if feed.GetDescription() != "" {
+								<p>{ feed.GetDescription() }</p>
+							}
+						</div>
+					</div>
 				</div>
 				<div class="mt-5 flex justify-center sm:mt-0">
 					<a
