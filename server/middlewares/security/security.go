@@ -39,7 +39,7 @@ func CrossOriginProtection(next http.Handler) http.Handler {
 		// Only allow loading resources from same-site by default.
 		//
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-resource-policy-corp
-		res.Header().Set("Cross-Origin-Resource-Policy", "same-site")
+		res.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
 
 		// Prevent loading of cross-origin resources not explicitly granted.
 		//
