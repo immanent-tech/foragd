@@ -33,6 +33,7 @@ import (
 
 const (
 	defaultOutdatedThreshold = 50 * time.Second
+	gracefulShutdownTimeout  = 30 * time.Second
 )
 
 // manager contains data for managing a scheduler instance.
@@ -97,7 +98,7 @@ func Run(ctx context.Context) error {
 
 	// Start scheduling jobs.
 	Manager.Start(ctx)
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.",
+	slogctx.FromCtx(ctx).Info("Scheduler started.",
 		slog.String("version", config.GetVersion()),
 		slog.Time("start_time", time.Now()),
 	)
@@ -106,10 +107,19 @@ func Run(ctx context.Context) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.",
+	// Create shutdown context with 30-second timeout
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	defer cancel()
+
+	if err := elastic.Shutdown(shutdownCtx); err != nil {
+		slogctx.FromCtx(shutdownCtx).Error("Elasticsearch failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
+	}
+	Manager.Stop()
+	slogctx.FromCtx(shutdownCtx).Debug("Scheduler stopped.",
 		slog.Time("stop_time", time.Now()),
 	)
-	Manager.Stop()
 
 	return nil
 }

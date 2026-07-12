@@ -20,6 +20,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/google/android"
 	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/server/cache"
@@ -336,23 +338,17 @@ func Start(logger *slog.Logger) error {
 	svr.Protocols.SetHTTP1(true)            // Enable HTTP/1.1
 	svr.Protocols.SetHTTP2(false)           // Explicitly disable encrypted HTTP/2 (HTTPS)
 
-	logger.Info("Starting server...",
-		slog.String("address", svr.Addr),
-		slog.String("version", config.GetVersion()),
-		slog.Time("start_time", time.Now()),
-	)
-
 	// And we serve HTTP until the world ends.
 	go func() {
 		var err error
 		if cfg.CertFile != "" && cfg.KeyFile != "" {
-			logger.Info("Using https.",
+			logger.Debug("Using https.",
 				slog.String("certificate file", cfg.CertFile),
 				slog.String("key file", cfg.KeyFile),
 			)
 			err = svr.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
 		} else {
-			logger.Info("Using http.")
+			logger.Debug("Using http.")
 			err = svr.ListenAndServe()
 		}
 		if err != nil && err != http.ErrServerClosed {
@@ -362,22 +358,40 @@ func Start(logger *slog.Logger) error {
 		}
 	}()
 
+	logger.Info("Server started...",
+		slog.String("address", svr.Addr),
+		slog.String("version", config.GetVersion()),
+		slog.Time("start_time", time.Now().UTC()),
+	)
+
 	<-ctx.Done()
 
 	// Create shutdown context with 30-second timeout
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, logger)
 	defer cancel()
 
+	// Shutdown bulk indexer (if initialized).
+	if err := bulk.Shutdown(shutdownCtx); err != nil {
+		slogctx.FromCtx(shutdownCtx).Error("Bulk indexer failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
+	}
+	// Shutdown any Elasticsearch connection (if initialized).
+	if err := elastic.Shutdown(shutdownCtx); err != nil {
+		slogctx.FromCtx(shutdownCtx).Error("Elasticsearch failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
+	}
 	// Trigger graceful shutdown
 	if err := svr.Shutdown(shutdownCtx); err != nil {
-		logger.Error("Server failed to shutdown gracefully.",
+		slogctx.FromCtx(shutdownCtx).Error("Server failed to shutdown gracefully.",
 			slog.Any("error", err),
-			slog.Time("stop_time", time.Now()),
 		)
 	}
 
-	logger.Info("Server shutdown gracefully",
-		slog.Time("stop_time", time.Now()),
+	slogctx.FromCtx(shutdownCtx).Info("Server stopped",
+		slog.Time("stop_time", time.Now().UTC()),
 	)
 
 	return nil

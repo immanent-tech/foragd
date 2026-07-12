@@ -20,13 +20,15 @@ import (
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 )
 
 const (
 	// defaultRequestTimeout is the maximum time a background action can run before its context is canceled.
-	defaultRequestTimeout = 10 * time.Second
+	defaultRequestTimeout   = 10 * time.Second
+	gracefulShutdownTimeout = 30 * time.Second
 )
 
 var (
@@ -64,12 +66,26 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 				ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 				defer cancel()
 
-				if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), entry.Key.String()); err != nil {
+				// Update in backend.
+				if err := bulk.AddAction(ctx,
+					bulk.NewAction(
+						entry.Value,
+						bulk.AsOperation[string](bulk.OpDelete),
+						bulk.ToIndex[string](schema.SchedulerIndexRW()),
+					),
+				); err != nil {
 					slogctx.FromCtx(ctx).Error("Unable to delete scheduled job.",
 						slog.String("job_key", entry.Key.String()),
 						slog.Any("error", err))
 					return
 				}
+
+				// if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), entry.Key.String()); err != nil {
+				// 	slogctx.FromCtx(ctx).Error("Unable to delete scheduled job.",
+				// 		slog.String("job_key", entry.Key.String()),
+				// 		slog.Any("error", err))
+				// 	return
+				// }
 				slogctx.FromCtx(ctx).Debug("Scheduled job was deleted.",
 					slog.String("job_key", entry.Key.String()),
 					slog.String("reason", entry.Cause.String()),
@@ -77,6 +93,9 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 			},
 		}),
 		loader: func(ctx context.Context, key *quartz.JobKey) (*jobs.SerializedJob, error) {
+			if err := bulk.Flush(ctx); err != nil {
+				return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
+			}
 			getCtx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
 			defer cancel()
 			job, err := elastic.GetDoc[string, *jobs.SerializedJob](
@@ -113,9 +132,22 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 		queue.cache.Set(job.JobDetail().JobKey(), job)
 	}
 
-	slogctx.FromCtx(ctx).Debug("Job queue started.",
+	slogctx.FromCtx(ctx).Info("Job queue started.",
 		slog.Time("start_time", time.Now().UTC()),
 		slog.Int("job_count", queue.cache.EstimatedSize()))
+
+	// Perform clean up on shutdown.
+	go func() {
+		<-ctx.Done()
+		// Create shutdown context with 30-second timeout
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+		defer cancel()
+
+		if err := bulk.Shutdown(shutdownCtx); err != nil {
+			slogctx.FromCtx(shutdownCtx).Error("Failed to shut down indexer gracefully.",
+				slog.Any("error", err))
+		}
+	}()
 
 	return queue, nil
 }
@@ -135,12 +167,12 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	serialized.UpdatedAt = time.Now().UTC()
 
 	// Update in backend.
-	if err := elastic.UpdateDoc(
-		ctx,
-		schema.SchedulerIndexRW(),
-		job.JobDetail().JobKey().String(),
-		serialized,
-		elastic.WithDocAsUpsert(true),
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			serialized,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string](schema.SchedulerIndexRW()),
+		),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
