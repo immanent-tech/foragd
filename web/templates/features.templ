@@ -6,6 +6,7 @@ package templates
 import (
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/indaco/teseo/schemaorg"
@@ -77,6 +78,9 @@ templ featuresLists() {
 					<li>
 						Curated starter packs to get going in seconds
 					</li>
+					<li>
+						Your data is synced on our servers so you can stay up to date anywhere.
+					</li>
 				</ul>
 				<a href="/features/collect" class="mt-4 inline-block link text-sm font-medium link-primary">
 					Explore Collect →
@@ -115,7 +119,7 @@ templ featuresLists() {
 				<div class="text-xs font-semibold tracking-widest text-accent/80 uppercase">03 · Consume</div>
 				<h3 class="mt-1 font-display text-xl">Read like it's a magazine, not a queue</h3>
 				<p class="mt-2 text-sm text-base-content/70">
-					A distraction-free reading view with real typography, so articles feel like articles
+					Designed with a distraction-free reading view and real typography, so articles feel like articles
 					again and not one more thing to clear.
 				</p>
 				<ul class="mt-3 list-disc space-y-1.5 pl-3 text-sm text-base-content/70 marker:text-accent">
@@ -131,6 +135,9 @@ templ featuresLists() {
 					</li>
 					<li>
 						A range of light and dark themes
+					</li>
+					<li>
+						A responsive design that works in any web browser. On any device.
 					</li>
 				</ul>
 				<a href="/features/consume" class="mt-4 inline-block link text-sm font-medium text-accent">Explore Consume →</a>
@@ -163,6 +170,9 @@ templ featuresLists() {
 						</li>
 						<li>
 							Curated starter packs to get going in seconds
+						</li>
+						<li>
+							Your data is synced on our servers so you can stay up to date anywhere.
 						</li>
 					</ul>
 					<a href="/features/collect" class="mt-4 inline-block link text-sm font-medium link-primary">
@@ -220,7 +230,7 @@ templ featuresLists() {
 					<div class="text-xs font-semibold tracking-widest text-accent/80 uppercase">03 · Consume</div>
 					<h3 class="mt-1 font-display text-xl">Read like it's a magazine, not a queue</h3>
 					<p class="mt-2 text-sm text-base-content/70">
-						A distraction-free reading view with real typography, so articles feel like articles
+						Designed with a distraction-free reading view and real typography, so articles feel like articles
 						again and not one more thing to clear.
 					</p>
 					<ul class="mt-3 list-disc space-y-1.5 pl-3 text-sm text-base-content/70 marker:text-accent">
@@ -236,6 +246,9 @@ templ featuresLists() {
 						</li>
 						<li>
 							A range of light and dark themes
+						</li>
+						<li>
+							A responsive design that works in any browser, on any device.
 						</li>
 					</ul>
 					<a href="/features/consume" class="mt-4 inline-block link text-sm font-medium text-accent">Explore Consume →</a>
@@ -416,6 +429,29 @@ templ FeaturesPageCollect() {
 				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
 				loading="lazy"
 			/>
+		}
+		// Feature: Cloud sync.
+		@featurePanel("cloud-sync") {
+			<div class="order-2 md:order-1">
+				@components.BrowserWindow(config.GetBaseURL()) {
+					<img
+						src="/content/screenshots/screenshot-controls-desktop.webp"
+						alt="View of a subscription showing read state and action buttons"
+						class="w-full block p-2"
+						loading="lazy"
+					/>
+				}
+			</div>
+			<div class="order-1 md:order-2">
+				@featureTitle("Synced and saved across devices")
+				<p class="mt-4 text-base-content/70">
+					Your data is synced to our servers so you can stay up to date anywhere,
+				</p>
+				<ul class="mt-5 list-disc space-y-3 pl-3 text-sm text-base-content/70 marker:text-primary">
+					<li>Subscribe and manage your subscriptions centrally.</li>
+					<li>Where you are up to and what you've saved are kept in sync no matter which device you use.</li>
+				</ul>
+			</div>
 		}
 		// Navigation to other feature group pages.
 		<section class="border-y border-base-300/60 bg-base-200/40">
@@ -661,12 +697,14 @@ templ FeaturesPageConsume() {
 		// Feature: Full-text Search.
 		@featurePanel("full-text-search") {
 			<div class="order-2 md:order-1">
-				<img
-					src="/content/screenshots/screenshot-feature-search.webp"
-					alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
-					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-					loading="lazy"
-				/>
+				@components.BrowserWindow(config.GetBaseURL()) {
+					<img
+						src="/content/screenshots/screenshot-feature-search.webp"
+						alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
+						class="w-full block"
+						loading="lazy"
+					/>
+				}
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Full-text Search, for Humans")
@@ -675,7 +713,7 @@ templ FeaturesPageConsume() {
 					to search by topic — like "current geopolitical events" or the "latest tech news" — instead of exact
 					wording.
 				</p>
-				<p class="mt-3 text-sm text-base-content/60">
+				<p class="mt-3 text-base-content/70">
 					Want to keep up with new results? Save them as a
 					<a
 						href="/features/curate#feature-search-subscriptions"
@@ -699,7 +737,9 @@ templ FeaturesPageConsume() {
 					<li>Automatically mark articles as read after a short viewing period</li>
 					<li>Set a timespan after which old articles disappear from view, taming the backlog</li>
 				</ul>
-				From the blog:
+				<p class="mt-4 text-base-content/70">
+					From the blog:
+				</p>
 				<a
 					href="/blog/managing-feed-overload"
 					class="mt-5 inline-block link text-sm font-medium link-accent"
@@ -747,6 +787,41 @@ templ FeaturesPageConsume() {
 				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
 				loading="lazy"
 			/>
+		}
+		// Feature: Responsive Design.
+		@featurePanel("responsive-design") {
+			<div class="order-2 md:order-1">
+				<label class="swap max-h-160">
+					<input type="checkbox"/>
+					<div class="swap-off my-auto">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-home-desktop.webp"
+								alt="Foragd home page on desktop"
+								class="w-full block"
+								loading="lazy"
+							/>
+						}
+					</div>
+					<div class="swap-on">
+						@components.Mobile() {
+							<img
+								src="/content/screenshots/screenshot-home-mobile.webp"
+								alt="Foragd home page on mobile"
+								class="w-full block aspect-9/19.5 object-cover"
+								loading="lazy"
+							/>
+						}
+					</div>
+				</label>
+			</div>
+			<div class="order-1 md:order-2">
+				@featureTitle("Responsive Design")
+				<p class="mt-4 text-base-content/70">
+					Foragd is built with a responsive design that will adapt to the screen size of your device. It works
+					in any browser on any device. Stay up to date on your desktop, mobile, tablet or smart TV.
+				</p>
+			</div>
 		}
 		// Navigation to other feature group pages.
 		<section class="border-y border-base-300/60 bg-base-200/40">
