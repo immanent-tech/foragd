@@ -767,6 +767,9 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 		}
 	}
 
+	slogctx.FromCtx(ctx).Debug("Assigning categories to feed based on current item content.",
+		slog.String("feed_id", feed.GetID()))
+
 	classifications, err := language.Classify(ctx, itemText.String())
 	if err != nil {
 		slogctx.Error(ctx, "Could not classify feed.",
