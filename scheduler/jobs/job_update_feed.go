@@ -148,7 +148,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			}
 			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 			// newer articles where a feed lags behind real-time.
-
 			if err := updateFeed(
 				ctx,
 				details,
@@ -227,7 +226,7 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 	// No feed data returned by any url. Log and return error.
 	logMsg := newFeedStatusMsg(details.GetID())
 	logMsg.StatusMessage = new("no feed data returned by any URL")
-	logMsg.StatusCode = http.StatusNotFound
+	logMsg.StatusCode = http.StatusNoContent
 	if err := logMsg.log(ctx); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
