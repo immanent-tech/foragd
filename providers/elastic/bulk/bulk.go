@@ -94,7 +94,6 @@ func initIndexer(ctx context.Context, options ...IndexerOption) error {
 
 func setupIndexer(ctx context.Context, api esapi.Transport, options ...IndexerOption) {
 	getIndexer = sync.OnceValues(func() (*Indexer, error) {
-		initialized.Store(true)
 		opts := &esutil.BulkIndexerConfig{
 			Client: api,
 			OnError: func(ctx context.Context, err error) {
@@ -109,13 +108,15 @@ func setupIndexer(ctx context.Context, api esapi.Transport, options ...IndexerOp
 		// If no flush interval specified, set a default.
 		if opts.FlushInterval == 0 {
 			opts.FlushInterval = time.Minute
-			opts.FlushJitter = time.Minute
+			opts.FlushJitter = 5 * time.Second
 		}
 
 		indexer, err := esutil.NewBulkIndexer(*opts)
 		if err != nil {
 			return nil, fmt.Errorf("init indexer: %w", err)
 		}
+
+		initialized.Store(true)
 
 		slogctx.FromCtx(ctx).Debug("Bulk indexer created.",
 			slog.Time("start_time", time.Now().UTC()))
@@ -169,7 +170,7 @@ func IndexDocuments[T ~string, O Document[T]](
 				slog.Any("error", err))
 		}
 
-		if err := indexer.Add(ctx, *item); err != nil {
+		if err := indexer.Add(ctx, item); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to add document.",
 				slog.Any("error", err))
 		}
@@ -198,7 +199,7 @@ func AddAction[T ~string](
 				slog.Any("error", err))
 		}
 
-		if err := indexer.Add(ctx, *item); err != nil {
+		if err := indexer.Add(ctx, item); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to add document.",
 				slog.Any("error", err))
 		}
@@ -229,13 +230,13 @@ func NewAction[T ~string](doc Document[T], options ...ActionOption[T]) *Action[T
 	return item
 }
 
-func (a *Action[T]) marshalItem() (*esutil.BulkIndexerItem, error) {
+func (a *Action[T]) marshalItem() (esutil.BulkIndexerItem, error) {
 	rd, err := docToReader(a.doc)
 	if err != nil {
-		return nil, fmt.Errorf("create doc reader: %w", err)
+		return esutil.BulkIndexerItem{}, fmt.Errorf("create doc reader: %w", err)
 	}
 
-	return &esutil.BulkIndexerItem{
+	return esutil.BulkIndexerItem{
 		DocumentID:      string(a.doc.GetID()),
 		Body:            rd,
 		Index:           a.index,
