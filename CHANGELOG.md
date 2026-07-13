@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.191.0](https://github.com/immanent-tech/foragd/compare/v0.190.3...v0.191.0) (2026-07-13)
+
+
+### Features
+
+* ♻️ improve features ([55e71b3](https://github.com/immanent-tech/foragd/commit/55e71b34f27385af79fbfcb63a50d90669716f9c))
+* **components:** ➕ add mock browser and mobile templates ([7daf75b](https://github.com/immanent-tech/foragd/commit/7daf75b839f84f021fa4ac3bc2aeb376bdba5564))
+* **templates/features:** ✨ add more features ([186f6cc](https://github.com/immanent-tech/foragd/commit/186f6cced9f046a59731b98acff06db0b3c87bb2))
+
+
+### Bug Fixes
+
+* **scheduler:** 🔧 ensure correct shutdown order for indexer and elasticsearch ([666bc9c](https://github.com/immanent-tech/foragd/commit/666bc9c79795480ba33287f81b14df665b2c0ea1))
+* **templates/notifications:** 🔧 fix removal of notifications by timeout or click ([3a775c5](https://github.com/immanent-tech/foragd/commit/3a775c59492a0f0151f79625ec8db26c39ea7942))
+* **templates/subscriptions:** 🎨 better display of categories on subscription cards ([aae3320](https://github.com/immanent-tech/foragd/commit/aae33201ab35c73c7e5e995fe68c40317e94594d))
+
+
+### Performance Improvements
+
+* ⚡ category classification improvements ([1153ecd](https://github.com/immanent-tech/foragd/commit/1153ecd3556eb632feb81343ebec444302253753))
+
 ## [0.190.3](https://github.com/immanent-tech/foragd/compare/v0.190.2...v0.190.3) (2026-07-12)
 
 
