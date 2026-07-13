@@ -760,6 +760,11 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 		}
 	}
 
+	// When we can't produce any good categories, just assign to "Uncategorized".
+	if len(categories) == 0 {
+		categories = append(categories, "Uncategorized")
+	}
+
 	return categories
 }
 
