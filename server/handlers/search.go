@@ -317,7 +317,6 @@ func HandleSearchResults() http.HandlerFunc {
 					),
 				),
 				defaultArticleResultsCount,
-				&search.Sort,
 				&currentPagination,
 			)
 			if err != nil {

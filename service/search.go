@@ -118,12 +118,12 @@ func StandardSearchResultsClause(search *models.SearchRequest) query.BoolOption 
 				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.SimpleQueryString(
 					query.WithSimpleQueryStringText(&search.Text),
-					query.WithSimpleQueryStringFields("title^6", "description^3", "content"),
+					query.WithSimpleQueryStringFields("title^3", "description^2", "content"),
 					query.WithSimpleQueryStringOperator(&operator.And),
 				),
 				query.MultiMatch(
 					search.Text,
-					[]string{"description^3", "content"},
+					[]string{"description^2", "content"},
 					query.WithTextQueryType(textquerytype.Phrase),
 				),
 			),
