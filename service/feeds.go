@@ -884,8 +884,14 @@ func NormalizeFeedURL(urlStr string) (*url.URL, error) {
 			}
 		}
 	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		// Tumblr's canonical feed path is /rss.
 		if feedURL.Path != "/rss" {
 			feedURL.Path = "/rss"
+		}
+	case strings.HasSuffix(feedURL.Host, "substack.com"):
+		// Substack's canonical feed path is /feed.
+		if feedURL.Path != "/feed" {
+			feedURL.Path = "/feed"
 		}
 	case strings.Contains(feedURL.Host, "medium.com") && !strings.Contains(feedURL.Path, "feed"):
 		// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics.
