@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.192.0](https://github.com/immanent-tech/foragd/compare/v0.191.1...v0.192.0) (2026-07-13)
+
+
+### Features
+
+* **service/feeds:** ✨ add detection and normalization of substack feed urls ([00d07c2](https://github.com/immanent-tech/foragd/commit/00d07c2bd399adfac60b2d1db9f9ae0a1a337c47))
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 assign "Uncategorized" category when category classification produces no good results ([d973f28](https://github.com/immanent-tech/foragd/commit/d973f289014417a02ed453798a6082e49ca219d7))
+* **service/subscriptions:** 🔧 get category suggestions from feed source as well as top categories from items ([f62a9b0](https://github.com/immanent-tech/foragd/commit/f62a9b0807933e2d0a328149c98f52a64bfec613))
+
+
+### Performance Improvements
+
+* **service/items:** ⚡ tweak item retrieval ([57b6a41](https://github.com/immanent-tech/foragd/commit/57b6a414efc161bd631f2bdf1ba1d894190098fb))
+
 ## [0.191.1](https://github.com/immanent-tech/foragd/compare/v0.191.0...v0.191.1) (2026-07-13)
 
 
