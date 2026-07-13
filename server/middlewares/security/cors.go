@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/rs/cors"
+	"github.com/jub0bs/cors"
 
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
@@ -61,7 +61,7 @@ var corsCfg = CORS{
 	MaxAge: 300,
 }
 
-var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
+var loadCORS = sync.OnceValues(func() (*cors.Middleware, error) {
 	if err := config.Load("CORS_", &corsCfg); err != nil {
 		return nil, fmt.Errorf("load cors config: %w", err)
 	}
@@ -70,22 +70,22 @@ var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 		return nil, fmt.Errorf("cors config invalid: %w", err)
 	}
 
-	corsOptions := cors.Options{
-		AllowCredentials: true,
-		MaxAge:           corsCfg.MaxAge,
-		AllowedHeaders: append(
+	corsOptions := cors.Config{
+		Methods:         []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
+		Credentialed:    true,
+		MaxAgeInSeconds: corsCfg.MaxAge,
+		RequestHeaders: append(
 			[]string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 			HTMXRequestHeaders...,
 		),
-		ExposedHeaders: append(
+		ResponseHeaders: append(
 			[]string{"Link", "Accept-CH"},
 			HTMXResponseHeaders...,
 		),
-		AllowedMethods: []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
-		AllowedOrigins: corsCfg.AllowedOrigins,
+		Origins: corsCfg.AllowedOrigins,
 	}
 
-	return cors.New(corsOptions), nil
+	return cors.NewMiddleware(corsOptions)
 })
 
 // SetupCORS handles adding the appropriate headers for CORS to the request.
@@ -99,5 +99,5 @@ func SetupCORS(next http.Handler) http.Handler {
 			http.Error(res, "internal server error", http.StatusInternalServerError)
 		})
 	}
-	return cors.Handler(next)
+	return cors.Wrap(next)
 }

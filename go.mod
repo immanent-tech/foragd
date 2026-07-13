@@ -158,6 +158,7 @@ require (
 	github.com/immanent-tech/go-syndication v0.0.0
 	github.com/jferrl/go-githubauth v1.7.0
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/jub0bs/cors v1.0.4
 	github.com/justinas/alice v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/knadh/koanf/providers/env/v2 v2.0.0
@@ -180,7 +181,6 @@ require (
 	github.com/resend/resend-go/v3 v3.9.2
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
-	github.com/rs/cors v1.11.1
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-chi v1.19.1
 	github.com/segmentio/asm v1.2.1 // indirect
