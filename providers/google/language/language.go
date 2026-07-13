@@ -25,17 +25,24 @@ var initClient = sync.OnceValue(func() error {
 	if err != nil {
 		return fmt.Errorf("load language client: %w", err)
 	}
-	slog.Info("Language client created.")
+	slog.Debug("Language client created.")
 	return nil
 })
 
-// Classify performs text classification (categorisation) of the given text.
+// Classify performs text classification (categorization) of the given text.
 func Classify(ctx context.Context, text string) ([]Category, error) {
 	if err := initClient(); err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 	req := &languagepb.ClassifyTextRequest{
 		Document: newDocument(text),
+		ClassificationModelOptions: &languagepb.ClassificationModelOptions{
+			ModelType: &languagepb.ClassificationModelOptions_V2Model_{
+				V2Model: &languagepb.ClassificationModelOptions_V2Model{
+					ContentCategoriesVersion: languagepb.ClassificationModelOptions_V2Model_V2,
+				},
+			},
+		},
 	}
 	resp, err := client.ClassifyText(ctx, req)
 	if err != nil {
@@ -50,7 +57,7 @@ func Classify(ctx context.Context, text string) ([]Category, error) {
 	return categories, nil
 }
 
-// Category is a category that has been derived from analysed text.
+// Category is a category that has been derived from analyzed text.
 type Category interface {
 	GetName() string
 	GetConfidence() float32
