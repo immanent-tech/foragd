@@ -19,6 +19,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -109,15 +110,14 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	if err := job.JobData.MergeGetNewFeedsJob(GetNewFeedsJob{Checkpoint: time.Now().UTC()}); err != nil {
 		return fmt.Errorf("update job data: %w", err)
 	}
-	if err := elastic.UpdateDoc(
-		ctx,
-		schema.SchedulerIndexRW(),
-		job.JobDetail().JobKey().String(),
-		job,
-		elastic.WithDocAsUpsert(true),
-		elastic.WithRefresh(elastic.RefreshWaitFor),
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			job,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string](schema.SchedulerIndexRW()),
+		),
 	); err != nil {
-		return fmt.Errorf("update job: %w", err)
+		return fmt.Errorf("update feed: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Finished get new feeds job.",
