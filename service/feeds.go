@@ -737,7 +737,7 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 
 	// Don't classify when there is too little content for good processing.
 	if text.CountWords(itemText.String()) < 20 {
-		return nil
+		return models.Categories{"Uncategorized"}
 	}
 
 	slogctx.FromCtx(ctx).Debug("Assigning categories to feed based on current item content.",
