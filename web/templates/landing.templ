@@ -4,7 +4,7 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/web/components/mux"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -211,7 +211,7 @@ templ Landing() {
 				/>
 				<div class="flex flex-col pt-12">
 					<span class="mx-auto  text-lg font-semibold text-center text-accent">Get started in less than two minutes:</span>
-					@mux.MuxPlayer(mux.MuxVideo{
+					@components.MuxPlayer(components.MuxVideo{
 						ID:            "2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM",
 						Title:         "Getting Started",
 						ThumbnailTime: new(1),

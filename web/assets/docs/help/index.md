@@ -1,11 +1,13 @@
+<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
+
 # Foragd Help
 
 - [Foragd Help](#foragd-help)
   - [Where to Get Help](#where-to-get-help)
   - [Terminology](#terminology)
   - [Getting Started](#getting-started)
-  - [Accounts](#accounts)
-  - [Getting Around the Interface](#getting-around-the-interface)
+    - [Navigating Around the Interface](#navigating-around-the-interface)
+    - [Adding Sources](#adding-sources)
   - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
     - [About Search Results](#about-search-results)
   - [Managing Your Subscriptions](#managing-your-subscriptions)
@@ -18,6 +20,7 @@
   - [Viewing Articles](#viewing-articles)
     - [Viewing Remote Article Content](#viewing-remote-article-content)
   - [Saving and Viewing Your Favorite Subscriptions and Articles](#saving-and-viewing-your-favorite-subscriptions-and-articles)
+  - [Accounts](#accounts)
   - [References](#references)
     - [Search Operators \& Filtering Guide](#search-operators--filtering-guide)
     - [Using Keyboard Shortcuts (on Desktops)](#using-keyboard-shortcuts-on-desktops)
@@ -41,26 +44,34 @@
 
 ## Getting Started
 
-Watch the quick start video showing how to sign-up and add the curated feed sets to get started using Foragd:
+Watch the quickstart video showing how to sign-up and add the curated feed sets to get started using Foragd:
 
-<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
 <mux-player crossorigin playback-id="2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM" metadata-video-title="Getting Started"></mux-player>
 
-## Accounts
+### Navigating Around the Interface
 
-- You can manage your account at [Settings->Account](/user/settings#account).
-- You can change your plan level or cancel anytime.
-- Canceling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
-  reverse a cancellation during this period if you change your mind.
+Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the [Home](/home),
+[Subscriptions](/list/subscriptions), [Articles](/list/articles), or [Favorites](/list/favorites) pages.
 
-**Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor for website users and [Google Play
-Billing](https://myaccount.google.com/intro/payments-and-subscriptions) for Android app users. You will be taken to a
-hosted Paddle payment page, or your Play Billing Subscriptions, for managing your subscriptions and payments.
+### Adding Sources
 
-## Getting Around the Interface
+Foragd supports adding subscriptions from a number of sources:
 
-Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the Home, Subscriptions, Articles, or
-Favorites pages.
+- A direct feed URL.
+- Any website that publishes a supported feed.
+- YouTube Channels.
+- Google News searches.
+
+To add a subscription, click the *Add* button in the sidebar (desktop, tablets) or bottom nav bar (mobile), or go to
+[/subscription/add](/subscription/add).
+
+By default, you can enter any website or feed URL and Foragd will either find or parse and present potential
+subscriptions you can subscribe to. Alternatively, use the **Source** drop-down to add a YouTube channel or Google New
+search.
+
+Watch the following video for a demonstration:
+
+<mux-player crossorigin playback-id="Ol019frfRSTV81VZO00YUAwJbWJ028m378MW9EZ7pPqKBs" metadata-video-title="Getting Started"></mux-player>
 
 ## How to Search Articles & Subscriptions
 
@@ -171,6 +182,17 @@ page. On the subscriptions list page, you can filter to show only favorites.
 While Foragd does not retain all feed articles forever, marking an article as a favorite **will** ensure it is
 kept indefinitely. Foragd makes a copy of the article and stores it specially for you.
 
+## Accounts
+
+- You can manage your account at [Settings->Account](/user/settings#account).
+- You can change your plan level or cancel anytime.
+- Canceling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
+  reverse a cancellation during this period if you change your mind.
+
+**Note:** Foragd uses [Paddle](https://www.paddle.com/) as our payments processor for website users and [Google Play
+Billing](https://myaccount.google.com/intro/payments-and-subscriptions) for Android app users. You will be taken to a
+hosted Paddle payment page, or your Play Billing Subscriptions, for managing your subscriptions and payments.
+
 ## References
 
 ### Search Operators & Filtering Guide
@@ -218,4 +240,4 @@ The following shortcut keys are available on desktop:
 
 ## Last Updated
 
-Jun 27th, 2026
+Jul 13th, 2026

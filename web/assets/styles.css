@@ -131,11 +131,11 @@
   }
 
   el-dialog-backdrop {
-    @apply fixed inset-0 bg-base-300/50 transition duration-200 ease-linear data-closed:opacity-0;
+    @apply fixed inset-0 -z-10 bg-base-300/50 transition duration-200 ease-linear data-closed:opacity-0;
   }
 
   el-dialog-panel {
-    @apply block transition duration-200 data-closed:scale-95 data-closed:opacity-0;
+    @apply z-10 block transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
   /* Skip animation if content was restored from cache */
@@ -255,6 +255,18 @@
 
   .anchor-highlight {
     animation: anchor-flash 1.8s ease-out;
+  }
+
+  .placeholder-image {
+    #border {
+      @apply stroke-accent;
+    }
+    #sun {
+      @apply fill-primary;
+    }
+    #mountain {
+      @apply fill-secondary;
+    }
   }
 }
 

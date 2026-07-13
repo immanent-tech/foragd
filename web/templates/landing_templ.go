@@ -13,7 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/immanent-tech/foragd/web/components/mux"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -198,7 +198,7 @@ func Landing() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = mux.MuxPlayer(mux.MuxVideo{
+			templ_7745c5c3_Err = components.MuxPlayer(components.MuxVideo{
 				ID:            "2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM",
 				Title:         "Getting Started",
 				ThumbnailTime: new(1),

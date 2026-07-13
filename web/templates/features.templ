@@ -365,22 +365,45 @@ templ FeaturesPageCollect() {
 						</span>
 					</li>
 				</ul>
-				<div class="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm">
-					From the blog:
-					<a href="/blog/finding-feeds" class="link link-primary">
-						Finding Feeds
-					</a>
-					<a href="/blog/rediscovering-the-indie-web" class="link link-primary">
-						Rediscovering the Indie Web
-					</a>
-				</div>
+				<p class="mt-4 text-base-content/70">
+					Read more on the blog:
+				</p>
+				<ul class="mt-5 space-y-3 text-sm">
+					<li class="ml-3">
+						<a href="/blog/finding-feeds" class="link link-primary">
+							Finding Feeds →
+						</a>
+					</li>
+					<li class="ml-3">
+						<a href="/blog/rediscovering-the-indie-web" class="link link-primary">
+							Rediscovering the Indie Web →
+						</a>
+					</li>
+				</ul>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-feature-addcontent.webp"
-				alt="Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle"
-				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-				loading="lazy"
-			/>
+			<div>
+				<button command="show-modal" commandfor="show-screenshot-add-content" type="button" class="cursor-pointer">
+					@components.BrowserWindow(config.GetBaseURL()) {
+						<img
+							src="/content/screenshots/screenshot-add-content-desktop.webp"
+							alt="Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle"
+							class="w-full block object-cover"
+							loading="lazy"
+						/>
+					}
+				</button>
+				<el-dialog>
+					<dialog id="show-screenshot-add-content" class="mx-auto my-auto max-w-280">
+						<el-dialog-backdrop></el-dialog-backdrop>
+						<el-dialog-panel>
+							@components.MuxPlayer(components.MuxVideo{
+								ID:    "Ol019frfRSTV81VZO00YUAwJbWJ028m378MW9EZ7pPqKBs",
+								Title: "Adding Content",
+							})
+						</el-dialog-panel>
+					</dialog>
+				</el-dialog>
+			</div>
 		}
 		// Feature: Email Newsletters.
 		@featurePanel("email-newsletters") {
@@ -433,14 +456,33 @@ templ FeaturesPageCollect() {
 		// Feature: Cloud sync.
 		@featurePanel("cloud-sync") {
 			<div class="order-2 md:order-1">
-				@components.BrowserWindow(config.GetBaseURL()) {
-					<img
-						src="/content/screenshots/screenshot-controls-desktop.webp"
-						alt="View of a subscription showing read state and action buttons"
-						class="w-full block p-2"
-						loading="lazy"
-					/>
-				}
+				<div>
+					<button command="show-modal" commandfor="show-screenshot-cloud-sync" type="button" class="cursor-pointer">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-controls-desktop.webp"
+								alt="View of a subscription showing read state and action buttons"
+								class="w-full block p-2"
+								loading="lazy"
+							/>
+						}
+					</button>
+					<el-dialog>
+						<dialog id="show-screenshot-cloud-sync" class="mx-auto my-auto max-w-280">
+							<el-dialog-backdrop></el-dialog-backdrop>
+							<el-dialog-panel>
+								@components.BrowserWindow(config.GetBaseURL()) {
+									<img
+										src="/content/screenshots/screenshot-controls-desktop.webp"
+										alt="View of a subscription showing read state and action buttons"
+										class="w-full block p-2"
+										loading="lazy"
+									/>
+								}
+							</el-dialog-panel>
+						</dialog>
+					</el-dialog>
+				</div>
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Synced and saved across devices")
@@ -564,6 +606,7 @@ templ FeaturesPageCurate() {
 				<ul class="mt-5 list-disc space-y-3 pl-3 text-sm text-base-content/70 marker:text-primary">
 					<li>A great way to track a topic across many sources at once</li>
 					<li>Useful for research and ongoing data analysis, not just casual reading</li>
+					<li>Search and save with <a href="/features/consume#full-text-search" class="link">full-text search</a> by keyword, phrase or even topics like "geopolitical events"</li>
 				</ul>
 			</div>
 		}
@@ -580,8 +623,14 @@ templ FeaturesPageCurate() {
 					<div><span class="text-secondary">+python +tutorial</span> <span class="text-base-content/50">— only Python tutorials</span></div>
 					<div><span class="text-secondary">+python +tutorial AI -chatgpt</span> <span class="text-base-content/50">— combine for further refinement</span></div>
 				</div>
-				From the blog:
-				<a href="/blog/article-filtering-in-foragd" class="mt-5 inline-block link text-sm font-medium link-secondary">Clearing the Noise: Article Filtering in Foragd →</a>
+				<p class="mt-4 text-base-content/70">
+					Read more on the blog:
+				</p>
+				<ul class="mt-5 space-y-3 text-sm">
+					<li class="ml-3">
+						<a href="/blog/article-filtering-in-foragd" class="link link-primary">Clearing the Noise: Article Filtering in Foragd →</a>
+					</li>
+				</ul>
 			</div>
 			<img
 				src="/content/screenshots/screenshot-feature-articlefiltering.webp"
@@ -593,12 +642,33 @@ templ FeaturesPageCurate() {
 		// Feature: Subscription Customisation.
 		@featurePanel("subscription-customisation") {
 			<div class="order-2 md:order-1">
-				<img
-					src="/content/screenshots/screenshot-feature-subscriptioncustomisation.webp"
-					alt="Customising a subscription's nickname and image in Foragd"
-					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-					loading="lazy"
-				/>
+				<div>
+					<button command="show-modal" commandfor="show-screenshot-add-content" type="button" class="cursor-pointer">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-subscription-customize.webp"
+								alt="Customising a subscription's nickname and image in Foragd"
+								class="w-full block object-cover"
+								loading="lazy"
+							/>
+						}
+					</button>
+					<el-dialog>
+						<dialog id="show-screenshot-add-content" class="mx-auto my-auto max-w-280">
+							<el-dialog-backdrop></el-dialog-backdrop>
+							<el-dialog-panel>
+								@components.BrowserWindow(config.GetBaseURL()) {
+									<img
+										src="/content/screenshots/screenshot-subscription-customize.webp"
+										alt="Customising a subscription's nickname and image in Foragd"
+										class="w-full block object-cover"
+										loading="lazy"
+									/>
+								}
+							</el-dialog-panel>
+						</dialog>
+					</el-dialog>
+				</div>
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Subscription Customisation")
@@ -738,14 +808,18 @@ templ FeaturesPageConsume() {
 					<li>Set a timespan after which old articles disappear from view, taming the backlog</li>
 				</ul>
 				<p class="mt-4 text-base-content/70">
-					From the blog:
+					Read more on the blog:
 				</p>
-				<a
-					href="/blog/managing-feed-overload"
-					class="mt-5 inline-block link text-sm font-medium link-accent"
-				>
-					How to Manage Feed Overload: 6 Strategies for Your RSS Reader →
-				</a>
+				<ul class="mt-5 space-y-3 text-sm">
+					<li class="ml-3">
+						<a
+							href="/blog/managing-feed-overload"
+							class="link link-primary"
+						>
+							How to Manage Feed Overload: 6 Strategies for Your RSS Reader →
+						</a>
+					</li>
+				</ul>
 			</div>
 			<img
 				src="/content/screenshots/screenshot-settings-behaviour.webp"
