@@ -288,6 +288,8 @@ func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched 
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
 		newData.Categories = service.ClassifyFeed(ctx, newData)
+	} else {
+		newData.Categories = oldData.Categories
 	}
 	// Compare new/old feed data and update as appropriate.
 	if diff := cmp.Diff(*oldData, *newData,
@@ -297,6 +299,7 @@ func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched 
 	); diff != "" {
 		// Update feed data.
 		newData.LastFetched = lastFetched
+		newData.Updated = new(time.Now().UTC())
 		if err := bulk.AddAction(ctx,
 			bulk.NewAction(
 				newData,
@@ -312,6 +315,7 @@ func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched 
 			bulk.NewAction(&bulk.PartialDocument{
 				Parts: map[string]any{
 					"last_fetched": lastFetched,
+					"updated":      time.Now().UTC(),
 				},
 				ID: newData.GetID(),
 			},
