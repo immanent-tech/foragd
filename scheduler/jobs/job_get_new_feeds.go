@@ -21,7 +21,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/service"
 )
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
@@ -120,6 +119,12 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("update feed: %w", err)
 	}
 
+	// Flush all pending index operations from this job run to Elasticsearch.
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to flush bulk request.",
+			slog.Any("error", err))
+	}
+
 	slogctx.FromCtx(ctx).Debug("Finished get new feeds job.",
 		slog.Duration("took", time.Since(start)))
 
@@ -176,9 +181,18 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 					slog.Any("error", err),
 				)
 			}
-			if err := service.UpdateFeed(ctx, feed.GetID(), map[string]any{
-				"last_fetched": time.Now().UTC(),
-			}); err != nil {
+			if err := bulk.AddAction(ctx,
+				bulk.NewAction(&bulk.PartialDocument{
+					Parts: map[string]any{
+						"last_fetched": time.Now().UTC(),
+						"updated":      time.Now().UTC(),
+					},
+					ID: feed.GetID(),
+				},
+					bulk.AsOperation[string](bulk.OpUpdate),
+					bulk.ToIndex[string](schema.FeedsIndexRW()),
+				),
+			); err != nil {
 				slogctx.FromCtx(ctx).Error("Unable to update last fetched.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
@@ -192,12 +206,21 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 			slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 			slog.String("feed_id", feed.GetID()),
 		)
-		if err := service.UpdateFeed(ctx, feed.GetID(), map[string]any{
-			"last_fetched": time.Now().UTC(),
-		}); err != nil {
+		if err := bulk.AddAction(ctx,
+			bulk.NewAction(&bulk.PartialDocument{
+				Parts: map[string]any{
+					"last_fetched": time.Now().UTC(),
+					"updated":      time.Now().UTC(),
+				},
+				ID: feed.GetID(),
+			},
+				bulk.AsOperation[string](bulk.OpUpdate),
+				bulk.ToIndex[string](schema.FeedsIndexRW()),
+			),
+		); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to update last fetched.",
 				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-				slog.String("job_schedule", existingJob.Trigger().Description()),
+				slog.String("feed_id", feed.GetID()),
 				slog.Any("error", err),
 			)
 		}
