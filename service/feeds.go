@@ -22,7 +22,6 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/html"
@@ -687,8 +686,6 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 	if err != nil {
 		return nil, fmt.Errorf("get feeds: %w", err)
 	}
-
-	godump.Dump(feeds)
 
 	// Create outlines for all subscriptions.
 	outlines := make([]opml.Outline, 0, len(feeds))
