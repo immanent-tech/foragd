@@ -111,12 +111,17 @@ func Run(ctx context.Context) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 	defer cancel()
 
+	if err := bulk.Shutdown(shutdownCtx); err != nil {
+		slogctx.FromCtx(shutdownCtx).Error("Failed to shut down indexer gracefully.",
+			slog.Any("error", err))
+	}
 	if err := elastic.Shutdown(shutdownCtx); err != nil {
 		slogctx.FromCtx(shutdownCtx).Error("Elasticsearch failed to shutdown gracefully.",
 			slog.Any("error", err),
 		)
 	}
 	Manager.Stop()
+
 	slogctx.FromCtx(shutdownCtx).Debug("Scheduler stopped.",
 		slog.Time("stop_time", time.Now()),
 	)

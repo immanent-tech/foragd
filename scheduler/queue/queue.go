@@ -136,19 +136,6 @@ func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 		slog.Time("start_time", time.Now().UTC()),
 		slog.Int("job_count", queue.cache.EstimatedSize()))
 
-	// Perform clean up on shutdown.
-	go func() {
-		<-ctx.Done()
-		// Create shutdown context with 30-second timeout
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
-		defer cancel()
-
-		if err := bulk.Shutdown(shutdownCtx); err != nil {
-			slogctx.FromCtx(shutdownCtx).Error("Failed to shut down indexer gracefully.",
-				slog.Any("error", err))
-		}
-	}()
-
 	return queue, nil
 }
 
