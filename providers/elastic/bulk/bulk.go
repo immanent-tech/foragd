@@ -109,7 +109,7 @@ func setupIndexer(ctx context.Context, api esapi.Transport, options ...IndexerOp
 		// If no flush interval specified, set a default.
 		if opts.FlushInterval == 0 {
 			opts.FlushInterval = time.Minute
-			opts.FlushJitter = 5 * time.Second
+			opts.FlushJitter = time.Minute
 		}
 
 		indexer, err := esutil.NewBulkIndexer(*opts)
