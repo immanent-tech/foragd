@@ -1862,8 +1862,16 @@ func getSubscriptionCategorySuggestions(
 	excludedCategories []models.Category,
 ) []models.Category {
 	var suggestions []models.Category
-	// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
-	// subscription.
+
+	// Get categories from feed sources.
+	if feeds, err := service.GetFeeds(ctx, feedIDs...); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to get feeds for category suggestions.",
+			slog.Any("error", err))
+	} else {
+		suggestions = feeds.GetCategories()
+	}
+
+	// Query items for feeds and get append top categories from items.
 	topCategoriesQuery := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.

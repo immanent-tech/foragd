@@ -54,6 +54,15 @@ func (f Feeds) ExcludeIDs(ids ...FeedID) Feeds {
 	)
 }
 
+// GetCategories returns all categories across all the subscriptions. Duplicates are removed.
+func (f Feeds) GetCategories() Categories {
+	categories := make(Categories, 0)
+	for feed := range slices.Values(f) {
+		categories = append(categories, feed.GetCategories()...)
+	}
+	return slices.Compact(categories)
+}
+
 // NewFeed converts a feed source from the go-syndication library into a models.Feed object.
 func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {

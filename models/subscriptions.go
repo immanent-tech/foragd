@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
-	"github.com/goforj/godump"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-syndication/sanitization"
@@ -784,7 +783,6 @@ func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions
 	}
 	to = min(from+count, len(s))
 	newPagination := strconv.Itoa(to)
-	godump.Dump(from, to, newPagination)
 	return s[from:to], newPagination
 }
 
