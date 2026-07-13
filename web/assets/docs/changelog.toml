@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.189"
-date      = "Jul 10, 2026"
+version   = "v0.192"
+date      = "Jul 14, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Foragd will detect and fetch the feed for Substack blogs/newsletters now.
+"""
+
+[[releases]]
+version = "v0.189"
+date    = "Jul 10, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -17,9 +27,9 @@ Backend tuning should result in a more responsive interface.
 """
 
 [[releases]]
-version   = "v0.188"
-date      = "Jul 9, 2026"
-type      = "minor"
+version = "v0.188"
+date    = "Jul 9, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -37,9 +47,9 @@ Fixed search results pagination.
 """
 
 [[releases]]
-version   = "v0.187"
-date      = "Jul 7, 2026"
-type      = "minor"
+version = "v0.187"
+date    = "Jul 7, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -62,9 +72,9 @@ Removed errant hoziontal scrolling on certain pages.
 """
 
 [[releases]]
-version   = "v0.180"
-date      = "Jul 3, 2026"
-type      = "major"
+version = "v0.180"
+date    = "Jul 3, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -72,9 +82,9 @@ On the home page and the subscriptions/articles list pages, you can now pull dow
 """
 
 [[releases]]
-version   = "v0.177"
-date      = "Jul 1, 2026"
-type      = "major"
+version = "v0.177"
+date    = "Jul 1, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -82,9 +92,9 @@ Semantic search is here! In addition to traditional search by keywords and phras
 """
 
 [[releases]]
-version   = "v0.176"
-date      = "Jun 29, 2026"
-type      = "minor"
+version = "v0.176"
+date    = "Jun 29, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
