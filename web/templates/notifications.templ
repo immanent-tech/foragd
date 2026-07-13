@@ -50,11 +50,11 @@ templ Notification(msg *models.UserMessage, options ...notificationOption) {
 			templ.KV("alert-success",msg.IsSuccess()),
 			templ.KV("alert-warning",msg.IsWarning()),
 			templ.KV("alert-error",msg.IsError()) }
-			data-timeout={ opts.timeout.String() }
-			_="
-			on load wait for @data-timeout then remove me end
-			on closeMe remove me end
-			"
+			data-timeout={ opts.timeout.Seconds() }
+			_="on load
+				set timeout to @data-timeout
+				wait timeout seconds then remove me
+			  end"
 		>
 			<div class="flex flex-1">
 				<div class="mr-4 shrink-0">
@@ -88,7 +88,7 @@ templ Notification(msg *models.UserMessage, options ...notificationOption) {
 					templ.KV("text-error-content",msg.Status == models.UserMessageStatusError),
 					templ.KV("text-warning-content",msg.Status == models.UserMessageStatusWarning),
 					templ.KV("text-info-content",msg.Status == models.UserMessageStatusInfo) }
-							_="on click settle then send closeMe"
+							_="on click settle then remove closest parent <div.alert/>"
 						>
 							<span class="sr-only">Close</span>
 							@tableroutline.X(templ.Attributes{"aria-hidden": "true"})
