@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.191.1](https://github.com/immanent-tech/foragd/compare/v0.191.0...v0.191.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* 🔧 don't assign categories to feed when not needed ([22060ff](https://github.com/immanent-tech/foragd/commit/22060ffa45dc955ba1490dfd9efddd718aff3d45))
+* **elastic:** 🗑️ bulk fixes ([88b9973](https://github.com/immanent-tech/foragd/commit/88b9973b08b11d112816194c79e622775dc28b12))
+
+
+### Performance Improvements
+
+* **elastic:** ⚡ increase default background bulk flush interval to 1 minute ([81a768a](https://github.com/immanent-tech/foragd/commit/81a768a3e1370dc22775a1c17a658e927c099a90))
+* **jobs:** ⚡ use bulk request for job get new feeds job updates ([95e0651](https://github.com/immanent-tech/foragd/commit/95e0651b47c79bc03e659cc795c44ae830fb64e3))
+* **jobs:** ⚡ use bulk requests for all operations in get new feeds job ([5dcb989](https://github.com/immanent-tech/foragd/commit/5dcb9892f845ced7f75fba420dddc81823a3b166))
+
 ## [0.191.0](https://github.com/immanent-tech/foragd/compare/v0.190.3...v0.191.0) (2026-07-13)
 
 
