@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.193.1](https://github.com/immanent-tech/foragd/compare/v0.193.0...v0.193.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **jobs:** 🔧 remove missing field ([f868df0](https://github.com/immanent-tech/foragd/commit/f868df042408f12a908096f28bbfbe0b0f3580a8))
+
 ## [0.193.0](https://github.com/immanent-tech/foragd/compare/v0.192.1...v0.193.0) (2026-07-14)
 
 
