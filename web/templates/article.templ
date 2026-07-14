@@ -824,13 +824,19 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
 			class="btn border-neutral/15 btn-outline btn-sm"
 		>
-			if response.Filters.GetView() == models.ViewUnread {
-				@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-				Mark shown read
-			} else {
-				@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-				Mark shown unread
-			}
+			<span class="show-loading items-center">
+				<span class="loading mr-3 loading-spinner"></span>
+				<span class="text-sm/6">Loading</span>
+			</span>
+			<span class="hide-loading items-center">
+				if response.Filters.GetView() == models.ViewUnread {
+					@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+					<span class="ml-2">Mark Shown Read</span>
+				} else {
+					@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+					<span class="ml-2">Mark Show Unread</span>
+				}
+			</span>
 		</button>
 	} else {
 		// Edit subscription button. Only shown on desktop screens (in mobile dialog on smaller screens).
@@ -850,13 +856,19 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 				}) }
 				class="btn border-neutral/15 btn-outline btn-sm"
 			>
-				if response.Filters.GetView() == models.ViewUnread {
-					@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-					Mark all read
-				} else {
-					@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-					Mark all unread
-				}
+				<span class="show-loading items-center">
+					<span class="loading mr-3 loading-spinner"></span>
+					<span class="text-sm/6">Loading</span>
+				</span>
+				<span class="hide-loading items-center">
+					if response.Filters.GetView() == models.ViewUnread {
+						@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						<span class="ml-2">Mark All Read</span>
+					} else {
+						@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+						<span class="ml-2">Mark All Unread</span>
+					}
+				</span>
 			</button>
 		}
 	}
