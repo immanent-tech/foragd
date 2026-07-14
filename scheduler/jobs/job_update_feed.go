@@ -265,7 +265,6 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 				*newItem,
 				cmpopts.IgnoreFields(
 					models.Item{},
-					"Created",
 					"Updated",
 					"Published",
 					"Timestamp",
