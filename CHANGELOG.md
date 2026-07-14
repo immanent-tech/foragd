@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.195.1](https://github.com/immanent-tech/foragd/compare/v0.195.0...v0.195.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **templates/articles:** 🔧 add loading indicators on mark buttons ([0efab10](https://github.com/immanent-tech/foragd/commit/0efab10d6c372b2bbe69a82a6490a3a890d56c8f))
+* **templates/home:** 🔧 fix column count for tablet sized screens ([c1d743f](https://github.com/immanent-tech/foragd/commit/c1d743f28244392a6434e44c46685966c2b67f90))
+
 ## [0.195.0](https://github.com/immanent-tech/foragd/compare/v0.194.0...v0.195.0) (2026-07-14)
 
 
