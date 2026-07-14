@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.192.1](https://github.com/immanent-tech/foragd/compare/v0.192.0...v0.192.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 also set "Uncategorized" for feeds that cannot be classified ([e211b86](https://github.com/immanent-tech/foragd/commit/e211b860cdea580178a67d7c4304882ad7231253))
+* **templates/landing:** 🔧 assign a max size to demo video on desktop screens ([4fdca14](https://github.com/immanent-tech/foragd/commit/4fdca143589d94adf192c17adfe4e50d17c79853))
+
 ## [0.192.0](https://github.com/immanent-tech/foragd/compare/v0.191.1...v0.192.0) (2026-07-13)
 
 
