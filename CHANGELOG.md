@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.193.0](https://github.com/immanent-tech/foragd/compare/v0.192.1...v0.193.0) (2026-07-14)
+
+
+### Features
+
+* **templates/subscriptions:** ✨ add ability to add all suggested categories to a subscription ([0608eae](https://github.com/immanent-tech/foragd/commit/0608eaea6d8a88614a38fa79ddae4bce6f728560))
+
+
+### Bug Fixes
+
+* **jobs:** 🔧 add additional ignored fields when comparing items ([4af54b6](https://github.com/immanent-tech/foragd/commit/4af54b60e03a1339f796b0e7ad12d09ef2848cc3))
+* **jobs:** 🔧 don't change updated field ([b7f5bf3](https://github.com/immanent-tech/foragd/commit/b7f5bf3200b24a35f395119bf9f6078090d0c58f))
+
 ## [0.192.1](https://github.com/immanent-tech/foragd/compare/v0.192.0...v0.192.1) (2026-07-14)
 
 
