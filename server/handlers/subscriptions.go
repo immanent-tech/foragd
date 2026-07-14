@@ -165,11 +165,20 @@ func HandleListSubscriptions() http.HandlerFunc {
 				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
+			// Render new subscription cards.
 			RenderPartial(&ListSubscriptions{
 				title:    title,
 				template: templates.ListSubscriptions(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
-			// Update pagination control element as needed.
+			// Render new category filters.
+			RenderPartial(&PartialTemplate{
+				template: templates.UpdateListCategoryFilters(
+					"/list/subscriptions",
+					response.Filters,
+					response.Subscriptions.GetCategories(),
+				),
+			}).ServeHTTP(res, req.WithContext(ctx))
+			// Update pagination control element.
 			if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(

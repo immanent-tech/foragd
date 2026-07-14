@@ -286,7 +286,7 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters} }}
+	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters, categories: response.Subscriptions.GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			<div

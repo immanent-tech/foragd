@@ -173,11 +173,20 @@ func HandleListArticles() http.HandlerFunc {
 				template: templates.ListArticles(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
+			// Render new article cards.
 			RenderPartial(&ListArticles{
 				title:    title,
 				template: templates.ListArticles(response),
 			}).ServeHTTP(res, req.WithContext(ctx))
-			// Update pagination control element as needed.
+			// Render new category filters.
+			RenderPartial(&PartialTemplate{
+				template: templates.UpdateListCategoryFilters(
+					"/list/articles",
+					response.Filters,
+					response.Articles.GetCategoryCounts().GetCategories(),
+				),
+			}).ServeHTTP(res, req.WithContext(ctx))
+			// Update pagination control element.
 			if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(

@@ -631,7 +631,7 @@ templ ArticleContent(a *models.Article) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	{{ controls := &listControls{path: "/list/articles", filters: response.Filters} }}
+	{{ controls := &listControls{path: "/list/articles", filters: response.Filters, categories: response.Articles.GetCategoryCounts().GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			<div

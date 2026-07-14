@@ -3,12 +3,16 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
-import "github.com/dimmerz92/go-icons/tabler-outline"
+import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/models"
+	"slices"
+)
 
 type listControls struct {
-	path    string
-	filters models.ListFilters
+	path       string
+	filters    models.ListFilters
+	categories models.Categories
 }
 
 templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
@@ -28,22 +32,32 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 							</button>
 						</div>
 						<ul class="menu">
+							// Mobile View Filters.
 							<li class="menu-title">View</li>
-							<ul>
+							<ul id="mobile-view-filters">
 								@viewFilterOption(c.path, models.ViewUnread, c.filters)
 								@viewFilterOption(c.path, models.ViewRead, c.filters)
 								@viewFilterOption(c.path, models.ViewAll, c.filters)
 								@viewFilterFavorites(c.path, c.filters)
 							</ul>
+							// Mobile Sort Filters.
 							<li class="menu-title">Sort</li>
-							<ul>
-								@sortOption(models.SortNewestFirst, currentSort)
-								@sortOption(models.SortOldestFirst, currentSort)
+							<ul id="mobile-sort-filters">
+								@sortOption(c.path, models.SortNewestFirst, c.filters)
+								@sortOption(c.path, models.SortOldestFirst, c.filters)
 								if c.path == "/list/subscriptions" {
-									@sortOption(models.SortMostUnread, currentSort)
-									@sortOption(models.SortLeastUnread, currentSort)
+									@sortOption(c.path, models.SortMostUnread, c.filters)
+									@sortOption(c.path, models.SortLeastUnread, c.filters)
 								}
 							</ul>
+							// Mobile Category
+							if len(c.categories) > 0 {
+								<li class="menu-title">Categories</li>
+								<ul id="mobile-category-filters">
+									@ListCategoryFilters(c.path, c.filters, c.categories)
+								</ul>
+								@clearCategoryFilterOption(c.path, c.filters)
+							}
 							if actions != nil {
 								@actions
 							}
@@ -64,8 +78,10 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 				Options
 			</button>
 			// Desktop menu containing sorting and filtering.
-			<div class="hidden sm:flex sm:items-center">
+			<div class="hidden sm:flex sm:items-center gap-2">
+				// Desktop Sort Filters.
 				<div
+					id="desktop-sort-filters"
 					_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
 					hx-get={ c.path }
 					hx-include="#sort-hidden,#view-hidden,#count-hidden"
@@ -93,24 +109,42 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 						>
 							<div class="menu">
 								<el-option value={ string(models.SortNewestFirst) }>
-									@sortOption(models.SortNewestFirst, currentSort)
+									@sortOption(c.path, models.SortNewestFirst, c.filters)
 								</el-option>
 								<el-option value={ string(models.SortOldestFirst) }>
-									@sortOption(models.SortOldestFirst, currentSort)
+									@sortOption(c.path, models.SortOldestFirst, c.filters)
 								</el-option>
 								if c.path == "/list/subscriptions" {
 									<el-option value={ string(models.SortMostUnread) }>
-										@sortOption(models.SortMostUnread, currentSort)
+										@sortOption(c.path, models.SortMostUnread, c.filters)
 									</el-option>
 									<el-option value={ string(models.SortLeastUnread) }>
-										@sortOption(models.SortLeastUnread, currentSort)
+										@sortOption(c.path, models.SortLeastUnread, c.filters)
 									</el-option>
 								}
 							</div>
 						</el-options>
 					</el-select>
 				</div>
-				<ul class="menu menu-horizontal">
+				// Desktop Category Filters.
+				<el-dropdown>
+					<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
+						Category
+						@tableroutline.ChevronDown(templ.Attributes{
+							"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+							"aria-hidden": "true"})
+					</button>
+					<el-menu anchor="bottom start" popover class="[--anchor-gap:--spacing(1)]">
+						<ul class="menu max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5">
+							<ul id="desktop-category-filters">
+								@ListCategoryFilters(c.path, c.filters, c.categories)
+							</ul>
+							@clearCategoryFilterOption(c.path, c.filters)
+						</ul>
+					</el-menu>
+				</el-dropdown>
+				// Desktop View Filters.
+				<ul id="desktop-view-filters" class="menu menu-horizontal">
 					@viewFilterOption(c.path, models.ViewUnread, c.filters)
 					@viewFilterOption(c.path, models.ViewRead, c.filters)
 					@viewFilterOption(c.path, models.ViewAll, c.filters)
@@ -178,14 +212,23 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 	</li>
 }
 
-templ sortOption(sort, current models.Sort) {
+templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
+	{{ current := filters.GetSort() }}
+	{{ filters.Sort = sort }}
 	<li class="flex justify-between gap-2">
-		<div>
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			class="flex justify-between gap-2"
+		>
 			<span class={ "font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
 			<span aria-hidden="true" class={ "text-accent ", templ.KV("hidden",sort != current) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
-		</div>
+		</a>
 	</li>
 }
 
@@ -207,4 +250,66 @@ templ ListPaginationControl(path string, filters *models.ListFilters, pagination
 		hx-indicator="#loading-items"
 		hx-sync="#grid-objects:abort"
 	></div>
+}
+
+// UpdateListCategoryFilters can be be used to perform an OOB swap that will add additional category filters to the
+// mobile and desktop category filter lists.
+templ UpdateListCategoryFilters(path string, filters models.ListFilters,
+	categories models.Categories) {
+	<div id="mobile-category-filters" hx-swap-oob="beforeend">
+		@ListCategoryFilters(path, filters, categories)
+	</div>
+	<div id="desktop-category-filters" hx-swap-oob="beforeend">
+		@ListCategoryFilters(path, filters, categories)
+	</div>
+}
+
+// ListCategoryFilters will render a list of category filters.
+templ ListCategoryFilters(path string, filters models.ListFilters, categories models.Categories) {
+	for category := range slices.Values(categories) {
+		@categoryFilterOption(category, path, filters)
+	}
+}
+
+templ categoryFilterOption(category models.Category, path string, filters models.ListFilters) {
+	{{ currentCategories := filters.GetCategories() }}
+	{{ filters.Categories = models.Categories{category} }}
+	<li class="flex justify-between gap-2">
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			class="flex justify-between gap-2"
+		>
+			<span class={ "font-normal", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
+				{ category }
+			</span>
+			<span aria-hidden="true" class={ "text-accent ",  templ.KV("hidden",!slices.Contains(currentCategories,category)) }>
+				@tableroutline.Check(templ.Attributes{"class": "size-5"})
+			</span>
+		</a>
+	</li>
+}
+
+templ clearCategoryFilterOption(path string, filters models.ListFilters) {
+	{{ filters.Categories = nil }}
+	<li class="flex justify-between gap-2">
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-vals={ templ.JSONString(filters.Values()) }
+			class="flex justify-between gap-2"
+		>
+			<span class="font-normal">
+				Clear
+			</span>
+			<span aria-hidden="true" class="text-accent ">
+				@tableroutline.X(templ.Attributes{"class": "size-5"})
+			</span>
+		</a>
+	</li>
 }
