@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -200,15 +201,29 @@ templ Landing() {
 			</section>
 			// Feature Image Section.
 			<section id="feature-image" class="relative snap-start md:snap-align-none">
-				<img
-					width="1440"
-					height="900"
-					src="/content/screenshots/main.webp"
-					alt="Foragd RSS feed reader showing subscription cards and article list on desktop and mobile"
-					class="mx-auto rounded-box object-scale-down shadow-xl"
-					decoding="async"
-					fetchpriority="high"
-				/>
+				<div class="mx-auto flex flex-col sm:flex-row items-center justify-center gap-8 px-8">
+					<div class="max-w-280">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-home-desktop.webp"
+								alt="Foragd RSS feed reader on desktop showing home page with latest articles and subscriptions"
+								class="w-full block object-cover"
+								loading="lazy"
+								fetchpriority="high"
+							/>
+						}
+					</div>
+					<div class="shrink-0">
+						@components.Mobile() {
+							<img
+								src="/content/screenshots/screenshot-home-mobile.webp"
+								alt="Foragd RSS feed reader on mobile showing home page with latest articles"
+								class="w-full block aspect-9/19.5 object-cover"
+								loading="lazy"
+							/>
+						}
+					</div>
+				</div>
 				<div class="mx-auto flex flex-col pt-12 max-w-280">
 					<span class="mx-auto  text-lg font-semibold text-center text-accent">Get started in less than two minutes:</span>
 					@components.MuxPlayer(components.MuxVideo{
