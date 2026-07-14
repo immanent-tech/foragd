@@ -315,7 +315,6 @@ func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched 
 			bulk.NewAction(&bulk.PartialDocument{
 				Parts: map[string]any{
 					"last_fetched": lastFetched,
-					"updated":      time.Now().UTC(),
 				},
 				ID: newData.GetID(),
 			},

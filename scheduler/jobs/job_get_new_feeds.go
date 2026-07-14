@@ -185,7 +185,6 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 				bulk.NewAction(&bulk.PartialDocument{
 					Parts: map[string]any{
 						"last_fetched": time.Now().UTC(),
-						"updated":      time.Now().UTC(),
 					},
 					ID: feed.GetID(),
 				},
@@ -210,7 +209,6 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 			bulk.NewAction(&bulk.PartialDocument{
 				Parts: map[string]any{
 					"last_fetched": time.Now().UTC(),
-					"updated":      time.Now().UTC(),
 				},
 				ID: feed.GetID(),
 			},
