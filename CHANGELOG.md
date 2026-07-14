@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.195.0](https://github.com/immanent-tech/foragd/compare/v0.194.0...v0.195.0) (2026-07-14)
+
+
+### Features
+
+* **templates/subscriptions,templates/articles:** ✨ re-add ability to filter by category ([4fe9671](https://github.com/immanent-tech/foragd/commit/4fe9671133ee6e7bd2ea8ee9ba7642c41cbecab2))
+
 ## [0.194.0](https://github.com/immanent-tech/foragd/compare/v0.193.1...v0.194.0) (2026-07-14)
 
 
