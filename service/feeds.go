@@ -720,6 +720,8 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 		return nil
 	}
 
+	ctx = slogctx.With(ctx, "feed_id", feed.GetID())
+
 	var (
 		itemText strings.Builder
 	)
@@ -737,6 +739,7 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 
 	// Don't classify when there is too little content for good processing.
 	if text.CountWords(itemText.String()) < 20 {
+		slogctx.FromCtx(ctx).Warn("Not enough content to classify feed. Assigning 'Uncategorized'.")
 		return models.Categories{"Uncategorized"}
 	}
 
@@ -753,15 +756,22 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 
 	// Only use categories with a confidence level of at least 0.5.
 	categories := make(models.Categories, 0, len(classifications))
+	rejected := make(models.Categories, 0, len(classifications))
 	for classification := range slices.Values(classifications) {
-		if classification.GetConfidence() > 0.5 {
-			c := strings.Split(strings.TrimPrefix(classification.GetName(), "/"), "/")
+		if c := strings.Split(
+			strings.TrimPrefix(classification.GetName(), "/"),
+			"/",
+		); classification.GetConfidence() > 0.5 {
 			categories = append(categories, c...)
+		} else {
+			rejected = append(rejected, c...)
 		}
 	}
 
 	// When we can't produce any good categories, just assign to "Uncategorized".
 	if len(categories) == 0 {
+		slogctx.FromCtx(ctx).Warn("No classified categories with high enough confidence. Assigning 'Uncategorized'.",
+			slog.String("rejected_categories", strings.Join(rejected, ",")))
 		categories = append(categories, "Uncategorized")
 	}
 
