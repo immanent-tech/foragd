@@ -296,7 +296,8 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
-		newData.Categories = service.ClassifyFeed(ctx, newData)
+		slogctx.FromCtx(ctx).Info("Feed needs classifying")
+		// newData.Categories = service.ClassifyFeed(ctx, newData)
 	} else {
 		newData.Categories = oldData.Categories
 	}
