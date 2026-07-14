@@ -1,10 +1,30 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.195"
+date      = "Jul 15, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Re-added the ability to filter subscription/article lists by category.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Added a button to add all suggested categories to a subscription when editing.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+On tablet-sized screens, the home page has less columns, making it less squished.
+"""
+
+[[releases]]
 version   = "v0.192"
 date      = "Jul 14, 2026"
 type      = "minor"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
