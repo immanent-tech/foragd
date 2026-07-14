@@ -1816,12 +1816,19 @@ func HandleSubscriptionCategories() http.HandlerFunc {
 			return
 		}
 
-		// Ignore existing categories.
-		if slices.Contains(request.ExistingCategories, request.Category) {
+		categories := strings.Split(request.Category, ",")
+		if len(categories) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		RenderPartial(&PartialTemplate{template: templates.AddCategory(request.Category)}).ServeHTTP(res, req)
+
+		for category := range slices.Values(categories) {
+			if slices.Contains(request.ExistingCategories, request.Category) {
+				// Ignore existing categories.
+				continue
+			}
+			RenderPartial(&PartialTemplate{template: templates.AddCategory(category)}).ServeHTTP(res, req)
+		}
 	}).ServeHTTP
 }
 
