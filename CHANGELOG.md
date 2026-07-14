@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.194.0](https://github.com/immanent-tech/foragd/compare/v0.193.1...v0.194.0) (2026-07-14)
+
+
+### Features
+
+* **templates/landing:** ⬆️ update main screenshots ([90931b1](https://github.com/immanent-tech/foragd/commit/90931b12a179299f9275dbc332a41a945c1ccbb3))
+
 ## [0.193.1](https://github.com/immanent-tech/foragd/compare/v0.193.0...v0.193.1) (2026-07-14)
 
 
