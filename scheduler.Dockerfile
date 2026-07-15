@@ -29,6 +29,7 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN mkdir -p pkg/go-syndication
 COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication/
+COPY base/go.mod base/go.sum ./base/
 RUN go mod download
 
 # Copy source.

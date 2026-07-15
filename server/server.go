@@ -28,10 +28,12 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/server/middlewares"
-	"github.com/immanent-tech/foragd/server/middlewares/security"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web"
+
+	"github.com/immanent-tech/go-base/server/middlewares/etag"
+	"github.com/immanent-tech/go-base/server/middlewares/security"
 )
 
 const (
@@ -90,7 +92,7 @@ func Start(logger *slog.Logger) error {
 		// middlewares.RateLimit,
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
-		middlewares.Etag,
+		etag.Etag,
 		middlewares.SetClient,
 		middlewares.Otel,
 	)

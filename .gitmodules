@@ -1,3 +1,6 @@
 [submodule "models/feeds"]
 	path = pkg/go-syndication
 	url = git@github.com:immanent-tech/go-syndication.git
+[submodule "base"]
+	path = base
+	url = git@github.com:immanent-tech/go-base.git
