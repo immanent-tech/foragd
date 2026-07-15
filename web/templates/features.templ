@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/components"
@@ -385,12 +386,19 @@ templ FeaturesPageCollect() {
 			<div>
 				<button command="show-modal" commandfor="show-screenshot-add-content" type="button" class="cursor-pointer">
 					@components.BrowserWindow(config.GetBaseURL()) {
-						<img
-							src="/content/screenshots/screenshot-add-content-desktop.webp"
-							alt="Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle"
-							class="w-full block object-cover"
-							loading="lazy"
-						/>
+						<div class="relative">
+							<img
+								src="/content/screenshots/screenshot-add-content-desktop.webp"
+								alt="Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle"
+								class="w-full block object-cover"
+								loading="lazy"
+							/>
+							<div class="absolute inset-0 flex items-center justify-center">
+								<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+									@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
+								</span>
+							</div>
+						</div>
 					}
 				</button>
 				<el-dialog>
@@ -1082,29 +1090,38 @@ templ FeaturesPageConsume() {
 		// Feature: Responsive Design.
 		@featurePanel("responsive-design") {
 			<div class="order-2 md:order-1">
-				<label class="swap max-h-160">
-					<input type="checkbox"/>
-					<div class="swap-off my-auto">
+				<div>
+					<button command="show-modal" commandfor="show-video-responsive-design" type="button" class="cursor-pointer">
 						@components.BrowserWindow(config.GetBaseURL()) {
-							<img
-								src="/content/screenshots/screenshot-home-desktop.webp"
-								alt="Foragd home page on desktop"
-								class="w-full block"
-								loading="lazy"
-							/>
+							<div class="relative">
+								<img
+									src="/content/screenshots/screenshot-responsive-design.webp"
+									alt="Thumbnail of Foragd home screen"
+									class="w-full block object-cover"
+									loading="lazy"
+								/>
+								<div class="absolute inset-0 flex items-center justify-center">
+									<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+										@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
+									</span>
+								</div>
+							</div>
 						}
-					</div>
-					<div class="swap-on">
-						@components.Mobile() {
-							<img
-								src="/content/screenshots/screenshot-home-mobile.webp"
-								alt="Foragd home page on mobile"
-								class="w-full block aspect-9/19.5 object-cover"
-								loading="lazy"
-							/>
-						}
-					</div>
-				</label>
+					</button>
+					<el-dialog>
+						<dialog id="show-video-responsive-design" class="mx-auto my-auto max-w-280">
+							<el-dialog-backdrop></el-dialog-backdrop>
+							<el-dialog-panel>
+								<video
+									src="/content/screenshots/video-responsive-design.webm"
+									loading="lazy"
+									loop
+									controls
+								></video>
+							</el-dialog-panel>
+						</dialog>
+					</el-dialog>
+				</div>
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Responsive Design")
