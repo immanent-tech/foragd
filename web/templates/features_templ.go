@@ -265,7 +265,7 @@ func FeaturesPageCollect() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code> directly</span></li><li><span>For Google News, use a search query such as <code class=\"text-primary\">when:24h site:reuters.com</code></span></li><li><span>No need to hunt for obscure feed URLs, formats or parameters — Foragd finds them</span></li><li><span>Not sure where to start? Pick from curated feed sets on sign-up for a selection of independent feeds worth following</span></li></ul><p class=\"mt-4 text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 text-sm\"><li class=\"ml-3\"><a href=\"/blog/finding-feeds\" class=\"link link-primary\">Finding Feeds →</a></li><li class=\"ml-3\"><a href=\"/blog/rediscovering-the-indie-web\" class=\"link link-primary\">Rediscovering the Indie Web →</a></li></ul></div><div><button command=\"show-modal\" commandfor=\"show-screenshot-add-content\" type=\"button\" class=\"cursor-pointer\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code> directly</span></li><li><span>For Google News, use a search query such as <code class=\"text-primary\">when:24h site:reuters.com</code></span></li><li><span>No need to hunt for obscure feed URLs; let Foragd find them</span></li><li><span>Not sure where to start? Pick from curated feed sets on sign-up for a selection of independent feeds worth following</span></li></ul><p class=\"mt-4 text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 text-sm\"><li class=\"ml-3\"><a href=\"/blog/finding-feeds\" class=\"link link-primary\">Finding Feeds →</a></li><li class=\"ml-3\"><a href=\"/blog/rediscovering-the-indie-web\" class=\"link link-primary\">Rediscovering the Indie Web →</a></li></ul></div><div><button command=\"show-modal\" commandfor=\"show-screenshot-add-content\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -378,7 +378,7 @@ func FeaturesPageCollect() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-4 text-base-content/70\">Coming from Feedly, Inoreader, or another reader? Foragd imports your existing subscriptions easily using OPML, a widely-used standard for feed imports and exports.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 text-sm text-base-content/70 marker:text-primary\"><li>You always own and control your data — import and export freely, anytime</li><li>One file, one import — no manual re-adding of every subscription</li></ul><div class=\"mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm\">Compare: <a href=\"/compare/feedly\" class=\"link link-primary\">Foragd vs Feedly</a> <a href=\"/compare/inoreader\" class=\"link link-primary\">Foragd vs Inoreader</a></div></div><img src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"OPML import results showing subscriptions migrated from another feed reader into Foragd\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-4 text-base-content/70\">Coming from Feedly, Inoreader, or another reader? Foragd imports your existing subscriptions easily using OPML, a widely-used standard for feed imports and exports.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 text-sm text-base-content/70 marker:text-primary\"><li>You always own and control your data. You can import and export freely, anytime</li><li>One file, one import. No manual re-adding of every subscription</li></ul><div class=\"mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm\">Compare: <a href=\"/compare/feedly\" class=\"link link-primary\">Foragd vs Feedly</a> <a href=\"/compare/inoreader\" class=\"link link-primary\">Foragd vs Inoreader</a></div></div><img src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"OPML import results showing subscriptions migrated from another feed reader into Foragd\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -741,7 +741,7 @@ func FeaturesPageCurate() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<p class=\"mt-4 text-base-content/70\">Give each subscription your own nickname and image — handy when a feed doesn't include its own image, or its name is verbose or generic.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<p class=\"mt-4 text-base-content/70\">Give each subscription a nickname and change its thumbnail. Handy when a feed doesn't include its own image, or its name is verbose or generic.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -984,7 +984,7 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<p class=\"mt-4 text-base-content/70\">Search by keyword or phrase, and filter by category, author or time period. Or use semantic search to search by topic — like \"current geopolitical events\" or the \"latest tech news\" — instead of exact wording.</p><p class=\"mt-3 text-base-content/70\">Want to keep up with new results? Save them as a <a href=\"/features/curate#feature-search-subscriptions\" class=\"link link-accent\">Search Subscription</a> and stay up to date automatically.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<p class=\"mt-4 text-base-content/70\">Search by keyword or phrase, and filter by category, author or time period. Or use semantic search to search by topic like \"current geopolitical events\" or the \"latest tech news\" instead of exact wording.</p><p class=\"mt-3 text-base-content/70\">Want to keep up with new results? Save them as a <a href=\"/features/curate#feature-search-subscriptions\" class=\"link link-accent\">Search Subscription</a> and stay up to date automatically.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
