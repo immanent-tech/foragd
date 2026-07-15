@@ -10,6 +10,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/indaco/teseo/schemaorg"
+	"time"
 )
 
 var featureGroups = []partials.ListItemJSONLD{
@@ -854,13 +855,229 @@ templ FeaturesPageConsume() {
 					Pick from a selection of curated light and dark themes, so your reading space looks the way you want
 					it to.
 				</p>
+				<p class="mt-4 text-base-content/70">
+					Try it out:
+				</p>
+				<form class="mt-4 filter flex flex-wrap gap-2">
+					<input
+						class="btn btn-square"
+						type="reset"
+						value="×"
+						_="on click set #theme-previewer-card's @data-theme to 'greenhouse'"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="greenhouse"
+						aria-label="Greenhouse"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="light"
+						aria-label="Light"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="dark"
+						aria-label="Dark"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="grove"
+						aria-label="Grove"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="forest"
+						aria-label="Forest"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="catppuccin-mocha"
+						aria-label="Mocha"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="catppuccin-latte"
+						aria-label="Latte"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="dracula"
+						aria-label="Dracula"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+					<input
+						class="btn"
+						type="radio"
+						name="theme-preview"
+						value="solarized-dark"
+						aria-label="Solarized Dark"
+						_="on click set #theme-previewer-card's @data-theme to my value"
+					/>
+				</form>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-feature-themes.webp"
-				alt="Selection of light and dark themes available in Foragd"
-				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-				loading="lazy"
-			/>
+			@partials.Card(element.WithClasses("group shadow-xl"),
+				element.WithAttribute("id", "theme-previewer-card"),
+				element.WithAttribute("data-theme", "greenhouse")) {
+				<div>
+					<figure class="relative overflow-hidden rounded-t-[inherit]">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 64 64"
+							width="400"
+							height="300"
+							role="img"
+							aria-labelledby="c3-title"
+							class="placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
+						>
+							<title id="c3-title">Image unavailable placeholder</title>
+							<rect
+								id="border"
+								x="4"
+								y="4"
+								width="56"
+								height="56"
+								rx="14"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+								stroke-dasharray="5 5"
+								opacity="0.35"
+							></rect>
+							<circle
+								id="sun"
+								cx="25"
+								cy="24"
+								r="4.5"
+								fill="currentColor"
+								opacity="0.55"
+							></circle>
+							<path
+								id="mountain"
+								d="M12 44 L24 32 L34 42 L42 34 L52 44"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								opacity="0.3"
+							></path>
+						</svg>
+						<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+						<div class="absolute top-2.5 left-2.5">
+							<span class="badge badge-soft badge-sm font-medium backdrop-blur-sm badge-neutral">The Source</span>
+						</div>
+					</figure>
+				</div>
+				@partials.CardBody() {
+					<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+							RSS
+						</span>
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+							Atom
+						</span>
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+							Feed Readers
+						</span>
+					</div>
+					<h3 class="mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary">
+						Foragd ranked best feed reader
+					</h3>
+					<div class="prose-summary mb-3">
+						Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built
+						on a simple bet: that following the web can feel like reading a magazine again, not clearing an
+						inbox.
+					</div>
+				}
+				@partials.CardFooter(element.WithClasses("items-center")) {
+					<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
+						<div class="flex-separated flex min-w-0 items-center">
+							<div class="truncate text-xs/4">
+								Immanent Tech
+							</div>
+							<relative-time
+								datetime={ time.Now().Format("2006-01-02T15:04:05-0700") }
+								format="relative"
+								class="shrink-0 text-xs/4 text-neutral capitalize tabular-nums"
+							>
+								{ time.Now().Format("Jan _2, 2006") }
+							</relative-time>
+						</div>
+						<div class="flex shrink-0 items-center">
+							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
+								<label class="btn btn-square btn-ghost btn-sm">
+									@tableroutline.Heart(templ.Attributes{"class": "size-5 text-primary"})
+								</label>
+							</div>
+							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
+								<label class="btn btn-square btn-ghost btn-sm">
+									@tableroutline.MailOpened(templ.Attributes{"class": "size-5 text-primary"})
+								</label>
+							</div>
+							<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
+							<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
+								<el-dropdown class="relative ml-auto touch-manipulation">
+									<button id="fake-actions-menu" class="btn btn-square btn-ghost btn-sm">
+										<span class="sr-only">Fake Actions</span>
+										@tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+									</button>
+									@partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")) {
+										@partials.MenuItem() {
+											<a>
+												@tableroutline.ExternalLink(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+												Go To Article
+											</a>
+										}
+										@partials.MenuItem() {
+											<a>
+												@tableroutline.Search(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+												Find similar...
+											</a>
+										}
+										@partials.MenuItem() {
+											<a>
+												@tableroutline.Share(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+												Share
+											</a>
+										}
+										// Report issue action.
+										@partials.MenuItem() {
+											<a>
+												@tableroutline.Flag2(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+												Report an issue
+											</a>
+										}
+									}
+								</el-dropdown>
+							</div>
+						</div>
+					</div>
+				}
+			}
 		}
 		// Feature: Responsive Design.
 		@featurePanel("responsive-design") {
