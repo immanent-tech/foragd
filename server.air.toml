@@ -9,7 +9,6 @@ env_files = [".devcontainer/.env", ".env.development"]
 [build]
 # Add additional arguments when running binary (bin/full_bin). Will run './tmp/main hello world'.
 args_bin = [
-  "--no-log-file",
   "--profile='heapprofile=.devcontainer/data/server-heap.prof;cpuprofile=.devcontainer/data/server-cpu.prof;webui=true'",
   "serve",
 ]

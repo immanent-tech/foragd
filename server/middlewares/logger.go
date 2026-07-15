@@ -15,7 +15,8 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/go-base/logging"
+
 	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
@@ -30,7 +31,7 @@ var configureLogging = sync.OnceValue(func() slogchi.Config {
 			slogchi.IgnorePathContains("/content", "/favicon"),
 		},
 	}
-	switch logging.Level {
+	switch logging.GetLogLevel() {
 	case logging.LevelTrace:
 		cfg.WithRequestBody = true
 		cfg.WithResponseBody = true

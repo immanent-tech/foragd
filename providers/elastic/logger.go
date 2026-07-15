@@ -16,7 +16,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/go-base/logging"
 )
 
 // Logger is a custom elastictransport.Logger.
@@ -82,7 +82,7 @@ func (l *Logger) LogRoundTrip(
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+	if (logging.GetLogLevel() == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
 		req.Body != http.NoBody {
 		var (
 			buf bytes.Buffer

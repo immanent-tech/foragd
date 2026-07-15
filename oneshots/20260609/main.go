@@ -7,7 +7,8 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/go-base/logging"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	ctx := slogctx.NewCtx(context.Background(), logging.New(logging.Options{LogLevel: "debug", NoLogFile: true}))
+	ctx := slogctx.NewCtx(context.Background(), logging.New())
 
 	if err := elastic.Connect(); err != nil {
 		panic(err)

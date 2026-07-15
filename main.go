@@ -11,15 +11,14 @@ import (
 
 	"github.com/alecthomas/kong"
 
+	"github.com/immanent-tech/go-base/logging"
+
 	"github.com/immanent-tech/foragd/cli"
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/logging"
 )
 
 // CLI contains all of the commands and common options.
 var CLI struct {
-	logging.Options
-
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Elastic      cli.ElasticCmd       `cmd:"" help:"Elastic operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
@@ -48,7 +47,7 @@ func main() {
 
 	cmd := kong.Parse(&CLI, kong.Bind())
 
-	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
+	logger := logging.New()
 
 	// Enable profiling if requested.
 	if CLI.ProfileFlags != nil {

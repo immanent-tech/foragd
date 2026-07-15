@@ -18,7 +18,8 @@ import (
 	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/go-base/logging"
+
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
@@ -27,7 +28,7 @@ import (
 func main() {
 	ctx := context.TODO()
 
-	logger := logging.New(logging.Options{LogLevel: "debug"})
+	logger := logging.New()
 	ctx = slogctx.NewCtx(ctx, logger)
 
 	client, err := elastic.GetAPI()
