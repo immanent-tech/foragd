@@ -776,14 +776,33 @@ templ FeaturesPageConsume() {
 		// Feature: Full-text Search.
 		@featurePanel("full-text-search") {
 			<div class="order-2 md:order-1">
-				@components.BrowserWindow(config.GetBaseURL()) {
-					<img
-						src="/content/screenshots/screenshot-feature-search.webp"
-						alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
-						class="w-full block"
-						loading="lazy"
-					/>
-				}
+				<div>
+					<button command="show-modal" commandfor="show-screenshot-full-text-search" type="button" class="cursor-pointer">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-feature-search.webp"
+								alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
+								class="w-full block"
+								loading="lazy"
+							/>
+						}
+					</button>
+					<el-dialog>
+						<dialog id="show-screenshot-full-text-search" class="mx-auto my-auto max-w-280">
+							<el-dialog-backdrop></el-dialog-backdrop>
+							<el-dialog-panel>
+								@components.BrowserWindow(config.GetBaseURL()) {
+									<img
+										src="/content/screenshots/screenshot-feature-search.webp"
+										alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
+										class="w-full block"
+										loading="lazy"
+									/>
+								}
+							</el-dialog-panel>
+						</dialog>
+					</el-dialog>
+				</div>
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Full-text Search, for Humans")
