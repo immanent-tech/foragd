@@ -1341,6 +1341,9 @@ type UserMetadata struct {
 	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
 	PromotionalEmail bool `json:"promotional_email" validate:"required"`
 
+	// ReadOnly indicates the account can access content, but cannot modify it. i.e., they cannot add, remove, edit any subscriptions, favorites or other account settings.
+	ReadOnly bool `json:"read_only"`
+
 	// SubscriptionLimit represents details about a user account limit
 	SubscriptionLimit *UserLimit `json:"subscription_limit,omitempty"`
 }

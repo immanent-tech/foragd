@@ -357,6 +357,14 @@ components:
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
+        read_only:
+          description: >
+            indicates the account can access content, but cannot modify it. i.e., they cannot add, remove, edit any
+            subscriptions, favorites or other account settings.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         policies_accepted:
           description: >
             indicates whether the user has accepted the app policies.
