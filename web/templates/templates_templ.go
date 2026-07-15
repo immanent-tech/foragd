@@ -314,7 +314,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			IncludeIndicatorStyles:    false,
 			HistoryRestoreAsHxRequest: false,
 			GlobalViewTransitions:     false,
-			HistoryCacheSize:          10,
+			HistoryCacheSize:          0,
 		}))
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 236, Col: 5}

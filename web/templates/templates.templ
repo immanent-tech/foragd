@@ -232,7 +232,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				IncludeIndicatorStyles: false,
 				HistoryRestoreAsHxRequest: false,
 				GlobalViewTransitions: false,
-				HistoryCacheSize: 10,
+				HistoryCacheSize: 0,
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
