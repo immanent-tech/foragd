@@ -661,9 +661,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					}
 					@pageTitle(title)
 				}
-				if len(response.Articles) >0 {
-					@controls.Show(listArticlesActions(response), listArticlesButtons(response))
-				}
+				@controls.Show(listArticlesActions(response), listArticlesButtons(response))
 				<section id="articles-list" class="ptr-content pt-4">
 					<div id="refreshing" class="mx-auto flex w-full justify-center">
 						<div class="show-loading py-4 text-center">

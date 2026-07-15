@@ -310,9 +310,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					@pageTitle("Subscriptions")
 				}
 				// List actions.
-				if len(response.Subscriptions) > 0 {
-					@controls.Show(nil, listSubscriptionsButtons(response))
-				}
+				@controls.Show(nil, listSubscriptionsButtons(response))
 				<section id="subscriptions-list" class="ptr-content pt-4">
 					<div id="refreshing" class="mx-auto flex w-full justify-center">
 						<div class="show-loading py-4 text-center">
