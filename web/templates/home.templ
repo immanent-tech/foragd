@@ -310,6 +310,15 @@ templ NewUserHome() {
 				</div>
 				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 3">
 					@sectionHeading() {
+						@sectionTitle("Pick a theme")
+						<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+					}
+					<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
+						@themeCards()
+					</div>
+				</div>
+				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 4">
+					@sectionHeading() {
 						@sectionTitle("Learn more")
 					}
 					<ul role="list" class="divide-y divide-accent">

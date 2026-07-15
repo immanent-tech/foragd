@@ -743,7 +743,11 @@ func NewUserHome() templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = sectionTitle("Learn more").Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = sectionTitle("Pick a theme").Render(ctx, templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, " <p class=\"text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -753,7 +757,41 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<ul role=\"list\" class=\"divide-y divide-accent\"><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/docs\">Documentation Home</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/blog\">Blog</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/changelog\">Changelog</a></li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = themeCards().Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out\" style=\"--i: 4\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Var31 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+						if !templ_7745c5c3_IsBuffer {
+							defer func() {
+								templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+								if templ_7745c5c3_Err == nil {
+									templ_7745c5c3_Err = templ_7745c5c3_BufErr
+								}
+							}()
+						}
+						ctx = templ.InitializeContext(ctx)
+						templ_7745c5c3_Err = sectionTitle("Learn more").Render(ctx, templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						return nil
+					})
+					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var31), templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<ul role=\"list\" class=\"divide-y divide-accent\"><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/docs\">Documentation Home</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/blog\">Blog</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/changelog\">Changelog</a></li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

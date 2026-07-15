@@ -637,15 +637,7 @@ templ DisplaySettings(user *models.User) {
 				<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 				// * Changing themes here also requires updating the list in styles.css.
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
-					@themePreview("greenhouse")
-					@themePreview("light")
-					@themePreview("dark")
-					@themePreview("grove")
-					@themePreview("forest")
-					@themePreview("catppuccin-mocha")
-					@themePreview("catppuccin-latte")
-					@themePreview("dracula")
-					@themePreview("solarized-dark")
+					@themeCards()
 				</div>
 			</div>
 		</div>
@@ -979,7 +971,19 @@ templ ShowSubscriptionEmail(email string) {
 	</div>
 }
 
-templ themePreview(theme string) {
+templ themeCards() {
+	@themePreviewCard("greenhouse")
+	@themePreviewCard("light")
+	@themePreviewCard("dark")
+	@themePreviewCard("grove")
+	@themePreviewCard("forest")
+	@themePreviewCard("catppuccin-mocha")
+	@themePreviewCard("catppuccin-latte")
+	@themePreviewCard("dracula")
+	@themePreviewCard("solarized-dark")
+}
+
+templ themePreviewCard(theme string) {
 	@partials.Card(
 		element.WithAttribute("data-theme", theme),
 		element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
