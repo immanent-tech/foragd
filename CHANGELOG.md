@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.197.0](https://github.com/immanent-tech/foragd/compare/v0.196.0...v0.197.0) (2026-07-15)
+
+
+### Features
+
+* **templates/features:** ✨ add a video showing the responsive design of the interface ([84186b1](https://github.com/immanent-tech/foragd/commit/84186b1313f269e0842b32af218f85166dc46d9d))
+* **templates/features:** ✨ add video showing fetching full content ([d53a044](https://github.com/immanent-tech/foragd/commit/d53a044c53179084f77ba41157773dd5ec74e43e))
+* **templates/features:** ✨ interactive theme previewer on consume features page ([2198839](https://github.com/immanent-tech/foragd/commit/219883911395c89e7a64f318cba73e86b97d0c88))
+* **templates/features:** ✨ zoom on full-text search screenshot ([9556ead](https://github.com/immanent-tech/foragd/commit/9556eadca6b6f6b2b3556e531d1b620e41bee227))
+
+
+### Performance Improvements
+
+* ⚡ disable history cache ([e72081d](https://github.com/immanent-tech/foragd/commit/e72081d4d30996aaad1eb52cd2d046834272c1b4))
+
 ## [0.196.0](https://github.com/immanent-tech/foragd/compare/v0.195.1...v0.196.0) (2026-07-15)
 
 
