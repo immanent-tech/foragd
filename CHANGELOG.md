@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.196.0](https://github.com/immanent-tech/foragd/compare/v0.195.1...v0.196.0) (2026-07-15)
+
+
+### Features
+
+* **templates/home:** ✨ add theme picker on new user home ([87b281c](https://github.com/immanent-tech/foragd/commit/87b281c17fe75c9f4dc6229684faddf0b5bde6f4))
+
 ## [0.195.1](https://github.com/immanent-tech/foragd/compare/v0.195.0...v0.195.1) (2026-07-14)
 
 
