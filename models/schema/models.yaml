@@ -1096,6 +1096,15 @@ components:
             validate: 'required,dive,startswith=sub_'
         article_filters:
           $ref: '#/components/schemas/SubscriptionArticleFilters'
+        hide_children:
+          description: >
+            indicates that subscriptions in this group should be hidden outside display within the group (i.e., do not
+            show as individual subscriptions on the subscriptions list page). They will still be displayed in some
+            places, for e.g., in the table on the subscriptions settings page.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
