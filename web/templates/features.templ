@@ -766,12 +766,38 @@ templ FeaturesPageConsume() {
 					switching browser tabs.
 				</p>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-feature-fetchremote.webp"
-				alt="Foragd fetching full remote article content for a feed that only publishes summaries"
-				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-				loading="lazy"
-			/>
+			<div>
+				<button command="show-modal" commandfor="show-video-full-content" type="button" class="cursor-pointer">
+					@components.BrowserWindow(config.GetBaseURL()) {
+						<div class="relative">
+							<img
+								src="/content/screenshots/screenshot-full-content.webp"
+								alt="Thumbnail of Foragd home screen"
+								class="w-full block object-cover"
+								loading="lazy"
+							/>
+							<div class="absolute inset-0 flex items-center justify-center">
+								<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+									@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
+								</span>
+							</div>
+						</div>
+					}
+				</button>
+				<el-dialog>
+					<dialog id="show-video-full-content" class="mx-auto my-auto max-w-280">
+						<el-dialog-backdrop></el-dialog-backdrop>
+						<el-dialog-panel>
+							<video
+								src="/content/screenshots/video-full-content.webm"
+								loading="lazy"
+								loop
+								controls
+							></video>
+						</el-dialog-panel>
+					</dialog>
+				</el-dialog>
+			</div>
 		}
 		// Feature: Full-text Search.
 		@featurePanel("full-text-search") {
