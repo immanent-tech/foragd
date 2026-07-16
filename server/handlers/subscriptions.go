@@ -24,6 +24,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
+	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
+
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -32,7 +34,6 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/validation"
-	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"

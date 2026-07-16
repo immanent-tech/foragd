@@ -17,7 +17,7 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	htmxext "github.com/immanent-tech/foragd/web/htmx"
+	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/web/templates"
 )

@@ -9,8 +9,9 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/immanent-tech/go-base/pkg/htmx"
+
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 

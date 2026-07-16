@@ -7,9 +7,9 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/assets"
-	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/indaco/teseo/opengraph"
 	"net/url"
 	"slices"
@@ -232,7 +232,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				IncludeIndicatorStyles: false,
 				HistoryRestoreAsHxRequest: false,
 				GlobalViewTransitions: false,
-				HistoryCacheSize: 0,
+				HistoryCacheSize: 10,
+				ScrollBehavior: "auto",
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
