@@ -1,7 +1,7 @@
 User-agent: *
+Content-Signal: ai-train=no, search=yes, ai-input=yes
 Disallow: /home
 Disallow: /list
-Disallow: /signup
 Disallow: /user
 Disallow: /login
 Sitemap: https://foragd.app/sitemap.xml
