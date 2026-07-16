@@ -78,4 +78,4 @@ USER foragd
 
 # Set entry point.
 ENTRYPOINT ["/foragd"]
-CMD ["serve", "--no-log-file"]
+CMD ["serve"]

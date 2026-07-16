@@ -75,4 +75,4 @@ USER foragd
 
 # Set entry point.
 ENTRYPOINT ["/foragd"]
-CMD ["scheduler", "--no-log-file", "run"]
+CMD ["scheduler", "run"]
