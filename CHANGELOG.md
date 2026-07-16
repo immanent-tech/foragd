@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.199.0](https://github.com/immanent-tech/foragd/compare/v0.198.1...v0.199.0) (2026-07-16)
+
+
+### Features
+
+* **templates/subscriptions:** ✨ add a help popover for article filtering ([2df0eb4](https://github.com/immanent-tech/foragd/commit/2df0eb478ac2955af5deb568fd5eeba5a4e37d86))
+* **templates/subscriptions:** ✨ add an indicator when a subscription has article filters ([a7ad0fd](https://github.com/immanent-tech/foragd/commit/a7ad0fdbce779ee02fd6271b4d9e47ea5dc41c5a))
+* **templates/subscriptions:** ✨ improved display of stats when requested ([d3c5cb5](https://github.com/immanent-tech/foragd/commit/d3c5cb5f405009387f03c86b8e742a60da2512ea))
+
+
+### Bug Fixes
+
+* **content:** ➕ add ai content signals to robots.txt ([91f4631](https://github.com/immanent-tech/foragd/commit/91f4631279186d80af711ca4c22e4d2da9df520a))
+* **templates/subscriptions:** 🔧 pass nickname to thumbnail template ([26f322b](https://github.com/immanent-tech/foragd/commit/26f322b7285f23d4df505e3a36a0e33f627f0139))
+
 ## [0.198.1](https://github.com/immanent-tech/foragd/compare/v0.198.0...v0.198.1) (2026-07-16)
 
 
