@@ -1,10 +1,21 @@
 #:schema https://json.schemastore.org/any.json
 
+
+[[releases]]
+version   = "v0.199"
+date      = "Jul 17, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Add an indicator on subscriptions that have article filters applied.
+"""
+
 [[releases]]
 version   = "v0.195"
 date      = "Jul 15, 2026"
 type      = "minor"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
