@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.198.1](https://github.com/immanent-tech/foragd/compare/v0.198.0...v0.198.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **container:** 🗑️ remove deprecated command-line flag ([fcf4d8a](https://github.com/immanent-tech/foragd/commit/fcf4d8ad5eb6f168fa4613f5b21f8619fa320eb1))
+
 ## [0.198.0](https://github.com/immanent-tech/foragd/compare/v0.197.0...v0.198.0) (2026-07-15)
 
 
