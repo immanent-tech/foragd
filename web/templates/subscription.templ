@@ -458,14 +458,33 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 
 templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
 	<fieldset class="fieldset min-w-0 py-8">
-		<legend class="text-lg font-medium">Article Filtering</legend>
+		<legend class="text-lg font-medium flex items-center gap-2">
+			Article Filtering
+			<button popovertarget="article-filtering-help" type="button">
+				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
+			</button>
+			<el-popover popover id="article-filtering-help" anchor="bottom" class="[--anchor-gap:4px]">
+				<div class="block card-body font-medium rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+					<p>
+						The following operators can be used for more refined searches:
+					</p>
+					<ul class="mt-1">
+						<li>| signifies OR operation (i.e., food OR beverages). This is the default.</li>
+						<li>+ signifies AND operation (i.e., food AND beverages).</li>
+						<li>- negates the word (i.e., NOT samsung)</li>
+						<li>"" represents an exact phrase match (i.e., "galaxy watch").</li>
+						<li>\* at the end of a word indicates a prefix match (i.e., bird\* will match bird, birding and birds).</li>
+					</ul>
+				</div>
+			</el-popover>
+		</legend>
 		<label class="fieldset">
 			<span class="label">Text</span>
 			<textarea
 				rows="2"
 				id="article-text-filters"
 				name="article_filters.text"
-				placeholder={ `+keyword -"some phrase"` }
+				placeholder={ `keyword -"some phrase"` }
 				class="textarea w-full bg-base-content/10 textarea-primary"
 				spellcheck="false"
 			>
@@ -480,7 +499,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 				rows="2"
 				id="article-category-filters"
 				name="article_filters.categories"
-				placeholder={ `+keyword -"some phrase"` }
+				placeholder={ `keyword -"some phrase"` }
 				class="textarea w-full bg-base-content/10 textarea-primary"
 				spellcheck="false"
 			>
@@ -495,7 +514,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 				rows="2"
 				id="article-author-filters"
 				name="article_filters.authors"
-				placeholder={ `+keyword -"some phrase"` }
+				placeholder={ `keyword -"some phrase"` }
 				class="textarea w-full bg-base-content/10 textarea-primary"
 				spellcheck="false"
 			>
