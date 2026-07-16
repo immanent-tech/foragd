@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.198.0](https://github.com/immanent-tech/foragd/compare/v0.197.0...v0.198.0) (2026-07-15)
+
+
+### Features
+
+* **models:** ➕ add (currently unused) flag to hide grouped subscriptions from list ([e487057](https://github.com/immanent-tech/foragd/commit/e487057c9f4f8967d50d335a02b14f55af1148a9))
+
+
+### Bug Fixes
+
+* **templates/susbcriptions,templates/articles:** 🔧 always show list controls even if there are no cards shown ([fb50396](https://github.com/immanent-tech/foragd/commit/fb50396c2f220121fe170b423423b774d92260dd))
+
 ## [0.197.0](https://github.com/immanent-tech/foragd/compare/v0.196.0...v0.197.0) (2026-07-15)
 
 
