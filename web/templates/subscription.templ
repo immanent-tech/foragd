@@ -106,9 +106,21 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithClasses("group", "animate-fadeinup", "masonry-item"),
+		element.WithClasses("group", "relative", "animate-fadeinup", "masonry-item"),
 		element.WithHXIndicator("this"),
 	) {
+		// Show unread count in badge at top right if user wants stats shown.
+		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+			<div class="absolute top-0 right-0">
+				<span class="badge badge-primary badge-sm mt-2 mr-2">
+					if s.GetStats().UnreadTotal() >= 100 {
+						99+
+					} else {
+						{ s.GetStats().UnreadTotal() }
+					}
+				</span>
+			</div>
+		}
 		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
 		// Card header.
 		@partials.CardHeader() {
@@ -148,31 +160,23 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
 				<div class="flex min-w-0 flex-col">
+					// Show stats if user has requested them.
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-						<div class="inline-grid grid-flow-row grid-cols-2 items-center gap-1">
-							<span class="col-span-full badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
-								<relative-time
-									datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-									format="relative"
-								>
-									{ s.GetUpdatedDate().Format("Jan _2, 2006") }
-								</relative-time>
+						<span class="badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
+							<relative-time
+								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+								format="relative"
+							>
+								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
+							</relative-time>
+						</span>
+						if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
+							<span class="badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
+								{ s.GetStats().UpdateFrequency() }
 							</span>
-							if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-								<span class="col-span-1 badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
-									{ s.GetStats().UpdateFrequency() }
-								</span>
-							}
-							<span class="col-span-1 badge justify-start badge-soft badge-sm tabular-nums badge-neutral">
-								if s.GetStats().UnreadTotal() >= 100 {
-									99+ unread
-								} else {
-									{ s.GetStats().UnreadTotal() } unread
-								}
-							</span>
-						</div>
+						}
 					} else {
-						<span class="col-span-full badge badge-soft badge-sm tabular-nums badge-neutral">
+						<span class="badge badge-soft badge-sm tabular-nums badge-neutral">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"

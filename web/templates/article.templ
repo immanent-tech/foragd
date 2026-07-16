@@ -661,6 +661,16 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					}
 					<div class="flex items-center gap-1">
 						@pageTitle(title)
+						// Show unread count in badge at top right if user wants stats shown.
+						if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+							<span class="badge badge-primary">
+								if response.Subscription.GetStats().UnreadTotal() >= 100 {
+									99+
+								} else {
+									{ response.Subscription.GetStats().UnreadTotal() }
+								}
+							</span>
+						}
 						// Add an icon to indicate whether article filtering is being applied.
 						if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
 							<div class="tooltip" data-tip="Article filtering applied">

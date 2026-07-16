@@ -127,6 +127,15 @@ func HandleListArticles() http.HandlerFunc {
 					}).ServeHTTP(res, req)
 				return
 			}
+			if user.GetSettings().ShowSubscriptionStats {
+				if err := service.UpdateSubscriptionDynamicInfo(
+					req.Context(),
+					models.Subscriptions{subscription},
+				); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not generate subscription dynamic info.",
+						slog.Any("error", err))
+				}
+			}
 			request.Query = query.Bool(
 				models.ArticleFiltersQueryClause(subscription),
 			)
