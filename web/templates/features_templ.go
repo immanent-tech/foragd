@@ -153,7 +153,7 @@ func Features() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75\"></div></div></div><div class=\"max-w-md z-10\"><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Your internet, gathered on purpose</h1><p class=\"mt-6 text-lg/8 text-secondary\">Foragd uses three pillars to build your private library.</p><button class=\"btn mt-12 btn-circle animate-bounce btn-secondary\" _=\"on click scroll to #features-summary smoothly\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"isolate\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-16\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75\"></div></div></div><div class=\"z-10 max-w-md\"><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Your internet, gathered on purpose</h1><p class=\"mt-6 text-lg/8 text-secondary\">Foragd uses three pillars to build your private library.</p><button class=\"btn mt-12 btn-circle animate-bounce btn-secondary\" _=\"on click scroll to #features-summary smoothly\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -228,7 +228,7 @@ func FeaturesPageCollect() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Collect everything, from one place</h1><p class=\"mt-6 text-lg/8 text-primary\">Add any website, blog, YouTube channel, subreddit, or email newsletter. Foragd does the heavy lifting of finding the feed for you. No more checking dozens of tabs, or missing posts because an algorithm buried them.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#add-content\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #add-content smoothly\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Collect everything, from one place</h1><p class=\"mt-6 text-lg/8 text-primary\">Add any website, blog, YouTube channel, subreddit, or email newsletter. Foragd does the heavy lifting of finding the feed for you. No more checking dozens of tabs, or missing posts because an algorithm buried them.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#add-content\" class=\"btn btn-outline text-sm/6 font-semibold\" _=\"on click scroll to #add-content smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -281,7 +281,7 @@ func FeaturesPageCollect() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-add-content-desktop.webp\" alt=\"Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle\" class=\"w-full block object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-add-content-desktop.webp\" alt=\"Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -420,7 +420,7 @@ func FeaturesPageCollect() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<img src=\"/content/screenshots/screenshot-controls-desktop.webp\" alt=\"View of a subscription showing read state and action buttons\" class=\"w-full block p-2\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<img src=\"/content/screenshots/screenshot-controls-desktop.webp\" alt=\"View of a subscription showing read state and action buttons\" class=\"block w-full p-2\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -446,7 +446,7 @@ func FeaturesPageCollect() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<img src=\"/content/screenshots/screenshot-controls-desktop.webp\" alt=\"View of a subscription showing read state and action buttons\" class=\"w-full block p-2\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<img src=\"/content/screenshots/screenshot-controls-desktop.webp\" alt=\"View of a subscription showing read state and action buttons\" class=\"block w-full p-2\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -563,7 +563,7 @@ func FeaturesPageCurate() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Organize your feeds your way</h1><p class=\"mt-6 text-lg/8 text-secondary\">Group subscriptions into a single unified feed. Search across every article you've ever received, then save it as a subscription to follow new matches as they arrive. You're in control. No algorithm and no sponsored suggestions overriding you.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#group-subscriptions\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #group-subscriptions smoothly\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Organize your feeds your way</h1><p class=\"mt-6 text-lg/8 text-secondary\">Group subscriptions into a single unified feed. Search across every article you've ever received, then save it as a subscription to follow new matches as they arrive. You're in control. No algorithm and no sponsored suggestions overriding you.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#group-subscriptions\" class=\"btn btn-outline text-sm/6 font-semibold\" _=\"on click scroll to #group-subscriptions smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -697,7 +697,7 @@ func FeaturesPageCurate() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"w-full block object-cover\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -723,7 +723,7 @@ func FeaturesPageCurate() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"w-full block object-cover\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -840,7 +840,7 @@ func FeaturesPageConsume() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Read without distractions</h1><p class=\"mt-6 text-lg/8 text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn text-sm/6 font-semibold btn-outline\" _=\"on click scroll to #full-content smoothly\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance\">Read without distractions</h1><p class=\"mt-6 text-lg/8 text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn btn-outline text-sm/6 font-semibold\" _=\"on click scroll to #full-content smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -880,7 +880,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-full-content.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"w-full block object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-full-content.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -940,7 +940,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"w-full block\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -966,7 +966,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"w-full block\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1086,7 +1086,7 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<p class=\"mt-4 text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 text-base-content/70\">Try it out:</p><form class=\"mt-4 filter flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"light\" aria-label=\"Light\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dark\" aria-label=\"Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"grove\" aria-label=\"Grove\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dracula\" aria-label=\"Dracula\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<p class=\"mt-4 text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 text-base-content/70\">Try it out:</p><form class=\"filter mt-4 flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"light\" aria-label=\"Light\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dark\" aria-label=\"Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"grove\" aria-label=\"Grove\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dracula\" aria-label=\"Dracula\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1118,7 +1118,7 @@ func FeaturesPageConsume() templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div class=\"mb-2.5 flex flex-wrap gap-1.5 self-start\"><span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]\">RSS</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]\">Atom</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]\">Feed Readers</span></div><h3 class=\"mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary\">Foragd ranked best feed reader</h3><div class=\"prose-summary mb-3\">Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built on a simple bet: that following the web can feel like reading a magazine again, not clearing an inbox.</div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div class=\"mb-2.5 flex flex-wrap gap-1.5 self-start\"><span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">RSS</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Atom</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Feed Readers</span></div><h3 class=\"mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary\">Foragd ranked best feed reader</h3><div class=\"prose-summary mb-3\">Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built on a simple bet: that following the web can feel like reading a magazine again, not clearing an inbox.</div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1404,7 +1404,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-responsive-design.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"w-full block object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-responsive-design.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

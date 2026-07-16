@@ -269,7 +269,7 @@ templ Features() {
 						<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"></div>
 					</div>
 				</div>
-				<div class="max-w-md z-10">
+				<div class="z-10 max-w-md">
 					<h1 class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance">
 						Your internet, gathered on purpose
 					</h1>
@@ -322,7 +322,7 @@ templ FeaturesPageCollect() {
 						</a>
 						<a
 							href="#add-content"
-							class="btn text-sm/6 font-semibold btn-outline"
+							class="btn btn-outline text-sm/6 font-semibold"
 							_="on click scroll to #add-content smoothly"
 						>
 							See how it works
@@ -390,11 +390,11 @@ templ FeaturesPageCollect() {
 							<img
 								src="/content/screenshots/screenshot-add-content-desktop.webp"
 								alt="Adding a new subscription in Foragd by entering a URL, search term, or YouTube handle"
-								class="w-full block object-cover"
+								class="block w-full object-cover"
 								loading="lazy"
 							/>
 							<div class="absolute inset-0 flex items-center justify-center">
-								<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+								<span class="flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
 									@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
 								</span>
 							</div>
@@ -471,7 +471,7 @@ templ FeaturesPageCollect() {
 							<img
 								src="/content/screenshots/screenshot-controls-desktop.webp"
 								alt="View of a subscription showing read state and action buttons"
-								class="w-full block p-2"
+								class="block w-full p-2"
 								loading="lazy"
 							/>
 						}
@@ -484,7 +484,7 @@ templ FeaturesPageCollect() {
 									<img
 										src="/content/screenshots/screenshot-controls-desktop.webp"
 										alt="View of a subscription showing read state and action buttons"
-										class="w-full block p-2"
+										class="block w-full p-2"
 										loading="lazy"
 									/>
 								}
@@ -566,7 +566,7 @@ templ FeaturesPageCurate() {
 						</a>
 						<a
 							href="#group-subscriptions"
-							class="btn text-sm/6 font-semibold btn-outline"
+							class="btn btn-outline text-sm/6 font-semibold"
 							_="on click scroll to #group-subscriptions smoothly"
 						>
 							See how it works
@@ -657,7 +657,7 @@ templ FeaturesPageCurate() {
 							<img
 								src="/content/screenshots/screenshot-subscription-customize.webp"
 								alt="Customising a subscription's nickname and image in Foragd"
-								class="w-full block object-cover"
+								class="block w-full object-cover"
 								loading="lazy"
 							/>
 						}
@@ -670,7 +670,7 @@ templ FeaturesPageCurate() {
 									<img
 										src="/content/screenshots/screenshot-subscription-customize.webp"
 										alt="Customising a subscription's nickname and image in Foragd"
-										class="w-full block object-cover"
+										class="block w-full object-cover"
 										loading="lazy"
 									/>
 								}
@@ -747,7 +747,7 @@ templ FeaturesPageConsume() {
 						</a>
 						<a
 							href="#full-content"
-							class="btn text-sm/6 font-semibold btn-outline"
+							class="btn btn-outline text-sm/6 font-semibold"
 							_="on click scroll to #full-content smoothly"
 						>
 							See how it works
@@ -773,11 +773,11 @@ templ FeaturesPageConsume() {
 							<img
 								src="/content/screenshots/screenshot-full-content.webp"
 								alt="Thumbnail of Foragd home screen"
-								class="w-full block object-cover"
+								class="block w-full object-cover"
 								loading="lazy"
 							/>
 							<div class="absolute inset-0 flex items-center justify-center">
-								<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+								<span class="flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
 									@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
 								</span>
 							</div>
@@ -808,7 +808,7 @@ templ FeaturesPageConsume() {
 							<img
 								src="/content/screenshots/screenshot-feature-search.webp"
 								alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
-								class="w-full block"
+								class="block w-full"
 								loading="lazy"
 							/>
 						}
@@ -821,7 +821,7 @@ templ FeaturesPageConsume() {
 									<img
 										src="/content/screenshots/screenshot-feature-search.webp"
 										alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
-										class="w-full block"
+										class="block w-full"
 										loading="lazy"
 									/>
 								}
@@ -911,7 +911,7 @@ templ FeaturesPageConsume() {
 				<p class="mt-4 text-base-content/70">
 					Try it out:
 				</p>
-				<form class="mt-4 filter flex flex-wrap gap-2">
+				<form class="filter mt-4 flex flex-wrap gap-2">
 					<input
 						class="btn btn-square"
 						type="reset"
@@ -1047,13 +1047,13 @@ templ FeaturesPageConsume() {
 				</div>
 				@partials.CardBody() {
 					<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
 							RSS
 						</span>
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
 							Atom
 						</span>
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]">
+						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
 							Feed Readers
 						</span>
 					</div>
@@ -1142,11 +1142,11 @@ templ FeaturesPageConsume() {
 								<img
 									src="/content/screenshots/screenshot-responsive-design.webp"
 									alt="Thumbnail of Foragd home screen"
-									class="w-full block object-cover"
+									class="block w-full object-cover"
 									loading="lazy"
 								/>
 								<div class="absolute inset-0 flex items-center justify-center">
-									<span class="flex items-center justify-center w-14 h-14 rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+									<span class="flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
 										@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
 									</span>
 								</div>

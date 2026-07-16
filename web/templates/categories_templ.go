@@ -43,7 +43,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Categories</legend> <label class=\"fieldset\"><span class=\"label\">Add category</span><div class=\"flex flex-col sm:flex-row gap-2 items-center\"><div class=\"join mt-2 sm:col-span-2 sm:mt-0\"><el-autocomplete class=\"join join-item sm:col-span-4\"><input id=\"category-suggestion\" name=\"category\" class=\"input join-item bg-base-300 brightness-95 input-primary\" placeholder=\"Category...\" _=\"on keydown[key=='Enter'] send categorySuggestionSelected then halt the event\"> <button type=\"button\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Categories</legend> <label class=\"fieldset\"><span class=\"label\">Add category</span><div class=\"flex flex-col items-center gap-2 sm:flex-row\"><div class=\"join mt-2 sm:col-span-2 sm:mt-0\"><el-autocomplete class=\"join join-item sm:col-span-4\"><input id=\"category-suggestion\" name=\"category\" class=\"input join-item bg-base-300 brightness-95 input-primary\" placeholder=\"Category...\" _=\"on keydown[key=='Enter'] send categorySuggestionSelected then halt the event\"> <button type=\"button\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

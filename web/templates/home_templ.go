@@ -175,7 +175,7 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div id=\"refreshing\" class=\"mx-auto flex w-full justify-center\"><div class=\"show-loading py-4 text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div><div class=\"ptr-content grid grid-cols-1 items-start gap-6 px-2 pt-4 xl:grid-cols-3 sm:gap-8\" hx-get=\"/home\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div id=\"refreshing\" class=\"mx-auto flex w-full justify-center\"><div class=\"show-loading py-4 text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div><div class=\"ptr-content grid grid-cols-1 items-start gap-6 px-2 pt-4 sm:gap-8 xl:grid-cols-3\" hx-get=\"/home\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -757,7 +757,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

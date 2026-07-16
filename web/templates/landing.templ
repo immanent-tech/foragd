@@ -164,7 +164,7 @@ templ Landing() {
 							<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75"></div>
 						</div>
 					</div>
-					<div class="max-w-md z-10">
+					<div class="z-10 max-w-md">
 						<p class="text-base/7 font-semibold text-primary">
 							Algorithms decide.
 							<br/>
@@ -181,7 +181,7 @@ templ Landing() {
 							<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
 								Start a free trial
 							</a>
-							<a href="/features" class="btn text-sm/6 font-semibold btn-outline">
+							<a href="/features" class="btn btn-outline text-sm/6 font-semibold">
 								See features
 							</a>
 						</div>
@@ -201,13 +201,13 @@ templ Landing() {
 			</section>
 			// Feature Image Section.
 			<section id="feature-image" class="relative snap-start md:snap-align-none">
-				<div class="mx-auto flex flex-col sm:flex-row items-center justify-center gap-8 px-8">
+				<div class="mx-auto flex flex-col items-center justify-center gap-8 px-8 sm:flex-row">
 					<div class="max-w-280">
 						@components.BrowserWindow(config.GetBaseURL()) {
 							<img
 								src="/content/screenshots/screenshot-home-desktop.webp"
 								alt="Foragd RSS feed reader on desktop showing home page with latest articles and subscriptions"
-								class="w-full block object-cover"
+								class="block w-full object-cover"
 								loading="lazy"
 								fetchpriority="high"
 							/>
@@ -218,14 +218,14 @@ templ Landing() {
 							<img
 								src="/content/screenshots/screenshot-home-mobile.webp"
 								alt="Foragd RSS feed reader on mobile showing home page with latest articles"
-								class="w-full block aspect-9/19.5 object-cover"
+								class="block aspect-9/19.5 w-full object-cover"
 								loading="lazy"
 							/>
 						}
 					</div>
 				</div>
-				<div class="mx-auto flex flex-col pt-12 max-w-280">
-					<span class="mx-auto  text-lg font-semibold text-center text-accent">Get started in less than two minutes:</span>
+				<div class="mx-auto flex max-w-280 flex-col pt-12">
+					<span class="mx-auto text-center text-lg font-semibold text-accent">Get started in less than two minutes:</span>
 					@components.MuxPlayer(components.MuxVideo{
 						ID:            "2T92kvRpwPS9EiyzPfZz4p1iIpuj02NY7DtRPAimzKIM",
 						Title:         "Getting Started",
@@ -242,7 +242,7 @@ templ Landing() {
 				</div>
 			</section>
 			// About/Manifesto Section.
-			<section id="manifesto" class="mx-auto hero min-h-dvh snap-start md:snap-align-none">
+			<section id="manifesto" class="hero mx-auto min-h-dvh snap-start md:snap-align-none">
 				<div class="hero-content flex-col text-center sm:flex-row">
 					<div class="sm:w-1/3">
 						<h2 class="text-xs font-semibold tracking-widest text-primary/80 uppercase">Why Foragd</h2>

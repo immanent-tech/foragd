@@ -112,7 +112,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 		// Show unread count in badge at top right if user wants stats shown.
 		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 			<div class="absolute top-0 right-0">
-				<span class="badge badge-primary badge-sm mt-2 mr-2">
+				<span class="mt-2 mr-2 badge badge-sm badge-primary">
 					if s.GetStats().UnreadTotal() >= 100 {
 						99+
 					} else {
@@ -135,7 +135,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<h2 class="card-title font-serif mt-1.5 text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none mr-2">
+				<h2 class="mt-1.5 mr-2 card-title font-serif text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 				// Add an icon to indicate whether article filtering is being applied.
@@ -462,13 +462,13 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 
 templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
 	<fieldset class="fieldset min-w-0 py-8">
-		<legend class="text-lg font-medium flex items-center gap-2">
+		<legend class="flex items-center gap-2 text-lg font-medium">
 			Article Filtering
 			<button popovertarget="article-filtering-help" type="button">
 				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
 			</button>
 			<el-popover popover id="article-filtering-help" anchor="bottom" class="[--anchor-gap:4px]">
-				<div class="block card-body font-medium rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+				<div class="card-body block rounded-box bg-base-300 font-medium shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 					<p>
 						The following operators can be used for more refined searches:
 					</p>
@@ -544,8 +544,8 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
 							<li>Enter search terms (see notes below) as appropriate.</li>
 						</ol>
-						<div class="join join-vertical mt-2 sm:join-horizontal w-full items-center">
-							<label class="input w-full sm:w-2/3 p-2 sm:p-0 input-primary join-item">
+						<div class="join mt-2 w-full join-vertical items-center sm:join-horizontal">
+							<label class="input join-item w-full p-2 input-primary sm:w-2/3 sm:p-0">
 								<span class="label">
 									@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 text-primary"})
 								</span>
@@ -570,7 +570,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									"
 								/>
 							</label>
-							<label class="select w-full sm:w-1/3 select-primary join-item">
+							<label class="select join-item w-full select-primary sm:w-1/3">
 								<span class="label">Source:</span>
 								<select
 									id="suggestion-source"
@@ -624,19 +624,19 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 												<div class="size-12 skeleton"></div>
 											</div>
 											<div class="flex flex-1 justify-between">
-												<div class="h-6 skeleton w-64"></div>
-												<div class="ml-4 shrink-0 w-32 h-12 skeleton"></div>
+												<div class="h-6 w-64 skeleton"></div>
+												<div class="ml-4 h-12 w-32 shrink-0 skeleton"></div>
 											</div>
 										</div>
-										<div class="mt-8 skeleton h-12 w-lg"></div>
+										<div class="mt-8 h-12 w-lg skeleton"></div>
 										<div class="mt-8 flex flex-col gap-y-4">
 											<div class="flex">
 												<div class="mr-4 shrink-0 self-center">
 													<div class="size-16 skeleton"></div>
 												</div>
 												<div>
-													<div class="h-6 skeleton w-48"></div>
-													<div class="h-12 mt-2 skeleton w-96"></div>
+													<div class="h-6 w-48 skeleton"></div>
+													<div class="mt-2 h-12 w-96 skeleton"></div>
 												</div>
 											</div>
 											<div class="flex">
@@ -644,8 +644,8 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 													<div class="size-16 skeleton"></div>
 												</div>
 												<div>
-													<div class="h-6 skeleton w-48"></div>
-													<div class="h-12 mt-2 skeleton w-96"></div>
+													<div class="h-6 w-48 skeleton"></div>
+													<div class="mt-2 h-12 w-96 skeleton"></div>
 												</div>
 											</div>
 											<div class="flex">
@@ -653,8 +653,8 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 													<div class="size-16 skeleton"></div>
 												</div>
 												<div>
-													<div class="h-6 skeleton w-48"></div>
-													<div class="h-12 mt-2 skeleton w-96"></div>
+													<div class="h-6 w-48 skeleton"></div>
+													<div class="mt-2 h-12 w-96 skeleton"></div>
 												</div>
 											</div>
 										</div>
@@ -901,7 +901,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 							}
 						</div>
 						<div class="flex flex-1">
-							<h2 class="card-title flex-1 line-clamp-2 tracking-tight text-pretty">
+							<h2 class="card-title line-clamp-2 flex-1 tracking-tight text-pretty">
 								{ feed.GetTitle() }
 							</h2>
 							<div class="ml-4 shrink-0">
@@ -1088,7 +1088,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									type="text"
 									name="search.text"
 									placeholder={ `+keyword -"some phrase"` }
-									class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+									class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
 								>
 									if request.Search.Text != "" {
 										{ request.Search.Text }
@@ -1116,7 +1116,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											type="text"
 											name="search.categories"
 											placeholder={ `+keyword -"some phrase"` }
-											class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
 										>
 											if request.Search.Categories != nil {
 												{ *request.Search.Categories }
@@ -1132,7 +1132,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											type="text"
 											name="search.authors"
 											placeholder={ `+keyword -"some phrase"` }
-											class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
 										>
 											if request.Search.Authors != nil {
 												{ *request.Search.Authors }

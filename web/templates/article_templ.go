@@ -1189,7 +1189,7 @@ func ArticleContent(a *models.Article) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, " <div id=\"progress-bar\" class=\"fixed top-16 lg:left-36 left-0 h-1 w-0 bg-accent z-9999 transition-[width] duration-50 ease-linear\" _=\"on scroll from the window debounced at 20ms\n          set my.style.width to\n            ((document.documentElement.scrollTop /\n             (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'\n        end\n\n        on load\n          trigger scroll on the window\n        end\"></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, " <div id=\"progress-bar\" class=\"fixed top-16 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear lg:left-36\" _=\"on scroll from the window debounced at 20ms\n          set my.style.width to\n            ((document.documentElement.scrollTop /\n             (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'\n        end\n\n        on load\n          trigger scroll on the window\n        end\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2356,7 +2356,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, " class=\"btn border-neutral/15 btn-outline btn-sm hidden sm:flex\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, " class=\"btn hidden border-neutral/15 btn-outline btn-sm sm:flex\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

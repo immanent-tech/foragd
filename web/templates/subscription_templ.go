@@ -311,7 +311,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 				return templ_7745c5c3_Err
 			}
 			if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"absolute top-0 right-0\"><span class=\"badge badge-primary badge-sm mt-2 mr-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"absolute top-0 right-0\"><span class=\"mt-2 mr-2 badge badge-sm badge-primary\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -388,7 +388,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div><h2 class=\"card-title font-serif mt-1.5 text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none mr-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div><h2 class=\"mt-1.5 mr-2 card-title font-serif text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1451,7 +1451,7 @@ func subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters
 			templ_7745c5c3_Var56 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium flex items-center gap-2\">Article Filtering <button popovertarget=\"article-filtering-help\" type=\"button\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"flex items-center gap-2 text-lg font-medium\">Article Filtering <button popovertarget=\"article-filtering-help\" type=\"button\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1459,7 +1459,7 @@ func subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</button> <el-popover popover id=\"article-filtering-help\" anchor=\"bottom\" class=\"[--anchor-gap:4px]\"><div class=\"block card-body font-medium rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><p>The following operators can be used for more refined searches:</p><ul class=\"mt-1\"><li>| signifies OR operation (i.e., food OR beverages). This is the default.</li><li>+ signifies AND operation (i.e., food AND beverages).</li><li>- negates the word (i.e., NOT samsung)</li><li>\"\" represents an exact phrase match (i.e., \"galaxy watch\").</li><li>\\* at the end of a word indicates a prefix match (i.e., bird\\* will match bird, birding and birds).</li></ul></div></el-popover></legend> <label class=\"fieldset\"><span class=\"label\">Text</span> <textarea rows=\"2\" id=\"article-text-filters\" name=\"article_filters.text\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</button> <el-popover popover id=\"article-filtering-help\" anchor=\"bottom\" class=\"[--anchor-gap:4px]\"><div class=\"card-body block rounded-box bg-base-300 font-medium shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><p>The following operators can be used for more refined searches:</p><ul class=\"mt-1\"><li>| signifies OR operation (i.e., food OR beverages). This is the default.</li><li>+ signifies AND operation (i.e., food AND beverages).</li><li>- negates the word (i.e., NOT samsung)</li><li>\"\" represents an exact phrase match (i.e., \"galaxy watch\").</li><li>\\* at the end of a word indicates a prefix match (i.e., bird\\* will match bird, birding and birds).</li></ul></div></el-popover></legend> <label class=\"fieldset\"><span class=\"label\">Text</span> <textarea rows=\"2\" id=\"article-text-filters\" name=\"article_filters.text\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1631,7 +1631,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, " <div id=\"add-subscription\" class=\"space-y-8 divide-y divide-base-content/15\"><fieldset class=\"fieldset min-w-0 py-8\"><ol class=\"text-sm/6\"><li>Choose from <span class=\"font-semibold\">sources</span> drop-down on right to search Youtube, Google News, etc.</li><li>Enter search terms (see notes below) as appropriate.</li></ol><div class=\"join join-vertical mt-2 sm:join-horizontal w-full items-center\"><label class=\"input w-full sm:w-2/3 p-2 sm:p-0 input-primary join-item\"><span class=\"label\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, " <div id=\"add-subscription\" class=\"space-y-8 divide-y divide-base-content/15\"><fieldset class=\"fieldset min-w-0 py-8\"><ol class=\"text-sm/6\"><li>Choose from <span class=\"font-semibold\">sources</span> drop-down on right to search Youtube, Google News, etc.</li><li>Enter search terms (see notes below) as appropriate.</li></ol><div class=\"join mt-2 w-full join-vertical items-center sm:join-horizontal\"><label class=\"input join-item w-full p-2 input-primary sm:w-2/3 sm:p-0\"><span class=\"label\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1662,7 +1662,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup changed delay:500ms, search, load[this.value != '']\" hx-sync=\"this:replace\" hx-indicator=\"#suggestions-loading\" hx-include=\"[name='suggestion_source']\" _=\"\n\t\t\t\t\t\t\t\t\ton htmx:beforeRequest set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\t\t\t\"></label> <label class=\"select w-full sm:w-1/3 select-primary join-item\"><span class=\"label\">Source:</span> <select id=\"suggestion-source\" name=\"suggestion_source\" class=\"shrink\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\" selected>Web</option> <option value=\"youtube\">Youtube</option> <option value=\"gnews\">Google News</option></select></label></div><ul class=\"mt-4 block list-inside list-disc text-sm/6 text-neutral\"><div _=\"on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></div><div _=\"on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me\" hidden><li>Enter <span class=\"italic\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup changed delay:500ms, search, load[this.value != '']\" hx-sync=\"this:replace\" hx-indicator=\"#suggestions-loading\" hx-include=\"[name='suggestion_source']\" _=\"\n\t\t\t\t\t\t\t\t\ton htmx:beforeRequest set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\t\t\t\"></label> <label class=\"select join-item w-full select-primary sm:w-1/3\"><span class=\"label\">Source:</span> <select id=\"suggestion-source\" name=\"suggestion_source\" class=\"shrink\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\" selected>Web</option> <option value=\"youtube\">Youtube</option> <option value=\"gnews\">Google News</option></select></label></div><ul class=\"mt-4 block list-inside list-disc text-sm/6 text-neutral\"><div _=\"on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></div><div _=\"on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me\" hidden><li>Enter <span class=\"italic\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1675,7 +1675,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "</span> to fetch a channel's feed.</li><li>Enter keywords or a phrase to search YouTube for channels that match.</li></div><div _=\"on change from #suggestion-source if its value is 'gnews' remove @hidden from me else add @hidden to me\" hidden><li>Enter search terms to fetch and generate a feed with matching articles.</li><li>For example: <span class=\"italic\">when:24h site:reuters.com \"World Events\"</span>.</li></div></ul><div id=\"suggestions-loading\"><div class=\"show-loading mt-8 w-full sm:max-w-5xl\"><ul class=\"divide-y divide-neutral/15\"><li><div class=\"flex\"><div class=\"mr-4 shrink-0\"><div class=\"size-12 skeleton\"></div></div><div class=\"flex flex-1 justify-between\"><div class=\"h-6 skeleton w-64\"></div><div class=\"ml-4 shrink-0 w-32 h-12 skeleton\"></div></div></div><div class=\"mt-8 skeleton h-12 w-lg\"></div><div class=\"mt-8 flex flex-col gap-y-4\"><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 skeleton w-48\"></div><div class=\"h-12 mt-2 skeleton w-96\"></div></div></div><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 skeleton w-48\"></div><div class=\"h-12 mt-2 skeleton w-96\"></div></div></div><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 skeleton w-48\"></div><div class=\"h-12 mt-2 skeleton w-96\"></div></div></div></div></li></ul></div></div><div id=\"subscription-suggestions\" class=\"mt-8 overflow-x-auto\"></div></fieldset><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscription/add/group\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "</span> to fetch a channel's feed.</li><li>Enter keywords or a phrase to search YouTube for channels that match.</li></div><div _=\"on change from #suggestion-source if its value is 'gnews' remove @hidden from me else add @hidden to me\" hidden><li>Enter search terms to fetch and generate a feed with matching articles.</li><li>For example: <span class=\"italic\">when:24h site:reuters.com \"World Events\"</span>.</li></div></ul><div id=\"suggestions-loading\"><div class=\"show-loading mt-8 w-full sm:max-w-5xl\"><ul class=\"divide-y divide-neutral/15\"><li><div class=\"flex\"><div class=\"mr-4 shrink-0\"><div class=\"size-12 skeleton\"></div></div><div class=\"flex flex-1 justify-between\"><div class=\"h-6 w-64 skeleton\"></div><div class=\"ml-4 h-12 w-32 shrink-0 skeleton\"></div></div></div><div class=\"mt-8 h-12 w-lg skeleton\"></div><div class=\"mt-8 flex flex-col gap-y-4\"><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 w-48 skeleton\"></div><div class=\"mt-2 h-12 w-96 skeleton\"></div></div></div><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 w-48 skeleton\"></div><div class=\"mt-2 h-12 w-96 skeleton\"></div></div></div><div class=\"flex\"><div class=\"mr-4 shrink-0 self-center\"><div class=\"size-16 skeleton\"></div></div><div><div class=\"h-6 w-48 skeleton\"></div><div class=\"mt-2 h-12 w-96 skeleton\"></div></div></div></div></li></ul></div></div><div id=\"subscription-suggestions\" class=\"mt-8 overflow-x-auto\"></div></fieldset><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscription/add/group\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2176,7 +2176,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "</div><div class=\"flex flex-1\"><h2 class=\"card-title flex-1 line-clamp-2 tracking-tight text-pretty\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "</div><div class=\"flex flex-1\"><h2 class=\"card-title line-clamp-2 flex-1 tracking-tight text-pretty\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2688,7 +2688,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "\" class=\"textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2728,7 +2728,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "\" class=\"textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2756,7 +2756,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "\" class=\"textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

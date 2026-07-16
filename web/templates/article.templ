@@ -416,7 +416,7 @@ templ ArticleContent(a *models.Article) {
 			// Show a subtle reading progress bar across the top of the article.
 			<div
 				id="progress-bar"
-				class="fixed top-16 lg:left-36 left-0 h-1 w-0 bg-accent z-9999 transition-[width] duration-50 ease-linear"
+				class="fixed top-16 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear lg:left-36"
 				_="on scroll from the window debounced at 20ms
           set my.style.width to
             ((document.documentElement.scrollTop /
@@ -858,7 +858,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 	} else {
 		// Edit subscription button. Only shown on desktop screens (in mobile dialog on smaller screens).
 		{{ s := Subscription{Subscription: response.Subscription} }}
-		<button { s.editAttributes("/list/articles")... } class="btn border-neutral/15 btn-outline btn-sm hidden sm:flex">
+		<button { s.editAttributes("/list/articles")... } class="btn hidden border-neutral/15 btn-outline btn-sm sm:flex">
 			@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
 			Edit Subscription
 		</button>
