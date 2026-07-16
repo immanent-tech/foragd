@@ -123,10 +123,16 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				// <h2 class="mb-2 line-clamp-2 flex-1 font-serif text-lg/7 leading-tight font-bold text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-				<h2 class="card-title font-serif leading-tight text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif mt-1.5 text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none mr-2">
 					{ s.GetTitle() }
 				</h2>
+				// Add an icon to indicate whether article filtering is being applied.
+				if articleFilters := s.GetArticleFilters(); !articleFilters.IsEmpty() {
+					<div class="tooltip" data-tip="Article filtering applied">
+						<span class="sr-only">Article filtering applied</span>
+						@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-accent", "aria-hidden": "true"})
+					</div>
+				}
 			</div>
 		}
 		// Card body.

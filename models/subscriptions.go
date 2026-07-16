@@ -1021,6 +1021,12 @@ func (f *SubscriptionArticleFilters) Sanitise() error {
 	return nil
 }
 
+// IsEmpty returns a boolean indicating whether any article filtering has been set.
+func (f *SubscriptionArticleFilters) IsEmpty() bool {
+	return (f.Text == nil || *f.Text == "") && (f.Authors == nil || *f.Authors == "") &&
+		(f.Categories == nil || *f.Categories == "")
+}
+
 func newSubscriptionSettings() *SubscriptionSettings {
 	return &SubscriptionSettings{
 		ShowFullArticleContent: false,

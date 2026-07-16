@@ -659,7 +659,16 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					} else {
 						{{ title = "Articles" }}
 					}
-					@pageTitle(title)
+					<div class="flex items-center gap-1">
+						@pageTitle(title)
+						// Add an icon to indicate whether article filtering is being applied.
+						if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
+							<div class="tooltip" data-tip="Article filtering applied">
+								<span class="sr-only">Article filtering applied</span>
+								@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-6 fill-accent", "aria-hidden": "true"})
+							</div>
+						}
+					</div>
 				}
 				@controls.Show(listArticlesActions(response), listArticlesButtons(response))
 				<section id="articles-list" class="ptr-content pt-4">
