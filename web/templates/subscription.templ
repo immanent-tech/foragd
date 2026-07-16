@@ -766,9 +766,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					<span class="label">Thumbnail</span>
 					<div class="flex items-center gap-4">
 						if request.Customisation != nil && request.Customisation.ImageURL != nil {
-							@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+							@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, *request.Customisation.Nickname)
 						} else {
-							@subscriptionThumbnail(nil, "")
+							@subscriptionThumbnail(nil, *request.Customisation.Nickname)
 						}
 						<input
 							id="thumbnail"
