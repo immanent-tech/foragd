@@ -18,7 +18,6 @@ require (
 	github.com/dimmerz92/go-icons v0.31.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/go-chi/chi/v5 v5.3.1
-	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/goforj/godump v1.9.1
@@ -28,12 +27,9 @@ require (
 	github.com/immanent-tech/go-base v0.0.0
 	github.com/indaco/teseo v0.2.5
 	github.com/knadh/koanf/v2 v2.3.5
-	github.com/lmittmann/tint v1.2.0
 	github.com/magefile/mage v1.17.2
 	github.com/matoous/go-nanoid/v2 v2.1.0
-	github.com/mattn/go-isatty v0.0.22
 	github.com/oapi-codegen/runtime v1.5.0
-	github.com/samber/slog-multi v1.8.0
 	github.com/zeebo/xxh3 v1.1.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	go.opentelemetry.io/otel/sdk/metric v1.44.0
@@ -66,6 +62,7 @@ require (
 	github.com/ggicci/httpin v0.20.3 // indirect
 	github.com/ggicci/owl v0.8.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.1.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
@@ -81,6 +78,8 @@ require (
 	github.com/itlightning/dateparse v0.2.1 // indirect
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
+	github.com/lmittmann/tint v1.2.0 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.7.2 // indirect
 	github.com/oasdiff/yaml v0.0.9 // indirect
@@ -93,6 +92,7 @@ require (
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/samber/slog-common v0.21.0 // indirect
+	github.com/samber/slog-multi v1.8.0 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.3 // indirect
 	github.com/speakeasy-api/openapi v1.19.2 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
@@ -140,7 +140,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PaddleHQ/paddle-go-sdk/v5 v5.2.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
-	github.com/alecthomas/kong v1.15.0
+	github.com/alecthomas/kong v1.16.0
 	github.com/auth0/go-auth0/v2 v2.14.0
 	github.com/coreos/go-oidc/v3 v3.20.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
@@ -163,7 +163,7 @@ require (
 	github.com/immanent-tech/go-syndication v0.0.0
 	github.com/jferrl/go-githubauth v1.7.0
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/jub0bs/cors v1.0.4
+	github.com/jub0bs/cors v1.0.4 // indirect
 	github.com/justinas/alice v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/knadh/koanf/providers/env/v2 v2.0.0
@@ -190,8 +190,8 @@ require (
 	github.com/samber/slog-chi v1.19.1
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/veqryn/slog-context v0.9.0
-	github.com/veqryn/slog-context/otel v0.9.0
-	github.com/veqryn/slog-json v0.5.0
+	github.com/veqryn/slog-context/otel v0.9.0 // indirect
+	github.com/veqryn/slog-json v0.5.0 // indirect
 	github.com/yuin/goldmark v1.8.4
 	go.abhg.dev/goldmark/frontmatter v0.3.0
 	go.opentelemetry.io/contrib/exporters/autoexport v0.69.0
@@ -202,7 +202,7 @@ require (
 	go.opentelemetry.io/otel/log v0.20.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.20.0 // indirect
-	go.opentelemetry.io/otel/trace v1.44.0
+	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/mod v0.37.0 // indirect
 	golang.org/x/net v0.57.0

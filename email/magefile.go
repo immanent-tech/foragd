@@ -11,7 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/go-base/logging"
+
 	"github.com/immanent-tech/foragd/providers/resend"
 
 	"github.com/magefile/mage/mg"
@@ -71,7 +72,7 @@ var templates = map[string][]resend.TemplateOption{
 
 // Build creates the email templates
 func Build(env string) error {
-	logging.New(logging.Options{})
+	logging.New()
 	mg.Deps(InstallDeps)
 	slog.Info("Building...",
 		slog.String("environment", env),
@@ -82,7 +83,7 @@ func Build(env string) error {
 
 // A custom install step if you need your bin someplace other than go/bin
 func Install(env string) error {
-	logging.New(logging.Options{})
+	logging.New()
 
 	mg.Deps(mg.F(Build, env))
 
