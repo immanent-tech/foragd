@@ -15,9 +15,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/config"
 	"github.com/indaco/teseo/schemaorg"
 )
 

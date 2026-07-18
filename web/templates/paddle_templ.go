@@ -14,9 +14,9 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
+	"github.com/immanent-tech/go-base/config"
 )
 
 func paddleCheckoutButton(frequency string) templ.Component {

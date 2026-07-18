@@ -16,7 +16,8 @@ import (
 	"github.com/alexedwards/scs/v2"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
@@ -40,7 +41,7 @@ var initManager = sync.OnceValue(func() error {
 	manager = scs.New()
 	manager.Store = sessionStore
 	manager.Lifetime = sessionLifetime
-	manager.Cookie.Name = strings.ToLower(config.AppName) + "_session"
+	manager.Cookie.Name = strings.ToLower(config.GetAppName()) + "_session"
 	manager.Cookie.Secure = true
 	manager.Cookie.HttpOnly = true
 	manager.Cookie.SameSite = http.SameSiteLaxMode

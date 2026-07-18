@@ -16,7 +16,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"

@@ -12,7 +12,7 @@ import (
 
 	"github.com/resend/resend-go/v3"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
 )
 
 type Template struct {
@@ -97,7 +97,7 @@ func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption
 	}
 
 	// Generate an email address to use as default from/reply-to.
-	from := &mail.Address{Name: config.AppName, Address: cfg.ReplyToEmail}
+	from := &mail.Address{Name: config.GetAppName(), Address: cfg.ReplyToEmail}
 	WithFrom[*Template](from)(template)
 	WithReplyTo[*Template](from)(template)
 

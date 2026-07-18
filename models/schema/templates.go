@@ -10,7 +10,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 	"github.com/immanent-tech/foragd/providers/elastic/templates"
 )

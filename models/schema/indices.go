@@ -4,7 +4,8 @@
 package schema
 
 import (
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 )
 

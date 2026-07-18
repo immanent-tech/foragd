@@ -26,7 +26,8 @@ import (
 
 	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/cache"
@@ -1801,7 +1802,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
-			filename := config.AppName + "-Export.opml"
+			filename := config.GetAppName() + "-Export.opml"
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(opmlFile))
 		}

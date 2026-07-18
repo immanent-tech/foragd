@@ -4,13 +4,12 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
+	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
-	"github.com/indaco/teseo/opengraph"
 	"net/url"
 	"slices"
 	"strings"
@@ -67,7 +66,7 @@ func (t PageTitle) String() string {
 		title.WriteString(")")
 	}
 	title.WriteString(" | ")
-	title.WriteString(config.AppName)
+	title.WriteString(config.GetAppName())
 	return title.String()
 }
 
@@ -122,15 +121,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 	// Build page with specified options.
 	{{
 		p := &Page{
-			Component:   template,
-			Title:       config.AppName,
-			Description: config.AppDescription,
-			OpenGraph: opengraph.NewWebSite(
-				config.AppName,
-				config.GetBaseURL(),
-				config.AppDescription,
-				config.GetBaseURL()+"/content/logo-vertical-light.webp",
-			),
+			Component: template,
+			Title:     config.GetAppName(),
 		}
 
 		for option := range slices.Values(options) {

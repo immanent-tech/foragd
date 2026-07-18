@@ -11,7 +11,8 @@ import (
 
 	paddle "github.com/PaddleHQ/paddle-go-sdk/v5"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 

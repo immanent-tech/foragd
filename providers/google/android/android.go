@@ -15,7 +15,8 @@ import (
 	"google.golang.org/api/androidpublisher/v3"
 	"google.golang.org/api/option"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	gcp "github.com/immanent-tech/foragd/providers/google"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"

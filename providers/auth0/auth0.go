@@ -15,11 +15,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
 )
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
-	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.GetVersion())
+	return resty.New().SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion())
 })
 
 func init() {

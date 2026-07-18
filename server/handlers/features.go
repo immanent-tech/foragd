@@ -10,7 +10,8 @@ import (
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/web/templates"
 )
 

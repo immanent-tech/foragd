@@ -8,15 +8,14 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
-const (
-	serverConfigEnvPrefix   = config.ConfigEnvPrefix
-	imgProxyConfigEnvPrefix = "IMGPROXY_"
-)
+var serverConfigEnvPrefix = config.ConfigEnvPrefix
 
 // cfg is the server config with default values.
 var cfg = Config{
@@ -24,26 +23,26 @@ var cfg = Config{
 	Host:                 "0.0.0.0",
 	CompressionLevel:     5,
 	CompressionMimetypes: []string{"text/html", "text/css", "text/javascript", "image/svg+xml"},
-	ReadTimeout:          "30s",
-	WriteTimeout:         "120s",
-	IdleTimeout:          "900s",
+	ReadTimeout:          config.NewDuration(30 * time.Second),
+	WriteTimeout:         config.NewDuration(120 * time.Second),
+	IdleTimeout:          config.NewDuration(900 * time.Second),
 }
 
 // Config contains the server configuration options.
 type Config struct {
-	Port                 uint64         `koanf:"port"                 validate:"required,port"`
-	Host                 string         `koanf:"host"                 validate:"required,hostname|fqdn|ip"`
-	BaseURL              string         `koanf:"baseurl"              validate:"required,url"`
-	CompressionLevel     int            `koanf:"compressionlevel"     validate:"number"`
-	CompressionMimetypes []string       `koanf:"compressionmimetypes"`
-	CertFile             string         `koanf:"crt"                  validate:"omitempty,file"`
-	KeyFile              string         `koanf:"key"                  validate:"omitempty,file"`
-	ReadTimeout          config.Timeout `koanf:"readtimeout"          validate:"required,validateFn"`
-	WriteTimeout         config.Timeout `koanf:"writetimeout"         validate:"required,validateFn"`
-	IdleTimeout          config.Timeout `koanf:"idletimeout"          validate:"required,validateFn"`
-	BlockSignup          bool           `koanf:"blocksignup"`
-	BlockLogin           bool           `koanf:"blocklogin"`
-	EnableOTEL           bool           `koanf:"enableotel"`
+	Port                 uint64          `koanf:"port"                 validate:"required,port"`
+	Host                 string          `koanf:"host"                 validate:"required,hostname|fqdn|ip"`
+	BaseURL              string          `koanf:"baseurl"              validate:"required,url"`
+	CompressionLevel     int             `koanf:"compressionlevel"     validate:"number"`
+	CompressionMimetypes []string        `koanf:"compressionmimetypes"`
+	CertFile             string          `koanf:"crt"                  validate:"omitempty,file"`
+	KeyFile              string          `koanf:"key"                  validate:"omitempty,file"`
+	ReadTimeout          config.Duration `koanf:"readtimeout"`
+	WriteTimeout         config.Duration `koanf:"writetimeout"`
+	IdleTimeout          config.Duration `koanf:"idletimeout"`
+	BlockSignup          bool            `koanf:"blocksignup"`
+	BlockLogin           bool            `koanf:"blocklogin"`
+	EnableOTEL           bool            `koanf:"enableotel"`
 }
 
 // loadConfigOnce loads the server configuration and ensures this is only done

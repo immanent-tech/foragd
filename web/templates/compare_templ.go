@@ -13,7 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/immanent-tech/foragd/web/templates/partials"
-import "github.com/immanent-tech/foragd/config"
+import "github.com/immanent-tech/go-base/config"
 
 func Comparison(service string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

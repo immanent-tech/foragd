@@ -19,7 +19,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/google/android"
@@ -328,10 +329,10 @@ func Start(logger *slog.Logger) error {
 		Protocols:         new(http.Protocols),
 		Handler:           router,
 		Addr:              net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
-		ReadHeaderTimeout: cfg.ReadTimeout.Duration(),
-		ReadTimeout:       cfg.ReadTimeout.Duration(),
-		WriteTimeout:      cfg.WriteTimeout.Duration(),
-		IdleTimeout:       cfg.IdleTimeout.Duration(),
+		ReadHeaderTimeout: cfg.ReadTimeout.Duration,
+		ReadTimeout:       cfg.ReadTimeout.Duration,
+		WriteTimeout:      cfg.WriteTimeout.Duration,
+		IdleTimeout:       cfg.IdleTimeout.Duration,
 		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
 		},

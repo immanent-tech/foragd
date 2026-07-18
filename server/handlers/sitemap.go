@@ -13,7 +13,7 @@ import (
 	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
 )
 
 //nolint:mnd // thes are individual page priorities.

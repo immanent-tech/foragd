@@ -20,7 +20,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/api/idtoken"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
 )
 
 var TracerProvider *trace.TracerProvider
@@ -91,7 +91,7 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 	MeterProvider = metric.NewMeterProvider(
 		metric.WithReader(mreader),
 	)
-	MeterConfig = otelchimetric.NewBaseConfig(config.AppName, otelchimetric.WithMeterProvider(MeterProvider))
+	MeterConfig = otelchimetric.NewBaseConfig(config.GetAppName(), otelchimetric.WithMeterProvider(MeterProvider))
 	shutdownFuncs = append(shutdownFuncs, MeterProvider.Shutdown)
 	otel.SetMeterProvider(MeterProvider)
 

@@ -18,26 +18,28 @@ import (
 	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/pkg/markdownx"
+	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
 
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
-var getPosts = sync.OnceValues(func() ([]*markdown.File, error) {
+var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
 	var postsPath = "assets/docs/blog"
-	return markdown.ReadDir(web.DocsFS, postsPath)
+	return markdownx.ReadDir(web.DocsFS, postsPath)
 })
 
 // PostsIndex is the index of all posts.
 type PostsIndex struct {
-	posts []*markdown.File
+	posts []*markdownx.File
 }
 
 // FullResponse renders the posts index.
@@ -83,7 +85,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 // Post is an individual post.
 type Post struct {
-	*markdown.File
+	*markdownx.File
 }
 
 // FullResponse renders an individual post.
@@ -147,7 +149,7 @@ func HandlePosts() http.HandlerFunc {
 		}
 
 		// Sort by created date (most recent to least recent).
-		slices.SortFunc(posts, func(a, b *markdown.File) int {
+		slices.SortFunc(posts, func(a, b *markdownx.File) int {
 			return a.Frontmatter.GetCreatedDate().Compare(b.Frontmatter.GetCreatedDate())
 		})
 		slices.Reverse(posts)
@@ -160,7 +162,7 @@ func HandlePosts() http.HandlerFunc {
 			RenderExternalPage(index).ServeHTTP(res, req)
 		default:
 			// Individual post.
-			idx := slices.IndexFunc(posts, func(p *markdown.File) bool {
+			idx := slices.IndexFunc(posts, func(p *markdownx.File) bool {
 				return p.Frontmatter.Slug == slug
 			})
 			if idx == -1 {
@@ -202,6 +204,11 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
+			rss.WithAtomLink(&atom.Link{
+				Rel:  atom.LinkRelSelf,
+				Href: config.GetBaseURL() + "/rss",
+				Type: new("application/rss+xml"),
+			}),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
 				Link:  config.GetBaseURL(),
@@ -212,6 +219,11 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithUpdateFrequency(2),
 		)
 		for post := range slices.Values(posts) {
+			contentStr, err := post.Decode("utf-8")
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Decode post content failed.",
+					slog.Any("error", err))
+			}
 			// Generate item for post.
 			item := rss.NewItem(
 				rss.WithItemTitle(post.Frontmatter.Title),
@@ -222,11 +234,12 @@ func HandlePostsFeed() http.HandlerFunc {
 					Title: post.Frontmatter.Title,
 					URL:   config.GetBaseURL() + *post.Frontmatter.Image,
 				}),
-				rss.WithItemContent(string(post.Content), true),
+				rss.WithItemContent(contentStr, true),
 				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}
+		rssFile.AutoDeclareNamespaces()
 
 		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
 			return a.GetPublishedDate().Compare(*b.GetPublishedDate())

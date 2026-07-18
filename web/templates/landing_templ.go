@@ -13,9 +13,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/config"
 	"slices"
 )
 

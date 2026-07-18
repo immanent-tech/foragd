@@ -16,7 +16,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"google.golang.org/api/androidpublisher/v3"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 )
 

@@ -10,7 +10,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
 )
 
 // PushCriticalAssets will optimistically send our custom script/css bundles to a client before it asks for them, which

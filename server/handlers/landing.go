@@ -10,7 +10,8 @@ import (
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -29,17 +30,17 @@ var orgJsonLd = schemaorg.NewOrganization(
 // JSON-LD schema for the landing page.
 var websiteJsonLd = schemaorg.NewWebSite(
 	config.GetBaseURL(),
-	config.AppName,
-	config.AppName+" RSS and Atom Feed Reader",
-	config.AppDescription,
+	config.GetAppName(),
+	config.GetAppName()+" RSS and Atom Feed Reader",
+	"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
 	nil,
 )
 
 // Opengraph schema for the landing page.
 var websiteOg = opengraph.NewWebSite(
-	config.AppName,
+	config.GetAppName(),
 	config.GetBaseURL(),
-	config.AppDescription,
+	"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
 	config.GetBaseURL()+"/content/logo-vertical-light.webp",
 )
 

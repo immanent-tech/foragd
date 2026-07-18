@@ -11,13 +11,14 @@ import (
 	"github.com/auth0/go-auth0/v2/management/client"
 	"github.com/auth0/go-auth0/v2/management/option"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
+	ConfigEnvPrefix = "AUTH0_"
 )
 
 var cfg Config

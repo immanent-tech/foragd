@@ -13,7 +13,8 @@ import (
 	"github.com/indaco/teseo/schemaorg"
 	"github.com/justinas/alice"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/forms"

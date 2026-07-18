@@ -32,8 +32,9 @@ import (
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/client"
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
@@ -699,7 +700,7 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 		)
 	}
 	// Generate the opml file from the outlines.
-	title := config.AppName + " Export (" + time.Now().Format(time.DateTime) + ")"
+	title := config.GetAppName() + " Export (" + time.Now().Format(time.DateTime) + ")"
 	opmlExport := opml.NewOPML(
 		opml.WithTitle(title),
 		opml.WithOutlines(outlines...),

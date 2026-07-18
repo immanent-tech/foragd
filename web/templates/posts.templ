@@ -5,18 +5,18 @@ package templates
 
 import (
 	"encoding/json"
-	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-templ PostsIndex(posts []*markdown.File) {
+templ PostsIndex(posts []*markdownx.File) {
 	@LayoutExternal() {
 		@container(element.WithClasses("pt-4")) {
 			@buttonBackToTop()
@@ -140,7 +140,7 @@ templ PostsIndex(posts []*markdown.File) {
 // Post renders a post.
 //
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
-templ Post(post *markdown.File) {
+templ Post(post *markdownx.File) {
 	@LayoutExternal() {
 		// Show a subtle reading progress bar across the top of the article.
 		<div

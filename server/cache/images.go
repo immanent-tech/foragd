@@ -17,7 +17,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
 

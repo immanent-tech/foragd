@@ -11,7 +11,8 @@ import (
 
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/server/otel"
 )
 
@@ -19,7 +20,7 @@ import (
 func Otel(next http.Handler) http.Handler {
 	if otel.IsEnabled() {
 		return alice.New(
-			otelchi.Middleware(config.AppName),
+			otelchi.Middleware(config.GetAppName()),
 			otelchimetric.NewServerRequestDuration(otel.MeterConfig),
 			otelchimetric.NewServerActiveRequests(otel.MeterConfig),
 			otelchimetric.NewServerResponseBodySize(otel.MeterConfig),

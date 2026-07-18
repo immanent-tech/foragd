@@ -12,7 +12,8 @@ import (
 	"cloud.google.com/go/errorreporting"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 

@@ -26,7 +26,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.23.0
 	github.com/immanent-tech/go-base v0.0.0
 	github.com/indaco/teseo v0.2.5
-	github.com/knadh/koanf/v2 v2.3.5
 	github.com/magefile/mage v1.17.2
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/oapi-codegen/runtime v1.5.0
@@ -78,6 +77,7 @@ require (
 	github.com/itlightning/dateparse v0.2.1 // indirect
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
+	github.com/knadh/koanf/v2 v2.3.5 // indirect
 	github.com/lmittmann/tint v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -166,7 +166,7 @@ require (
 	github.com/jub0bs/cors v1.0.4 // indirect
 	github.com/justinas/alice v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
-	github.com/knadh/koanf/providers/env/v2 v2.0.0
+	github.com/knadh/koanf/providers/env/v2 v2.0.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect

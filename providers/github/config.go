@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "GITHUB_"
+	ConfigEnvPrefix = "GITHUB_"
 )
 
 var cfg Config

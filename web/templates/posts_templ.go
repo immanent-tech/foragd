@@ -14,18 +14,18 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"encoding/json"
-	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func PostsIndex(posts []*markdown.File) templ.Component {
+func PostsIndex(posts []*markdownx.File) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -436,7 +436,7 @@ func PostsIndex(posts []*markdown.File) templ.Component {
 // Post renders a post.
 //
 // See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
-func Post(post *markdown.File) templ.Component {
+func Post(post *markdownx.File) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

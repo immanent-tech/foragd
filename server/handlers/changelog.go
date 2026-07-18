@@ -18,10 +18,12 @@ import (
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -121,6 +123,11 @@ func HandleChangelogFeed() http.HandlerFunc {
 			changelog.title.String(),
 			changelog.description,
 			config.GetBaseURL(),
+			rss.WithAtomLink(&atom.Link{
+				Rel:  atom.LinkRelSelf,
+				Href: config.GetBaseURL() + "/changelog/feed",
+				Type: new("application/rss+xml"),
+			}),
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
@@ -158,6 +165,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}
+		rssFile.AutoDeclareNamespaces()
 
 		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
 			return a.GetPublishedDate().Compare(*b.GetPublishedDate())

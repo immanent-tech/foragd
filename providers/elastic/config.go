@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/config"
 )
 
 const (
