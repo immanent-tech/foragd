@@ -11,11 +11,11 @@
 
 /** @type {import('@maizzle/framework').Config} */
 export default {
-  baseURL: process.env.FORAGD_BASEURL,
+  baseURL: process.env.APP_BASEURL,
   minify: true,
   build: {
     output: {
-      path: "build/production/html",
+      path: 'build/production/html',
     },
   },
   css: {
@@ -24,4 +24,4 @@ export default {
     shorthand: true,
   },
   prettify: false,
-};
+}

@@ -11,15 +11,15 @@
 
 /** @type {import('@maizzle/framework').Config} */
 export default {
-  baseURL: process.env.FORAGD_BASEURL,
+  baseURL: process.env.APP_BASEURL,
   build: {
     output: {
-      path: "build/development/html",
+      path: 'build/development/html',
     },
     static: {
-      source: ["../web/content/**/*"],
-      destination: "content",
+      source: ['../web/content/**/*'],
+      destination: 'content',
     },
   },
   prettify: true,
-};
+}
