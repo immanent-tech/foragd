@@ -121,7 +121,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 			changelog.title.String(),
 			changelog.description,
 			config.GetBaseURL(),
-			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),
+			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
@@ -151,9 +151,9 @@ func HandleChangelogFeed() http.HandlerFunc {
 			// Generate item for post.
 			item := rss.NewItem(
 				rss.WithItemTitle(release.Version),
-				rss.WithItemDescription(string(release.Type)),
+				rss.WithItemDescription(string(release.Type), false),
 				rss.WithItemLink(config.GetBaseURL()+"/changelog#"+release.Version),
-				rss.WithItemContent([]byte(content.String())),
+				rss.WithItemContent(content.String(), true),
 				rss.WithItemPublishedDate(timestamp),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)

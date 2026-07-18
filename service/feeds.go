@@ -1154,7 +1154,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	feedBuf.Reset()
 	defer bufPool.Put(feedBuf)
 
-	// Fetch the feed data from the source url.
+	// Fetch the feed data from the source URL.
 	var contentType string
 	switch opts.Proxy {
 	case false:
@@ -1230,9 +1230,14 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		}
 	}
 
+	data, err := io.ReadAll(feedBuf)
+	if err != nil {
+		return nil, fmt.Errorf("read feed data: %w", err)
+	}
+
 	// Parse the response as a feed type.
 	var feedData *feeds.Feed
-	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(feedBuf.Bytes())); {
+	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(data)); {
 	case err != nil:
 		return nil, fmt.Errorf("detect feed type: %w", err)
 	case feedType == types.SourceTypeUnknown:
@@ -1242,21 +1247,21 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		)
 	case feedType == types.SourceTypeAtom:
 		// Atom feed.
-		feedData, err = feeds.NewDecoder[*atom.Feed](feedBuf)
+		feedData, err = feeds.NewDecoder[*atom.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
 	case feedType == types.SourceTypeRSS:
 		// RSS feed.
-		feedData, err = feeds.NewDecoder[*rss.RSS](feedBuf)
+		feedData, err = feeds.NewDecoder[*rss.RSS](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
 	case feedType == types.SourceTypeHTML:
-		// HTML webpage. Use "autodiscovery" to find feed.
+		// HTML web page. Use "autodiscovery" to find feed.
 		if newURL, err := DiscoverFeedURL(
 			sourceURL,
-			feedBuf.Bytes(),
+			data,
 		); err == nil && newURL != "" &&
 			newURL != sourceURL.String() {
 			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
@@ -1304,8 +1309,8 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	return feed, nil
 }
 
-// addFetchOptions returns fetch options that are source-specific. This will append or overide existing fetch options to
-// ensure the feed can be fetched correctly.
+// addFetchOptions returns fetch options that are source-specific. This will append or override existing fetch options
+// to ensure the feed can be fetched correctly.
 func addFetchOptions(feedURL *url.URL) []FetchOption {
 	return nil
 }

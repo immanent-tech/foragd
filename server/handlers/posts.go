@@ -199,7 +199,7 @@ func HandlePostsFeed() http.HandlerFunc {
 			"Posts from the Foragd Team",
 			"Comparisons, opinions and other content from the Foragd team",
 			config.GetBaseURL(),
-			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),
+			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
@@ -215,14 +215,14 @@ func HandlePostsFeed() http.HandlerFunc {
 			// Generate item for post.
 			item := rss.NewItem(
 				rss.WithItemTitle(post.Frontmatter.Title),
-				rss.WithItemDescription(post.Frontmatter.Description),
+				rss.WithItemDescription(post.Frontmatter.Description, false),
 				rss.WithItemLink(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug),
-				rss.WithItemGUID(rss.GenerateGUID(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug, true)),
+				rss.WithItemGUID(rss.NewGUID(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug, true)),
 				rss.WithItemImage(&types.ImageInfo{
 					Title: post.Frontmatter.Title,
 					URL:   config.GetBaseURL() + *post.Frontmatter.Image,
 				}),
-				rss.WithItemContent(post.Content),
+				rss.WithItemContent(string(post.Content), true),
 				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
