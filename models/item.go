@@ -196,8 +196,8 @@ func addYoutubeExtension(source *feeds.Item, item *Item) {
 					item.ExtensionData = &Item_ExtensionData{}
 					item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{
 						VideoId: videoID,
-						Width:   &width,
-						Height:  &height,
+						Width:   width,
+						Height:  height,
 					})
 				}
 			}
