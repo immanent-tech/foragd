@@ -19,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -126,7 +127,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		// Try to add images to any items missing an image.
 		for item := range slices.Values(newItems) {
 			if item.GetImage() == nil {
-				if imgURL, err := service.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
+				if imgURL, err := htmlx.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
 					item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
 				}
 			}

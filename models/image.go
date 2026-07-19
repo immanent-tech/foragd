@@ -5,8 +5,6 @@ package models
 
 import "strings"
 
-var ImageExtensions = []string{"jpg", "jpeg", "png", "webp", "gif", "avif", "svg", "tiff", "bmp"}
-
 // NewRemoteImage creates a new RemoteImage object.
 func NewRemoteImage(url, title string) *RemoteImage {
 	return &RemoteImage{
