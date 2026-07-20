@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.200.0](https://github.com/immanent-tech/foragd/compare/v0.199.0...v0.200.0) (2026-07-20)
+
+
+### Features
+
+* **service:** ✨ support RDF and JSONFeed ([626f05e](https://github.com/immanent-tech/foragd/commit/626f05ec0c4b89c2223430befe6390b69ed83e52))
+
+
+### Bug Fixes
+
+* **blog:** ➕ mention how to find substack feeds ([ed9fae6](https://github.com/immanent-tech/foragd/commit/ed9fae6716006d206a69b4079de68ec239dfeda2))
+* **blog:** 🔧 use go-syndication Encode method ([a601fa7](https://github.com/immanent-tech/foragd/commit/a601fa70e15d012c8ee57237d4efd6ff211e009a))
+* **docs:** 🔧 fix link for reporting a security issue in SECURITY.md ([95e20d7](https://github.com/immanent-tech/foragd/commit/95e20d74d8d777d8e31943bb29ce9ea53ef1b8c8))
+* **elastic:** 🔧 don't marshal body for bulk delete operations ([f7d0a0d](https://github.com/immanent-tech/foragd/commit/f7d0a0de0d9f7c153f654b0a0975a7b85e92174a))
+* **handlers:** 🔧 improved generation of feeds ([19355c2](https://github.com/immanent-tech/foragd/commit/19355c256a2821b919ac431108c262a05ad686ed))
+* **templates/articles:** 🔧 don't try to display filter icon when not viewing articles from a single subscription ([aa16080](https://github.com/immanent-tech/foragd/commit/aa16080221de0d0d643de9f1c1773cb943a10483))
+
 ## [0.199.0](https://github.com/immanent-tech/foragd/compare/v0.198.1...v0.199.0) (2026-07-16)
 
 
