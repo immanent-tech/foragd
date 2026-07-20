@@ -828,7 +828,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 		})
 		templ_7745c5c3_Err = partials.Card(element.WithAttribute("id", s.GetID()),
 			element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-			element.WithClasses("group", "relative", "animate-fadeinup", "masonry-item"),
+			element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "masonry-item"),
 			element.WithHXIndicator("this"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

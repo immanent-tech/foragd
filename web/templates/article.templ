@@ -104,6 +104,7 @@ templ (a *Article) markToggle() {
 templ (a *Article) shareButton() {
 	// Mobile share action via navigator API.
 	<a
+		role="button"
 		class="hidden rounded-field border border-neutral/15 text-sm"
 		data-title={ a.GetTitle() }
 		data-url={ a.GetLink() }
@@ -118,6 +119,7 @@ templ (a *Article) shareButton() {
 	</a>
 	// Desktop share action with modal and options.
 	<a
+		role="button"
 		class="hidden rounded-field border border-neutral/15 text-sm"
 		_="init if not navigator.share remove .hidden from me"
 		{ a.desktopShareAttributes()... }
@@ -145,6 +147,7 @@ templ (a *Article) viewOriginalButton() {
 // showRemoteContentButton renders a button to show the remote content.
 templ (a *Article) showRemoteContentButton() {
 	<a
+		role="button"
 		id="show-remote-content-button"
 		class="rounded-field border border-neutral/15 text-sm"
 		_="
@@ -172,6 +175,7 @@ templ (a *Article) showRemoteContentButton() {
 // showFeedContentButton renders a button to show the feed content.
 templ (a *Article) showFeedContentButton() {
 	<a
+		role="button"
 		id="show-feed-content-button"
 		class="rounded-field border border-neutral/15 text-sm"
 		_="
@@ -260,7 +264,7 @@ templ ArticleCard(idx int, a *models.Article) {
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithClasses(
-			"group", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
+			"group", "transition-opacity", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
 		element.WithHXSwap("innerHTML show:top transition:true"),
@@ -719,6 +723,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								// Mark all articles action.
 								<li>
 									<a
+										role="button"
 										class="rounded-field border border-neutral/15 text-sm"
 										if response.Filters.GetView() == models.ViewUnread {
 											hx-post="/list/articles/mark/read"
@@ -765,6 +770,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									}}
 									<li>
 										<a
+											role="button"
 											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 											hx-vals={ templ.JSONString(values) }
 											class="rounded-field border border-neutral/15 text-sm"
