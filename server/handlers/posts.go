@@ -19,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/markdownx"
+	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
 
@@ -239,8 +240,6 @@ func HandlePostsFeed() http.HandlerFunc {
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}
-		rssFile.AutoDeclareNamespaces()
-
 		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
 			return a.GetPublishedDate().Compare(*b.GetPublishedDate())
 		})
@@ -254,13 +253,14 @@ func HandlePostsFeed() http.HandlerFunc {
 				slog.Any("error", err),
 			)
 		}
-		enc := xml.NewEncoder(res)
-		if err := enc.Encode(rssFile); err != nil {
+		data, err := feeds.Encode(rssFile)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Could write RSS content to response.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		res.Write(data)
 	}
 }
