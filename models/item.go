@@ -4,6 +4,7 @@
 package models
 
 import (
+	"html"
 	"maps"
 	"slices"
 	"strconv"
@@ -226,7 +227,7 @@ func (i *Item) GetTitle() string {
 	if i.Title == "" {
 		return "(no title)"
 	}
-	return i.Title
+	return html.UnescapeString(i.Title)
 }
 
 // GetDescription returns the summary of the item content, if any.
