@@ -231,14 +231,8 @@ func NewAction[T ~string](doc Document[T], options ...ActionOption[T]) *Action[T
 }
 
 func (a *Action[T]) marshalItem() (esutil.BulkIndexerItem, error) {
-	rd, err := docToReader(a.doc)
-	if err != nil {
-		return esutil.BulkIndexerItem{}, fmt.Errorf("create doc reader: %w", err)
-	}
-
-	return esutil.BulkIndexerItem{
+	item := esutil.BulkIndexerItem{
 		DocumentID:      string(a.doc.GetID()),
-		Body:            rd,
 		Index:           a.index,
 		Action:          string(a.op),
 		RetryOnConflict: &a.retries,
@@ -248,7 +242,17 @@ func (a *Action[T]) marshalItem() (esutil.BulkIndexerItem, error) {
 				slog.Any("error", err),
 			)
 		},
-	}, nil
+	}
+
+	if a.op != OpDelete {
+		rd, err := docToReader(a.doc)
+		if err != nil {
+			return esutil.BulkIndexerItem{}, fmt.Errorf("create doc reader: %w", err)
+		}
+		item.Body = rd
+	}
+
+	return item, nil
 }
 
 // ActionOption is a functional option applied to an action.
