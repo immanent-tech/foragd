@@ -244,7 +244,7 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"masonry-grid relative grid grid-cols-1 items-start gap-2 pt-12 sm:grid-cols-2\" _=\"install MasonryGrid\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"masonry-grid relative grid grid-cols-1 items-start gap-2 mt-2 sm:grid-cols-2\" _=\"install MasonryGrid\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
