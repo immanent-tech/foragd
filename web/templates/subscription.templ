@@ -451,10 +451,10 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		class="btn border-neutral/15 btn-outline btn-sm"
 	>
 		if response.Filters.GetView() == models.ViewUnread {
-			@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"})
 			Mark shown as Read
 		} else {
-			@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+			@tableroutline.Mail(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"})
 			Mark shown as Unread
 		}
 	</button>

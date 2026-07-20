@@ -28,10 +28,10 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 						<div class="flex justify-end">
 							<button type="button" command="close" commandfor={ mobilePanelID } class="btn btn-square btn-ghost">
 								<span class="sr-only">Close menu</span>
-								@tableroutline.X(templ.Attributes{"class": "size-6", "aria-hidden": true})
+								@tableroutline.X(templ.Attributes{"class": "size-6 stroke-1", "aria-hidden": true})
 							</button>
 						</div>
-						<ul class="menu">
+						<ul class="menu font-display">
 							// Mobile View Filters.
 							<li class="menu-title">View</li>
 							<ul id="mobile-view-filters">
@@ -144,7 +144,7 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 					</el-menu>
 				</el-dropdown>
 				// Desktop View Filters.
-				<ul id="desktop-view-filters" class="menu menu-horizontal">
+				<ul id="desktop-view-filters" class="menu menu-horizontal font-display text-sm">
 					@viewFilterOption(c.path, models.ViewUnread, c.filters)
 					@viewFilterOption(c.path, models.ViewRead, c.filters)
 					@viewFilterOption(c.path, models.ViewAll, c.filters)

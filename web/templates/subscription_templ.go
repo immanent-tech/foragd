@@ -1404,7 +1404,7 @@ func listSubscriptionsButtons(response *models.ListSubscriptionsResponse) templ.
 			return templ_7745c5c3_Err
 		}
 		if response.Filters.GetView() == models.ViewUnread {
-			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1413,7 +1413,7 @@ func listSubscriptionsButtons(response *models.ListSubscriptionsResponse) templ.
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

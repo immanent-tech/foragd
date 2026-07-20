@@ -10,15 +10,22 @@
 
 /* Global custom theme values. */
 @theme {
-  --font-sans: 'Inter', sans-serif;
+  /* --font-sans: 'Inter', sans-serif;
   --font-sans--font-feature-settings:
-    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
-  --font-serif: 'TexGyrePagella', serif;
+    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1; */
+  --font-sans: 'Alegreya Sans', sans-serif;
+  --font-sans--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
+  /* --font-serif: 'TexGyrePagella', serif;
   --font-serif--font-feature-settings:
-    'liga' 1, 'ccmp' 1, 'ss01' 1, 'ss03' 1, 'ss04' 1, 'ss10' 1, 'kern' 1;
+    'liga' 1, 'ccmp' 1, 'ss01' 1, 'ss03' 1, 'ss04' 1, 'ss10' 1, 'kern' 1; */
+  --font-serif: 'Alegreya', serif;
+  --font-serif--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
   --font-display: 'Nunito', sans-serif;
   --font-display--font-feature-settings:
     'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
   --sidebar-width: var(--w-sm);
 
   @keyframes fadeInUp {
@@ -91,51 +98,23 @@
 }
 
 @layer base {
-  @supports (font-variation-settings: normal) {
-    :root {
-      font-family: InterVariable, sans-serif;
-      font-optical-sizing: auto;
-    }
-  }
-
   /* For debugging overflow issues. Disable in production. */
   /* * {
     outline: 1px solid red;
   } */
 
+  /* Default font settings. */
+  @supports (font-variation-settings: normal) {
+    :root {
+      font-family: var(--font-sans);
+      font-weight: var(--font-weight-normal);
+      font-style: normal;
+      font-optical-sizing: auto;
+    }
+  }
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  header#page-header,
-  footer#page-dock,
-  footer#page-sidebar {
-    view-transition-name: none;
-  }
-
-  el-popover {
-    @apply overscroll-contain transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-  }
-
-  el-menu {
-    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-  }
-
-  el-options {
-    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-  }
-
-  dialog {
-    @apply backdrop:bg-transparent;
-  }
-
-  el-dialog-backdrop {
-    @apply fixed inset-0 -z-10 bg-base-300/50 transition duration-200 ease-linear data-closed:opacity-0;
-  }
-
-  el-dialog-panel {
-    @apply z-10 block transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
   /* Skip animation if content was restored from cache */
@@ -155,8 +134,64 @@
     }
   }
 
+  header#page-header,
+  footer#page-dock,
+  footer#page-sidebar {
+    view-transition-name: none;
+  }
+
+  el-popover {
+    @apply overscroll-contain transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+  }
+
+  el-menu {
+    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+    .menu {
+      @apply font-display;
+    }
+  }
+
+  el-options {
+    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+  }
+
+  dialog {
+    @apply backdrop:bg-transparent;
+  }
+
+  el-dialog-backdrop {
+    @apply fixed inset-0 -z-10 bg-base-300/50 transition duration-200 ease-linear data-closed:opacity-0;
+  }
+
+  el-dialog-panel {
+    @apply z-10 block transition duration-200 data-closed:scale-95 data-closed:opacity-0;
+  }
+
+  /* Mux player styling. */
   mux-player {
     @apply block aspect-video w-full rounded-box;
+  }
+
+  /* Font adjustments. */
+  .tooltip,
+  .badge,
+  button,
+  [role='button'],
+  select,
+  option {
+    @apply font-display;
+  }
+
+  .label {
+    @apply font-display font-normal;
+  }
+
+  /* Required functionality to reduce Cumulative Layout Shift (CLS) for MasonryGrid hyperscript behaviour. */
+  .masonry-item {
+    visibility: hidden;
+  }
+  .masonry-item.masonry-positioned {
+    visibility: visible;
   }
 }
 
@@ -446,4 +481,88 @@
 @utility animate-growbar {
   animation: grow-bar 1ms linear both;
   animation-timeline: scroll(root);
+}
+
+.alegreya-sans-thin {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.alegreya-sans-light {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.alegreya-sans-regular {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.alegreya-sans-medium {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.alegreya-sans-bold {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.alegreya-sans-extrabold {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.alegreya-sans-black {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.alegreya-sans-thin-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 100;
+  font-style: italic;
+}
+
+.alegreya-sans-light-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.alegreya-sans-regular-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.alegreya-sans-medium-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.alegreya-sans-bold-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.alegreya-sans-extrabold-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+}
+
+.alegreya-sans-black-italic {
+  font-family: 'Alegreya Sans', sans-serif;
+  font-weight: 900;
+  font-style: italic;
 }
