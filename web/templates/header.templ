@@ -27,7 +27,7 @@ templ HeaderExternal() {
 		)
 	}}
 	@navJsonLd.ToJsonLd()
-	<header id="page-header" class="absolute inset-x-safe-or-0 top-0 z-50 pt-safe">
+	<header id="page-header" class="absolute top-0 inset-x-safe-or-0 z-50 pt-safe">
 		<nav aria-label="Navigation" class="flex items-center justify-between p-6 lg:px-8">
 			<div class="flex lg:flex-1">
 				<a
@@ -46,7 +46,7 @@ templ HeaderExternal() {
 					@tableroutline.Menu2(templ.Attributes{"class": "size-6 stroke-accent", "aria-hidden": "true"})
 				</button>
 			</div>
-			<ul class="hidden menu menu-horizontal menu-lg lg:flex lg:gap-x-12">
+			<ul class="menu menu-horizontal hidden menu-lg lg:flex lg:gap-x-12">
 				<li>
 					<a href="/about" class="link text-sm/6 font-semibold text-primary link-hover">About</a>
 				</li>
@@ -79,13 +79,13 @@ templ HeaderExternal() {
 								<span class="sr-only">Foragd</span>
 								@partials.Logo(element.WithClasses("size-10"))
 							</a>
-							<button type="button" command="close" commandfor="mobile-menu" class="btn btn-ghost btn-square">
+							<button type="button" command="close" commandfor="mobile-menu" class="btn btn-square btn-ghost">
 								<span class="sr-only">Close menu</span>
 								@tableroutline.X(templ.Attributes{"class": "size-6 stroke-accent", "aria-hidden": "true"})
 							</button>
 						</div>
 						<div class="mt-6 flow-root">
-							<ul class="-my-6 menu menu-lg w-full divide-y divide-neutral/10">
+							<ul class="menu -my-6 w-full divide-y divide-neutral/10 menu-lg">
 								<ul>
 									<li class="menu-title">Navigation</li>
 									<li>
@@ -124,7 +124,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 	<header
 		id="page-header"
 		aria-label="Header"
-		class="fixed top-0 inset-x-safe-or-0 z-50 h-16 rounded-box m-2 bg-base-200 pt-safe shadow-sm"
+		class="fixed top-0 inset-x-safe-or-0 z-50 m-2 h-16 rounded-box border border-neutral/20 bg-base-200 pt-safe transition-shadow duration-250 ease-in-out hover:shadow-lg"
 	>
 		<div class="flex w-full items-center justify-between">
 			<a
@@ -149,7 +149,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 				<el-popover-group class="flex items-center gap-x-2">
 					// Display a clickable warning popover to indicate the user's trial has expired and they need to purchase a subscription.
 					if !props.User.InTrial() && props.User.InTrialGracePeriod() {
-						<button popovertarget="trial-grace-period" type="button" class="btn btn-warning btn-square">
+						<button popovertarget="trial-grace-period" type="button" class="btn btn-square btn-warning">
 							@tabler.AlertTriangle(templ.Attributes{"class": "icon text-warning-content"})
 						</button>
 						<el-popover popover id="trial-grace-period" anchor="bottom end" class="rounded-box [--anchor-gap:--spacing(2.5)]">
@@ -164,8 +164,8 @@ templ HeaderInternal(props *InternalLayoutProps) {
 											days. To continue using the app, please purchase a subscription.
 										</span>
 									</div>
-									<a class="col-start-2 col-span-2 justify-self-end link font-semibold" href="/checkout">Purchase a subscription</a>
-									<a class="col-start-2 col-span-2 justify-self-end link font-semibold" href="/contact">Contact support</a>
+									<a class="col-span-2 col-start-2 link justify-self-end font-semibold" href="/checkout">Purchase a subscription</a>
+									<a class="col-span-2 col-start-2 link justify-self-end font-semibold" href="/contact">Contact support</a>
 								</div>
 							</div>
 						</el-popover>
