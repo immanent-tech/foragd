@@ -416,7 +416,7 @@ templ ArticleContent(a *models.Article) {
 			// Show a subtle reading progress bar across the top of the article.
 			<div
 				id="progress-bar"
-				class="fixed top-16 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear lg:left-36"
+				class="fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear"
 				_="on scroll from the window debounced at 20ms
           set my.style.width to
             ((document.documentElement.scrollTop /
