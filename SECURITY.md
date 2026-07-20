@@ -10,7 +10,7 @@ Only the latest released version of Foragd will be supported with security updat
 
 If you discover a security vulnerability, we'd appreciate a non-public disclosure. systemd developers can be contacted
 privately by creating a new [Security Advisory on
-GitHub](https://github.com/systemd/immanent-tech/foragd/advisories/new) (preferred) or via the
+GitHub](https://github.com/immanent-tech/foragd/security/advisories/new) (preferred) or via the
 [security@immanent.tech](mailto:security@immanent.tech) email address.
 
 **Please do not report security vulnerabilities through public GitHub issues,
