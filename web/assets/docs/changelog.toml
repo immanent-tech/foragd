@@ -1,11 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
+[[releases]]
+version   = "v0.200"
+date      = "Jul 17, 2026"
+type      = "major"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Support RDF/RSS 1.0 feeds.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Fix support for JSONFeed.
+"""
 
 [[releases]]
-version   = "v0.199"
-date      = "Jul 17, 2026"
-type      = "minor"
-is_latest = true
+version = "v0.199"
+date    = "Jul 17, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -13,9 +27,9 @@ Add an indicator on subscriptions that have article filters applied.
 """
 
 [[releases]]
-version   = "v0.195"
-date      = "Jul 15, 2026"
-type      = "minor"
+version = "v0.195"
+date    = "Jul 15, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -33,9 +47,9 @@ On tablet-sized screens, the home page has less columns, making it less squished
 """
 
 [[releases]]
-version   = "v0.192"
-date      = "Jul 14, 2026"
-type      = "minor"
+version = "v0.192"
+date    = "Jul 14, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
