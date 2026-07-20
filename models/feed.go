@@ -198,7 +198,7 @@ func (f *Feed) GetLanguage() string {
 // timestamp in the feed, or, the published timestamp in the feed, or the last fetched timestamp, whichever is found and
 // is a valid value, in that order.
 func (f *Feed) GetTimestamp() time.Time {
-	if !f.Updated.IsZero() && !f.Updated.Equal(types.UnixEpoch) {
+	if f.Updated != nil && (!f.Updated.IsZero() && !f.Updated.Equal(types.UnixEpoch)) {
 		return f.Updated.UTC()
 	}
 	if !f.Published.IsZero() && !f.Published.Equal(types.UnixEpoch) {

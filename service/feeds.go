@@ -28,7 +28,9 @@ import (
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/jsonfeed"
 	"github.com/immanent-tech/go-syndication/opml"
+	"github.com/immanent-tech/go-syndication/rdf"
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
@@ -1253,8 +1255,20 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
 	case feedType == types.SourceTypeRSS:
-		// RSS feed.
+		// RSS 2.0 feed.
 		feedData, err = feeds.NewDecoder[*rss.RSS](bytes.NewReader(data))
+		if err != nil {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+		}
+	case feedType == types.SourceTypeRDF:
+		// RDF/RSS 1.0 feed.
+		feedData, err = feeds.NewDecoder[*rdf.RDF](bytes.NewReader(data))
+		if err != nil {
+			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+		}
+	case feedType == types.SourceTypeJSONFeed:
+		// JSONFeed.
+		feedData, err = feeds.NewDecoder[*jsonfeed.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
