@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.200"
-date      = "Jul 17, 2026"
+version   = "v0.201"
+date      = "Jul 21, 2026"
 type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+New font! The interface now uses Alegreya for headings and Alegreya Sans for content, hopefully creating a warmer, more casual feeling.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Changes that should result is encountering less jarring layout shifts when loading pages.
+"""
+
+[[releases]]
+version = "v0.200"
+date    = "Jul 17, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
