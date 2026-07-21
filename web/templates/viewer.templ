@@ -108,7 +108,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<div class="soft-gradient-top"></div>
 				</div>
 				<section id="viewer" class="mx-auto sm:max-w-5xl">
-					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
+					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl font-display">
 						Free RSS Feed Viewer
 					</h1>
 					<div class="prose">
@@ -202,7 +202,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 				</section>
 				<section id="advanced-usage" class="mx-auto mt-8 max-w-5xl">
 					<button type="button" command="--toggle" commandfor="advanced-usage-info" class="flex w-full items-start justify-between text-left">
-						<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Advanced Usage</h2>
+						<h2 class="text-xl/7 sm:text-2xl font-semibold tracking-tight text-pretty font-display">Advanced Usage</h2>
 						<span class="ml-6 flex h-7 items-center">
 							@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden", "aria-label": "Expand content"})
 							@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
@@ -235,7 +235,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					</el-disclosure>
 				</section>
 				<section id="faq" class="mx-auto mt-8 max-w-5xl">
-					<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Frequently asked questions</h2>
+					<h2 class="text-xl/7 sm:text-2xl font-semibold tracking-tight text-pretty font-display">Frequently asked questions</h2>
 					<div class="mt-10">
 						@partials.FAQ(ViewerFAQ)
 					</div>
