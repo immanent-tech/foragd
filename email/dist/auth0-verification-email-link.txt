@@ -1,0 +1,20 @@
+Confirm your email to activate your account.
+
+https://foragd.app
+
+Home
+
+https://foragd.app/home
+
+‍ Confirm your email ‍ We're happy to have you on board! Please verify your email address in order to complete activation of your account:
+
+Verify email
+
+https://foragd.app{{ url | escape }}
+
+Or use this link {{ url | escape }}
+
+Got questions or comments? Just reply to this
+email.
+
+‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central

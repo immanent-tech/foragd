@@ -1,0 +1,18 @@
+You've exceeded your account limits.
+
+https://foragd.app
+
+Home
+
+https://foragd.app/home
+
+‍ Account Limit(s) Exceeded ‍ Hey {{{USER_NICKNAME}}}, Just wanted to let you know you've exceeded {{{LIMIT_NAME}}} account limit. You currently have {{{TOTAL}}} of {{{ALLOWED}}} allowed.
+
+Manage your subscriptions
+
+https://foragd.app/user/settings#subscriptions?utm_medium=email&utm_source=notification
+
+Please make sure to reduce your usage to
+below the limit in the next 7 days. If after 7 days you are still over your limits, your account will be blocked and access restricted. You can always check your limits and usage on the settings page linked above. Got questions or comments? Just reply to this email. Cheers, Josh
+
+‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central

@@ -1,0 +1,16 @@
+Verify your identity.
+
+https://foragd.app
+
+Home
+
+https://foragd.app/home
+
+‍ Your verification code ‍ Please use the following code to help verify your identity:
+
+{{ code | escape }}
+
+Got questions or comments? Just reply to this
+email.
+
+‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central

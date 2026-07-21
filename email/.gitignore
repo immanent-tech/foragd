@@ -1,5 +1,6 @@
 .idea
 .vscode
+.maizzle
 node_modules
-build/**/content
-build/development
+Thumbs.db
+.DS_Store

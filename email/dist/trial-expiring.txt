@@ -1,0 +1,18 @@
+Your Foragd trial will expire soon.
+
+https://foragd.app
+
+Home
+
+https://foragd.app/home
+
+‍ Your Foragd trial will expire soon ‍ Hey {{{USER_NICKNAME}}}, Just a reminder that your Foragd trial will end in 2 days.
+
+Purchase a subscription
+
+https://foragd.app/checkout?utm_medium=email&utm_source=notification
+
+When the trial expires, you'll be redirected to the
+checkout page to purchase a subscription. There are monthly and yearly plans available for a competitive price. Got questions or comments? Just reply to this email. It goes straight to me. Cheers, Josh
+
+‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central
