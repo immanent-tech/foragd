@@ -183,21 +183,18 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
 			// Load style bundles from embedded FS.
-			<link rel="preload" href={ "/assets/" + assets.GetPath(ctx, "styles.css") } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			<noscript><link rel="stylesheet" href={ "/assets/" + assets.GetPath(ctx, "styles.css") }/></noscript>
+			<link rel="stylesheet" href={ "/assets/" + assets.GetPath(ctx, "styles.css") }/>
 			// Load fonts.
-			<link rel="preload" href="/fonts/alegreya/alegreya.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			<noscript><link rel="stylesheet" href="/fonts/alegreya/alegreya.css"/></noscript>
+			<link rel="stylesheet" href="/fonts/alegreya/alegreya.css"/>
 			<link rel="preload" href="/fonts/alegreya/alegreya-sans-v28-latin-regular.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/alegreya/alegreya-sans-v28-latin-500.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/alegreya/alegreya-sans-v28-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/alegreya/alegreya-v41-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
+			<link rel="stylesheet" href="/fonts/nunito/nunito.css"/>
 			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-regular.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-500.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-600.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
 			<link rel="preload" href="/fonts/nunito/nunito-v32-latin-700.woff2" crossorigin="anonymous" type="font/woff2" as="font"/>
-			<link rel="preload" href="/fonts/nunito/nunito.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			<noscript><link rel="stylesheet" href="/fonts/nunito/nunito.css"/></noscript>
 			// Load script bundles from embedded FS.
 			<script src={ "/assets/" + assets.GetPath(ctx, "scripts.js") } type="module"></script>
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
