@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 # https://hub.docker.com/_/alpine/
-ARG ALPINE_VERSION=3.24.0@sha256:a2d49ea686c2adfe3c992e47dc3b5e7fa6e6b5055609400dc2acaeb241c829f4
+ARG ALPINE_VERSION=3.24.1@sha256:79ff19e9084a00eece421b2523fb93e22d730e2c0e525905de047e848e56d95f
 # https://hub.docker.com/_/golang
-ARG GO_VERSION=1.26.4-alpine3.24@sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c
+ARG GO_VERSION=1.26.5-alpine3.24@sha256:111d79159b2326f7e80c4a4706e1ba166acb0e2611df853955f3621828cd49e8
 
 FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
 FROM --platform=$BUILDPLATFORM docker.io/alpine:${ALPINE_VERSION} AS builder
@@ -35,17 +35,17 @@ COPY . .
 
 # install and build/bundle frontend assets
 RUN npm clean-install && \
-    npm run build:prod && \
+    npx npm-run-all --parallel prod:css prod:js && \
     npm version patch
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
-RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$APPVERSION" -o foragd
+RUN go build -ldflags="-s -w" -o foragd
 
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS server
+FROM docker.io/alpine:3.24.1@sha256:79ff19e9084a00eece421b2523fb93e22d730e2c0e525905de047e848e56d95f AS server
 
 ENV FORAGD_CONTAINER=1
 
