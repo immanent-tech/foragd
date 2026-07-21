@@ -187,9 +187,14 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 			)
 		} else {
 			var scheduledEmails = map[models.EmailTemplateID]time.Duration{
+				// Send 1st tip: email newsletters after 1 day.
 				"tip-email-newsletters": 24 * time.Hour,
-				"new-inactive-user":     5 * 24 * time.Hour,
-				"trial-expiring":        models.DefaultTrialPeriod - 48*time.Hour,
+				// Check and send inactive ping after 5 days if not active.
+				"new-inactive-user": 5 * 24 * time.Hour,
+				// Send check-in after 7 days.
+				"trial-checkin": models.DefaultTrialPeriod - 7*24*time.Hour,
+				// Send expiry reminder in two days of expiry.
+				"trial-expiring": models.DefaultTrialPeriod - 48*time.Hour,
 			}
 
 			for id, delay := range scheduledEmails {
