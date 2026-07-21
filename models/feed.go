@@ -5,7 +5,6 @@ package models
 
 import (
 	"html"
-	"log/slog"
 	"net/url"
 	"slices"
 	"strconv"
@@ -152,7 +151,6 @@ func (f *Feed) GetLink() URL {
 
 // GetTitle returns the feed title.
 func (f *Feed) GetTitle() string {
-	slog.Info("foo")
 	return html.UnescapeString(f.Title)
 }
 
