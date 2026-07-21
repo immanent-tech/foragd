@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.201.0](https://github.com/immanent-tech/foragd/compare/v0.200.0...v0.201.0) (2026-07-21)
+
+
+### Features
+
+* 🎨 improved fonts ([42ce806](https://github.com/immanent-tech/foragd/commit/42ce806f9378c4caaaa36d07c171a25130d688a1))
+* **templates/header:** 🎨 create a floating header look ([8e8d674](https://github.com/immanent-tech/foragd/commit/8e8d67459ce18a078d01ce4a5f000a5b174efdd3))
+* **templates/sidebar:** 🎨 create a floating sidebar look ([6e76f8d](https://github.com/immanent-tech/foragd/commit/6e76f8d4ea3cb050a12ed07fd3cc4e414eee9170))
+
+
+### Bug Fixes
+
+* **models:** 🔧 unescape html escape codes in feed/item titles when displaying ([e29088f](https://github.com/immanent-tech/foragd/commit/e29088f77edab14762f825c69c8721ca357e1ff9))
+* **templates/articles:** 🔧 fix location of reading progress indicator ([b2a4115](https://github.com/immanent-tech/foragd/commit/b2a41150300e27c6974284581970a8f5ab753b61))
+* **templates/containers:** 🔧 fix invisible cards on mobile view ([aa00160](https://github.com/immanent-tech/foragd/commit/aa00160e0bd09b56d5dd3beb6be64b0777b3530b))
+* **templates/home:** 🎨 fix margin above article cards ([960ea1a](https://github.com/immanent-tech/foragd/commit/960ea1a1673cd60e2ae30101e1cdd4345e57a08a))
+* **templates:** 🎨 fix fonts on external pages ([caf861c](https://github.com/immanent-tech/foragd/commit/caf861c9fba0a914311f166b201cff8b4539bd4d))
+
+
+### Performance Improvements
+
+* **templates/containers:** ⚡ try to reduce Cumulative Layout Shift (CLS) caused by MasonryGrid behaviour ([3402e72](https://github.com/immanent-tech/foragd/commit/3402e72e08cb60235a3e4ba2037172fe2e1b7359))
+
 ## [0.200.0](https://github.com/immanent-tech/foragd/compare/v0.199.0...v0.200.0) (2026-07-20)
 
 
