@@ -15,19 +15,17 @@
 
 /* Global custom theme values. */
 @theme {
-  /* --font-sans: 'Inter', sans-serif;
-  --font-sans--font-feature-settings:
-    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1; */
-  --font-sans: 'Alegreya Sans', sans-serif;
+  --font-sans: 'Alegreya Sans', system-ui, sans-serif;
   --font-sans--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
-  /* --font-serif: 'TexGyrePagella', serif;
-  --font-serif--font-feature-settings:
-    'liga' 1, 'ccmp' 1, 'ss01' 1, 'ss03' 1, 'ss04' 1, 'ss10' 1, 'kern' 1; */
   --font-serif: 'Alegreya', serif;
   --font-serif--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
   --font-display: 'Nunito', sans-serif;
   --font-display--font-feature-settings:
     'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
+  --font-mono: 'MonaspaceArgonVariable', 'monospace';
+  --font-mono--font-feature-settings:
+    'calt' 1, 'liga' 1, 'ss01' 1, 'ss02' 1, 'ss03' 1, 'ss04' 1, 'ss06' 1, 'ss07' 1, 'ss08' 1,
+    'ss09' 1, 'cv01' 2, 'cv10' 1;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-bold: 700;
