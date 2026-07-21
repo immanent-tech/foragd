@@ -4,35 +4,47 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
-	"time"
+	"slices"
+	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
+	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 
+	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
-type ComparisonPage struct{}
+var getComparisons = sync.OnceValues(func() ([]*markdownx.File, error) {
+	var postsPath = "assets/docs/comparisons"
+	return markdownx.ReadDir(web.DocsFS, postsPath)
+})
+
+type ComparisonPage struct {
+	text *markdownx.File
+}
 
 func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request) {
-	// Format the service to compare.
 	caser := cases.Title(language.English)
-	service := caser.String(chi.RouteContext(req.Context()).URLParam("service"))
+
 	// Generate a page title and description.
 	title := templates.PageTitle{
-		Summary:     "Foragd vs " + service,
-		Description: "RSS Feed Reader Comparison",
-		Date:        time.Now().Format("2006"),
+		Summary:     p.text.Frontmatter.Description,
+		Description: p.text.Frontmatter.Description,
+		Date:        p.text.Frontmatter.CreatedAt,
 	}
-	description := "A detailed comparison of Foragd and " + service + " covering pricing, features, and which is best for different use cases."
+	description := "A detailed comparison of Foragd and " + caser.String(
+		p.text.Frontmatter.Slug,
+	) + " covering pricing, features, and which is best for different use cases."
 	compareOG := opengraph.NewWebSite(
 		title.String(),
 		config.GetBaseURL()+req.URL.String(),
@@ -54,18 +66,9 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 		"",
 	)
 
-	// Add appropriate additional header metadata.
-	ctx := req.Context()
-	switch service {
-	case "Feedly":
-		ctx = slots.WithSlot(ctx, slots.Header, templates.VsFeedlyMeta())
-	case "Inoreader", "Innoreader":
-		ctx = slots.WithSlot(ctx, slots.Header, templates.VsInoreaderMeta())
-	}
-
 	// Render appropriate content.
 	templ.Handler(
-		templates.CreatePage(templates.Comparison(service),
+		templates.CreatePage(templates.Comparison(p.text),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
 			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
@@ -75,9 +78,37 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 				compareJsonLd,
 			),
 		),
-	).ServeHTTP(res, req.WithContext(ctx))
+	).ServeHTTP(res, req)
 }
 
 func HandleComparison() http.HandlerFunc {
-	return RenderExternalPage(&ComparisonPage{})
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Check, if the requested file is existing.
+		comparisons, err := getComparisons()
+		if err != nil {
+			// If file is not found, return HTTP 404 error.
+			slogctx.FromCtx(req.Context()).Error("Could not read comparisons.",
+				slog.Any("error", err),
+			)
+			http.NotFound(res, req)
+			return
+		}
+
+		// Get the comparison document.
+		service := chi.RouteContext(req.Context()).URLParam("service")
+		idx := slices.IndexFunc(comparisons, func(p *markdownx.File) bool {
+			return p.Frontmatter.Slug == service
+		})
+		if idx == -1 {
+			res.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		res.Header().
+			Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
+
+		RenderExternalPage(&ComparisonPage{
+			text: comparisons[idx],
+		}).ServeHTTP(res, req)
+	}
 }
