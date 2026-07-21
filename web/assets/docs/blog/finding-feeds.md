@@ -50,7 +50,7 @@ North Wind Picture Archives/Alamy
   </figcaption>
 </figure>
 
-## Feed Discovery Was Designed For Machines, Not Humans 🙁
+## Feed Discovery Was Designed for Machines, Not Humans 🙁
 
 Partly, this is due to the way the RSS specification suggests advertising feeds through an autodiscovery mechanism (see
 [here](https://www.rssboard.org/rss-autodiscovery) for the technical details). This process is less for humans and more

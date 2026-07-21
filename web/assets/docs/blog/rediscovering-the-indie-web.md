@@ -24,7 +24,7 @@ passion and interest.
   </figcaption>
 </figure>
 
-## What is the indie web?
+## What Is the Indie Web?
 
 The "indie web" is a collective term for the websites and blogs that exist outside of the big social media websites.
 Rather than being optimized for search engine ranking and user engagement, these are sites by individuals for
@@ -32,10 +32,10 @@ publicizing their own expressions, opinions, and creativity. There are no standa
 they do tend to provide syndication through feeds and loose connection through open standards like webmentions and
 microformats.
 
-## Where do you find indie web content?
+## Where Do You Find Indie Web Content?
 
 The way the web is architected today makes it difficult to find this content. Search engines are continuing to move
-toward summarised content over direct links and AI services are likewise taking over the place of the search engines. So
+toward summarized content over direct links and AI services are likewise taking over the place of the search engines. So
 actually finding that cool author's personal blog, then finding similar sites and authors is increasingly difficult.
 
 Fortunately, there are some great sites out there that act as both a jumping point and directory into the indie web

@@ -9,7 +9,7 @@ author = "Joshua Rich"
 slug = "rss-vs-atom"
 +++
 
-## RSS vs Atom, the TL;DR
+## RSS Vs Atom, the TL;DR
 
 RSS and Atom are both file formats that define a website's feed. Feed viewers fetch and parse these formats to generate
 a list of articles or posts you can view in a feed viewer like [Foragd](https://foragd.app).
@@ -82,3 +82,5 @@ Getting started with RSS and Atom feeds? Foragd is free to try for 14 days — n
 - <https://en.wikipedia.org/wiki/Atom_(standard)>
 - <https://www.rssboard.org/rss-specification>
 - <https://www.rfc-editor.org/info/rfc4287/>
+
+License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

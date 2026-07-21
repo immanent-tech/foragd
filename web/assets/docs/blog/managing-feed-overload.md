@@ -148,7 +148,7 @@ to not only filter, but home in on content of interest.
 
 Most feed readers provide some kind of search functionality. With Foragd, you can search within posts in addition for
 subscriptions, actions, and other features of the app. While the search bar offers a way to quickly find content by a
-keyword or phrase, there is are also useful filters to further what will be searched.
+keyword or phrase, there is also useful filters to further what will be searched.
 
 <figure>
   <img

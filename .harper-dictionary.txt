@@ -1,0 +1,6 @@
+Foragd
+Inoreader
+Feedly
+JSONFeed
+OPML
+IMHO
