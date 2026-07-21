@@ -26,8 +26,10 @@ func NewUserEmailJob(
 	// Create the update feed job.
 	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
-		JobDescription: new("Send user tip email: " + userID + ": " + string(emailTemplateID) + ")"),
-		JobKey:         quartz.NewJobKeyWithGroup(string(emailTemplateID), string(JobTypeUserEmailJob)).String(),
+		JobDescription: new("Send user tip email: " + userID + ": " + emailTemplateID + ")"),
+		JobKey: quartz.NewJobKeyWithGroup(
+			emailTemplateID,
+			string(JobTypeUserEmailJob)+"_"+userID).String(),
 		JobType:        JobTypeUserEmailJob,
 		JobNextRun:     models.UnixEpoch,
 		JobTriggerType: TriggerTypeOneshot,
@@ -74,7 +76,7 @@ func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
 
 	// Create and send email to user.
 	email, err := resend.NewTemplatedEmail(
-		string(data.EmailId),
+		data.EmailId,
 		resend.WithTo(user.GetEmail()),
 		resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
 		resend.WithVariable("USER_NICKNAME", nickname),
@@ -88,7 +90,7 @@ func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
 	}
 
 	slogctx.FromCtx(ctx).Debug("Finished user tips job.",
-		slog.String("tip", string(data.EmailId)),
+		slog.String("tip", data.EmailId),
 		slog.Duration("took", time.Since(start)))
 
 	return nil
