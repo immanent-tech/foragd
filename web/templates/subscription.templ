@@ -106,7 +106,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "masonry-item"),
+		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
 		element.WithHXIndicator("this"),
 	) {
 		// Show unread count in badge at top right if user wants stats shown.

@@ -378,7 +378,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 						})
 						templ_7745c5c3_Err = partials.Card(element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 							element.WithClasses(
-								"group", "animate-fadeinup", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
+								"group", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
 						).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err

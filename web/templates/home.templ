@@ -102,7 +102,7 @@ templ UserHome(data *HomeData) {
 									for idx, subscription := range data.Subscriptions {
 										{{ s := &Subscription{Subscription: subscription} }}
 										<li
-											class="group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform]"
+											class="group hover:hover-shadow flex animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform]"
 											style={ "--i: " + strconv.Itoa(idx) }
 											id={ subscription.GetID() }
 											hx-indicator="this"
@@ -196,12 +196,12 @@ templ NewUserHome() {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div class="mt-16 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 0">
+				<div class="mt-16 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 0">
 					<p class="text-base text-balance text-accent uppercase">Welcome to Foragd</p>
 					<h1 class="my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl">Your feed reader,<br/>your way.</h1>
 					<p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p>
 				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 1">
+				<div class="mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 1">
 					@sectionHeading() {
 						@sectionTitle("Add subscriptions")
 					}
@@ -236,7 +236,7 @@ templ NewUserHome() {
 						</a>
 					</div>
 				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 2">
+				<div class="mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 2">
 					@sectionHeading() {
 						@sectionTitle("Or start with a curated set")
 					}
@@ -285,7 +285,7 @@ templ NewUserHome() {
 								<p class="text-sm/6">Alternative and fringe perspectives.</p>
 							</label>
 						</div>
-						<div class="mt-4 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 2">
+						<div class="mt-4 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 2">
 							<button
 								hx-post="/user/feedset"
 								hx-swap="none"
@@ -308,7 +308,7 @@ templ NewUserHome() {
 						</div>
 					</form>
 				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 3">
+				<div class="mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 3">
 					@sectionHeading() {
 						@sectionTitle("Pick a theme")
 						<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
@@ -317,7 +317,7 @@ templ NewUserHome() {
 						@themeCards()
 					</div>
 				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out" style="--i: 4">
+				<div class="mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out" style="--i: 4">
 					@sectionHeading() {
 						@sectionTitle("Learn more")
 					}

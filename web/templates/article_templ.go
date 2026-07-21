@@ -1127,7 +1127,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 			element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 			element.WithAttribute("hx-disinherit", "*"),
 			element.WithClasses(
-				"group", "transition-opacity", "animate-fadeinup", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
+				"group", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 			element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXSwap("innerHTML show:top transition:true"),

@@ -987,7 +987,7 @@ templ themePreviewCard(theme string) {
 	@partials.Card(
 		element.WithAttribute("data-theme", theme),
 		element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
-		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
+		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]"),
 	) {
 		@partials.CardHeader() {
 			<div class="flex items-center">

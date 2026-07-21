@@ -50,7 +50,7 @@ templ PostsIndex(posts []*markdownx.File) {
 					}}
 					@partials.Card(element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 						element.WithClasses(
-							"group", "animate-fadeinup", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
+							"group", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "masonry-item", "touch-manipulation", "w-full", "sm:w-400", "mx-auto"),
 					) {
 						<a href={ "/blog/" + post.Frontmatter.Slug }>
 							<div>

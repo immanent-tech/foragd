@@ -8,6 +8,11 @@
 
 @import './daisyui-custom.css';
 
+/* Use page view transitions. */
+@view-transition {
+  navigation: auto;
+}
+
 /* Global custom theme values. */
 @theme {
   /* --font-sans: 'Inter', sans-serif;
@@ -28,6 +33,8 @@
   --font-weight-bold: 700;
   --sidebar-width: var(--w-sm);
 
+  --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -38,14 +45,7 @@
       transform: translateY(0);
     }
   }
-  @keyframes grow-bar {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
-  }
+
   @keyframes tab-fade-out {
     from {
       opacity: 1;
@@ -90,11 +90,6 @@
       background-color: transparent;
     }
   }
-}
-
-/* Use page view transitions. */
-@view-transition {
-  navigation: auto;
 }
 
 @layer base {
@@ -470,99 +465,4 @@
 @utility animation-delay-* {
   animation-delay: --value([*]);
   animation-delay: calc(--value(integer) * 1ms);
-}
-
-@utility animate-fadeinup {
-  /* Only animate these two — never use transition: all */
-  animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
-  animation-delay: calc(min(var(--i), 15) * 80ms);
-}
-
-@utility animate-growbar {
-  animation: grow-bar 1ms linear both;
-  animation-timeline: scroll(root);
-}
-
-.alegreya-sans-thin {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 100;
-  font-style: normal;
-}
-
-.alegreya-sans-light {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 300;
-  font-style: normal;
-}
-
-.alegreya-sans-regular {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.alegreya-sans-medium {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 500;
-  font-style: normal;
-}
-
-.alegreya-sans-bold {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 700;
-  font-style: normal;
-}
-
-.alegreya-sans-extrabold {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 800;
-  font-style: normal;
-}
-
-.alegreya-sans-black {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 900;
-  font-style: normal;
-}
-
-.alegreya-sans-thin-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 100;
-  font-style: italic;
-}
-
-.alegreya-sans-light-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.alegreya-sans-regular-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 400;
-  font-style: italic;
-}
-
-.alegreya-sans-medium-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 500;
-  font-style: italic;
-}
-
-.alegreya-sans-bold-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 700;
-  font-style: italic;
-}
-
-.alegreya-sans-extrabold-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 800;
-  font-style: italic;
-}
-
-.alegreya-sans-black-italic {
-  font-family: 'Alegreya Sans', sans-serif;
-  font-weight: 900;
-  font-style: italic;
 }
