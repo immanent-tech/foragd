@@ -168,17 +168,11 @@
   }
 
   /* Font adjustments. */
-  .tooltip,
-  .badge,
   button,
   [role='button'],
   select,
   option {
     @apply font-display;
-  }
-
-  .label {
-    @apply font-display font-normal;
   }
 
   /* Required functionality to reduce Cumulative Layout Shift (CLS) for MasonryGrid hyperscript behaviour. */
@@ -465,4 +459,19 @@
 @utility animation-delay-* {
   animation-delay: --value([*]);
   animation-delay: calc(--value(integer) * 1ms);
+}
+
+/* Override some settings for DaisyUI label style. */
+@utility label {
+  @apply font-display font-normal text-neutral;
+}
+
+/* Override some settings for DaisyUI badge style. */
+@utility badge {
+  @apply font-display;
+}
+
+/* Override some settings for DaisyUI tooltip style. */
+@utility tooltip {
+  @apply font-display;
 }
