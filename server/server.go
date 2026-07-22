@@ -103,6 +103,7 @@ func Start(logger *slog.Logger) error {
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
+	router.Handle("/manifest.json", assets.HandleAssets("", true))
 	router.Handle("/robots.txt", assets.HandleAssets("", true))
 	router.Handle("/favicon.ico", assets.HandleAssets("", true))
 	router.Handle("/favicon.svg", assets.HandleAssets("", true))
