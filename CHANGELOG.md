@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.202.0](https://github.com/immanent-tech/foragd/compare/v0.201.0...v0.202.0) (2026-07-22)
+
+
+### Features
+
+* **assets:** ✨ use monaspace argon as monospaced font ([b69d0f9](https://github.com/immanent-tech/foragd/commit/b69d0f90c5a6cf1c8e57a53a9ff243c14799fdb5))
+* **email:** ✨ send a trial check-in email halfway through a trial ([da68437](https://github.com/immanent-tech/foragd/commit/da684370266dc3b5d85da95244e8db659006ca1a))
+* **email:** ✨ update email templates to Maizzle v6 ([54c49d8](https://github.com/immanent-tech/foragd/commit/54c49d8d6e0cb45e3a99cc11609b22341c6b0bd3))
+
+
+### Bug Fixes
+
+* **scheduler:** 🔧 fix user tips emails job ids ([2812023](https://github.com/immanent-tech/foragd/commit/2812023843400c435efc4a4e48a32c9f90f92671))
+
+
+### Performance Improvements
+
+* **assets:** 🔧 fix font paths ([9512da6](https://github.com/immanent-tech/foragd/commit/9512da67fd89a39c77f00136297caaa34c02e731))
+* **templates:** ⚡ force stylesheets to be render blocking ([2d47ebb](https://github.com/immanent-tech/foragd/commit/2d47ebbd80969297783a7844e4317c2162688773))
+
 ## [0.201.0](https://github.com/immanent-tech/foragd/compare/v0.200.0...v0.201.0) (2026-07-21)
 
 
