@@ -74,7 +74,7 @@ jobs:
           npm run build:prod
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@c35d1b164463ee62a100735382aaaa525c5d3496 # 2.25.6
+        uses: github/codeql-action/init@b8d3b6e8af63cde30bdc382c0bc28114f4346c88 # v2.28.1
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -85,6 +85,6 @@ jobs:
         run: go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)"
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@c35d1b164463ee62a100735382aaaa525c5d3496 # 2.25.6
+        uses: github/codeql-action/analyze@b8d3b6e8af63cde30bdc382c0bc28114f4346c88 # v2.28.1
         with:
           category: '/language:${{matrix.language}}'
