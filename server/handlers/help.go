@@ -13,9 +13,9 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -60,9 +60,9 @@ func DocumentationHandler() http.HandlerFunc {
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 
 		// Render help documentation.
-		mdHTML, err := markdown.ToHTML(contents)
+		mdHTML, err := markdownx.ToHTML(contents)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdown.",
+			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdownx.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusInternalServerError)

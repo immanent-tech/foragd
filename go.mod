@@ -185,8 +185,8 @@ require (
 	github.com/veqryn/slog-context v0.9.0
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
 	github.com/veqryn/slog-json v0.5.0 // indirect
-	github.com/yuin/goldmark v1.8.4
-	go.abhg.dev/goldmark/frontmatter v0.3.0
+	github.com/yuin/goldmark v1.8.4 // indirect
+	go.abhg.dev/goldmark/frontmatter v0.3.0 // indirect
 	go.opentelemetry.io/contrib/exporters/autoexport v0.69.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.69.0
 	go.opentelemetry.io/otel v1.44.0

@@ -16,15 +16,15 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-var getPolicyDocs = sync.OnceValues(func() ([]*markdown.File, error) {
+var getPolicyDocs = sync.OnceValues(func() ([]*markdownx.File, error) {
 	var policiesPath = "assets/docs/policies"
-	return markdown.ReadDir(web.DocsFS, policiesPath)
+	return markdownx.ReadDir(web.DocsFS, policiesPath)
 })
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
@@ -40,7 +40,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 			http.NotFound(res, req)
 		}
 
-		idx := slices.IndexFunc(polices, func(p *markdown.File) bool {
+		idx := slices.IndexFunc(polices, func(p *markdownx.File) bool {
 			return chi.URLParam(req, "*") == p.Frontmatter.Slug
 		})
 		if idx == -1 {

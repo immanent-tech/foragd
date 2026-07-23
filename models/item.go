@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -241,7 +241,7 @@ func (i *Item) GetDescription() string {
 			}
 			return sanitizedDesc
 		default:
-			formatted, err := markdown.ToHTML([]byte(*i.Description))
+			formatted, err := markdownx.ToHTML([]byte(*i.Description))
 			if err != nil {
 				return *i.Description
 			}
@@ -301,7 +301,7 @@ func (i *Item) GetContent() string {
 		}
 		return sanitizedDesc
 	default:
-		formatted, err := markdown.ToHTML([]byte(*i.Content))
+		formatted, err := markdownx.ToHTML([]byte(*i.Content))
 		if err != nil {
 			return *i.Content
 		}
