@@ -8,12 +8,12 @@ import (
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/textx"
 	"html"
 	"net/http"
 	"slices"
@@ -528,11 +528,11 @@ templ ArticleContent(a *models.Article) {
 						</div>
 					</div>
 					// Show reading time if content length is greater than around two paragraphs of text...
-					if text.CountWords(article.GetContent()) > 160 {
+					if textx.CountWords(article.GetContent()) > 160 {
 						<div class="ml-auto flex flex-1 justify-end p-1">
 							<span class="text-sm/6 text-neutral">
 								Reading time:
-								{ strings.ReplaceAll(text.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
+								{ strings.ReplaceAll(textx.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
 							</span>
 						</div>
 					}

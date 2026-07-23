@@ -5,11 +5,11 @@ package templates
 
 import (
 	"encoding/json"
-	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
+	"github.com/immanent-tech/go-base/pkg/textx"
 	"net/url"
 	"strconv"
 	"strings"
@@ -212,7 +212,7 @@ templ Post(post *markdownx.File) {
 					<div class="flex shrink-0 items-center">
 						<span class="text-sm/6">
 							Reading time:
-							{ strings.ReplaceAll(text.ReadingTime(string(post.Content)).Round(time.Minute).String(),"0s","") }
+							{ strings.ReplaceAll(textx.ReadingTime(string(post.Content)).Round(time.Minute).String(),"0s","") }
 						</span>
 					</div>
 				</div>

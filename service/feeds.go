@@ -37,10 +37,10 @@ import (
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
+	"github.com/immanent-tech/go-base/pkg/textx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
@@ -741,7 +741,7 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
 	}
 
 	// Don't classify when there is too little content for good processing.
-	if text.CountWords(itemText.String()) < 20 {
+	if textx.CountWords(itemText.String()) < 20 {
 		slogctx.FromCtx(ctx).Warn("Not enough content to classify feed. Assigning 'Uncategorized'.")
 		return models.Categories{"Uncategorized"}
 	}
