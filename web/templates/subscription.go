@@ -11,7 +11,6 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 type Subscription struct {
@@ -105,7 +104,7 @@ func (s *Subscription) editAttributes(path string) templ.Attributes {
 func (s *Subscription) unsubscribeAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
-		htmx.WithHXTarget(partials.ModalContainerID.Target()),
+		htmx.WithHXTarget(ModalContainerID.Target()),
 		htmx.WithHXVals(map[string]string{
 			"nickname":  s.GetTitle(),
 			"confirmed": "false",

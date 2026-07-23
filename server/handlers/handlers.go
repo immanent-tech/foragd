@@ -13,11 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -43,7 +42,7 @@ var bufPool = sync.Pool{
 // redirection without reloading the whole page.
 //
 // https://htmx.org/headers/hx-location/
-func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) error {
+func setRedirect(res http.ResponseWriter, request htmx.HXLocationRequest) error {
 	requestJSON, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("set redirect: marshal request: %w", err)

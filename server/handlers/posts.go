@@ -19,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/markdownx"
+	"github.com/immanent-tech/go-base/pkg/templx"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
@@ -30,7 +31,6 @@ import (
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 )
 
 var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
@@ -91,9 +91,9 @@ type Post struct {
 
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slots.WithSlot(
+	ctx := templx.WithSlot(
 		req.Context(),
-		slots.Header,
+		templates.HeaderSlot,
 		partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), *p.JsonLD),
 	)
 	title := templates.PageTitle{

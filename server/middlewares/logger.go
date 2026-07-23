@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5/middleware"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/logging"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	gcp "github.com/immanent-tech/foragd/providers/google"
 )

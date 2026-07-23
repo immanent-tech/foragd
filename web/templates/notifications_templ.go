@@ -23,9 +23,6 @@ import (
 // notification basis).
 const DefaultNotificationTimeout = 5 * time.Second
 
-// NotificationsID points to an element that can be used for displaying notifications to the user.
-var NotificationsID = models.ElementID("notifications")
-
 type notificationOpts struct {
 	timeout time.Duration
 }
@@ -76,7 +73,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("beforeend:" + NotificationsID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 45, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 42, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -115,7 +112,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(opts.timeout.Seconds())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 53, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 50, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
@@ -176,7 +173,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 75, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 72, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -212,7 +209,7 @@ func Notification(msg *models.UserMessage, options ...notificationOption) templ.
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 79, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/notifications.templ`, Line: 76, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {

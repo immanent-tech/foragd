@@ -14,17 +14,14 @@ templ UpdatesToast(options ...element.PropertiesOption) {
 	<div
 		id="updates-toast"
 		role="alert"
-		class="z-99 alert alert-outline alert-soft alert-info"
+		class="z-99 alert border border-info-content alert-soft alert-info font-display"
 	>
 		<span>New updates available.</span>
 		<div>
 			<button
 				class="btn btn-square btn-soft btn-sm btn-info"
 				{ props.Attributes()... }
-				_="on click
-		  			js(me)
-  				    	document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })
-  					end"
+				_="on click scroll to top of #content smoothly"
 			>
 				<span class="sr-only">Refresh</span>
 				@tabler.Refresh(templ.Attributes{"class": "hide-loading size-4 text-info", "aria-hidden": "true"})

@@ -14,9 +14,6 @@ import (
 // notification basis).
 const DefaultNotificationTimeout = 5 * time.Second
 
-// NotificationsID points to an element that can be used for displaying notifications to the user.
-var NotificationsID = models.ElementID("notifications")
-
 type notificationOpts struct {
 	timeout time.Duration
 }

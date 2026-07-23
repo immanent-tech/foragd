@@ -11,11 +11,12 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"

@@ -12,13 +12,7 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	tabler "github.com/dimmerz92/go-icons/tabler-outline"
-	"github.com/immanent-tech/foragd/models"
-)
-
-// ModalContainerID points to an element that holds a modal.
-const ModalContainerID = models.ElementID("modals")
+import tabler "github.com/dimmerz92/go-icons/tabler-outline"
 
 // Modal will render a modal with the given content.
 func Modal(id string, open bool) templ.Component {
@@ -59,7 +53,7 @@ func Modal(id string, open bool) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/modal.templ`, Line: 22, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/modal.templ`, Line: 16, Col: 10}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -72,7 +66,7 @@ func Modal(id string, open bool) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/modal.templ`, Line: 33, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/modal.templ`, Line: 27, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {

@@ -4,20 +4,19 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/assets"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/templx"
 	"net/url"
 	"slices"
 	"strings"
 )
 
 var (
-	// ContentID points to the element containing the main content of the page.
-	ContentID = models.ElementID("content")
+	ContentID        = htmx.ID("content")
+	ModalContainerID = htmx.ID("modals")
+	NotificationsID  = htmx.ID("notifications")
 )
 
 type templFragmentKey string
@@ -29,6 +28,10 @@ const (
 	ContentFragment templFragmentKey = "content"
 	// PaginateFragment is a fragment key pointing to the content to render when paginating.
 	PaginateFragment templFragmentKey = "paginate"
+)
+
+const (
+	HeaderSlot = "Header"
 )
 
 // Page contains data for rendering a full HTML page.
@@ -235,8 +238,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				@schema.ToJsonLd()
 			}
 			// Insert any additional header, if defined.
-			if slots.HasSlot(ctx,slots.Header) {
-				@slots.GetSlot(ctx, slots.Header)
+			if templx.HasSlot(ctx,HeaderSlot) {
+				@templx.GetSlot(ctx, HeaderSlot)
 			}
 			<title>{ p.Title }</title>
 			<script type="application/ld+json">
@@ -294,7 +297,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
 			// Container for modals.
-			<div id={ partials.ModalContainerID.String() }></div>
+			<div id={ ModalContainerID.String() }></div>
 			// Main page content.
 			@templ.Fragment(BodyFragment) {
 				@p.Component

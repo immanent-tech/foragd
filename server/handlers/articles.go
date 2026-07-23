@@ -15,11 +15,10 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
-	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -577,13 +576,13 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		if currentURL, found := htmx.GetCurrentURL(req); !found {
-			err = setRedirect(res, htmxext.HXLocationRequest{
+			err = setRedirect(res, htmx.HXLocationRequest{
 				Path:   RouteHome,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:top transition:true",
 			})
 		} else {
-			err = setRedirect(res, htmxext.HXLocationRequest{
+			err = setRedirect(res, htmx.HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:top transition:true",

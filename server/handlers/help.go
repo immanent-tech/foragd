@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"

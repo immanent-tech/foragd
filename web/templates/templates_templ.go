@@ -13,20 +13,19 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/assets"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/foragd/web/templates/slots"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/templx"
 	"net/url"
 	"slices"
 	"strings"
 )
 
 var (
-	// ContentID points to the element containing the main content of the page.
-	ContentID = models.ElementID("content")
+	ContentID        = htmx.ID("content")
+	ModalContainerID = htmx.ID("modals")
+	NotificationsID  = htmx.ID("notifications")
 )
 
 type templFragmentKey string
@@ -38,6 +37,10 @@ const (
 	ContentFragment templFragmentKey = "content"
 	// PaginateFragment is a fragment key pointing to the content to render when paginating.
 	PaginateFragment templFragmentKey = "paginate"
+)
+
+const (
+	HeaderSlot = "Header"
 )
 
 // Page contains data for rendering a full HTML page.
@@ -162,7 +165,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 144, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 147, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -186,7 +189,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			var templ_7745c5c3_Var3 templ.SafeURL
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(p.CanonicalLink))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 162, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 165, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -204,7 +207,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			var templ_7745c5c3_Var4 templ.SafeURL
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(config.GetBaseURL()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 164, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 167, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -227,7 +230,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var5 templ.SafeURL
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(feedURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 180, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 183, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -240,20 +243,20 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var6 templ.SafeURL
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs("/assets/" + assets.GetPath(ctx, "styles.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 186, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 189, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><link rel=\"stylesheet\" href=\"/fonts/alegreya/alegreya.css\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-regular.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-500.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-v41-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"stylesheet\" href=\"/fonts/nunito/nunito.css\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-regular.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-500.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-600.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><script src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><link rel=\"stylesheet\" href=\"/fonts/alegreya/alegreya.css\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-regular.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-500.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-sans-v28-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/alegreya/alegreya-v41-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"stylesheet\" href=\"/fonts/nunito/nunito.css\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-regular.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-500.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-600.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"preload\" href=\"/fonts/nunito/nunito-v32-latin-700.woff2\" crossorigin=\"anonymous\" type=\"font/woff2\" as=\"font\"><link rel=\"stylesheet\" href=\"/fonts/monaspace/monaspace.css\"><script src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/assets/" + assets.GetPath(ctx, "scripts.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 199, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 203, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
@@ -297,7 +300,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			ScrollBehavior:            "auto",
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 229, Col: 5}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 235, Col: 5}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -313,8 +316,8 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 				return templ_7745c5c3_Err
 			}
 		}
-		if slots.HasSlot(ctx, slots.Header) {
-			templ_7745c5c3_Err = slots.GetSlot(ctx, slots.Header).Render(ctx, templ_7745c5c3_Buffer)
+		if templx.HasSlot(ctx, HeaderSlot) {
+			templ_7745c5c3_Err = templx.GetSlot(ctx, HeaderSlot).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -326,7 +329,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 238, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 244, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -337,9 +340,9 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.ModalContainerID.String())
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 294, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 300, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
@@ -378,7 +381,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(NotificationsID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 301, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 307, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -420,7 +423,7 @@ func UpdateTitle(title PageTitle) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(title.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 308, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 314, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

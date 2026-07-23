@@ -40,7 +40,7 @@ func UpdatesToast(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"updates-toast\" role=\"alert\" class=\"z-99 alert alert-outline alert-soft alert-info\"><span>New updates available.</span><div><button class=\"btn btn-square btn-soft btn-sm btn-info\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"updates-toast\" role=\"alert\" class=\"z-99 alert border border-info-content alert-soft alert-info font-display\"><span>New updates available.</span><div><button class=\"btn btn-square btn-soft btn-sm btn-info\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -48,7 +48,7 @@ func UpdatesToast(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " _=\"on click\n\t\t  \t\t\tjs(me)\n  \t\t\t\t    \tdocument.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' })\n  \t\t\t\t\tend\"><span class=\"sr-only\">Refresh</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " _=\"on click scroll to top of #content smoothly\"><span class=\"sr-only\">Refresh</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

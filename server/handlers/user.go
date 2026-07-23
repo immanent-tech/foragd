@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -25,6 +24,7 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"

@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"

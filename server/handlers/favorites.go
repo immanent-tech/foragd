@@ -9,8 +9,9 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"

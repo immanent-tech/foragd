@@ -59,8 +59,6 @@ github.com/alexedwards/scs/v2 v2.9.0 h1:xa05mVpwTBm1iLeTMNFfAWpKUm4fXAW7CeAViqBV
 github.com/alexedwards/scs/v2 v2.9.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM=
 github.com/andybalholm/cascadia v1.3.3/go.mod h1:xNd9bqTn98Ln4DwST8/nG+H0yuB8Hmgu1YHNnWw0GeA=
-github.com/angelofallars/htmx-go v0.5.0 h1:L7M48cCH7nX8cV5wRYn04pN6AE4qNdh86iTbuKxhnIo=
-github.com/angelofallars/htmx-go v0.5.0/go.mod h1:izXk6A+Jllc3vXs1dUvxUJs/jE0weiEC07ZPlCVi4cc=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0/go.mod h1:lvDnEdqiQrp0O42VQGgmlKpxL1AP2+08jFMw88y4klk=
 github.com/auth0/go-auth0/v2 v2.14.0 h1:zDxwRHGAt6gLK/OG6wAkB5ScQEJ8WW/ex1EnJig8fFc=

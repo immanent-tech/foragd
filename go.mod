@@ -11,7 +11,6 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.6.1
 	github.com/a-h/templ v0.3.1020
 	github.com/alexedwards/scs/v2 v2.9.0
-	github.com/angelofallars/htmx-go v0.5.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/dimmerz92/go-icons v0.31.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0

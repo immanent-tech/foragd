@@ -12,15 +12,14 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 type Article struct {
 	*models.Article
 }
 
-func (a *Article) markValueID() models.ElementID {
-	return models.ElementID(a.GetID() + "-mark-value")
+func (a *Article) markValueID() htmx.ID {
+	return htmx.ID(a.GetID() + "-mark-value")
 }
 
 // markAttributes are the htmx attributes for marking an article.
@@ -98,7 +97,7 @@ func (a *Article) mobileShareAttributes() templ.Attributes {
 func (a *Article) desktopShareAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/share/article/"+a.GetID()),
-		htmx.WithHXTarget(partials.ModalContainerID.Target()),
+		htmx.WithHXTarget(ModalContainerID.Target()),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(map[string]string{
 			"item_id": a.GetID(),

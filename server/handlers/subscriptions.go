@@ -18,13 +18,12 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
-	htmxext "github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/go-base/config"
 
@@ -326,7 +325,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 		if currentURL, found := htmx.GetCurrentURL(req); found {
 			if strings.Contains(currentURL, "/list/articles") {
 				// On /list/articles, redirect back to subscriptions after marking.
-				if err := setRedirect(res, htmxext.HXLocationRequest{
+				if err := setRedirect(res, htmx.HXLocationRequest{
 					Path:   "/list/subscriptions",
 					Target: templates.ContentID.Target(),
 					Swap:   "innerHTML transition:true show:top",
@@ -390,17 +389,17 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			res.Header().Set(htmx.HeaderRefresh, "true")
 			// switch request.View {
 			// case models.ViewUnread:
-			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 	err = setRedirect(res, htmx.HXLocationRequest{
 			// 		Path:   RouteHome,
 			// 		Target: templates.ContentID.Target(),
 			// 	})
 			// case models.ViewRead:
-			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 	err = setRedirect(res, htmx.HXLocationRequest{
 			// 		Path:   RouteHome,
 			// 		Target: templates.ContentID.Target(),
 			// 	})
 			// default:
-			// 	err = setRedirect(res, htmxext.HXLocationRequest{
+			// 	err = setRedirect(res, htmx.HXLocationRequest{
 			// 		Path:   "/list/subscriptions",
 			// 		Target: templates.ContentID.Target(),
 			// 		Values: getListSubscriptionsFilters(req).Values(),

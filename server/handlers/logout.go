@@ -6,8 +6,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/server/session"

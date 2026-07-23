@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/realclientip/realclientip-go"
 	slogctx "github.com/veqryn/slog-context"
 )
