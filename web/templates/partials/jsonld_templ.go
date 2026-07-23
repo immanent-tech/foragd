@@ -14,8 +14,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"encoding/json"
-	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 )
 
 func RenderJSONLD(id string, data any) templ.Component {

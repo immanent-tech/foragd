@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/immanent-tech/foragd/client"
+	"github.com/immanent-tech/go-base/client"
 )
 
 func queryMetadataServer(path string) (string, error) {
 	metadataServerURL := "http://metadata.google.internal"
-	httpClient := client.Load()
+	httpClient, err := client.Load()
 	resp, err := httpClient.R().
 		SetHeader("Metadata-Flavor", "Google").
 		SetDoNotParseResponse(true).

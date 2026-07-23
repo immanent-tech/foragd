@@ -34,12 +34,12 @@ import (
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 
-	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/pkg/formats/text"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -1164,8 +1164,14 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
 			slog.String("feed_url", sourceURL.String()),
 		)
-		resp, err := client.Load().R().
+		client, err := client.Load()
+		if err != nil {
+			return nil, fmt.Errorf("load http client: %w", err)
+		}
+
+		resp, err := client.R().
 			SetContext(ctx).
+			SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 			SetDoNotParseResponse(true).
 			// SetDebug(true).
 			Get(sourceURL.String())

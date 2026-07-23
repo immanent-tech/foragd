@@ -13,7 +13,6 @@ import (
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -156,7 +155,7 @@ func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) 
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), user.GetID(), updates,
 		// elastic.WithRefresh(elastic.RefreshTrue),
-		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
+		elastic.WithRetryOnConflict(3),
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}

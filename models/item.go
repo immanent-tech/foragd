@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/validation"
 )

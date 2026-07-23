@@ -11,9 +11,9 @@ import (
 	"net/url"
 	"slices"
 
+	"github.com/immanent-tech/go-base/client"
+	"github.com/immanent-tech/go-base/config"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/client"
 )
 
 type RequestOption func(*Request)
@@ -96,8 +96,13 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 
 	slogctx.FromCtx(ctx).Debug("Extracting article", slog.String("url", rawURL))
 
-	switch resp, err := client.Load().R().
+	client, err := client.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load http client: %w", err)
+	}
+	switch resp, err := client.R().
 		SetContext(ctx).
+		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
 		SetHeader("Content-Type", "application/json").
 		SetBody(req).
@@ -140,8 +145,13 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 
 	slogctx.FromCtx(ctx).Debug("proxying request", slog.String("url", rawURL))
 
-	switch resp, err := client.Load().R().
+	client, err := client.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load http client: %w", err)
+	}
+	switch resp, err := client.R().
 		SetContext(ctx).
+		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
 		SetHeader("Content-Type", "application/json").
 		SetBody(req).

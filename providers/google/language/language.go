@@ -12,8 +12,7 @@ import (
 
 	language "cloud.google.com/go/language/apiv1"
 	"cloud.google.com/go/language/apiv1/languagepb"
-
-	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 )
 
 var client *language.Client

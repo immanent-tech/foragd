@@ -14,8 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/immanent-tech/go-base/pkg/htmlx"
+
 	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/pkg/formats/htmlx"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 

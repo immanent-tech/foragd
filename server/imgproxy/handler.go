@@ -21,7 +21,9 @@ import (
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/immanent-tech/foragd/client"
+	"github.com/immanent-tech/go-base/client"
+	"github.com/immanent-tech/go-base/config"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/server/cache"
@@ -151,11 +153,15 @@ func HandleImage() http.HandlerFunc {
 // directFetchRemoteImage fetches the image at the given url writes it into the image buffer.
 func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
 	// Load the http client used for making requests to the image proxy.
-	httpClient := client.Load()
+	client, err := client.Load()
+	if err != nil {
+		return fmt.Errorf("load http client: %w", err)
+	}
 
 	// Fetch the image (either from proxy or direct).
-	resp, err := httpClient.R().
+	resp, err := client.R().
 		SetContext(ctx).
+		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetDoNotParseResponse(true).
 		Get(remoteURL)
 	if err != nil {

@@ -401,3 +401,5 @@ func Start(logger *slog.Logger) error {
 
 	return nil
 }
+
+// UserAgent = config.GetAppName() + "/" + config.GetVersion() + " (+https://foragd.app/policies/bot)"
