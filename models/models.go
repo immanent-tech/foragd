@@ -16,13 +16,9 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-const (
-	// DefaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
-	DefaultPaginationSize = 5000
-)
-
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 
+// UnixEpoch is the time.Time value of Unix epoch.
 var UnixEpoch = time.Unix(0, 0)
 
 // SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.

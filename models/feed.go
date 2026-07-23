@@ -13,7 +13,6 @@ import (
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/zeebo/xxh3"
 )
 
@@ -72,7 +71,7 @@ func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	feed := &Feed{
 		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),
-		LastFetched:  types.UnixEpoch,
+		LastFetched:  UnixEpoch,
 		Title:        source.GetTitle(),
 		Description:  new(source.GetDescription()),
 		SourceType:   SourceType(source.SourceType),
@@ -199,10 +198,10 @@ func (f *Feed) GetLanguage() string {
 // timestamp in the feed, or, the published timestamp in the feed, or the last fetched timestamp, whichever is found and
 // is a valid value, in that order.
 func (f *Feed) GetTimestamp() time.Time {
-	if f.Updated != nil && (!f.Updated.IsZero() && !f.Updated.Equal(types.UnixEpoch)) {
+	if f.Updated != nil && (!f.Updated.IsZero() && !f.Updated.Equal(UnixEpoch)) {
 		return f.Updated.UTC()
 	}
-	if !f.Published.IsZero() && !f.Published.Equal(types.UnixEpoch) {
+	if !f.Published.IsZero() && !f.Published.Equal(UnixEpoch) {
 		return f.Published.UTC()
 	}
 	return f.LastFetched.UTC()
