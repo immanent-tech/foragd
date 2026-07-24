@@ -108,7 +108,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Subscriptions")
 							}
 							if len(response.Subscriptions) > 0 {
-								@grid(element.WithClasses("items-stretch pt-12")) {
+								@grid(element.WithClasses("relative", "mt-4")) {
 									for idx, subscription := range response.Subscriptions {
 										@SubscriptionCard(idx, "/list/favorites", subscription) {
 											if response.LatestArticles != nil {
@@ -161,7 +161,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Articles")
 							}
 							if len(response.Articles) > 0 {
-								@grid(element.WithClasses("pt-12")) {
+								@grid(element.WithClasses("relative", "mt-4")) {
 									for idx, article := range response.Articles {
 										@ArticleCard(idx, article)
 									}

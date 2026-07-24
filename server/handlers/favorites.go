@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/a-h/templ"
 	"golang.org/x/sync/errgroup"
@@ -48,6 +49,7 @@ func HandleListFavorites() http.HandlerFunc {
 		var (
 			articles      models.Articles
 			subscriptions models.Subscriptions
+			latestItems   *sync.Map
 			err           error
 		)
 
@@ -92,6 +94,7 @@ func HandleListFavorites() http.HandlerFunc {
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 				return fmt.Errorf("update subscription dynamic info: %w", err)
 			}
+			latestItems = service.GetLatestItems(req.Context(), models.ViewAll, subscriptions)
 			return nil
 		})
 
@@ -107,8 +110,6 @@ func HandleListFavorites() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 			return
 		}
-
-		latestItems := service.GetLatestItems(req.Context(), models.ViewAll, subscriptions)
 
 		// Render appropriate content.
 		response := &models.ListFavoritesResponse{

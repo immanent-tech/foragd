@@ -171,11 +171,13 @@
   }
 
   /* Required functionality to reduce Cumulative Layout Shift (CLS) for MasonryGrid hyperscript behaviour. */
-  .masonry-item {
-    visibility: hidden;
-  }
-  .masonry-item.masonry-positioned {
-    visibility: visible;
+  .masonry-grid {
+    .masonry-item {
+      visibility: hidden;
+    }
+    .masonry-item.masonry-positioned {
+      visibility: visible;
+    }
   }
 }
 
