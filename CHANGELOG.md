@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.204.0](https://github.com/immanent-tech/foragd/compare/v0.203.0...v0.204.0) (2026-07-24)
+
+
+### Features
+
+* **templates:** 🎨 improved font sizing ([173e088](https://github.com/immanent-tech/foragd/commit/173e088375bd3125e2025338106491f2eae0f8b7))
+
+
+### Bug Fixes
+
+* **templates/favorites:** 🔧 fix hidden favorites! ([9c3abeb](https://github.com/immanent-tech/foragd/commit/9c3abebb2596acb297e529e6931c17c0fa1b758e))
+
 ## [0.203.0](https://github.com/immanent-tech/foragd/compare/v0.202.0...v0.203.0) (2026-07-24)
 
 
