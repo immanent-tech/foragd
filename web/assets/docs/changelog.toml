@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.201"
-date      = "Jul 21, 2026"
-type      = "major"
+version   = "v0.204"
+date      = "Jul 24, 2026"
+type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Font sizing improved.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Favorites are no longer hidden!
+"""
+
+[[releases]]
+version = "v0.201"
+date    = "Jul 21, 2026"
+type    = "major"
 [[releases.changes]]
 type = "improved"
 description = """
