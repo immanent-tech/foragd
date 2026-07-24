@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.203.0](https://github.com/immanent-tech/foragd/compare/v0.202.0...v0.203.0) (2026-07-24)
+
+
+### Features
+
+* **templates/landing:** ✨ re-add link to app in google play ([2b3099b](https://github.com/immanent-tech/foragd/commit/2b3099b94f878554eb9eb4aa8997ee13e454e063))
+
 ## [0.202.0](https://github.com/immanent-tech/foragd/compare/v0.201.0...v0.202.0) (2026-07-22)
 
 
