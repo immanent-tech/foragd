@@ -135,7 +135,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<h2 class="mt-1.5 mr-2 card-title font-serif text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif text-balance text-lg transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 				// Add an icon to indicate whether article filtering is being applied.
@@ -356,6 +356,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																		hx-trigger="click"
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
+																		class="text-base line-clamp-3"
 																	>
 																		{ item.GetTitle() }
 																	</a>

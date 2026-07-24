@@ -49,7 +49,7 @@ templ UserHome(data *HomeData) {
 					// Home Header.
 					@pageHeading() {
 						@pageTitle("Your Feed") {
-							<p class="mt-0.5 text-sm text-base-content/50">{ time.Now().Format("Mon, 02 Jan 2006") }</p>
+							<p class="mt-0.5 text-base text-neutral">{ time.Now().Format("Mon, 02 Jan 2006") }</p>
 						}
 					}
 					<div id="refreshing" class="mx-auto flex w-full justify-center">
@@ -76,8 +76,10 @@ templ UserHome(data *HomeData) {
 											hx-get="/list/articles"
 											hx-target="#content"
 											hx-swap="innerHTML show:top transition:true"
-											class="link text-sm text-primary link-hover"
-										>See all <span aria-hidden="true">-></span></a>
+											class="link text-sm text-secondary link-hover font-display"
+										>
+											See all <span aria-hidden="true">-></span>
+										</a>
 									}
 								}
 								@masonryGrid()
@@ -95,7 +97,7 @@ templ UserHome(data *HomeData) {
 								@sectionHeading(element.WithClasses("pt-2 px-4")) {
 									@sectionTitle("Latest Updated Feeds")
 									@sectionActions() {
-										<a class="link text-xs text-primary link-hover" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
+										<a class="link text-sm text-secondary link-hover font-display" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
 									}
 								}
 								<ul role="list" class="scrollbar-thin divide-y divide-neutral/15 overflow-y-auto">
@@ -138,7 +140,7 @@ templ UserHome(data *HomeData) {
 								// Quick Add Feed Action.
 								<div class="border-t border-base-content/6 px-4 py-3">
 									<button
-										class="btn flex w-full items-center justify-center gap-1.5 btn-ghost text-base-content/50 btn-xs"
+										class="btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm font-display"
 										aria-label="Add a new feed"
 										hx-get="/subscription/add"
 										hx-target={ ContentID.Target() }
@@ -156,7 +158,7 @@ templ UserHome(data *HomeData) {
 									@sectionHeading(element.WithClasses("pt-2 px-4")) {
 										@sectionTitle("Top Categories")
 									}
-									<div class="flex flex-wrap gap-1.5 p-4">
+									<div class="flex flex-wrap justify-center gap-1.5 p-4">
 										for category := range slices.Values(data.TopCategories) {
 											{{
 												filters := models.NewListDisplayFilters()

@@ -361,7 +361,7 @@ templ ArticleCard(idx int, a *models.Article) {
 				</div>
 			}
 			// Article Title.
-			<h3 class="mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary">
+			<h3 class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
@@ -370,7 +370,7 @@ templ ArticleCard(idx int, a *models.Article) {
 			</h3>
 			// Article Summary (if any).
 			if content := article.GetContent(); content != "" {
-				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
+				<div class={ "prose-summary prose-base mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
 					@templ.Raw(content)
 				</div>
 			}

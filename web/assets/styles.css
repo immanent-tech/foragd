@@ -26,9 +26,6 @@
   --font-mono--font-feature-settings:
     'calt' 1, 'liga' 1, 'ss01' 1, 'ss02' 1, 'ss03' 1, 'ss04' 1, 'ss06' 1, 'ss07' 1, 'ss08' 1,
     'ss09' 1, 'cv01' 2, 'cv10' 1;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-bold: 700;
   --sidebar-width: var(--w-sm);
 
   --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;

@@ -960,7 +960,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "  <h3 class=\"mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "  <h3 class=\"mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -985,7 +985,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if content := article.GetContent(); content != "" {
-					var templ_7745c5c3_Var35 = []any{"prose-summary mb-3", templ.KV("line-clamp-3", article.GetImage() != nil), templ.KV("line-clamp-6", article.GetImage() == nil)}
+					var templ_7745c5c3_Var35 = []any{"prose-summary prose-base mb-3", templ.KV("line-clamp-3", article.GetImage() != nil), templ.KV("line-clamp-6", article.GetImage() == nil)}
 					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var35...)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
