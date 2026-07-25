@@ -293,7 +293,7 @@
 
 /* For formatting article content. */
 @utility prose-article {
-  @apply prose ugc-remove-trackers max-w-none overflow-x-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+  @apply prose ugc-remove-trackers max-w-none overflow-x-auto wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
   /* Forced fixed width for pre and scrollable elements. */
   pre {
