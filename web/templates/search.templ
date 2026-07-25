@@ -23,7 +23,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 		>
 			<div class="flex-none">
 				if subscription.GetImage() == "" {
-					@tableroutline.Rss(templ.Attributes{"class": "stroke-1", "aria-hidden": "true"})
+					@tableroutline.Rss(templ.Attributes{"class": "", "aria-hidden": "true"})
 				} else {
 					@partials.Thumbnail(
 						&models.RemoteImage{
@@ -204,7 +204,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<input type="hidden" id="suggestion-text" name="suggestion_text" value={ suggestions.Search.Text }/>
 			@tableroutline.Search(templ.Attributes{
-				"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+				"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 				"aria-hidden": "true",
 			})
 			<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
@@ -270,7 +270,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						)
 					} else {
 						@tableroutline.FileRss(templ.Attributes{
-							"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+							"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 							"aria-hidden": "true"})
 					}
 					<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
@@ -297,7 +297,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 						"aria-hidden": "true"})
 					<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
 					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
@@ -315,7 +315,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 						"aria-hidden": "true"})
 					<span class="ml-3 flex-auto truncate">Add a group subscription</span>
 					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
@@ -333,7 +333,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 						"aria-hidden": "true"})
 					<span class="ml-3 flex-auto truncate">Add a search subscription</span>
 					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>

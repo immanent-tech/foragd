@@ -221,21 +221,21 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								// Edit action.
 								@partials.MenuItem() {
 									<a { s.editAttributes(path)... }>
-										@tableroutline.Edit(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+										@tableroutline.Edit(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a { s.unsubscribeAttributes()... }>
-										@tableroutline.Trash(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+										@tableroutline.Trash(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
 										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										@tableroutline.Flag2(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"})
+										@tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
 										Report an issue
 									</a>
 								}
@@ -404,10 +404,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</span>
 									<span class="hide-loading items-center">
 										if response.Filters.GetView() == models.ViewUnread {
-											@tableroutline.MailOpened(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
+											@tableroutline.MailOpened(templ.Attributes{"class": " mr-3 size-4", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
 										} else {
-											@tableroutline.Mail(templ.Attributes{"class": "stroke-1 mr-3 size-4", "aria-hidden": "true"})
+											@tableroutline.Mail(templ.Attributes{"class": " mr-3 size-4", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>
@@ -452,10 +452,10 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		class="btn border-neutral/15 btn-outline btn-sm"
 	>
 		if response.Filters.GetView() == models.ViewUnread {
-			@tableroutline.MailOpened(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "size-4 ", "aria-hidden": "true"})
 			Mark shown as Read
 		} else {
-			@tableroutline.Mail(templ.Attributes{"class": "size-4 stroke-1", "aria-hidden": "true"})
+			@tableroutline.Mail(templ.Attributes{"class": "size-4 ", "aria-hidden": "true"})
 			Mark shown as Unread
 		}
 	</button>

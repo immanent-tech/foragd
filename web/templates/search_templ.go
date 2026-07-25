@@ -74,7 +74,7 @@ func ActionSuggestionSubscriptions(subscriptions models.Subscriptions) templ.Com
 				return templ_7745c5c3_Err
 			}
 			if subscription.GetImage() == "" {
-				templ_7745c5c3_Err = tableroutline.Rss(templ.Attributes{"class": "stroke-1", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = tableroutline.Rss(templ.Attributes{"class": "", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -240,7 +240,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{
-			"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -370,7 +370,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					}
 				} else {
 					templ_7745c5c3_Err = tableroutline.FileRss(templ.Attributes{
-						"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 						"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -423,7 +423,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = tableroutline.CirclePlus(templ.Attributes{
-					"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+					"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 					"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -456,7 +456,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = tableroutline.CirclePlus(templ.Attributes{
-					"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+					"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 					"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -489,7 +489,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				templ_7745c5c3_Err = tableroutline.CirclePlus(templ.Attributes{
-					"class":       "stroke-1 size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+					"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 					"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

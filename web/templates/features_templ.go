@@ -1226,7 +1226,7 @@ func FeaturesPageConsume() templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1260,7 +1260,7 @@ func FeaturesPageConsume() templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1294,7 +1294,7 @@ func FeaturesPageConsume() templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1328,7 +1328,7 @@ func FeaturesPageConsume() templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": "stroke-1 size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
