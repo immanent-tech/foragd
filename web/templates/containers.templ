@@ -185,6 +185,11 @@ behavior MasonryGrid
     end
   end
 
+  -- Reset layout on "masonry:update" from body.
+  on masonry:update from body
+    call resetLayout()
+  end
+
   on masonry:reset from me
     call resetLayout()
   end

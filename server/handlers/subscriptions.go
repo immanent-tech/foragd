@@ -321,9 +321,10 @@ func HandleMarkSubscription() http.HandlerFunc {
 		}
 
 		// res.Header().Set(htmx.HeaderRefresh, "true")
-		// Do extra processing based on the current url.
+		// Do extra processing based on the current URL.
 		if currentURL, found := htmx.GetCurrentURL(req); found {
-			if strings.Contains(currentURL, "/list/articles") {
+			switch {
+			case strings.Contains(currentURL, "/list/articles"):
 				// On /list/articles, redirect back to subscriptions after marking.
 				if err := setRedirect(res, htmx.HXLocationRequest{
 					Path:   "/list/subscriptions",
@@ -333,14 +334,14 @@ func HandleMarkSubscription() http.HandlerFunc {
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
 				}
+			case strings.Contains(currentURL, "/list/subscriptions"):
+				// If we aren't viewing all subscriptions, remove the subscription card.
+				if models.View(req.FormValue("view")) != models.ViewAll {
+					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
+					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.SubscriptionID).Target())
+					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+				}
 			}
-			// else {
-			// 	// If we aren't viewing all subscriptions, remove the subscription card.
-			// 	if models.View(req.FormValue("view")) != models.ViewAll {
-			// 		res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
-			// 		res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
-			// 	}
-			// }
 		}
 
 		res.WriteHeader(http.StatusOK)

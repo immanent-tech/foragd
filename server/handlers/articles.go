@@ -519,11 +519,18 @@ func MarkArticle() http.HandlerFunc {
 			return
 		}
 
-		// If we aren't viewing all articles, remove the article.
-		// if !strings.Contains(req.Referer(), "/view/article") && models.View(req.FormValue("view")) != models.ViewAll {
-		// 	res.Header().Set(htmx.HeaderReswap, "delete")
-		// 	res.Header().Set(htmx.HeaderRetarget, "#"+request.ItemID)
-		// }
+		// Do extra processing based on the current URL.
+		if currentURL, found := htmx.GetCurrentURL(req); found {
+			switch {
+			case strings.Contains(currentURL, "/list/articles"):
+				// If we aren't viewing all subscriptions, remove the subscription card.
+				if models.View(req.FormValue("view")) != models.ViewAll {
+					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
+					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.ItemID).Target())
+					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+				}
+			}
+		}
 
 		res.WriteHeader(http.StatusOK)
 	}).ServeHTTP
