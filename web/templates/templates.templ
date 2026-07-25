@@ -291,8 +291,32 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 		</head>
 		<body
 			class="flex min-h-dvh flex-col bg-base-100 overscroll-y-none"
-			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end"
+			_="
+			on every htmx:beforeSend in <button:not(.no-disable)/>
+				tell it toggle [@disabled='true'] until htmx:afterOnLoad
+			end
+			on every htmx:beforeHistorySave in <button/>
+			   	tell it remove .in-flight-request
+				tell it remove @disabled
+			end
+			on every htmx:beforeHistorySave in <a/>
+			   	tell it remove .in-flight-request
+				tell it remove @disabled
+			end
+			on every htmx:historyRestore in <button/>
+			   	tell it remove .in-flight-request
+				tell it remove @disabled
+			end
+			on every htmx:historyRestore in <a/>
+			   	tell it remove .in-flight-request
+				tell it remove @disabled
+			end
+			"
 		>
+			// on htmx:historyRestore
+			// remove .in-flight-request from me
+			// remove @disabled from me
+			// end
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
