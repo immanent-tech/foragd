@@ -126,7 +126,7 @@
 
   header#page-header,
   footer#page-dock,
-  footer#page-sidebar {
+  nav#page-sidebar {
     view-transition-name: none;
   }
 
