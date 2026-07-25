@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.205.0](https://github.com/immanent-tech/foragd/compare/v0.204.1...v0.205.0) (2026-07-25)
+
+
+### Features
+
+* **templates:** ✨ when toggling a subscription/article as read/unread, remove it when not viewing all subscriptions/articles ([6eb4554](https://github.com/immanent-tech/foragd/commit/6eb45546765b5b001c0e8b83ddbb377fb7c99add))
+
+
+### Bug Fixes
+
+* 🔧 stop long urls from causing horizontal scroll when displaying article content ([2f16435](https://github.com/immanent-tech/foragd/commit/2f16435bafce59a547788e5359cb2940bc266f5c))
+* **styles:** 🔧 fix reference to page sidebar ([ff74246](https://github.com/immanent-tech/foragd/commit/ff7424678ba4958daeb680ca97c701ab12402829))
+* **templates/subscriptions:** 🔧 try to avoid running a subscription search if there is no input ([b8c5885](https://github.com/immanent-tech/foragd/commit/b8c5885154625fff148998d022df36ae1e1382b2))
+* **templates:** ♻️ reset state of buttons for certain conditions ([3b91b3a](https://github.com/immanent-tech/foragd/commit/3b91b3a514b18d3925427677bd4d678be20f2708))
+
 ## [0.204.1](https://github.com/immanent-tech/foragd/compare/v0.204.0...v0.204.1) (2026-07-24)
 
 
