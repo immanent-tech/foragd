@@ -46,9 +46,9 @@
       },
     },
     {
-      "label": "elastic: update indices",
+      "label": "elastic: update mappings",
       "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -70,7 +70,7 @@
     {
       "label": "elastic: migrate indices",
       "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices migrate ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -92,7 +92,7 @@
     {
       "label": "elastic: create indices",
       "type": "shell",
-      "command": "dotenv -f .env.${input:environment} run go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
+      "command": "dotenv -f .env.${input:environment} run go run main.go elastic indices create ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
