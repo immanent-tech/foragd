@@ -161,7 +161,7 @@ func itemListJsonLD(name string, entries []ListItemJSONLD) json.RawMessage {
 			Type:        "ListItem",
 			Position:    idx + 1,
 			Name:        item.Name,
-			Description: htmlx.ToPlainText(item.Description),
+			Description: htmlx.ToPlainText([]byte(item.Description)),
 		}
 		list.MainEntity = append(list.MainEntity, entity)
 	}
