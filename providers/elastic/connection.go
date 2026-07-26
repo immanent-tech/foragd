@@ -61,7 +61,11 @@ var Connect = sync.OnceValue(func() error {
 				return fmt.Errorf("read CA cert: %w", err)
 			}
 			options = append(options, elasticsearch.WithCACert(cert))
-			if cfg.Username != "" && cfg.Password != "" {
+			// Connect via API key or basic auth, depending on what is set (API key preferred).
+			switch {
+			case cfg.APIKey != "":
+				options = append(options, elasticsearch.WithAPIKey(cfg.APIKey))
+			case cfg.Username != "" && cfg.Password != "":
 				options = append(options,
 					elasticsearch.WithBasicAuth(cfg.Username, cfg.Password),
 				)

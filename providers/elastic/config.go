@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/go-base/config"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
@@ -24,12 +25,12 @@ var cfg *esconfig
 
 // config defines the configuration options for connecting to Elasticsearch. Set from the environment.
 type esconfig struct {
-	CloudID  string   `koanf:"cloudid"  validate:"required"`
-	APIKey   string   `koanf:"apikey"   validate:"required_with=CloudID"`
+	CloudID  string   `koanf:"cloudid"  validate:"required_without=URLs"`
+	APIKey   string   `koanf:"apikey"   validate:"required_without_all=Username Password"`
 	URLs     []string `koanf:"urls"     validate:"required_without=CloudID"`
 	CAFile   string   `koanf:"cafile"   validate:"omitempty,file"`
-	Username string   `koanf:"username"`
-	Password string   `koanf:"password"`
+	Username string   `koanf:"username" validate:"required_without=APIKey"`
+	Password string   `koanf:"password" validate:"required_with=Username"`
 }
 
 // loadConfigOnce loads the Elasticsearch configuration and ensures this is done
