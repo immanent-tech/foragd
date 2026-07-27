@@ -236,10 +236,10 @@ func (a *Action[T]) marshalItem() (esutil.BulkIndexerItem, error) {
 		Index:           a.index,
 		Action:          string(a.op),
 		RetryOnConflict: &a.retries,
-		OnFailure: func(ctx context.Context, _ esutil.BulkIndexerItem, biri esutil.BulkIndexerResponseItem, err error) {
+		OnFailure: func(ctx context.Context, _ esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
 			slogctx.FromCtx(ctx).Warn("Failed to bulk index item.",
-				slog.String("id", biri.DocumentID),
-				slog.Any("error", err),
+				slog.String("id", resp.DocumentID),
+				slog.Any("error", resp.Error),
 			)
 		},
 	}
@@ -299,4 +299,22 @@ func docToReader[T any](doc T) (io.ReadSeeker, error) {
 		return nil, fmt.Errorf("marshal document: %w", err)
 	}
 	return bytes.NewReader(data), nil
+}
+
+func LogStats(ctx context.Context) error {
+	if _, err := NewIndexer(context.Background()); err != nil {
+		return fmt.Errorf("%w: %w", ErrInitIndexer, err)
+	}
+
+	stats := indexer.Stats()
+
+	slogctx.FromCtx(ctx).Info("Indexer stats.",
+		slog.Uint64("requests", stats.NumRequests),
+		slog.Uint64("added", stats.NumAdded),
+		slog.Uint64("indexed", stats.NumIndexed),
+		slog.Uint64("created", stats.NumCreated),
+		slog.Uint64("deleted", stats.NumDeleted),
+		slog.Uint64("flushed", stats.NumFlushed),
+	)
+	return nil
 }
