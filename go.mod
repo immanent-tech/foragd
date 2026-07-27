@@ -7,7 +7,7 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 replace github.com/immanent-tech/go-base v0.0.0 => ./base
 
 require (
-	cloud.google.com/go/auth v0.21.0
+	cloud.google.com/go/auth v0.22.0
 	cloud.google.com/go/pubsub/v2 v2.6.1
 	github.com/a-h/templ v0.3.1020
 	github.com/alexedwards/scs/v2 v2.9.0
