@@ -295,22 +295,6 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			on every htmx:beforeSend in <button:not(.no-disable)/>
 				tell it toggle [@disabled='true'] until htmx:afterOnLoad
 			end
-			on every htmx:beforeHistorySave in <button/>
-			   	tell it remove .in-flight-request
-				tell it remove @disabled
-			end
-			on every htmx:beforeHistorySave in <a/>
-			   	tell it remove .in-flight-request
-				tell it remove @disabled
-			end
-			on every htmx:historyRestore in <button/>
-			   	tell it remove .in-flight-request
-				tell it remove @disabled
-			end
-			on every htmx:historyRestore in <a/>
-			   	tell it remove .in-flight-request
-				tell it remove @disabled
-			end
 			"
 		>
 			// on htmx:historyRestore
