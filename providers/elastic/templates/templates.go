@@ -217,6 +217,19 @@ func WithSemanticTextMapping(fieldname string, settings *types.SemanticTextPrope
 	}
 }
 
+// WithDenseVectorMapping option creates a new field with a dense_vector mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/dense-vector
+func WithDenseVectorMapping(fieldname string, settings *types.DenseVectorProperty) PropertiesOption {
+	return func(mp Properties) {
+		if settings == nil {
+			mp[fieldname] = types.NewDenseVectorProperty()
+		} else {
+			mp[fieldname] = settings
+		}
+	}
+}
+
 // WithKeywordMapping option creates a new field with a keyword mapping.
 //
 // https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/keyword
