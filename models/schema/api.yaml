@@ -90,7 +90,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'settings'
         article_filters:
-          $ref: 'models.yaml#/components/schemas/SubscriptionArticleFilters'
+          $ref: 'models.yaml#/components/schemas/ArticleFilters'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.
@@ -147,7 +147,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'settings'
         article_filters:
-          $ref: 'models.yaml#/components/schemas/SubscriptionArticleFilters'
+          $ref: 'models.yaml#/components/schemas/ArticleFilters'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.

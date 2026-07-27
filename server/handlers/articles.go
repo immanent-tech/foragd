@@ -137,7 +137,7 @@ func HandleListArticles() http.HandlerFunc {
 				}
 			}
 			request.Query = query.Bool(
-				models.ArticleFiltersQueryClause(subscription),
+				models.ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 			)
 		}
 

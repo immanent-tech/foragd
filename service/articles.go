@@ -77,6 +77,7 @@ func FilterArticles(
 				query.WithQueryName[*query.TermsQuery]("match-categories"),
 			),
 			query.Bool(
+				models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
 				query.Should(BuildItemQueries(user, request.Filters.GetView(), subscriptions)...),
 			),
 			request.Query,

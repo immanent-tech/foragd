@@ -840,7 +840,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			}
 			if request.ArticleFilters != nil {
 				if subscription.FeedData.ArticleFilters == nil {
-					subscription.FeedData.ArticleFilters = &models.SubscriptionArticleFilters{}
+					subscription.FeedData.ArticleFilters = &models.ArticleFilters{}
 				}
 				if request.ArticleFilters.Text != nil {
 					subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
@@ -893,7 +893,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
 			if request.ArticleFilters != nil {
 				if subscription.GroupData.ArticleFilters == nil {
-					subscription.GroupData.ArticleFilters = &models.SubscriptionArticleFilters{}
+					subscription.GroupData.ArticleFilters = &models.ArticleFilters{}
 				}
 				if request.ArticleFilters.Text != nil {
 					subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text

@@ -12,8 +12,6 @@ import (
 	"net/mail"
 	"slices"
 	"time"
-
-	"github.com/immanent-tech/foragd/validation"
 )
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
@@ -62,28 +60,6 @@ func FilterMapValues[K comparable, V any](s map[K]V, fn func(V) bool) iter.Seq[V
 	return FilterSlice(slices.Collect(maps.Values(s)), fn)
 }
 
-func (p *ObjectParams) Valid() error {
-	if err := validation.Validate.Struct(p); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (p *ObjectParams) Sanitise() error {
-	return nil
-}
-
-func (m *MarkObjectParams) Valid() error {
-	if err := validation.Validate.Struct(m); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *MarkObjectParams) Sanitise() error {
-	return nil
-}
-
 // ValidateDatetime will check whether a time.Time is not either the zero value or equal to the Unix epoch.
 func ValidateDatetime(dt time.Time) (bool, error) {
 	switch {
@@ -109,5 +85,5 @@ type ItemSource interface {
 	GetMarkedReadAt() time.Time
 	GetReadItems() []ItemID
 	GetUnreadItems() []ItemID
-	GetArticleFilters() SubscriptionArticleFilters
+	GetArticleFilters() *ArticleFilters
 }

@@ -239,7 +239,7 @@ func queryReadItems(user *models.User, source models.ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		models.ArticleFiltersQueryClause(source),
+		models.ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 
@@ -267,7 +267,7 @@ func queryUnreadItems(_ *models.User, source models.ItemSource) query.Option {
 			query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
 		),
 		// User-specified field-level filtering.
-		models.ArticleFiltersQueryClause(source),
+		models.ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 
@@ -288,7 +288,7 @@ func queryAllItems(user *models.User, source models.ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		models.ArticleFiltersQueryClause(source),
+		models.ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 

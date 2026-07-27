@@ -166,6 +166,30 @@ func (s *UserSettings) Sanitise() error {
 	return nil
 }
 
+// GetTextFilters returns any global article text filters the user has set.
+func (s *UserSettings) GetTextFilters() *string {
+	if s.GlobalFilters != nil {
+		return s.GlobalFilters.Text
+	}
+	return nil
+}
+
+// GetCategoryFilters returns any global article category filters the user has set.
+func (s *UserSettings) GetCategoryFilters() *string {
+	if s.GlobalFilters != nil {
+		return s.GlobalFilters.Categories
+	}
+	return nil
+}
+
+// GetAuthorFilters returns any global article author filters the user has set.
+func (s *UserSettings) GetAuthorFilters() *string {
+	if s.GlobalFilters != nil {
+		return s.GlobalFilters.Authors
+	}
+	return nil
+}
+
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *UserMetadata) Valid() error {

@@ -328,6 +328,8 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'update_interval'
             validate: 'gte=0'
+        global_filters:
+          $ref: '#/components/schemas/ArticleFilters'
     UserLimit:
       description: >
         represents details about a user account limit
@@ -937,7 +939,7 @@ components:
             validate: 'omitzero,url'
       x-oapi-codegen-extra-tags:
         form: 'customisation'
-    SubscriptionArticleFilters:
+    ArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
       type: object
@@ -1074,7 +1076,7 @@ components:
           x-oapi-codegen-extra-tags:
             validate: 'required'
         article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
+          $ref: '#/components/schemas/ArticleFilters'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
@@ -1095,7 +1097,7 @@ components:
             form: 'subscriptions'
             validate: 'required,dive,startswith=sub_'
         article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
+          $ref: '#/components/schemas/ArticleFilters'
         hide_children:
           description: >
             indicates that subscriptions in this group should be hidden outside display within the group (i.e., do not
@@ -1140,7 +1142,7 @@ components:
           x-oapi-codegen-extra-tags:
             validate: 'required'
         article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
+          $ref: '#/components/schemas/ArticleFilters'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
@@ -1431,30 +1433,6 @@ components:
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'required'
-    ObjectParams:
-      description: >
-        contains the parameters for viewing an object.
-      type: object
-      required:
-        - id
-        - object
-      properties:
-        id:
-          $ref: '#/components/schemas/ObjectID'
-        object:
-          $ref: '#/components/schemas/ObjectType'
-    MarkObjectParams:
-      description: >
-        contains the parameters for marking an object.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectParams'
-        - type: object
-          required:
-            - mark
-          properties:
-            mark:
-              $ref: '#/components/schemas/Mark'
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.

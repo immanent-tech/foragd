@@ -34,6 +34,7 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/service"
+	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -161,6 +162,76 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 				User:          user,
 				Subscriptions: subscriptions,
 			}),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+// HandleSaveSubscriptionsSettings handles saving any subscription settings the user has applied.
+func HandleSaveSubscriptionsSettings() http.HandlerFunc {
+	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Decode request.
+		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
+		if err != nil || !valid {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("decode user settings: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		// Get user object
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		if err := validation.Validate.Struct(request); err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("validate settings: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		// At the moment, the only changes here will be global filters. Only apply those.
+		settings := user.GetSettings()
+		settings.GlobalFilters = request.GlobalFilters
+		// Update local user object.
+		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": settings})
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("update data: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		// Report success.
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage("Account edits saved!", ""),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }

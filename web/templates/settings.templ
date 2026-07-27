@@ -653,6 +653,105 @@ const SubscriptionsTable templFragmentKey = "subscriptionsTable"
 
 templ SubscriptionSettings(data *SubscriptionSettingsData) {
 	<div class="px-2">
+		// Global Filters.
+		<button type="button" command="--toggle" commandfor="global-filters" class="flex w-full items-center justify-between text-left">
+			<div class="flex flex-col">
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Global Filters
+				</h3>
+				<p>Apply filters across all articles from all subscriptions.</p>
+			</div>
+			<span class="ml-6 flex h-7 items-center">
+				@tableroutline.Plus(templ.Attributes{"class": "in-aria-expanded:hidden", "aria-label": "Expand content"})
+				@tableroutline.Minus(templ.Attributes{"class": "not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
+			</span>
+		</button>
+		<el-disclosure id="global-filters" hidden>
+			<fieldset class="fieldset min-w-0 py-8">
+				<label class="fieldset">
+					<span class="label">Text</span>
+					<textarea
+						rows="2"
+						id="article-text-filters"
+						name="article_filters.text"
+						placeholder={ `keyword -"some phrase"` }
+						class="textarea w-full bg-base-content/10 textarea-primary"
+						spellcheck="false"
+					>
+						if data.User.GetSettings().GetTextFilters() != nil {
+							{ *data.User.GetSettings().GetTextFilters() }
+						}
+					</textarea>
+				</label>
+				<label class="fieldset">
+					<span class="label">Categories</span>
+					<textarea
+						rows="2"
+						id="article-category-filters"
+						name="article_filters.categories"
+						placeholder={ `keyword -"some phrase"` }
+						class="textarea w-full bg-base-content/10 textarea-primary"
+						spellcheck="false"
+					>
+						if data.User.GetSettings().GetCategoryFilters() != nil {
+							{ *data.User.GetSettings().GetCategoryFilters() }
+						}
+					</textarea>
+				</label>
+				<label class="fieldset">
+					<span class="label">Authors</span>
+					<textarea
+						rows="2"
+						id="article-author-filters"
+						name="article_filters.authors"
+						placeholder={ `keyword -"some phrase"` }
+						class="textarea w-full bg-base-content/10 textarea-primary"
+						spellcheck="false"
+					>
+						if data.User.GetSettings().GetAuthorFilters() != nil {
+							{ *data.User.GetSettings().GetAuthorFilters() }
+						}
+					</textarea>
+				</label>
+			</fieldset>
+			<div class="mt-4 flex w-full justify-end gap-4">
+				<button
+					hx-post="/user/settings/subscriptions"
+					hx-swap="none"
+					hx-include="#global-filters"
+					type="submit"
+					class="btn btn-primary"
+				>
+					<span class="show-loading items-center">
+						<span class="loading mr-3 loading-spinner"></span>
+						<span class="text-sm/6">Processing</span>
+					</span>
+					<span class="hide-loading items-center">
+						<span class="text-sm/6">Save</span>
+					</span>
+				</button>
+			</div>
+		</el-disclosure>
+		// Import and Export.
+		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+			Import/Export
+		</h3>
+		<div class="w-full text-center sm:text-left">
+			<button
+				type="button"
+				class="btn btn-primary"
+				hx-push-url="true"
+				hx-get="/user/import"
+				hx-target={ ContentID.Target() }
+			>Import</button>
+			<button
+				type="button"
+				class="btn btn-primary"
+				hx-push-url="true"
+				hx-get="/user/export"
+				hx-target={ ContentID.Target() }
+			>Export</button>
+		</div>
 		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
 			Subscription Management
 		</h3>
@@ -931,26 +1030,6 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					// </tfoot>
 				</table>
 			}
-		</div>
-		// Import and Export.
-		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-			Import/Export
-		</h3>
-		<div class="w-full text-center sm:text-left">
-			<button
-				type="button"
-				class="btn btn-primary"
-				hx-push-url="true"
-				hx-get="/user/import"
-				hx-target={ ContentID.Target() }
-			>Import</button>
-			<button
-				type="button"
-				class="btn btn-primary"
-				hx-push-url="true"
-				hx-get="/user/export"
-				hx-target={ ContentID.Target() }
-			>Export</button>
 		</div>
 	</div>
 }

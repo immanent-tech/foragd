@@ -79,8 +79,10 @@ func BuildSearchResultsQuery(
 	return query.Bool(
 		query.WithBoolQueryName("search-results"),
 		query.Filter(
-			// Must be in the given user subscriptions.
 			query.Bool(
+				// Must satisfy user global filters.
+				models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+				// Must be in the given user subscriptions.
 				query.Should(BuildItemQueries(user, request.View, subscriptions)...),
 			),
 			// Must be published/updated since the given time.

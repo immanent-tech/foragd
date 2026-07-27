@@ -44,7 +44,9 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 		return err
 	}
 	if r.Customisation != nil {
-		r.Customisation.Sanitise()
+		if err := r.Customisation.Sanitise(); err != nil {
+			return fmt.Errorf("sanitise search subscription request: %w", err)
+		}
 	}
 	return nil
 }

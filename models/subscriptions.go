@@ -82,7 +82,7 @@ func queryReadItems(user *User, source ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source),
+		ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 
@@ -110,7 +110,7 @@ func queryUnreadItems(_ *User, source ItemSource) query.Option {
 			query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
 		),
 		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source),
+		ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 
@@ -131,24 +131,27 @@ func queryAllItems(user *User, source ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source),
+		ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
 }
 
-func ArticleFiltersQueryClause(source ItemSource) query.BoolOption {
+func ArticleFiltersQueryClause(filters *ArticleFilters) query.BoolOption {
+	if filters == nil {
+		return nil
+	}
 	return query.Must(
 		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(source.GetArticleFilters().Text),
+			query.WithSimpleQueryStringText(filters.Text),
 			query.WithSimpleQueryStringFields("title", "description", "content"),
 			query.WithSimpleQueryStringOperator(&operator.And),
 		),
 		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(source.GetArticleFilters().Authors),
+			query.WithSimpleQueryStringText(filters.Authors),
 			query.WithSimpleQueryStringFields("authors", "contributors"),
 			query.WithSimpleQueryStringOperator(&operator.And),
 		),
 		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(source.GetArticleFilters().Categories),
+			query.WithSimpleQueryStringText(filters.Categories),
 			query.WithSimpleQueryStringFields("categories"),
 			query.WithSimpleQueryStringOperator(&operator.And),
 		),
@@ -309,7 +312,9 @@ func (r *EditEmailSubscriptionRequest) Valid() error {
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *EditEmailSubscriptionRequest) Sanitise() error {
-	r.Customisation.Sanitise()
+	if err := r.Customisation.Sanitise(); err != nil {
+		return fmt.Errorf("sanitise email subscription request: %w", err)
+	}
 	return nil
 }
 
@@ -398,16 +403,16 @@ func (s *Subscription) GetLink() string {
 	}
 }
 
-func (s *Subscription) GetArticleFilters() SubscriptionArticleFilters {
+func (s *Subscription) GetArticleFilters() *ArticleFilters {
 	switch {
 	case s.Type == SubscriptionTypeFeed && s.FeedData.ArticleFilters != nil:
-		return *s.FeedData.ArticleFilters
+		return s.FeedData.ArticleFilters
 	case s.Type == SubscriptionTypeEmail && s.EmailData.ArticleFilters != nil:
-		return *s.EmailData.ArticleFilters
+		return s.EmailData.ArticleFilters
 	case s.Type == SubscriptionTypeGroup && s.GroupData.ArticleFilters != nil:
-		return *s.GroupData.ArticleFilters
+		return s.GroupData.ArticleFilters
 	default:
-		return SubscriptionArticleFilters{}
+		return nil
 	}
 }
 
@@ -906,13 +911,13 @@ func newSubscription(
 		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	ts := time.Now().UTC()
-	mr := user.GetMaxHistory()
+	maxHistory := user.GetMaxHistory()
 	subscription := &Subscription{
 		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.GetNickname())), 10),
 		UserID:         user.GetID(),
 		UpdatedAt:      &ts,
 		CreatedAt:      ts,
-		MarkedReadAt:   &mr,
+		MarkedReadAt:   &maxHistory,
 		Customisation:  &customisation,
 		Settings:       *newSubscriptionSettings(),
 		Favorite:       false,
@@ -982,7 +987,10 @@ func (c *SubscriptionCustomisation) GetCategories() Categories {
 }
 
 func (c *SubscriptionCustomisation) Valid() error {
-	return validation.Validate.Struct(c)
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate subscription customisation: %w", err)
+	}
+	return nil
 }
 
 func (c *SubscriptionCustomisation) Sanitise() error {
@@ -999,11 +1007,14 @@ func (c *SubscriptionCustomisation) Sanitise() error {
 	return nil
 }
 
-func (f *SubscriptionArticleFilters) Valid() error {
-	return validation.Validate.Struct(f)
+func (f *ArticleFilters) Valid() error {
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("validate article filters: %w", err)
+	}
+	return nil
 }
 
-func (f *SubscriptionArticleFilters) Sanitise() error {
+func (f *ArticleFilters) Sanitise() error {
 	if f != nil {
 		if f.Authors != nil {
 			cleanAuthorFilters := validation.SanitizeString(*f.Authors)
@@ -1022,7 +1033,10 @@ func (f *SubscriptionArticleFilters) Sanitise() error {
 }
 
 // IsEmpty returns a boolean indicating whether any article filtering has been set.
-func (f *SubscriptionArticleFilters) IsEmpty() bool {
+func (f *ArticleFilters) IsEmpty() bool {
+	if f == nil {
+		return true
+	}
 	return (f.Text == nil || *f.Text == "") && (f.Authors == nil || *f.Authors == "") &&
 		(f.Categories == nil || *f.Categories == "")
 }
@@ -1034,7 +1048,10 @@ func newSubscriptionSettings() *SubscriptionSettings {
 }
 
 func (f *AddFeedSubscriptionRequest) Valid() error {
-	return validation.Validate.Struct(f)
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("validate add subscription request: %w", err)
+	}
+	return nil
 }
 
 func (f *AddFeedSubscriptionRequest) Sanitise() error {
