@@ -15,7 +15,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/logging"
@@ -90,7 +89,6 @@ func main() {
 
 				if tasksResp.Completed {
 					if tasksResp.Error != nil {
-						godump.Dump(tasksResp)
 						panic(fmt.Errorf("reindex: %v", tasksResp.Error))
 					}
 					slogctx.Info(ctx, "Reindex complete!")
@@ -112,6 +110,8 @@ func main() {
 				} else {
 					slogctx.Info(ctx, "Reindexing...",
 						slog.String("task_id", *taskID),
+						slog.String("source", src),
+						slog.String("destination", dest),
 						slog.Int("created", status.Created),
 						slog.Int("updated", status.Updated),
 						slog.Int("deleted", status.Deleted),
