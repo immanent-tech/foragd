@@ -5,23 +5,18 @@
 package queue
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
 	"time"
 
-	"github.com/maypok86/otter/v2"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/logging"
-
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 )
@@ -50,8 +45,6 @@ var (
 // persistence layer.
 type JobQueue struct {
 	logger *slog.Logger
-	cache  *otter.Cache[*quartz.JobKey, *jobs.SerializedJob]
-	loader otter.LoaderFunc[*quartz.JobKey, *jobs.SerializedJob]
 }
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
@@ -59,85 +52,9 @@ var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
-	queue := &JobQueue{
+	return &JobQueue{
 		logger: slogctx.FromCtx(ctx),
-		cache: otter.Must(&otter.Options[*quartz.JobKey, *jobs.SerializedJob]{
-			MaximumSize: 10_000,
-			OnAtomicDeletion: func(entry otter.DeletionEvent[*quartz.JobKey, *jobs.SerializedJob]) {
-				ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
-				defer cancel()
-
-				// Update in backend.
-				if err := bulk.AddAction(ctx,
-					bulk.NewAction(
-						entry.Value,
-						bulk.AsOperation[string](bulk.OpDelete),
-						bulk.ToIndex[string](schema.SchedulerIndexRW()),
-					),
-				); err != nil {
-					slogctx.FromCtx(ctx).Error("Unable to delete scheduled job.",
-						slog.String("job_key", entry.Key.String()),
-						slog.Any("error", err))
-					return
-				}
-
-				// if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), entry.Key.String()); err != nil {
-				// 	slogctx.FromCtx(ctx).Error("Unable to delete scheduled job.",
-				// 		slog.String("job_key", entry.Key.String()),
-				// 		slog.Any("error", err))
-				// 	return
-				// }
-				slogctx.FromCtx(ctx).Debug("Scheduled job was deleted.",
-					slog.String("job_key", entry.Key.String()),
-					slog.String("reason", entry.Cause.String()),
-				)
-			},
-		}),
-		loader: func(ctx context.Context, key *quartz.JobKey) (*jobs.SerializedJob, error) {
-			if err := bulk.Flush(ctx); err != nil {
-				return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
-			}
-			getCtx, cancel := context.WithTimeout(ctx, defaultRequestTimeout)
-			defer cancel()
-			job, err := elastic.GetDoc[string, *jobs.SerializedJob](
-				getCtx,
-				schema.SchedulerIndexRO(),
-				key.String(),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w: %w", ErrGetJobFailed, otter.ErrNotFound, err)
-			}
-
-			slogctx.FromCtx(ctx).Debug("Retrieved job from backend.",
-				slog.String("job_key", job.JobDetail().JobKey().String()),
-			)
-
-			return job, nil
-		},
-	}
-
-	// Get all existing jobs from the backend.
-	const defaultPaginationSize = 5000
-	jobs, err := elastic.SearchAll[*jobs.SerializedJob](
-		ctx,
-		schema.SchedulerIndexRO(),
-		query.MatchAll(),
-		defaultPaginationSize,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
-	}
-
-	// Load all jobs into cache.
-	for job := range slices.Values(jobs) {
-		queue.cache.Set(job.JobDetail().JobKey(), job)
-	}
-
-	slogctx.FromCtx(ctx).Info("Job queue started.",
-		slog.Time("start_time", time.Now().UTC()),
-		slog.Int("job_count", queue.cache.EstimatedSize()))
-
-	return queue, nil
+	}, nil
 }
 
 // Push inserts a new scheduled job to the queue. This method is also used by the Scheduler to reschedule existing jobs
@@ -155,51 +72,56 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	serialized.UpdatedAt = time.Now().UTC()
 
 	// Update in backend.
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			serialized,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string](schema.SchedulerIndexRW()),
-		),
+
+	if err := elastic.UpdateDoc(
+		ctx,
+		schema.SchedulerIndexRW(),
+		job.JobDetail().JobKey().String(),
+		serialized,
+		elastic.WithDocAsUpsert(true),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
-
-	// Update in cache.
-	jq.cache.Set(job.JobDetail().JobKey(), serialized)
 
 	return nil
 }
 
 // Pop removes and returns the next scheduled job from the queue.
 func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
 	// Get the next scheduled job.
 	job, err := jq.Head()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrPopJobFailed, err)
 	}
 
-	// Invalidate it in the cache so it will be fetched from the backend next time.
-	jq.cache.Invalidate(job.JobDetail().JobKey())
+	// Delete the job from the queue and invalidate its cache entry.
+	if err := jq.deleteJob(ctx, job.JobDetail().JobKey().String()); err != nil {
+		return nil, fmt.Errorf("remove job: %w", err)
+	}
 
 	return job, nil
 }
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	// Get all jobs from the cache.
-	allJobs := slices.Collect(jq.cache.Values())
-	if len(allJobs) == 0 {
-		return nil, fmt.Errorf("head: %w", quartz.ErrQueueEmpty)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
+	resp, err := elastic.Search[*jobs.SerializedJob](ctx,
+		schema.SchedulerIndexRO(),
+		elastic.WithSize(1),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
+		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("head: %w", err)
 	}
 
-	// Sort jobs in ascending order by next run time.
-	slices.SortFunc(allJobs, func(a, b *jobs.SerializedJob) int {
-		return cmp.Compare(a.NextRunTime(), b.NextRunTime())
-	})
-
 	// Return the job that should run next.
-	return allJobs[0], nil
+	return resp.Results[0], nil
 }
 
 // Get returns the scheduled job with the specified key without removing it
@@ -209,10 +131,14 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	// Fetch the job from the cache, loading from the backend if needed.
-	job, err := jq.cache.Get(ctx, jobKey, jq.loader)
+	job, err := elastic.GetDoc[string, *jobs.SerializedJob](
+		ctx,
+		schema.SchedulerIndexRO(),
+		jobKey.String(),
+	)
 	if err != nil {
-		if errors.Is(err, otter.ErrNotFound) {
-			return nil, fmt.Errorf("%w: %w: %w", ErrGetJobFailed, quartz.ErrJobNotFound, err)
+		if errors.Is(err, elastic.ErrNotFound) {
+			return nil, quartz.ErrJobNotFound
 		}
 		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
@@ -222,26 +148,46 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 
 // Remove removes and returns the scheduled job with the specified key.
 func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
-	// Get the job.
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
 	job, err := jq.Get(jobKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
 
-	// Invalidate the cache entry for the job.
-	jq.cache.Invalidate(jobKey)
+	// Delete the job from the queue and invalidate its cache entry.
+	if err := jq.deleteJob(ctx, jobKey.String()); err != nil {
+		return nil, fmt.Errorf("remove job: %w", err)
+	}
 
 	jq.logger.Debug("Removed job from queue.",
-		slog.String("job_key", job.JobDetail().JobKey().String()))
+		slog.String("job_key", jobKey.String()))
 
 	return job, nil
 }
 
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
-	jobs := make([]quartz.ScheduledJob, 0)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
+	allJobs, err := elastic.SearchAll[*jobs.SerializedJob](
+		ctx,
+		schema.SchedulerIndexRO(),
+		query.MatchAll(),
+		5000,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
+	}
+	if len(allJobs) == 0 {
+		return nil, fmt.Errorf("get all scheduled jobs: %w", quartz.ErrJobNotFound)
+	}
+
+	jobs := make([]quartz.ScheduledJob, 0, len(allJobs))
 	// Filter jobs that to those that match given matchers.
-	for job := range slices.Values(slices.Collect(jq.cache.Values())) {
+	for _, job := range allJobs {
 		if isMatch(job, matchers) {
 			jobs = append(jobs, job)
 		}
@@ -251,7 +197,15 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
-	return len(slices.Collect(jq.cache.Values())), nil
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	defer cancel()
+
+	count, err := elastic.Count(ctx, schema.SchedulerIndexRO(), query.MatchAll())
+	if err != nil {
+		return 0, fmt.Errorf("count jobs: %w", err)
+	}
+
+	return int(count), nil
 }
 
 // Clear clears the job queue.
@@ -259,10 +213,19 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	// Invalidate all cache entries.
-	jq.cache.InvalidateAll()
+	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW(), query.MatchAll()); err != nil {
+		return fmt.Errorf("%w: delete docs: %w", ErrClearJobs, err)
+	}
 
-	jq.logger.Log(ctx, logging.LevelTrace, "Cleared job queue.")
+	jq.logger.Debug("Cleared job queue.")
+	return nil
+}
+
+func (jq *JobQueue) deleteJob(ctx context.Context, jobID string) error {
+	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), jobID); err != nil {
+		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
+	}
+
 	return nil
 }
 
@@ -275,4 +238,14 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 	}
 
 	return true
+}
+
+type jobSorting struct {
+	JobNextRun string `json:"job_next_run"`
+}
+
+// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
+func (s *jobSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
 }
