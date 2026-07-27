@@ -19,7 +19,6 @@ require (
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.3
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.23.0
@@ -153,7 +152,7 @@ require (
 	github.com/elastic/go-elasticsearch/v9 v9.4.2
 	github.com/fatih/color v1.19.0
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
-	github.com/getkin/kin-openapi v0.142.0 // indirect
+	github.com/getkin/kin-openapi v0.144.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
