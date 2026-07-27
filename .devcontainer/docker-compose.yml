@@ -141,6 +141,7 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${ELASTICSEARCH_LICENSE}
       - xpack.ml.use_auto_machine_memory_percent=true
+      - reindex.remote.whitelist="*.elastic-cloud.com:443"
     mem_limit: ${ELASTICSEARCH_MEM_LIMIT}
     ulimits:
       memlock:
@@ -184,6 +185,7 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${ELASTICSEARCH_LICENSE}
       - xpack.ml.use_auto_machine_memory_percent=true
+      - reindex.remote.whitelist="*.elastic-cloud.com:443"
     mem_limit: ${ELASTICSEARCH_MEM_LIMIT}
     ulimits:
       memlock:
@@ -227,6 +229,7 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${ELASTICSEARCH_LICENSE}
       - xpack.ml.use_auto_machine_memory_percent=true
+      - reindex.remote.whitelist="*.elastic-cloud.com:443"
     mem_limit: ${ELASTICSEARCH_MEM_LIMIT}
     ulimits:
       memlock:
@@ -282,21 +285,6 @@ services:
     build:
       context: .
       dockerfile: ollama.Dockerfile
-    # volumes:
-    #   - ..:/workspace:cached
-    #   - /etc/localtime:/etc/localtime:ro,cached
-    #   - /run/user/1000/podman/podman.sock:/var/run/docker.sock:rw
-    # command: -c 'sleep infinity'
-    # user: vscode
-    # init: true
-    # group_add:
-    #   - keep-groups
-    # cap_add:
-    #   - SYS_PTRACE
-    #   - SETUID
-    #   - SETGID
-    # security_opt:
-    #   - seccomp:unconfined
     hostname: ollama
     ports:
       - 11434:11434
