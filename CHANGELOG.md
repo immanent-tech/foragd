@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.206.0](https://github.com/immanent-tech/foragd/compare/v0.205.0...v0.206.0) (2026-07-27)
+
+
+### Features
+
+* **elastic:** ✨ connection improvements ([ab09f05](https://github.com/immanent-tech/foragd/commit/ab09f05c1401a436d2870972299fcf193a32e979))
+
+
+### Bug Fixes
+
+* **devcontainer:** 🔧 fix embedding of model in ollama container ([793e952](https://github.com/immanent-tech/foragd/commit/793e952e5cdd3aff67722635218854d66288730b))
+* **templates:** 🔧 remove global hyperscript triggers for buttons (which aren't working) ([e32d45c](https://github.com/immanent-tech/foragd/commit/e32d45cf46a7f03dcc052e55e5e1ebe23f92a337))
+
+
+### Performance Improvements
+
+* **models:** ♻️ small user message adjustments ([75e79a6](https://github.com/immanent-tech/foragd/commit/75e79a6237c540fc51ed5e1033f00da0bc0cc186))
+* **scheduler:** ♻️ switch back to simplified uncached queue ([f5c940d](https://github.com/immanent-tech/foragd/commit/f5c940d30d1a96a3fcb4e4cd892bf33c454f708b))
+* **styles:** ⚡ use contain-intrinsic-size to hopefully reduce CLS ([a63167a](https://github.com/immanent-tech/foragd/commit/a63167a88f714879a421707314f390a7ca94a5cf))
+
 ## [0.205.0](https://github.com/immanent-tech/foragd/compare/v0.204.1...v0.205.0) (2026-07-25)
 
 
