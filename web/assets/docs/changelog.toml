@@ -1,8 +1,8 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.204"
-date      = "Jul 24, 2026"
+version   = "v0.207"
+date      = "Jul 28, 2026"
 type      = "minor"
 is_latest = true
 [[releases.changes]]
