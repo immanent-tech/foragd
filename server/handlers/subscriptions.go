@@ -328,16 +328,16 @@ func HandleMarkSubscription() http.HandlerFunc {
 		// Do extra processing based on the current URL.
 		if currentURL, found := htmx.GetCurrentURL(req); found {
 			switch {
-			case strings.Contains(currentURL, "/list/articles"):
-				// On /list/articles, redirect back to subscriptions after marking.
-				if err := setRedirect(res, htmx.HXLocationRequest{
-					Path:   "/list/subscriptions",
-					Target: templates.ContentID.Target(),
-					Swap:   "innerHTML transition:true show:top",
-					Values: getListSubscriptionsFilters(req).Values(),
-				}); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
-				}
+			// case strings.Contains(currentURL, "/list/articles"):
+			// 	// On /list/articles, redirect back to subscriptions after marking.
+			// 	if err := setRedirect(res, htmx.HXLocationRequest{
+			// 		Path:   "/list/subscriptions",
+			// 		Target: templates.ContentID.Target(),
+			// 		Swap:   "innerHTML transition:true show:top",
+			// 		Values: getListSubscriptionsFilters(req).Values(),
+			// 	}); err != nil {
+			// 		slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
+			// 	}
 			case strings.Contains(currentURL, "/list/subscriptions"):
 				// If we aren't viewing all subscriptions, remove the subscription card.
 				if models.View(req.FormValue("view")) != models.ViewAll {

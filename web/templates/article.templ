@@ -875,6 +875,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 					"view": string(response.Filters.GetView()),
 				}) }
 				class="group btn border-neutral/15 btn-outline btn-sm"
+				_="on htmx:afterRequest[detail.successful] call history.back()"
 			>
 				<span class="hidden items-center group-[.htmx-request]:inline-flex">
 					<span class="loading mr-3 loading-spinner"></span>
