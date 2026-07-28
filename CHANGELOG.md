@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.207.1](https://github.com/immanent-tech/foragd/compare/v0.207.0...v0.207.1) (2026-07-28)
+
+
+### Miscellaneous Chores
+
+* release 0.207.1 ([d2b0ac9](https://github.com/immanent-tech/foragd/commit/d2b0ac97edfb1f35636b6173369f0f7b55efabb1))
+
 ## [0.207.0](https://github.com/immanent-tech/foragd/compare/v0.206.0...v0.207.0) (2026-07-28)
 
 
