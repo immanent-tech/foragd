@@ -259,7 +259,6 @@ func GetFeedLatestItems(
 	ctx context.Context,
 	count int,
 	feedIDs []models.FeedID,
-	extraQuery query.Option,
 ) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
@@ -267,8 +266,6 @@ func GetFeedLatestItems(
 			query.Bool(
 				query.Filter(
 					query.Terms("feed_id", feedIDs),
-					// extraQuery is ignored if nil.
-					extraQuery,
 				),
 			),
 		),
@@ -420,7 +417,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs(), nil)
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -515,7 +512,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs(), nil)
+		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -637,7 +634,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	}
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs(), nil)
+		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -946,11 +943,7 @@ func getFeedUnreadCounts(
 		schema.ItemsIndexRO(),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
-				query.Filter(
-					query.Bool(
-						query.Should(subscriptionQueries...),
-					),
-				),
+				query.Should(subscriptionQueries...),
 			),
 		),
 		elastic.WithAggregations(
