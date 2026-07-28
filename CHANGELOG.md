@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.207.0](https://github.com/immanent-tech/foragd/compare/v0.206.0...v0.207.0) (2026-07-28)
+
+
+### Features
+
+* ✨ add ability to define global filters across all subscriptions ([6950be5](https://github.com/immanent-tech/foragd/commit/6950be5d3c8054248b04f39558801eab520049ce))
+* **elastic:** ✨ add ability to add dense vector mapping ([bf0e6b9](https://github.com/immanent-tech/foragd/commit/bf0e6b9674894df552b45ee5ddf3f77a0babb876))
+* **elastic:** ✨ add helpers for chunking text for dense vector fields ([dd9b961](https://github.com/immanent-tech/foragd/commit/dd9b96184cef07549d9adcfaa6b213f909d44052))
+* **elastic:** ✨ add method for extracting aggregation buckets as map[string]T ([da1475d](https://github.com/immanent-tech/foragd/commit/da1475d9d218a7bb19fe821561eeb746c552de26))
+* **models:** ✨ default to displaying 9 cards in lists ([aa04fd7](https://github.com/immanent-tech/foragd/commit/aa04fd7f40c1557c59e1fa87475816c92aa4cd79))
+* **ollama:** ✨ add ollama provider ([269f37b](https://github.com/immanent-tech/foragd/commit/269f37b4cc86d556fe4ae9f9e797d08ab3e95004))
+* **oneshots:** ✨ add oneshot for reindexing items with dense vector field ([415f877](https://github.com/immanent-tech/foragd/commit/415f877aa54a9705deb152ccdab8efb3a873c831))
+
+
+### Bug Fixes
+
+* 🔧 fix logic for subscription dynamic info to account for global filtering ([1bf3dd4](https://github.com/immanent-tech/foragd/commit/1bf3dd40a27c89f3db7db3e2c31575414d8629c8))
+* **templates/articles:** 🔧 fix logic check for showing stats ([43273f0](https://github.com/immanent-tech/foragd/commit/43273f0a82844184ed468b9d5e8512e97a7e0980))
+
 ## [0.206.0](https://github.com/immanent-tech/foragd/compare/v0.205.0...v0.206.0) (2026-07-27)
 
 
