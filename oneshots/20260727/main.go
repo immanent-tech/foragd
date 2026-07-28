@@ -17,8 +17,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/vector"
-	"github.com/immanent-tech/foragd/providers/ollama"
 )
 
 func main() {
@@ -53,15 +51,15 @@ func main() {
 			continue
 		}
 		// Ignore items with vectors.
-		if item.ContentVector != nil {
-			continue
-		}
-		chunks := vector.ChunkBytes([]byte(*item.Content), 2000, 200)
-		vectors, err := ollama.EmbedChunks(chunks...)
+		// if item.ContentVector != nil {
+		// 	continue
+		// }
+		// chunks := vector.ChunkBytes([]byte(*item.Content), 2000, 200)
+		// vectors, err := ollama.EmbedChunks(chunks...)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not embed content.", slog.Any("error", err))
 		} else {
-			item.ContentVector = vectors[0]
+			// item.ContentVector = vectors[0]
 			if err := bulk.AddAction(ctx,
 				bulk.NewAction(item,
 					bulk.AsOperation[models.ItemID](bulk.OpIndex),
