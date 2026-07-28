@@ -20,13 +20,23 @@ type Aggs map[string]types.Aggregations
 
 // BucketTypes is a type constraint for all aggregation bucket types.
 type BucketTypes interface {
-	types.StringTermsBucket | types.StringRareTermsBucket
+	types.StringTermsBucket | types.StringRareTermsBucket | types.FiltersBucket
 }
 
-// ExtractBuckets extracts the bucket object from the aggregation as the given type. If the aggregation cannot be
-// extracted to the type, a non-nil error is returned that will contain details.
+// ExtractBuckets extracts the bucket object from the aggregation as a slice of the given type. If the aggregation
+// cannot be extracted to the type, a non-nil error is returned that will contain details.
 func ExtractBuckets[T BucketTypes](container any) ([]T, error) {
 	buckets, ok := container.([]T)
+	if !ok {
+		return buckets, fmt.Errorf("%w: have %T, want %T", ErrInvalidAggType, container, buckets)
+	}
+	return buckets, nil
+}
+
+// ExtractBucketsAsMap extracts the bucket object from the aggregation as a map[string]T of given type. If the aggregation
+// cannot be extracted to the type, a non-nil error is returned that will contain details.
+func ExtractBucketsAsMap[T BucketTypes](container any) (map[string]T, error) {
+	buckets, ok := container.(map[string]T)
 	if !ok {
 		return buckets, fmt.Errorf("%w: have %T, want %T", ErrInvalidAggType, container, buckets)
 	}
@@ -37,7 +47,7 @@ func ExtractBuckets[T BucketTypes](container any) ([]T, error) {
 // into bucket sub-aggregations.
 func ExtractAggregation[T any](aggs map[string]types.Aggregate, name string) (T, bool, error) {
 	// Search top-level.
-	if agg, ok := aggs[name]; ok {
+	if agg, found := aggs[name]; found {
 		if v, ok := agg.(T); ok {
 			return v, true, nil
 		} else {
@@ -47,8 +57,8 @@ func ExtractAggregation[T any](aggs map[string]types.Aggregate, name string) (T,
 
 	// Recurse into bucket-type aggregations that can hold sub-aggs
 	for _, agg := range aggs {
-		if found, ok, _ := searchInAggregate[T](agg, name); ok {
-			if v, ok := found.(T); ok {
+		if subAgg, found, _ := searchInAggregate[T](agg, name); found {
+			if v, ok := subAgg.(T); ok {
 				return v, true, nil
 			} else {
 				return v, false, fmt.Errorf("%w: have %T, want %T", ErrInvalidAggType, aggs[name], v)
