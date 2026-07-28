@@ -6,6 +6,16 @@ date      = "Jul 24, 2026"
 type      = "minor"
 is_latest = true
 [[releases.changes]]
+type = "new"
+description = """
+You can now define global article filters, that will filter articles across all subscriptions. These apply in addition to per-subscription article filters.
+"""
+
+[[releases]]
+version   = "v0.204"
+date      = "Jul 24, 2026"
+type      = "minor"
+[[releases.changes]]
 type = "improved"
 description = """
 Font sizing improved.

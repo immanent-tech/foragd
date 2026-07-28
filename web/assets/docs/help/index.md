@@ -13,6 +13,8 @@
   - [Managing Your Subscriptions](#managing-your-subscriptions)
     - [Customizing the Subscription Display](#customizing-the-subscription-display)
     - [Filtering Articles Within a Subscription](#filtering-articles-within-a-subscription)
+    - [Filtering Articles Across All Subscriptions](#filtering-articles-across-all-subscriptions)
+    - [Global Verses Per-Subscription Filters, Which to Use?](#global-verses-per-subscription-filters-which-to-use)
     - [Group Subscriptions](#group-subscriptions)
     - [Search Subscriptions](#search-subscriptions)
     - [Email Newsletter Subscriptions](#email-newsletter-subscriptions)
@@ -112,6 +114,22 @@ See [filtering](#filtering-articles-within-a-subscription) for usage.
 
 **Note:** article filters are applied globally, meaning all searches, views, and any group/search Subscriptions you
 create will have the subscription article filters applied.
+
+### Filtering Articles Across All Subscriptions
+
+In addition to per-subscription article filters, you can apply global filters that work across all subscriptions. These
+are defined the same way as the per-subscription filters, across any text, categories, or authors you define.
+
+### Global Verses Per-Subscription Filters, Which to Use?
+
+- Global filters are great the same topics, categories, or authors come up across multiple subscriptions. This saves you
+  repeating the filters per subscription.
+- Per-subscription filters are great where you have a subscription on a specific topic or area and need precision
+  filtering.
+
+Be aware that global filters apply *before* per-subscription filters. When you filter out a keyword or phrase with a
+global filter (i.e., `-thing`), you can't then apply any per-subscription filters on articles that would match `thing`.
+Those articles are filtered out already.
 
 ### Group Subscriptions
 
@@ -240,4 +258,4 @@ The following shortcut keys are available on desktop:
 
 ## Last Updated
 
-Jul 13th, 2026
+Jul 28th, 2026
