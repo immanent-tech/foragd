@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -141,7 +142,10 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		request.Pagination = &next
 
-		latestItems := service.GetLatestItems(req.Context(), filters.GetView(), subscriptions)
+		var latestItems *sync.Map
+		if len(subscriptions) > 0 {
+			latestItems = service.GetLatestItems(req.Context(), filters.GetView(), subscriptions)
+		}
 
 		response := &models.ListSubscriptionsResponse{
 			Filters:        request.Filters,
@@ -258,7 +262,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 				query.Terms("categories.raw", filters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+					query.Filter(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			),
 		)

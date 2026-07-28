@@ -253,114 +253,6 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 	return results
 }
 
-// GetFeedLatestItems fetches the most recent count items for each given feed. An optional query clause can be specified
-// that will be added to the bool filter clause of the query to apply additional filtering to the items.
-func GetFeedLatestItems(
-	ctx context.Context,
-	count int,
-	feedIDs []models.FeedID,
-) (map[models.FeedID]models.Items, error) {
-	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs),
-				),
-			),
-		),
-		elastic.WithAggregations(
-			elastic.Aggs{
-				"feed": estypes.Aggregations{
-					Terms: &estypes.TermsAggregation{
-						Field: new("feed_id"),
-						Size:  new(len(feedIDs)),
-					},
-					Aggregations: map[string]estypes.Aggregations{
-						"latest_items": {
-							TopHits: &estypes.TopHitsAggregation{
-								Size: &count,
-								Sort: NewItemSortCombinations(new(models.SortNewestFirst)),
-							},
-						},
-					},
-				},
-			},
-		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("fetch latest articles: %w", err)
-	}
-	feedsLatestItems := make(map[models.FeedID]models.Items)
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	// Extract the feed aggregation.
-	feedsAgg, hasFeedAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
-		resp.Aggregations,
-		"feed",
-	)
-	if !hasFeedAgg || err != nil {
-		return nil, fmt.Errorf("extract feed aggregation: %w", err)
-	}
-	// Loop over the feed buckets.
-	feedBuckets, err := elastic.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
-	if err != nil {
-		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
-	}
-	for bucket := range slices.Values(feedBuckets) {
-		if feedID, ok := bucket.Key.(models.FeedID); ok {
-			wg.Go(func() {
-				// Get the subscription with this feedID.
-				if !slices.Contains(feedIDs, feedID) {
-					slogctx.FromCtx(ctx).
-						Warn("Could not match feed in aggregation result to a subscription.",
-							slog.String("feed_id", feedID),
-						)
-					return
-				}
-				// Extract the latest articles aggregation.
-				latestItemsAggs, hasLatestItemsAgg, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
-					bucket.Aggregations,
-					"latest_items",
-				)
-				if !hasLatestItemsAgg || err != nil {
-					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
-						slog.String("aggregation", "latest_items"),
-						slog.Any("error", err),
-					)
-					return
-				}
-				var (
-					items models.Items
-				)
-
-				// Extract the latest items.
-				//
-				// * Note that the "latest_items" aggregation applies _source filtering,
-				// * so only the given fields will be populated in the models.Item object.
-				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
-				if err != nil {
-					slogctx.FromCtx(ctx).
-						Warn("Unable to extract latest articles from elastic.",
-							slog.Any("error", err),
-						)
-					return
-				}
-				// Ensure proper sorting.
-				items = items.SortByTimestamp()
-				mu.Lock()
-				feedsLatestItems[feedID] = items
-				mu.Unlock()
-			})
-		}
-	}
-
-	wg.Wait()
-	return feedsLatestItems, nil
-}
-
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
 func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
 	// Get user subscriptions.
@@ -417,7 +309,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -512,7 +404,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -634,7 +526,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	}
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := GetFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -919,39 +811,36 @@ func NormalizeFeedURL(urlStr string) (*url.URL, error) {
 	return feedURL, nil
 }
 
-func getFeedUnreadCounts(
+// getFeedLatestItems fetches the most recent count items for each given feed. An optional query clause can be specified
+// that will be added to the bool filter clause of the query to apply additional filtering to the items.
+func getFeedLatestItems(
 	ctx context.Context,
-	subscriptions models.Subscriptions,
-) (map[models.FeedID]int64, error) {
-	// Retrieve user object.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	// Generate unread count query.
-	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed &&
-			subscription.GetSubscriptionType() != models.SubscriptionTypeEmail {
-			continue
-		}
-		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, subscription))
-	}
-	// Perform aggregation.
+	count int,
+	feedIDs []models.FeedID,
+) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		schema.ItemsIndexRO(),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
-				query.Should(subscriptionQueries...),
+				query.Filter(
+					query.Terms("feed_id", feedIDs),
+				),
 			),
 		),
 		elastic.WithAggregations(
 			elastic.Aggs{
-				"UnreadCounts": estypes.Aggregations{
+				"feed": estypes.Aggregations{
 					Terms: &estypes.TermsAggregation{
 						Field: new("feed_id"),
-						Size:  new(len(subscriptions)),
+						Size:  new(len(feedIDs)),
+					},
+					Aggregations: map[string]estypes.Aggregations{
+						"latest_items": {
+							TopHits: &estypes.TopHitsAggregation{
+								Size: &count,
+								Sort: NewItemSortCombinations(new(models.SortNewestFirst)),
+							},
+						},
 					},
 				},
 			},
@@ -960,34 +849,74 @@ func getFeedUnreadCounts(
 		elastic.WithDocSorting(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+		return nil, fmt.Errorf("fetch latest articles: %w", err)
 	}
-
-	unreadCounts, ok := resp.Aggregations["UnreadCounts"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
+	feedsLatestItems := make(map[models.FeedID]models.Items)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	// Extract the feed aggregation.
+	feedsAgg, hasFeedAgg, err := elastic.ExtractAggregation[*estypes.StringTermsAggregate](
+		resp.Aggregations,
+		"feed",
+	)
+	if !hasFeedAgg || err != nil {
+		return nil, fmt.Errorf("extract feed aggregation: %w", err)
 	}
-	unreadCountsBuckets, ok := unreadCounts.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			models.ErrInvalidAPIResult,
-		)
+	// Loop over the feed buckets.
+	feedBuckets, err := elastic.ExtractBuckets[estypes.StringTermsBucket](feedsAgg.Buckets)
+	if err != nil {
+		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
 	}
+	for bucket := range slices.Values(feedBuckets) {
+		if feedID, ok := bucket.Key.(models.FeedID); ok {
+			wg.Go(func() {
+				// Get the subscription with this feedID.
+				if !slices.Contains(feedIDs, feedID) {
+					slogctx.FromCtx(ctx).
+						Warn("Could not match feed in aggregation result to a subscription.",
+							slog.String("feed_id", feedID),
+						)
+					return
+				}
+				// Extract the latest articles aggregation.
+				latestItemsAggs, hasLatestItemsAgg, err := elastic.ExtractAggregation[*estypes.TopHitsAggregate](
+					bucket.Aggregations,
+					"latest_items",
+				)
+				if !hasLatestItemsAgg || err != nil {
+					slogctx.FromCtx(ctx).Warn("Could not extract aggregation.",
+						slog.String("aggregation", "latest_items"),
+						slog.Any("error", err),
+					)
+					return
+				}
+				var (
+					items models.Items
+				)
 
-	stats := make(map[models.SubscriptionID]int64)
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for feed := range slices.Values(unreadCountsBuckets) {
-		var feedID models.FeedID
-		if feedID, ok = feed.Key.(string); ok {
-			stats[feedID] = feed.DocCount
+				// Extract the latest items.
+				//
+				// * Note that the "latest_items" aggregation applies _source filtering,
+				// * so only the given fields will be populated in the models.Item object.
+				items, _, err = results.ExtractSourceFromHits[*models.Item](latestItemsAggs.Hits.Hits)
+				if err != nil {
+					slogctx.FromCtx(ctx).
+						Warn("Unable to extract latest articles from elastic.",
+							slog.Any("error", err),
+						)
+					return
+				}
+				// Ensure proper sorting.
+				items = items.SortByTimestamp()
+				mu.Lock()
+				feedsLatestItems[feedID] = items
+				mu.Unlock()
+			})
 		}
 	}
-	return stats, nil
+
+	wg.Wait()
+	return feedsLatestItems, nil
 }
 
 func getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]time.Time, error) {

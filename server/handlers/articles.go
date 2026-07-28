@@ -173,6 +173,7 @@ func HandleListArticles() http.HandlerFunc {
 			Filters:      request.Filters,
 			Pagination:   *request.Pagination,
 		}
+
 		// Choose rendering method based on method (get = page, post = partial).
 		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
@@ -274,7 +275,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				query.Terms("categories.raw", articleFilters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Should(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
+					query.Filter(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
 				),
 			),
 		)
