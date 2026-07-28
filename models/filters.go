@@ -28,10 +28,10 @@ var ErrNoFilters = &APIError{
 const (
 	// maxUserCount is the maximum number of results a user can retrieve at a single time.
 	maxUserCount = 12
-	// minUserCount is the mininum number of results a user can retrieve at a single time.
+	// minUserCount is the minimum number of results a user can retrieve at a single time.
 	minUserCount = 1
-	// defaultCount is to show 10 objects.
-	defaultCount = 6
+	// defaultCount is to show 9 objects.
+	defaultCount = 9
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 )
