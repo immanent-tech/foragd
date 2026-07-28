@@ -1849,7 +1849,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+						if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats && response.Subscription != nil {
 							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<span class=\"badge badge-primary\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
