@@ -544,6 +544,9 @@ func getFeedSubscriptionLatestItems(
 	}
 	for feedID, bucket := range feedBuckets {
 		wg.Go(func() {
+			if feedID == "" {
+				return
+			}
 			// Get the subscription with this feedID.
 			if !slices.Contains(feedIDs, feedID) {
 				slogctx.FromCtx(ctx).
@@ -1079,6 +1082,9 @@ func getSubscriptionUnreadCounts(
 		return nil, fmt.Errorf("extract feed aggregation buckets: %w", err)
 	}
 	for feedID, bucket := range feedBuckets {
+		if feedID == "" {
+			continue
+		}
 		// Get the subscription with this feedID.
 		if !slices.Contains(feedIDs, feedID) {
 			slogctx.FromCtx(ctx).

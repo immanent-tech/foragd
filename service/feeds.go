@@ -870,6 +870,9 @@ func getFeedLatestItems(
 	for bucket := range slices.Values(feedBuckets) {
 		if feedID, ok := bucket.Key.(models.FeedID); ok {
 			wg.Go(func() {
+				if feedID == "" {
+					return
+				}
 				// Get the subscription with this feedID.
 				if !slices.Contains(feedIDs, feedID) {
 					slogctx.FromCtx(ctx).
