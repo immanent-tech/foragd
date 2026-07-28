@@ -40,7 +40,7 @@ func UpdatesToast(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"updates-toast\" role=\"alert\" class=\"z-99 alert border border-info-content alert-soft alert-info font-display\"><span>New updates available.</span><div><button class=\"btn btn-square btn-soft btn-sm btn-info\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"updates-toast\" role=\"alert\" class=\"z-99 alert border border-info-content alert-soft font-display alert-info\"><span>New updates available.</span><div><button class=\"group btn btn-square btn-soft btn-info btn-sm\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,15 +52,15 @@ func UpdatesToast(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Refresh(templ.Attributes{"class": "hide-loading size-4 text-info", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.Refresh(templ.Attributes{"class": "inline-flex group-[.htmx-request]:hidden size-4 text-info", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Refresh(templ.Attributes{"class": "show-loading size-4 text-info animate-spin", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.Refresh(templ.Attributes{"class": "hidden group-[.htmx-request]:inline-flex size-4 text-info animate-spin", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button> <button class=\"btn btn-square btn-soft btn-sm btn-info\" _=\"on click remove #updates-toast\"><span class=\"sr-only\">Close</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button> <button class=\"btn btn-square btn-soft btn-info btn-sm\" _=\"on click remove #updates-toast\"><span class=\"sr-only\">Close</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -166,10 +166,15 @@
   button,
   [role='button'],
   select,
+  .htmx-indicator,
   option {
     @apply font-display;
   }
+}
 
+/* Custom Component Classes */
+/* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
+@layer components {
   /* Required functionality to reduce Cumulative Layout Shift (CLS) for MasonryGrid hyperscript behaviour. */
   .masonry-grid {
     .masonry-item {
@@ -179,11 +184,7 @@
       visibility: visible;
     }
   }
-}
 
-/* Custom Component Classes */
-/* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
-@layer components {
   .toast {
     & > .alert {
       transition:
@@ -219,31 +220,6 @@
     @apply pointer-events-auto visible opacity-100 transition-opacity duration-200 ease-in;
   }
 
-  /* Default: hide the loading span */
-  .show-loading {
-    @apply hidden;
-  }
-  /* While in-flight: show it */
-  .in-flight-request > .show-loading {
-    @apply inline-flex;
-  }
-  .htmx-request > .show-loading {
-    @apply inline-flex;
-  }
-
-  /* Default: show the content span */
-  .hide-loading {
-    @apply inline-flex;
-  }
-  /* While in-flight: hide it */
-  .in-flight-request > .hide-loading {
-    @apply hidden;
-  }
-  /* While in-flight: hide it */
-  .htmx-request > .hide-loading {
-    @apply hidden;
-  }
-
   /* The outgoing tab panel */
   ::view-transition-old(tab-content) {
     animation: 180ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-out;
@@ -252,14 +228,6 @@
   /* The incoming tab panel */
   ::view-transition-new(tab-content) {
     animation: 220ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-in;
-  }
-
-  .tab-panel {
-    view-transition-name: tab-content;
-  }
-
-  .card.htmx-swapping {
-    @apply opacity-0 transition-opacity duration-300 ease-out;
   }
 
   .flex-separated > * + *::before {
@@ -289,11 +257,6 @@
       @apply fill-secondary;
     }
   }
-
-  /* This might help reduce CLS. See: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Containment */
-  .card {
-    contain-intrinsic-size: 350px;
-  }
 }
 
 /* For formatting article content. */
@@ -318,12 +281,12 @@
 
   /* Hide duplicate images (usually just different sizes). */
   img + img {
-    display: none;
+    @apply hidden;
   }
 
   /* Remove empty list elements. */
   li:empty {
-    display: none;
+    @apply hidden!;
   }
 }
 

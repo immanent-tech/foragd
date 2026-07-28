@@ -124,10 +124,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
 		// Card header.
 		@partials.CardHeader() {
-			<div
-				class="flex cursor-pointer touch-manipulation items-center"
-				{ s.viewAttributes()... }
-			>
+			<div class="group flex cursor-pointer touch-manipulation items-center" { s.viewAttributes()... }>
 				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 					if s.GetImage() == "" {
 						@subscriptionThumbnail(nil, s.GetTitle())
@@ -135,7 +132,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<h2 class="card-title font-serif text-balance text-lg transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ s.GetTitle() }
 				</h2>
 				// Add an icon to indicate whether article filtering is being applied.
@@ -322,8 +319,8 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// List actions.
 				@controls.Show(nil, listSubscriptionsButtons(response))
 				<section id="subscriptions-list" class="ptr-content pt-4">
-					<div id="refreshing" class="mx-auto flex w-full justify-center">
-						<div class="show-loading py-4 text-center">
+					<div id="refreshing" class="group mx-auto flex w-full justify-center">
+						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
 						</div>
@@ -356,7 +353,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																		hx-trigger="click"
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
-																		class="text-base line-clamp-3"
+																		class="line-clamp-3 text-base"
 																	>
 																		{ item.GetTitle() }
 																	</a>
@@ -372,8 +369,8 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							}
 						}
 						@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
-							<div class="show-loading text-center">
+						<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
+							<div class="hidden text-center group-[.htmx-request]:inline-flex">
 								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</div>
@@ -383,7 +380,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							// Mark all subscriptions action.
 							<li>
 								<button
-									class="btn border-neutral/15 btn-outline"
+									class="group btn border-neutral/15 btn-outline"
 									if response.Filters.GetView() == models.ViewUnread {
 										hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
 										hx-vals={ templ.JSONString(map[string]any{
@@ -398,11 +395,11 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									hx-target={ ContentID.Target() }
 									hx-include="article > input"
 								>
-									<span class="show-loading items-center">
+									<span class="hidden items-center group-[.htmx-request]:inline-flex">
 										<span class="loading mr-3 loading-spinner"></span>
 										<span class="text-sm/6">Loading</span>
 									</span>
-									<span class="hide-loading items-center">
+									<span class="inline-flex items-center group-[.htmx-request]:hidden">
 										if response.Filters.GetView() == models.ViewUnread {
 											@tableroutline.MailOpened(templ.Attributes{"class": " mr-3 size-4", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
@@ -616,8 +613,8 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							</div>
 						</ul>
 						// Loading skeleton.
-						<div id="suggestions-loading">
-							<div class="show-loading mt-8 w-full sm:max-w-5xl">
+						<div id="suggestions-loading" class="group">
+							<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
 								<ul class="divide-y divide-neutral/15">
 									<li>
 										<div class="flex">
@@ -699,7 +696,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								<div class="card-title text-secondary">Subscribe to email newsletters</div>
 							</div>
 							{{ user := models.UserFromCtx(ctx) }}
-							<div id="subscription-email">
+							<div id="subscription-email" class="group">
 								if user.Settings.SubscriptionEmail == nil {
 									<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
 									<button
@@ -708,11 +705,11 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 										hx-swap="innerHTML transition:true"
 										class="btn btn-primary"
 									>
-										<span class="show-loading items-center">
+										<span class="hidden items-center group-[.htmx-request]:inline-flex">
 											<span class="loading mr-3 loading-spinner"></span>
 											<span class="text-sm/6">Processing</span>
 										</span>
-										<span class="hide-loading items-center">
+										<span class="inline-flex items-center group-[.htmx-request]:hidden">
 											<span class="text-sm/6">Generate email address</span>
 										</span>
 									</button>
@@ -760,9 +757,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				hx-post={ "/subscription/save/" + request.SubscriptionID }
 			}
 			hx-swap="none"
-			hx-indicator="#processing"
 			hx-encoding="multipart/form-data"
 			hx-disinherit="*"
+			class="group"
 		>
 			// Add hidden inputs when editing a subscription to know which subscription we are editing.
 			if action == "edit" {
@@ -853,15 +850,12 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				>
 					Back
 				</button>
-				<button
-					type="submit"
-					class="btn btn-primary"
-				>
-					<span class="show-loading items-center">
+				<button type="submit" class="group btn btn-primary">
+					<span class="hidden items-center group-[.htmx-request]:inline-flex">
 						<span class="loading mr-3 loading-spinner"></span>
 						<span class="text-sm/6">Processing</span>
 					</span>
-					<span class="hide-loading items-center">
+					<span class="inline-flex items-center group-[.htmx-request]:hidden">
 						switch action {
 							case "add":
 								<span class="text-sm/6">Add</span>
@@ -911,17 +905,17 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 									<input type="hidden" name="feed_id" value={ feed.GetID() }/>
 									<button
 										type="submit"
-										class="btn btn-primary"
+										class="group btn btn-primary"
 										hx-post="/subscription/add/feed"
 										hx-swap="none"
 										data-suggestionid={ "#suggestion-" + feed.GetID() }
 										_="on htmx:afterRequest(successful) remove me"
 									>
-										<span class="show-loading items-center">
+										<span class="hidden items-center group-[.htmx-request]:inline-flex">
 											<span class="loading mr-3 loading-md loading-spinner text-primary"></span>
 											Subscribing
 										</span>
-										<span class="hide-loading items-center">
+										<span class="inline-flex items-center group-[.htmx-request]:hidden">
 											Subscribe
 										</span>
 									</button>
@@ -1034,9 +1028,9 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							hx-post={ "/subscription/save/" + string(*request.Search.SubscriptionID) }
 						}
 						hx-swap="none"
-						hx-indicator="#processing"
 						hx-encoding="multipart/form-data"
 						hx-disinherit="*"
+						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
 						if action == "edit" {
@@ -1208,15 +1202,12 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							>
 								Back
 							</button>
-							<button
-								type="submit"
-								class="btn btn-primary"
-							>
-								<span class="show-loading items-center">
+							<button type="submit" class="group btn btn-primary">
+								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
 									<span class="text-sm/6">Processing</span>
 								</span>
-								<span class="hide-loading items-center">
+								<span class="inline-flex items-center group-[.htmx-request]:hidden">
 									switch action {
 										case "add":
 											<span class="text-sm/6">Add</span>
@@ -1267,10 +1258,10 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							hx-post={ "/subscription/save/" + string(*request.SubscriptionID) }
 						}
 						hx-swap="none"
-						hx-indicator="#processing"
 						hx-encoding="multipart/form-data"
 						hx-params="not suggestion_text,suggestions,category"
 						hx-disinherit="*"
+						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
 						if action == "edit" {
@@ -1397,15 +1388,12 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							>
 								Back
 							</button>
-							<button
-								type="submit"
-								class="btn btn-primary"
-							>
-								<span class="show-loading items-center">
+							<button type="submit" class="group btn btn-primary">
+								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
 									<span class="text-sm/6">Processing</span>
 								</span>
-								<span class="hide-loading items-center">
+								<span class="inline-flex items-center group-[.htmx-request]:hidden">
 									switch action {
 										case "add":
 											<span class="text-sm/6">Add</span>
@@ -1447,9 +1435,9 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 					id="add-subscription"
 					hx-post={ "/subscription/save/" + string(request.SubscriptionID) }
 					hx-swap="none"
-					hx-indicator="#processing"
 					hx-encoding="multipart/form-data"
 					hx-disinherit="*"
+					class="group"
 				>
 					// Add hidden inputs when editing a subscription to know which subscription we are editing.
 					<input type="hidden" name={ models.ParamSubscriptionID } value={ string(request.SubscriptionID) }/>
@@ -1501,12 +1489,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 							@CategoryManagement(request.SuggestedCategories, nil)
 						}
 					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-md loading-spinner"></span>
-						</div>
-						// Back button.
+					<div class="mt-4 flex w-full justify-end gap-4">
 						<button
 							type="button"
 							class="btn btn-secondary hover:btn-error"
@@ -1517,8 +1500,15 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						>
 							Back
 						</button>
-						// Add/edit button.
-						<button type="submit" class="btn btn-primary">Save</button>
+						<button type="submit" class="group btn btn-primary">
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
+								<span class="loading mr-3 loading-spinner"></span>
+								<span class="text-sm/6">Processing</span>
+							</span>
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
+								<span class="text-sm/6">Save</span>
+							</span>
+						</button>
 					</div>
 				</form>
 			}

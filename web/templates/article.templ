@@ -105,7 +105,7 @@ templ (a *Article) shareButton() {
 	// Mobile share action via navigator API.
 	<a
 		role="button"
-		class="hidden rounded-field border border-neutral/15 text-sm items-center gap-1"
+		class="hidden items-center gap-1 rounded-field border border-neutral/15 text-sm"
 		data-title={ a.GetTitle() }
 		data-url={ a.GetLink() }
 		_="init if navigator.share remove .hidden from me end
@@ -120,7 +120,7 @@ templ (a *Article) shareButton() {
 	// Desktop share action with modal and options.
 	<a
 		role="button"
-		class="hidden rounded-field border border-neutral/15 text-sm items-center gap-1"
+		class="hidden items-center gap-1 rounded-field border border-neutral/15 text-sm"
 		_="init if not navigator.share remove .hidden from me"
 		{ a.desktopShareAttributes()... }
 	>
@@ -133,7 +133,7 @@ templ (a *Article) shareButton() {
 templ (a *Article) viewOriginalButton() {
 	<a
 		role="button"
-		class="rounded-field border border-neutral/15 text-sm items-center gap-1"
+		class="items-center gap-1 rounded-field border border-neutral/15 text-sm"
 		href={ a.GetLink() }
 		target="_blank"
 		rel="noopener"
@@ -149,23 +149,21 @@ templ (a *Article) showRemoteContentButton() {
 	<a
 		role="button"
 		id="show-remote-content-button"
-		class="rounded-field border border-neutral/15 text-sm"
+		class="group rounded-field border border-neutral/15 text-sm"
 		_="
 	    on htmx:beforeRequest from me
-	      add .in-flight-request to me
     	  set my.disabled to true
     	on htmx:afterRequest from me
-      		remove .in-flight-request from me
       		set my.disabled to false
 		on htmx:afterRequest(failed) add @disabled to me
 		"
 		{ a.showContentAttributes(true)... }
 	>
-		<span class="show-loading items-center">
+		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
 			Loading
 		</span>
-		<span class="hide-loading items-center gap-1">
+		<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 			@tableroutline.Download(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 			<span class="text-sm/6">Get Remote Content</span>
 		</span>
@@ -177,22 +175,20 @@ templ (a *Article) showFeedContentButton() {
 	<a
 		role="button"
 		id="show-feed-content-button"
-		class="rounded-field border border-neutral/15 text-sm"
+		class="group rounded-field border border-neutral/15 text-sm"
 		_="
 	    on htmx:beforeRequest from me
-	      add .in-flight-request to me
     	  set my.disabled to true
     	on htmx:afterRequest from me
-      		remove .in-flight-request from me
       		set my.disabled to false
 		"
 		{ a.showContentAttributes(false)... }
 	>
-		<span class="show-loading items-center">
+		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-xs loading-spinner"></span>
 			Loading
 		</span>
-		<span class="hide-loading">
+		<span class="inline-flex group-[.htmx-request]:hidden">
 			@tableroutline.FileRss(templ.Attributes{"aria-hidden": "true"})
 			<span class="text-sm/6">Show Feed Content</span>
 		</span>
@@ -292,7 +288,6 @@ templ ArticleCard(idx int, a *models.Article) {
 							loadingAttrValue = "lazy"
 						}
 					}}
-					//  rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 					@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 						element.WithAttribute("width", "400"),
 						element.WithAttribute("height", "300"),
@@ -688,8 +683,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				}
 				@controls.Show(listArticlesActions(response), listArticlesButtons(response))
 				<section id="articles-list" class="ptr-content pt-4">
-					<div id="refreshing" class="mx-auto flex w-full justify-center">
-						<div class="show-loading py-4 text-center">
+					<div id="refreshing" class="group mx-auto flex w-full justify-center">
+						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
 							<span class="loading mr-3 loading-xl loading-bars"></span>
 							<p class="text-lg/loose font-semibold">Refreshing...</p>
 						</div>
@@ -710,8 +705,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							}
 						}
 						@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
-							<div class="show-loading text-center">
+						<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
+							<div class="hidden text-center group-[.htmx-request]:inline-flex">
 								<span class="loading mr-3 loading-xl loading-bars"></span>
 								<p class="text-lg/loose font-semibold">Loading content...</p>
 							</div>
@@ -724,7 +719,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								<li>
 									<a
 										role="button"
-										class="rounded-field border border-neutral/15 text-sm"
+										class="group rounded-field border border-neutral/15 text-sm"
 										if response.Filters.GetView() == models.ViewUnread {
 											hx-post="/list/articles/mark/read"
 											hx-vals={ templ.JSONString(map[string]any{
@@ -739,11 +734,11 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-target={ ContentID.Target() }
 										hx-include="article > input"
 									>
-										<span class="show-loading items-center">
+										<span class="hidden items-center group-[.htmx-request]:inline-flex">
 											<span class="loading mr-3 loading-spinner"></span>
 											<span class="text-sm/6">Loading</span>
 										</span>
-										<span class="hide-loading flex items-center gap-1">
+										<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 											if response.Filters.GetView() == models.ViewUnread {
 												@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 												<span class="text-sm/6">Mark Articles Read</span>
@@ -773,13 +768,13 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											role="button"
 											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 											hx-vals={ templ.JSONString(values) }
-											class="rounded-field border border-neutral/15 text-sm"
+											class="group rounded-field border border-neutral/15 text-sm"
 										>
-											<span class="show-loading items-center">
+											<span class="hidden items-center group-[.htmx-request]:inline-flex">
 												<span class="loading mr-3 loading-spinner"></span>
 												Loading
 											</span>
-											<span class="hide-loading flex items-center gap-1">
+											<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 												if response.Filters.GetView() == models.ViewUnread {
 													@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 													<span class="text-sm/6">Mark Subscription Read</span>
@@ -847,13 +842,13 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			hx-target={ ContentID.Target() }
 			hx-include=".card > input"
 			hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
-			class="btn border-neutral/15 btn-outline btn-sm"
+			class="group btn border-neutral/15 btn-outline btn-sm"
 		>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading mr-3 loading-spinner"></span>
 				<span class="text-sm/6">Loading</span>
 			</span>
-			<span class="hide-loading items-center gap-1">
+			<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 				if response.Filters.GetView() == models.ViewUnread {
 					@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 					<span class="ml-2">Mark Shown Read</span>
@@ -866,7 +861,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 	} else {
 		// Edit subscription button. Only shown on desktop screens (in mobile dialog on smaller screens).
 		{{ s := Subscription{Subscription: response.Subscription} }}
-		<button { s.editAttributes("/list/articles")... } class="btn hidden border-neutral/15 btn-outline btn-sm sm:flex items-center gap-1">
+		<button { s.editAttributes("/list/articles")... } class="btn hidden items-center gap-1 border-neutral/15 btn-outline btn-sm sm:flex">
 			@tableroutline.Edit(templ.Attributes{"class": " size-5", "aria-hidden": "true"})
 			Edit Subscription
 		</button>
@@ -879,13 +874,13 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 					"subscription_id": response.Subscription.GetID(),
 					"view": string(response.Filters.GetView()),
 				}) }
-				class="btn border-neutral/15 btn-outline btn-sm"
+				class="group btn border-neutral/15 btn-outline btn-sm"
 			>
-				<span class="show-loading items-center">
+				<span class="hidden items-center group-[.htmx-request]:inline-flex">
 					<span class="loading mr-3 loading-spinner"></span>
 					<span class="text-sm/6">Loading</span>
 				</span>
-				<span class="hide-loading flex items-center gap-1">
+				<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 					if response.Filters.GetView() == models.ViewUnread {
 						@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
 						<span>Mark All Read</span>

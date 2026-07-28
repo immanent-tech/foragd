@@ -78,11 +78,18 @@ templ UserSettings() {
 							</el-tab-list>
 						}
 					}
+					<div id="tabs-loading" class="group text-center">
+						<div class="hidden py-4 group-[.htmx-request]:inline-flex">
+							<span class="loading mr-3 loading-xl loading-bars"></span>
+							<p class="text-lg/loose font-semibold">Loading...</p>
+						</div>
+					</div>
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						<div
 							id="display"
 							hx-get="/user/settings/display"
 							hx-trigger="load, settings-display-revealed"
+							hx-indicator="#tabs-loading"
 							data-script="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'display'
@@ -105,12 +112,14 @@ templ UserSettings() {
        						 end
 						   end
 						"
-							class="content-auto"
+							style="--vt-name: tab-content-display"
+							class="content-auto [view-transition-name:var(--vt-name)]"
 						></div>
 						<div
 							id="account"
 							hx-get="/user/settings/account"
 							hx-trigger="settings-account-revealed"
+							hx-indicator="#tabs-loading"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'account'
@@ -134,12 +143,14 @@ templ UserSettings() {
        						 end
 						   end
                              "
-							class="content-auto"
+							style="--vt-name: tab-content-account"
+							class="content-auto [view-transition-name:var(--vt-name)]"
 						></div>
 						<div
 							id="subscriptions"
 							hx-get="/user/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
+							hx-indicator="#tabs-loading"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'subscriptions'
@@ -163,7 +174,8 @@ templ UserSettings() {
        						 end
 						   end
                              "
-							class="content-auto"
+							style="--vt-name: tab-content-subscriptions"
+							class="group content-auto [view-transition-name:var(--vt-name)]"
 						></div>
 					</el-tab-panels>
 				</el-tab-group>
@@ -174,7 +186,7 @@ templ UserSettings() {
 
 templ AccountSettings(user *models.User) {
 	@narrowContainer() {
-		<div id="account-settings" class="mt-12 divide-y divide-base-content/15 space-y-8">
+		<div id="account-settings" class="mt-12 space-y-8 divide-y divide-base-content/15">
 			<fieldset class="fieldset min-w-0 py-8">
 				<legend class="text-lg font-medium">Subscription Plan</legend>
 				switch  {
@@ -235,18 +247,18 @@ templ AccountSettings(user *models.User) {
 						switch *user.UserSubscriptionType {
 							case models.UserSubscriptionTypePaddle:
 								@showPaddleSubscriptionDetails(user)
-								<div class="flex w-full justify-end mt-4">
+								<div class="mt-4 flex w-full justify-end">
 									if mgmtLink, err := paddle.GetCustomerPortalURL(); err != nil {
 										{{ slogctx.FromCtx(ctx).Warn("Unable to load customer portal URL.", slog.Any("error", err)) }}
 										<a
 											role="button"
-											class="btn btn-primary w-fit"
+											class="btn w-fit btn-primary"
 											href="/contact"
 										>Contact Us</a>
 									} else {
 										<a
 											role="button"
-											class="btn btn-primary w-fit"
+											class="btn w-fit btn-primary"
 											target="_blank"
 											rel="noopener"
 											href={ mgmtLink }
@@ -255,16 +267,16 @@ templ AccountSettings(user *models.User) {
 								</div>
 							case models.UserSubscriptionTypeAndroid:
 								@showAndroidSubscriptionDetails(user)
-								<div class="flex w-full justify-end mt-4">
+								<div class="mt-4 flex w-full justify-end">
 									<a
 										role="button"
-										class="btn btn-primary w-fit"
+										class="btn w-fit btn-primary"
 										target="_blank"
 										rel="noopener"
 										href="https://play.google.com/store/account/subscriptions"
 									>Manage Subscription Plan</a>
 								</div>
-								<div id="restore-status" class="col-span-full sm:col-start-1 sm:col-span-2 text-muted sm:text-end" aria-live="polite"></div>
+								<div id="restore-status" class="text-muted col-span-full sm:col-span-2 sm:col-start-1 sm:text-end" aria-live="polite"></div>
 						}
 				}
 			</fieldset>
@@ -310,7 +322,7 @@ templ AccountSettings(user *models.User) {
 							<span class="label">Avatar</span>
 							<div
 								id="drop-zone"
-								class="group mt-2 flex justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 max-w-full sm:max-w-lg"
+								class="group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg"
 								_="
 						                on dragover
 						                  halt the event
@@ -385,18 +397,18 @@ templ AccountSettings(user *models.User) {
 								will still receive important administrative and account emails.
 							</p>
 						</label>
-						<div class="flex w-full justify-end mt-4">
+						<div class="mt-4 flex w-full justify-end">
 							<button
 								hx-post="/user/settings/account"
 								hx-swap="none"
 								type="submit"
-								class="btn btn-primary"
+								class="group btn btn-primary"
 							>
-								<span class="show-loading items-center">
+								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
 									<span class="text-sm/6">Processing</span>
 								</span>
-								<span class="hide-loading items-center">
+								<span class="inline-flex items-center group-[.htmx-request]:hidden">
 									<span class="text-sm/6">Save</span>
 								</span>
 							</button>
@@ -416,18 +428,18 @@ templ AccountSettings(user *models.User) {
 						<span class="label">Confirm New Password</span>
 						<input id="confirm-new-password" type="password" class="input bg-base-content/10 input-primary" name="confirm_new_password" required/>
 					</label>
-					<div class="flex w-full justify-end mt-4">
+					<div class="mt-4 flex w-full justify-end">
 						<button
 							type="submit"
-							class="btn btn-primary"
+							class="group btn btn-primary"
 							hx-post="/user/settings/password"
 							hx-swap="none"
 						>
-							<span class="show-loading items-center">
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
 								<span class="loading mr-3 loading-spinner"></span>
 								<span class="text-sm/6">Processing</span>
 							</span>
-							<span class="hide-loading items-center">
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								<span class="text-sm/6">Change password</span>
 							</span>
 						</button>
@@ -439,18 +451,18 @@ templ AccountSettings(user *models.User) {
 				<legend class="text-lg font-medium">Newsletter Email</legend>
 				<p class="text-sm/6 font-semibold">Use or generate an email for subscribing to email newsletters.</p>
 				if user.Settings.SubscriptionEmail == nil {
-					<div class="flex w-full justify-end mt-4">
+					<div class="mt-4 flex w-full justify-end">
 						<button
 							hx-post="/user/settings/subscriptionemail"
 							hx-target="#subscription-email"
 							hx-swap="innerHTML transition:true"
-							class="btn btn-primary"
+							class="group btn btn-primary"
 						>
-							<span class="show-loading items-center">
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
 								<span class="loading mr-3 loading-spinner"></span>
 								<span class="text-sm/6">Processing</span>
 							</span>
-							<span class="hide-loading items-center">
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								<span class="text-sm/6">Generate email address</span>
 							</span>
 						</button>
@@ -472,7 +484,7 @@ templ AccountSettings(user *models.User) {
 						<p class="text-sm/6">
 							You will be automatically logged out. You will no longer be able to log in.
 						</p>
-						<div class="flex w-full justify-end mt-4">
+						<div class="mt-4 flex w-full justify-end">
 							<form>
 								<button
 									hx-post={ models.RouteUserDeactivateAccount }
@@ -498,7 +510,7 @@ templ AccountSettings(user *models.User) {
 									After the cancellation date, your account (including all subscriptions, favorites and settings) will
 									be permanently deleted. You will no longer be able to log in.
 								</p>
-								<div class="flex w-full justify-end mt-4">
+								<div class="mt-4 flex w-full justify-end">
 									<form>
 										<button
 											hx-post={ models.RouteUserDeactivateAccount }
@@ -530,10 +542,10 @@ templ AccountSettings(user *models.User) {
 									After the cancellation date, your account (including all subscriptions, favorites and settings) will
 									be permanently deleted. You will no longer be able to log in.
 								</p>
-								<div class="flex w-full justify-end mt-4">
+								<div class="mt-4 flex w-full justify-end">
 									<a
 										role="button"
-										class="btn btn-primary w-fit"
+										class="btn w-fit btn-primary"
 										target="_blank"
 										rel="noopener"
 										href="https://play.google.com/store/account/subscriptions"
@@ -548,7 +560,7 @@ templ AccountSettings(user *models.User) {
 
 templ DisplaySettings(user *models.User) {
 	@narrowContainer() {
-		<div id="display-settings" class="mt-12 divide-y divide-base-content/15 space-y-8">
+		<div id="display-settings" class="mt-12 space-y-8 divide-y divide-base-content/15">
 			// Behaviour Settings.
 			<fieldset class="fieldset min-w-0 py-8">
 				<legend class="text-lg font-medium">Behavior</legend>
@@ -620,7 +632,7 @@ templ DisplaySettings(user *models.User) {
 							Controls the max age of articles to show (read or unread). It does not affect searches.
 						</p>
 					</label>
-					<div class="flex w-full justify-end mt-4">
+					<div class="mt-4 flex w-full justify-end">
 						<div id="processing" class="htmx-indicator">
 							Processing...
 							<span class="loading loading-md loading-spinner"></span>
@@ -636,7 +648,7 @@ templ DisplaySettings(user *models.User) {
 				<div class="text-lg font-medium">Theme</div>
 				<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 				// * Changing themes here also requires updating the list in styles.css.
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+				<div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
 					@themeCards()
 				</div>
 			</div>
@@ -720,13 +732,13 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					hx-swap="none"
 					hx-include="#global-filters"
 					type="submit"
-					class="btn btn-primary"
+					class="group btn btn-primary"
 				>
-					<span class="show-loading items-center">
+					<span class="hidden items-center group-[.htmx-request]:inline-flex">
 						<span class="loading mr-3 loading-spinner"></span>
 						<span class="text-sm/6">Processing</span>
 					</span>
-					<span class="hide-loading items-center">
+					<span class="inline-flex items-center group-[.htmx-request]:hidden">
 						<span class="text-sm/6">Save</span>
 					</span>
 				</button>
@@ -1038,7 +1050,7 @@ templ ShowSubscriptionEmail(email string) {
 	<div>
 		<label for="newsletter-email" class="text-sm/6">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</label>
 	</div>
-	<div class="join join-vertical sm:join-horizontal w-full">
+	<div class="join w-full join-vertical sm:join-horizontal">
 		<input id="newsletter-email" type="text" class="input join-item w-full input-primary" value={ email } readonly/>
 		<button
 			class="btn join-item btn-outline btn-primary"

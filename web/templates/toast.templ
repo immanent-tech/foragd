@@ -14,20 +14,20 @@ templ UpdatesToast(options ...element.PropertiesOption) {
 	<div
 		id="updates-toast"
 		role="alert"
-		class="z-99 alert border border-info-content alert-soft alert-info font-display"
+		class="z-99 alert border border-info-content alert-soft font-display alert-info"
 	>
 		<span>New updates available.</span>
 		<div>
 			<button
-				class="btn btn-square btn-soft btn-sm btn-info"
+				class="group btn btn-square btn-soft btn-info btn-sm"
 				{ props.Attributes()... }
 				_="on click scroll to top of #content smoothly"
 			>
 				<span class="sr-only">Refresh</span>
-				@tabler.Refresh(templ.Attributes{"class": "hide-loading size-4 text-info", "aria-hidden": "true"})
-				@tabler.Refresh(templ.Attributes{"class": "show-loading size-4 text-info animate-spin", "aria-hidden": "true"})
+				@tabler.Refresh(templ.Attributes{"class": "inline-flex group-[.htmx-request]:hidden size-4 text-info", "aria-hidden": "true"})
+				@tabler.Refresh(templ.Attributes{"class": "hidden group-[.htmx-request]:inline-flex size-4 text-info animate-spin", "aria-hidden": "true"})
 			</button>
-			<button class="btn btn-square btn-soft btn-sm btn-info" _="on click remove #updates-toast">
+			<button class="btn btn-square btn-soft btn-info btn-sm" _="on click remove #updates-toast">
 				<span class="sr-only">Close</span>
 				@tabler.X(templ.Attributes{"class": "size-4 text-info", "aria-hidden": "true"})
 			</button>

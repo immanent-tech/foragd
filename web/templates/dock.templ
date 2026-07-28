@@ -17,7 +17,7 @@ templ Dock(options ...element.PropertiesOption) {
 	<footer
 		aria-label="Footer Navigation"
 		id="page-dock"
-		class="dock border-t border-neutral/20 bg-base-200 text-primary px-safe lg:hidden shadow-sm"
+		class="dock border-t border-neutral/20 bg-base-200 px-safe text-primary shadow-sm lg:hidden"
 		{ props.Attributes()... }
 	>
 		<a
@@ -25,13 +25,14 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
 			hx-swap="innerHTML show:top transition:true"
-			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home")) }
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home")) }
 		>
 			<span class="sr-only">Go to Home Page</span>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
-			<span class="hide-loading items-center">
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
 				@tablerfilled.Home(templ.Attributes{
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
@@ -45,13 +46,14 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-swap="innerHTML show:top transition:true"
-			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 		>
 			<span class="sr-only">Go to Subscriptions</span>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
-			<span class="hide-loading items-center">
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
 				@tableroutline.Rss(templ.Attributes{
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
@@ -63,17 +65,18 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-swap="innerHTML show:top transition:true"
-			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
 			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/view/article")) }
 			if strings.HasPrefix(pageURL, "/view/article") {
 				hx-include="[name='subscriptions']"
 			}
 		>
 			<span class="sr-only">Go to Articles</span>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
-			<span class="hide-loading items-center">
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
 				@tablerfilled.FileRss(templ.Attributes{
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
@@ -84,13 +87,14 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
 			hx-swap="innerHTML show:top transition:true"
-			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/favorites")) }
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/favorites")) }
 		>
 			<span class="sr-only">Go to Favorites</span>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
-			<span class="hide-loading items-center">
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
 				@tablerfilled.Heart(templ.Attributes{
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
@@ -101,13 +105,14 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/subscription/add"
 			hx-target={ ContentID.Target() }
 			hx-swap="innerHTML show:top transition:true"
-			class={ templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
 		>
 			<span class="sr-only">Add a Subscription</span>
-			<span class="show-loading items-center">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
 				<span class="loading loading-md loading-spinner text-primary"></span>
 			</span>
-			<span class="hide-loading items-center">
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
 				@tableroutline.Plus(templ.Attributes{
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})

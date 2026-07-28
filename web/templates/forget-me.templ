@@ -43,7 +43,7 @@ templ ForgetMe() {
 										class="input bg-base-300 brightness-95 input-primary"
 									/>
 								</div>
-								<span class="font-semibold text-sm">Use the email address associated with your account.</span>
+								<span class="text-sm font-semibold">Use the email address associated with your account.</span>
 							</div>
 							// Cloudflare turnstile.
 							<div class="col-span-full">
@@ -52,12 +52,12 @@ templ ForgetMe() {
 						</div>
 					</div>
 					<div class="mt-6 flex w-full items-center justify-end gap-x-6 sm:max-w-3xl">
-						<button type="submit" class="btn btn-primary">
-							<span class="show-loading items-center">
+						<button type="submit" class="group btn btn-primary">
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
 								<span class="loading mr-3 loading-spinner"></span>
 								<span class="text-sm/6">Processing</span>
 							</span>
-							<span class="hide-loading items-center">
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								<span class="text-sm/6">Submit</span>
 							</span>
 						</button>

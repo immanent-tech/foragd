@@ -684,7 +684,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "  <section id=\"search-results\" class=\"pt-4 ptr-content\"><div id=\"refreshing\" class=\"mx-auto flex w-full justify-center\"><div class=\"show-loading py-4 text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "  <section id=\"search-results\" class=\"ptr-content pt-4\"><div id=\"refreshing\" class=\"group mx-auto flex w-full justify-center\"><div class=\"hidden py-4 text-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -775,7 +775,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<div id=\"loading-items\" class=\"mx-auto mt-4 flex w-full justify-center\"><div class=\"show-loading text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div></section>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<div id=\"loading-items\" class=\"mx-auto mt-4 flex w-full justify-center\"><div class=\"hidden text-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div></section>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1002,7 +1002,7 @@ func SearchControls(results *models.SearchResults) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "Options</button> <div class=\"hidden sm:flex flex-1 items-center justify-end gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "Options</button> <div class=\"hidden flex-1 items-center justify-end gap-2 sm:flex\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1220,7 +1220,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, " class=\"min-w-0 p-4\"><label class=\"fieldset\"><span class=\"label col-span-full\">Includes the words:</span> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"text\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, " class=\"min-w-0 p-4\"><label class=\"fieldset\"><span class=\"col-span-full label\">Includes the words:</span> <textarea rows=\"2\" id=\"search-text\" type=\"text\" name=\"text\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1233,7 +1233,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary\" _=\"on change set #global-search's value to my value\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary\" _=\"on change set #global-search's value to my value\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1248,7 +1248,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</textarea></label><div class=\"grid grid-cols-1 sm:grid-cols-2 gap-4\"><label class=\"fieldset\"><span class=\"label col-span-full\">Categories:</span> <textarea id=\"search-categories\" type=\"text\" name=\"categories\" placeholder=\"favorite-category -unwanted-category\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</textarea></label><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><label class=\"fieldset\"><span class=\"col-span-full label\">Categories:</span> <textarea id=\"search-categories\" type=\"text\" name=\"categories\" placeholder=\"favorite-category -unwanted-category\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1263,7 +1263,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</textarea></label><label class=\"fieldset\"><span class=\"label col-span-full\">Authors:</span> <textarea id=\"search-authors\" type=\"text\" name=\"authors\" placeholder=\"bob +jenny@blog.me\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</textarea></label><label class=\"fieldset\"><span class=\"col-span-full label\">Authors:</span> <textarea id=\"search-authors\" type=\"text\" name=\"authors\" placeholder=\"bob +jenny@blog.me\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1278,7 +1278,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</textarea></label></div><div class=\"grid grid-cols-1 sm:grid-cols-2 gap-4\"><div class=\"fieldset\"><span class=\"label col-span-full\">View:</span> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"unread\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</textarea></label></div><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><div class=\"fieldset\"><span class=\"col-span-full label\">View:</span> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"unread\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1288,7 +1288,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, " class=\"radio radio-sm radio-primary shrink\"> <span class=\"label flex-1\">Unread</span></label> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"read\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, " class=\"radio shrink radio-sm radio-primary\"> <span class=\"label flex-1\">Unread</span></label> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"read\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1298,7 +1298,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, " class=\"radio radio-sm radio-primary shrink\"> <span class=\"label flex-1\">Read</span></label> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"all\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, " class=\"radio shrink radio-sm radio-primary\"> <span class=\"label flex-1\">Read</span></label> <label class=\"fieldset flex\"><input id=\"search-view-unread\" type=\"radio\" name=\"view\" value=\"all\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1308,7 +1308,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " class=\"radio radio-sm radio-primary shrink\"> <span class=\"label flex-1\">All</span></label></div><label class=\"fieldset\"><span class=\"label col-span-full\">Published within:</span> <select id=\"search-published-within\" name=\"published_within\" class=\"select my-2 bg-base-300 select-sm brightness-95 select-primary\"><option value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " class=\"radio shrink radio-sm radio-primary\"> <span class=\"label flex-1\">All</span></label></div><label class=\"fieldset\"><span class=\"col-span-full label\">Published within:</span> <select id=\"search-published-within\" name=\"published_within\" class=\"select my-2 bg-base-300 brightness-95 select-sm select-primary\"><option value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1459,7 +1459,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,#global-search\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-primary btn-sm\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle text-info btn-ghost btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,#global-search\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-primary btn-sm\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle btn-ghost text-info btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

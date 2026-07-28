@@ -103,7 +103,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					}
 					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
 						// Favorite Subscriptions.
-						<section id="subscriptions" class="pt-4 content-auto">
+						<section id="subscriptions" class="pt-4">
 							@sectionHeading() {
 								@sectionTitle("Subscriptions")
 							}
@@ -156,7 +156,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								</div>
 							}
 						</section>
-						<section id="articles" class="pt-4 content-auto">
+						<section id="articles" class="pt-4">
 							@sectionHeading() {
 								@sectionTitle("Articles")
 							}

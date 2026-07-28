@@ -175,7 +175,7 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div id=\"refreshing\" class=\"mx-auto flex w-full justify-center\"><div class=\"show-loading py-4 text-center\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div><div class=\"ptr-content grid grid-cols-1 items-start gap-6 px-2 pt-4 sm:gap-8 xl:grid-cols-3\" hx-get=\"/home\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div id=\"refreshing\" class=\"group mx-auto flex w-full justify-center\"><div class=\"hidden py-4 text-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Refreshing...</p></div></div><div class=\"ptr-content grid grid-cols-1 items-start gap-6 px-2 pt-4 sm:gap-8 xl:grid-cols-3\" hx-get=\"/home\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -224,7 +224,7 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<a hx-get=\"/list/articles\" hx-target=\"#content\" hx-swap=\"innerHTML show:top transition:true\" class=\"link text-sm text-secondary link-hover font-display\">See all <span aria-hidden=\"true\">-></span></a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<a hx-get=\"/list/articles\" hx-target=\"#content\" hx-swap=\"innerHTML show:top transition:true\" class=\"link font-display text-sm text-secondary link-hover\">See all <span aria-hidden=\"true\">-></span></a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -244,7 +244,7 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"masonry-grid relative grid grid-cols-1 items-start gap-2 mt-2 sm:grid-cols-2\" _=\"install MasonryGrid\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"masonry-grid relative mt-2 grid grid-cols-1 items-start gap-2 sm:grid-cols-2\" _=\"install MasonryGrid\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -290,7 +290,7 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a class=\"link text-sm text-secondary link-hover font-display\" hx-get=\"/list/subscriptions\" hx-target=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a class=\"link font-display text-sm text-secondary link-hover\" hx-get=\"/list/subscriptions\" hx-target=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -325,7 +325,7 @@ func UserHome(data *HomeData) templ.Component {
 						}
 						for idx, subscription := range data.Subscriptions {
 							s := &Subscription{Subscription: subscription}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<li class=\"group hover:hover-shadow flex animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform]\" style=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<li class=\"group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform] animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -418,7 +418,7 @@ func UserHome(data *HomeData) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm font-display\" aria-label=\"Add a new feed\" hx-get=\"/subscription/add\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost font-display text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscription/add\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -601,7 +601,7 @@ func NewUserHome() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"mt-16 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 0\"><p class=\"text-base text-balance text-accent uppercase\">Welcome to Foragd</p><h1 class=\"my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl\">Your feed reader,<br>your way.</h1><p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p></div><div class=\"mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"mt-16 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 0\"><p class=\"text-base text-balance text-accent uppercase\">Welcome to Foragd</p><h1 class=\"my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl\">Your feed reader,<br>your way.</h1><p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -669,7 +669,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div><div class=\"card-title text-secondary\">Import from OPML</div><p class=\"text-base/7 text-secondary\">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p></div><div class=\"card-actions justify-end text-accent\">Upload OPML file <span aria-hidden=\"true\">-></span></div></a></div></div><div class=\"mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div><div class=\"card-title text-secondary\">Import from OPML</div><p class=\"text-base/7 text-secondary\">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p></div><div class=\"card-actions justify-end text-accent\">Upload OPML file <span aria-hidden=\"true\">-></span></div></a></div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -719,7 +719,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</div></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></label></div><div class=\"mt-4 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 2\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"show-loading items-center\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</div></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></label></div><div class=\"mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\"><button hx-post=\"/user/feedset\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -727,7 +727,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<span class=\"text-sm/6\">Add Sets</span></div></span></button></div></form></div><div class=\"mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<span class=\"text-sm/6\">Add Sets</span></div></span></button></div></form></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -765,7 +765,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div></div><div class=\"mt-12 animate-fadeinup animation-delay-[calc(min(var(--i),15)*80ms)] transition-transform duration-300 ease-in-out\" style=\"--i: 4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 4\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

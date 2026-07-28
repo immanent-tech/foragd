@@ -108,7 +108,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					<div class="soft-gradient-top"></div>
 				</div>
 				<section id="viewer" class="mx-auto sm:max-w-5xl">
-					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl font-display">
+					<h1 class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
 						Free RSS Feed Viewer
 					</h1>
 					<div class="prose">
@@ -132,26 +132,26 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						hx-push-url="true"
 						hx-target="#viewer-results"
 						hx-swap="innerHTML"
-						hx-indicator="#search-button"
 						_="on htmx:beforeRequest set the innerHTML of #viewer-results to ''"
+						class="group"
 					>
 						<div class="mt-12">
 							<label for="url" class="block text-sm/6 font-medium text-neutral">Website URL</label>
 							<div class="join mt-2 flex w-full">
 								<input id="url" type="url" name="url" placeholder="https://some.site..." class="input join-item w-full bg-base-300 brightness-95 input-primary"/>
-								<button id="search-button" type="submit" class="btn btn-primary join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2">
-									<span class="show-loading items-center">
+								<button id="search-button" type="submit" class="btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2 btn-primary">
+									<span class="hidden items-center group-[.htmx-request]:inline-flex">
 										<span class="loading mr-3 loading-spinner"></span>
 										Searching
 									</span>
-									<span class="hide-loading">
+									<span class="inline-flex group-[.htmx-request]:hidden">
 										@tabler.Search(templ.Attributes{"aria-hidden": "true"})
 										<span class="text-sm/6">Search</span>
 									</span>
 								</button>
 							</div>
 						</div>
-						<div class="show-loading w-full sm:max-w-5xl">
+						<div class="hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
 							<div class="my-4 w-full">
 								<div class="flex flex-1 p-6">
 									<div class="sm:flex sm:items-center sm:justify-between">
@@ -202,7 +202,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 				</section>
 				<section id="advanced-usage" class="mx-auto mt-8 max-w-5xl">
 					<button type="button" command="--toggle" commandfor="advanced-usage-info" class="flex w-full items-start justify-between text-left">
-						<h2 class="text-xl/7 sm:text-2xl font-semibold tracking-tight text-pretty font-display">Advanced Usage</h2>
+						<h2 class="font-display text-xl/7 font-semibold tracking-tight text-pretty sm:text-2xl">Advanced Usage</h2>
 						<span class="ml-6 flex h-7 items-center">
 							@tabler.Plus(templ.Attributes{"class": "size-6 in-aria-expanded:hidden", "aria-label": "Expand content"})
 							@tabler.Minus(templ.Attributes{"class": "size-6 not-in-aria-expanded:hidden", "aria-label": "Collapse content"})
@@ -235,7 +235,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					</el-disclosure>
 				</section>
 				<section id="faq" class="mx-auto mt-8 max-w-5xl">
-					<h2 class="text-xl/7 sm:text-2xl font-semibold tracking-tight text-pretty font-display">Frequently asked questions</h2>
+					<h2 class="font-display text-xl/7 font-semibold tracking-tight text-pretty sm:text-2xl">Frequently asked questions</h2>
 					<div class="mt-10">
 						@partials.FAQ(ViewerFAQ)
 					</div>
@@ -411,7 +411,7 @@ templ viewerItemCard(item *models.Item) {
 						@templ.Raw(item.GetDescription())
 				}
 			</div>
-			<div class="card-actions justify-end mt-auto">
+			<div class="mt-auto card-actions justify-end">
 				<a
 					href={ item.GetLink() }
 					target="_blank"

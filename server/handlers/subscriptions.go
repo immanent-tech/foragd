@@ -567,7 +567,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 				res.Header().Add(htmx.HeaderRedirect, "/list/subscriptions")
 			case strings.Contains(req.Referer(), "/user/settings"):
 				// When on the subscriptions settings page, remove the subscription from the table.
-				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
+				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 				res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
 			}
 			// Show success notification.
