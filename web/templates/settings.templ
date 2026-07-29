@@ -90,6 +90,7 @@ templ UserSettings() {
 							hx-get="/user/settings/display"
 							hx-trigger="load, settings-display-revealed"
 							hx-indicator="#tabs-loading"
+							hx-disinherit="*"
 							data-script="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'display'
@@ -120,6 +121,7 @@ templ UserSettings() {
 							hx-get="/user/settings/account"
 							hx-trigger="settings-account-revealed"
 							hx-indicator="#tabs-loading"
+							hx-disinherit="*"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'account'
@@ -151,6 +153,7 @@ templ UserSettings() {
 							hx-get="/user/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
 							hx-indicator="#tabs-loading"
+							hx-disinherit="*"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'subscriptions'
@@ -402,7 +405,7 @@ templ AccountSettings(user *models.User) {
 								hx-post="/user/settings/account"
 								hx-swap="none"
 								type="submit"
-								class="group btn btn-primary"
+								class="btn btn-primary"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
@@ -568,6 +571,7 @@ templ DisplaySettings(user *models.User) {
 					hx-post="/user/settings/display"
 					hx-swap="none"
 					hx-include="#theme-settings"
+					class="group"
 				>
 					<label class="fieldset py-4">
 						<div class="flex items-center gap-x-4">
@@ -632,14 +636,16 @@ templ DisplaySettings(user *models.User) {
 							Controls the max age of articles to show (read or unread). It does not affect searches.
 						</p>
 					</label>
-					<div class="mt-4 flex w-full justify-end">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-md loading-spinner"></span>
-						</div>
-						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<button type="submit" class="btn btn-primary">Save</button>
-						</div>
+					<div class="mt-2 flex items-center justify-end gap-x-6">
+						<button type="submit" class="group btn btn-primary" _="on click halt the event's bubbling">
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
+								<span class="loading mr-3 loading-spinner"></span>
+								<span class="text-sm/6">Processing</span>
+							</span>
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
+								<span class="text-sm/6">Save</span>
+							</span>
+						</button>
 					</div>
 				</form>
 			</fieldset>
