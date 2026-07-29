@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.208.0](https://github.com/immanent-tech/foragd/compare/v0.207.2...v0.208.0) (2026-07-29)
+
+
+### Features
+
+* **styles:** 🎨 font tweaks ([4c2c407](https://github.com/immanent-tech/foragd/commit/4c2c4073616ab871a4005b03c521e95b6a179893))
+
 ## [0.207.2](https://github.com/immanent-tech/foragd/compare/v0.207.1...v0.207.2) (2026-07-29)
 
 
