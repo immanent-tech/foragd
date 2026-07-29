@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.207.2](https://github.com/immanent-tech/foragd/compare/v0.207.1...v0.207.2) (2026-07-29)
+
+
+### Bug Fixes
+
+* **templates/settings:** 🔧 add missing group class ([304688c](https://github.com/immanent-tech/foragd/commit/304688c587587de33c94262c449bab945f3ae170))
+* **templates/settings:** 🔧 fix indicator display for different requests ([6e22522](https://github.com/immanent-tech/foragd/commit/6e22522cc7a06a2a7799c5491d034b7cfc7ca0f1))
+
+
+### Reverts
+
+* **templates:** ♻️ revert using history back ([6c06e56](https://github.com/immanent-tech/foragd/commit/6c06e56918b8035f22b294ec973f6eaf030035c5))
+
 ## [0.207.1](https://github.com/immanent-tech/foragd/compare/v0.207.0...v0.207.1) (2026-07-28)
 
 
