@@ -425,7 +425,7 @@ func AccountSettings(user *models.User) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " class=\"toggle col-start-1 row-start-1 toggle-primary toggle-sm\"><p class=\"label\">Allow promotional emails. Even if this setting is off, you will still receive important administrative and account emails.</p></label><div class=\"mt-4 flex w-full justify-end\"><button hx-post=\"/user/settings/account\" hx-swap=\"none\" type=\"submit\" class=\"btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Save</span></span></button></div></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " class=\"toggle col-start-1 row-start-1 toggle-primary toggle-sm\"><p class=\"label\">Allow promotional emails. Even if this setting is off, you will still receive important administrative and account emails.</p></label><div class=\"mt-4 flex w-full justify-end\"><button hx-post=\"/user/settings/account\" hx-swap=\"none\" type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Save</span></span></button></div></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
