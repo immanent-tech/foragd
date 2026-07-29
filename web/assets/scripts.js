@@ -42,3 +42,15 @@ window.addEventListener('pageshow', (event) => {
 //       console.error('Something bad happened:', err.message)
 //     })
 // })
+
+document.body.addEventListener('htmx:beforeHistorySave', () => {
+  sessionStorage.setItem('scroll:' + location.pathname, window.scrollY)
+})
+
+document.body.addEventListener('htmx:afterSettle', (evt) => {
+  const saved = sessionStorage.getItem('scroll:' + location.pathname)
+  if (saved !== null) {
+    window.scrollTo(0, parseInt(saved, 10))
+    sessionStorage.removeItem('scroll:' + location.pathname)
+  }
+})
