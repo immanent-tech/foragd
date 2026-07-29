@@ -41,6 +41,10 @@
     "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
   },
   "dependencies": {
+    "@fontsource-variable/alegreya": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource/alegreya-sans": "^5.3.0",
+    "@fontsource/monaspace-neon": "^5.3.0",
     "@github/relative-time-element": "^5.3.0",
     "@maizzle/framework": "^6.0.7",
     "@tailwindplus/elements": "^1.0.22",

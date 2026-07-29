@@ -1,3 +1,22 @@
+@import '@fontsource-variable/alegreya/wght.css';
+@import '@fontsource-variable/alegreya/wght-italic.css';
+@import '@fontsource/alegreya-sans/100.css';
+@import '@fontsource/alegreya-sans/300.css';
+@import '@fontsource/alegreya-sans/400.css';
+@import '@fontsource/alegreya-sans/500.css';
+@import '@fontsource/alegreya-sans/700.css';
+@import '@fontsource/alegreya-sans/800.css';
+@import '@fontsource/alegreya-sans/900.css';
+@import '@fontsource/alegreya-sans/100-italic.css';
+@import '@fontsource/alegreya-sans/300-italic.css';
+@import '@fontsource/alegreya-sans/400-italic.css';
+@import '@fontsource/alegreya-sans/500-italic.css';
+@import '@fontsource/alegreya-sans/700-italic.css';
+@import '@fontsource/alegreya-sans/800-italic.css';
+@import '@fontsource/alegreya-sans/900-italic.css';
+@import '@fontsource-variable/nunito/wght.css';
+@import '@fontsource/monaspace-neon';
+
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
@@ -15,17 +34,15 @@
 
 /* Global custom theme values. */
 @theme {
-  --font-sans: 'Alegreya Sans', system-ui, sans-serif;
-  --font-sans--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
-  --font-serif: 'Alegreya', serif;
-  --font-serif--font-feature-settings: 'subs' 1, 'sups' 1 'ss01' 1, 'ss03' 1, 'ss04' 1;
-  --font-display: 'Nunito', sans-serif;
-  --font-display--font-feature-settings:
-    'liga' 1, 'ccmp' 1, 'calt' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
-  --font-mono: 'MonaspaceArgonVariable', 'monospace';
-  --font-mono--font-feature-settings:
-    'calt' 1, 'liga' 1, 'ss01' 1, 'ss02' 1, 'ss03' 1, 'ss04' 1, 'ss06' 1, 'ss07' 1, 'ss08' 1,
-    'ss09' 1, 'cv01' 2, 'cv10' 1;
+  --font-sans:
+    'Alegreya Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  --font-serif: 'Alegreya Variable', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-display: 'Nunito Variable', sans-serif;
+  --font-mono:
+    'Monaspace Neon', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   --sidebar-width: var(--w-sm);
 
   --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
@@ -100,16 +117,15 @@
       font-weight: var(--font-weight-normal);
       font-style: normal;
       font-optical-sizing: auto;
+      font-feature-settings:
+        'liga' 1,
+        'calt' 1,
+        'ss01' 1,
+        'ss03' 1,
+        'ss04' 1,
+        'subs' 1,
+        'sups' 1;
     }
-  }
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Skip animation if content was restored from cache */
-  [data-htmx-history-restored] .card {
-    animation: none;
   }
 
   /* Don't animate if user has requested reduced motion. */

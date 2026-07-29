@@ -112,6 +112,7 @@ func Start(logger *slog.Logger) error {
 	router.Handle("/security.txt", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		http.Redirect(res, req, "/.well-known/security.txt", http.StatusMovedPermanently)
 	}))
+	router.Handle("/assets/files/*", assets.HandleAssets("/assets/", true))
 	router.Handle("/assets/*", assets.HandleAssets("/assets/", false)) // hashed filenames.
 	router.Handle("/fonts/*", assets.HandleAssets("", true))
 	router.Handle("/content/*", assets.HandleAssets("/content/", true))
