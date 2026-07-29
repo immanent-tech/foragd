@@ -112,20 +112,53 @@
 
   /* Default font settings. */
   @supports (font-variation-settings: normal) {
-    :root {
+    body {
       font-family: var(--font-sans);
       font-weight: var(--font-weight-normal);
       font-style: normal;
       font-optical-sizing: auto;
-      font-feature-settings:
-        'liga' 1,
-        'calt' 1,
-        'ss01' 1,
-        'ss03' 1,
-        'ss04' 1,
-        'subs' 1,
-        'sups' 1;
+      font-kerning: normal;
+      font-variant-ligatures: common-ligatures contextual;
+      font-variant-numeric: oldstyle-nums proportional-nums;
+      text-rendering: optimizeLegibility;
     }
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'clig' 1,
+      'lnum' 1,
+      'pnum' 1;
+  }
+
+  table,
+  .tabular {
+    font-feature-settings:
+      'tnum' 1,
+      'kern' 1;
+  }
+
+  body,
+  .prose {
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'clig' 1,
+      'onum' 1,
+      'pnum' 1;
+  }
+
+  pre,
+  code {
+    font-feature-settings:
+      'calt' 1,
+      'liga' 1,
+      'ss01' 1,
+      'ss08' 1;
   }
 
   /* Don't animate if user has requested reduced motion. */
