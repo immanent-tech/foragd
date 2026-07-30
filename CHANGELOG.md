@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.209.0](https://github.com/immanent-tech/foragd/compare/v0.208.0...v0.209.0) (2026-07-30)
+
+
+### Features
+
+* ✨ theme review ([03529a7](https://github.com/immanent-tech/foragd/commit/03529a702a9a87f0625c97bc185d7c1084f81b27))
+
 ## [0.208.0](https://github.com/immanent-tech/foragd/compare/v0.207.2...v0.208.0) (2026-07-29)
 
 
