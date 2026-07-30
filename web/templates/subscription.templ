@@ -37,8 +37,8 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 				}
 				aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			/>
-			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 text-primary"})
-			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 text-primary"})
+			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
+			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
 		</label>
 	</div>
 }
@@ -92,8 +92,8 @@ templ (s *Subscription) subscriptionMarkToggle() {
 					}
 					aria-label={ "Toggle mark status for " + s.GetTitle() }
 				/>
-				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
-				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"})
+				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
+				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
 			</label>
 		</div>
 	}
@@ -173,7 +173,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 							</span>
 						}
 					} else {
-						<span class="badge badge-sm tabular-nums badge-neutral">
+						<span class="badge badge-sm tabular-nums">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
@@ -198,7 +198,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								class="btn btn-ghost btn-sm"
 							>
 								<span class="sr-only">{ s.GetTitle() + " Actions" }</span>
-								@tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+								@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 							</button>
 							@partials.Menu(element.WithAttribute("id", "menu-"+s.GetID()+"-actions")) {
 								// View action.
@@ -210,30 +210,30 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 											target="_blank"
 											_="on click halt the event's bubbling"
 										>
-											@tableroutline.ExternalLink(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
-											<span class="text-base-content">Feed Website</span>
+											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
+											Feed Website
 										</a>
 									}
 								}
 								// Edit action.
 								@partials.MenuItem() {
 									<a { s.editAttributes(path)... }>
-										@tableroutline.Edit(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
-										<span class="text-base-content">Edit Subscription</span>
+										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a { s.unsubscribeAttributes()... }>
-										@tableroutline.Trash(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
-										<span class="text-base-content">Remove Subscription</span>
+										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
-										<span class="text-base-content">Report an Issue</span>
+										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										Report an Issue
 									</a>
 								}
 							}
@@ -538,7 +538,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 				}
 				<div id="add-subscription" class="space-y-8 divide-y divide-base-content/15">
 					<fieldset class="fieldset min-w-0 py-8">
-						<ol class="text-sm/6">
+						<ol>
 							<li>Choose from <span class="font-semibold">sources</span> drop-down on right to search Youtube, Google News, etc.</li>
 							<li>Enter search terms (see notes below) as appropriate.</li>
 						</ol>
@@ -586,7 +586,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								</select>
 							</label>
 						</div>
-						<ul class="mt-4 block list-inside list-disc text-sm/6 text-neutral">
+						<ul class="mt-4 block list-inside list-disc text-neutral">
 							<div _="on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me">
 								<li>
 									Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.
@@ -675,7 +675,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 								<div class="card-title text-secondary">Add a Group Subscription</div>
 							</div>
-							<p class="text-sm/6">Combine muliple feed subscriptions into one. Filter across all articles.</p>
+							<p>Combine muliple feed subscriptions into one. Filter across all articles.</p>
 						</div>
 						<div
 							class="card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
@@ -688,7 +688,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 								<div class="card-title text-secondary">Add a Search Subscription</div>
 							</div>
-							<p class="text-sm/6">Search for articles and combine results into a single feed.</p>
+							<p>Search for articles and combine results into a single feed.</p>
 						</div>
 						<div class="col-span-full card-body justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
 							<div class="flex flex-row items-center gap-x-3">
@@ -698,7 +698,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							{{ user := models.UserFromCtx(ctx) }}
 							<div id="subscription-email" class="group">
 								if user.Settings.SubscriptionEmail == nil {
-									<p class="text-sm/6">Generate an email for subscribing to email newsletters.</p>
+									<p>Generate an email for subscribing to email newsletters.</p>
 									<button
 										hx-post="/user/settings/subscriptionemail"
 										hx-target="#subscription-email"
@@ -710,7 +710,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 											<span class="text-sm/6">Processing</span>
 										</span>
 										<span class="inline-flex items-center group-[.htmx-request]:hidden">
-											<span class="text-sm/6">Generate email address</span>
+											<span>Generate email address</span>
 										</span>
 									</button>
 								} else {
@@ -781,7 +781,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 						placeholder="My cool subscription…"
 						class="input w-full bg-base-content/10 input-primary"
 					/>
-					<p class="text-sm/6">Add a nickname for the subscription.</p>
+					<p>Add a nickname for the subscription.</p>
 				</label>
 				<label class="fieldset">
 					<span class="label">Thumbnail</span>
@@ -799,7 +799,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 							accept=".jpg,.png,.webp"
 						/>
 					</div>
-					<p class="text-sm/6">Customize the subscription thumbnail</p>
+					<p>Customize the subscription thumbnail</p>
 				</label>
 			</fieldset>
 			// Categories.
@@ -827,11 +827,11 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 								class="toggle toggle-primary toggle-sm"
 							/>
 						</div>
-						<p class="text-sm/6">
+						<p>
 							If articles in the subscription are only showing a summary, set this
 							toggle to attempt to fetch the full content from the website.
 						</p>
-						<p class="text-sm/6">
+						<p>
 							Note: fetching full content is based on a heuristic that tries to locate
 							the article content on the page. It does not always produce optimal
 							results.
@@ -979,7 +979,7 @@ templ ShowNoSuggestions(text string) {
 		</div>
 		<div>
 			<h2 class="text-lg font-semibold">No results.</h2>
-			<p class="mt-1 text-sm text-neutral">
+			<p class="mt-1 text-neutral">
 				We could not find any good matches for <strong>{ text }</strong>.
 				if !strings.HasPrefix(text,"http") {
 					Try entering the URL of the website you want to subscribe to and Foragd will try to find its feed.
@@ -1051,7 +1051,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									placeholder="My cool subscription…"
 									class="input w-full bg-base-content/10 input-primary"
 								/>
-								<p class="text-sm/6">Add a nickname for the subscription.</p>
+								<p>Add a nickname for the subscription.</p>
 							</label>
 							<label class="fieldset">
 								<span class="label">Thumbnail</span>
@@ -1069,7 +1069,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 										accept=".jpg,.png,.webp"
 									/>
 								</div>
-								<p class="text-sm/6">Customize the subscription thumbnail</p>
+								<p>Customize the subscription thumbnail</p>
 							</label>
 						</fieldset>
 						<fieldset class="fieldset min-w-0 py-8">
@@ -1283,7 +1283,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									placeholder="My cool subscription…"
 									class="input w-full bg-base-content/10 input-primary"
 								/>
-								<p class="text-sm/6">Add a nickname for the subscription.</p>
+								<p>Add a nickname for the subscription.</p>
 							</label>
 							<label class="fieldset">
 								<span class="label">Thumbnail</span>
@@ -1301,7 +1301,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										accept=".jpg,.png,.webp"
 									/>
 								</div>
-								<p class="text-sm/6">Customize the subscription thumbnail</p>
+								<p>Customize the subscription thumbnail</p>
 							</label>
 						</fieldset>
 						<fieldset class="fieldset min-w-0 py-8">
@@ -1447,7 +1447,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						<div>
 							@partials.FormSection() {
 								@partials.FormField() {
-									<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+									<label for="nickname" class="block font-medium text-base-content sm:pt-1.5">Nickname</label>
 									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<input
 											id="nickname"
@@ -1462,7 +1462,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 									</div>
 								}
 								@partials.FormField() {
-									<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+									<label for="thumbnail" class="block font-medium text-base-content sm:pt-1.5">Thumbnail</label>
 									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<div class="col-span-full mt-2 flex items-center gap-x-2">
 											if request.Customisation != nil && request.Customisation.ImageURL != nil {
