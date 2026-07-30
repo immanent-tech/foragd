@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.207"
-date      = "Jul 28, 2026"
+version   = "v0.208"
+date      = "Jul 30, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Improved themes. Removed dracula, light and dark themes. Added minimal (light and dark variant) and enterprise themes. All colors should pass WCAG contrast guidelines.
+"""
+
+[[releases]]
+version = "v0.207"
+date    = "Jul 28, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -12,9 +22,9 @@ You can now define global article filters, that will filter articles across all 
 """
 
 [[releases]]
-version   = "v0.204"
-date      = "Jul 24, 2026"
-type      = "minor"
+version = "v0.204"
+date    = "Jul 24, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
