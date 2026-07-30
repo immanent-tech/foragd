@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.209.1](https://github.com/immanent-tech/foragd/compare/v0.209.0...v0.209.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* **templates/articles:** 🔧 fix colors on badges showing subscription name on article cards ([f4d6219](https://github.com/immanent-tech/foragd/commit/f4d6219ce67eb1ceac504f7d58a00cdbc9e30ebb))
+
 ## [0.209.0](https://github.com/immanent-tech/foragd/compare/v0.208.0...v0.209.0) (2026-07-30)
 
 
