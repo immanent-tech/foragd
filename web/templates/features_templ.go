@@ -1086,7 +1086,7 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<p class=\"mt-4 text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 text-base-content/70\">Try it out:</p><form class=\"filter mt-4 flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"light\" aria-label=\"Light\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dark\" aria-label=\"Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"grove\" aria-label=\"Grove\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"dracula\" aria-label=\"Dracula\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<p class=\"mt-4 text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 text-base-content/70\">Try it out:</p><form class=\"filter mt-4 flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-light\" aria-label=\"Minimal (Light)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"enterprise\" aria-label=\"Enterprise\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-dark\" aria-label=\"Minimal (Dark)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1102,7 +1102,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div><figure class=\"relative overflow-hidden rounded-t-[inherit]\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" width=\"400\" height=\"300\" role=\"img\" aria-labelledby=\"c3-title\" class=\"placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]\"><title id=\"c3-title\">Image unavailable placeholder</title><rect id=\"border\" x=\"4\" y=\"4\" width=\"56\" height=\"56\" rx=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-dasharray=\"5 5\" opacity=\"0.35\"></rect> <circle id=\"sun\" cx=\"25\" cy=\"24\" r=\"4.5\" fill=\"currentColor\" opacity=\"0.55\"></circle> <path id=\"mountain\" d=\"M12 44 L24 32 L34 42 L42 34 L52 44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.3\"></path></svg><div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div><div class=\"absolute top-2.5 left-2.5\"><span class=\"badge badge-soft badge-sm font-medium backdrop-blur-sm badge-neutral\">The Source</span></div></figure></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div><figure class=\"relative overflow-hidden rounded-t-[inherit]\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" width=\"400\" height=\"300\" role=\"img\" aria-labelledby=\"c3-title\" class=\"placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]\"><title id=\"c3-title\">Image unavailable placeholder</title><rect id=\"border\" x=\"4\" y=\"4\" width=\"56\" height=\"56\" rx=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-dasharray=\"5 5\" opacity=\"0.35\"></rect> <circle id=\"sun\" cx=\"25\" cy=\"24\" r=\"4.5\" fill=\"currentColor\" opacity=\"0.55\"></circle> <path id=\"mountain\" d=\"M12 44 L24 32 L34 42 L42 34 L52 44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.3\"></path></svg><div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div><div class=\"absolute top-2.5 left-2.5\"><span class=\"badge badge-sm font-medium backdrop-blur-sm badge-neutral\">The Source</span></div></figure></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1151,7 +1151,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var35 string
 						templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue(time.Now().Format("2006-01-02T15:04:05-0700"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1076, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1068, Col: 64}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 						if templ_7745c5c3_Err != nil {
@@ -1164,7 +1164,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var36 string
 						templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Jan _2, 2006"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1080, Col: 43}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1072, Col: 43}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 						if templ_7745c5c3_Err != nil {
@@ -1500,7 +1500,7 @@ func featurePanel(id string) templ.Component {
 		var templ_7745c5c3_Var45 string
 		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1217, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1209, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var45)
 		if templ_7745c5c3_Err != nil {
@@ -1550,7 +1550,7 @@ func featureTitle(title string) templ.Component {
 		var templ_7745c5c3_Var47 string
 		templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1223, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1215, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 		if templ_7745c5c3_Err != nil {

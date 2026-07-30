@@ -490,7 +490,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 					return templ_7745c5c3_Err
 				}
 				if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"badge justify-start badge-soft badge-sm tabular-nums badge-neutral\"><relative-time datetime=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"badge justify-start badge-sm tabular-nums badge-neutral\"><relative-time datetime=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -521,7 +521,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						return templ_7745c5c3_Err
 					}
 					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"badge justify-start badge-soft badge-sm tabular-nums badge-neutral\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"badge justify-start badge-sm tabular-nums badge-neutral\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -540,7 +540,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						}
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<span class=\"badge badge-soft badge-sm tabular-nums badge-neutral\"><relative-time datetime=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<span class=\"badge badge-sm tabular-nums badge-neutral\"><relative-time datetime=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -667,11 +667,11 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": "size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "Feed Website</a>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"text-base-content\">Feed Website</span></a>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -710,11 +710,11 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.Edit(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.Edit(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "Edit Subscription</a>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<span class=\"text-base-content\">Edit Subscription</span></a>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -752,11 +752,11 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.Trash(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.Trash(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "Remove Subscription</a>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<span class=\"text-base-content\">Remove Subscription</span></a>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -794,11 +794,11 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "Report an issue</a>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<span class=\"text-base-content\">Report an Issue</span></a>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -3901,7 +3901,7 @@ func subscriptionThumbnail(img *models.RemoteImage, name string) templ.Component
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 277, " <div class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 bg-neutral mask-squircle text-neutral-content ring-1 ring-neutral-content/25\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 277, " <div class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 bg-neutral text-neutral-content mask-squircle ring-1 ring-neutral-content/25\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -21,9 +21,7 @@
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
 @plugin 'tailwindcss-visibility';
-@plugin 'daisyui' {
-  themes: light, dark, dracula;
-}
+@plugin 'daisyui';
 
 @import './daisyui-custom.css';
 
@@ -477,7 +475,7 @@
 
 /* Override some settings for DaisyUI label style. */
 @utility label {
-  @apply font-display font-normal text-neutral;
+  @apply font-display font-normal text-base-content;
 }
 
 /* Override some settings for DaisyUI badge style. */

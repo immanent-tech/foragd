@@ -201,21 +201,21 @@ templ (a *Article) actionsMenu() {
 		<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 			<button id={ a.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
 				<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
-				@tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+				@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 			</button>
 			@partials.Menu(element.WithAttribute("aria-labelledby", a.GetID()+"-actions-menu")) {
 				// View original article action.
 				@partials.MenuItem() {
 					<a { a.viewOriginalAttributes()... }>
-						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-						Go To Article
+						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						<span class="text-base-content">Go To Article</span>
 					</a>
 				}
 				// Find similar action.
 				@partials.MenuItem() {
 					<a { a.findSimilarAttributes()... }>
-						@tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-						Find similar...
+						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						<span class="text-base-content">Find Similar...</span>
 					</a>
 				}
 				// Mobile share action via navigator API.
@@ -230,22 +230,22 @@ templ (a *Article) actionsMenu() {
 		   					end
 							"
 					>
-						@tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-						Share
+						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						<span class="text-base-content">Share</span>
 					</a>
 				}
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
 					<a { a.desktopShareAttributes()... }>
-						@tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-						Share
+						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						<span class="text-base-content">Share</span>
 					</a>
 				}
 				// Report issue action.
 				@partials.MenuItem() {
 					<a { a.reportIssueAttributes()... }>
-						@tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-						Report an issue
+						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						<span class="text-base-content">Report an Issue</span>
 					</a>
 				}
 			}
@@ -297,7 +297,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 					// Overlay the feed name on the image.
 					<div class="absolute top-2.5 left-2.5">
-						<span class="badge badge-soft badge-sm font-medium backdrop-blur-sm badge-neutral">{ article.Item.FeedTitle }</span>
+						<span class="badge badge-sm font-medium backdrop-blur-sm badge-neutral text-base-content">{ article.Item.FeedTitle }</span>
 					</div>
 				</figure>
 			} else {
@@ -387,7 +387,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					<relative-time
 						datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 						format="relative"
-						class="shrink-0 text-xs/4 text-neutral capitalize tabular-nums"
+						class="shrink-0 text-xs/4 text-base-content capitalize tabular-nums"
 					>
 						{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 					</relative-time>

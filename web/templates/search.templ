@@ -614,7 +614,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				type="text"
 				name="text"
 				placeholder={ `+keyword -"some phrase"` }
-				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary"
+				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
 				_="on change set #global-search's value to my value"
 			>
 				if request.Text != "" {
@@ -631,7 +631,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="categories"
 					placeholder="favorite-category -unwanted-category"
-					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
 				>
 					if request.Categories != nil {
 						{ *request.Categories }
@@ -646,7 +646,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="authors"
 					placeholder="bob +jenny@blog.me"
-					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
 				>
 					if request.Authors != nil {
 						{ *request.Authors }
@@ -701,38 +701,48 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 			// Date range filter.
 			<label class="fieldset">
 				<span class="col-span-full label">Published within:</span>
-				<select id="search-published-within" name="published_within" class="select my-2 bg-base-300 brightness-95 select-sm select-primary">
+				<select
+					id="search-published-within"
+					name="published_within"
+					class="select my-2 bg-base-300 brightness-95 select-sm select-primary text-base-content"
+				>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinLastHour }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
 							selected
 						}
 					>Last hour</option>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinLast12hours }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLast12hours {
 							selected
 						}
 					>Last 12 hours</option>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinLastDay }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastDay {
 							selected
 						}
 					>Last day</option>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinLastWeek }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastWeek {
 							selected
 						}
 					>Last week</option>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinLastMonth }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastMonth {
 							selected
 						}
 					>Last month</option>
 					<option
+						class="text-neutral"
 						value={ models.SearchRequestPublishedWithinAllTime }
 						if request.PublishedWithin == models.SearchRequestPublishedWithinAllTime || request.PublishedWithin == "" {
 							selected
@@ -769,8 +779,13 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				<span class="sr-only">Show help</span>
 				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
 			</button>
-			<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
-				<div class="card-shadow card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap">
+			<el-popover
+				popover="hint"
+				id="filter-operators-help"
+				anchor="bottom end"
+				class="max-w-full rounded-box shadow-lg border border-primary bg-base-300 [--anchor-gap:4px]"
+			>
+				<div class="card-shadow card-body text-sm text-wrap">
 					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 					<ul>
 						<li>+ signifies AND operation (i.e., food AND beverages)</li>

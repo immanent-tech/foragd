@@ -368,7 +368,7 @@ func (c *listControls) Show(actions templ.Component, buttons templ.Component) te
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</button> <el-menu anchor=\"bottom start\" popover class=\"[--anchor-gap:--spacing(1)]\"><ul class=\"menu max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5\"><ul id=\"desktop-category-filters\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</button> <el-menu anchor=\"bottom start\" popover class=\"max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]\"><ul class=\"menu\"><ul id=\"desktop-category-filters\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -499,7 +499,7 @@ func viewFilterOption(path string, view models.View, filters models.ListFilters)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var19 = []any{"font-normal capitalize", templ.KV("font-semibold", active)}
+		var templ_7745c5c3_Var19 = []any{"font-normal capitalize text-base-content", templ.KV("font-semibold", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var19...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -524,7 +524,7 @@ func viewFilterOption(path string, view models.View, filters models.ListFilters)
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(string(view))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/list.templ`, Line: 181, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/list.templ`, Line: 181, Col: 110}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -638,7 +638,7 @@ func viewFilterFavorites(path string, filters models.ListFilters) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var28 = []any{"font-normal", templ.KV("font-semibold", active)}
+		var templ_7745c5c3_Var28 = []any{"font-normal text-base-content", templ.KV("font-semibold", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -760,7 +760,7 @@ func sortOption(path string, sort models.Sort, filters models.ListFilters) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var36 = []any{"font-normal", templ.KV("font-semibold", sort == current)}
+		var templ_7745c5c3_Var36 = []any{"font-normal text-base-content", templ.KV("font-semibold", sort == current)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var36...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -785,7 +785,7 @@ func sortOption(path string, sort models.Sort, filters models.ListFilters) templ
 		var templ_7745c5c3_Var38 string
 		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(sort.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/list.templ`, Line: 227, Col: 91}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/list.templ`, Line: 227, Col: 109}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 		if templ_7745c5c3_Err != nil {
@@ -1034,7 +1034,7 @@ func categoryFilterOption(category models.Category, path string, filters models.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var50 = []any{"font-normal", templ.KV("font-semibold", slices.Contains(currentCategories, category))}
+		var templ_7745c5c3_Var50 = []any{"font-normal text-base-content", templ.KV("font-semibold", slices.Contains(currentCategories, category))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var50...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1069,7 +1069,7 @@ func categoryFilterOption(category models.Category, path string, filters models.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var53 = []any{"text-accent ", templ.KV("hidden", !slices.Contains(currentCategories, category))}
+		var templ_7745c5c3_Var53 = []any{templ.KV("hidden", !slices.Contains(currentCategories, category))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var53...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1164,7 +1164,7 @@ func clearCategoryFilterOption(path string, filters models.ListFilters) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" class=\"flex justify-between gap-2\"><span class=\"font-normal\">Clear</span> <span aria-hidden=\"true\" class=\"text-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" class=\"flex justify-between gap-2\"><span class=\"font-normal text-base-content\">Clear</span> <span aria-hidden=\"true\" class=\"text-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

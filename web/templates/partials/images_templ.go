@@ -245,7 +245,7 @@ func Thumbnail(img *models.RemoteImage, name string, size string) templ.Componen
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var10 = []any{"bg-neutral text-neutral-content mask mask-squircle", size}
+			var templ_7745c5c3_Var10 = []any{"bg-neutral text-base-content mask mask-squircle", size}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

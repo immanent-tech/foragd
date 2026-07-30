@@ -139,6 +139,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 		_="on load
              set theme to localStorage.getItem('theme')
              if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end
+			 set fontSize to localStorage.getItem('fontSize')
+			 if fontSize setProperty('--font-scale', fontSize) on <html/> end
 		   on mutation of @data-theme send themeChange end"
 		class="min-h-dvh scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none"
 	>

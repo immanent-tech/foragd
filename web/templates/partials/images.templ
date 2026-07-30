@@ -101,7 +101,7 @@ templ Thumbnail(img *models.RemoteImage, name string, size string) {
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 		<div class="avatar avatar-placeholder" aria-hidden="true">
-			<div class={ "bg-neutral text-neutral-content mask mask-squircle", size }>
+			<div class={ "bg-neutral text-base-content mask mask-squircle", size }>
 				if name != "" {
 					<span class="text-3xl capitalize">{ name[0:1] }</span>
 				} else {

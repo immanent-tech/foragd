@@ -44,15 +44,15 @@ type Release struct {
 func changeTagClasses(t ChangeType) string {
 	switch t {
 	case ChangeTypeNew:
-		return "badge badge-success badge-soft badge-sm"
+		return "badge badge-success badge-sm"
 	case ChangeTypeImproved:
-		return "badge badge-info badge-soft badge-sm"
+		return "badge badge-info badge-sm"
 	case ChangeTypeFixed:
-		return "badge badge-warning badge-soft badge-sm"
+		return "badge badge-warning badge-sm"
 	case ChangeTypeRemoved:
-		return "badge badge-error badge-soft badge-sm"
+		return "badge badge-error badge-sm"
 	case ChangeTypeSecurity:
-		return "badge badge-secondary badge-soft badge-sm"
+		return "badge badge-secondary badge-sm"
 	default:
 		return "badge badge-ghost badge-sm"
 	}

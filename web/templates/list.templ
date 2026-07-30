@@ -134,8 +134,8 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 							"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
 							"aria-hidden": "true"})
 					</button>
-					<el-menu anchor="bottom start" popover class="[--anchor-gap:--spacing(1)]">
-						<ul class="menu max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5">
+					<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
+						<ul class="menu">
 							<ul id="desktop-category-filters">
 								@ListCategoryFilters(c.path, c.filters, c.categories)
 							</ul>
@@ -178,7 +178,7 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-vals={ templ.JSONString(filters.Values()) }
 			class="flex justify-between gap-2"
 		>
-			<span class={ "font-normal capitalize", templ.KV("font-semibold",active) }>{ string(view) }</span>
+			<span class={ "font-normal capitalize text-base-content", templ.KV("font-semibold",active) }>{ string(view) }</span>
 			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
@@ -204,7 +204,7 @@ templ viewFilterFavorites(path string, filters models.ListFilters) {
 			hx-vals={ templ.JSONString(values) }
 			class="flex justify-between gap-2"
 		>
-			<span class={ "font-normal", templ.KV("font-semibold",active) }>Favorites</span>
+			<span class={ "font-normal text-base-content", templ.KV("font-semibold",active) }>Favorites</span>
 			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
@@ -224,7 +224,7 @@ templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
 			hx-vals={ templ.JSONString(filters.Values()) }
 			class="flex justify-between gap-2"
 		>
-			<span class={ "font-normal", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
+			<span class={ "font-normal text-base-content", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
 			<span aria-hidden="true" class={ "text-accent ", templ.KV("hidden",sort != current) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
@@ -283,10 +283,10 @@ templ categoryFilterOption(category models.Category, path string, filters models
 			hx-vals={ templ.JSONString(filters.Values()) }
 			class="flex justify-between gap-2"
 		>
-			<span class={ "font-normal", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
+			<span class={ "font-normal text-base-content", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
 				{ category }
 			</span>
-			<span aria-hidden="true" class={ "text-accent ",  templ.KV("hidden",!slices.Contains(currentCategories,category)) }>
+			<span aria-hidden="true" class={ templ.KV("hidden", !slices.Contains(currentCategories, category)) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
 		</a>
@@ -304,7 +304,7 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 			hx-vals={ templ.JSONString(filters.Values()) }
 			class="flex justify-between gap-2"
 		>
-			<span class="font-normal">
+			<span class="font-normal text-base-content">
 				Clear
 			</span>
 			<span aria-hidden="true" class="text-accent ">
