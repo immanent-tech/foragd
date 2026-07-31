@@ -6,6 +6,7 @@ package ollama
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/immanent-tech/go-base/client"
 
@@ -96,4 +97,21 @@ func EmbedChunks(chunks ...vector.Chunk) ([][]float32, error) {
 	}
 
 	return all, nil
+}
+
+func cosineSimilarity(a, b []float32) float32 {
+	var dot, normA, normB float32
+	for i := range a {
+		dot += a[i] * b[i]
+		normA += a[i] * a[i]
+		normB += b[i] * b[i]
+	}
+	if normA == 0 || normB == 0 {
+		return 0
+	}
+	return dot / (float32(mathSqrt(normA)) * float32(mathSqrt(normB)))
+}
+
+func mathSqrt(f float32) float64 {
+	return math.Sqrt(float64(f))
 }
