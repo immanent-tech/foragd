@@ -122,7 +122,7 @@ templ UserHome(data *HomeData) {
 												</div>
 												<div class="flex flex-1 flex-col">
 													<h2 class="font-xl flex-1 font-serif text-lg font-bold text-balance">{ subscription.GetTitle() }</h2>
-													<span class="mt-1 badge self-end text-right badge-sm badge-neutral tabular-nums">
+													<span class="mt-1 text-sm/6 tabular-nums">
 														Updated&nbsp;
 														<relative-time
 															datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
