@@ -410,7 +410,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-4 fill-accent", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

@@ -139,7 +139,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 				if articleFilters := s.GetArticleFilters(); !articleFilters.IsEmpty() {
 					<div class="tooltip" data-tip="Article filtering applied">
 						<span class="sr-only">Article filtering applied</span>
-						@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-accent", "aria-hidden": "true"})
+						@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-4 fill-accent", "aria-hidden": "true"})
 					</div>
 				}
 			</div>
