@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.210.1](https://github.com/immanent-tech/foragd/compare/v0.210.0...v0.210.1) (2026-07-31)
+
+
+### Performance Improvements
+
+* **search:** ⚡ tweak search query ([baa2ead](https://github.com/immanent-tech/foragd/commit/baa2eadd0b1bdba0bfa88baff200d1c8fcb17adc))
+
 ## [0.210.0](https://github.com/immanent-tech/foragd/compare/v0.209.1...v0.210.0) (2026-07-31)
 
 
