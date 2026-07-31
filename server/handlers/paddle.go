@@ -140,6 +140,7 @@ func handlePaddlePurchase() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
+			slogctx.FromCtx(req.Context()).Error("Invalid user.")
 			res.WriteHeader(http.StatusInternalServerError)
 			RenderPartial(
 				&Notification{
@@ -155,6 +156,8 @@ func handlePaddlePurchase() http.HandlerFunc {
 		frequency := req.FormValue("frequency")
 		priceID, err := paddle.GetPriceID(frequency)
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Invalid purchase data.",
+				slog.Any("error", err))
 			res.WriteHeader(http.StatusBadRequest)
 			RenderPartial(
 				&Notification{
@@ -166,6 +169,12 @@ func handlePaddlePurchase() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+
+		slogctx.FromCtx(req.Context()).Info("Purchase completed!",
+			slog.String("user_id", user.GetID()),
+			slog.String("price_id", priceID),
+			slog.String("plan_type", frequency),
+		)
 
 		successURL := config.GetBaseURL() + "/checkout/success"
 		res.Header().Set("Content-Type", "application/json")
