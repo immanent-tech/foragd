@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -181,8 +180,6 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 			slog.Any("error", err))
 		return
 	}
-
-	godump.Dump(auth0User)
 
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
