@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.210.0](https://github.com/immanent-tech/foragd/compare/v0.209.1...v0.210.0) (2026-07-31)
+
+
+### Features
+
+* **cli:** ✨ add feed sub-command for updating feed details ([e4a1411](https://github.com/immanent-tech/foragd/commit/e4a1411bae43a65cc6150b547f4993132d3c4f4e))
+* **ollama:** ✨ add content classification framework using ollama ([18e1ee3](https://github.com/immanent-tech/foragd/commit/18e1ee37e7a6df78ee47ffb5e45464e1a5c9e2e3))
+
+
+### Bug Fixes
+
+* **server:** 🔧 allow cross-origin for asset files (i.e. favicon, logo, etc.) ([eb10097](https://github.com/immanent-tech/foragd/commit/eb100975f92081fa9f5c771fcc2d411bbe7dc952))
+* **service:** 🔧 fix user updates ([eb7baed](https://github.com/immanent-tech/foragd/commit/eb7baede96390807c944b643ef29f054a6d09f6d))
+* **service:** 🔧 remove debug output ([787d08e](https://github.com/immanent-tech/foragd/commit/787d08ebbfc75450d7642bd7cb8c6abeaa5591e9))
+* **templates/subscriptions:** 🎨 fix spacing between filter icon and title on subscription cards ([4313412](https://github.com/immanent-tech/foragd/commit/43134126a0632eb474a9000f78e23597a671b9d1))
+
 ## [0.209.1](https://github.com/immanent-tech/foragd/compare/v0.209.0...v0.209.1) (2026-07-30)
 
 
