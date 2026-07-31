@@ -122,12 +122,12 @@ are defined the same way as the per-subscription filters, across any text, categ
 
 ### Global Verses Per-Subscription Filters, Which to Use?
 
-- Global filters are great the same topics, categories, or authors come up across multiple subscriptions. This saves you
-  repeating the filters per subscription.
+- Global filters are great when the same topics, categories, or authors come up across multiple subscriptions. This
+  saves you repeating the filters per subscription.
 - Per-subscription filters are great where you have a subscription on a specific topic or area and need precision
   filtering.
 
-Be aware that global filters apply *before* per-subscription filters. When you filter out a keyword or phrase with a
+Be aware that global filters apply **before** per-subscription filters. When you filter out a keyword or phrase with a
 global filter (i.e., `-thing`), you can't then apply any per-subscription filters on articles that would match `thing`.
 Those articles are filtered out already.
 
@@ -241,14 +241,13 @@ Foragd](/blog/article-filtering-in-foragd).
 
 The following shortcut keys are available on desktop:
 
-| Key Combo | Action                                                                                                        |
-| --------- | ------------------------------------------------------------------------------------------------------------- |
-| `Alt+k`   | Activates the global search input                                                                             |
-| `Alt+h`   | Navigates to [Home](/home)                                                                                    |
-| `Alt+s`   | Navigates to [Subscriptions](/list/subscriptions)                                                             |
-| `Alt+a`   | Navigates to [Articles](/list/articles)                                                                       |
-| `Alt+f`   | Navigates to [Favorites](/list/favorites)                                                                     |
-| `Alt+x`   | Activates the actions menu (on [Subscriptions](/list/subscriptions) or [Articles](/list/articles) list pages) |
+| Key Combo | Action                                            |
+| --------- | ------------------------------------------------- |
+| `Alt+k`   | Activates the global search input                 |
+| `Alt+h`   | Navigates to [Home](/home)                        |
+| `Alt+s`   | Navigates to [Subscriptions](/list/subscriptions) |
+| `Alt+a`   | Navigates to [Articles](/list/articles)           |
+| `Alt+f`   | Navigates to [Favorites](/list/favorites)         |
 
 ## Policies and Terms of Service
 
