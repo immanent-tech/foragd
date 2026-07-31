@@ -154,6 +154,8 @@ func HandleAssets(urlPrefix string, unHashed bool) http.Handler {
 		}
 		defer f.Close()
 
+		res.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
+
 		if !unHashed {
 			// Hashed filenames are content-addressed: the same name will always
 			// mean the same bytes, so it's safe to cache for a very long time.
