@@ -308,12 +308,12 @@ func HandleSearchResults() http.HandlerFunc {
 					retriever.WithQueryFilters(filterQuery),
 					retriever.WithChildRetrievers(
 						retriever.WithStandardRetriever(
-							"rrf-regular",
-							query.Bool(service.StandardSearchResultsClause(search)),
+							"retriever-regular",
+							service.StandardSearchResultsClause(search),
 						),
 						retriever.WithStandardRetriever(
-							"rrf-semantic",
-							query.Bool(service.SemanticSearchResultsClause(search)),
+							"retriver-semantic",
+							service.SemanticSearchResultsClause(search),
 						),
 					),
 				),

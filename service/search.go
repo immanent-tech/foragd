@@ -21,7 +21,7 @@ func BuildSearchResultsQuery(
 	ctx context.Context,
 	user *models.User,
 	request *models.SearchRequest,
-	clause query.BoolOption,
+	clause query.Option,
 ) (query.Option, error) {
 	var (
 		loc *time.Location
@@ -77,105 +77,99 @@ func BuildSearchResultsQuery(
 	}
 
 	return query.Bool(
-		query.WithBoolQueryName("search-results"),
-		query.Filter(
+		query.Must(
 			query.Bool(
-				// Must satisfy user global filters.
-				models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-				// Must be in the given user subscriptions.
-				query.Should(BuildItemQueries(user, request.View, subscriptions)...),
-			),
-			// Must be published/updated since the given time.
-			query.Bool(
+				query.WithBoolQueryName("search-filters"),
+				query.Filter(
+					query.Bool(
+						// Must satisfy user global filters.
+						models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+						// Must be in the given user subscriptions.
+						query.Should(BuildItemQueries(user, request.View, subscriptions)...),
+					),
+					// Must be published/updated since the given time.
+					query.Bool(
+						query.Should(
+							query.Since("published", since),
+							query.Since("updated", since),
+						),
+					),
+				),
 				query.Should(
-					query.Since("published", since),
-					query.Since("updated", since),
+					// Boost items that are from a favorite subscription.
+					query.Terms(
+						"feed_id",
+						subscriptions.FilterByFavorites(true).GetFeedIDs(),
+						query.WithQueryName[*query.TermsQuery]("boost-favorites"),
+						query.WithQueryBoost[*query.TermsQuery](2.0),
+					),
+					// Boost documents closer to the current time.
+					query.Distance("published", pivot, "now"),
+					query.Distance("updated", pivot, "now"),
 				),
 			),
+			clause,
 		),
-		query.Should(
-			// Boost items that are from a favorite subscription.
-			query.Terms(
-				"feed_id",
-				subscriptions.FilterByFavorites(true).GetFeedIDs(),
-				query.WithQueryName[*query.TermsQuery]("boost-favorites"),
-				query.WithQueryBoost[*query.TermsQuery](2.0),
-			),
-			// Boost documents closer to the current time.
-			query.Distance("published", pivot, "now"),
-			query.Distance("updated", pivot, "now"),
-		),
-		clause,
 	), nil
 }
 
-func StandardSearchResultsClause(search *models.SearchRequest) query.BoolOption {
+func StandardSearchResultsClause(search *models.SearchRequest) query.Option {
 	// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
 	// search suggestion).
-	return query.Must(
-		// Search across title, description and content fields, with preference for match in that order (via field
-		// boosting).
-		query.Bool(
-			query.Should(
-				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.SimpleQueryString(
-					query.WithSimpleQueryStringText(&search.Text),
-					query.WithSimpleQueryStringFields("title^3", "description^2", "content"),
-					query.WithSimpleQueryStringOperator(&operator.And),
-				),
-				query.MultiMatch(
-					search.Text,
-					[]string{"description^2", "content"},
-					query.WithTextQueryType(textquerytype.Phrase),
+	return query.Bool(
+		query.Must(
+			// Search across title, description and content fields, with preference for match in that order (via field
+			// boosting).
+			query.Bool(
+				query.Should(
+					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
+					query.SimpleQueryString(
+						query.WithSimpleQueryStringText(&search.Text),
+						query.WithSimpleQueryStringFields("title^3", "description^2", "content"),
+						query.WithSimpleQueryStringOperator(&operator.And),
+					),
+					query.MultiMatch(
+						search.Text,
+						[]string{"description^2", "content"},
+						query.WithTextQueryType(textquerytype.Phrase),
+					),
 				),
 			),
-		),
-		// Search in categories.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Categories),
-			query.WithSimpleQueryStringFields("categories"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		// Search in authors, contributors.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Authors),
-			query.WithSimpleQueryStringFields("authors", "contributors"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-	)
-}
-
-func SemanticSearchResultsClause(search *models.SearchRequest) query.BoolOption {
-	return query.Must(
-		// Perform semantic search on content field for text.
-		query.Match("content_semantic", search.Text),
-		// Search in categories.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Categories),
-			query.WithSimpleQueryStringFields("categories"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		// Search in authors, contributors.
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(search.Authors),
-			query.WithSimpleQueryStringFields("authors", "contributors"),
-			query.WithSimpleQueryStringOperator(&operator.And),
+			// Search in categories.
+			query.SimpleQueryString(
+				query.WithSimpleQueryStringText(search.Categories),
+				query.WithSimpleQueryStringFields("categories"),
+				query.WithSimpleQueryStringOperator(&operator.And),
+			),
+			// Search in authors, contributors.
+			query.SimpleQueryString(
+				query.WithSimpleQueryStringText(search.Authors),
+				query.WithSimpleQueryStringFields("authors", "contributors"),
+				query.WithSimpleQueryStringOperator(&operator.And),
+			),
 		),
 	)
 }
 
-func SearchSuggestionsClause(search *models.SearchRequest) query.BoolOption {
+func SemanticSearchResultsClause(search *models.SearchRequest) query.Option {
+	// Perform semantic search on content field for text.
+	return query.Match("content_semantic", search.Text)
+}
+
+func SearchSuggestionsClause(search *models.SearchRequest) query.Option {
 	// Must match at least one of in title, description, content.
-	return query.Must(
-		query.Bool(
-			query.Should(
-				query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.SearchAsYouType(search.Text, "title"),
-				query.SearchAsYouType(search.Text, "description"),
-				query.SimpleQueryString(
-					query.WithSimpleQueryStringText(&search.Text),
-					query.WithSimpleQueryStringFields("content"),
-					query.WithSimpleQueryStringOperator(&operator.And),
+	return query.Bool(
+		query.Must(
+			query.Bool(
+				query.Should(
+					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
+					query.SearchAsYouType(search.Text, "title"),
+					query.SearchAsYouType(search.Text, "description"),
+					query.SimpleQueryString(
+						query.WithSimpleQueryStringText(&search.Text),
+						query.WithSimpleQueryStringFields("content"),
+						query.WithSimpleQueryStringOperator(&operator.And),
+					),
 				),
 			),
 		),

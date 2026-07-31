@@ -529,8 +529,7 @@ func SearchAsYouType(text string, field string) Option {
 func Bool(options ...BoolOption) Option {
 	return func(query *types.Query) {
 		boolQuery := &types.BoolQuery{}
-
-		for _, option := range options {
+		for option := range slices.Values(options) {
 			if option != nil {
 				option(boolQuery)
 			}
@@ -556,14 +555,14 @@ func Filter(queryOptions ...Option) BoolOption {
 		var filters []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool filters list.
-		for _, queryOption := range queryOptions {
-
-			if queryOption != nil {
-				filterClause := &types.Query{}
-				queryOption(filterClause)
-				if !reflect.DeepEqual(filterClause, &types.Query{}) {
-					filters = append(filters, *filterClause)
-				}
+		for queryOption := range slices.Values(queryOptions) {
+			if queryOption == nil {
+				continue
+			}
+			filterClause := &types.Query{}
+			queryOption(filterClause)
+			if !reflect.DeepEqual(filterClause, &types.Query{}) {
+				filters = append(filters, *filterClause)
 			}
 		}
 
@@ -583,7 +582,10 @@ func Must(queryOptions ...Option) BoolOption {
 		var musts []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool must list.
-		for _, queryOption := range queryOptions {
+		for queryOption := range slices.Values(queryOptions) {
+			if queryOption == nil {
+				continue
+			}
 			mustClause := &types.Query{}
 			queryOption(mustClause)
 
@@ -609,7 +611,10 @@ func MustNot(queryOptions ...Option) BoolOption {
 		var mustNots []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool must_not list.
-		for _, queryOption := range queryOptions {
+		for queryOption := range slices.Values(queryOptions) {
+			if queryOption == nil {
+				continue
+			}
 			mustNotClause := &types.Query{}
 			queryOption(mustNotClause)
 
@@ -633,7 +638,10 @@ func Should(queryOptions ...Option) BoolOption {
 		var shoulds []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool should list.
-		for _, queryOption := range queryOptions {
+		for queryOption := range slices.Values(queryOptions) {
+			if queryOption == nil {
+				continue
+			}
 			shouldClause := &types.Query{}
 			queryOption(shouldClause)
 
@@ -674,7 +682,10 @@ func WithBoolQueryBoost(boost float32) BoolOption {
 func Build(options ...Option) *types.Query {
 	queryOptions := &types.Query{}
 
-	for _, option := range options {
+	for option := range slices.Values(options) {
+		if option == nil {
+			continue
+		}
 		option(queryOptions)
 	}
 
@@ -684,11 +695,3 @@ func Build(options ...Option) *types.Query {
 
 	return nil
 }
-
-// func (mso *MsearchSearch) GenerateSortCombination() []types.SortCombinations {
-// 	combos := make([]types.SortCombinations, 0, len(mso.Sort))
-// 	for sort := range slices.Values(mso.Sort) {
-// 		combos = append(combos, sort.SortCombinationsCaster())
-// 	}
-// 	return combos
-// }
