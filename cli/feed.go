@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
@@ -28,8 +29,9 @@ import (
 
 // FeedCmd contains subcommands for interacting with feeds.
 type FeedCmd struct {
-	Fetch        FetchFeedCmd        `cmd:"fetch"         help:"fetch a feed (by either URL or ID)"`
-	ResetUpdates ResetFeedUpdatesCmd `cmd:"reset-updates" help:"reset the feed updates job"`
+	Fetch        FetchFeedCmd        `cmd:"" help:"fetch a feed (by either URL or ID)"`
+	ResetUpdates ResetFeedUpdatesCmd `cmd:"" help:"reset the feed updates job"`
+	Update       UpdateFeedCmd       `cmd:"" help:"update the feed"`
 }
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
@@ -202,6 +204,65 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 		return fmt.Errorf("delete feed job: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Deleted existing feed job.")
+
+	return nil
+}
+
+// UpdateFeedCmd performs updates on a feed.
+type UpdateFeedCmd struct {
+	FeedID   models.FeedID `help:"ID of feed"`
+	Interval string        `help:"update the interval to the given value"`
+}
+
+// Run performs the operations for resetting feed updates.
+func (c *UpdateFeedCmd) Run() error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_"); err != nil {
+		return fmt.Errorf("invalid feed: %w", err)
+	}
+
+	// Process required updates.
+	updates := make(map[string]any)
+	switch {
+	case c.Interval != "":
+		interval, err := time.ParseDuration(c.Interval)
+		if err != nil {
+			return fmt.Errorf("parse interval: %w", err)
+		}
+		updates["update_interval"] = interval
+		// Update the feed.
+		if err := service.UpdateFeed(ctx, c.FeedID, updates); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
+		// Delete scheduled job for feed.
+		if err := scheduler.NewManager(ctx); err != nil {
+			return fmt.Errorf("could not run scheduler: %w", err)
+		}
+		if err := scheduler.Manager.DeleteJob(
+			quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
+		); err != nil {
+			return fmt.Errorf("delete feed job: %w", err)
+		}
+		// Create a new job for the feed.
+		newJob, err := jobs.NewUpdateFeedJob(ctx, c.FeedID)
+		if err != nil {
+			return fmt.Errorf("create new feed job: %w", err)
+		}
+		// Schedule the new job.
+		if err = scheduler.Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
+			return fmt.Errorf("schedule feed job: %w", err)
+		}
+		slogctx.FromCtx(ctx).Debug("Added new job for feed.",
+			slog.String("job_id", newJob.JobDetail().JobKey().String()),
+			slog.String("job_schedule", newJob.Trigger().Description()),
+		)
+	}
+
+	slogctx.FromCtx(ctx).Info("Feed updated.",
+		slog.String("feed_id", c.FeedID))
 
 	return nil
 }
