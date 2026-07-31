@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -181,6 +182,8 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 		return
 	}
 
+	godump.Dump(auth0User)
+
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different
@@ -199,11 +202,12 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 		localUser.Email = email
 	}
 	// Update login count.
-	localUser.LoginCount = auth0User.GetUserResponseContent.GetLoginsCount()
+	updates["login_count"] = auth0User.GetUserResponseContent.GetLoginsCount()
 	// Update last login timestamp.
 	if lastLogin := auth0User.GetUserResponseContent.GetLastLogin(); lastLogin.After(localUser.LastLogin) {
-		localUser.LastLogin = lastLogin
+		updates["last_login"] = lastLogin
 	}
+
 	// Update user metadata.
 	metadata := localUser.Metadata
 	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok &&
