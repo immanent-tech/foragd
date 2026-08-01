@@ -112,7 +112,7 @@ func ListCategories() http.HandlerFunc {
 				counts, err := service.GetTopCategoriesForItems(
 					req.Context(),
 					query.Bool(
-						query.Filter(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
+						query.Filter(service.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
 					),
 				)
 				if err != nil {

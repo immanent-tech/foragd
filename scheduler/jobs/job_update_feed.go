@@ -261,10 +261,10 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	// TODO: add a custom comparer when ExtensionData contains information worth updating.
 	updatedItems := make(models.Items, 0, len(existingItems))
 	for existingItem := range slices.Values(existingItems) {
-		if newItem := items.FindByID(existingItem.GetID()); newItem != nil {
+		if updatedItem := items.FindByID(existingItem.GetID()); updatedItem != nil {
 			if diff := cmp.Diff(
 				*existingItem,
-				*newItem,
+				*updatedItem,
 				cmpopts.IgnoreFields(
 					models.Item{},
 					"Updated",
@@ -276,7 +276,7 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 				cmpopts.EquateEmpty(),
 				cmpopts.IgnoreUnexported(),
 			); diff != "" {
-				updatedItems = append(updatedItems, newItem)
+				updatedItems = append(updatedItems, updatedItem)
 			}
 		}
 	}

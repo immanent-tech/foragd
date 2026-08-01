@@ -137,7 +137,7 @@ func HandleListArticles() http.HandlerFunc {
 				}
 			}
 			request.Query = query.Bool(
-				models.ArticleFiltersQueryClause(subscription.GetArticleFilters()),
+				service.ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 			)
 		}
 
@@ -275,7 +275,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				query.Terms("categories.raw", articleFilters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Filter(models.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
+					query.Filter(service.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
 				),
 			),
 		)

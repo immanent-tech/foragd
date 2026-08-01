@@ -262,7 +262,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 				query.Terms("categories.raw", filters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Filter(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			),
 		)

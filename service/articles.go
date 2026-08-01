@@ -14,6 +14,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
@@ -36,6 +37,29 @@ func GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles
 	}
 
 	return articles, nil
+}
+
+func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption {
+	if filters == nil {
+		return nil
+	}
+	return query.Must(
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Text),
+			query.WithSimpleQueryStringFields("title", "description", "content"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Authors),
+			query.WithSimpleQueryStringFields("authors", "contributors"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Categories),
+			query.WithSimpleQueryStringFields("categories"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+	)
 }
 
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
@@ -77,7 +101,7 @@ func FilterArticles(
 				query.WithQueryName[*query.TermsQuery]("match-categories"),
 			),
 			query.Bool(
-				models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+				ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
 				query.Should(BuildItemQueries(user, request.Filters.GetView(), subscriptions)...),
 			),
 			request.Query,

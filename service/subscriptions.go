@@ -498,7 +498,7 @@ func getFeedSubscriptionLatestItems(
 						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
 					),
 					query.Bool(
-						models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
 					),
 				),
 			),
@@ -1046,7 +1046,7 @@ func getSubscriptionUnreadCounts(
 						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
 					),
 					query.Bool(
-						models.ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
 					),
 				),
 			),
