@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.210.3](https://github.com/immanent-tech/foragd/compare/v0.210.2...v0.210.3) (2026-08-01)
+
+
+### Bug Fixes
+
+* 🗑️ remove duplicated methods for generating item queries ([d4aa541](https://github.com/immanent-tech/foragd/commit/d4aa541e5c01ebb81bccd0029f2060dc52edc5a0))
+* **templates/favorites:** 🎨 fix display of latest articles on subscription cards on favorites page ([46d710e](https://github.com/immanent-tech/foragd/commit/46d710e8c11c161a3e20115ade452754ebeae445))
+
 ## [0.210.2](https://github.com/immanent-tech/foragd/compare/v0.210.1...v0.210.2) (2026-08-01)
 
 
