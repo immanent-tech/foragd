@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.210.2](https://github.com/immanent-tech/foragd/compare/v0.210.1...v0.210.2) (2026-08-01)
+
+
+### Bug Fixes
+
+* **templates:** 🎨 improved fonts ([80f3887](https://github.com/immanent-tech/foragd/commit/80f3887e2f0bc18523df16bee6736d79bb34901d))
+
 ## [0.210.1](https://github.com/immanent-tech/foragd/compare/v0.210.0...v0.210.1) (2026-07-31)
 
 
