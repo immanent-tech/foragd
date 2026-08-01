@@ -32,18 +32,34 @@
 
 /* Global custom theme values. */
 @theme {
-  --font-sans:
-    'Alegreya Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-    'Noto Color Emoji';
-  --font-serif: 'Alegreya Variable', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-display: 'Nunito Variable', sans-serif;
-  --font-mono:
-    'Monaspace Neon', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
-  --sidebar-width: var(--w-sm);
+  --font-systemui: system-ui, sans-serif;
+  --font-transitional: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif;
+  --font-oldstyle: 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif;
+  --font-humanist:
+    Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif;
+  --font-geohumanist: Avenir, Montserrat, Corbel, 'URW Gothic', source-sans-pro, sans-serif;
+  --font-classhuman: Optima, Candara, 'Noto Sans', source-sans-pro, sans-serif;
+  --font-neogrote: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+  --font-monoslab: 'Nimbus Mono PS', 'Courier New', monospace;
+  --font-monocode:
+    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --font-industrial:
+    Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', 'Nimbus Sans Narrow',
+    sans-serif-condensed, sans-serif;
+  --font-roundsans:
+    ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT',
+    'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+  --font-slabserif: Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif;
+  --font-antique:
+    Superclarendon, 'Bookman Old Style', 'URW Bookman', 'URW Bookman L', 'Georgia Pro', Georgia,
+    serif;
+  --font-didone: Didot, 'Bodoni MT', 'Noto Serif Display', 'URW Palladio L', P052, Sylfaen, serif;
+  --font-handwritten: 'Segoe Print', 'Bradley Hand', Chilanka, TSCu_Comic, casual, cursive;
 
-  --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+  --font-sans: var(--font-neogrote);
+  --font-serif: 'Alegreya Variable', var(--font-oldstyle);
+  --font-display: 'Alegreya Sans', var(--font-antique);
+  --font-mono: 'Monaspace Neon', var(--font-monocode);
 
   --text-xs: calc(0.75rem * var(--font-scale, 1));
   --text-xs--line-height: calc(1 / 0.75);
@@ -65,6 +81,10 @@
   --text-5xl--line-height: 1;
   --text-7xl: calc(4.5rem * var(--font-scale, 1));
   --text-7xl--line-height: 1;
+
+  --sidebar-width: var(--w-sm);
+
+  --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
 
   @keyframes fadeInUp {
     from {
@@ -146,6 +166,7 @@
   h1,
   h2,
   h3 {
+    @apply font-display;
     font-feature-settings:
       'kern' 1,
       'liga' 1,
@@ -173,6 +194,7 @@
 
   pre,
   code {
+    @apply font-mono;
     font-feature-settings:
       'calt' 1,
       'liga' 1,
@@ -204,9 +226,6 @@
 
   el-menu {
     @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-    .menu {
-      @apply font-display;
-    }
   }
 
   el-options {
@@ -228,15 +247,6 @@
   /* Mux player styling. */
   mux-player {
     @apply block aspect-video w-full rounded-box;
-  }
-
-  /* Font adjustments. */
-  button,
-  [role='button'],
-  select,
-  .htmx-indicator,
-  option {
-    @apply font-display;
   }
 }
 
@@ -329,11 +339,11 @@
 
 /* For formatting article content. */
 @utility prose-article {
-  @apply prose ugc-remove-trackers max-w-none overflow-x-auto wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+  @apply prose ugc-remove-trackers max-w-none overflow-x-auto font-serif wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
   /* Forced fixed width for pre and scrollable elements. */
   pre {
-    @apply overflow-x-auto;
+    @apply overflow-x-auto font-mono;
   }
   .scrollable {
     @apply overflow-x-auto;
@@ -366,7 +376,7 @@
   table,
   td,
   tr {
-    @apply box-border! block! w-auto! max-w-100!;
+    @apply box-border! block! w-auto! max-w-100! font-serif!;
   }
 
   /* Restore normal table rows where display:block breaks alignment */
@@ -398,7 +408,7 @@
 
 /* For formatting a short summary of article content. */
 @utility prose-summary {
-  @apply prose prose-sm line-clamp-3 leading-relaxed dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+  @apply prose prose-sm line-clamp-3 font-serif leading-relaxed dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
   img,
   figure,
   video {
@@ -408,7 +418,7 @@
 
 /* For formatting help and policy documents. */
 @utility prose-document {
-  @apply prose sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-img:shadow-md;
+  @apply prose font-serif sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-table:font-sans prose-img:shadow-md;
 }
 
 @utility ugc-remove-trackers {
@@ -496,19 +506,9 @@
 
 /* Override some settings for DaisyUI label style. */
 @utility label {
-  @apply font-display font-normal text-base-content;
-}
-
-/* Override some settings for DaisyUI badge style. */
-@utility badge {
-  @apply font-display;
-}
-
-/* Override some settings for DaisyUI tooltip style. */
-@utility tooltip {
-  @apply font-display;
+  @apply font-normal text-base-content;
 }
 
 @utility fieldset {
-  @apply font-display text-base;
+  @apply text-base;
 }

@@ -1252,7 +1252,7 @@ func ArticleContent(a *models.Article) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"my-4 flex items-center font-display text-sm/6 text-neutral\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" class=\"w-full sm:mx-auto sm:max-w-prose\"><div class=\"my-4 flex items-center text-sm/6 text-neutral\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

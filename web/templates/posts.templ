@@ -23,7 +23,7 @@ templ PostsIndex(posts []*markdownx.File) {
 			@pageHeading() {
 				@pageTitle("The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons")
 			}
-			<p class="mt-2 text-base">
+			<p class="mt-2 font-serif font-medium text-base">
 				The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons
 				with other feed readers, and practical strategies for taking back control of your reading in an era
 				of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find
@@ -82,7 +82,7 @@ templ PostsIndex(posts []*markdownx.File) {
 								if post.Frontmatter.Author != nil {
 									<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
 								}
-								<p class="mt-4">{ post.Frontmatter.Description }</p>
+								<p class="mt-4 prose-summary">{ post.Frontmatter.Description }</p>
 							}
 							@partials.CardFooter() {
 								<div class="card-actions justify-end">
@@ -158,12 +158,12 @@ templ Post(post *markdownx.File) {
 		></div>
 		@buttonBackToTop()
 		@narrowContainer() {
-			<div class="breadcrumbs text-sm">
-				<ul>
-					<li><a href="/blog">Blog</a></li>
-					<li><span>{ post.Frontmatter.Title }</span></li>
-				</ul>
-			</div>
+			// <div class="breadcrumbs text-sm">
+			// 	<ul>
+			// 		<li><a href="/blog">Blog</a></li>
+			// 		<li><span>{ post.Frontmatter.Title }</span></li>
+			// 	</ul>
+			// </div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
 				<div class="flex flex-1 flex-separated items-center justify-self-end">
 					<span class="text-xs/4 text-neutral capitalize tabular-nums">
@@ -189,34 +189,36 @@ templ Post(post *markdownx.File) {
 						</span>
 					}
 				</div>
-				<h1
-					class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl"
-					itemprop="headline"
-				>
-					{ post.Frontmatter.Title }
-				</h1>
-				<p class="font-semibold">{ post.Frontmatter.Description }</p>
-				<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/20 p-1">
-					// Author.
-					if post.Frontmatter.Author != nil {
-						<strong
-							itemprop="author"
-							itemscope
-							itemtype="https://schema.org/Person"
-							class="label text-sm"
-						>
-							<span itemprop="name">{ *post.Frontmatter.Author }</span>
-						</strong>
-					}
-					// Actions.
-					<div class="flex shrink-0 items-center">
-						<span class="text-sm/6">
-							Reading time:
-							{ strings.ReplaceAll(textx.ReadingTime(string(post.Content)).Round(time.Minute).String(),"0s","") }
-						</span>
+				<article class="prose-article px-2">
+					<h1
+						class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl"
+						itemprop="headline"
+					>
+						{ post.Frontmatter.Title }
+					</h1>
+					<p class="font-medium font-serif">{ post.Frontmatter.Description }</p>
+					<div class="mb-4 flex font-sans items-center justify-between border-t border-b border-neutral/20 p-1">
+						// Author.
+						if post.Frontmatter.Author != nil {
+							<strong
+								itemprop="author"
+								itemscope
+								itemtype="https://schema.org/Person"
+								class="label text-sm"
+							>
+								<span itemprop="name">{ *post.Frontmatter.Author }</span>
+							</strong>
+						}
+						// Actions.
+						<div class="flex shrink-0 items-center">
+							<span class="text-sm/6">
+								Reading time:
+								{ strings.ReplaceAll(textx.ReadingTime(string(post.Content)).Round(time.Minute).String(),"0s","") }
+							</span>
+						</div>
 					</div>
-				</div>
-				@templ.Raw(string(post.Content))
+					@templ.Raw(string(post.Content))
+				</article>
 			</article>
 		}
 	}

@@ -31,7 +31,7 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 								@tableroutline.X(templ.Attributes{"class": "size-6 ", "aria-hidden": true})
 							</button>
 						</div>
-						<ul class="menu font-display">
+						<ul class="menu">
 							// Mobile View Filters.
 							<li class="menu-title">View</li>
 							<ul id="mobile-view-filters">
@@ -144,7 +144,7 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 					</el-menu>
 				</el-dropdown>
 				// Desktop View Filters.
-				<ul id="desktop-view-filters" class="menu menu-horizontal font-display text-sm">
+				<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
 					@viewFilterOption(c.path, models.ViewUnread, c.filters)
 					@viewFilterOption(c.path, models.ViewRead, c.filters)
 					@viewFilterOption(c.path, models.ViewAll, c.filters)

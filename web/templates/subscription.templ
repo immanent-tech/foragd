@@ -343,7 +343,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 												{{ items, ok := itemsData.(models.Items) }}
 												if ok {
 													<div class="mt-auto h-full">
-														<ul class="latest-items menu">
+														<ul class="latest-items menu font-serif">
 															for item := range slices.Values(items) {
 																<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
 																	<a

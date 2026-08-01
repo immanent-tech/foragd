@@ -224,7 +224,7 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<a hx-get=\"/list/articles\" hx-target=\"#content\" hx-swap=\"innerHTML show:top transition:true\" class=\"link font-display text-sm text-secondary link-hover\">See all <span aria-hidden=\"true\">-></span></a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<a hx-get=\"/list/articles\" hx-target=\"#content\" hx-swap=\"innerHTML show:top transition:true\" class=\"link text-sm text-secondary link-hover\">See all <span aria-hidden=\"true\">-></span></a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -290,14 +290,14 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a class=\"link font-display text-sm text-secondary link-hover\" hx-get=\"/list/subscriptions\" hx-target=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a class=\"link text-sm text-secondary link-hover\" hx-get=\"/list/subscriptions\" hx-target=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 								var templ_7745c5c3_Var13 string
 								templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 100, Col: 132}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 100, Col: 119}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 								if templ_7745c5c3_Err != nil {
@@ -418,7 +418,7 @@ func UserHome(data *HomeData) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost font-display text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscription/add\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscription/add\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

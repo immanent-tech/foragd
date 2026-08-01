@@ -277,7 +277,7 @@ func CategoryBadge(category models.Category, options ...element.PropertiesOption
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var12 = []any{"category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium font-display text-accent-content transition-colors ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:bg-secondary hover:text-secondary-content", props.Classes()}
+		var templ_7745c5c3_Var12 = []any{"category-badge flex items-center rounded-lg bg-accent px-2 py-1 text-xs font-medium text-accent-content transition-colors ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:bg-secondary hover:text-secondary-content", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

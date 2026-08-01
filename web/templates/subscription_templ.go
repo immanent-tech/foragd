@@ -1081,7 +1081,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 											if ok {
 												items, ok := itemsData.(models.Items)
 												if ok {
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div class=\"mt-auto h-full\"><ul class=\"latest-items menu\">")
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div class=\"mt-auto h-full\"><ul class=\"latest-items menu font-serif\">")
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}

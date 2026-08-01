@@ -37,7 +37,7 @@ templ Dock(options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only font-display">Home</span>
+			<span class="dock-label not-sr-only">Home</span>
 		</a>
 		{{ filters := models.NewListDisplayFilters() }}
 		<a
@@ -58,7 +58,7 @@ templ Dock(options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only font-display">Subscriptions</span>
+			<span class="dock-label not-sr-only">Subscriptions</span>
 		</a>
 		<a
 			hx-get="/list/articles"
@@ -81,7 +81,7 @@ templ Dock(options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only font-display">Articles</span>
+			<span class="dock-label not-sr-only">Articles</span>
 		</a>
 		<a
 			hx-get="/list/favorites"
@@ -99,7 +99,7 @@ templ Dock(options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only font-display">Favorites</span>
+			<span class="dock-label not-sr-only">Favorites</span>
 		</a>
 		<a
 			hx-get="/subscription/add"
@@ -117,7 +117,7 @@ templ Dock(options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only font-display">Add</span>
+			<span class="dock-label not-sr-only">Add</span>
 		</a>
 	</footer>
 }

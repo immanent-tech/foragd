@@ -104,14 +104,14 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 				},
 			)
 			<div class="isolate">
+				@pageHeading(element.WithClasses("mt-12")) {
+					@pageTitle("Free RSS and Atom Feed Viewer")
+				}
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
 					<div class="soft-gradient-top"></div>
 				</div>
 				<section id="viewer" class="mx-auto sm:max-w-5xl">
-					<h1 class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
-						Free RSS Feed Viewer
-					</h1>
-					<div class="prose">
+					<div class="prose-article">
 						<p>
 							Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on
 							any site. The feed content, if found, will be displayed below.

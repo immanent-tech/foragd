@@ -3,8 +3,6 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/web/templates/partials"
-import "github.com/immanent-tech/go-base/config"
 import "github.com/immanent-tech/go-base/pkg/markdownx"
 import "github.com/immanent-tech/foragd/web/templates/element"
 
@@ -16,12 +14,12 @@ templ Comparison(text *markdownx.File) {
 				@pageTitle(text.Frontmatter.PageTitle)
 			}
 			// Main content.
-			<article class="prose mt-12 sm:prose-lg prose-img:shadow-md">
+			<article class="prose-document mt-12">
 				@templ.Raw(string(text.Content))
 			</article>
 			// Links.
 			<div class="mt-10 flex items-center justify-center gap-x-6">
-				<a role="button" class="btn text-sm/6 font-semibold btn-outline" href="/features">
+				<a role="button" class="btn btn-outline text-sm/6 font-semibold" href="/features">
 					More Foragd features
 				</a>
 				<a role="button" class="btn text-sm/6 font-semibold btn-primary" href="/signup">
@@ -39,187 +37,4 @@ templ Comparison(text *markdownx.File) {
 			</nav>
 		}
 	}
-}
-
-templ VsFeedly() {
-	// Introduction.
-	<div class="prose mt-10">
-		<h2 class="text-lg/7 font-semibold">Foragd vs Feedly: Key Differences</h2>
-		<p>
-			Foragd is a cheaper, higher-limit alternative to Feedly for independent readers who want RSS, newsletter,
-			and search subscriptions in one place without per-feature caps.
-		</p>
-		<p>
-			Foragd and Feedly are both web-based RSS feed readers, but they differ significantly in pricing
-			structure, feed limits, and philosophy. Foragd offers a single plan with 3000 feed subscriptions
-			and built-in email newsletter support starting at USD $4.92/month billed annually. Feedly's base
-			plan at $6.99/month with a 1000 feed limit and no newsletter support. This page further breaks
-			down the key differences to help you choose.
-		</p>
-	</div>
-	// Comparsion table.
-	<div class="prose mt-10">
-		<h2 class="text-base font-semibold">Comparison Details</h2>
-		<div class="overflow-x-auto">
-			<table class="table w-full">
-				<caption class="sr-only">
-					Feature and pricing comparison between Foragd and Feedly
-				</caption>
-				<thead>
-					<tr>
-						<th>Feature</th>
-						<th>Foragd</th>
-						<th>Feedly</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td colspan="3" class="font-semibold">Pricing and Plans</td>
-					</tr>
-					<tr>
-						<td>Price (USD)</td>
-						<td>Single plan $4.92/mo billed annually or $7.00/mo billed monthly</td>
-						<td>Starting at $6.99/mo billed annually for base plan</td>
-					</tr>
-					<tr>
-						<td>Trial Period</td>
-						<td>14 days</td>
-						<td>None</td>
-					</tr>
-					<tr>
-						<td colspan="3" class="font-semibold">Inclusions and Limits</td>
-					</tr>
-					<tr>
-						<td>Subscription Limit</td>
-						<td>3000</td>
-						<td>1000</td>
-					</tr>
-					<tr>
-						<td>Email Newsletters</td>
-						<td>50</td>
-						<td>None in base plan</td>
-					</tr>
-					<tr>
-						<td colspan="3" class="font-semibold">Core Features</td>
-					</tr>
-					<tr>
-						<td>Full-text search</td>
-						<td>Yes</td>
-						<td>Yes</td>
-					</tr>
-					<tr>
-						<td>Article filtering</td>
-						<td>Unlimited per subscription filters</td>
-						<td><span class="italic">Limited in base plan</span></td>
-					</tr>
-					<tr>
-						<td>Topic monitoring</td>
-						<td>Unlimited saved searches</td>
-						<td><span class="italic">Limited</span></td>
-					</tr>
-					<tr>
-						<td>Fetch remote content</td>
-						<td>Yes</td>
-						<td>No</td>
-					</tr>
-					<tr>
-						<td>Android/iOS Apps</td>
-						<td>Not needed. Fully responsive web app</td>
-						<td>Yes</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
-	<p class="prose text-sm/6">Last updated: <time datetime="2026-04-09">April 9, 2026</time></p>
-	// Summary and verdict.
-	<div class="prose mt-10">
-		<h2 class="text-base font-semibold">Which RSS Reader Should You Choose: Foragd or Feedly?</h2>
-		<p>
-			Foragd is the stronger choice for most independent readers. At $4.92/month billed annually, it undercuts
-			Feedly's base plan while offering three times the feed limit (3,000 subscriptions versus Feedly's 1,000) in
-			addition to email newsletter support and remote article fetching that Feedly doesn't include at any base
-			tier.
-		</p>
-		<p>
-			Feedly has broader name recognition and native mobile apps, but Foragd's fully responsive web
-			app works on every device without an install, and its single flat-rate plan means you won't hit a paywall as
-			your reading list grows.
-		</p>
-		<p>
-			If you're an independent reader, blogger, researcher, or journalist who wants
-			to follow a large number of sources across websites and newsletters without paying for features that should
-			be standard, Foragd delivers more at a lower price. If you're already a Feedly user, switching takes under
-			two minutes — export your OPML from Feedly's settings, import it into Foragd, and your entire reading list
-			carries over instantly.
-		</p>
-	</div>
-	<div class="prose mt-10">
-		<h2 class="text-base font-semibold">How to Switch from Feedly to Foragd</h2>
-		<p>
-			Switching from Feedly to Foragd takes about two minutes and requires no manual work. Every feed you
-			currently follow in Feedly can be moved to Foragd in a single file import.
-		</p>
-		<ol>
-			<li>
-				<p class="font-semibold">
-					Export your feeds from Feedly
-				</p>
-				<p>
-					Log into Feedly and go to your profile settings. Under the "Organize" section, look for the OPML
-					export option. Feedly will generate a single .opml file containing every feed you currently
-					subscribe to, organised into whatever folders you've created. Download this file — it's yours to
-					keep regardless of what you do next.
-				</p>
-			</li>
-			<li>
-				<p class="font-semibold">
-					Import into Foragd
-				</p>
-				<p>
-					Log into your Foragd account and go to Settings, then Import. Select your OPML file and confirm the
-					import. Foragd will read every feed in the file and add them to your subscriptions automatically,
-					preserving your folder structure as categories. Depending on the number of feeds, this typically
-					completes in under a minute.
-				</p>
-			</li>
-			<li>
-				<p class="font-semibold">
-					You're done!
-				</p>
-				<p>
-					Every feed you followed in Feedly is now in Foragd. New articles will start appearing as feeds are
-					fetched. Your Feedly account remains untouched, you still need to cancel any existing subscription.
-					As such, you can move back to it at any time, or, keep both running in parallel until you're
-					comfortable with the switch.
-				</p>
-			</li>
-		</ol>
-		<p>
-			Don't have a Foragd account yet? <a class="link" href="/signup">Start a free trial</a>.  No credit card
-			required during for a trial.
-		</p>
-	</div>
-}
-
-templ VsFeedlyMeta() {
-	@partials.RenderJSONLD("vs-feedly-meta",
-		&partials.ArticleJSONLD{
-			Context:      "https://schema.org",
-			Type:         "Article",
-			Headline:     "Foragd vs Feedly: RSS Feed Reader Comparison 2026",
-			Description:  "A detailed comparison of Foragd and Feedly covering pricing, features, and which is best for different use cases.",
-			DateModified: "2026-04-09",
-			Author: partials.AuthorJSONLD{
-				Type: "Organization",
-				Name: "Immanent Tech",
-				URL:  "https://immanent.tech/",
-			},
-			Publisher: partials.PublishedJSONLD{
-				Type: "Organization",
-				Name: "Foragd",
-				URL:  config.GetBaseURL(),
-			},
-		},
-	)
 }

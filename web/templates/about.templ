@@ -17,15 +17,13 @@ templ About() {
 				</div>
 				<div class="hero-content text-center">
 					<div class="max-w-md">
-						<div class="mb-5 text-xs font-semibold tracking-widest text-primary/80 uppercase">
+						<div class="mb-5 text-base font-semibold tracking-widest text-primary/80 uppercase">
 							Why I built Foragd
 						</div>
-						<h1 class="mt-2 font-display text-4xl font-semibold tracking-tight text-pretty sm:text-balance">
-							Reading feeds shouldn't
-							<br class="hidden md:block"/>
-							be a chore
+						<h1 class="mt-2 font-display text-5xl font-semibold tracking-tight text-pretty sm:text-7xl sm:text-balance">
+							Reading feeds shouldn't	be a chore
 						</h1>
-						<p class="mt-6 text-lg/8 text-secondary">
+						<p class="mt-6 font-serif text-lg/8 font-medium text-pretty text-secondary">
 							Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats.
 							Built on a simple bet: that following the web can feel like reading a magazine again, not
 							clearing an inbox.
@@ -39,28 +37,27 @@ templ About() {
 				</div>
 			</section>
 			<section class="mx-auto max-w-2xl snap-start px-5 py-14 md:snap-align-none">
-				<div class="prose-none space-y-6 text-[17px] leading-relaxed text-base-content/75">
+				<div class="prose-none space-y-6 font-serif text-[17px] leading-relaxed font-medium text-pretty text-base-content/75 sm:text-lg">
 					<p>
-						I'm unsure where the idea that RSS and Atom feeds should feel like
-						email came from, but I'm tired of it.
+						I'm unsure where the idea that RSS and Atom feeds should feel like email came from, but I'm
+						tired of it.
 					</p>
 					<p>
-						Why are so many feed readers designed around what is, ultimately, a
-						business-orientated, task-based UI? Why do I need an unread count on
-						my feeds? I can barely keep up with my email — and unread counts are
-						meaningless once they're in the hundreds, if not thousands, which is
-						where most of us end up.
+						Why are so many feed readers designed around what is, ultimately, a business-orientated,
+						task-based UI? Why do I need an unread count on my feeds? I can barely keep up with my email —
+						and unread counts are meaningless once they're in the hundreds, if not thousands, which is where
+						most of us end up.
 					</p>
 					<p>
 						Folders don't align with how I think about organising content. Often, something is both this
 						<span class="font-semibold text-primary not-italic">and</span> that.
 					</p>
 				</div>
-				<blockquote class="my-12 border-l-2 border-primary/50 pl-6 font-display text-2xl leading-snug text-base-content/90 italic md:text-3xl">
+				<blockquote class="my-12 border-l-2 border-primary/50 pl-6 font-sans text-2xl leading-snug text-base-content/90 italic md:text-3xl">
 					Remember magazines? Social media, even? Neither has unread counts or
 					folders; that's moon-man business talk.
 				</blockquote>
-				<div class="space-y-6 text-[17px] leading-relaxed text-base-content/75">
+				<div class="space-y-6 font-serif text-[17px] leading-relaxed font-medium text-pretty text-base-content/75 sm:text-lg">
 					<p>
 						What they get right is simple: text that flows, in a UI that's less about organisation and more
 						about showing off the content. I don't want to be pressured into reading until a count hits
@@ -74,7 +71,7 @@ templ About() {
 			<section class="snap-start border-y border-base-300/60 bg-base-200/40 md:snap-align-none">
 				<div class="mx-auto max-w-5xl px-5 py-20">
 					<div class="mx-auto mb-14 max-w-lg text-center">
-						<div class="mb-3 text-xs font-semibold tracking-widest text-primary/80 uppercase">Foragd design</div>
+						<div class="mb-3 text-base font-semibold tracking-widest text-primary/80 uppercase">Foragd design</div>
 						<h2 class="font-display text-3xl font-medium md:text-4xl">Make reading and discovering content fun again</h2>
 					</div>
 					<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -82,43 +79,43 @@ templ About() {
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary">
 								@tableroutline.AlertCircleOff(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">No pressure</h3>
-							<p class="mt-2 text-sm text-base-content/65">No unread counts by default. Read what you want, when you want.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">No pressure</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">No unread counts by default. Read what you want, when you want.</p>
 						</div>
 						<div class="card border border-base-300 bg-base-200 p-6">
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary">
 								@tableroutline.Category(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">Flexible organisation</h3>
-							<p class="mt-2 text-sm text-base-content/65">Organising content with categories should be natural, not rigid.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">Flexible organisation</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">Organising content with categories should be natural, not rigid.</p>
 						</div>
 						<div class="card border border-base-300 bg-base-200 p-6">
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent">
 								@tableroutline.Map(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">Exploration encouraged</h3>
-							<p class="mt-2 text-sm text-base-content/65">No algorithms or recommendations deciding what you see next.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">Exploration encouraged</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">No algorithms or recommendations deciding what you see next.</p>
 						</div>
 						<div class="card border border-base-300 bg-base-200 p-6">
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary">
 								@tableroutline.Search(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">Search first</h3>
-							<p class="mt-2 text-sm text-base-content/65">Search is powerful, functional, and treated as first-class.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">Search first</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">Search is powerful, functional, and treated as first-class.</p>
 						</div>
 						<div class="card border border-base-300 bg-base-200 p-6">
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary">
 								@tableroutline.Typeface(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">Content focused</h3>
-							<p class="mt-2 text-sm text-base-content/65">Beautiful typography that makes reading online pleasurable again.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">Content focused</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">Beautiful typography that makes reading online pleasurable again.</p>
 						</div>
 						<div class="card border border-base-300 bg-base-200 p-6">
 							<span class="mb-4 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent">
 								@tableroutline.Heart(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 							</span>
-							<h3 class="font-display text-lg">1,000 true fans</h3>
-							<p class="mt-2 text-sm text-base-content/65">Making something for people, not for profit.</p>
+							<h3 class="font-display text-lg font-medium tracking-tight">1,000 true fans</h3>
+							<p class="mt-2 font-serif text-pretty text-base-content/65">Making something for people, not for profit.</p>
 						</div>
 					</div>
 				</div>

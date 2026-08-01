@@ -81,7 +81,7 @@ func (c *listControls) Show(actions templ.Component, buttons templ.Component) te
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div><ul class=\"menu font-display\"><li class=\"menu-title\">View</li><ul id=\"mobile-view-filters\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div><ul class=\"menu\"><li class=\"menu-title\">View</li><ul id=\"mobile-view-filters\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -384,7 +384,7 @@ func (c *listControls) Show(actions templ.Component, buttons templ.Component) te
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</ul></el-menu></el-dropdown><ul id=\"desktop-view-filters\" class=\"menu menu-horizontal font-display text-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</ul></el-menu></el-dropdown><ul id=\"desktop-view-filters\" class=\"menu menu-horizontal text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
