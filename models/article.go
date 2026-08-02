@@ -213,11 +213,15 @@ func (a *Article) formatContent() string {
 		return htmlx.CleanRedditHTML(a.Item.GetContent())
 	case a.SourceType == SourceTypeEmail:
 		// For emails, perform extra content cleanup.
-		if stripped, err := htmlx.StripAttributesFragment(content, nil); err != nil {
-			return htmlx.StripEmailPreheaderPadding(content)
-		} else {
-			return htmlx.StripEmailPreheaderPadding(stripped)
+		stripped, err := htmlx.StripAttributesFragment(content, nil)
+		if err != nil {
+			return content
 		}
+		cleaned, err := htmlx.StripWhitespaceOnlyElements(stripped)
+		if err != nil {
+			return stripped
+		}
+		return htmlx.StripEmailPreheaderPadding(cleaned)
 	default:
 		return content
 	}
