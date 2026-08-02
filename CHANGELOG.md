@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.210.6](https://github.com/immanent-tech/foragd/compare/v0.210.5...v0.210.6) (2026-08-02)
+
+
+### Bug Fixes
+
+* **styles:** 🔧 remove more borders in table elements in emails ([4fc9c93](https://github.com/immanent-tech/foragd/commit/4fc9c93fe61d5bfdaaf45c630ff1e40efbdc1f81))
+
 ## [0.210.5](https://github.com/immanent-tech/foragd/compare/v0.210.4...v0.210.5) (2026-08-02)
 
 
