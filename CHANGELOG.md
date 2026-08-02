@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.210.4](https://github.com/immanent-tech/foragd/compare/v0.210.3...v0.210.4) (2026-08-02)
+
+
+### Bug Fixes
+
+* **models:** 🔧 better sanitization of emails ([370d442](https://github.com/immanent-tech/foragd/commit/370d44250210365b2791cd025e09d1e10a847b18))
+
 ## [0.210.3](https://github.com/immanent-tech/foragd/compare/v0.210.2...v0.210.3) (2026-08-01)
 
 
