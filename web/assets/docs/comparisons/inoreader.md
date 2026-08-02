@@ -30,7 +30,7 @@ is the better fit for your reading habits.
 | ------------------------------ | ------------------------------------------------------ | --------------------------------------------------- |
 | **Pricing and Plans**          |                                                        |                                                     |
 | Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $7.50/mo billed annually or $9.99/mo billed monthly |
-| Trial period?                  | 14 free trial.                                         | 15 days                                             |
+| Trial period?                  | 30 days.                                               | 15 days                                             |
 | **Inclusions and Limits**      |                                                        |                                                     |
 | Subscription limit             | 3000                                                   | 2500                                                |
 | Email newsletter subscriptions | 50                                                     | 20                                                  |

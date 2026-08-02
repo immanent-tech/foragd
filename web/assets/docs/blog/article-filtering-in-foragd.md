@@ -184,6 +184,6 @@ One other thing to note, your article filters are always applied to that subscri
 Whether on the homepage, when it is part of a group subscription, or it is used in a search subscription, the filters
 will be applied.
 
-Want to control the noise easily? Foragd is free to try for 14 days — no commitment needed. [Sign up](/signup?utm_source=blog).
+Want to control the noise easily? Foragd is free to try for 30 days — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

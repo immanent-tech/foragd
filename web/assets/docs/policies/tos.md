@@ -252,7 +252,7 @@ everyone equally, no exceptions will be made.
 
 For Monthly plans: No refunds. Cancel anytime before your next billing date to avoid additional charges.
 
-For Annual plans: a full refund may be issued within 14 days of purchase if you’re not satisfied. After 14 days, no
+For Annual plans: a full refund may be issued within 30 days of purchase if you’re not satisfied. After 30 days, no
 refunds are issued for the remaining period.
 
 To request a refund, contact hello[at]immanent[dot]tech with your account email, or use the [contact

@@ -96,7 +96,7 @@ topics, and corners of the web you didn't know existed. That's the indie web wor
 driven by genuine human curiosity and not an algorithm. The web has always been bigger and stranger and more interesting
 than any platform's timeline. You just need a map.
 
-Foragd is free to try for 14 days — no commitment needed. [Sign up](/signup?utm_source=blog).
+Foragd is free to try for 30 days — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 *Using a different feed reader? Download an OPML file you can use to import all the feeds above
 [here](/content/rediscovering-the-indie-web-foragd.opml).*

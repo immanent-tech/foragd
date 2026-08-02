@@ -73,7 +73,7 @@ JSONFeed and a number of extensions for these formats.*
 
 If you want the full details, both specifications are surprisingly easy to read (see references below).
 
-Getting started with RSS and Atom feeds? Foragd is free to try for 14 days — no commitment needed. Sign up.
+Getting started with RSS and Atom feeds? Foragd is free to try for 30 days — no commitment needed. Sign up.
 
 ## References
 

@@ -25,7 +25,7 @@ This page further breaks down the key differences to help you choose.
 | ------------------------------ | ------------------------------------------------------ | ------------------------ |
 | **Pricing and Plans**          |                                                        |                          |
 | Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $6.99/mo billed annually |
-| Trial period?                  | 14 free trial.                                         | None                     |
+| Trial period?                  | 30 days.                                               | None                     |
 | **Inclusions and Limits**      |                                                        |                          |
 | Subscription limit             | 3000                                                   | 1000                     |
 | Email newsletter subscriptions | 50                                                     | None.                    |

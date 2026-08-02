@@ -56,7 +56,7 @@ Most of these services offer a number of different subscription tiers. In this c
 | ------------------------------ | ------------------------------------------------------ | ------------------------ | --------------------------------------------------- |
 | **Pricing and Plans**          |                                                        |                          |                                                     |
 | Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $6.99/mo billed annually | $7.50/mo billed annually or $9.99/mo billed monthly |
-| Trial period?                  | 14 free trial.                                         | None.                    | 15 days                                             |
+| Trial period?                  | 30 days.                                               | None.                    | 15 days                                             |
 | **Inclusions and Limits**      |                                                        |                          |                                                     |
 | Subscription limit             | 3000                                                   | 1000                     | 2500                                                |
 | Email newsletter subscriptions | 50                                                     | No.                      | 20                                                  |
@@ -107,6 +107,6 @@ without sacrificing power, Foragd is worth a look.
 In an age of algorithmic feeds designed to maximize engagement rather than inform, all these readers share something in
 common and increasingly valuable: tools that put you back in control of your content consumption.
 
-Curious? Foragd is free to try for 14 days — no commitment needed. [Sign up](/signup?utm_source=blog).
+Curious? Foragd is free to try for 30 days — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

@@ -192,7 +192,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 				// Check and send inactive ping after 5 days if not active.
 				"new-inactive-user": 5 * 24 * time.Hour,
 				// Send check-in after 7 days.
-				"trial-checkin": models.DefaultTrialPeriod - 7*24*time.Hour,
+				"trial-checkin": models.DefaultTrialPeriod - 15*24*time.Hour,
 				// Send expiry reminder in two days of expiry.
 				"trial-expiring": models.DefaultTrialPeriod - 48*time.Hour,
 			}

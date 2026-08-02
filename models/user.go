@@ -24,7 +24,7 @@ const (
 	// LimitExceededGracePeriod is the grace period in which the user is allowed to remain over an account limit.
 	LimitExceededGracePeriod = 7 * 24 * time.Hour
 	// DefaultTrialPeriod is the default amount of time a trial runs for.
-	DefaultTrialPeriod = 14 * 24 * time.Hour
+	DefaultTrialPeriod = 30 * 24 * time.Hour
 )
 
 var (
