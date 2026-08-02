@@ -376,7 +376,11 @@
   table,
   td,
   tr {
-    @apply box-border! block! w-auto! max-w-100! font-serif!;
+    @apply box-border! block! w-auto! font-serif! text-base!;
+  }
+
+  tbody {
+    @apply border-0!;
   }
 
   /* Restore normal table rows where display:block breaks alignment */
@@ -384,25 +388,12 @@
     @apply flex! flex-wrap!;
   }
 
-  /* Captions under images */
-  td[align='center'] > p {
-    @apply mt-1 text-center text-sm/tight opacity-65;
+  table :is(h1) {
+    @apply font-display! text-xl! font-bold! tracking-tight!;
   }
 
-  /* Tighten paragraph spacing inside table cells */
-  td > p {
-    @apply my-1 text-base/tight;
-  }
-
-  /* Header row: date + read online link */
-  tr#header td {
-    @apply py-2;
-  }
-
-  /* Strip spacer rows (cells with only &nbsp;) */
-  td:empty,
-  td > *:only-child:empty {
-    @apply hidden!;
+  table :is(h2, h3, h4, h5, h6) {
+    @apply font-display! text-lg! font-medium! tracking-tight!;
   }
 }
 
