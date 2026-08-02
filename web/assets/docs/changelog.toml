@@ -1,6 +1,17 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.211"
+date      = "Aug 3, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Trial period is now 30 days!
+"""
+
+[[releases]]
 version   = "v0.210"
 date      = "Aug 2, 2026"
 type      = "minor"
