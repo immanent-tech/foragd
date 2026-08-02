@@ -247,7 +247,7 @@ func HandlePostsFeed() http.HandlerFunc {
 
 		// Write RSS file in response.
 		res.Header().Set("Cache-Control", "public, max-age=3600, stale-while-revalidate=3600, stale-if-error=86400")
-		res.Header().Set("Content-Type", types.MimeTypesRSS[0])
+		res.Header().Set("Content-Type", rss.MimeTypes[0])
 		if _, err := res.Write([]byte(xml.Header)); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not write xml header to response.",
 				slog.Any("error", err),

@@ -32,7 +32,6 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/rdf"
 	"github.com/immanent-tech/go-syndication/rss"
-	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
@@ -703,7 +702,7 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 		// Needs to have type="{feedMimeType}".
 		if !slices.ContainsFunc(
 			elem.Attr,
-			func(a html.Attribute) bool { return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val) },
+			func(a html.Attribute) bool { return a.Key == "type" && slices.Contains(feeds.MimeTypesFeed, a.Val) },
 		) {
 			return ""
 		}
@@ -1174,36 +1173,36 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(data)); {
 	case err != nil:
 		return nil, fmt.Errorf("detect feed type: %w", err)
-	case feedType == types.SourceTypeUnknown:
+	case feedType == feeds.SourceTypeUnknown:
 		return nil, models.NewAPIError(
 			http.StatusUnsupportedMediaType,
 			errors.New("cannot determine feed type"),
 		)
-	case feedType == types.SourceTypeAtom:
+	case feedType == feeds.SourceTypeAtom:
 		// Atom feed.
 		feedData, err = feeds.NewDecoder[*atom.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
-	case feedType == types.SourceTypeRSS:
+	case feedType == feeds.SourceTypeRSS:
 		// RSS 2.0 feed.
 		feedData, err = feeds.NewDecoder[*rss.RSS](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == types.SourceTypeRDF:
+	case feedType == feeds.SourceTypeRDF:
 		// RDF/RSS 1.0 feed.
 		feedData, err = feeds.NewDecoder[*rdf.RDF](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == types.SourceTypeJSONFeed:
+	case feedType == feeds.SourceTypeJSONFeed:
 		// JSONFeed.
 		feedData, err = feeds.NewDecoder[*jsonfeed.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == types.SourceTypeHTML:
+	case feedType == feeds.SourceTypeHTML:
 		// HTML web page. Use "autodiscovery" to find feed.
 		if newURL, err := DiscoverFeedURL(
 			sourceURL,

@@ -10,7 +10,6 @@ import (
 	"slices"
 
 	"github.com/immanent-tech/go-syndication/opml"
-	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -30,8 +29,8 @@ func (f *OPMLFile) Valid() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrInvalidMimeType, err)
 	}
-	if mediaType != types.MimeTypeOPML && mediaType != "application/octet-stream" {
-		return false, fmt.Errorf("%w: got %s, want "+types.MimeTypeOPML, ErrInvalidMimeType, mediaType)
+	if mediaType != opml.MimeType && mediaType != "application/octet-stream" {
+		return false, fmt.Errorf("%w: got %s, want "+opml.MimeType, ErrInvalidMimeType, mediaType)
 	}
 	return true, nil
 }
