@@ -235,7 +235,7 @@ func (i *Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
 		case htmlx.IsHTML(*i.Description):
-			sanitizedDesc, err := htmlx.SanitizeHTMLString(*i.Description)
+			sanitizedDesc, err := htmlx.Sanitize(*i.Description)
 			if err != nil {
 				return ""
 			}
@@ -295,7 +295,7 @@ func (i *Item) GetContent() string {
 	}
 	switch {
 	case htmlx.IsHTML(*i.Content):
-		sanitizedDesc, err := htmlx.SanitizeHTMLString(*i.Content)
+		sanitizedDesc, err := htmlx.Sanitize(*i.Content)
 		if err != nil {
 			return ""
 		}

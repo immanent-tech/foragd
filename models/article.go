@@ -212,16 +212,11 @@ func (a *Article) formatContent() string {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
 		return htmlx.CleanRedditHTML(a.Item.GetContent())
 	case a.SourceType == SourceTypeEmail:
-		// For emails, perform extra content cleanup.
-		stripped, err := htmlx.StripAttributesFragment(content, nil)
+		sanitized, err := htmlx.Sanitize(content, htmlx.StripAttributesOption, htmlx.StripWhitespaceOnlyNodesOption)
 		if err != nil {
 			return content
 		}
-		cleaned, err := htmlx.StripWhitespaceOnlyElements(stripped)
-		if err != nil {
-			return stripped
-		}
-		return htmlx.StripEmailPreheaderPadding(cleaned)
+		return htmlx.StripEmailPreheaderPadding(sanitized)
 	default:
 		return content
 	}
