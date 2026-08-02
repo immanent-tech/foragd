@@ -207,12 +207,27 @@ func (a *Article) GetContent() string {
 	}
 }
 
+// formatContent performs additional formatting of content from specific sources, such as cleaning up the HTML to make
+// it more presentable in the interface.
 func (a *Article) formatContent() string {
 	switch content := a.Item.GetContent(); {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
-		return htmlx.CleanRedditHTML(a.Item.GetContent())
+		sanitized, err := htmlx.Sanitize(
+			a.Item.GetContent(),
+			htmlx.UnwrapLayoutTables,
+			htmlx.StripWhitespaceOnlyNodesOption,
+		)
+		if err != nil {
+			return content
+		}
+		return sanitized
 	case a.SourceType == SourceTypeEmail:
-		sanitized, err := htmlx.Sanitize(content, htmlx.StripAttributesOption, htmlx.StripWhitespaceOnlyNodesOption)
+		sanitized, err := htmlx.Sanitize(
+			content,
+			htmlx.UnwrapLayoutTables,
+			htmlx.StripAttributesOption,
+			htmlx.StripWhitespaceOnlyNodesOption,
+		)
 		if err != nil {
 			return content
 		}

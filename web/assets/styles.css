@@ -373,31 +373,31 @@
   @apply prose-article prose ugc-remove-trackers;
 
   /* Bust all hardcoded widths on tables */
-  table,
+  /* table,
   td,
   tr {
     @apply box-border! block! w-auto! font-serif! text-base!;
-  }
+  } */
 
-  table,
+  /* table,
   tbody,
   tr,
   td {
     @apply border-0!;
-  }
+  } */
 
   /* Restore normal table rows where display:block breaks alignment */
-  tr {
+  /* tr {
     @apply flex! flex-wrap!;
-  }
+  } */
 
-  table :is(h1) {
+  /* table :is(h1) {
     @apply font-display! text-xl! font-bold! tracking-tight!;
   }
 
   table :is(h2, h3, h4, h5, h6) {
     @apply font-display! text-lg! font-medium! tracking-tight!;
-  }
+  } */
 }
 
 /* For formatting a short summary of article content. */
