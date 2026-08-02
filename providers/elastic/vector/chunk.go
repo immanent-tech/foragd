@@ -37,7 +37,9 @@ func ChunkBytes(data []byte, chunkSize, overlap int) []Chunk {
 	}
 
 	if htmlx.IsHTML(string(data)) {
-		data = []byte(htmlx.ToPlainText(data))
+		// Silently ignore conversion to plain text failing. We just end up with the raw HTML.
+		str, _ := htmlx.ToPlainText(data)
+		data = []byte(str)
 	}
 
 	var chunks []Chunk

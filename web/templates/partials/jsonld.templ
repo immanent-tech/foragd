@@ -95,11 +95,13 @@ func itemListJsonLD(name string, entries []ListItemJSONLD) json.RawMessage {
 	}
 
 	for idx, item := range entries {
+		// Silently ignore conversion to plain text failing. We just end up with the raw HTML.
+		desc, _ := htmlx.ToPlainText([]byte(item.Description))
 		entity := mainEntity{
 			Type:        "ListItem",
 			Position:    idx + 1,
 			Name:        item.Name,
-			Description: htmlx.ToPlainText([]byte(item.Description)),
+			Description: desc,
 		}
 		list.MainEntity = append(list.MainEntity, entity)
 	}
