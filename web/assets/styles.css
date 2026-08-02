@@ -379,7 +379,10 @@
     @apply box-border! block! w-auto! font-serif! text-base!;
   }
 
-  tbody {
+  table,
+  tbody,
+  tr,
+  td {
     @apply border-0!;
   }
 
