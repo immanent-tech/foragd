@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.209"
-date      = "Jul 30, 2026"
+version   = "v0.210"
+date      = "Aug 2, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Better parsing of email newsletters. Less likely to have wonky layouts!
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Tweaks to search performance.
+"""
+
+[[releases]]
+version = "v0.209"
+date    = "Jul 30, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
