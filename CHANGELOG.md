@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.211.0](https://github.com/immanent-tech/foragd/compare/v0.210.6...v0.211.0) (2026-08-02)
+
+
+### Features
+
+* ✨ extend trial period to 30 days ([6ef85f4](https://github.com/immanent-tech/foragd/commit/6ef85f4950c182ac5a822b53fe516dc3e02fdf39))
+
+
+### Bug Fixes
+
+* **models:** 🔧 better stripping of display only tables from reddit and email newsletter articles ([6354184](https://github.com/immanent-tech/foragd/commit/6354184a34706b5f11d748781545c43b75da8e77))
+
 ## [0.210.6](https://github.com/immanent-tech/foragd/compare/v0.210.5...v0.210.6) (2026-08-02)
 
 
