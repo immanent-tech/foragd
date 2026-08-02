@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.210.5](https://github.com/immanent-tech/foragd/compare/v0.210.4...v0.210.5) (2026-08-02)
+
+
+### Bug Fixes
+
+* **models:** 🔧 even more sanitisation of emails ([07344d6](https://github.com/immanent-tech/foragd/commit/07344d68531d0a506ef019f430f6a479c861062b))
+* **styles:** 🎨 adjust email newsletter styles ([b32f6cb](https://github.com/immanent-tech/foragd/commit/b32f6cbe4f89cdf8acbfc450e65bf44583c2f795))
+
 ## [0.210.4](https://github.com/immanent-tech/foragd/compare/v0.210.3...v0.210.4) (2026-08-02)
 
 
