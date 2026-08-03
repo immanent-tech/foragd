@@ -339,7 +339,7 @@
 
 /* For formatting article content. */
 @utility prose-article {
-  @apply prose ugc-remove-trackers max-w-none overflow-x-auto font-serif wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+  @apply prose mt-4 ugc-remove-trackers max-w-none overflow-x-auto px-2 font-serif wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
   /* Forced fixed width for pre and scrollable elements. */
   pre {
@@ -366,38 +366,6 @@
   li:empty {
     @apply hidden!;
   }
-}
-
-/* For formatting email newsletters. */
-@utility prose-email {
-  @apply prose-article prose ugc-remove-trackers;
-
-  /* Bust all hardcoded widths on tables */
-  /* table,
-  td,
-  tr {
-    @apply box-border! block! w-auto! font-serif! text-base!;
-  } */
-
-  /* table,
-  tbody,
-  tr,
-  td {
-    @apply border-0!;
-  } */
-
-  /* Restore normal table rows where display:block breaks alignment */
-  /* tr {
-    @apply flex! flex-wrap!;
-  } */
-
-  /* table :is(h1) {
-    @apply font-display! text-xl! font-bold! tracking-tight!;
-  }
-
-  table :is(h2, h3, h4, h5, h6) {
-    @apply font-display! text-lg! font-medium! tracking-tight!;
-  } */
 }
 
 /* For formatting a short summary of article content. */
