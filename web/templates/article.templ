@@ -296,13 +296,11 @@ templ ArticleCard(idx int, a *models.Article) {
 					)
 					<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
 					// Overlay the feed name on the image.
-					<div class="absolute top-2.5 left-2.5">
-						<span class="badge badge-sm backdrop-blur-sm badge-neutral">{ article.Item.FeedTitle }</span>
-					</div>
+					<span class="absolute top-2.5 left-2.5 badge badge-sm">{ article.Item.FeedTitle }</span>
 				</figure>
 			} else {
 				// Show the feed name at the top left.
-				<span class="mt-2.5 ml-2.5 badge badge-ghost badge-sm">{ article.Item.FeedTitle }</span>
+				<span class="mt-2.5 ml-2.5 badge badge-sm">{ article.Item.FeedTitle }</span>
 			}
 		</div>
 		{{
