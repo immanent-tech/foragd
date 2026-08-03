@@ -536,7 +536,7 @@ templ ArticleContent(a *models.Article) {
 						case article.IsEmail():
 							// Article from email newsletter.
 							<div
-								class="prose-email mt-4"
+								class="prose-article"
 								data-disable-scripting
 								hx-disable
 							>
@@ -559,7 +559,7 @@ templ ArticleContent(a *models.Article) {
 								<div
 									data-disable-scripting
 									hx-disable
-									class="prose-article mt-4"
+									class="prose-article"
 								>
 									@templ.Raw(article.GetDescription())
 								</div>
@@ -575,7 +575,7 @@ templ ArticleContent(a *models.Article) {
 								<div
 									data-disable-scripting
 									hx-disable
-									class="prose-article mt-4 px-2"
+									class="prose-article"
 								>
 									@templ.Raw(content)
 								</div>

@@ -55,7 +55,7 @@ var BillingFAQ = []partials.FAQEntry{
 		Answer: `
 				<p>Monthly plans: No refunds. Cancel anytime before your next billing date.</p>
 
-				<p>Annual plans: Full refund within 14 days of purchase if you're not satisfied. After 14 days, no
+				<p>Annual plans: Full refund within 30 days of purchase if you're not satisfied. After 30 days, no
 				refunds are issued for the remaining period.</p>
 
 				<p>To request a refund, contact hello@immanent.tech with your account email, or use the contact form on
