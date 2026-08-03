@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.211.2](https://github.com/immanent-tech/foragd/compare/v0.211.1...v0.211.2) (2026-08-03)
+
+
+### Bug Fixes
+
+* **server:** 🔧 fix overriding Cross-Origin-Resource-Policy header for serving assets ([6f9761b](https://github.com/immanent-tech/foragd/commit/6f9761b7b0bcd243690c7abb287a6882860c5c7e))
+* **templates/articles:** 🎨 more subdued subscription badge on article cards ([b53a236](https://github.com/immanent-tech/foragd/commit/b53a236c08b6399990101ce48a65afa0b4442a74))
+* **templates:** 🔧 show truncated longer text as tooltips where appropriate ([c3ce365](https://github.com/immanent-tech/foragd/commit/c3ce365548862a701a9fa16470ed829ee053578f))
+
 ## [0.211.1](https://github.com/immanent-tech/foragd/compare/v0.211.0...v0.211.1) (2026-08-03)
 
 
