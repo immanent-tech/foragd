@@ -63,8 +63,10 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 func GenerateRequestsFromOutlines(outlines ...opml.Outline) []FeedSubscriptionRequest {
 	requests := make([]FeedSubscriptionRequest, 0, len(outlines))
 	for outline := range slices.Values(outlines) {
-		if outline.Type == "rss" {
-			requests = append(requests, FeedSubscriptionRequest{URL: outline.XMLURL})
+		if outline.EffectiveType() == "rss" {
+			if xmlURL, ok := outline.XMLURL(); ok {
+				requests = append(requests, FeedSubscriptionRequest{URL: xmlURL})
+			}
 		}
 		if len(outline.Outlines) > 0 {
 			requests = append(requests, GenerateRequestsFromOutlines(outline.Outlines...)...)
