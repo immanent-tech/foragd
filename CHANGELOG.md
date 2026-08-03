@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.211.1](https://github.com/immanent-tech/foragd/compare/v0.211.0...v0.211.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix summary font sizing ([3ff0fc8](https://github.com/immanent-tech/foragd/commit/3ff0fc811e8278a5e467c44bb4bada3e6adea414))
+
 ## [0.211.0](https://github.com/immanent-tech/foragd/compare/v0.210.6...v0.211.0) (2026-08-02)
 
 
