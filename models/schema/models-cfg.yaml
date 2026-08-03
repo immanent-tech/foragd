@@ -14,5 +14,4 @@ output-options:
 compatibility:
   always-prefix-enum-values: true
 import-mapping:
-  ../../pkg/go-syndication/schema/types.yaml: github.com/immanent-tech/go-syndication/types
   api.yaml: '-'
