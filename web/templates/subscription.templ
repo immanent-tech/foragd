@@ -354,6 +354,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
 																		class="line-clamp-3 text-base"
+																		title={ item.GetTitle() }
 																	>
 																		{ item.GetTitle() }
 																	</a>

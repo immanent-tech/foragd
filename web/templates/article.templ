@@ -354,12 +354,19 @@ templ ArticleCard(idx int, a *models.Article) {
 				</div>
 			}
 			// Article Title.
-			<h3 class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary">
+			{{
+				var title string
 				if article.GetTitle() != "" {
-					{ article.GetTitle() }
+					title = article.GetTitle()
 				} else {
-					(no title)
+					title = "(no title)"
 				}
+			}}
+			<h3
+				class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary"
+				title={ title }
+			>
+				{ title }
 			</h3>
 			// Article Summary (if any).
 			if content := article.GetContent(); content != "" {

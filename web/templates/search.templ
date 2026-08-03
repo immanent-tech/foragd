@@ -35,8 +35,12 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 					)
 				}
 			</div>
-			<div class="ml-3 line-clamp-1 flex-auto tracking-tight text-pretty">{ subscription.GetTitle() }</div>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Go to...</span>
+			<div class="ml-3 line-clamp-1 flex-auto tracking-tight text-pretty" title={ subscription.GetTitle() }>
+				{ subscription.GetTitle() }
+			</div>
+			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">
+				Go to...
+			</span>
 		</a>
 	}
 }
