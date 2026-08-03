@@ -154,8 +154,6 @@ func HandleAssets(urlPrefix string, unHashed bool) http.Handler {
 		}
 		defer f.Close()
 
-		res.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
-
 		if !unHashed {
 			// Hashed filenames are content-addressed: the same name will always
 			// mean the same bytes, so it's safe to cache for a very long time.
@@ -165,12 +163,12 @@ func HandleAssets(urlPrefix string, unHashed bool) http.Handler {
 			res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		}
 		res.Header().Set("Content-Type", contentTypeFor(realPath))
+		res.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 
-		rs, ok := f.(interface {
+		if rs, ok := f.(interface {
 			fs.File
 			Seek(offset int64, whence int) (int64, error)
-		})
-		if ok {
+		}); ok {
 			http.ServeContent(res, req, realPath, manifest.modTime, rs)
 			return
 		}
