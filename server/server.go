@@ -215,8 +215,10 @@ func Start(logger *slog.Logger) error {
 			session.LoadAndSave,
 			middlewares.ExtractUserFromSession,
 			middlewares.RequireValidUser,
-			middlewares.PushCriticalAssets,
+			// middlewares.PushCriticalAssets,
 			handlers.ValidateSubscriptionLimits,
+			middlewares.StorePaths,
+			middlewares.NoCache,
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
@@ -294,6 +296,8 @@ func Start(logger *slog.Logger) error {
 		r.With(htmx.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
+		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/next", handlers.HandleNextArticle())
+		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/prev", handlers.HandleNextArticle())
 		// General.
 		r.Get("/issue", handlers.HandleReportIssue())
 		r.With(htmx.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())

@@ -9,6 +9,24 @@ import (
 	"sync"
 )
 
+// Defines values for NextArticleRequestDirection.
+const (
+	NextArticleRequestDirectionNext     NextArticleRequestDirection = "next"
+	NextArticleRequestDirectionPrevious NextArticleRequestDirection = "previous"
+)
+
+// Valid indicates whether the value is a known member of the NextArticleRequestDirection enum.
+func (e NextArticleRequestDirection) Valid() bool {
+	switch e {
+	case NextArticleRequestDirectionNext:
+		return true
+	case NextArticleRequestDirectionPrevious:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -214,6 +232,27 @@ type ListSubscriptionsResponse struct {
 	Subscriptions Subscriptions `json:"subscriptions"`
 }
 
+// NextArticleRequest contains data for requesting the next/previous article.
+type NextArticleRequest struct {
+	Direction NextArticleRequestDirection `form:"direction" json:"direction" validate:"required,oneof=next previous"`
+
+	// From indicates from which page the request came.
+	From *string `form:"from" json:"from,omitempty"`
+
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitempty,startswith=sub_"`
+	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+}
+
+// NextArticleRequestDirection defines model for NextArticleRequest.Direction.
+type NextArticleRequestDirection string
+
 // ReportIssueRequest contains details about an issue with the service.
 type ReportIssueRequest struct {
 	// Details is the user-submitted text about the issue.
@@ -281,6 +320,12 @@ type SearchResults struct {
 	// Subscription represents any kind of subscription.
 	Subscription  *Subscription `json:"subscription,omitempty"`
 	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
+}
+
+// ShowArticleResponse contains the data for showing an article.
+type ShowArticleResponse struct {
+	// Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
+	Article Article `json:"article"`
 }
 
 // Getter for additional properties for APIError. Returns the specified

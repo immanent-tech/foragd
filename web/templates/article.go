@@ -6,6 +6,7 @@ package templates
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/a-h/templ"
 
@@ -57,8 +58,8 @@ func (a *Article) showContentAttributes(value bool) templ.Attributes {
 		htmx.WithHXTarget(ContentID.Target()),
 		htmx.WithHXSwap("innerHTML transition:true show:top"),
 		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXReplaceURL(),
-		htmx.WithHXVals(map[string]any{"show_full_content": value}),
+		htmx.WithHXReplaceURL("/view/article/"+a.GetID()+"show_full_content="+strconv.FormatBool(value)),
+		htmx.WithHXVals(map[string]any{"show_full_content": value, "from": "/list/articles"}),
 	).GetAttributes()
 }
 
@@ -72,13 +73,14 @@ func (a *Article) viewOriginalAttributes() templ.Attributes {
 	}
 }
 
-// findSimilarAttribuets are the htmx attributes for finding similar articles to this one.
+// findSimilarAttributes are the htmx attributes for finding similar articles to this one.
 func (a *Article) findSimilarAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/view/article/"+a.GetID()+"/similar"),
 		htmx.WithHXTarget(ContentID.Target()),
 		htmx.WithHXSwap("innerHTML transition:true"),
 		htmx.WithHXTrigger("click consume"),
+		htmx.WithHXVals(map[string]any{"from": "/list/articles"}),
 	).GetAttributes()
 }
 
@@ -112,7 +114,7 @@ func (a *Article) reportIssueAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/issue"),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXReplaceURL(),
+		htmx.WithHXReplaceURL(true),
 		htmx.WithHXVals(map[string]any{
 			"object_id": a.GetID(),
 		}),

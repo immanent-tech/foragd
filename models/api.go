@@ -137,3 +137,16 @@ func (r *DeactivationRequest) Sanitise() error {
 	}
 	return nil
 }
+
+func (r *NextArticleRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate next article request: %w", err)
+	}
+	return nil
+}
+
+func (r *NextArticleRequest) Sanitise() error {
+	r.Direction = NextArticleRequestDirection(sanitization.SanitizeString(string(r.Direction)))
+	r.Timestamp = sanitization.SanitizeString(r.Timestamp)
+	return nil
+}

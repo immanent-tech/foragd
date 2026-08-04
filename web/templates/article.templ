@@ -413,8 +413,8 @@ templ ArticleCard(idx int, a *models.Article) {
 }
 
 // ArticleContent renders the complete content of an article.
-templ ArticleContent(a *models.Article) {
-	{{ article := &Article{Article: a} }}
+templ ArticleContent(a *models.ShowArticleResponse) {
+	{{ article := &Article{Article: &a.Article} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			// Show a subtle reading progress bar across the top of the article.
@@ -586,6 +586,7 @@ templ ArticleContent(a *models.Article) {
 								</div>
 							}
 							<div class="mt-8 w-full border-t border-neutral/20"></div>
+							@showNextPrevActions(a)
 							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
@@ -631,6 +632,59 @@ templ ArticleContent(a *models.Article) {
 			}
 		}
 	}
+}
+
+templ showNextPrevActions(resp *models.ShowArticleResponse) {
+	{{
+		vals := make(map[string]any)
+		vals["item_id"] = resp.Article.GetID()
+		vals["timestamp"] = resp.Article.GetUpdatedDate().Format(time.RFC3339)
+		vals["from"] = FromPathFromCtx(ctx)
+		switch FromPathFromCtx(ctx) {
+		case "/list/subscriptions":
+			vals["subscription_id"] = resp.Article.GetSubscriptionID()
+			filters := session.GetListSubscriptionFiltersFromSession(ctx)
+			vals["view"] = filters.GetView()
+		case "/list/articles":
+			filters := session.GetListArticleFiltersFromSession(ctx)
+			if len(filters.GetSubscriptions()) > 0 {
+				vals["subscription_id"] = filters.GetSubscriptions()[0]
+			}
+			vals["view"] = filters.GetView()
+		default:
+			vals["view"] = models.ViewUnread
+		}
+	}}
+	<div class="mt-4 w-full flex justify-between items-center">
+		{{ vals["direction"] = models.NextArticleRequestDirectionPrevious }}
+		<div class="tooltip" data-tip="Previous Article">
+			<button
+				class="btn btn-square btn-ghost"
+				hx-get={ "/view/article/" + resp.Article.GetID() + "/prev" }
+				hx-target={ ContentID.Target() }
+				hx-swap="innerHTML transition:true show:top"
+				hx-vals={ templ.JSONString(vals) }
+				hx-push-url={ "/view/article/" + resp.Article.GetID() }
+			>
+				@tableroutline.ArrowNarrowLeft()
+				<span class="sr-only">Previous Article</span>
+			</button>
+		</div>
+		{{ vals["direction"] = models.NextArticleRequestDirectionNext }}
+		<div class="tooltip" data-tip="Next Article">
+			<button
+				class="btn btn-square btn-ghost"
+				hx-get={ "/view/article/" + resp.Article.GetID() + "/next" }
+				hx-target={ ContentID.Target() }
+				hx-swap="innerHTML transition:true show:top"
+				hx-vals={ templ.JSONString(vals) }
+				hx-push-url={ "/view/article/" + resp.Article.GetID() }
+			>
+				@tableroutline.ArrowNarrowRight()
+				<span class="sr-only">Next Article</span>
+			</button>
+		</div>
+	</div>
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.

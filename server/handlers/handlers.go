@@ -5,20 +5,15 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-	"sync"
 
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
-
-	"github.com/immanent-tech/foragd/web/templates"
 )
 
 type Route = string
@@ -30,13 +25,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var internalPageHandlerChain = alice.New(storePath, withFromPath, noCache, refreshOnHistoryRestore)
-
-var bufPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
-}
+var internalPageHandlerChain = alice.New(refreshOnHistoryRestore)
 
 // setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.
@@ -60,38 +49,4 @@ func refreshOnHistoryRestore(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(res, req)
 	})
-}
-
-// storePath stores the current request path in the context.
-func storePath(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PathToCtx(req.Context(), req.URL.Path)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// noCache stores the current request path in the context.
-func noCache(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
-		next.ServeHTTP(res, req)
-	})
-}
-
-func withFromPath(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		from := req.URL.Query().Get("from")
-		if from == "" {
-			from = req.Header.Get("Referer")
-		}
-		if !isSafeLocalPath(from) {
-			from = "/home"
-		}
-		ctx := templates.FromPathToCtx(req.Context(), from)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-func isSafeLocalPath(p string) bool {
-	return strings.HasPrefix(p, "/") && !strings.HasPrefix(p, "//")
 }

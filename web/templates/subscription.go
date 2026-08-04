@@ -56,7 +56,7 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 		htmx.WithHXMethod(http.MethodGet, path),
 		htmx.WithHXTarget(ContentID.Target()),
 		htmx.WithHXSwap("innerHTML show:top transition:true"),
-		htmx.WithHXPushURL(),
+		htmx.WithHXPushURL(path),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),
 	).GetAttributes()
@@ -117,7 +117,7 @@ func (s *Subscription) reportIssueAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/issue"),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXReplaceURL(),
+		htmx.WithHXReplaceURL(true),
 		htmx.WithHXVals(map[string]any{
 			"object_id": s.GetID(),
 		}),

@@ -269,6 +269,9 @@ func (q *TermQuery) SetName(name string) {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func Term(field string, value any, options ...func(*TermQuery)) Option {
 	return func(query *types.Query) {
+		if value == nil {
+			return
+		}
 		// Create term query clause.
 		termQueryClause := &TermQuery{
 			&types.TermQuery{

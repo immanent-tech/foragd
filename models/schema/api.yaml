@@ -276,6 +276,48 @@ components:
           description: >
             is a map of the latest articles for each subscription in the result.
           x-go-type: sync.Map
+    ShowArticleResponse:
+      description: contains the data for showing an article.
+      type: object
+      required:
+        - article
+      properties:
+        article:
+          $ref: 'models.yaml#/components/schemas/Article'
+    NextArticleRequest:
+      description: contains data for requesting the next/previous article.
+      type: object
+      required:
+        - item_id
+        - timestamp
+        - direction
+        - view
+      properties:
+        item_id:
+          $ref: 'models.yaml#/components/schemas/ItemID'
+        timestamp:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,datetime=2006-01-02T15:04:05Z07:00'
+            form: timestamp
+        direction:
+          type: string
+          enum: ['next', 'previous']
+          x-oapi-codegen-extra-tags:
+            validate: 'required,oneof=next previous'
+            form: direction
+        view:
+          $ref: 'models.yaml#/components/schemas/View'
+        from:
+          description: indicates from which page the request came.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: from
+        subscription_id:
+          $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,startswith=sub_'
+            form: 'subscription_id'
     SearchRequest:
       description: >
         represents a search request by the user.

@@ -36,3 +36,11 @@ func PushCriticalAssets(next http.Handler) http.Handler {
 		next.ServeHTTP(res, req)
 	})
 }
+
+// NoCache ensures no caching will be applied.
+func NoCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
+		next.ServeHTTP(res, req)
+	})
+}

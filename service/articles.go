@@ -13,6 +13,7 @@ import (
 	"os"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
@@ -20,6 +21,7 @@ import (
 	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/providers/zyte"
@@ -60,6 +62,91 @@ func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption 
 			query.WithSimpleQueryStringOperator(&operator.And),
 		),
 	)
+}
+
+// GetNextArticle returns the "next" article from the given article, based on the given article timestamp. The direction
+// defines what the next article will be (previous or next). If a subscription is given, it will filter to that
+// subscription only. Otherwise, the results are also filtered to the given view.
+func GetNextArticle(
+	ctx context.Context,
+	currentID models.ItemID,
+	subscriptionID *models.SubscriptionID,
+	view models.View,
+	direction models.NextArticleRequestDirection,
+	ts time.Time,
+) (*models.Article, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
+	}
+
+	// filters are query clauses that filter the results.
+	filters := make([]query.Option, 0)
+	// exclusions are query clauses that exclude some results.
+	exclusions := make([]query.Option, 0)
+	exclusions = append(exclusions, query.Term("item_id", currentID))
+
+	// Define filters/exclusions based on subscription(s).
+	if subscriptionID != nil {
+		subscription, err := GetSubscription(ctx, *subscriptionID)
+		if err != nil {
+			return nil, fmt.Errorf("get subscription: %w", err)
+		}
+		filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
+		exclusions = append(exclusions, BuildItemQueries(user, view, models.Subscriptions{subscription})...)
+	} else {
+		allSubscriptions, err := GetAllSubscriptions(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get all subscriptions: %w", err)
+		}
+		filters = append(filters, query.Terms("feed_id", allSubscriptions.GetFeedIDs()))
+		exclusions = append(exclusions, BuildItemQueries(user, view, allSubscriptions)...)
+	}
+
+	// Define filters and sorting based on direction.
+	var sort models.Sort
+	switch direction {
+	case models.NextArticleRequestDirectionNext:
+		filters = append(filters, query.Bool(
+			query.Should(
+				query.Since("published", ts),
+				query.Since("updated", ts),
+			),
+		))
+		sort = models.SortOldestFirst
+	case models.NextArticleRequestDirectionPrevious:
+		filters = append(filters, query.Bool(
+			query.Should(
+				query.Before("published", ts),
+				query.Before("updated", ts),
+			),
+		))
+		sort = models.SortNewestFirst
+	}
+
+	// Find the next item and generate an article.
+	items, _, err := SearchItems(
+		ctx,
+		query.Bool(
+			query.Filter(filters...),
+			query.MustNot(exclusions...),
+		),
+		1,
+		&sort,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search items: %w", err)
+	}
+	if len(items) == 0 {
+		return nil, fmt.Errorf("search items: %w", elastic.ErrNotFound)
+	}
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("generate article: %w", err)
+	}
+
+	return articles[0], nil
 }
 
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.

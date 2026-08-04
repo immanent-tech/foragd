@@ -393,7 +393,6 @@ func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request
 
 // PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
 func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
@@ -411,7 +410,7 @@ func HandleViewArticle() http.HandlerFunc {
 					InternalError: fmt.Errorf("decode request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
-						"Unable to find similar",
+						"Unable to view article",
 						"There was a problem with the request. Please try again.",
 					),
 				}).ServeHTTP(res, req)
@@ -466,15 +465,116 @@ func HandleViewArticle() http.HandlerFunc {
 			}
 		}
 
+		// Get appropriate filters.
+		// var filters *models.ListFilters
+		// switch templates.FromPathFromCtx(req.Context()) {
+		// case "/list/subscriptions":
+		// 	filters = session.GetListSubscriptionFiltersFromSession(req.Context())
+		// case "/list/articles":
+		// 	filters = session.GetListArticleFiltersFromSession(req.Context())
+		// default:
+		// 	filters = new(models.NewListDisplayFilters())
+		// }
+
 		// Render article content.
 		RenderInternalPage(&ArticleContent{
 			title: templates.PageTitle{
 				Summary:     article.GetTitle(),
 				Description: article.GetFeedTitle(),
 			},
-			template: templates.ArticleContent(article),
+			template: templates.ArticleContent(&models.ShowArticleResponse{
+				Article: *article,
+				// Filters: filters,
+			}),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
+}
+
+func HandleNextArticle() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Parse the request.
+		request, valid, err := forms.DecodeForm[*models.NextArticleRequest](req)
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to retrieve article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		if !valid {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to retrieve article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		// Parse the timestamp.
+		ts, err := time.Parse(time.RFC3339, request.Timestamp)
+		if err != nil {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to retrieve article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+
+		article, err := service.GetNextArticle(
+			req.Context(),
+			request.ItemID,
+			request.SubscriptionID,
+			request.View,
+			request.Direction,
+			ts,
+		)
+		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			HandleInternalError(req.URL.Path,
+				&models.APIError{
+					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to retrieve article",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+			return
+		}
+		if errors.Is(err, elastic.ErrNotFound) {
+			// Likely reached the "end of the list".
+			res.Header().Set(htmx.HeaderReswap, "none")
+			RenderPartial(
+				&Notification{
+					msg: models.NewInfoMessage("No more articles!", ""),
+				},
+			).ServeHTTP(res, req)
+			return
+		}
+		// Render article content.
+		RenderInternalPage(&ArticleContent{
+			title: templates.PageTitle{
+				Summary:     article.GetTitle(),
+				Description: article.GetFeedTitle(),
+			},
+			template: templates.ArticleContent(&models.ShowArticleResponse{
+				Article: *article,
+				// Filters: filters,
+			}),
+		}).ServeHTTP(res, req)
+	}
 }
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
