@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version   = "v0.212"
+date      = "Aug 4, 2026"
+type      = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+When viewing an article, there are now buttons to move to the previous or next article (relative to the timestamp of the current article).
+"""
+
+[[releases]]
 version   = "v0.211"
 date      = "Aug 3, 2026"
 type      = "minor"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
