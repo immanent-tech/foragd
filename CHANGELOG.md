@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.212.0](https://github.com/immanent-tech/foragd/compare/v0.211.2...v0.212.0) (2026-08-04)
+
+
+### Features
+
+* ✨ add previous/next article buttons on article content view ([08ada07](https://github.com/immanent-tech/foragd/commit/08ada07906823cacbcdc32259b817addffa780e2))
+
 ## [0.211.2](https://github.com/immanent-tech/foragd/compare/v0.211.1...v0.211.2) (2026-08-03)
 
 
