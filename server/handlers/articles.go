@@ -519,7 +519,7 @@ func HandleNextArticle() http.HandlerFunc {
 			return
 		}
 		// Parse the timestamp.
-		ts, err := time.Parse(time.RFC3339, request.Timestamp)
+		ts, err := time.Parse(time.RFC3339Nano, request.Timestamp)
 		if err != nil {
 			HandleInternalError(req.URL.Path,
 				&models.APIError{

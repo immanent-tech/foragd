@@ -1787,7 +1787,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		vals := make(map[string]any)
 		vals["item_id"] = resp.Article.GetID()
-		vals["timestamp"] = resp.Article.GetUpdatedDate().Format(time.RFC3339)
+		vals["timestamp"] = resp.Article.GetUpdatedDate().Format(time.RFC3339Nano)
 		vals["from"] = FromPathFromCtx(ctx)
 		switch FromPathFromCtx(ctx) {
 		case "/list/subscriptions":

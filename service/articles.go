@@ -93,14 +93,22 @@ func GetNextArticle(
 			return nil, fmt.Errorf("get subscription: %w", err)
 		}
 		filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
-		exclusions = append(exclusions, BuildItemQueries(user, view, models.Subscriptions{subscription})...)
+		filters = append(filters,
+			query.Bool(
+				ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+				query.Should(BuildItemQueries(user, view, models.Subscriptions{subscription})...)),
+		)
 	} else {
 		allSubscriptions, err := GetAllSubscriptions(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("get all subscriptions: %w", err)
 		}
 		filters = append(filters, query.Terms("feed_id", allSubscriptions.GetFeedIDs()))
-		exclusions = append(exclusions, BuildItemQueries(user, view, allSubscriptions)...)
+		filters = append(filters,
+			query.Bool(
+				ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+				query.Should(BuildItemQueries(user, view, allSubscriptions)...)),
+		)
 	}
 
 	// Define filters and sorting based on direction.
