@@ -14,12 +14,11 @@ require (
 	github.com/a-h/templ v0.3.1020
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/cenkalti/backoff/v5 v5.0.3
-	github.com/dimmerz92/go-icons v0.34.0
+	github.com/dimmerz92/go-icons v0.35.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.3
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.23.0
