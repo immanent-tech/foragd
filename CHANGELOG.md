@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.212.2](https://github.com/immanent-tech/foragd/compare/v0.212.0...v0.212.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* 🔧 fix errant latest label in changelog ([dfd9f8c](https://github.com/immanent-tech/foragd/commit/dfd9f8c74dbc8c927018097aa7b18d2559d320e0))
+* 🔧 next/prev article fixes ([f32421c](https://github.com/immanent-tech/foragd/commit/f32421cc8528cc0edd2d9cabff878a5f51735d9f))
+
+
+### Miscellaneous Chores
+
+* release 0.212.2 ([55fe73e](https://github.com/immanent-tech/foragd/commit/55fe73ec7a732cdcf488869cb027565abe2ec1ec))
+
 ## [0.212.0](https://github.com/immanent-tech/foragd/compare/v0.211.2...v0.212.0) (2026-08-04)
 
 
