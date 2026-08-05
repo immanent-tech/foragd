@@ -78,14 +78,9 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -97,14 +92,7 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 			var err error
 			planID, err = paddle.GetPriceID(frequency)
 			if err != nil {
-				HandleInternalError(req.Referer(), &models.APIError{
-					InternalError: fmt.Errorf("get price id: %w", err),
-					StatusCode:    http.StatusBadRequest,
-					UserMessage: models.NewErrorMessage(
-						"Unable to render form",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+				HandleInternalError(http.StatusBadRequest, fmt.Errorf("get price id: %w", err)).ServeHTTP(res, req)
 				return
 			}
 		}
@@ -114,14 +102,10 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 			PlanID:        planID,
 			TransactionID: &transactionID,
 		}); err != nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("generate checkout request: %w", err),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusBadRequest,
+				fmt.Errorf("generate checkout request: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 

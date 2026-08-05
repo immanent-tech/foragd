@@ -195,19 +195,12 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 func HandleSearchResults() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
-		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Invalid search request",
-						"Please check the search request data and try again",
-					),
-				}).ServeHTTP(res, req)
+		search, err := parseForm[*models.SearchRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
+
 		if txt := req.FormValue("advanced-search-text"); txt != "" {
 			search.Text = txt
 		}
@@ -215,11 +208,9 @@ func HandleSearchResults() http.HandlerFunc {
 		// Retrieve the user object.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -230,20 +221,18 @@ func HandleSearchResults() http.HandlerFunc {
 			// Get subscriptions.
 			subscriptions, err := service.GetSubscriptionsByID(ctx, search.Subscriptions...)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("get subscriptions: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("get subscriptions: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			// Update subscription dynamic info.
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("update subscription dynamic info: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("update subscription dynamic info: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
@@ -252,11 +241,10 @@ func HandleSearchResults() http.HandlerFunc {
 		// Retrieve currentPagination.
 		currentPagination := req.FormValue(models.ParamPagination)
 		if err := validation.Validate.Var(currentPagination, "omitempty,url_encoded"); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get pagination: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("get pagination: %w", err),
+			).ServeHTTP(res, req)
 		}
 
 		// Find articles that match search request.
@@ -285,11 +273,10 @@ func HandleSearchResults() http.HandlerFunc {
 		// )
 		filterQuery, err := service.BuildSearchResultsQuery(ctx, user, search, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("build articles search query: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("build articles search query: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -396,11 +383,7 @@ func HandleSearchResults() http.HandlerFunc {
 		// Run background requests in parallel and wait for results.
 		err = searchJobs.Wait()
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("search items: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).ServeHTTP(res, req)
 			return
 		}
 		// }
@@ -496,18 +479,12 @@ func HandleSearchUpdates() http.HandlerFunc {
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscription, valid, err := forms.DecodeForm[*models.AddSubscriptionSearchFilterRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Invalid search request",
-						"Please check the search request data and try again",
-					),
-				}).ServeHTTP(res, req)
+		subscription, err := parseForm[*models.AddSubscriptionSearchFilterRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			return
 		}
+
 		RenderPartial(&PartialTemplate{
 			template: templates.AddSearchSubscriptionFilter(subscription),
 		}).ServeHTTP(res, req)

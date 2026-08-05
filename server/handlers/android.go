@@ -20,14 +20,9 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -41,14 +36,10 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 		if err := checkout.SubscriptionData.FromAndroidCheckout(models.AndroidCheckout{
 			SKU: plan,
 		}); err != nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("generate checkout request: %w", err),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("generate checkout request: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -68,14 +59,10 @@ func HandleAndroidPurchase() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusForbidden,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -89,27 +76,19 @@ func HandleAndroidPurchase() http.HandlerFunc {
 				return
 			}
 
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: errors.New("user has existing subscription"),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusConflict,
+				errors.New("user has existing subscription"),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Verify we are processing an android subscription.
 		if subscriptionType := req.FormValue("subscription_type"); subscriptionType != "android" {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("handle purchase: invalid subscription type %s", subscriptionType),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("handle purchase: invalid subscription type %s", subscriptionType),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -118,52 +97,36 @@ func HandleAndroidPurchase() http.HandlerFunc {
 
 		// Check SKU is valid.
 		if !android.IsValidSKU(sku) {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("handle purchase: unrecognised sku %s", sku),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusBadRequest,
+				fmt.Errorf("handle purchase: unrecognised sku %s", sku),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Check token hasn't already been granted.
 		granted, err := android.TokenAlreadyGranted(req.Context(), token)
 		if err != nil && !errors.Is(err, android.ErrNotFound) {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("handle purchase: check for existing token %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusBadRequest,
+				fmt.Errorf("handle purchase: check for existing token %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		if granted {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("handle purchase: token already claimed: %s", token),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("handle purchase: token already claimed: %s", token),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Validate purchase parameters.
 		if sku == "" || token == "" {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: errors.New("parse form values: sku and/or token missing"),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusBadRequest,
+				errors.New("parse form values: sku and/or token missing"),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -173,14 +136,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 
 		_, err = android.VerifyAndAcknowledgeSubscription(req.Context(), user, sku, token)
 		if err != nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("billing verification: %w", err),
-				StatusCode:    http.StatusBadRequest,
-				UserMessage: models.NewErrorMessage(
-					"Unable to complete purchase",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusBadRequest, fmt.Errorf("billing verification: %w", err)).ServeHTTP(res, req)
 			return
 		}
 

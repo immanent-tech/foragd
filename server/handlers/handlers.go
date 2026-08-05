@@ -78,3 +78,28 @@ func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 	}
 	return request, nil
 }
+
+func parseMultipartForm[T forms.FormInput](req *http.Request) (T, error) {
+	request, valid, err := forms.DecodeMultiPartForm[T](req)
+	if err != nil {
+		return request, &models.APIError{
+			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+			StatusCode:    http.StatusInternalServerError,
+			UserMessage: models.NewErrorMessage(
+				"Unable to parse input",
+				"This might be a temporary issue, please try again.",
+			),
+		}
+	}
+	if !valid {
+		return request, &models.APIError{
+			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+			StatusCode:    http.StatusUnprocessableEntity,
+			UserMessage: models.NewErrorMessage(
+				"Invalid data submitted",
+				"Please check your inputs and try again.",
+			),
+		}
+	}
+	return request, nil
+}

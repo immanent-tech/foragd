@@ -17,7 +17,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -67,14 +66,9 @@ func HandleContact() http.HandlerFunc {
 func HandleSubmitContact() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeMultiPartForm[*models.ContactRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-				}).ServeHTTP(res, req)
+		request, err := parseMultipartForm[*models.ContactRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 

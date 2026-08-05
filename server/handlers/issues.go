@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/a-h/templ"
+	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-base/config"
@@ -52,15 +54,10 @@ func HandleReportIssue() http.HandlerFunc {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to generate issues form",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
 		}
 
 		objectID := req.FormValue("object_id")
@@ -82,44 +79,25 @@ func HandleReportIssue() http.HandlerFunc {
 func HandleSubmitIssue() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-				}).ServeHTTP(res, req)
+		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to generate issues form",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
 		// Process any uploaded screenshot.
 		screenshotURL, err := processScreenshots(req)
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: err,
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to submit issue",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 		if screenshotURL != "" {
@@ -167,15 +145,7 @@ func HandleSubmitIssue() http.HandlerFunc {
 			resend.WithRemoteAttachment(
 				resend.NewRemoteFileAttachment(screenshotURL, filepath.Base(screenshotURL))),
 		); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("connect to github: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to submit issue",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("send email: %w", err)).ServeHTTP(res, req)
 			return
 		}
 

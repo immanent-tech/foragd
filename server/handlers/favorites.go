@@ -6,10 +6,12 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
 	"github.com/a-h/templ"
+	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -50,20 +52,13 @@ func HandleListFavorites() http.HandlerFunc {
 			articles      models.Articles
 			subscriptions models.Subscriptions
 			latestItems   *sync.Map
-			err           error
 		)
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not list favorites",
-						"This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -99,15 +94,10 @@ func HandleListFavorites() http.HandlerFunc {
 		})
 
 		if err := wg.Wait(); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("run data collection: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not list favorites",
-						"This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("run data collection: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 

@@ -42,15 +42,9 @@ type Home struct {
 func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 	user := models.UserFromCtx(req.Context())
 	if user == nil {
-		HandleInternalError(req.URL.Path,
-			&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Cannot show home.",
-					"The backend produced an error. This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
+		slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+			slog.Any("error", models.ErrCtxValueNotFound))
+		http.Redirect(res, req, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -72,15 +66,9 @@ func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	user := models.UserFromCtx(req.Context())
 	if user == nil {
-		HandleInternalError(req.URL.Path,
-			&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Cannot show home.",
-					"The backend produced an error. This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
+		slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+			slog.Any("error", models.ErrCtxValueNotFound))
+		http.Redirect(res, req, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -114,15 +102,9 @@ func HandleHome() http.HandlerFunc {
 			}
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Could not display home page",
-							"This might be temporary, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+					slog.Any("error", models.ErrCtxValueNotFound))
+				http.Redirect(res, req, "/login", http.StatusSeeOther)
 				return
 			}
 
@@ -130,28 +112,18 @@ func HandleHome() http.HandlerFunc {
 			// Get subscriptions.
 			subscriptions, err := service.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("run data collection: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Could not display home page",
-							"This might be temporary, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("get all subscriptions: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			// Update subscription dynamic info.
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("run data collection: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Could not display home page",
-							"This might be temporary, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("update subscription dynamic info: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			// Filter by unread and sort by last update.

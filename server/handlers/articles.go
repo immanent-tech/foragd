@@ -72,21 +72,18 @@ func HandleListArticles() http.HandlerFunc {
 			Pagination: &pagination,
 		}
 		if err := request.Valid(); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("parse query values: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse query values: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusUnprocessableEntity,
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -120,11 +117,10 @@ func HandleListArticles() http.HandlerFunc {
 				subscriptionID,
 			)
 			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("filter articles: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("get subscription details: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			if user.GetSettings().ShowSubscriptionStats {
@@ -145,11 +141,10 @@ func HandleListArticles() http.HandlerFunc {
 		var next models.Pagination
 		articles, next, err = service.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("filter articles: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("filter articles: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		request.Pagination = &next
@@ -343,28 +338,18 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to find similar",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("decode request: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("find similar articles: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to find similar",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("find similar articles: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Show results.
@@ -405,30 +390,20 @@ func HandleViewArticle() http.HandlerFunc {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to view article",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("decode request: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Fetch article.
 		articles, err := service.GetArticles(req.Context(), itemID)
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get article content: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to view object",
-						"There was a problem with the request. Please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("get article content: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
@@ -495,21 +470,16 @@ func HandleNextArticle() http.HandlerFunc {
 		// Parse the request.
 		request, err := parseForm[*models.NextArticleRequest](req)
 		if err != nil {
-			HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 		// Parse the timestamp.
 		ts, err := time.Parse(time.RFC3339Nano, request.Timestamp)
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to retrieve article",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -522,15 +492,10 @@ func HandleNextArticle() http.HandlerFunc {
 			ts,
 		)
 		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to retrieve article",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get next article: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		if errors.Is(err, elastic.ErrNotFound) {
@@ -562,13 +527,13 @@ func MarkArticle() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.MarkArticleRequest](req)
 		if err != nil {
-			HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark the article.
 		if err := markArticles(req.Context(), request.Mark, request.SubscriptionID, request.ItemID); err != nil {
-			HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -595,14 +560,14 @@ func MarkArticles() http.HandlerFunc {
 		// Decode request parameters.
 		request, err := parseForm[*models.MarkArticlesRequest](req)
 		if err != nil {
-			HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark Articles.
 		for subscriptionID, itemIDs := range request.DisplayedArticles {
 			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
-				HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 				return
 			}
 		}
@@ -621,19 +586,12 @@ func MarkArticles() http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("mark subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to mark articles.",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("mark subscriptions: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
-
-		// res.Header().Set(htmx.HeaderRefresh, "true")
 
 		res.WriteHeader(http.StatusOK)
 	}).ServeHTTP
@@ -671,21 +629,15 @@ func FavoriteArticle() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.FavoriteArticleRequest](req)
 		if err != nil {
-			HandleInternalError(req.URL.Path, err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to add favorite article",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -697,15 +649,7 @@ func FavoriteArticle() http.HandlerFunc {
 		}
 
 		if err := updateFavoriteArticle(req.Context(), user, request.ItemID, favorite); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update favorite article: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable favorite article",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -716,19 +660,11 @@ func FavoriteArticle() http.HandlerFunc {
 // ShareArticle handles sharing an article.
 func ShareArticle() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, _, err := forms.DecodeForm[*models.ShareArticleRequest](req)
+		request, err := parseForm[*models.ShareArticleRequest](req)
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to favorite article",
-						"This might be a temporary issue, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			return
 		}
-
 		RenderPartial(&Modal{
 			template: templates.ShareArticleModal(request),
 		}).ServeHTTP(res, req)
@@ -776,20 +712,36 @@ func updateFavoriteArticle(
 		// Get the article details.
 		articles, err := service.GetArticles(ctx, id)
 		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("get favorite articles: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 		if len(articles) != 1 {
-			return models.ErrInvalidAPIResult
+			return models.NewAPIError(http.StatusInternalServerError,
+				models.ErrInvalidAPIResult,
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 		article := articles[0]
 		// Archive the article.
 		archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
 		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("new archived article: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 		err = archiveArticle(ctx, archive)
 		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("archive article: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 		// Update the list of favorites items in the user object
 		user.ItemFavorites = append(user.ItemFavorites, id)
@@ -797,12 +749,20 @@ func updateFavoriteArticle(
 			"item_favorites": user.ItemFavorites,
 		})
 		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("update user: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 	case false:
 		err := unarchiveArticle(ctx, user.GetID(), id)
 		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("unarchive article: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
 			return e == id
@@ -811,7 +771,11 @@ func updateFavoriteArticle(
 			"item_favorites": newFavorites,
 		})
 		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
+			return models.NewAPIError(http.StatusInternalServerError,
+				fmt.Errorf("update user: %w", err),
+				models.WithUserErrorSummary("Backend error"),
+				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
+			)
 		}
 	}
 	return nil

@@ -78,15 +78,9 @@ func HandleShowDisplaySettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to show display settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 		RenderPartial(&PartialTemplate{
@@ -100,15 +94,9 @@ func HandleShowAccountSettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to show account settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 		RenderPartial(&PartialTemplate{
@@ -123,29 +111,18 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to show account settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 		// Get all subscriptions.
 		subscriptions, err := service.GetAllSubscriptions(req.Context())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to show account settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get subscriptions: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Add dynamic info to subscriptions.
@@ -169,46 +146,28 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 // HandleSaveSubscriptionsSettings handles saving any subscription settings the user has applied.
 func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode request.
-		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode user settings: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
+			return
+		}
+
+		// Decode request.
+		request, err := parseForm[*models.UserSettings](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		if err := validation.Validate.Struct(request); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("validate settings: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("validate settings: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -218,15 +177,7 @@ func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 		// Update local user object.
 		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": settings})
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update data: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -239,47 +190,27 @@ func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
 func HandleSaveDisplaySettings() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode request.
-		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode user settings: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
+
+		// Decode request.
+		request, err := parseForm[*models.UserSettings](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			return
+		}
+
 		// Update local user object.
 		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": request})
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update data: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -297,60 +228,34 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Decode request.
-		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode edit user request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"One or more of the inputs is invalid. Please check and try again.",
-					),
-				}).ServeHTTP(res, req)
+		request, err := parseMultipartForm[*models.EditUserRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Parse and process avatar.
 		avatar, err := forms.DecodeMultipartFile(req, "avatar")
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode avatar: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"Unable to read uploaded avatar data. Please check the file and try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("decode avatar: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		if avatar != nil {
 			// Maximum size of an avatar image is 1MB.
 			const maxAvatarSizeBytes = 1000000
 			if avatar.GetSize() > maxAvatarSizeBytes {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: models.ErrFileTooLarge,
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to save settings",
-							"Uploaded avatar image is too large (> 1MB).",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(http.StatusUnprocessableEntity, models.ErrFileTooLarge).ServeHTTP(res, req)
 				return
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
@@ -358,27 +263,17 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			// Read the uploaded data and store in the cache.
 			avatarData, err := io.ReadAll(avatar.Data)
 			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("read avatar: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to save settings",
-							"This might be a temporary error, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("read avatar: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			if err := cache.SaveAvatar(req.Context(), avatarFileID, avatarData); err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("read avatar: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to save settings",
-							"This might be a temporary error, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("read avatar: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			// Construct a new full URL to the uploaded avatar on the local server.
@@ -413,30 +308,20 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 		}
 		// Update on backend.
 		err = auth0.UpdateUserCustomisation(req.Context(), request)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update user in auth0: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+		if err != nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("update user in auth0: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Update local user object.
 		err = service.UpdateUser(req.Context(), user, updates)
 		if err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update local user: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("update local user: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -453,31 +338,20 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 // HandleChangePassword handles a change password request from the user.
 func HandleChangePassword() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode change password request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to change password",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+
+		request, err := parseForm[*models.ChangePasswordRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
+
 		// Update on backend.
 		err = auth0.ChangeUserPassword(req.Context(), request)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("change password in auth0: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to change password",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+		if err != nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("change password in auth0: %w", err),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -492,33 +366,21 @@ func HandleChangePassword() http.HandlerFunc {
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.DeactivationRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("decode deactivation request: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to deactivate account",
-						"This might be a temporary error, please try again.",
-					),
-				}).ServeHTTP(res, req)
+		request, err := parseForm[*models.DeactivationRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
+
 		switch request.Confirmed {
 		case true:
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to deactivate account",
-							"This might be a temporary error, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+				).ServeHTTP(res, req)
 				return
 			}
 
@@ -565,28 +427,18 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				// User in trial. Just delete from Elasticsearch and Auth0 then send confirmation email.
 				// Delete from Elasticsearch backend.
 				if err := service.DeleteUser(req.Context(), user); err != nil {
-					HandleInternalError(req.URL.Path,
-						&models.APIError{
-							InternalError: fmt.Errorf("delete user in elasticsearch: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to deactivate account",
-								"If this issue persists, please email support@foragd.app.",
-							),
-						}).ServeHTTP(res, req)
+					HandleInternalError(
+						http.StatusInternalServerError,
+						fmt.Errorf("delete user in elasticsearch: %w", err),
+					).ServeHTTP(res, req)
 					return
 				}
 				// Delete from Auth0 backend
 				if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
-					HandleInternalError(req.URL.Path,
-						&models.APIError{
-							InternalError: fmt.Errorf("delete user in auth0: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to deactivate account",
-								"If this issue persists, please email support@foragd.app.",
-							),
-						}).ServeHTTP(res, req)
+					HandleInternalError(
+						http.StatusInternalServerError,
+						fmt.Errorf("delete user in auth0: %w", err),
+					).ServeHTTP(res, req)
 					return
 				}
 
@@ -621,28 +473,18 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					var timeLeft *time.Time
 					userSubscription, err := user.Subscription.AsPaddleSubscription()
 					if err != nil {
-						HandleInternalError(req.URL.Path,
-							&models.APIError{
-								InternalError: fmt.Errorf("get paddle subscription: %w", err),
-								StatusCode:    http.StatusInternalServerError,
-								UserMessage: models.NewErrorMessage(
-									"Unable to deactivate account",
-									"If this issue persists, please email support@foragd.app.",
-								),
-							}).ServeHTTP(res, req)
+						HandleInternalError(
+							http.StatusUnprocessableEntity,
+							fmt.Errorf("get paddle subscription: %w", err),
+						).ServeHTTP(res, req)
 						return
 					}
 					if paddle.IsActive(&userSubscription) {
 						if err := paddle.CancelSubscription(req.Context(), user); err != nil {
-							HandleInternalError(req.URL.Path,
-								&models.APIError{
-									InternalError: fmt.Errorf("deactivate paddle subscription: %w", err),
-									StatusCode:    http.StatusInternalServerError,
-									UserMessage: models.NewErrorMessage(
-										"Unable to deactivate account",
-										"If this issue persists, please email support@foragd.app.",
-									),
-								}).ServeHTTP(res, req)
+							HandleInternalError(
+								http.StatusInternalServerError,
+								fmt.Errorf("deactivate paddle subscription: %w", err),
+							).ServeHTTP(res, req)
 							return
 						}
 					}
@@ -676,14 +518,9 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
-		if err != nil || !valid {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage:   models.NewErrorMessage("Unable to add feedset", "Data is invalid."),
-				}).ServeHTTP(res, req)
+		request, err := parseForm[*models.AddFeedsetRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -736,28 +573,18 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 				continue
 			}
 			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("read feedset: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add feedset",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("read feedset: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			opmlImport, err := opml.NewOPMLFromBytes(data)
 			if err != nil {
-				HandleInternalError(req.URL.Path,
-					&models.APIError{
-						InternalError: fmt.Errorf("create opml: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add feedset",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("create opml: %w", err),
+				).ServeHTTP(res, req)
 				return
 			}
 			subscriptionRequests = append(
@@ -835,10 +662,9 @@ func HandleAccountIssue() http.HandlerFunc {
 
 func HandleManageAccountSubscription() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		sessionID := req.FormValue("session_id")
-		if sessionID == "" {
+		if sessionID := req.FormValue("session_id"); sessionID == "" {
 			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("no session id"),
+				InternalError: errors.New("no session id"),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
@@ -853,15 +679,10 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to generate email",
-						"This might be a temporary problem, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -872,15 +693,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		) + "@foragd.app")
 
 		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
-			HandleInternalError(req.URL.Path,
-				&models.APIError{
-					InternalError: fmt.Errorf("update user: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to generate email",
-						"This might be a temporary problem, please try again.",
-					),
-				}).ServeHTTP(res, req)
+			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err)).ServeHTTP(res, req)
 			return
 		}
 
@@ -1023,7 +836,7 @@ func ValidateSubscriptionLimits(next http.Handler) http.Handler {
 
 		switch err := service.CheckUserLimits(req.Context()); {
 		case errors.Is(err, models.ErrForbidden):
-			HandleInternalError(req.Referer(), err).ServeHTTP(res, req)
+			HandleInternalError(http.StatusForbidden, err).ServeHTTP(res, req)
 			return
 		case errors.Is(err, models.ErrSubscriptionLimitExceeded),
 			errors.Is(err, models.ErrEmailNewsletterLimitExceeded):

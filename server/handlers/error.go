@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
@@ -19,14 +20,38 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+type ErrorOptions struct {
+	UserMessage *models.UserMessage
+}
+
+type ErrorOption func(*ErrorOptions)
+
+func WithUserMessage(msg *models.UserMessage) ErrorOption {
+	return func(eo *ErrorOptions) {
+		eo.UserMessage = msg
+	}
+}
+
 // InternalError represents errors shown on internal (pages accessible to logged in users) pages.
 type InternalError struct {
 	err     *models.APIError
 	referer string
 }
 
-// HandleInternalError handles display errors on internal pages (pages accessible to logged in users).
-func HandleInternalError(referer string, err error) http.HandlerFunc {
+// HandleInternalError handles display errors on internal pages (pages accessible to logged in users). If the passed in
+// error can be unwrapped as a models.APIError, the status code and value of the APIError is used and the passed in
+// status code is ignored. Otherwise a new APIError will be generated from the status code and error.
+func HandleInternalError(status int, err error, options ...ErrorOption) http.HandlerFunc {
+	opts := &ErrorOptions{
+		UserMessage: models.NewErrorMessage(
+			"Problem occurred while processing request",
+			"This might be temporary, please try again.",
+		),
+	}
+	for option := range slices.Values(options) {
+		option(opts)
+	}
+
 	return func(res http.ResponseWriter, req *http.Request) {
 		if otel.IsEnabled() {
 			_, span := otel.TracerProvider.Tracer("").
@@ -48,30 +73,27 @@ func HandleInternalError(referer string, err error) http.HandlerFunc {
 			res.WriteHeader(apiErr.HTTPStatus())
 			if apiErr.UserMessage == nil {
 				// Add a generic user message if one isn't already set.
-				apiErr.UserMessage = models.NewErrorMessage(
-					"A backend error occurred",
-					"This might be temporary, please try again.",
-				)
+				apiErr.UserMessage = opts.UserMessage
 			}
 			page := &InternalError{
 				err:     apiErr,
-				referer: referer,
+				referer: req.URL.Path,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		} else {
+			if status == 0 {
+				status = http.StatusInternalServerError
+			}
 			apiErr = &models.APIError{
-				StatusCode:    http.StatusInternalServerError,
+				StatusCode:    status,
 				InternalError: err,
-				UserMessage: models.NewErrorMessage(
-					"A backend error occurred",
-					"This might be temporary, please try again.",
-				),
+				UserMessage:   opts.UserMessage,
 			}
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &InternalError{
 				err:     apiErr,
-				referer: referer,
+				referer: req.URL.Path,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		}

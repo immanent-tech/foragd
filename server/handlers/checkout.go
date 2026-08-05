@@ -154,14 +154,10 @@ func HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(req.Referer(), &models.APIError{
-				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to render form",
-					"There was a problem with the request. Please try again.",
-				),
-			}).ServeHTTP(res, req)
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
 
