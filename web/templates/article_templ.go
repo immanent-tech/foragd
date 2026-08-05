@@ -2074,7 +2074,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						}
 						if response.Subscription != nil {
 							if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"tooltip\" data-tip=\"Article filtering applied\"><span class=\"sr-only\">Article filtering applied</span>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"tooltip tooltip-bottom\" data-tip=\"Article filtering applied\"><span class=\"sr-only\">Article filtering applied</span>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

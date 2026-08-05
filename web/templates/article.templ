@@ -730,7 +730,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						// Add an icon to indicate whether article filtering is being applied.
 						if response.Subscription != nil {
 							if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
-								<div class="tooltip" data-tip="Article filtering applied">
+								<div class="tooltip tooltip-bottom" data-tip="Article filtering applied">
 									<span class="sr-only">Article filtering applied</span>
 									@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-6 fill-accent", "aria-hidden": "true"})
 								</div>
