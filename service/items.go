@@ -213,9 +213,6 @@ func BuildItemQueries(
 
 // queryReadItems generates a query for finding read items for the given subscription.
 func queryReadItems(user *models.User, source models.ItemSource) query.Option {
-	// if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
-	// 	return nil
-	// }
 	return query.Bool(
 		query.WithBoolQueryName(source.GetFeedID()+"_read_items"),
 		query.Filter(
@@ -224,8 +221,8 @@ func queryReadItems(user *models.User, source models.ItemSource) query.Option {
 			// And should be between the user max history and last read time.
 			query.Bool(
 				query.Should(
-					query.Between("published", user.GetMaxHistory(), source.GetMarkedReadAt()),
-					query.Between("updated", user.GetMaxHistory(), source.GetMarkedReadAt()),
+					query.Between("published", source.GetMarkedReadAt(), user.GetMaxHistory()),
+					query.Between("updated", source.GetMarkedReadAt(), user.GetMaxHistory()),
 					query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
 				),
 				// Must not match any unread items for the feed

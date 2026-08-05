@@ -72,10 +72,10 @@ func (u *User) GetEmail() string {
 // parsing the value from the user's metadata, it will default to using the lowest plan max history.
 func (u *User) GetMaxHistory() time.Time {
 	if u.GetSettings().MaxViewHistory == 0 {
-		return time.Now().Add(-DefaultMaxHistory)
+		return time.Now().UTC().Add(-DefaultMaxHistory)
 	}
 
-	return time.Now().Add(-u.GetSettings().MaxViewHistory)
+	return time.Now().UTC().Add(-u.GetSettings().MaxViewHistory)
 }
 
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and

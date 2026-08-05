@@ -64,6 +64,14 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
 func HandleListArticles() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
 		// Build request object.
 		pagination := req.FormValue(models.ParamPagination)
 		filters := getListArticleFilters(req)
@@ -76,14 +84,6 @@ func HandleListArticles() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("parse query values: %w", err),
 			).ServeHTTP(res, req)
-			return
-		}
-
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
