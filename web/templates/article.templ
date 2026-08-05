@@ -421,15 +421,15 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 			<div
 				id="progress-bar"
 				class="fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear"
-				_="on scroll from the window debounced at 20ms
-          set my.style.width to
-            ((document.documentElement.scrollTop /
-             (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
-        end
-
-        on load
-          trigger scroll on the window
-        end"
+				_="
+				on scroll from the window debounced at 20ms
+          			set my.style.width to
+            			((document.documentElement.scrollTop /
+             			(document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
+        			end
+			    on load
+          			trigger scroll on the window
+        		end"
 			></div>
 			@buttonBackToTop()
 			@container() {
@@ -609,26 +609,24 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							</ul>
 					}
 				</article>
-				<div class="p-4">
-					// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
-					// read and mark it so (when the user has set this option).
-					if article.IsUnread() && article.MarkArticleReadOnView {
-						<div
-							id="auto-mark-read"
-							hx-target="#auto-mark-read"
-							hx-post={ "/mark/article/" + article.GetID() }
-							hx-swap="delete transition:false"
-							hx-vals={ templ.JSONString(map[string]any{
+				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
+				// read and mark it so (when the user has set this option).
+				if article.IsUnread() && article.MarkArticleReadOnView {
+					<div
+						id="auto-mark-read"
+						hx-target="#auto-mark-read"
+						hx-post={ "/mark/article/" + article.GetID() }
+						hx-swap="delete transition:false"
+						hx-vals={ templ.JSONString(map[string]any{
 							"subscription_id": article.GetSubscriptionID(),
 							"item_id": article.GetID(),
 							"mark": models.MarkRead,
 						}) }
-							hx-trigger="intersect once delay:5s,load delay:5s"
-							aria-hidden="true"
-							_={ "on htmx:afterRequest(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
-						></div>
-					}
-				</div>
+						hx-trigger="intersect once delay:5s,load delay:5s"
+						aria-hidden="true"
+						_={ "on htmx:afterRequest(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
+					></div>
+				}
 			}
 		}
 	}
