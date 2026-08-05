@@ -14,6 +14,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/forms"
 )
 
 type Route = string
@@ -49,4 +52,29 @@ func refreshOnHistoryRestore(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(res, req)
 	})
+}
+
+func parseForm[T forms.FormInput](req *http.Request) (T, error) {
+	request, valid, err := forms.DecodeForm[T](req)
+	if err != nil {
+		return request, &models.APIError{
+			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+			StatusCode:    http.StatusInternalServerError,
+			UserMessage: models.NewErrorMessage(
+				"Unable to parse input",
+				"This might be a temporary issue, please try again.",
+			),
+		}
+	}
+	if !valid {
+		return request, &models.APIError{
+			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+			StatusCode:    http.StatusUnprocessableEntity,
+			UserMessage: models.NewErrorMessage(
+				"Invalid data submitted",
+				"Please check your inputs and try again.",
+			),
+		}
+	}
+	return request, nil
 }
