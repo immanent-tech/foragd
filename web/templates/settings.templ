@@ -632,6 +632,26 @@ templ DisplaySettings(user *models.User) {
 							</p>
 						</label>
 						<label class="fieldset py-4">
+							<div class="flex items-center gap-x-4">
+								<span class="label">Hide grouped subscriptions</span>
+								<input
+									id="hide-grouped"
+									type="checkbox"
+									name="hide_grouped"
+									if user.GetSettings().HideGrouped {
+										checked
+									}
+									aria-describedby="setting-mark-article-read-on-view-description"
+									class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
+								/>
+							</div>
+							<p id="hide-grouped-description">
+								Hide any subscriptions in a group from being shown on the home and subscription list
+								page. Grouped subscriptions will still be listed in search results and on the management
+								settings page.
+							</p>
+						</label>
+						<label class="fieldset py-4">
 							<span class="label">Max View History</span>
 							<select class="select" name="max_view_history">
 								// NOTE: these are in hours for readability, need to be multiplied to nanoseconds before storing.

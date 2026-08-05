@@ -277,6 +277,7 @@ components:
         - mark_article_read_on_view
         - max_view_history
         - updates_interval
+        - hide_grouped
       properties:
         show_onboarding:
           description: >
@@ -287,7 +288,6 @@ components:
             form: '-'
           x-omitzero: false
           x-omitempty: false
-          x-go-type-skip-optional-pointer: true
         show_subscription_stats:
           description: >
             indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
@@ -296,7 +296,6 @@ components:
             form: 'show_subscription_stats'
           x-omitzero: false
           x-omitempty: false
-          x-go-type-skip-optional-pointer: true
         mark_article_read_on_view:
           description: >
             indicates whether to automatically mark an article as read when viewed.
@@ -306,7 +305,6 @@ components:
             form: 'mark_article_read_on_view'
           x-omitzero: false
           x-omitempty: false
-          x-go-type-skip-optional-pointer: true
         subscription_email:
           description: >
             is an email address the user can use to subscribe to email newsletters.
@@ -328,6 +326,14 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'update_interval'
             validate: 'gte=0'
+        hide_grouped:
+          description: >
+            indicates that grouped subscriptions should be hidden on home and subscriptions list pages.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: hide_grouped
+          x-omit-zero: false
+          x-omitempty: false
         global_filters:
           $ref: '#/components/schemas/ArticleFilters'
     UserLimit:
@@ -1098,15 +1104,6 @@ components:
             validate: 'required,dive,startswith=sub_'
         article_filters:
           $ref: '#/components/schemas/ArticleFilters'
-        hide_children:
-          description: >
-            indicates that subscriptions in this group should be hidden outside display within the group (i.e., do not
-            show as individual subscriptions on the subscriptions list page). They will still be displayed in some
-            places, for e.g., in the table on the subscriptions settings page.
-          type: boolean
-          x-omitzero: false
-          x-omitempty: false
-          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false

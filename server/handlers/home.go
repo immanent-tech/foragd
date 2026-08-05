@@ -118,6 +118,16 @@ func HandleHome() http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return
 			}
+
+			// If the user has requested to hide grouped subscriptions, filter those out.
+			hiddenSubscriptions := make([]models.SubscriptionID, 0)
+			if user.GetSettings().HideGrouped {
+				for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+					hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.Subscriptions...)
+				}
+			}
+			subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
+
 			// Update subscription dynamic info.
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 				HandleInternalError(

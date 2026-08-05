@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.212"
-date      = "Aug 4, 2026"
+version   = "v0.213"
+date      = "Aug 6, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Added a display option to hide grouped subscriptions from the home page and subscriptions list page. Enabling means only the group itself will be shown.
+"""
+
+[[releases]]
+version = "v0.212"
+date    = "Aug 4, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -12,9 +22,9 @@ When viewing an article, there are now buttons to move to the previous or next a
 """
 
 [[releases]]
-version   = "v0.211"
-date      = "Aug 3, 2026"
-type      = "minor"
+version = "v0.211"
+date    = "Aug 3, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -22,9 +32,9 @@ Trial period is now 30 days!
 """
 
 [[releases]]
-version   = "v0.210"
-date      = "Aug 2, 2026"
-type      = "minor"
+version = "v0.210"
+date    = "Aug 2, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "fixed"
 description = """

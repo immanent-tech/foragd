@@ -244,7 +244,7 @@ type NextArticleRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitempty,startswith=sub_"`
-	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05Z07:00"`
+	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05.999999999Z07:00"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`

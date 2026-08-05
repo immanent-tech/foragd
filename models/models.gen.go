@@ -739,9 +739,6 @@ type GroupSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
 	ArticleFilters *ArticleFilters `form:"article_filters" json:"article_filters"`
 
-	// HideChildren indicates that subscriptions in this group should be hidden outside display within the group (i.e., do not show as individual subscriptions on the subscriptions list page). They will still be displayed in some places, for e.g., in the table on the subscriptions settings page.
-	HideChildren bool `json:"hide_children"`
-
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
@@ -1348,6 +1345,9 @@ type UserSession struct {
 type UserSettings struct {
 	// GlobalFilters holds filters to apply to the articles within a subscription.
 	GlobalFilters *ArticleFilters `form:"article_filters" json:"global_filters"`
+
+	// HideGrouped indicates that grouped subscriptions should be hidden on home and subscriptions list pages.
+	HideGrouped bool `form:"hide_grouped" json:"hide_grouped"`
 
 	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
 	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`

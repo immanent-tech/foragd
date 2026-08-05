@@ -72,6 +72,14 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 // HandleListSubscriptions handles displaying a list of subscriptions.
 func HandleListSubscriptions() http.HandlerFunc {
 	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
 		// Parse and process filters.
 		filters := getListSubscriptionsFilters(req)
 
@@ -120,6 +128,16 @@ func HandleListSubscriptions() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+
+		// If the user has requested to hide grouped subscriptions, filter those out.
+		hiddenSubscriptions := make([]models.SubscriptionID, 0)
+		if user.GetSettings().HideGrouped {
+			for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.Subscriptions...)
+			}
+		}
+		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
+
 		// Update subscription dynamic info.
 		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 			HandleInternalError(
@@ -128,6 +146,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+
 		// Apply all base filtering and sorting.
 		subscriptions, next = subscriptions.
 			FilterByFavorites(request.Filters.OnlyFavorites).
