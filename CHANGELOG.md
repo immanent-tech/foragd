@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.212.3](https://github.com/immanent-tech/foragd/compare/v0.212.2...v0.212.3) (2026-08-05)
+
+
+### Bug Fixes
+
+* **handlers/articles:** 🔧 handle unable to find article to view gracefully ([7e334ee](https://github.com/immanent-tech/foragd/commit/7e334eef7848c5968547352926fc6623b7525368))
+* **templates/articles:** 🔧 position prev/next article button tooltips so they aren't cut off on mobile ([0f8dd90](https://github.com/immanent-tech/foragd/commit/0f8dd904c358128b98c01129f9baa5c0a896f874))
+
 ## [0.212.2](https://github.com/immanent-tech/foragd/compare/v0.212.0...v0.212.2) (2026-08-04)
 
 
