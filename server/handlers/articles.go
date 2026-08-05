@@ -406,6 +406,11 @@ func HandleViewArticle() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+		if len(articles) == 0 {
+			res.WriteHeader(http.StatusNotFound)
+			HandleNotFound().ServeHTTP(res, req)
+			return
+		}
 		article := articles[0]
 
 		// Get the "show_full_content" value and override the article value.

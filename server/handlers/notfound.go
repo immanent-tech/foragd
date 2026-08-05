@@ -29,6 +29,7 @@ func HandleNotFound() http.HandlerFunc {
 				templates.NotFound(),
 			)
 		}
+		res.WriteHeader(http.StatusNotFound)
 		RenderInternalPage(&NotFoundPage{template: layout}).ServeHTTP(res, req)
 	}
 }
