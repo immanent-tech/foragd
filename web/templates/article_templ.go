@@ -1804,7 +1804,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		vals["direction"] = models.NextArticleRequestDirectionPrevious
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<div class=\"tooltip\" data-tip=\"Previous Article\"><button class=\"btn btn-square btn-ghost\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<div class=\"tooltip tooltip-right\" data-tip=\"Previous Article\"><button class=\"btn btn-square btn-ghost\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1869,7 +1869,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		vals["direction"] = models.NextArticleRequestDirectionNext
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "<div class=\"tooltip\" data-tip=\"Next Article\"><button class=\"btn btn-square btn-ghost\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "<div class=\"tooltip tooltip-left\" data-tip=\"Next Article\"><button class=\"btn btn-square btn-ghost\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

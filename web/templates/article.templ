@@ -655,7 +655,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 	}}
 	<div class="mt-4 w-full flex justify-between items-center">
 		{{ vals["direction"] = models.NextArticleRequestDirectionPrevious }}
-		<div class="tooltip" data-tip="Previous Article">
+		<div class="tooltip tooltip-right" data-tip="Previous Article">
 			<button
 				class="btn btn-square btn-ghost"
 				hx-get={ "/view/article/" + resp.Article.GetID() + "/prev" }
@@ -669,7 +669,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 			</button>
 		</div>
 		{{ vals["direction"] = models.NextArticleRequestDirectionNext }}
-		<div class="tooltip" data-tip="Next Article">
+		<div class="tooltip tooltip-left" data-tip="Next Article">
 			<button
 				class="btn btn-square btn-ghost"
 				hx-get={ "/view/article/" + resp.Article.GetID() + "/next" }
