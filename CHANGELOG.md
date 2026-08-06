@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.213.1](https://github.com/immanent-tech/foragd/compare/v0.213.0...v0.213.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* **templates/subscriptions:** 🎨 fix badge color and spacing when displaying stats on subscription cards ([5523379](https://github.com/immanent-tech/foragd/commit/5523379f50d81215e3064682a19b462d9fc9a77b))
+
 ## [0.213.0](https://github.com/immanent-tech/foragd/compare/v0.212.3...v0.213.0) (2026-08-05)
 
 
