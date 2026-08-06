@@ -79,7 +79,7 @@ authors or categories, thus giving you a lot of power to drill-down to exactly w
   </figcaption>
 </figure>
 
-Filters are build from straightforward text strings. Just a phrase like `"search term"` would filter
+Filters are built from text. No need for complicated logic. Just a phrase like `"search term"` would filter
 articles to those matching that phrase. You can use some operators for more extensive filtering:
 
 - `+` signifies AND operation (i.e., food **AND** beverages).

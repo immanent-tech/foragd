@@ -640,12 +640,42 @@ templ FeaturesPageCurate() {
 					</li>
 				</ul>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-feature-articlefiltering.webp"
-				alt="Example article filters using plus and minus keyword and phrase matching in Foragd"
-				class="box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl"
-				loading="lazy"
-			/>
+			<div>
+				<button command="show-modal" commandfor="show-video-full-content" type="button" class="cursor-pointer">
+					@components.BrowserWindow(config.GetBaseURL()) {
+						<div class="relative">
+							<img
+								src="https://image.mux.com/iHbSRvPVw1CeNf8VVEAh6k01NIrp9ODbEgxtmPApeMN4/thumbnail.png?width=530&height=330&time=168"
+								alt="Thumbnail of Foragd home screen"
+								class="block w-full object-cover"
+								loading="lazy"
+							/>
+							<div class="absolute inset-0 flex items-center justify-center">
+								<span class="flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm">
+									@tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"})
+								</span>
+							</div>
+						</div>
+					}
+				</button>
+				<el-dialog>
+					<dialog id="show-video-full-content" class="mx-auto my-auto max-w-280">
+						<el-dialog-backdrop></el-dialog-backdrop>
+						<el-dialog-panel>
+							@components.MuxPlayer(components.MuxVideo{
+								ID:    "iHbSRvPVw1CeNf8VVEAh6k01NIrp9ODbEgxtmPApeMN4",
+								Title: "Article Filtering",
+							})
+						</el-dialog-panel>
+					</dialog>
+				</el-dialog>
+			</div>
+			// <img
+			// 	src="/content/screenshots/screenshot-feature-articlefiltering.webp"
+			// 	alt="Example article filters using plus and minus keyword and phrase matching in Foragd"
+			// 	class="box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl"
+			// 	loading="lazy"
+			// />
 		}
 		// Feature: Subscription Customisation.
 		@featurePanel("subscription-customisation") {

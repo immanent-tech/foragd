@@ -655,37 +655,11 @@ func FeaturesPageCurate() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Filter articles with straightforward <span class=\"font-mono text-sm\">+/−</span> keyword and phrase matching. No complicated AND/OR logic to learn.</p><div class=\"mt-5 space-y-2 rounded-box border border-base-300 bg-base-200 p-4 font-mono text-sm\"><div><span class=\"text-secondary\">AI -chatgpt</span> <span class=\"text-base-content/50\">— AI news, without ChatGPT</span></div><div><span class=\"text-secondary\">+python +tutorial</span> <span class=\"text-base-content/50\">— only Python tutorials</span></div><div><span class=\"text-secondary\">+python +tutorial AI -chatgpt</span> <span class=\"text-base-content/50\">— combine for further refinement</span></div></div><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 font-serif text-pretty\"><li class=\"ml-3\"><a href=\"/blog/article-filtering-in-foragd\" class=\"link link-primary\">Clearing the Noise: Article Filtering in Foragd →</a></li></ul></div><img src=\"/content/screenshots/screenshot-feature-articlefiltering.webp\" alt=\"Example article filters using plus and minus keyword and phrase matching in Foragd\" class=\"box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl\" loading=\"lazy\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Filter articles with straightforward <span class=\"font-mono text-sm\">+/−</span> keyword and phrase matching. No complicated AND/OR logic to learn.</p><div class=\"mt-5 space-y-2 rounded-box border border-base-300 bg-base-200 p-4 font-mono text-sm\"><div><span class=\"text-secondary\">AI -chatgpt</span> <span class=\"text-base-content/50\">— AI news, without ChatGPT</span></div><div><span class=\"text-secondary\">+python +tutorial</span> <span class=\"text-base-content/50\">— only Python tutorials</span></div><div><span class=\"text-secondary\">+python +tutorial AI -chatgpt</span> <span class=\"text-base-content/50\">— combine for further refinement</span></div></div><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 font-serif text-pretty\"><li class=\"ml-3\"><a href=\"/blog/article-filtering-in-foragd\" class=\"link link-primary\">Clearing the Noise: Article Filtering in Foragd →</a></li></ul></div><div><button command=\"show-modal\" commandfor=\"show-video-full-content\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				return nil
-			})
-			templ_7745c5c3_Err = featurePanel("article-filters").Render(templ.WithChildren(ctx, templ_7745c5c3_Var18), templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "  ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var19 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
-				}
-				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-screenshot-add-content\" type=\"button\" class=\"cursor-pointer\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Var20 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var19 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -697,17 +671,62 @@ func FeaturesPageCurate() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"relative\"><img src=\"https://image.mux.com/iHbSRvPVw1CeNf8VVEAh6k01NIrp9ODbEgxtmPApeMN4/thumbnail.png?width=530&height=330&time=168\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = tablerfilled.PlayerPlay(templ.Attributes{"class": "size-6 text-base-content"}).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</span></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</button> <el-dialog><dialog id=\"show-screenshot-add-content\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</button> <el-dialog><dialog id=\"show-video-full-content\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = components.MuxPlayer(components.MuxVideo{
+					ID:    "iHbSRvPVw1CeNf8VVEAh6k01NIrp9ODbEgxtmPApeMN4",
+					Title: "Article Filtering",
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</el-dialog-panel></dialog></el-dialog></div>     ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = featurePanel("article-filters").Render(templ.WithChildren(ctx, templ_7745c5c3_Var18), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "  ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var20 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-screenshot-add-content\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -723,7 +742,7 @@ func FeaturesPageCurate() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -733,7 +752,33 @@ func FeaturesPageCurate() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</button> <el-dialog><dialog id=\"show-screenshot-add-content\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Var22 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+					if !templ_7745c5c3_IsBuffer {
+						defer func() {
+							templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+							if templ_7745c5c3_Err == nil {
+								templ_7745c5c3_Err = templ_7745c5c3_BufErr
+							}
+						}()
+					}
+					ctx = templ.InitializeContext(ctx)
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<img src=\"/content/screenshots/screenshot-subscription-customize.webp\" alt=\"Customising a subscription's nickname and image in Foragd\" class=\"block w-full object-cover\" loading=\"lazy\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					return nil
+				})
+				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var22), templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -741,17 +786,17 @@ func FeaturesPageCurate() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Give each subscription a nickname and change its thumbnail. Handy when a feed doesn't include its own image, or its name is verbose or generic.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Give each subscription a nickname and change its thumbnail. Handy when a feed doesn't include its own image, or its name is verbose or generic.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("subscription-customisation").Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("subscription-customisation").Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "  <section class=\"mx-auto max-w-6xl px-5 py-16\"><h2 class=\"mb-8 text-center font-display text-2xl\">Before and after curation</h2><div class=\"mx-auto grid max-w-3xl gap-6 md:grid-cols-2\"><a href=\"/features/collect\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-primary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "  <section class=\"mx-auto max-w-6xl px-5 py-16\"><h2 class=\"mb-8 text-center font-display text-2xl\">Before and after curation</h2><div class=\"mx-auto grid max-w-3xl gap-6 md:grid-cols-2\"><a href=\"/features/collect\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-primary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -759,7 +804,7 @@ func FeaturesPageCurate() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Gather everything</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Add any site, channel, subreddit, or newsletter in seconds.</p></a> <a href=\"/features/consume\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-accent/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Gather everything</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Add any site, channel, subreddit, or newsletter in seconds.</p></a> <a href=\"/features/consume\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-accent/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -767,7 +812,7 @@ func FeaturesPageCurate() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Read like a magazine</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Distraction-free reading, full-text search, and zero pressure.</p></a></div></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</span><div class=\"text-xs font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Read like a magazine</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Distraction-free reading, full-text search, and zero pressure.</p></a></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -781,7 +826,7 @@ func FeaturesPageCurate() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -815,12 +860,12 @@ func FeaturesPageConsume() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var22 == nil {
-			templ_7745c5c3_Var22 = templ.NopComponent
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var23 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var24 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -832,7 +877,7 @@ func FeaturesPageConsume() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"max-w-md\"><div class=\"mb-5 flex items-center justify-center gap-3\"><span class=\"flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<section class=\"hero h-dvh\"><div class=\"hero-content flex-col text-center sm:flex-row\"><div class=\"max-w-md\"><div class=\"mb-5 flex items-center justify-center gap-3\"><span class=\"flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/15 text-accent\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -840,11 +885,11 @@ func FeaturesPageConsume() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span><div class=\"text-base font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-5xl font-semibold tracking-tight text-pretty sm:text-7xl sm:text-balance\">Read without distractions</h1><p class=\"mt-6 font-serif text-lg/8 text-pretty text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn btn-outline text-sm/6 font-semibold\" _=\"on click scroll to #full-content smoothly\">See how it works</a></div></div></div></section> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span><div class=\"text-base font-semibold tracking-widest text-accent/80 uppercase\">03 · Consume</div></div><h1 class=\"mt-2 font-display text-5xl font-semibold tracking-tight text-pretty sm:text-7xl sm:text-balance\">Read without distractions</h1><p class=\"mt-6 font-serif text-lg/8 text-pretty text-accent\">Foragd fetches the full article text directly from the source, so you get clean, readable content even when a feed only publishes a summary. Beautiful typography, theme support, and no ads mean the content always comes first.</p><div class=\"mt-6 flex items-center justify-center gap-x-6\" aria-label=\"Primary actions\"><a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a> <a href=\"#full-content\" class=\"btn btn-outline text-sm/6 font-semibold\" _=\"on click scroll to #full-content smoothly\">See how it works</a></div></div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var24 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var25 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -856,7 +901,7 @@ func FeaturesPageConsume() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -864,11 +909,11 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">For subscriptions where only article summaries are shown, Foragd fetches and displays the remote content (pulling in images and other relevant content) to recreate the reading experience without switching browser tabs.</p></div><div><button command=\"show-modal\" commandfor=\"show-video-full-content\" type=\"button\" class=\"cursor-pointer\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">For subscriptions where only article summaries are shown, Foragd fetches and displays the remote content (pulling in images and other relevant content) to recreate the reading experience without switching browser tabs.</p></div><div><button command=\"show-modal\" commandfor=\"show-video-full-content\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Var25 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var26 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -880,7 +925,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-full-content.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-full-content.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -888,31 +933,31 @@ func FeaturesPageConsume() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</span></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</button> <el-dialog><dialog id=\"show-video-full-content\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel><video src=\"/content/screenshots/video-full-content.webm\" loading=\"lazy\" loop controls></video></el-dialog-panel></dialog></el-dialog></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</button> <el-dialog><dialog id=\"show-video-full-content\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel><video src=\"/content/screenshots/video-full-content.webm\" loading=\"lazy\" loop controls></video></el-dialog-panel></dialog></el-dialog></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("full-content").Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("full-content").Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var26 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var27 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -924,33 +969,7 @@ func FeaturesPageConsume() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-screenshot-full-text-search\" type=\"button\" class=\"cursor-pointer\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Var27 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-					if !templ_7745c5c3_IsBuffer {
-						defer func() {
-							templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-							if templ_7745c5c3_Err == nil {
-								templ_7745c5c3_Err = templ_7745c5c3_BufErr
-							}
-						}()
-					}
-					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					return nil
-				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</button> <el-dialog><dialog id=\"show-screenshot-full-text-search\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-screenshot-full-text-search\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -966,7 +985,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -976,7 +995,33 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</button> <el-dialog><dialog id=\"show-screenshot-full-text-search\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Var29 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+					if !templ_7745c5c3_IsBuffer {
+						defer func() {
+							templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+							if templ_7745c5c3_Err == nil {
+								templ_7745c5c3_Err = templ_7745c5c3_BufErr
+							}
+						}()
+					}
+					ctx = templ.InitializeContext(ctx)
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<img src=\"/content/screenshots/screenshot-feature-search.webp\" alt=\"Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period\" class=\"block w-full\" loading=\"lazy\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					return nil
+				})
+				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -984,51 +1029,17 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Search by keyword or phrase, and filter by category, author or time period. Or use semantic search to search by topic like \"current geopolitical events\" or the \"latest tech news\" instead of exact wording.</p><p class=\"mt-3 font-serif text-pretty text-base-content/70\">Want to keep up with new results? Save them as a <a href=\"/features/curate#feature-search-subscriptions\" class=\"link link-accent\">Search Subscription</a> and stay up to date automatically.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Search by keyword or phrase, and filter by category, author or time period. Or use semantic search to search by topic like \"current geopolitical events\" or the \"latest tech news\" instead of exact wording.</p><p class=\"mt-3 font-serif text-pretty text-base-content/70\">Want to keep up with new results? Save them as a <a href=\"/features/curate#feature-search-subscriptions\" class=\"link link-accent\">Search Subscription</a> and stay up to date automatically.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("full-text-search").Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("full-text-search").Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "  ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var29 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
-				}
-				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = featureTitle("Zero Pressure Reading").Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Reading shouldn't feel like a chore. Foragd lets you toggle unread counts on and off (off by default) for zero-pressure reading that doesn't feel like another inbox to clear.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary\"><li>Automatically mark articles as read after a short viewing period</li><li>Set a timespan after which old articles disappear from view, taming the backlog</li></ul><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 font-serif text-pretty\"><li class=\"ml-3\"><a href=\"/blog/managing-feed-overload\" class=\"link link-primary\">How to Manage Feed Overload: 6 Strategies for Your RSS Reader →</a></li></ul></div><img src=\"/content/screenshots/screenshot-settings-behaviour.webp\" alt=\"Settings for controlling unread counts, automatic read marking, and article backlog timespan in Foragd\" class=\"box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl\" loading=\"lazy\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				return nil
-			})
-			templ_7745c5c3_Err = featurePanel("zero-pressure").Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1044,25 +1055,25 @@ func FeaturesPageConsume() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<div class=\"order-2 md:order-1\"><img src=\"/content/screenshots/screenshot-feature-favorites.webp\" alt=\"Favorites page in Foragd showing saved subscriptions and articles\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\"></div><div class=\"order-1 md:order-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = featureTitle("Save Favorite Subscriptions and Articles").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = featureTitle("Zero Pressure Reading").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Favorite subscriptions to keep them top and center. Favorite articles to reference them later. Favorite articles are kept forever, even if the source removes them from their feed.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Reading shouldn't feel like a chore. Foragd lets you toggle unread counts on and off (off by default) for zero-pressure reading that doesn't feel like another inbox to clear.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary\"><li>Automatically mark articles as read after a short viewing period</li><li>Set a timespan after which old articles disappear from view, taming the backlog</li></ul><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Read more on the blog:</p><ul class=\"mt-5 space-y-3 font-serif text-pretty\"><li class=\"ml-3\"><a href=\"/blog/managing-feed-overload\" class=\"link link-primary\">How to Manage Feed Overload: 6 Strategies for Your RSS Reader →</a></li></ul></div><img src=\"/content/screenshots/screenshot-settings-behaviour.webp\" alt=\"Settings for controlling unread counts, automatic read marking, and article backlog timespan in Foragd\" class=\"box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl\" loading=\"lazy\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("favorites").Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("zero-pressure").Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1078,7 +1089,41 @@ func FeaturesPageConsume() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<div class=\"order-2 md:order-1\"><img src=\"/content/screenshots/screenshot-feature-favorites.webp\" alt=\"Favorites page in Foragd showing saved subscriptions and articles\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\"></div><div class=\"order-1 md:order-2\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = featureTitle("Save Favorite Subscriptions and Articles").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Favorite subscriptions to keep them top and center. Favorite articles to reference them later. Favorite articles are kept forever, even if the source removes them from their feed.</p></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = featurePanel("favorites").Render(templ.WithChildren(ctx, templ_7745c5c3_Var31), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "  ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var32 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "<div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1086,11 +1131,11 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Try it out:</p><form class=\"filter mt-4 flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-light\" aria-label=\"Minimal (Light)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"evergreen\" aria-label=\"Evergreen\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"enterprise\" aria-label=\"Enterprise\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-dark\" aria-label=\"Minimal (Dark)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Pick from a selection of curated light and dark themes, so your reading space looks the way you want it to.</p><p class=\"mt-4 font-serif text-pretty text-base-content/70\">Try it out:</p><form class=\"filter mt-4 flex flex-wrap gap-2\"><input class=\"btn btn-square\" type=\"reset\" value=\"×\" _=\"on click set #theme-previewer-card's @data-theme to 'greenhouse'\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"greenhouse\" aria-label=\"Greenhouse\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-light\" aria-label=\"Minimal (Light)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"evergreen\" aria-label=\"Evergreen\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"forest\" aria-label=\"Forest\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-latte\" aria-label=\"Latte\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"catppuccin-mocha\" aria-label=\"Mocha\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"solarized-dark\" aria-label=\"Solarized Dark\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"enterprise\" aria-label=\"Enterprise\" _=\"on click set #theme-previewer-card's @data-theme to my value\"> <input class=\"btn\" type=\"radio\" name=\"theme-preview\" value=\"minimal-dark\" aria-label=\"Minimal (Dark)\" _=\"on click set #theme-previewer-card's @data-theme to my value\"></form></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Var32 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var33 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -1102,33 +1147,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div><figure class=\"relative overflow-hidden rounded-t-[inherit]\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" width=\"400\" height=\"300\" role=\"img\" aria-labelledby=\"c3-title\" class=\"placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]\"><title id=\"c3-title\">Image unavailable placeholder</title><rect id=\"border\" x=\"4\" y=\"4\" width=\"56\" height=\"56\" rx=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-dasharray=\"5 5\" opacity=\"0.35\"></rect> <circle id=\"sun\" cx=\"25\" cy=\"24\" r=\"4.5\" fill=\"currentColor\" opacity=\"0.55\"></circle> <path id=\"mountain\" d=\"M12 44 L24 32 L34 42 L42 34 L52 44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.3\"></path></svg><div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div><div class=\"absolute top-2.5 left-2.5\"><span class=\"badge badge-sm font-medium backdrop-blur-sm badge-neutral\">The Source</span></div></figure></div>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Var33 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-						if !templ_7745c5c3_IsBuffer {
-							defer func() {
-								templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-								if templ_7745c5c3_Err == nil {
-									templ_7745c5c3_Err = templ_7745c5c3_BufErr
-								}
-							}()
-						}
-						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div class=\"mb-2.5 flex flex-wrap gap-1.5 self-start\"><span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">RSS</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Atom</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Feed Readers</span></div><h3 class=\"mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary\">Foragd ranked best feed reader</h3><div class=\"prose-summary mb-3\">Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built on a simple bet: that following the web can feel like reading a magazine again, not clearing an inbox.</div>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						return nil
-					})
-					templ_7745c5c3_Err = partials.CardBody().Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, " ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "<div><figure class=\"relative overflow-hidden rounded-t-[inherit]\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" width=\"400\" height=\"300\" role=\"img\" aria-labelledby=\"c3-title\" class=\"placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]\"><title id=\"c3-title\">Image unavailable placeholder</title><rect id=\"border\" x=\"4\" y=\"4\" width=\"56\" height=\"56\" rx=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-dasharray=\"5 5\" opacity=\"0.35\"></rect> <circle id=\"sun\" cx=\"25\" cy=\"24\" r=\"4.5\" fill=\"currentColor\" opacity=\"0.55\"></circle> <path id=\"mountain\" d=\"M12 44 L24 32 L34 42 L42 34 L52 44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.3\"></path></svg><div class=\"pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]\"></div><div class=\"absolute top-2.5 left-2.5\"><span class=\"badge badge-sm font-medium backdrop-blur-sm badge-neutral\">The Source</span></div></figure></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1144,33 +1163,59 @@ func FeaturesPageConsume() templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<div class=\"flex items-center justify-between border-t border-neutral/20 pt-3\"><div class=\"flex-separated flex min-w-0 items-center\"><div class=\"truncate text-xs/4\">Immanent Tech</div><relative-time datetime=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<div class=\"mb-2.5 flex flex-wrap gap-1.5 self-start\"><span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">RSS</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Atom</span> <span class=\"category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content\">Feed Readers</span></div><h3 class=\"mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary\">Foragd ranked best feed reader</h3><div class=\"prose-summary mb-3\">Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built on a simple bet: that following the web can feel like reading a magazine again, not clearing an inbox.</div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var35 string
-						templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue(time.Now().Format("2006-01-02T15:04:05-0700"))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1075, Col: 64}
+						return nil
+					})
+					templ_7745c5c3_Err = partials.CardBody().Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, " ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Var35 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+						if !templ_7745c5c3_IsBuffer {
+							defer func() {
+								templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+								if templ_7745c5c3_Err == nil {
+									templ_7745c5c3_Err = templ_7745c5c3_BufErr
+								}
+							}()
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" format=\"relative\" class=\"shrink-0 text-xs/4 text-neutral capitalize tabular-nums\">")
+						ctx = templ.InitializeContext(ctx)
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "<div class=\"flex items-center justify-between border-t border-neutral/20 pt-3\"><div class=\"flex-separated flex min-w-0 items-center\"><div class=\"truncate text-xs/4\">Immanent Tech</div><relative-time datetime=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var36 string
-						templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Jan _2, 2006"))
+						templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue(time.Now().Format("2006-01-02T15:04:05-0700"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1079, Col: 43}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1105, Col: 64}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</relative-time></div><div class=\"flex shrink-0 items-center\"><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Toggle favorite\"><label class=\"btn btn-square btn-ghost btn-sm\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "\" format=\"relative\" class=\"shrink-0 text-xs/4 text-neutral capitalize tabular-nums\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var37 string
+						templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Jan _2, 2006"))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1109, Col: 43}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</relative-time></div><div class=\"flex shrink-0 items-center\"><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Toggle favorite\"><label class=\"btn btn-square btn-ghost btn-sm\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1178,7 +1223,7 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "</label></div><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Toggle read status\"><label class=\"btn btn-square btn-ghost btn-sm\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "</label></div><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Toggle read status\"><label class=\"btn btn-square btn-ghost btn-sm\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1186,7 +1231,7 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</label></div><div aria-hidden=\"true\" class=\"mx-1 h-4 w-px bg-neutral/20\"></div><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Article actions\"><el-dropdown class=\"relative ml-auto touch-manipulation\"><button id=\"fake-actions-menu\" class=\"btn btn-square btn-ghost btn-sm\"><span class=\"sr-only\">Fake Actions</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "</label></div><div aria-hidden=\"true\" class=\"mx-1 h-4 w-px bg-neutral/20\"></div><div class=\"tooltip tooltip-top tooltip-end\" data-tip=\"Article actions\"><el-dropdown class=\"relative ml-auto touch-manipulation\"><button id=\"fake-actions-menu\" class=\"btn btn-square btn-ghost btn-sm\"><span class=\"sr-only\">Fake Actions</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1194,11 +1239,11 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</button>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</button>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Var37 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+						templ_7745c5c3_Var38 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 							templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 							templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 							if !templ_7745c5c3_IsBuffer {
@@ -1210,40 +1255,6 @@ func FeaturesPageConsume() templ.Component {
 								}()
 							}
 							ctx = templ.InitializeContext(ctx)
-							templ_7745c5c3_Var38 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-								if !templ_7745c5c3_IsBuffer {
-									defer func() {
-										templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-										if templ_7745c5c3_Err == nil {
-											templ_7745c5c3_Err = templ_7745c5c3_BufErr
-										}
-									}()
-								}
-								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "<a>")
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "Go To Article</a>")
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								return nil
-							})
-							templ_7745c5c3_Err = partials.MenuItem().Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, " ")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
 							templ_7745c5c3_Var39 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -1256,15 +1267,15 @@ func FeaturesPageConsume() templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "<a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "Find similar...</a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "Go To Article</a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1274,7 +1285,7 @@ func FeaturesPageConsume() templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, " ")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, " ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1290,15 +1301,15 @@ func FeaturesPageConsume() templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "<a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "<a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "Share</a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "Find similar...</a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1308,7 +1319,7 @@ func FeaturesPageConsume() templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "  ")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, " ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1324,15 +1335,15 @@ func FeaturesPageConsume() templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "<a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "Report an issue</a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "Share</a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1342,19 +1353,53 @@ func FeaturesPageConsume() templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "  ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Var42 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+								if !templ_7745c5c3_IsBuffer {
+									defer func() {
+										templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+										if templ_7745c5c3_Err == nil {
+											templ_7745c5c3_Err = templ_7745c5c3_BufErr
+										}
+									}()
+								}
+								ctx = templ.InitializeContext(ctx)
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "<a>")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "Report an issue</a>")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								return nil
+							})
+							templ_7745c5c3_Err = partials.MenuItem().Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
 							return nil
 						})
-						templ_7745c5c3_Err = partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var37), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</el-dropdown></div></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</el-dropdown></div></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = partials.CardFooter(element.WithClasses("items-center")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = partials.CardFooter(element.WithClasses("items-center")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1362,21 +1407,21 @@ func FeaturesPageConsume() templ.Component {
 				})
 				templ_7745c5c3_Err = partials.Card(element.WithClasses("group shadow-xl"),
 					element.WithAttribute("id", "theme-previewer-card"),
-					element.WithAttribute("data-theme", "greenhouse")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
+					element.WithAttribute("data-theme", "greenhouse")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("feature-themes").Render(templ.WithChildren(ctx, templ_7745c5c3_Var31), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("feature-themes").Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "  ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "  ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var42 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var43 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -1388,11 +1433,11 @@ func FeaturesPageConsume() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-video-responsive-design\" type=\"button\" class=\"cursor-pointer\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "<div class=\"order-2 md:order-1\"><div><button command=\"show-modal\" commandfor=\"show-video-responsive-design\" type=\"button\" class=\"cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Var43 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var44 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -1404,7 +1449,7 @@ func FeaturesPageConsume() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-responsive-design.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "<div class=\"relative\"><img src=\"/content/screenshots/screenshot-responsive-design.webp\" alt=\"Thumbnail of Foragd home screen\" class=\"block w-full object-cover\" loading=\"lazy\"><div class=\"absolute inset-0 flex items-center justify-center\"><span class=\"flex h-14 w-14 items-center justify-center rounded-full bg-base-100/90 shadow-lg backdrop-blur-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1412,17 +1457,17 @@ func FeaturesPageConsume() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</span></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "</span></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var43), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var44), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "</button> <el-dialog><dialog id=\"show-video-responsive-design\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel><video src=\"/content/screenshots/video-responsive-design.webm\" loading=\"lazy\" loop controls></video></el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "</button> <el-dialog><dialog id=\"show-video-responsive-design\" class=\"mx-auto my-auto max-w-280\"><el-dialog-backdrop></el-dialog-backdrop> <el-dialog-panel><video src=\"/content/screenshots/video-responsive-design.webm\" loading=\"lazy\" loop controls></video></el-dialog-panel></dialog></el-dialog></div></div><div class=\"order-1 md:order-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1430,17 +1475,17 @@ func FeaturesPageConsume() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Foragd is built with a responsive design that will adapt to the screen size of your device. It works in any browser on any device. Stay up to date on your desktop, mobile, tablet or smart TV.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Foragd is built with a responsive design that will adapt to the screen size of your device. It works in any browser on any device. Stay up to date on your desktop, mobile, tablet or smart TV.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = featurePanel("responsive-design").Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = featurePanel("responsive-design").Render(templ.WithChildren(ctx, templ_7745c5c3_Var43), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "  <section class=\"border-y border-base-300/60 bg-base-200/40\"><div class=\"mx-auto max-w-6xl px-5 py-16\"><h2 class=\"mb-8 text-center font-display text-2xl\">Start from the beginning</h2><div class=\"mx-auto grid max-w-3xl gap-6 md:grid-cols-2\"><a href=\"/features/collect\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-primary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-4 w-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 20c8-1 14-7 15-15C11 5 5 11 4 20Z\"></path><path stroke-linecap=\"round\" d=\"M4 20c2-4 5-7 9-9\"></path></svg></span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Gather everything</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Add any site, channel, subreddit, or newsletter in seconds.</p></a> <a href=\"/features/curate\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-secondary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-4 w-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 7v4l7 7 8-8-7-7H7a4 4 0 0 0-4 4Z\"></path><circle cx=\"8\" cy=\"9\" r=\"1\"></circle></svg></span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Organize it your way</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Group subscriptions, save searches, and filter out the noise.</p></a></div></div></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "  <section class=\"border-y border-base-300/60 bg-base-200/40\"><div class=\"mx-auto max-w-6xl px-5 py-16\"><h2 class=\"mb-8 text-center font-display text-2xl\">Start from the beginning</h2><div class=\"mx-auto grid max-w-3xl gap-6 md:grid-cols-2\"><a href=\"/features/collect\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-primary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-primary\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-4 w-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 20c8-1 14-7 15-15C11 5 5 11 4 20Z\"></path><path stroke-linecap=\"round\" d=\"M4 20c2-4 5-7 9-9\"></path></svg></span><div class=\"text-xs font-semibold tracking-widest text-primary/80 uppercase\">01 · Collect</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Gather everything</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Add any site, channel, subreddit, or newsletter in seconds.</p></a> <a href=\"/features/curate\" class=\"card border border-base-300 bg-base-200 p-6 transition-colors hover:border-secondary/50\"><span class=\"mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-secondary/40 bg-secondary/15 text-secondary\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-4 w-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 7v4l7 7 8-8-7-7H7a4 4 0 0 0-4 4Z\"></path><circle cx=\"8\" cy=\"9\" r=\"1\"></circle></svg></span><div class=\"text-xs font-semibold tracking-widest text-secondary/80 uppercase\">02 · Curate</div><h3 class=\"mt-1 font-display text-lg font-medium tracking-tight\">Organize it your way</h3><p class=\"mt-1 font-serif text-pretty text-base-content/60\">Group subscriptions, save searches, and filter out the noise.</p></a></div></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1454,7 +1499,7 @@ func FeaturesPageConsume() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1464,7 +1509,7 @@ func FeaturesPageConsume() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutExternal().Render(templ.WithChildren(ctx, templ_7745c5c3_Var23), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutExternal().Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1488,33 +1533,33 @@ func featurePanel(id string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var44 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var44 == nil {
-			templ_7745c5c3_Var44 = templ.NopComponent
+		templ_7745c5c3_Var45 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var45 == nil {
+			templ_7745c5c3_Var45 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "<section id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "<section id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var45 string
-		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
+		var templ_7745c5c3_Var46 string
+		templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1216, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1246, Col: 17}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var45)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "\" class=\"mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-2\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var44.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "\" class=\"mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</section>")
+		templ_7745c5c3_Err = templ_7745c5c3_Var45.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "</section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1538,25 +1583,25 @@ func featureTitle(title string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var46 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var46 == nil {
-			templ_7745c5c3_Var46 = templ.NopComponent
+		templ_7745c5c3_Var47 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var47 == nil {
+			templ_7745c5c3_Var47 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "<h2 class=\"font-display text-2xl font-medium tracking-tight md:text-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<h2 class=\"font-display text-2xl font-medium tracking-tight md:text-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var47 string
-		templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		var templ_7745c5c3_Var48 string
+		templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1222, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1252, Col: 81}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</h2>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

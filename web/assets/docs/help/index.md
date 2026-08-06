@@ -110,7 +110,7 @@ and enter your filter terms in the appropriate inputs:
 
 ![Screenshot of subscription filtering options](/content/screenshots/screenshot-subscription-article-filters.png)
 
-See [filtering](#filtering-articles-within-a-subscription) for usage.
+See [filtering](#search-operators--filtering-guide) for details on filter operators and usage.
 
 **Note:** article filters are applied globally, meaning all searches, views, and any group/search Subscriptions you
 create will have the subscription article filters applied.
@@ -236,6 +236,10 @@ All operators can be combined, for e.g., `+python +tutorial "machine learning" -
 
 For more guidance and further examples, see the blog post [Clearing the Noise: Article Filtering in
 Foragd](/blog/article-filtering-in-foragd).
+
+Watch a video showing examples of article filtering:
+
+<mux-player crossorigin playback-id="iHbSRvPVw1CeNf8VVEAh6k01NIrp9ODbEgxtmPApeMN4" metadata-video-title="Article Filtering"></mux-player>
 
 ### Using Keyboard Shortcuts (on Desktops)
 
