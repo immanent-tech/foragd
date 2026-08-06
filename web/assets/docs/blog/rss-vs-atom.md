@@ -3,7 +3,7 @@ title = "RSS vs Atom"
 page_title = "RSS vs Atom Feed Viewer Formats"
 description = "RSS and Atom both define a feed for a website. This article looks into the differences and whether it even matters."
 created_at = "2026-07-06"
-updated_at = "2026-07-06"
+updated_at = "2026-08-06"
 image = "/content/images/blog/rss-vs-atom-hero.webp"
 author = "Joshua Rich"
 slug = "rss-vs-atom"
@@ -46,11 +46,21 @@ publishers will expose a rolling number of items, with older items being removed
 Both formats include publisher details that make the files self-contained, allowing them to be shared or published
 elsewhere than the source website, and retain the necessary details to link back to that source.
 
+Being self-contained and capping the number of items  is important, as these formats are literally downloaded as a file
+to your feed reader. They aren't a "stream" of data that a server sends to a client. They are a full file, like a word
+document, you download and parse. So keeping the size constrained and ensuring it contains relevant metadata and sources
+is vital.
+
+Unlike a web page, these formats do not contain minimal formatting and other than the structure shown above, its left to
+the end consumer to format them as they wish. This gives you a lot of flexibility in how to display feeds, though most
+feed readers default to an inbox-like display. IMO, treating feeds like email is a bad analogy and [Foragd](/) is
+[intentionally different](/about).
+
 ## The Differences
 
 First off, Mark Nottingham (who authored the Atom spec) has [run some numbers](https://mnot.net/blog/2026/feed-survey)
 that show that RSS is implemented more often than Atom. As Mark notes, this likely is not meaningful as a decision key
-on which to implement.
+on which to implement. Popularity is not a good indicator of superiority.
 
 Atom is much more expressive in terms of the structure that defines items in the feed. RSS has less rigidity, but
 ultimately both cover all the canonical structure you'd expect for items, like titles, descriptions, content, and media
@@ -61,15 +71,19 @@ of the difference in structure](https://en.wikipedia.org/wiki/Web_feed#RSS_compa
 ## Which Should You Use?
 
 **As an end user:** If you have a choice, pick either as nearly all good feed readers, like
-[Foragd](https://foragd.app), support both formats.
+[Foragd](https://foragd.app), support both formats. As they provide near identical features, the choice as a consumer of
+the feed is irrelevant. Your feed read will control how they are displayed, so focus on finding a feed reader that has
+the features and layout you like.
 
 **As a developer:** If you are looking to add a feed to your project, use whichever format your framework or service
-readily provides. For end-users, it won't matter as the app or service they use to consume your feed will support both
-formats and the feature-set of each format is nearly identical.
+readily provides. Minimal implementation effort should be your focus, as the provided structure of either is
+functionally equivalent, and any additional features you can get through common extensions. For your end-users, it won't
+matter as the app or service they use to consume your feed will support both formats and is ultimately in control of how
+your feed will be displayed.
 
 *Shameless plug: If you are a Go developer, you might be interested in
 [go-syndication](https://github.com/immanent-tech/go-syndication), which provides reading and writing for RSS, Atom,
-JSONFeed and a number of extensions for these formats.*
+JSONFeed, and a number of extensions for these formats.*
 
 If you want the full details, both specifications are surprisingly easy to read (see references below).
 
