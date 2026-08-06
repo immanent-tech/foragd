@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.213.0](https://github.com/immanent-tech/foragd/compare/v0.212.3...v0.213.0) (2026-08-05)
+
+
+### Features
+
+* ✨ add a setting to hide grouped subscriptions on home page and subscriptions list page ([d3939ea](https://github.com/immanent-tech/foragd/commit/d3939eae3046e0bd0a909ac6aa1ef366e5f3fb86))
+* ✨ mention support on features list of checkout ([f14ed22](https://github.com/immanent-tech/foragd/commit/f14ed226be78f814a38cd47803ee37713a12de00))
+
+
+### Bug Fixes
+
+* 🔧 fix display of unread items for a subscription ([c94d8f9](https://github.com/immanent-tech/foragd/commit/c94d8f91a4993e951129798d3cf4f9988459c7ef))
+* **templates/articles:** 🔧 fix tooltip being cut off ([1b1a5ac](https://github.com/immanent-tech/foragd/commit/1b1a5acd452ee6d6d55a31c326540b370a2fe092))
+
 ## [0.212.3](https://github.com/immanent-tech/foragd/compare/v0.212.2...v0.212.3) (2026-08-05)
 
 
