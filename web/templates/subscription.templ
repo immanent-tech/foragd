@@ -156,10 +156,10 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 		// Card footer.
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
-				<div class="flex min-w-0 flex-col">
+				<div class="flex min-w-0 flex-col gap-1">
 					// Show stats if user has requested them.
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-						<span class="badge justify-start badge-sm tabular-nums badge-neutral">
+						<span class="badge justify-start badge-sm tabular-nums">
 							<relative-time
 								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
@@ -168,7 +168,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 							</relative-time>
 						</span>
 						if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-							<span class="badge justify-start badge-sm tabular-nums badge-neutral">
+							<span class="badge justify-start badge-sm tabular-nums">
 								{ s.GetStats().UpdateFrequency() }
 							</span>
 						}

@@ -485,12 +485,12 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"flex items-center justify-between border-t border-neutral/20 pt-3\"><div class=\"flex min-w-0 flex-col\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"flex items-center justify-between border-t border-neutral/20 pt-3\"><div class=\"flex min-w-0 flex-col gap-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"badge justify-start badge-sm tabular-nums badge-neutral\"><relative-time datetime=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"badge justify-start badge-sm tabular-nums\"><relative-time datetime=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -521,7 +521,7 @@ func SubscriptionCard(idx int, path string, subscription *models.Subscription) t
 						return templ_7745c5c3_Err
 					}
 					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"badge justify-start badge-sm tabular-nums badge-neutral\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"badge justify-start badge-sm tabular-nums\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
