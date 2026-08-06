@@ -46,14 +46,14 @@ publishers will expose a rolling number of items, with older items being removed
 Both formats include publisher details that make the files self-contained, allowing them to be shared or published
 elsewhere than the source website, and retain the necessary details to link back to that source.
 
-Being self-contained and capping the number of items  is important, as these formats are literally downloaded as a file
+Being self-contained and capping the number of items is important, as these formats are literally downloaded as a file
 to your feed reader. They aren't a "stream" of data that a server sends to a client. They are a full file, like a word
 document, you download and parse. So keeping the size constrained and ensuring it contains relevant metadata and sources
 is vital.
 
-Unlike a web page, these formats do not contain minimal formatting and other than the structure shown above, its left to
-the end consumer to format them as they wish. This gives you a lot of flexibility in how to display feeds, though most
-feed readers default to an inbox-like display. IMO, treating feeds like email is a bad analogy and [Foragd](/) is
+Unlike a web page, these formats contain minimal styling and other than the structure shown above, its left to the end
+consumer to format them as they wish. This gives you a lot of flexibility in how to display feeds, though most feed
+readers default to an inbox-like display. IMO, treating feeds like email is a bad user experience and [Foragd](/) is
 [intentionally different](/about).
 
 ## The Differences
