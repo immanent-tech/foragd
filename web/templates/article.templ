@@ -362,12 +362,13 @@ templ ArticleCard(idx int, a *models.Article) {
 					title = "(no title)"
 				}
 			}}
-			<h3
-				class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary"
-				title={ title }
-			>
-				{ title }
-			</h3>
+			<div class="tooltip tooltip-bottom" data-tip={ title }>
+				<h3
+					class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary"
+				>
+					{ title }
+				</h3>
+			</div>
 			// Article Summary (if any).
 			if content := article.GetContent(); content != "" {
 				<div class={ "prose-summary mb-3", templ.KV("line-clamp-3",article.GetImage() != nil),templ.KV("line-clamp-6",article.GetImage() == nil) }>
@@ -653,7 +654,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 			vals["view"] = models.ViewUnread
 		}
 	}}
-	<div class="mt-4 w-full flex justify-between items-center">
+	<div class="mt-4 flex w-full items-center justify-between">
 		{{ vals["direction"] = models.NextArticleRequestDirectionPrevious }}
 		<div class="tooltip tooltip-right" data-tip="Previous Article">
 			<button
