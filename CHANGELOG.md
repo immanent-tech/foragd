@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.213.2](https://github.com/immanent-tech/foragd/compare/v0.213.1...v0.213.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* **templates/subscriptions,templates/articles:** 🎨 improved tooltips for article titles ([9264ad6](https://github.com/immanent-tech/foragd/commit/9264ad672abc0b92052c591b0432eecd17a9cf62))
+
 ## [0.213.1](https://github.com/immanent-tech/foragd/compare/v0.213.0...v0.213.1) (2026-08-06)
 
 
