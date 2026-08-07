@@ -1,12 +1,11 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:sloglint
 package main
 
 import (
+	"errors"
 	"log/slog"
-	"os"
 	"syscall"
 
 	"github.com/alecthomas/kong"
@@ -19,58 +18,54 @@ import (
 )
 
 // CLI contains all of the commands and common options.
-var CLI struct {
+type CLI struct {
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Elastic      cli.ElasticCmd       `cmd:"" help:"Elastic operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	Data         cli.DataCmd          `cmd:"" help:"Manipulate data."`
 	User         cli.UserCmd          `cmd:"" help:"Manipulate users."`
 	Feed         cli.FeedCmd          `cmd:"" help:"Perform feed actions"`
-	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
-	Environment  string               `env:"FORAGD_ENVIRONMENT" name:"environment" help:"Set the running environment." required:"true" default:"development" enum:"development,production"`
-}
-
-func init() {
-	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
-	// ensureNotEUID aborts the program if it is running setuid something, or being invoked by root.
-
-	if euid, uid, egid, gid := syscall.Geteuid(), syscall.Getuid(), syscall.Getegid(), syscall.Getgid(); uid != euid ||
-		gid != egid ||
-		uid == 0 {
-		slog.Error("foragd should not be run with additional privileges or as root.")
-		os.Exit(-1)
-	}
+	ProfileFlags logging.ProfileFlags `       help:"Set profiling flags." name:"profile"`
 }
 
 func main() {
-	kong.Name(config.GetAppName())
-	kong.Description(
-		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
-	)
+	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
+	// ensureNotEUID aborts the program if it is running setuid something, or being invoked by root.
+	if euid, uid, egid, gid := syscall.Geteuid(), syscall.Getuid(), syscall.Getegid(), syscall.Getgid(); uid != euid ||
+		gid != egid ||
+		uid == 0 {
+		panic(errors.New("foragd should not be run with additional privileges or as root"))
+	}
 
-	cmd := kong.Parse(&CLI, kong.Bind())
+	commands := CLI{}
+	cmd := kong.Parse(
+		&commands,
+		kong.Bind(),
+		kong.Name(config.GetAppName()),
+		kong.Description(
+			"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
+		),
+		kong.UsageOnError(),
+	)
 
 	logger := logging.New()
 
 	// Enable profiling if requested.
-	if CLI.ProfileFlags != nil {
-		if err := logging.StartProfiling(logger, CLI.ProfileFlags); err != nil {
+	if commands.ProfileFlags != nil {
+		if err := logging.StartProfiling(logger, commands.ProfileFlags); err != nil {
 			logger.Warn("Problem starting profiling.",
 				slog.Any("error", err))
 		}
 	}
 	// Run the requested command with the provided options.
-	if err := cmd.Run(cli.AddArguments(
-		cli.WithLogger(logger),
-		cli.WithEnvironment(CLI.Environment),
-	)); err != nil {
+	if err := cmd.Run(); err != nil {
 		logger.Error("Command failed.",
 			slog.String("command", cmd.Command()),
 			slog.Any("error", err))
 	}
 	// If profiling was enabled, clean up.
-	if CLI.ProfileFlags != nil {
-		if err := logging.StopProfiling(logger, CLI.ProfileFlags); err != nil {
+	if commands.ProfileFlags != nil {
+		if err := logging.StopProfiling(logger, commands.ProfileFlags); err != nil {
 			logger.Error("Problem stopping profiling.",
 				slog.Any("error", err))
 		}

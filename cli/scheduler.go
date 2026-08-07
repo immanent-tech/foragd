@@ -14,6 +14,8 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/logging"
+
 	"github.com/immanent-tech/foragd/scheduler"
 )
 
@@ -29,11 +31,11 @@ type SchedulerCmd struct {
 // RunSchedulerCmd is a cli command for running the scheduler component.
 type RunSchedulerCmd struct{}
 
-func (c *RunSchedulerCmd) Run(opts *Arguments) error {
+func (c *RunSchedulerCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	ctx = slogctx.NewCtx(ctx, opts.Logger)
+	ctx = slogctx.NewCtx(ctx, logging.New())
 
 	// Run scheduler.
 	if err := scheduler.Run(ctx); err != nil {
@@ -45,12 +47,12 @@ func (c *RunSchedulerCmd) Run(opts *Arguments) error {
 // ClearSchedulerCmd is a cli command for clearing the scheduled jobs queue.
 type ClearSchedulerCmd struct{}
 
-func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
+func (c *ClearSchedulerCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx, opts); err != nil {
+	if err := setupScheduler(ctx); err != nil {
 		return fmt.Errorf("could not setup scheduler: %w", err)
 	}
 	// Clear job queue.
@@ -65,13 +67,13 @@ func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
 // scheduler.
 type InitSchedulerCmd struct{}
 
-func (c *InitSchedulerCmd) Run(opts *Arguments) error {
+func (c *InitSchedulerCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
 	// Set up and create scheduler instance.
-	if err := setupScheduler(ctx, opts); err != nil {
+	if err := setupScheduler(ctx); err != nil {
 		return fmt.Errorf("setup scheduler: %w", err)
 	}
 	// Load admin jobs.
@@ -91,12 +93,12 @@ func (c *InitSchedulerCmd) Run(opts *Arguments) error {
 // ListJobsSchedulerCmd is a cli command for listing all scheduled jobs.
 type ListJobsSchedulerCmd struct{}
 
-func (c *ListJobsSchedulerCmd) Run(opts *Arguments) error {
+func (c *ListJobsSchedulerCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx, opts); err != nil {
+	if err := setupScheduler(ctx); err != nil {
 		return fmt.Errorf("could not setup scheduler: %w", err)
 	}
 
@@ -120,12 +122,12 @@ type DeleteJobSchedulerCmd struct {
 }
 
 // Run runs the delete-job scheduler command.
-func (c *DeleteJobSchedulerCmd) Run(opts *Arguments) error {
+func (c *DeleteJobSchedulerCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx, opts); err != nil {
+	if err := setupScheduler(ctx); err != nil {
 		return fmt.Errorf("could not setup scheduler: %w", err)
 	}
 
@@ -144,8 +146,8 @@ func (c *DeleteJobSchedulerCmd) Run(opts *Arguments) error {
 	return nil
 }
 
-func setupScheduler(ctx context.Context, opts *Arguments) error {
-	ctx = slogctx.NewCtx(ctx, opts.Logger)
+func setupScheduler(ctx context.Context) error {
+	ctx = slogctx.NewCtx(ctx, logging.New())
 	// Run scheduler.
 	if err := scheduler.NewManager(ctx); err != nil {
 		return fmt.Errorf("could not run scheduler: %w", err)

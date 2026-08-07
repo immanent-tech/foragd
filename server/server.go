@@ -20,6 +20,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/logging"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/go-base/server/handlers/assets"
@@ -46,7 +47,9 @@ const (
 // Start will start the server.
 //
 //nolint:funlen
-func Start(logger *slog.Logger) error {
+func Start() error {
+	logger := logging.New()
+
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancelFunc()
 

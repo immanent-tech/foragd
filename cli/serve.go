@@ -13,8 +13,8 @@ import (
 type ServeCmd struct{}
 
 // Run performs setup and execution for the server command.
-func (r *ServeCmd) Run(opts *Arguments) error {
-	if err := server.Start(opts.Logger); err != nil {
+func (r *ServeCmd) Run() error {
+	if err := server.Start(); err != nil {
 		return fmt.Errorf("could not start server: %w", err)
 	}
 	return nil
