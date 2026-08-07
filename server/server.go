@@ -22,10 +22,11 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
+	"github.com/immanent-tech/go-base/server/handlers/assets"
+
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/google/android"
-	"github.com/immanent-tech/foragd/server/assets"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/imgproxy"
@@ -104,18 +105,11 @@ func Start(logger *slog.Logger) error {
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
-	router.Handle("/manifest.json", assets.HandleAssets("", true))
-	router.Handle("/robots.txt", assets.HandleAssets("", true))
-	router.Handle("/favicon.ico", assets.HandleAssets("", true))
-	router.Handle("/favicon.svg", assets.HandleAssets("", true))
-	router.Handle("/.well-known/*", assets.HandleAssets("", true))
-	router.Handle("/security.txt", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		http.Redirect(res, req, "/.well-known/security.txt", http.StatusMovedPermanently)
-	}))
-	router.Handle("/assets/files/*", assets.HandleAssets("/assets/", true))
-	router.Handle("/assets/*", assets.HandleAssets("/assets/", false)) // hashed filenames.
-	router.Handle("/fonts/*", assets.HandleAssets("", true))
-	router.Handle("/content/*", assets.HandleAssets("/content/", true))
+	router.Handle("/assets/files/*", assets.HandleFiles("/assets/", "/content"))
+	router.Handle("/assets/*", assets.HandleAssets("/assets/")) // hashed filenames.
+	router.Handle("/content/*", assets.HandleFiles("", ""))
+	router.Handle("/.well-known/*", assets.HandleFiles("", "/content"))
+	router.Handle("/favicon.ico", assets.HandleFiles("", "/content"))
 
 	// Image proxy.
 	router.Get("/img-proxy/*", imgproxy.HandleImage())
