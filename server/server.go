@@ -90,17 +90,17 @@ func Start() error {
 		middleware.RequestID,
 		middlewares.Logger,
 		middlewares.Recoverer,
+		middleware.StripSlashes,
 		security.SetupCORS,
 		security.CrossOriginProtection,
 		security.ContentSecurityPolicy,
 		security.GeneralSecurity,
 		security.PreventCSRF,
 		// middlewares.RateLimit,
-		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
-		middleware.StripSlashes,
 		etag.Etag,
 		middlewares.SetClient,
 		middlewares.Otel,
+		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 	)
 
 	// Error handling.
