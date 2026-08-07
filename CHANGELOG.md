@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.213.3](https://github.com/immanent-tech/foragd/compare/v0.213.2...v0.213.3) (2026-08-07)
+
+
+### Performance Improvements
+
+* **server:** ⚡ optimise middleware order ([32232c5](https://github.com/immanent-tech/foragd/commit/32232c5c30ace1a7ca7a02e653919212b1c2cc2a))
+
 ## [0.213.2](https://github.com/immanent-tech/foragd/compare/v0.213.1...v0.213.2) (2026-08-07)
 
 
