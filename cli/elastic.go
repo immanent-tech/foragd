@@ -16,15 +16,15 @@ import (
 
 // ElasticCmd contains commands for manipulating Elasticsearch.
 type ElasticCmd struct {
-	Indices IndicesCmd `cmd:"indices" help:"Perform operations on indices."`
-	ILM     ILMCmd     `cmd:"ilm"     help:"Perform ILM operations."`
+	Indices IndicesCmd `cmd:"" help:"Perform operations on indices."`
+	ILM     ILMCmd     `cmd:"" help:"Perform ILM operations."`
 }
 
 // IndicesCmd contains commands for manipulating Elasticsearch indices.
 type IndicesCmd struct {
-	Update  UpdateIndexSchemaCmd `cmd:"update"  help:"Update schema(s)"`
-	Migrate MigrateIndexCmd      `cmd:"migrate" help:"Migrate data"`
-	Create  CreateIndexCmd       `cmd:"create"  help:"Create indices"`
+	Update  UpdateIndexSchemaCmd `cmd:"" help:"Update schema(s)"`
+	Migrate MigrateIndexCmd      `cmd:"" help:"Migrate data"`
+	Create  CreateIndexCmd       `cmd:"" help:"Create indices"`
 }
 
 type UpdateIndexSchemaCmd struct {

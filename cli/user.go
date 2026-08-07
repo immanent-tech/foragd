@@ -30,9 +30,9 @@ type UserArgs struct {
 
 // UserCmd contains sub commands for managing users.
 type UserCmd struct {
-	Delete DeleteUserCmd `cmd:"delete" help:"Delete user"`
-	Block  BlockUserCmd  `cmd:"block"  help:"Block user"`
-	List   ListUserCmd   `cmd:"list"   help:"List user details"`
+	Delete DeleteUserCmd `cmd:"" help:"Delete user"`
+	Block  BlockUserCmd  `cmd:"" help:"Block user"`
+	List   ListUserCmd   `cmd:"" help:"List user details"`
 }
 
 type DeleteUserCmd struct {

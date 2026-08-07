@@ -21,7 +21,7 @@ import (
 
 // DataCmd defines the `data` command, which contains commands for manipulating data.
 type DataCmd struct {
-	Delete DeleteCmd `cmd:"delete" help:"Delete objects"`
+	Delete DeleteCmd `cmd:"" help:"Delete objects"`
 }
 
 type DeleteCmd struct {

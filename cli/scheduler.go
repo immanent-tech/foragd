@@ -21,11 +21,11 @@ import (
 
 // SchedulerCmd defines the `scheduler` command, for performing job scheduler related actions.
 type SchedulerCmd struct {
-	Run       RunSchedulerCmd       `cmd:"run"        help:"Run scheduler."`
-	Clear     ClearSchedulerCmd     `cmd:"clear"      help:"Clear all jobs."`
-	Init      InitSchedulerCmd      `cmd:"init"       help:"Initialise the scheduler/queue."`
-	ListJobs  ListJobsSchedulerCmd  `cmd:"list-jobs"  help:"List all jobs."`
-	DeleteJob DeleteJobSchedulerCmd `cmd:"delete-job" help:"Job related commands."`
+	Run       RunSchedulerCmd       `cmd:"" help:"Run scheduler."`
+	Clear     ClearSchedulerCmd     `cmd:"" help:"Clear all jobs."`
+	Init      InitSchedulerCmd      `cmd:"" help:"Initialise the scheduler/queue."`
+	ListJobs  ListJobsSchedulerCmd  `cmd:"" help:"List all jobs."`
+	DeleteJob DeleteJobSchedulerCmd `cmd:"" help:"Job related commands."`
 }
 
 // RunSchedulerCmd is a cli command for running the scheduler component.
