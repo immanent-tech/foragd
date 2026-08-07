@@ -20,11 +20,12 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
-	"github.com/immanent-tech/foragd/validation"
 )
 
 // FeedCmd contains subcommands for interacting with feeds.

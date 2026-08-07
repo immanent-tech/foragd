@@ -9,9 +9,8 @@ import (
 	"io"
 	"slices"
 
+	"github.com/immanent-tech/go-base/validation"
 	"github.com/immanent-tech/go-syndication/opml"
-
-	"github.com/immanent-tech/foragd/validation"
 )
 
 // ErrInvalidMimeType indicates that the mime type is not valid.

@@ -13,11 +13,10 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
+	"github.com/immanent-tech/go-base/validation"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/zeebo/xxh3"
-
-	"github.com/immanent-tech/foragd/validation"
 )
 
 // Items is a slice of items.

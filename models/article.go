@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models/schema"
 
@@ -21,7 +22,6 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/validation"
 )
 
 var ErrInvalidArticleContent = errors.New("invalid article content")

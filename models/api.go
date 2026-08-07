@@ -6,9 +6,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/immanent-tech/go-syndication/sanitization"
-
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 func (r *GetSubscriptionsSuggestionRequest) Valid() error {
@@ -19,7 +17,7 @@ func (r *GetSubscriptionsSuggestionRequest) Valid() error {
 }
 
 func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
-	r.Text = sanitization.SanitizeString(r.Text)
+	r.Text = validation.SanitizeString(r.Text)
 	return nil
 }
 
@@ -31,7 +29,7 @@ func (r *AddSubscriptionToSearchRequest) Valid() error {
 }
 
 func (r *AddSubscriptionToSearchRequest) Sanitise() error {
-	r.SelectedSubscription = sanitization.SanitizeString(r.SelectedSubscription)
+	r.SelectedSubscription = validation.SanitizeString(r.SelectedSubscription)
 	return nil
 }
 
@@ -43,9 +41,9 @@ func (r *AddCategoryToSubscriptionRequest) Valid() error {
 }
 
 func (r *AddCategoryToSubscriptionRequest) Sanitise() error {
-	r.Category = sanitization.SanitizeString(r.Category)
+	r.Category = validation.SanitizeString(r.Category)
 	for idx := range r.ExistingCategories {
-		r.ExistingCategories[idx] = sanitization.SanitizeString(r.ExistingCategories[idx])
+		r.ExistingCategories[idx] = validation.SanitizeString(r.ExistingCategories[idx])
 	}
 	return nil
 }
@@ -59,7 +57,7 @@ func (r *FeedSubscriptionRequest) Valid() error {
 
 func (r *FeedSubscriptionRequest) Sanitise() error {
 	if r.URL != "" {
-		r.URL = sanitization.SanitizeString(r.URL)
+		r.URL = validation.SanitizeString(r.URL)
 	}
 	if r.Customisation != nil {
 		r.Customisation.Sanitise()
@@ -107,7 +105,7 @@ func (r *AddSubscriptionToGroupRequest) Valid() error {
 }
 
 func (r *AddSubscriptionToGroupRequest) Sanitise() error {
-	r.SuggestionText = sanitization.SanitizeString(r.SuggestionText)
+	r.SuggestionText = validation.SanitizeString(r.SuggestionText)
 	return nil
 }
 
@@ -146,7 +144,7 @@ func (r *NextArticleRequest) Valid() error {
 }
 
 func (r *NextArticleRequest) Sanitise() error {
-	r.Direction = NextArticleRequestDirection(sanitization.SanitizeString(string(r.Direction)))
-	r.Timestamp = sanitization.SanitizeString(r.Timestamp)
+	r.Direction = NextArticleRequestDirection(validation.SanitizeString(string(r.Direction)))
+	r.Timestamp = validation.SanitizeString(r.Timestamp)
 	return nil
 }

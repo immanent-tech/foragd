@@ -18,7 +18,6 @@ require (
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/form/v4 v4.3.0
-	github.com/go-playground/validator/v10 v10.30.3
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.23.0
@@ -66,6 +65,7 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.1.0 // indirect
+	github.com/go-playground/validator/v10 v10.30.3 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
@@ -161,6 +161,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/goforj/godump v1.9.1
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
@@ -178,7 +179,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/maypok86/otter/v2 v2.3.0
-	github.com/microcosm-cc/bluemonday v1.0.27
+	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/realclientip/realclientip-go v1.0.0

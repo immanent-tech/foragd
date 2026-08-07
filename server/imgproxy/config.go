@@ -9,7 +9,7 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 const (

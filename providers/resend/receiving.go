@@ -11,10 +11,9 @@ import (
 	"slices"
 	"time"
 
+	"github.com/immanent-tech/go-base/validation"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/validation"
 )
 
 type ReceivedEmail struct {

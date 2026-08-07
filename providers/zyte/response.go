@@ -12,8 +12,7 @@ import (
 	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
-
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 // GetHTMLResponse retrieves the response body from an HTML request (created by the httpResponseBody Request option).

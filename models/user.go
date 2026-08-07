@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 const (

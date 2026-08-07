@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 func init() {

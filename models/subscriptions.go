@@ -14,11 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/immanent-tech/go-base/validation"
 	"github.com/zeebo/xxh3"
-
-	"github.com/immanent-tech/go-syndication/sanitization"
-
-	"github.com/immanent-tech/foragd/validation"
 )
 
 // NewFeedSubscription creates a new subscription for a feed with any user customisations given.
@@ -859,12 +856,12 @@ func (c *SubscriptionCustomisation) Valid() error {
 func (c *SubscriptionCustomisation) Sanitise() error {
 	if c != nil {
 		for idx := range c.Categories {
-			c.Categories[idx] = sanitization.SanitizeString(c.Categories[idx])
+			c.Categories[idx] = validation.SanitizeString(c.Categories[idx])
 		}
 		slices.Sort(c.Categories)
 		c.Categories = slices.Compact(c.Categories)
 		if c.Nickname != nil {
-			c.Nickname = new(sanitization.SanitizeString(*c.Nickname))
+			c.Nickname = new(validation.SanitizeString(*c.Nickname))
 		}
 	}
 	return nil

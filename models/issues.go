@@ -3,7 +3,7 @@
 
 package models
 
-import "github.com/immanent-tech/foragd/validation"
+import "github.com/immanent-tech/go-base/validation"
 
 func (i *ReportIssueRequest) Valid() error {
 	if err := validation.Validate.Struct(i); err != nil {

@@ -20,6 +20,8 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -27,7 +29,6 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )

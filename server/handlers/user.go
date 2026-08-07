@@ -26,6 +26,8 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
@@ -34,7 +36,6 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/service"
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )

@@ -10,9 +10,10 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 

@@ -8,7 +8,7 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 // CommonCategoryFilters is slice of categories that are so general or inclusive that they are ultimately useless for

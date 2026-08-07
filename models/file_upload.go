@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"mime"
 
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 // ErrFileTooLarge can be used to indicate a file upload had a size greater than a set limit.

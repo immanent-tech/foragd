@@ -16,11 +16,11 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	gcp "github.com/immanent-tech/foragd/providers/google"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
-	"github.com/immanent-tech/foragd/validation"
 )
 
 const (

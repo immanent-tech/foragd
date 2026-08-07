@@ -9,9 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/immanent-tech/go-syndication/sanitization"
-
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 // NewSearchRequest creates a new SearchRequest object with default values. Defaults are search all objects within last
@@ -42,16 +40,16 @@ func (r *SearchRequest) Sanitise() error {
 		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
 	}
 	for idx, subscription := range r.Subscriptions {
-		r.Subscriptions[idx] = sanitization.SanitizeString(subscription)
+		r.Subscriptions[idx] = validation.SanitizeString(subscription)
 	}
 	// Sanitise text inputs.
-	r.Text = sanitization.SanitizeString(r.Text)
+	r.Text = validation.SanitizeString(r.Text)
 	if r.Authors != nil {
-		cleanAuthors := sanitization.SanitizeString(*r.Authors)
+		cleanAuthors := validation.SanitizeString(*r.Authors)
 		r.Authors = &cleanAuthors
 	}
 	if r.Authors != nil {
-		cleanCategories := sanitization.SanitizeString(*r.Categories)
+		cleanCategories := validation.SanitizeString(*r.Categories)
 		r.Categories = &cleanCategories
 	}
 	// Default timezone is UTC.
@@ -141,8 +139,8 @@ func (r *AddSubscriptionSearchFilterRequest) Valid() error {
 
 // Sanitise will sanitise the add subscription search filter request.
 func (r *AddSubscriptionSearchFilterRequest) Sanitise() error {
-	r.InputName = sanitization.SanitizeString(r.InputName)
-	r.SubscriptionName = sanitization.SanitizeString(r.SubscriptionName)
-	r.SubscriptionID = sanitization.SanitizeString(r.SubscriptionID)
+	r.InputName = validation.SanitizeString(r.InputName)
+	r.SubscriptionName = validation.SanitizeString(r.SubscriptionName)
+	r.SubscriptionID = validation.SanitizeString(r.SubscriptionID)
 	return nil
 }

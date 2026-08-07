@@ -12,8 +12,7 @@ import (
 	"github.com/auth0/go-auth0/v2/management/option"
 
 	"github.com/immanent-tech/go-base/config"
-
-	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/go-base/validation"
 )
 
 const (
