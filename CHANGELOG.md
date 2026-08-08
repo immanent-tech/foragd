@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.214.1](https://github.com/immanent-tech/foragd/compare/v0.214.0...v0.214.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **service:** 🔧 always use zyte for requests when performing item enrichment ([77b8577](https://github.com/immanent-tech/foragd/commit/77b8577f76090d4823c81df1b5b1b94093908790))
+
 ## [0.214.0](https://github.com/immanent-tech/foragd/compare/v0.213.3...v0.214.0) (2026-08-08)
 
 
