@@ -556,7 +556,7 @@ func viewerItemCard(item *models.Item) templ.Component {
 		var img *models.RemoteImage
 		img = item.GetImage()
 		if img == nil {
-			url, alt, err := htmlx.ExtractImage(item.GetContent())
+			url, alt, err := htmlx.ExtractImage(item.GetContent(), item.GetLink())
 			if err != nil {
 				img = models.NewRemoteImage(url, alt)
 			}

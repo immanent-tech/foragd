@@ -6,8 +6,10 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -25,6 +27,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
+	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
 var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
@@ -394,7 +397,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 
 	itemURL, err := url.Parse(item.GetLink())
 	if err != nil {
-		return fmt.Errorf("parse item link: %w", err)
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
 	}
 
 	// Flag if the item needs enrichment.
@@ -411,19 +414,41 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	// Fetch the item's HTML source, used for enrichment.
-	source, err := htmlx.GetHTML(ctx, item.GetLink())
-	if err != nil {
-		return fmt.Errorf("get source: %w", err)
+	var source []byte
+	switch extracted, err := zyte.Proxy(ctx,
+		item.GetLink(),
+		zyte.WithResponseBody(true),
+		zyte.WithFollowRedirects(true),
+		zyte.WithTag("item_id", item.GetID()),
+	); {
+	case err != nil:
+		if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
+			return models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
+		}
+		return models.NewAPIError(http.StatusInternalServerError, err)
+	case extracted == nil:
+		return models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
+	default:
+		source, err = extracted.GetHTMLResponse()
+		if err != nil {
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get source: %w", err))
+		}
 	}
+	// buf, err := htmlx.GetHTML(ctx, item.GetLink())
+	// if err != nil {
+	// 	return fmt.Errorf("get source: %w", err)
+	// }
+	// source = buf.Bytes()
+
 	// Extract any Opengraph data.
-	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source.Bytes()))
+	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source))
 	if err != nil {
 		slogctx.FromCtx(ctx).Debug("Unable to extract opengraph data for item.",
 			slog.Any("error", err),
 		)
 	}
 	// Extract readability data.
-	readabilityData, err := readability.FromReader(bytes.NewReader(source.Bytes()), itemURL)
+	readabilityData, err := readability.FromReader(bytes.NewReader(source), itemURL)
 	if err != nil {
 		slogctx.FromCtx(ctx).Debug("Unable to extract readability data for item.",
 			slog.Any("error", err),
@@ -438,7 +463,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		case readabilityData.ImageURL() != "":
 			item.Image = models.NewRemoteImage(readabilityData.ImageURL(), item.GetTitle())
 		default:
-			imgURL, imgAlt, err := htmlx.ExtractImage(source.String())
+			imgURL, imgAlt, err := htmlx.ExtractImage(string(source), item.GetLink())
 			if err != nil {
 				slogctx.FromCtx(ctx).Debug("Unable to find suitable image for item.",
 					slog.Any("error", err),
@@ -454,7 +479,8 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		case opengraphData != nil && opengraphData.Description != "":
 			item.Description = &opengraphData.Description
 		case readabilityData.Excerpt() != "":
-			item.Description = new(readabilityData.Excerpt())
+			desc := readabilityData.Excerpt()
+			item.Description = &desc
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -348,63 +349,62 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 	return articles, nil
 }
 
-// GetArticleRemoteContent attempts to fetch remote content for an article. It will check if the remote content has
-// already been fetched and cached in GCS and use that content. Otherwise, it uses the Zyte API to fetch the remote
-// content and then cache it for reuse.
+// GetArticleRemoteContent populates the article content with the item source.
 func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
-	var cached bool
+	source, err := getItemSource(ctx, article.GetID(), article.GetLink())
+	if err != nil {
+		return fmt.Errorf("get article remote content: %w", err)
+	}
+	article.Content = &source
 
+	return nil
+}
+
+// getItemSource attempts to fetch remote content for an item. It will check if the remote content has already been
+// fetched and cached in GCS and use that content. Otherwise, it uses the Zyte API to fetch the remote content and then
+// cache it for reuse.
+func getItemSource(ctx context.Context, id models.ItemID, sourceURL string) (string, error) {
 	// Try to load content from the article cache.
 	if err := loadArticleCache(); err != nil {
 		slogctx.FromCtx(ctx).Debug("Unable to load article cache.",
 			slog.Any("error", err),
 		)
-		cached = false
 	} else {
-		if articleBuf, ok := bufPool.Get().(*bytes.Buffer); !ok {
-			slogctx.FromCtx(ctx).Warn("Unable to create buffer for cached article.")
-			cached = false
-		} else {
-			articleBuf.Reset()
-			defer bufPool.Put(articleBuf)
-			if err := articleCache.Copy(ctx, article.GetID(), articleBuf); err != nil {
+		var articleBuf bytes.Buffer
+		if err := articleCache.Copy(ctx, id, &articleBuf); err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
 				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
 					slog.Any("error", err),
 				)
-				cached = false
-			} else {
-				cached = true
-				article.Content = new(articleBuf.String())
 			}
+		} else {
+			return articleBuf.String(), nil
 		}
 	}
 
 	// Fetch article from remote.
-	if !cached {
-		extracted, err := zyte.ExtractArticle(ctx,
-			article.GetLink(),
-			zyte.WithResponseBody(true),
-			zyte.WithFollowRedirects(true),
-			zyte.WithTag("item_id", article.GetID()),
-			zyte.WithTag("feed_id", article.GetFeedID()),
-		)
-		switch {
-		case err != nil:
-			if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
-				return models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
-			}
-			return models.NewAPIError(http.StatusInternalServerError, err)
-		case extracted == nil:
-			return models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
-		default:
-			article.Content = new(extracted.GetHTML())
+	var source string
+	switch extracted, err := zyte.ExtractArticle(ctx,
+		sourceURL,
+		zyte.WithResponseBody(true),
+		zyte.WithFollowRedirects(true),
+		zyte.WithTag("item_id", id),
+	); {
+	case err != nil:
+		if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
+			return "", models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
 		}
-
-		// Cache the content.
-		articleCache.Set(ctx, article.GetID(), []byte(extracted.GetHTML()))
+		return "", models.NewAPIError(http.StatusInternalServerError, err)
+	case extracted == nil:
+		return "", models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
+	default:
+		source = extracted.GetHTML()
 	}
 
-	return nil
+	// Cache the content.
+	articleCache.Set(ctx, id, []byte(source))
+
+	return source, nil
 }
 
 var articleCache objectCache
