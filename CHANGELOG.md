@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.214.2](https://github.com/immanent-tech/foragd/compare/v0.214.1...v0.214.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* **models:** 🔧 accept empty item image ([6fcadc8](https://github.com/immanent-tech/foragd/commit/6fcadc868ec142f152f31825332755c115554bac))
+* **scheduler/jobs:** 🔧 better expose all errors when cannot fetch feed data with any source URL ([2b71ebf](https://github.com/immanent-tech/foragd/commit/2b71ebff6a211de1d629697fe529c981edfa32b6))
+* **service/items:** 🔧 don't set imgURL if URL is empty string ([1f09b1b](https://github.com/immanent-tech/foragd/commit/1f09b1b05aa07137d26c5f96200a3a8e44afebac))
+
 ## [0.214.1](https://github.com/immanent-tech/foragd/compare/v0.214.0...v0.214.1) (2026-08-08)
 
 
