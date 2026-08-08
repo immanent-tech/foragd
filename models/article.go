@@ -249,7 +249,7 @@ func (a *Article) GetImage() *RemoteImage {
 	}
 
 	// Try to extract an image from the content.
-	switch url, alt, err := htmlx.ExtractImageFromHTML(a.GetContent()); {
+	switch url, alt, err := htmlx.ExtractImage(a.GetContent()); {
 	case err != nil:
 		return nil
 	case url != "":

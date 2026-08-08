@@ -679,8 +679,11 @@ type FeedID = string
 
 // FeedQuirks contains data on quirks for a feed.
 type FeedQuirks struct {
+	// FetchItemSummaries when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
+	FetchItemSummaries bool `json:"fetch_item_summaries,omitempty"`
+
 	// NoImage when set to true, indicates that the feed has no discoverable image, either in its source or on the website that it represents. Setting this quirk to true will stop any logic that tries to update the feed image.
-	NoImage *bool `json:"no_image,omitempty"`
+	NoImage bool `json:"no_image,omitempty"`
 }
 
 // FeedStatus represents the status of fetching the feed.

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
@@ -19,7 +20,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
-	"github.com/immanent-tech/go-base/pkg/htmlx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -124,14 +124,18 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return nil
 	}
 	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-		// Try to add images to any items missing an image.
+		// Try to enrich item with additional data if possible.
+		var wg sync.WaitGroup
 		for item := range slices.Values(newItems) {
-			if item.GetImage() == nil {
-				if imgURL, err := htmlx.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
-					item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+			wg.Go(func() {
+				if err := service.EnrichItem(ctx, feed, item); err != nil {
+					slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
+						slog.Any("error", err),
+					)
 				}
-			}
+			})
 		}
+		wg.Wait()
 
 		// Add new items.
 		results, err := addItems(ctx, newItems)

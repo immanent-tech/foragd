@@ -4,14 +4,21 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
+	"net/url"
 	"slices"
 	"strconv"
 
+	"codeberg.org/readeck/go-readability/v2"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-base/pkg/htmlx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -375,4 +382,81 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
+}
+
+// EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
+// missing data from the item source.
+func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error {
+	ctx = slogctx.With(ctx,
+		slog.String("item_id", item.GetID()),
+		slog.String("feed_id", item.GetFeedID()),
+	)
+
+	itemURL, err := url.Parse(item.GetLink())
+	if err != nil {
+		return fmt.Errorf("parse item link: %w", err)
+	}
+
+	// Flag if the item needs enrichment.
+	var needsEnriching bool
+	if feed.Quirks != nil && feed.Quirks.FetchItemSummaries {
+		needsEnriching = true
+	}
+	if item.GetImage() == nil {
+		needsEnriching = true
+	}
+	// Bail if no enrichment needs to be done.
+	if !needsEnriching {
+		return nil
+	}
+
+	// Fetch the item's HTML source, used for enrichment.
+	source, err := htmlx.GetHTML(ctx, item.GetLink())
+	if err != nil {
+		return fmt.Errorf("get source: %w", err)
+	}
+	// Extract any Opengraph data.
+	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source.Bytes()))
+	if err != nil {
+		slogctx.FromCtx(ctx).Debug("Unable to extract opengraph data for item.",
+			slog.Any("error", err),
+		)
+	}
+	// Extract readability data.
+	readabilityData, err := readability.FromReader(bytes.NewReader(source.Bytes()), itemURL)
+	if err != nil {
+		slogctx.FromCtx(ctx).Debug("Unable to extract readability data for item.",
+			slog.Any("error", err),
+		)
+	}
+
+	// Add an image if needed.
+	if item.GetImage() == nil {
+		switch {
+		case opengraphData != nil && opengraphData.Image != "":
+			item.Image = models.NewRemoteImage(opengraphData.Image, item.GetTitle())
+		case readabilityData.ImageURL() != "":
+			item.Image = models.NewRemoteImage(readabilityData.ImageURL(), item.GetTitle())
+		default:
+			imgURL, imgAlt, err := htmlx.ExtractImage(source.String())
+			if err != nil {
+				slogctx.FromCtx(ctx).Debug("Unable to find suitable image for item.",
+					slog.Any("error", err),
+				)
+			}
+			item.Image = models.NewRemoteImage(imgURL, imgAlt)
+		}
+	}
+
+	// Add a description if needed.
+	if feed.Quirks != nil && feed.Quirks.FetchItemSummaries {
+		switch {
+		case opengraphData != nil && opengraphData.Description != "":
+			item.Description = &opengraphData.Description
+		case readabilityData.Excerpt() != "":
+			item.Description = new(readabilityData.Excerpt())
+		}
+	}
+
+	return nil
 }

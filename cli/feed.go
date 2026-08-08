@@ -12,13 +12,12 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/go-base/pkg/htmlx"
 
 	"github.com/immanent-tech/go-base/validation"
 
@@ -76,23 +75,27 @@ func (c *FetchFeedCmd) Run() error {
 		return errors.New("no ID or URL provided")
 	}
 
-	showFeedDetails(feed)
-
 	if details != nil {
 		if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
 			slogctx.FromCtx(ctx).Info("Feed has new items.",
 				slog.Int("count", len(newItems)),
 			)
-			// Try to add images to any items missing an image.
+			// Try to enrich item with additional data if possible.
+			var wg sync.WaitGroup
 			for item := range slices.Values(newItems) {
-				if item.GetImage() == nil {
-					if imgURL, err := htmlx.ExtractMainImage(ctx, item.GetLink()); err == nil && imgURL != "" {
-						item.Image = models.NewRemoteImage(imgURL, item.GetTitle())
+				wg.Go(func() {
+					if err := service.EnrichItem(ctx, feed, item); err != nil {
+						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
+							slog.Any("error", err),
+						)
 					}
-				}
+				})
 			}
+			wg.Wait()
 		}
 	}
+
+	showFeedDetails(feed)
 
 	return nil
 }
@@ -211,8 +214,9 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 
 // UpdateFeedCmd performs updates on a feed.
 type UpdateFeedCmd struct {
-	FeedID   models.FeedID `help:"ID of feed"`
-	Interval string        `help:"update the interval to the given value"`
+	FeedID                models.FeedID `help:"ID of feed"`
+	Interval              string        `help:"update the interval to the given value"`
+	FetchItemDescriptions bool          `help:"always fetch item descriptions when updating"`
 }
 
 // Run performs the operations for resetting feed updates.
@@ -223,6 +227,11 @@ func (c *UpdateFeedCmd) Run() error {
 
 	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_"); err != nil {
 		return fmt.Errorf("invalid feed: %w", err)
+	}
+
+	feed, err := service.GetFeed(ctx, c.FeedID)
+	if err != nil {
+		return fmt.Errorf("get feed: %w", err)
 	}
 
 	// Process required updates.
@@ -260,6 +269,19 @@ func (c *UpdateFeedCmd) Run() error {
 			slog.String("job_id", newJob.JobDetail().JobKey().String()),
 			slog.String("job_schedule", newJob.Trigger().Description()),
 		)
+	case c.FetchItemDescriptions:
+		var quirks *models.FeedQuirks
+		if feed.Quirks == nil {
+			quirks = &models.FeedQuirks{}
+		} else {
+			quirks = feed.Quirks
+		}
+		quirks.FetchItemSummaries = true
+		updates["quirks"] = quirks
+		// Update the feed.
+		if err := service.UpdateFeed(ctx, c.FeedID, updates); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
 	}
 
 	slogctx.FromCtx(ctx).Info("Feed updated.",
