@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.214.0](https://github.com/immanent-tech/foragd/compare/v0.213.3...v0.214.0) (2026-08-08)
+
+
+### Features
+
+* ✨ better enrichment of items when needed ([9fda17a](https://github.com/immanent-tech/foragd/commit/9fda17accffb433771a24c38fda815881e440d6c))
+
+
+### Performance Improvements
+
+* **server:** 🗑️ remove push critical assets middleware ([6fa602a](https://github.com/immanent-tech/foragd/commit/6fa602aed8f2dbbe8d498d87fe301f1f6c7916cc))
+
 ## [0.213.3](https://github.com/immanent-tech/foragd/compare/v0.213.2...v0.213.3) (2026-08-07)
 
 
