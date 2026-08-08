@@ -463,13 +463,13 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		case readabilityData.ImageURL() != "":
 			item.Image = models.NewRemoteImage(readabilityData.ImageURL(), item.GetTitle())
 		default:
-			imgURL, imgAlt, err := htmlx.ExtractImage(string(source), item.GetLink())
-			if err != nil {
+			if imgURL, imgAlt, err := htmlx.ExtractImage(string(source), item.GetLink()); err != nil {
 				slogctx.FromCtx(ctx).Debug("Unable to find suitable image for item.",
 					slog.Any("error", err),
 				)
+			} else if imgURL != "" {
+				item.Image = models.NewRemoteImage(imgURL, imgAlt)
 			}
-			item.Image = models.NewRemoteImage(imgURL, imgAlt)
 		}
 	}
 
