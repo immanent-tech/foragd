@@ -132,7 +132,6 @@ func Start() error {
 
 	// External Pages.
 	router.Group(func(r chi.Router) {
-		r.Use(middlewares.PushCriticalAssets)
 		// Landing and features.
 		r.Get("/", handlers.HandleLanding())
 		r.Get("/features", handlers.HandleFeatures())
