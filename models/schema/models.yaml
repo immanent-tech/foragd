@@ -48,7 +48,6 @@ components:
       type: string
       x-go-name: URL
       x-oapi-codegen-extra-tags:
-        validate: 'omitempty,url'
         json: 'url'
         form: 'url'
     RemoteImage:
@@ -62,6 +61,9 @@ components:
           type: string
         url:
           $ref: '#/components/schemas/URL'
+          x-oapi-codegen-extra-tags:
+            validate: 'omitzero,url'
+      x-omitzero: true
     Author:
       description: >
         represents a person who contributed to a feed or item.
@@ -73,8 +75,12 @@ components:
           description: >
             is the name of the person. Can be any combination of first name and last name, in any order.
           type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
         url:
           $ref: '#/components/schemas/URL'
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,url'
         email:
           description: is an email address.
           type: string
@@ -723,6 +729,7 @@ components:
           $ref: '#/components/schemas/SourceType'
         image:
           $ref: '#/components/schemas/RemoteImage'
+          x-omitzero: true
     Feed:
       description: represents a feed object.
       type: object
@@ -824,6 +831,8 @@ components:
           x-go-type-skip-optional-pointer: true
         url:
           $ref: '#/components/schemas/URL'
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
         status_code:
           description: >
             is the HTTP status code returned when fetching.

@@ -407,7 +407,7 @@ type ArticleArchive struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image contains details about a remote image.
-	Image *RemoteImage `json:"image,omitempty"`
+	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -493,10 +493,10 @@ type Author struct {
 	Email *string `json:"email,omitempty" validate:"omitempty,email"`
 
 	// Name is the name of the person. Can be any combination of first name and last name, in any order.
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 
 	// URL is a URL.
-	URL *URL `form:"url" json:"url" validate:"omitempty,url"`
+	URL *URL `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // Category represents a taxonomy applied to an object.
@@ -635,7 +635,7 @@ type Feed struct {
 	FetchMethod FeedFetchMethod `json:"fetch_method" validate:"required,oneof=direct proxied zyte-products zyte-articles"`
 
 	// Image contains details about a remote image.
-	Image *RemoteImage `json:"image,omitempty"`
+	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// Items contains the list of items in the feed.
 	Items []*Item `json:"-"`
@@ -704,7 +704,7 @@ type FeedStatus struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// URL is a URL.
-	URL URL `form:"url" json:"url" validate:"omitempty,url"`
+	URL URL `json:"url" validate:"required,url"`
 }
 
 // FeedSubscription represents a feed a user has subscribed to.
@@ -791,7 +791,7 @@ type Item struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image contains details about a remote image.
-	Image *RemoteImage `json:"image,omitempty"`
+	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -952,7 +952,7 @@ type ObjectCommon struct {
 	Description *string `json:"description,omitempty"`
 
 	// Image contains details about a remote image.
-	Image *RemoteImage `json:"image,omitempty"`
+	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// Language is the language the content is written in.
 	Language *string `json:"language,omitempty"`
@@ -1033,7 +1033,7 @@ type RemoteImage struct {
 	Title *string `json:"title,omitempty"`
 
 	// URL is a URL.
-	URL *URL `form:"url" json:"url" validate:"omitempty,url"`
+	URL *URL `json:"url,omitempty" validate:"omitzero,url"`
 }
 
 // RemoveSubscriptionRequest contains the parameters for removing a subscription.
