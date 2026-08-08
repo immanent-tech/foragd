@@ -197,19 +197,16 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 	}
 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
-	var (
-		feed    *models.Feed
-		feedURL models.URL
-	)
-	for feedURL = range slices.Values(details.GetSourceURLs()) {
-		var err error
-		feed, err = service.FetchFeed(
+	var errs []error
+	for feedURL := range slices.Values(details.GetSourceURLs()) {
+		feed, err := service.FetchFeed(
 			ctx,
 			feedURL,
 			service.FetchWithFeedID(data.FeedID),
 			service.FetchWithProxy(proxyRequest),
 		)
 		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
 			logMsg := newFeedStatusMsg(details.GetID())
 			logMsg.FeedStatus.URL = feedURL
 			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
@@ -231,7 +228,7 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 
 	// No feed data returned by any url. Log and return error.
 	logMsg := newFeedStatusMsg(details.GetID())
-	logMsg.StatusMessage = new("no feed data returned by any URL")
+	logMsg.StatusMessage = new("failed to fetch feed details with any source URL: " + errors.Join(errs...).Error())
 	logMsg.StatusCode = http.StatusNoContent
 	if err := logMsg.log(ctx); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
