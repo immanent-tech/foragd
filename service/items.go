@@ -414,31 +414,10 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	// Fetch the item's HTML source, used for enrichment.
-	var source []byte
-	switch extracted, err := zyte.Proxy(ctx,
-		item.GetLink(),
-		zyte.WithResponseBody(true),
-		zyte.WithFollowRedirects(true),
-		zyte.WithTag("item_id", item.GetID()),
-	); {
-	case err != nil:
-		if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
-			return models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
-		}
-		return models.NewAPIError(http.StatusInternalServerError, err)
-	case extracted == nil:
-		return models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
-	default:
-		source, err = extracted.GetHTMLResponse()
-		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get source: %w", err))
-		}
+	source, err := fetchItemDirect(ctx, item.GetLink())
+	if err != nil {
+		return err
 	}
-	// buf, err := htmlx.GetHTML(ctx, item.GetLink())
-	// if err != nil {
-	// 	return fmt.Errorf("get source: %w", err)
-	// }
-	// source = buf.Bytes()
 
 	// Extract any Opengraph data.
 	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source))
@@ -485,4 +464,45 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	return nil
+}
+
+func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
+	rawHTML, err := htmlx.GetHTML(ctx, link)
+	if err != nil {
+		if respErr, isHtmlxErr := errors.AsType[*htmlx.Response](err); isHtmlxErr {
+			// Check if response status is forbidden. If so, try through Zyte.
+			if respErr.Status == http.StatusForbidden {
+				if source, err := fetchItemThroughZyte(ctx, link); err != nil {
+					return nil, fmt.Errorf("fetch item: %w", err)
+				} else {
+					return source, nil
+				}
+			}
+			return nil, models.NewAPIError(respErr.Status, fmt.Errorf("fetch item: %w", respErr))
+		}
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("fetch item: %w", err))
+	}
+	return rawHTML.Bytes(), nil
+}
+
+func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
+	switch extracted, err := zyte.Proxy(ctx,
+		link,
+		zyte.WithResponseBody(true),
+		zyte.WithFollowRedirects(true),
+	); {
+	case err != nil:
+		if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
+			return nil, models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
+		}
+		return nil, models.NewAPIError(http.StatusInternalServerError, err)
+	case extracted == nil:
+		return nil, models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
+	default:
+		source, err := extracted.GetHTMLResponse()
+		if err != nil {
+			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get source: %w", err))
+		}
+		return source, nil
+	}
 }
