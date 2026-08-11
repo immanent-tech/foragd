@@ -783,12 +783,12 @@ func GetSubscriptionSuggestions(
 			query.Bool(
 				query.Filter(
 					query.Term("user_id", user.GetID()),
-					query.Bool(
-						query.Should(
-							query.Term("type", models.SubscriptionTypeEmail),
-							query.Term("type", models.SubscriptionTypeFeed),
-						),
-					),
+					// query.Bool(
+					// 	query.Should(
+					// 		query.Term("type", models.SubscriptionTypeEmail),
+					// 		query.Term("type", models.SubscriptionTypeFeed),
+					// 	),
+					// ),
 				),
 				query.Must(
 					query.Bool(

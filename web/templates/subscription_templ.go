@@ -3983,7 +3983,7 @@ func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes
 		attrs["hx-vals"], _ = templ.JSONString(values)
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
-		attrs["hx-post"] = "/search"
+		attrs["hx-get"] = "/search"
 		s.SearchData.Search.SubscriptionID = new(s.GetID())
 		attrs["hx-vals"] = s.SearchData.Search.HXVals()
 	}
