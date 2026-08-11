@@ -123,7 +123,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 			changelog.description,
 			config.GetBaseURL(),
 			rss.WithAtomLink(&atom.Link{
-				Rel:  atom.LinkRelSelf,
+				Rel:  new(atom.LinkRelSelf),
 				Href: config.GetBaseURL() + "/changelog/feed",
 				Type: new("application/rss+xml"),
 			}),

@@ -206,7 +206,7 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithAtomLink(&atom.Link{
-				Rel:  atom.LinkRelSelf,
+				Rel:  new(atom.LinkRelSelf),
 				Href: config.GetBaseURL() + "/rss",
 				Type: new("application/rss+xml"),
 			}),
