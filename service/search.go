@@ -174,5 +174,4 @@ func SearchSuggestionsClause(search *models.SearchRequest) query.Option {
 			),
 		),
 	)
-
 }

@@ -287,12 +287,12 @@ func UpdateSubscriptions(
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	// // Update the subscription dynamic info
-	// if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-	// 	slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
-	// 		slog.Any("errro", err),
-	// 	)
-	// }
+	// Update the subscription dynamic info
+	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
+			slog.Any("errro", err),
+		)
+	}
 
 	// Update the cached subscriptions.
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
@@ -338,6 +338,10 @@ func MarkSubscriptions(
 			if err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
 				return fmt.Errorf("update subscription data: %w", err)
 			}
+			slogctx.Debug(ctx, "Marked subscription.",
+				slog.String("subscription_id", subscription.GetID()),
+				slog.String("mark", string(mark)),
+			)
 		}
 	}
 
@@ -412,17 +416,12 @@ func GetLatestItems(ctx context.Context, view models.View, subscriptions models.
 		}
 
 		// For group subscriptions, get the latest 3 items across each group's members.
-		groupsLatestItems, err := getGroupSubscriptionLatestItems(
+		groupsLatestItems := getGroupSubscriptionLatestItems(
 			ctx,
 			3,
 			subscriptions.FilterByType(models.SubscriptionTypeGroup),
 			view,
 		)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for group subscriptions.",
-				slog.Any("error", err),
-			)
-		}
 		for key, value := range groupsLatestItems {
 			latestItems.Store(key, value)
 		}
@@ -601,7 +600,7 @@ func getGroupSubscriptionLatestItems(
 	count int,
 	subscriptions models.Subscriptions,
 	view models.View,
-) (map[models.SubscriptionID]models.Items, error) {
+) map[models.SubscriptionID]models.Items {
 	groupLatestItems := make(map[models.SubscriptionID]models.Items)
 	var (
 		wg sync.WaitGroup
@@ -641,7 +640,7 @@ func getGroupSubscriptionLatestItems(
 		})
 	}
 	wg.Wait()
-	return groupLatestItems, nil
+	return groupLatestItems
 }
 
 // getSearchSubscriptionLatestItems will return a map of latest items per subscription for the given search
