@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.215.0](https://github.com/immanent-tech/foragd/compare/v0.214.3...v0.215.0) (2026-08-11)
+
+
+### Features
+
+* **styles:** 🎨 refreshed and more vibrant forest theme ([4dc31b5](https://github.com/immanent-tech/foragd/commit/4dc31b54f661039fdbfcfe5063c0bf7b35d9cd27))
+
+
+### Bug Fixes
+
+* **service/subscriptions:** 🔧 when updating subscriptions, refresh dynamic info before caching ([1158826](https://github.com/immanent-tech/foragd/commit/1158826415fba6abc9946d460f701d2d6be7097b))
+* **templates/search :** 🔧 show all subscription types as suggestions ([19ed2ea](https://github.com/immanent-tech/foragd/commit/19ed2eab41cd8a3610f307970d0b279f4b8e421a))
+* **templates:** 🎨 fix classes of filled tabler icons ([df8b3f2](https://github.com/immanent-tech/foragd/commit/df8b3f21657e3212486dd8c7a19226cd9d218a8e))
+* **templates:** 🎨 fix styling of add categories drop-down ([e14b042](https://github.com/immanent-tech/foragd/commit/e14b0428dd6a86d7511b5e88c9c65f34e1e5fa31))
+
 ## [0.214.3](https://github.com/immanent-tech/foragd/compare/v0.214.2...v0.214.3) (2026-08-11)
 
 
