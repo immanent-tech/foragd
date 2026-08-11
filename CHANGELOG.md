@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.214.3](https://github.com/immanent-tech/foragd/compare/v0.214.2...v0.214.3) (2026-08-11)
+
+
+### Performance Improvements
+
+* **service/items:** ♻️ try directly fetching the item source first and only try zyte on certain conditions ([a512ab2](https://github.com/immanent-tech/foragd/commit/a512ab268478ed6e3b1006ee8840b1cf739468ff))
+
 ## [0.214.2](https://github.com/immanent-tech/foragd/compare/v0.214.1...v0.214.2) (2026-08-08)
 
 
