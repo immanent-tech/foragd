@@ -403,10 +403,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</span>
 									<span class="inline-flex items-center group-[.htmx-request]:hidden">
 										if response.Filters.GetView() == models.ViewUnread {
-											@tableroutline.MailOpened(templ.Attributes{"class": " mr-3 size-4", "aria-hidden": "true"})
+											@tableroutline.MailOpened(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Read</span>
 										} else {
-											@tableroutline.Mail(templ.Attributes{"class": " mr-3 size-4", "aria-hidden": "true"})
+											@tableroutline.Mail(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
 											<span class="text-sm/6">Mark All Unread</span>
 										}
 									</span>
@@ -451,10 +451,10 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		class="btn border-neutral/15 btn-outline btn-sm"
 	>
 		if response.Filters.GetView() == models.ViewUnread {
-			@tableroutline.MailOpened(templ.Attributes{"class": "size-4 ", "aria-hidden": "true"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
 			Mark shown as Read
 		} else {
-			@tableroutline.Mail(templ.Attributes{"class": "size-4 ", "aria-hidden": "true"})
+			@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
 			Mark shown as Unread
 		}
 	</button>
