@@ -37,7 +37,7 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 				}
 				aria-label={ "Toggle favorite status for " + s.GetTitle() }
 			/>
-			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
+			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 fill-primary"})
 			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
 		</label>
 	</div>
@@ -977,7 +977,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 templ ShowNoSuggestions(text string) {
 	<div class="flex">
 		<div class="mr-4 shrink-0 self-center">
-			@tablerfilled.ZoomQuestion(templ.Attributes{"class": "size-16 text-primary"})
+			@tablerfilled.ZoomQuestion(templ.Attributes{"class": "size-16 fill-primary"})
 		</div>
 		<div>
 			<h2 class="text-lg font-semibold">No results.</h2>

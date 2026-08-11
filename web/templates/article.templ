@@ -41,8 +41,8 @@ templ (a *Article) favoriteToggle() {
 				_="on click halt the event's bubbling"
 				aria-label={ "Toggle favorite status for " + a.GetTitle() }
 			/>
-			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 text-primary"})
-			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 text-primary"})
+			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 fill-primary"})
+			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
 		</label>
 	</div>
 }

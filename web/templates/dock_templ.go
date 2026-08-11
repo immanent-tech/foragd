@@ -91,7 +91,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.Home(templ.Attributes{
-			"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -232,7 +232,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.FileRss(templ.Attributes{
-			"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -277,7 +277,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.Heart(templ.Attributes{
-			"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
