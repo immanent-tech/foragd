@@ -23,15 +23,13 @@ full_bin = "./tmp/foragd"
 # Ignore these filename extensions or directories.
 exclude_dir = [
   "deployments",
-  "magefiles",
+  "email",
   "node_modules",
   "tmp",
   "test",
+  "pkg/go-syndication/test",
   "web/content",
-  "models/generate",
   "scheduler",
-  "email",
-  "android",
   "oneshots",
 ]
 # Exclude specific regular expressions.

@@ -24,23 +24,17 @@ full_bin = "./tmp/scheduler"
 # Ignore these filename extensions or directories.
 exclude_dir = [
   "cli",
-  "config",
   "deployments",
-  "logging",
-  "magefiles",
-  "models/generate",
+  "email",
   "node_modules",
-  "providers",
+  "oneshots",
+  "pkg/go-syndication/test",
   "server",
   "test",
   "tmp",
-  "validation",
   "web",
-  "email",
-  "android",
-  "oneshots",
 ]
-# Ignore these filename extensions or directories.
+# Include these filename extensions or directories.
 include_dir = ["scheduler", "models", "service", "pkg"]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]
