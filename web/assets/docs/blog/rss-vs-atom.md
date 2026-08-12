@@ -3,7 +3,7 @@ title = "RSS vs Atom"
 page_title = "RSS vs Atom Feed Viewer Formats"
 description = "RSS and Atom both define a feed for a website. This article looks into the differences and whether it even matters."
 created_at = "2026-07-06"
-updated_at = "2026-08-06"
+updated_at = "2026-08-13"
 image = "/content/images/blog/rss-vs-atom-hero.webp"
 author = "Joshua Rich"
 slug = "rss-vs-atom"
@@ -56,6 +56,11 @@ consumer to format them as they wish. This gives you a lot of flexibility in how
 readers default to an inbox-like display. IMO, treating feeds like email is a bad user experience and [Foragd](/) is
 [intentionally different](/about).
 
+One key feature is that they support extensions that provide a way to add functionality to their base layouts and often
+the same extensions work in both formats due to them sharing the XML base format. With extensions, you can link to audio
+and video objects that can be then rendered with the display of the RSS/Atom file (these formats power podcasts in this
+way). You can even add extensions for geographical coordinates, allowing the items to be displayed on a map.
+
 ## The Differences
 
 First off, Mark Nottingham (who authored the Atom spec) has [run some numbers](https://mnot.net/blog/2026/feed-survey)
@@ -64,9 +69,8 @@ on which to implement. Popularity is not a good indicator of superiority.
 
 Atom is much more expressive in terms of the structure that defines items in the feed. RSS has less rigidity, but
 ultimately both cover all the canonical structure you'd expect for items, like titles, descriptions, content, and media
-elements. Additionally, both support extensions that provide a way to add functionality to their base layouts and often
-the same extensions work in both formats due to them sharing the XML base format. Wikipedia has a good quick [comparison
-of the difference in structure](https://en.wikipedia.org/wiki/Web_feed#RSS_compared_with_Atom) between the two.
+elements. Wikipedia has a good quick [comparison of the difference in
+structure](https://en.wikipedia.org/wiki/Web_feed#RSS_compared_with_Atom) between the two.
 
 ## Which Should You Use?
 
@@ -98,3 +102,68 @@ Getting started with RSS and Atom feeds? Foragd is free to try for 30 days — n
 - <https://www.rfc-editor.org/info/rfc4287/>
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+<script id="rss-vs-atom-faq" type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are RSS and Atom?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "
+        RSS and Atom feeds are both XML file formats that contain a structure for defining a list of content. Each content item is self-contained and usually consists of a title, description, link, author/contributor details and the content itself. The link should point to the original webpage containing the content.
+
+        Items are usually sorted by their creation date. The number of items is not capped or limited, but generally most feed
+        publishers will expose a rolling number of items, with older items being removed after some period.
+
+        Both formats include publisher details that make the files self-contained, allowing them to be shared or published
+        elsewhere than the source website, and retain the necessary details to link back to that source.
+
+        Being self-contained and capping the number of items is important, as these formats are literally downloaded as a file
+        to your feed reader. They aren't a "stream" of data that a server sends to a client. They are a full file, like a word
+        document, you download and parse. So keeping the size constrained and ensuring it contains relevant metadata and sources
+        is vital.
+
+        Unlike a web page, these formats contain minimal styling and other than the structure shown above, its left to the end
+        consumer to format them as they wish."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are RSS and Atom different?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Atom is much more expressive in terms of the structure that defines items in the feed. RSS has less rigidity, but ultimately both cover all the canonical structure you'd expect for items, like titles, descriptions, content, and media elements. Additionally, both support extensions that provide a way to add functionality to their base layouts and often the same extensions work in both formats due to them sharing the XML base format."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What can RSS and Atom be used for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Generally, they are used for blog posts or articles, but work well for any kind of syndicated content that updates on a regular basis. So breaking news, new items or listings, status updates or even new comments could be represented as one of these feeds. With extensions, they can support rich media items like audio and video (they form the underlying basis of podcasts), or even coordinates to represent items on a map."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "As an end user, should I use RSS or Atom?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If you have a choice, pick either as nearly all good feed readers support both formats. As they provide near identical features, the choice as a consumer of
+the feed is irrelevant. Your feed read will control how they are displayed, so focus on finding a feed reader that has the features and layout you like."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "As a developer, should I use RSS or Atom?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If you are looking to add a feed to your project, use whichever format your framework or service readily provides. Minimal implementation effort should be your focus, as the provided structure of either is functionally equivalent, and any additional features you can get through common extensions. For your end-users, it won't matter as the app or service they use to consume your feed will support both formats and is ultimately in control of how your feed will be displayed."
+      }
+    }
+  ]
+}
+</script>
