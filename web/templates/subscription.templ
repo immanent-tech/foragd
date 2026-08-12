@@ -298,21 +298,8 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		@scrollRestore()
 		<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
 			@templ.Fragment(ContentFragment) {
-				<div
-					id="ptr-sentinel"
-					style="height:1px;"
-					_="
-		on intersection(intersecting)
-			if intersecting
-				send ptrSentinelVisible
-			else
-				send ptrSentinelHidden
-			end
-		end
-		"
-				></div>
+				@partials.PullToRefresh()
 				@buttonBackToTop()
-				@pullToRefreshScript()
 				@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 					// Show a page header.
 					@pageHeading() {
