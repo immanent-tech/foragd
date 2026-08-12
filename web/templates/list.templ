@@ -244,7 +244,7 @@ templ ListPaginationControl(path string, filters *models.ListFilters, pagination
 		hx-swap-oob="true"
 		hx-post={ path }
 		hx-vals={ templ.JSONString(values) }
-		hx-trigger="intersect once"
+		hx-trigger="intersect once from:body"
 		hx-target="#grid-objects"
 		hx-swap="beforeend transition:false"
 		hx-indicator="#loading-items"

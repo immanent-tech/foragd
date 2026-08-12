@@ -880,7 +880,7 @@ func ListPaginationControl(path string, filters *models.ListFilters, pagination 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\" hx-trigger=\"intersect once\" hx-target=\"#grid-objects\" hx-swap=\"beforeend transition:false\" hx-indicator=\"#loading-items\" hx-sync=\"#grid-objects:abort\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\" hx-trigger=\"intersect once from:body\" hx-target=\"#grid-objects\" hx-swap=\"beforeend transition:false\" hx-indicator=\"#loading-items\" hx-sync=\"#grid-objects:abort\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

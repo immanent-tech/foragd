@@ -296,11 +296,12 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			IncludeIndicatorStyles:    false,
 			HistoryRestoreAsHxRequest: false,
 			GlobalViewTransitions:     false,
-			HistoryCacheSize:          10,
+			HistoryCacheSize:          0,
 			ScrollBehavior:            "auto",
+			DisableInheritance:        true,
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 238, Col: 5}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 239, Col: 5}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -329,7 +330,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 247, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 248, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -342,7 +343,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 307, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 308, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
@@ -381,7 +382,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(NotificationsID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 314, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 315, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -423,7 +424,7 @@ func UpdateTitle(title PageTitle) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(title.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 321, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 322, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

@@ -26,31 +26,3 @@ window.addEventListener('pageshow', (event) => {
     location.reload()
   }
 })
-
-// import axe from 'axe-core'
-
-// htmx.onLoad(function (content) {
-//   axe
-//     .run()
-//     .then((results) => {
-//       if (results.violations.length) {
-//         console.log(results.violations)
-//         throw new Error('Accessibility issues found')
-//       }
-//     })
-//     .catch((err) => {
-//       console.error('Something bad happened:', err.message)
-//     })
-// })
-
-document.body.addEventListener('htmx:beforeHistorySave', () => {
-  sessionStorage.setItem('scroll:' + location.pathname, window.scrollY)
-})
-
-document.body.addEventListener('htmx:afterSettle', (evt) => {
-  const saved = sessionStorage.getItem('scroll:' + location.pathname)
-  if (saved !== null) {
-    window.scrollTo(0, parseInt(saved, 10))
-    sessionStorage.removeItem('scroll:' + location.pathname)
-  }
-})

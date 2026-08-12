@@ -295,11 +295,13 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters, categories: response.Subscriptions.GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
-		@templ.Fragment(ContentFragment) {
-			<div
-				id="ptr-sentinel"
-				style="height:1px;"
-				_="
+		@scrollRestore()
+		<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
+			@templ.Fragment(ContentFragment) {
+				<div
+					id="ptr-sentinel"
+					style="height:1px;"
+					_="
 		on intersection(intersecting)
 			if intersecting
 				send ptrSentinelVisible
@@ -308,126 +310,127 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 			end
 		end
 		"
-			></div>
-			@buttonBackToTop()
-			@pullToRefreshScript()
-			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
-				// Show a page header.
-				@pageHeading() {
-					@pageTitle("Subscriptions")
-				}
-				// List actions.
-				@controls.Show(nil, listSubscriptionsButtons(response))
-				<section id="subscriptions-list" class="ptr-content pt-4">
-					<div id="refreshing" class="group mx-auto flex w-full justify-center">
-						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
-							<span class="loading mr-3 loading-xl loading-bars"></span>
-							<p class="text-lg/loose font-semibold">Refreshing...</p>
+				></div>
+				@buttonBackToTop()
+				@pullToRefreshScript()
+				@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
+					// Show a page header.
+					@pageHeading() {
+						@pageTitle("Subscriptions")
+					}
+					// List actions.
+					@controls.Show(nil, listSubscriptionsButtons(response))
+					<section id="subscriptions-list" class="ptr-content pt-4">
+						<div id="refreshing" class="group mx-auto flex w-full justify-center">
+							<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
+								<span class="loading mr-3 loading-xl loading-bars"></span>
+								<p class="text-lg/loose font-semibold">Refreshing...</p>
+							</div>
 						</div>
-					</div>
-					if len(response.Subscriptions) > 0 {
-						@masonryGrid()
-						@grid(element.WithClasses("masonry-grid", "relative"),
-							element.WithAttribute("_", "install MasonryGrid"),
-							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-							element.WithHXTarget(ContentID.Target()),
-							element.WithHXTrigger("refresh"),
-							element.WithHXIndicator("#refreshing"),
-						) {
-							@templ.Fragment(PaginateFragment) {
-								for idx, subscription := range response.Subscriptions {
-									@SubscriptionCard(idx, "/list/subscriptions", subscription) {
-										if response.LatestArticles != nil {
-											{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
-											if ok {
-												{{ items, ok := itemsData.(models.Items) }}
+						if len(response.Subscriptions) > 0 {
+							@masonryGrid()
+							@grid(element.WithClasses("masonry-grid", "relative"),
+								element.WithAttribute("_", "install MasonryGrid"),
+								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+								element.WithHXTarget(ContentID.Target()),
+								element.WithHXTrigger("refresh"),
+								element.WithHXIndicator("#refreshing"),
+							) {
+								@templ.Fragment(PaginateFragment) {
+									for idx, subscription := range response.Subscriptions {
+										@SubscriptionCard(idx, "/list/subscriptions", subscription) {
+											if response.LatestArticles != nil {
+												{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
 												if ok {
-													<div class="mt-auto h-full">
-														<ul class="latest-items menu">
-															for item := range slices.Values(items) {
-																<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-																	<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
-																		<a
-																			hx-get={ "/view/article/" + item.GetID() }
-																			hx-target={ ContentID.Target() }
-																			hx-swap="innerHTML show:top transition:true"
-																			hx-trigger="click"
-																			hx-push-url="true"
-																			_="on click halt the event's bubbling"
-																			class="line-clamp-3 font-serif text-base"
-																		>
-																			{ item.GetTitle() }
-																		</a>
-																	</div>
-																</li>
-															}
-														</ul>
-													</div>
+													{{ items, ok := itemsData.(models.Items) }}
+													if ok {
+														<div class="mt-auto h-full">
+															<ul class="latest-items menu">
+																for item := range slices.Values(items) {
+																	<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+																		<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
+																			<a
+																				hx-get={ "/view/article/" + item.GetID() }
+																				hx-target={ ContentID.Target() }
+																				hx-swap="innerHTML show:top transition:true"
+																				hx-trigger="click"
+																				hx-push-url="true"
+																				_="on click halt the event's bubbling"
+																				class="line-clamp-3 font-serif text-base"
+																			>
+																				{ item.GetTitle() }
+																			</a>
+																		</div>
+																	</li>
+																}
+															</ul>
+														</div>
+													}
 												}
 											}
 										}
 									}
 								}
 							}
-						}
-						@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
-							<div class="hidden text-center group-[.htmx-request]:inline-flex">
-								<span class="loading mr-3 loading-xl loading-bars"></span>
-								<p class="text-lg/loose font-semibold">Loading content...</p>
+							@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
+							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
+								<div class="hidden text-center group-[.htmx-request]:inline-flex">
+									<span class="loading mr-3 loading-xl loading-bars"></span>
+									<p class="text-lg/loose font-semibold">Loading content...</p>
+								</div>
 							</div>
-						</div>
-						// Show some actions at the bottom of the list.
-						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-							// Mark all subscriptions action.
-							<li>
-								<button
-									class="group btn border-neutral/15 btn-outline"
-									if response.Filters.GetView() == models.ViewUnread {
-										hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
-										hx-vals={ templ.JSONString(map[string]any{
+							// Show some actions at the bottom of the list.
+							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
+								// Mark all subscriptions action.
+								<li>
+									<button
+										class="group btn border-neutral/15 btn-outline"
+										if response.Filters.GetView() == models.ViewUnread {
+											hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
+											hx-vals={ templ.JSONString(map[string]any{
 										"mark": models.MarkRead,
 									}) }
-									} else {
-										hx-post={ "/list/subscriptions/mark/" + string(models.MarkUnread) }
-										hx-vals={ templ.JSONString(map[string]any{
+										} else {
+											hx-post={ "/list/subscriptions/mark/" + string(models.MarkUnread) }
+											hx-vals={ templ.JSONString(map[string]any{
 										"mark": models.MarkUnread,
 									}) }
-									}
-									hx-target={ ContentID.Target() }
-									hx-include="article > input"
-								>
-									<span class="hidden items-center group-[.htmx-request]:inline-flex">
-										<span class="loading mr-3 loading-spinner"></span>
-										<span class="text-sm/6">Loading</span>
-									</span>
-									<span class="inline-flex items-center group-[.htmx-request]:hidden">
-										if response.Filters.GetView() == models.ViewUnread {
-											@tableroutline.MailOpened(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
-											<span class="text-sm/6">Mark All Read</span>
-										} else {
-											@tableroutline.Mail(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
-											<span class="text-sm/6">Mark All Unread</span>
 										}
-									</span>
-								</button>
-							</li>
-						</ul>
-					} else {
-						@partials.NoContent()
-					}
-				</section>
+										hx-target={ ContentID.Target() }
+										hx-include="article > input"
+									>
+										<span class="hidden items-center group-[.htmx-request]:inline-flex">
+											<span class="loading mr-3 loading-spinner"></span>
+											<span class="text-sm/6">Loading</span>
+										</span>
+										<span class="inline-flex items-center group-[.htmx-request]:hidden">
+											if response.Filters.GetView() == models.ViewUnread {
+												@tableroutline.MailOpened(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
+												<span class="text-sm/6">Mark All Read</span>
+											} else {
+												@tableroutline.Mail(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
+												<span class="text-sm/6">Mark All Unread</span>
+											}
+										</span>
+									</button>
+								</li>
+							</ul>
+						} else {
+							@partials.NoContent()
+						}
+					</section>
+				}
+				// Watch for updates.
+				<div
+					id="updates"
+					class="toast toast-center z-10"
+					hx-post="/list/subscriptions/updates"
+					hx-vals={ templ.JSONString(response.Filters.Values()) }
+					hx-trigger="every 5m"
+					hx-target="#updates"
+				></div>
 			}
-			// Watch for updates.
-			<div
-				id="updates"
-				class="toast toast-center z-10"
-				hx-post="/list/subscriptions/updates"
-				hx-vals={ templ.JSONString(response.Filters.Values()) }
-				hx-trigger="every 5m"
-				hx-target="#updates"
-			></div>
-		}
+		</div>
 	}
 }
 

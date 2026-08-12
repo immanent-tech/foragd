@@ -117,6 +117,10 @@ func HandleListSubscriptions() http.HandlerFunc {
 		if htmx.IsHistoryRestoreRequest(req) {
 			request.Filters.Subscriptions = nil
 		}
+		// If there is an upto value, set count to that.
+		if upto, err := strconv.Atoi(req.FormValue("upto")); err != nil && upto > 0 {
+			request.Filters.Count = upto
+		}
 
 		// Get subscriptions matching filters.
 		var next models.Pagination

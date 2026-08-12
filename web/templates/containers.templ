@@ -198,6 +198,12 @@ behavior MasonryGrid
     call resetLayout()
   end
 
+  on pageshow from window
+    if event.persisted
+      call resetLayout()
+    end
+  end
+
   on htmx:afterSwap from document
     wait 1ms then call layout()
   end
@@ -212,5 +218,39 @@ behavior MasonryGrid
 
 end
 </script>
+	}
+}
+
+var scrollRestoreOnce = templ.NewOnceHandle()
+
+templ scrollRestore() {
+	@scrollRestoreOnce.Once() {
+		<script type="text/hyperscript">
+behavior ScrollRestore(gridSelector, cardSelector, endpoint, storageKey)
+  on scroll from window debounced at 200ms
+  	js(storageKey)
+      sessionStorage.setItem(`${storageKey}-scroll`, window.scrollY)
+    end
+  on pageshow from window
+  	js(gridSelector,cardSelector,endpoint,storageKey)
+      // Ignore if we aren't restoring.
+      if (!event.persisted) return;
+  		const n = sessionStorage.getItem(`${storageKey}-count`);
+  		const y = sessionStorage.getItem(`${storageKey}-scroll`);
+  		if (n && parseInt(n) > document.querySelectorAll(`${gridSelector} ${cardSelector}`).length) {
+        console.log(`${endpoint}?upto=${n}`)
+  			htmx.ajax('GET', `${endpoint}?upto=${n}` + n, {target: gridSelector, swap: 'innerHTML transition:true'})
+  				.then(() => { if (y) window.scrollTo(0, parseInt(y)); });
+  		} else if (y) {
+        console.log(`scroll:${y}`)
+    		window.scrollTo(0, parseInt(y));
+  		}
+  	end
+  on htmx:afterSettle from body
+  	js(gridSelector,cardSelector,storageKey)
+      sessionStorage.setItem(`${storageKey}-count`, document.querySelectorAll(`${gridSelector} ${cardSelector}`).length)
+    end
+end
+  </script>
 	}
 }
