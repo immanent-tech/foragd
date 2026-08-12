@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.216.0](https://github.com/immanent-tech/foragd/compare/v0.215.0...v0.216.0) (2026-08-12)
+
+
+### Features
+
+* ✨ implement framework for restoring scroll position with pagination ([e587318](https://github.com/immanent-tech/foragd/commit/e587318bfab13889549779365ac52d4faed39002))
+* **styles:** ✨ default theme renewed - more green and vibrant, less brown and dull ([95b9699](https://github.com/immanent-tech/foragd/commit/95b9699da55c6969e0d88075acbc748776a0e352))
+
 ## [0.215.0](https://github.com/immanent-tech/foragd/compare/v0.214.3...v0.215.0) (2026-08-11)
 
 
