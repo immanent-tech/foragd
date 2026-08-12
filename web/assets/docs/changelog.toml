@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.213"
-date      = "Aug 6, 2026"
-type      = "minor"
+version   = "v0.216"
+date      = "Aug 12, 2026"
+type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Default theme renewed. More green, more vibrant, less brown.
+"""
+
+[[releases]]
+version = "v0.213"
+date    = "Aug 6, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
