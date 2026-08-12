@@ -3,6 +3,56 @@
   default: true;
   prefersdark: false;
   color-scheme: light;
+
+  /* Base — clean whites, near-neutral */
+  --color-base-100: oklch(0.995 0.002 95);
+  --color-base-200: oklch(0.97 0.004 95);
+  --color-base-300: oklch(0.92 0.006 95);
+  --color-base-content: oklch(0.24 0.015 95);
+
+  /* Primary & Secondary — vibrant, lush greens */
+  --color-primary: oklch(0.52 0.16 145);
+  --color-primary-content: oklch(0.99 0.005 145);
+
+  --color-secondary: oklch(0.4 0.11 152);
+  --color-secondary-content: oklch(0.98 0.005 152);
+
+  /* Accent — deep maroon / mauve */
+  --color-accent: oklch(0.36 0.11 22);
+  --color-accent-content: oklch(0.98 0.005 22);
+
+  /* Neutral */
+  --color-neutral: oklch(0.3 0.01 95);
+  --color-neutral-content: oklch(0.98 0.005 95);
+
+  /* Semantic colors */
+  --color-info: oklch(0.55 0.14 245);
+  --color-info-content: oklch(0.98 0.01 245);
+
+  --color-success: oklch(0.52 0.17 148);
+  --color-success-content: oklch(0.98 0.01 148);
+
+  --color-warning: oklch(0.8 0.15 82);
+  --color-warning-content: oklch(0.27 0.03 82);
+
+  --color-error: oklch(0.52 0.19 26);
+  --color-error-content: oklch(0.98 0.01 26);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* @plugin 'daisyui/theme' {
+  name: 'greenhouse';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
   --color-base-100: oklch(0.9858 0.0045 78.3);
   --color-base-200: oklch(0.94 0.012 82);
   --color-base-300: oklch(0.86 0.02 80.71);
@@ -32,7 +82,7 @@
   --border: 1px;
   --depth: 1;
   --noise: 0;
-}
+} */
 
 @plugin 'daisyui/theme' {
   name: 'solarized-dark';
