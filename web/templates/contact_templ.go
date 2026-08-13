@@ -12,8 +12,8 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 import "os"
+import "github.com/immanent-tech/go-base/pkg/htmlx"
 
 func Contact() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -65,9 +65,9 @@ func Contact() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 templ.SafeURL
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(mailto.Build("hello@immanent.tech", mailto.WithSubject("About Foragd")))
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToBody("About Foragd")))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/contact.templ`, Line: 19, Col: 122}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/contact.templ`, Line: 19, Col: 127}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {

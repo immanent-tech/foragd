@@ -3,8 +3,8 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 import "os"
+import "github.com/immanent-tech/go-base/pkg/htmlx"
 
 templ Contact() {
 	@LayoutExternal() {
@@ -16,7 +16,7 @@ templ Contact() {
 					Use this form to report to contact us about Foragd.
 				</p>
 				<p class="mt-2 max-w-4xl text-neutral">
-					Alternatively, you can <a class="link" href={ mailto.Build("hello@immanent.tech", mailto.WithSubject("About Foragd")) }>email us</a> instead.
+					Alternatively, you can <a class="link" href={ htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToBody("About Foragd")) }>email us</a> instead.
 				</p>
 				<form
 					hx-post={ "/contact" }
