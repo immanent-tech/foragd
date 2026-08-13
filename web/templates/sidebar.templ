@@ -33,14 +33,14 @@ templ SideBar(options ...element.PropertiesOption) {
 						>
 							<span class="sr-only">Go to Home Page</span>
 							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-primary"></span>
+								<span class="loading loading-xl loading-spinner text-base-content"></span>
 							</span>
 							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								@tablerfilled.Home(templ.Attributes{
-									"class":       "size-8 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+									"class":       "size-8 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 									"aria-hidden": "true"})
 							</span>
-							<span class="not-sr-only text-base font-semibold text-primary">Home</span>
+							<span class="not-sr-only text-base font-semibold text-base-content">Home</span>
 						</a>
 					</li>
 					{{ filters := models.NewListDisplayFilters() }}
@@ -57,14 +57,14 @@ templ SideBar(options ...element.PropertiesOption) {
 						>
 							<span class="sr-only">Go to Subscriptions</span>
 							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-primary"></span>
+								<span class="loading loading-xl loading-spinner text-base-content"></span>
 							</span>
 							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								@tableroutline.Rss(templ.Attributes{
-									"class":       "size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+									"class":       "size-8 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 									"aria-hidden": "true"})
 							</span>
-							<span class="not-sr-only text-base font-semibold text-primary">Subscriptions</span>
+							<span class="not-sr-only text-base font-semibold text-base-content">Subscriptions</span>
 						</a>
 					</li>
 					<li
@@ -82,14 +82,14 @@ templ SideBar(options ...element.PropertiesOption) {
 						>
 							<span class="sr-only">Go to Articles</span>
 							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-primary"></span>
+								<span class="loading loading-xl loading-spinner text-base-content"></span>
 							</span>
 							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								@tablerfilled.FileRss(templ.Attributes{
-									"class":       "size-8 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+									"class":       "size-8 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 									"aria-hidden": "true"})
 							</span>
-							<span class="not-sr-only text-base font-semibold text-primary">Articles</span>
+							<span class="not-sr-only text-base font-semibold text-base-content">Articles</span>
 						</a>
 					</li>
 					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/favorites") }>
@@ -104,14 +104,14 @@ templ SideBar(options ...element.PropertiesOption) {
 						>
 							<span class="sr-only">Go to Favorites</span>
 							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-primary"></span>
+								<span class="loading loading-xl loading-spinner text-base-content"></span>
 							</span>
 							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								@tablerfilled.Heart(templ.Attributes{
-									"class":       "size-8 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+									"class":       "size-8 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 									"aria-hidden": "true"})
 							</span>
-							<span class="not-sr-only text-base font-semibold text-primary">Favorites</span>
+							<span class="not-sr-only text-base font-semibold text-base-content">Favorites</span>
 						</a>
 					</li>
 					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/subscription/add") }>
@@ -126,14 +126,14 @@ templ SideBar(options ...element.PropertiesOption) {
 						>
 							<span class="sr-only">Add Subscription</span>
 							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-primary"></span>
+								<span class="loading loading-xl loading-spinner text-base-content"></span>
 							</span>
 							<span class="inline-flex items-center group-[.htmx-request]:hidden">
 								@tableroutline.Plus(templ.Attributes{
-									"class":       "size-8 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+									"class":       "size-8 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 									"aria-hidden": "true"})
 							</span>
-							<span class="not-sr-only text-base font-semibold text-primary">Add</span>
+							<span class="not-sr-only text-base font-semibold text-base-content">Add</span>
 						</a>
 					</li>
 				</ul>

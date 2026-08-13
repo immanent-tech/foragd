@@ -43,7 +43,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		pageURL := PathFromCtx(ctx)
 		props := element.NewProperties(options...)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock border-t border-neutral/20 bg-base-200 px-safe text-primary shadow-sm lg:hidden\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock border-t border-neutral/20 bg-base-200 px-safe text-base-content shadow-sm lg:hidden\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -86,12 +86,12 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><span class=\"sr-only\">Go to Home Page</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-primary\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><span class=\"sr-only\">Go to Home Page</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.Home(templ.Attributes{
-			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -158,12 +158,12 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><span class=\"sr-only\">Go to Subscriptions</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-primary\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><span class=\"sr-only\">Go to Subscriptions</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tableroutline.Rss(templ.Attributes{
-			"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -227,12 +227,12 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "><span class=\"sr-only\">Go to Articles</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-primary\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "><span class=\"sr-only\">Go to Articles</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.FileRss(templ.Attributes{
-			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -272,12 +272,12 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-primary\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tablerfilled.Heart(templ.Attributes{
-			"class":       "size-6 shrink-0 fill-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -317,12 +317,12 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><span class=\"sr-only\">Add a Subscription</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-primary\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><span class=\"sr-only\">Add a Subscription</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = tableroutline.Plus(templ.Attributes{
-			"class":       "size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+			"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 			"aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
