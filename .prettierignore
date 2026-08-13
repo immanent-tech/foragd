@@ -1,6 +1,2 @@
-# Auto-generated .gitignore file.
-# See https://gowebly.org for more information.
-
-# Ignore static files.
-static/
-
+web/content/
+**/*_templ.go

@@ -11,9 +11,8 @@
   "embeddedLanguageFormatting": "auto",
   "plugins": [
     "prettier-plugin-organize-imports",
-    "prettier-plugin-tailwindcss-extra-plus",
-    "prettier-plugin-tailwindcss",
-    "@prettier/plugin-xml"
+    "@prettier/plugin-xml",
+    "prettier-plugin-tailwindcss"
   ],
   "tailwindStylesheet": "./web/assets/styles.css"
 }

@@ -474,3 +474,10 @@
 @utility fieldset {
   @apply text-base;
 }
+
+@utility content-auto {
+  content-visibility: auto;
+}
+@utility content-hidden {
+  content-visibility: hidden;
+}
