@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.217.0](https://github.com/immanent-tech/foragd/compare/v0.216.1...v0.217.0) (2026-08-13)
+
+
+### Features
+
+* **styles:** 🎨 add a solarized-light theme ([8c743d6](https://github.com/immanent-tech/foragd/commit/8c743d622bf32ca1eac401eccb0b7a2e47790139))
+
+
+### Bug Fixes
+
+* **styles:** 🎨 improved catppuccin-mocha theme ([a5badb5](https://github.com/immanent-tech/foragd/commit/a5badb526ca84e88ae6a06236a227e825ae8c68b))
+* **styles:** 🎨 improved solarized-dark theme ([cff1770](https://github.com/immanent-tech/foragd/commit/cff1770853ae3207dbe6d1728f1d04ff2d6e8fcb))
+* **templates/search:** 🎨 adjust color of inputs on search forms ([57d49fe](https://github.com/immanent-tech/foragd/commit/57d49fe069fd4d2835c25a1f2fd17243e4dad807))
+* **templates:** 🎨 fix icon colors for better contrast in dark themes ([a5084bb](https://github.com/immanent-tech/foragd/commit/a5084bb3487d749dfbc6cd7f1975478494839632))
+
 ## [0.216.1](https://github.com/immanent-tech/foragd/compare/v0.216.0...v0.216.1) (2026-08-12)
 
 
