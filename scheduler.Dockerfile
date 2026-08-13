@@ -5,7 +5,7 @@
 # https://hub.docker.com/_/alpine/
 ARG ALPINE_VERSION=3.24.1@sha256:79ff19e9084a00eece421b2523fb93e22d730e2c0e525905de047e848e56d95f
 # https://hub.docker.com/_/golang
-ARG GO_VERSION=1.26.5-alpine3.24@sha256:111d79159b2326f7e80c4a4706e1ba166acb0e2611df853955f3621828cd49e8
+ARG GO_VERSION=1.26.6-alpine3.24@sha256:1a9c10cf505a9e6b1e96ea77ebdbfe79a0f10380181faf88bc3b51d7e4315fae
 
 FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
 FROM --platform=$BUILDPLATFORM docker.io/alpine:${ALPINE_VERSION} AS builder
