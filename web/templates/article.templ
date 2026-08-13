@@ -207,14 +207,14 @@ templ (a *Article) actionsMenu() {
 				// View original article action.
 				@partials.MenuItem() {
 					<a { a.viewOriginalAttributes()... }>
-						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Go To Article</span>
 					</a>
 				}
 				// Find similar action.
 				@partials.MenuItem() {
 					<a { a.findSimilarAttributes()... }>
-						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Find Similar...</span>
 					</a>
 				}
@@ -230,21 +230,21 @@ templ (a *Article) actionsMenu() {
 		   					end
 							"
 					>
-						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
 					</a>
 				}
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
 					<a { a.desktopShareAttributes()... }>
-						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
 					</a>
 				}
 				// Report issue action.
 				@partials.MenuItem() {
 					<a { a.reportIssueAttributes()... }>
-						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-primary", "aria-hidden": "true"})
+						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Report an Issue</span>
 					</a>
 				}

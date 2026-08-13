@@ -48,7 +48,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 templ Search() {
 	<el-popover-group class="flex w-full items-center justify-center">
 		<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
-			@tableroutline.Search(templ.Attributes{"class": "pointer-events-none flex-none text-primary", "aria-hidden": "true"})
+			@tableroutline.Search(templ.Attributes{"class": "pointer-events-none flex-none text-base-content", "aria-hidden": "true"})
 			<input
 				hx-get="/search"
 				hx-target={ ContentID.Target() }
@@ -95,7 +95,7 @@ templ Search() {
 				class="focus:outline-primary"
 			>
 				<span class="sr-only">Show/hide suggestions</span>
-				@tableroutline.ChevronDown(templ.Attributes{"class": "pointer-events-none flex-none transform text-primary transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180", "aria-hidden": "true"})
+				@tableroutline.ChevronDown(templ.Attributes{"class": "pointer-events-none flex-none transform text-base-content transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180", "aria-hidden": "true"})
 			</button>
 			<el-popover
 				id="search-suggestions-popover"
@@ -174,7 +174,7 @@ templ Search() {
 				aria-label="Show advanced search dialog"
 			>
 				<span class="sr-only">Show advanced search dialog</span>
-				@tableroutline.Adjustments(templ.Attributes{"class": "text-primary", "aria-hidden": "true"})
+				@tableroutline.Adjustments(templ.Attributes{"class": "text-base-content", "aria-hidden": "true"})
 			</button>
 		</div>
 		<el-popover

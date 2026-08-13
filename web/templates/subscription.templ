@@ -210,7 +210,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 											target="_blank"
 											_="on click halt the event's bubbling"
 										>
-											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
+											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base--content", "aria-hidden": "true"})
 											Feed Website
 										</a>
 									}
@@ -218,21 +218,21 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 								// Edit action.
 								@partials.MenuItem() {
 									<a { s.editAttributes(path)... }>
-										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a { s.unsubscribeAttributes()... }>
-										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
 										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
 										Report an Issue
 									</a>
 								}
