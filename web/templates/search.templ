@@ -47,7 +47,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 
 templ Search() {
 	<el-popover-group class="flex w-full items-center justify-center">
-		<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
+		<div class="input w-full bg-base-200 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
 			@tableroutline.Search(templ.Attributes{"class": "pointer-events-none flex-none text-base-content", "aria-hidden": "true"})
 			<input
 				hx-get="/search"
@@ -102,7 +102,7 @@ templ Search() {
 				anchor="bottom end"
 				popover
 				role="listbox"
-				class="max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]"
+				class="max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-200 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]"
 			></el-popover>
 			<script>
 			{
@@ -605,7 +605,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				type="text"
 				name="text"
 				placeholder={ `+keyword -"some phrase"` }
-				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
+				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content"
 				_="on change set #global-search's value to my value"
 			>
 				if request.Text != "" {
@@ -622,7 +622,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="categories"
 					placeholder="favorite-category -unwanted-category"
-					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content"
 				>
 					if request.Categories != nil {
 						{ *request.Categories }
@@ -637,7 +637,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="authors"
 					placeholder="bob +jenny@blog.me"
-					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content"
 				>
 					if request.Authors != nil {
 						{ *request.Authors }
@@ -695,7 +695,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				<select
 					id="search-published-within"
 					name="published_within"
-					class="select my-2 bg-base-300 brightness-95 select-sm select-primary text-base-content"
+					class="select my-2 bg-base-200 brightness-95 select-sm select-primary text-base-content"
 				>
 					<option
 						class="text-neutral"

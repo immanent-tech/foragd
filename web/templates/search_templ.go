@@ -147,7 +147,7 @@ func Search() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<el-popover-group class=\"flex w-full items-center justify-center\"><div class=\"input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<el-popover-group class=\"flex w-full items-center justify-center\"><div class=\"input w-full bg-base-200 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -176,7 +176,7 @@ func Search() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]\"></el-popover><script>\n\t\t\t{\n  const input   = document.getElementById('global-search');\n  const popover = document.getElementById('search-suggestions-popover');\n\n  input.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    if (!items.length) return;\n\n    const current = document.activeElement;\n    const idx     = items.indexOf(current);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      const prev = idx > 0 ? items[idx - 1] : items[items.length - 1];\n      prev.focus();\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n  });\n\n  // Allow ArrowUp to re-enter the list from any focused item\n  popover.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    const idx   = items.indexOf(document.activeElement);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      if (idx === 0) {\n        input.focus();\n      } else {\n        items[idx - 1].focus();\n      }\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n\n    if (e.key === 'Enter') {\n      e.preventDefault();\n  \t  e.stopPropagation();\n      document.activeElement.click();\n    }\n  });\n\t\t\t}\n</script><button popovertarget=\"search-advanced-popover\" type=\"button\" class=\"focus:outline-primary\" aria-label=\"Show advanced search dialog\"><span class=\"sr-only\">Show advanced search dialog</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-200 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]\"></el-popover><script>\n\t\t\t{\n  const input   = document.getElementById('global-search');\n  const popover = document.getElementById('search-suggestions-popover');\n\n  input.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    if (!items.length) return;\n\n    const current = document.activeElement;\n    const idx     = items.indexOf(current);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      const prev = idx > 0 ? items[idx - 1] : items[items.length - 1];\n      prev.focus();\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n  });\n\n  // Allow ArrowUp to re-enter the list from any focused item\n  popover.addEventListener('keydown', (e) => {\n    const items = [...popover.querySelectorAll('[role=\"option\"]')];\n    const idx   = items.indexOf(document.activeElement);\n\n    if (e.key === 'ArrowDown') {\n      e.preventDefault();\n      const next = idx < items.length - 1 ? items[idx + 1] : items[0];\n      next.focus();\n    }\n\n    if (e.key === 'ArrowUp') {\n      e.preventDefault();\n      if (idx === 0) {\n        input.focus();\n      } else {\n        items[idx - 1].focus();\n      }\n    }\n\n    if (e.key === 'Escape') {\n      popover.hidePopover();\n      input.focus();\n    }\n\n    if (e.key === 'Enter') {\n      e.preventDefault();\n  \t  e.stopPropagation();\n      document.activeElement.click();\n    }\n  });\n\t\t\t}\n</script><button popovertarget=\"search-advanced-popover\" type=\"button\" class=\"focus:outline-primary\" aria-label=\"Show advanced search dialog\"><span class=\"sr-only\">Show advanced search dialog</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1242,7 +1242,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content\" _=\"on change set #global-search's value to my value\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content\" _=\"on change set #global-search's value to my value\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1257,7 +1257,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</textarea></label><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><label class=\"fieldset\"><span class=\"col-span-full label\">Categories:</span> <textarea id=\"search-categories\" type=\"text\" name=\"categories\" placeholder=\"favorite-category -unwanted-category\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</textarea></label><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><label class=\"fieldset\"><span class=\"col-span-full label\">Categories:</span> <textarea id=\"search-categories\" type=\"text\" name=\"categories\" placeholder=\"favorite-category -unwanted-category\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1272,7 +1272,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</textarea></label><label class=\"fieldset\"><span class=\"col-span-full label\">Authors:</span> <textarea id=\"search-authors\" type=\"text\" name=\"authors\" placeholder=\"bob +jenny@blog.me\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 brightness-95 textarea-sm textarea-primary text-base-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</textarea></label><label class=\"fieldset\"><span class=\"col-span-full label\">Authors:</span> <textarea id=\"search-authors\" type=\"text\" name=\"authors\" placeholder=\"bob +jenny@blog.me\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1317,7 +1317,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " class=\"radio shrink radio-sm radio-primary\"> <span class=\"label flex-1\">All</span></label></div><label class=\"fieldset\"><span class=\"col-span-full label\">Published within:</span> <select id=\"search-published-within\" name=\"published_within\" class=\"select my-2 bg-base-300 brightness-95 select-sm select-primary text-base-content\"><option class=\"text-neutral\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " class=\"radio shrink radio-sm radio-primary\"> <span class=\"label flex-1\">All</span></label></div><label class=\"fieldset\"><span class=\"col-span-full label\">Published within:</span> <select id=\"search-published-within\" name=\"published_within\" class=\"select my-2 bg-base-200 brightness-95 select-sm select-primary text-base-content\"><option class=\"text-neutral\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
