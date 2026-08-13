@@ -20,7 +20,6 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
-@plugin 'tailwindcss-visibility';
 @plugin 'daisyui';
 
 @import './daisyui-custom.css';
