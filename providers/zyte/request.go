@@ -10,10 +10,20 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
 	slogctx "github.com/veqryn/slog-context"
+)
+
+var (
+	// DefaultExtractRequestTimeout is the timeout for extraction requests. This is greater than proxy requests as these
+	// often take more time.
+	DefaultExtractRequestTimeout = time.Minute
+	// DefaultProxyRequestTimeout is the timeout for proxy requests.
+	DefaultProxyRequestTimeout = 30 * time.Second
 )
 
 type RequestOption func(*Request)
@@ -80,6 +90,9 @@ func AsArticle(opts *ExtractOptions) RequestOption {
 
 // ExtractArticle attempts to extract an article from the given URL.
 func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption) (*Article, error) {
+	ctx, cancelFunc := context.WithTimeout(ctx, DefaultExtractRequestTimeout)
+	defer cancelFunc()
+
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -100,7 +113,15 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 	if err != nil {
 		return nil, fmt.Errorf("load http client: %w", err)
 	}
-	switch resp, err := client.R().
+	switch resp, err := client.
+		// Add retry logic for 429 and 520 responses as per Zyte API guidelines.
+		SetRetryCount(3).
+		AddRetryCondition(
+			func(r *resty.Response, _ error) bool {
+				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == 520
+			},
+		).
+		R().
 		SetContext(ctx).
 		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
@@ -129,6 +150,9 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
+	ctx, cancelFunc := context.WithTimeout(ctx, DefaultProxyRequestTimeout)
+	defer cancelFunc()
+
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -149,7 +173,15 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 	if err != nil {
 		return nil, fmt.Errorf("load http client: %w", err)
 	}
-	switch resp, err := client.R().
+	switch resp, err := client.
+		// Add retry logic for 429 and 520 responses as per Zyte API guidelines.
+		SetRetryCount(3).
+		AddRetryCondition(
+			func(r *resty.Response, _ error) bool {
+				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == 520
+			},
+		).
+		R().
 		SetContext(ctx).
 		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
