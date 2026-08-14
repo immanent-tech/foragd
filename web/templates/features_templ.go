@@ -1219,7 +1219,7 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.Heart(templ.Attributes{"class": "size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1227,7 +1227,7 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1235,7 +1235,7 @@ func FeaturesPageConsume() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

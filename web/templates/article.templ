@@ -94,8 +94,8 @@ templ (a *Article) markToggle() {
 				}
 				aria-label={ "Toggle mark status for " + a.GetTitle() }
 			/>
-			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"})
-			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"})
+			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
+			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
 		</label>
 	</div>
 }

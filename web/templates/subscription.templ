@@ -537,7 +537,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						<div class="join mt-2 w-full join-vertical items-center sm:join-horizontal">
 							<label class="input join-item w-full p-2 input-primary sm:w-2/3 sm:p-0">
 								<span class="label">
-									@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 text-primary"})
+									@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 stroke-primary"})
 								</span>
 								<input
 									id="add-subscription-search"
@@ -904,7 +904,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 										_="on htmx:afterRequest(successful) remove me"
 									>
 										<span class="hidden items-center group-[.htmx-request]:inline-flex">
-											<span class="loading mr-3 loading-md loading-spinner text-primary"></span>
+											<span class="loading mr-3 loading-spinner text-primary"></span>
 											Subscribing
 										</span>
 										<span class="inline-flex items-center group-[.htmx-request]:hidden">

@@ -1120,12 +1120,12 @@ templ FeaturesPageConsume() {
 						<div class="flex shrink-0 items-center">
 							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
 								<label class="btn btn-square btn-ghost btn-sm">
-									@tableroutline.Heart(templ.Attributes{"class": "size-5 text-primary"})
+									@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
 								</label>
 							</div>
 							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
 								<label class="btn btn-square btn-ghost btn-sm">
-									@tableroutline.MailOpened(templ.Attributes{"class": "size-5 text-primary"})
+									@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"})
 								</label>
 							</div>
 							<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
@@ -1133,7 +1133,7 @@ templ FeaturesPageConsume() {
 								<el-dropdown class="relative ml-auto touch-manipulation">
 									<button id="fake-actions-menu" class="btn btn-square btn-ghost btn-sm">
 										<span class="sr-only">Fake Actions</span>
-										@tableroutline.Menu2(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+										@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 									</button>
 									@partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")) {
 										@partials.MenuItem() {

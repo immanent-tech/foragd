@@ -1656,7 +1656,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": "sm:ml-1 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = tableroutline.Search(templ.Attributes{"class": "sm:ml-1 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2249,7 +2249,7 @@ func ShowFeedSuggestions(request *models.FeedSuggestionsResults) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "\" _=\"on htmx:afterRequest(successful) remove me\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-md loading-spinner text-primary\"></span> Subscribing</span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">Subscribe</span></button></form></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "\" _=\"on htmx:afterRequest(successful) remove me\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner text-primary\"></span> Subscribing</span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">Subscribe</span></button></form></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

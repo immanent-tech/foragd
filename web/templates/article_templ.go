@@ -206,11 +206,11 @@ func (a *Article) markToggle() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1021,7 +1021,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										"view": string(models.ViewAll),
 									}) }
 											>
-												@tableroutline.MailOpened(templ.Attributes{"class": "text-primary", "aria-hidden": "true"})
+												@tableroutline.MailOpened(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
 										</div>
 										// Mark all unread action.
@@ -1036,7 +1036,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										"view": string(models.ViewAll),
 									}) }
 											>
-												@tableroutline.Mail(templ.Attributes{"class": "text-primary", "aria-hidden": "true"})
+												@tableroutline.Mail(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
 										</div>
 									</div>
@@ -1102,7 +1102,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 													{ s.editAttributes("/user/settings#subscriptions")... }
 												>
 													<span class="sr-only">{ "Edit "+s.GetTitle() }</span>
-													@tableroutline.Edit(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+													@tableroutline.Edit(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 												</button>
 											</div>
 											// Unsubscribe action.
@@ -1112,7 +1112,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 													{ s.unsubscribeAttributes()... }
 												>
 													<span class="sr-only">{ "Unsubscribe from "+s.GetTitle() }</span>
-													@tableroutline.Trash(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
+													@tableroutline.Trash(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 												</button>
 											</div>
 										</div>

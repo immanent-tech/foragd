@@ -1010,7 +1010,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.MailOpened(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1060,7 +1060,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tableroutline.Mail(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1221,7 +1221,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = tableroutline.Edit(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = tableroutline.Edit(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1250,7 +1250,7 @@ func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = tableroutline.Trash(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = tableroutline.Trash(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
