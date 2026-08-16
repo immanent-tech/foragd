@@ -13,6 +13,7 @@
   ],
   "remoteEnv": {
     "PODMAN_COMPOSE_WARNING_LOGS": "false",
+    "DOCKER_SOCK": "/run/user/1000/podman/podman.sock",
     "TZ": "${localEnv:TZ:Australia/Brisbane}",
     "EDITOR": "micro",
     "BUILDX_BUILDER": "default-rootless"
