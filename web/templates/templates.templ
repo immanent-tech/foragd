@@ -224,6 +224,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				HistoryCacheSize: 0,
 				ScrollBehavior: "auto",
 				DisableInheritance: true,
+				RefreshOnHistoryMiss: true,
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
