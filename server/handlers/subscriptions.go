@@ -113,18 +113,34 @@ func HandleListSubscriptions() http.HandlerFunc {
 			err           error
 		)
 
-		// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+		// Handle history restore (i.e. back button navigation).
 		if htmx.IsHistoryRestoreRequest(req) {
+			// Remove any subscription filters.
 			request.Filters.Subscriptions = nil
-		}
-		// If there is an upto value, set count to that.
-		if upto, err := strconv.Atoi(req.FormValue("upto")); err != nil && upto > 0 {
-			request.Filters.Count = upto
+			// Retrieve and set the previous pagination/scroll point.
+			if prevPagination, err := session.Restore[models.Pagination](
+				req.Context(),
+				"listSubscriptionsPagination",
+			); err != nil {
+				slogctx.Warn(
+					req.Context(),
+					"Could not retrieve previous pagination details from session for history restore.",
+					slog.Any("error", err),
+				)
+			} else {
+				if upto, err := strconv.Atoi(prevPagination); err != nil {
+					slogctx.Warn(
+						req.Context(),
+						"Could not retrieve convert pagination to count.",
+						slog.Any("error", err),
+					)
+				} else {
+					request.Filters.Count = upto
+				}
+			}
 		}
 
 		// Get subscriptions matching filters.
-		var next models.Pagination
-
 		subscriptions, err = service.GetAllSubscriptions(req.Context())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
@@ -153,24 +169,23 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Apply all base filtering and sorting.
+		var next models.Pagination
 		subscriptions, next = subscriptions.
 			FilterByFavorites(request.Filters.OnlyFavorites).
 			FilterByView(request.Filters.GetView()).
 			FilterByCategories(request.Filters.GetCategories()...).
 			FilterByIDs(request.Filters.GetSubscriptions()...).
 			Sort(request.Filters.GetSort()).
-			Paginate(*request.Pagination, filters.GetCount())
-
-		request.Pagination = &next
+			Paginate(*request.Pagination, request.Filters.GetCount())
 
 		var latestItems *sync.Map
 		if len(subscriptions) > 0 {
-			latestItems = service.GetLatestItems(req.Context(), filters.GetView(), subscriptions)
+			latestItems = service.GetLatestItems(req.Context(), request.Filters.GetView(), subscriptions)
 		}
 
 		response := &models.ListSubscriptionsResponse{
 			Filters:        request.Filters,
-			Pagination:     *request.Pagination,
+			Pagination:     next,
 			Subscriptions:  subscriptions,
 			LatestArticles: latestItems,
 		}
@@ -211,8 +226,18 @@ func HandleListSubscriptions() http.HandlerFunc {
 						"/list/subscriptions/paginate",
 						&response.Filters,
 						response.Pagination,
+						element.WithHXSwapOOB("true"),
 					),
 				}).ServeHTTP(res, req.WithContext(ctx))
+			}
+			// Store the current pagination value in the session.
+			if err := session.SaveAndCommit(
+				req.Context(),
+				"listSubscriptionsPagination",
+				response.Pagination,
+			); err != nil {
+				slogctx.Warn(req.Context(), "Could not save current pagination value to session.",
+					slog.Any("error", err))
 			}
 		}
 	}).ServeHTTP

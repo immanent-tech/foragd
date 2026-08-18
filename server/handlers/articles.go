@@ -199,6 +199,7 @@ func HandleListArticles() http.HandlerFunc {
 						"/list/articles/paginate",
 						&response.Filters,
 						response.Pagination,
+						element.WithHXSwapOOB("true"),
 					),
 				}).ServeHTTP(res, req.WithContext(ctx))
 			}

@@ -28,7 +28,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var internalPageHandlerChain = alice.New(refreshOnHistoryRestore)
+var internalPageHandlerChain = alice.New()
 
 // setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.

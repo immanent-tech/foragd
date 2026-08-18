@@ -26,3 +26,21 @@ window.addEventListener('pageshow', (event) => {
     location.reload()
   }
 })
+
+// // Log all HTMX events
+// htmx.logAll()
+
+// // Or specific event debugging
+// document.body.addEventListener('htmx:afterSettle', function (e) {
+//   console.log('Request config:', e.detail)
+// })
+
+// // Visual event indicators
+// document.body.addEventListener('htmx:beforeRequest', function (e) {
+//   e.target.style.outline = '2px solid blue'
+// })
+
+// document.body.addEventListener('htmx:afterSwap', function (e) {
+//   e.target.style.outline = '2px solid green'
+//   setTimeout(() => (e.target.style.outline = ''), 1000)
+// })

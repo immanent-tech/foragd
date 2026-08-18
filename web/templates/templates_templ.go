@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/templx"
@@ -165,7 +166,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 150, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 151, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -189,7 +190,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			var templ_7745c5c3_Var3 templ.SafeURL
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(p.CanonicalLink))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 168, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 169, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -207,7 +208,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			var templ_7745c5c3_Var4 templ.SafeURL
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(config.GetBaseURL()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 170, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 171, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -230,7 +231,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var5 templ.SafeURL
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(feedURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 186, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 187, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -243,7 +244,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var6 templ.SafeURL
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs("/assets/" + assets.GetAssetPath(ctx, "styles.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 192, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 193, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -256,7 +257,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/assets/" + assets.GetAssetPath(ctx, "scripts.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 194, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 195, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
@@ -297,7 +298,6 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			GlobalViewTransitions:     new(false),
 			HistoryCacheSize:          0,
 			DisableInheritance:        new(true),
-			// RefreshOnHistoryMiss: true,
 		}))
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 226, Col: 5}
@@ -335,20 +335,28 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</title><script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": [\"SoftwareApplication\",\"WebApplication\"],\n  \"name\": \"Foragd\",\n  \"applicationCategory\": \"News & RSS Reader\",\n  \"operatingSystem\": \"Web\",\n  \"description\": \"Foragd is a web-based reader that combines RSS and Atom feeds, YouTube channels, subreddits and email newsletters into one searchable view, without ads or an algorithmic feed.\",\n  \"browserRequirements\": \"Requires JavaScript\",\n  \"offers\": {\n    \"@type\": \"AggregateOffer\",\n    \"priceCurrency\": \"USD\",\n    \"lowPrice\": \"7.00\",\n    \"highPrice\": \"59.00\",\n    \"offerCount\": 2,\n    \"offers\": [\n      {\n        \"@type\": \"Offer\",\n        \"name\": \"Monthly plan\",\n        \"price\": \"7.00\",\n        \"priceCurrency\": \"USD\",\n        \"priceSpecification\": {\n          \"@type\": \"UnitPriceSpecification\",\n          \"price\": \"7.00\",\n          \"priceCurrency\": \"USD\",\n          \"billingDuration\": \"P1M\"\n        },\n        \"url\": \"https://foragd.app/#pricing\"\n      },\n      {\n        \"@type\": \"Offer\",\n        \"name\": \"Annual plan\",\n        \"price\": \"59.00\",\n        \"priceCurrency\": \"USD\",\n        \"priceSpecification\": {\n          \"@type\": \"UnitPriceSpecification\",\n          \"price\": \"59.00\",\n          \"priceCurrency\": \"USD\",\n          \"billingDuration\": \"P1Y\"\n        },\n        \"url\": \"https://foragd.app/#pricing\"\n      }\n    ]\n  }\n}\n</script></head><body class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton every htmx:beforeSend in <button:not(.no-disable)/>\n\t\t\t\ttell it toggle [@disabled='true'] until htmx:afterOnLoad\n\t\t\tend\n\t\t\ton htmx:historyCacheError\n\t\t\t\tlog 'historyCacheError'\n\t\t\tend\n\t\t\ton htmx:historyCacheHit\n\t\t\t\tlog 'historyCacheHit'\n\t\t\tend\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\ton htmx:historyCacheMissLoadError\n\t\t\t\tlog 'historyCacheMissLoadError'\n\t\t\tend\n\t\t\ton htmx:historyCacheMissLoad\n\t\t\t\tlog 'historyCacheMissLoad'\n\t\t\tend\n\t\t\ton htmx:historyRestore\n\t\t\t\tlog 'historyRestore'\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</title>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.AppMetadataJSONLD().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<script>\n  if ('scrollRestoration' in history) {\n    history.scrollRestoration = 'manual';\n  }\n</script></head><body class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton every htmx:beforeSend in <button:not(.no-disable)/>\n\t\t\t\ttell it toggle [@disabled='true'] until htmx:afterOnLoad\n\t\t\tend\n\t\t\ton htmx:historyCacheError\n\t\t\t\tlog 'historyCacheError'\n\t\t\tend\n\t\t\ton htmx:historyCacheHit\n\t\t\t\tlog 'historyCacheHit'\n\t\t\tend\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\ton htmx:historyCacheMissLoadError\n\t\t\t\tlog 'historyCacheMissLoadError'\n\t\t\tend\n\t\t\ton htmx:historyCacheMissLoad\n\t\t\t\tlog 'historyCacheMissLoad'\n\t\t\tend\n\t\t\ton htmx:historyRestore\n\t\t\t\tlog 'historyRestore'\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 314, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 276, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -374,20 +382,20 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(NotificationsID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 321, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 283, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -416,20 +424,20 @@ func UpdateTitle(title PageTitle) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(title.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 328, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 290, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -296,25 +296,25 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters, categories: response.Subscriptions.GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@scrollRestore()
-		<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
-			@templ.Fragment(ContentFragment) {
-				@partials.PullToRefresh()
-				@buttonBackToTop()
-				@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
-					// Show a page header.
-					@pageHeading() {
-						@pageTitle("Subscriptions")
-					}
-					// List actions.
-					@controls.Show(nil, listSubscriptionsButtons(response))
-					<section id="subscriptions-list" class="ptr-content pt-4">
-						<div id="refreshing" class="group mx-auto flex w-full justify-center">
-							<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
-								<span class="loading mr-3 loading-xl loading-bars"></span>
-								<p class="text-lg/loose font-semibold">Refreshing...</p>
-							</div>
+		@templ.Fragment(ContentFragment) {
+			@partials.PullToRefresh()
+			@buttonBackToTop()
+			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
+				// Show a page header.
+				@pageHeading() {
+					@pageTitle("Subscriptions")
+				}
+				// List actions.
+				@controls.Show(nil, listSubscriptionsButtons(response))
+				<section id="subscriptions-list" class="ptr-content pt-4">
+					<div id="refreshing" class="group mx-auto flex w-full justify-center">
+						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
+							<span class="loading mr-3 loading-xl loading-bars"></span>
+							<p class="text-lg/loose font-semibold">Refreshing...</p>
 						</div>
-						if len(response.Subscriptions) > 0 {
+					</div>
+					if len(response.Subscriptions) > 0 {
+						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
 							@masonryGrid()
 							@grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
@@ -402,22 +402,22 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									</button>
 								</li>
 							</ul>
-						} else {
-							@partials.NoContent()
-						}
-					</section>
-				}
-				// Watch for updates.
-				<div
-					id="updates"
-					class="toast toast-center z-10"
-					hx-post="/list/subscriptions/updates"
-					hx-vals={ templ.JSONString(response.Filters.Values()) }
-					hx-trigger="every 5m"
-					hx-target="#updates"
-				></div>
+						</div>
+					} else {
+						@partials.NoContent()
+					}
+				</section>
 			}
-		</div>
+			// Watch for updates.
+			<div
+				id="updates"
+				class="toast toast-center z-10"
+				hx-post="/list/subscriptions/updates"
+				hx-vals={ templ.JSONString(response.Filters.Values()) }
+				hx-trigger="every 5m"
+				hx-target="#updates"
+			></div>
+		}
 	}
 }
 

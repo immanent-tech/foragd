@@ -46,6 +46,7 @@ behavior MasonryGrid
 
   def layout()
     set $_gridifying to true
+
     -- Read col count from computed grid-template-columns
     js(me)
       var computed = getComputedStyle(me)
@@ -159,9 +160,14 @@ behavior MasonryGrid
     end
     set my.style.height to `${Math.max(0, :tallest - :gap)}px`
     set $_gridifying to false
+
+    finally
+      send gridLayoutComplete
+      // add .content-auto to .card in me
   end
 
   def resetLayout()
+    // remove .content-auto from .card in me
     set :children to my.children
     set :i to 0
     repeat while :i < :children.length
@@ -227,29 +233,46 @@ templ scrollRestore() {
 	@scrollRestoreOnce.Once() {
 		<script type="text/hyperscript">
 behavior ScrollRestore(gridSelector, cardSelector, endpoint, storageKey)
+  def doRestore()
+    log 'performing restore'
+    js(gridSelector, cardSelector, endpoint, storageKey)
+      const y = sessionStorage.getItem(`${storageKey}-scroll`);
+      if (y) {
+        window.scrollTo(0, parseInt(y));
+      }
+    end
+  end
+
+  // normal load / reload: fresh document, but sessionStorage survives
+  // (sessionStorage is per-tab and persists across normal navigation/reload,
+  // it's only cleared when the tab closes)
+  init
+    js
+      const missFlag = sessionStorage.getItem('foragd-history-miss');
+      sessionStorage.removeItem('foragd-history-miss');
+      const nav = performance.getEntriesByType('navigation')[0];
+      return !!missFlag || (nav && nav.type === 'back_forward');
+    end
+    if it
+      log 'back button restoration'
+      call doRestore()
+    end
+  end
+
+  // bfcache restore: browser reused the in-memory page, JS state intact
+  on pageshow from window
+    if event.persisted
+      call doRestore()
+    end
+  end
+
+
+  // store scroll position peridorically
   on scroll from window debounced at 200ms
   	js(storageKey)
       sessionStorage.setItem(`${storageKey}-scroll`, window.scrollY)
     end
-  on pageshow from window
-  	js(gridSelector,cardSelector,endpoint,storageKey)
-      // Ignore if we aren't restoring.
-      if (!event.persisted) return;
-  		const n = sessionStorage.getItem(`${storageKey}-count`);
-  		const y = sessionStorage.getItem(`${storageKey}-scroll`);
-  		if (n && parseInt(n) > document.querySelectorAll(`${gridSelector} ${cardSelector}`).length) {
-        console.log(`${endpoint}?upto=${n}`)
-  			htmx.ajax('GET', `${endpoint}?upto=${n}` + n, {target: gridSelector, swap: 'innerHTML transition:true'})
-  				.then(() => { if (y) window.scrollTo(0, parseInt(y)); });
-  		} else if (y) {
-        console.log(`scroll:${y}`)
-    		window.scrollTo(0, parseInt(y));
-  		}
-  	end
-  on htmx:afterSettle from body
-  	js(gridSelector,cardSelector,storageKey)
-      sessionStorage.setItem(`${storageKey}-count`, document.querySelectorAll(`${gridSelector} ${cardSelector}`).length)
-    end
+  end
 end
   </script>
 	}
