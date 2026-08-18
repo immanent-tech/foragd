@@ -203,7 +203,6 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<meta
 				name="htmx-config"
 				content={ templ.JSONString(htmx.Config{
-				AllowNestedOOBSwaps: false,
 				ResponseHandling: []*htmx.ResponseHandling{
 					// Don't swap on no content.
 					{Code: "204",Swap: false},
@@ -218,13 +217,12 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				},
 				InlineStyleNonce: templ.GetNonce(ctx),
 				InlineScriptNonce: templ.GetNonce(ctx),
-				IncludeIndicatorStyles: false,
-				HistoryRestoreAsHxRequest: false,
-				GlobalViewTransitions: false,
+				IncludeIndicatorStyles: new(false),
+				HistoryRestoreAsHxRequest: new(false),
+				GlobalViewTransitions: new(false),
 				HistoryCacheSize: 0,
-				ScrollBehavior: "auto",
-				DisableInheritance: true,
-				RefreshOnHistoryMiss: true,
+				DisableInheritance: new(true),
+				// RefreshOnHistoryMiss: true,
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
@@ -287,6 +285,25 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			_="
 			on every htmx:beforeSend in <button:not(.no-disable)/>
 				tell it toggle [@disabled='true'] until htmx:afterOnLoad
+			end
+			on htmx:historyCacheError
+				log 'historyCacheError'
+			end
+			on htmx:historyCacheHit
+				log 'historyCacheHit'
+			end
+			on htmx:historyCacheMiss
+				log 'historyCacheMiss'
+				js sessionStorage.setItem('foragd-history-miss', '1') end
+			end
+			on htmx:historyCacheMissLoadError
+				log 'historyCacheMissLoadError'
+			end
+			on htmx:historyCacheMissLoad
+				log 'historyCacheMissLoad'
+			end
+			on htmx:historyRestore
+				log 'historyRestore'
 			end
 			"
 		>
