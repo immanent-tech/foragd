@@ -7,8 +7,9 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 
 templ Card(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
+	//  [contain-intrinsic-size:350px] content-auto
 	<div
-		class={ "card bg-base-200 border border-neutral/20 transition-shadow transition-opacity duration-250 ease-in-out hover:shadow-lg [&.htmx-swapping]:opacity-0 content-auto [contain-intrinsic-size:350px]", props.Classes() }
+		class={ "card bg-base-200 border border-neutral/20 transition-shadow transition-opacity duration-250 ease-in-out hover:shadow-lg [&.htmx-swapping]:opacity-0", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }

@@ -36,7 +36,7 @@ func Card(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"card bg-base-200 border border-neutral/20 transition-shadow transition-opacity duration-250 ease-in-out hover:shadow-lg [&.htmx-swapping]:opacity-0 content-auto [contain-intrinsic-size:350px]", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"card bg-base-200 border border-neutral/20 transition-shadow transition-opacity duration-250 ease-in-out hover:shadow-lg [&.htmx-swapping]:opacity-0", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
