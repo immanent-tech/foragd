@@ -473,7 +473,7 @@ templ AccountSettings(user *models.User) {
 							<button
 								hx-post="/user/settings/subscriptionemail"
 								hx-target="#subscription-email"
-								hx-swap="innerHTML transition:true"
+								hx-swap="morph:innerHTML transition:true"
 								class="group btn btn-primary"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">

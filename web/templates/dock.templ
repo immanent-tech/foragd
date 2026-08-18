@@ -24,7 +24,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:top transition:true"
+			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home")) }
 		>
@@ -45,7 +45,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
-			hx-swap="innerHTML show:top transition:true"
+			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 		>
@@ -64,7 +64,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-swap="innerHTML show:top transition:true"
+			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
 			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/view/article")) }
@@ -86,7 +86,7 @@ templ Dock(options ...element.PropertiesOption) {
 		<a
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:top transition:true"
+			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/favorites")) }
 		>
@@ -104,7 +104,7 @@ templ Dock(options ...element.PropertiesOption) {
 		<a
 			hx-get="/subscription/add"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:top transition:true"
+			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
 		>

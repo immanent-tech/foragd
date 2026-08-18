@@ -490,7 +490,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 						}
 					}
 					timeLeft = userSubscription.CurrentPeriodEnd
-					res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
+					res.Header().Set(htmx.HeaderReswap, "morph:innerHTML transition:true")
 					res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
 					RenderPartial(&PartialTemplate{
 						template: templates.DeactivateResult(user, timeLeft),

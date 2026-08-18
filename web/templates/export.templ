@@ -29,7 +29,7 @@ templ ExportSubscriptions() {
 							class="btn btn-secondary hover:btn-error"
 							hx-get={ FromPathFromCtx(ctx) }
 							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML transition:true"
+							hx-swap="morph:innerHTML transition:true"
 							hx-push-url="true"
 						>
 							Back

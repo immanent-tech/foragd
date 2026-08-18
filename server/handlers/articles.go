@@ -299,7 +299,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, route),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
 				element.WithHXValues(articleFilters.Values()),
 			)}).ServeHTTP(res, req)
@@ -583,13 +583,13 @@ func MarkArticles() http.HandlerFunc {
 			err = setRedirect(res, htmx.HXLocationRequest{
 				Path:   RouteHome,
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML show:top transition:true",
+				Swap:   "morph:innerHTML show:top transition:true",
 			})
 		} else {
 			err = setRedirect(res, htmx.HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML show:top transition:true",
+				Swap:   "morph:innerHTML show:top transition:true",
 			})
 		}
 		if err != nil {

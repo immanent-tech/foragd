@@ -328,7 +328,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
 				element.WithHXValues(filters.Values()),
 			)}).ServeHTTP(res, req)
@@ -366,7 +366,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 				if err := setRedirect(res, htmx.HXLocationRequest{
 					Path:   "/list/subscriptions",
 					Target: templates.ContentID.Target(),
-					Swap:   "innerHTML transition:true show:top",
+					Swap:   "morph:innerHTML transition:true show:top",
 					Values: getListSubscriptionsFilters(req).Values(),
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))

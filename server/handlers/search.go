@@ -467,7 +467,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/search"),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("innerHTML scroll:top transition:true"),
+				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
 				element.WithHXValues(request.Values()),
 			)}).ServeHTTP(res, req)

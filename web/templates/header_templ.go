@@ -131,7 +131,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"morph:innerHTML show:top transition:true\" class=\"flex shrink link link-hover\" aria-label=\"Foragd home\"><div class=\"flex shrink-0 items-center justify-center p-2 sm:w-36 sm:flex-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -275,7 +275,7 @@ func HeaderInternal(props *InternalLayoutProps) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" hx-swap=\"innerHTML transition:true\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" hx-swap=\"morph:innerHTML transition:true\" hx-replace-url=\"true\"><div class=\"flex flex-1 items-center gap-x-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

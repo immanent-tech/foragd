@@ -274,7 +274,7 @@ templ PurchaseSubscriptionSuccess(transactionID string) {
 						class="btn btn-primary"
 						hx-get="/home"
 						hx-target={ ContentID.Target() }
-						hx-swap="innerHTML transition:true"
+						hx-swap="morph:innerHTML transition:true"
 						hx-trigger="load delay:10s"
 					>Go Home</a>
 				</div>

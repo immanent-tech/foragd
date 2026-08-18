@@ -4,6 +4,7 @@
 // htmx
 import htmx from 'htmx.org/dist/htmx.esm'
 window.htmx = htmx
+import 'idiomorph/htmx'
 
 // hyperscript
 import 'hyperscript.org'

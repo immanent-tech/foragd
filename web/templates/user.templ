@@ -189,7 +189,7 @@ templ DeactivateResult(user *models.User, timeLeft *time.Time) {
 					class="btn btn-primary"
 					hx-get="/home"
 					hx-target={ ContentID.Target() }
-					hx-swap="innerHTML transition:true"
+					hx-swap="morph:innerHTML transition:true"
 					hx-trigger="load delay:10s"
 				>Go Home</a>
 			</div>
@@ -222,7 +222,7 @@ templ Unsubscribe(token string) {
 					class="btn btn-primary hover:btn-success"
 					hx-post={ "/unsubscribe/" + token }
 					hx-target="#unsubscribe"
-					hx-swap="innerHTML transition:true"
+					hx-swap="morph:innerHTML transition:true"
 				>
 					Unsubscribe
 				</button>

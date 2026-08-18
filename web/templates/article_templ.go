@@ -1146,7 +1146,7 @@ func ArticleCard(idx int, a *models.Article) templ.Component {
 				"group", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 			element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 			element.WithHXTarget(ContentID.Target()),
-			element.WithHXSwap("innerHTML show:top transition:true"),
+			element.WithHXSwap("morph:innerHTML show:top transition:true"),
 			element.WithHXTrigger("click"),
 			element.WithHXPushURL(true),
 			element.WithHXIndicator("this"),
@@ -1286,7 +1286,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "\" hx-swap=\"innerHTML show:top transition:true\" hx-vals=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-vals=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1830,7 +1830,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "\" hx-swap=\"innerHTML transition:true show:top\" hx-vals=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "\" hx-swap=\"morph:innerHTML transition:true show:top\" hx-vals=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1895,7 +1895,7 @@ func showNextPrevActions(resp *models.ShowArticleResponse) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "\" hx-swap=\"innerHTML transition:true show:top\" hx-vals=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "\" hx-swap=\"morph:innerHTML transition:true show:top\" hx-vals=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -131,7 +131,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						hx-post="/viewer"
 						hx-push-url="true"
 						hx-target="#viewer-results"
-						hx-swap="innerHTML"
+						hx-swap="morph:innerHTML"
 						_="on htmx:beforeRequest set the innerHTML of #viewer-results to ''"
 						class="group"
 					>

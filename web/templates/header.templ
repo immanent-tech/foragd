@@ -127,7 +127,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 			<a
 				hx-get="/home"
 				hx-target={ ContentID.Target() }
-				hx-swap="innerHTML show:top transition:true"
+				hx-swap="morph:innerHTML show:top transition:true"
 				class="flex shrink link link-hover"
 				aria-label="Foragd home"
 			>
@@ -192,7 +192,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 								<a
 									hx-get="/docs"
 									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML transition:true"
+									hx-swap="morph:innerHTML transition:true"
 									hx-replace-url="true"
 								>
 									<div class="flex flex-1 items-center gap-x-2">

@@ -339,7 +339,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																			<a
 																				hx-get={ "/view/article/" + item.GetID() }
 																				hx-target={ ContentID.Target() }
-																				hx-swap="innerHTML show:top transition:true"
+																				hx-swap="morph:innerHTML show:top transition:true"
 																				hx-trigger="click"
 																				hx-push-url="true"
 																				_="on click halt the event's bubbling"
@@ -694,7 +694,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									<button
 										hx-post="/user/settings/subscriptionemail"
 										hx-target="#subscription-email"
-										hx-swap="innerHTML transition:true"
+										hx-swap="morph:innerHTML transition:true"
 										class="btn btn-primary"
 									>
 										<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -837,7 +837,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					class="btn btn-secondary hover:btn-error"
 					hx-get={ FromPathFromCtx(ctx) }
 					hx-target={ ContentID.Target() }
-					hx-swap="innerHTML transition:true"
+					hx-swap="morph:innerHTML transition:true"
 					hx-push-url="true"
 				>
 					Back
@@ -1189,7 +1189,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 								class="btn btn-secondary hover:btn-error"
 								hx-get={ FromPathFromCtx(ctx) }
 								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML transition:true"
+								hx-swap="morph:innerHTML transition:true"
 								hx-push-url="true"
 							>
 								Back
@@ -1375,7 +1375,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								class="btn btn-secondary hover:btn-error"
 								hx-get={ FromPathFromCtx(ctx) }
 								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML transition:true"
+								hx-swap="morph:innerHTML transition:true"
 								hx-push-url="true"
 							>
 								Back
@@ -1487,7 +1487,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 							class="btn btn-secondary hover:btn-error"
 							hx-get={ FromPathFromCtx(ctx) }
 							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML transition:true"
+							hx-swap="morph:innerHTML transition:true"
 							hx-push-url="true"
 						>
 							Back
@@ -1583,7 +1583,7 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:top transition:true"
+	attrs["hx-swap"] = "morph:innerHTML show:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {

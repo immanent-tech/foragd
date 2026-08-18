@@ -461,7 +461,7 @@ func categoryOption(path string, category models.Category, filters models.ListFi
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-replace-url=\"true\" hx-swap=\"innerHTML transition:true\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-replace-url=\"true\" hx-swap=\"morph:innerHTML transition:true\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -576,7 +576,7 @@ func clearCategoryFiltersOption(path string, filters models.ListFilters) templ.C
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" hx-replace-url=\"true\" hx-swap=\"innerHTML transition:true\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" hx-replace-url=\"true\" hx-swap=\"morph:innerHTML transition:true\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -243,6 +243,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 </script>
 		</head>
 		<body
+			hx-ext="morph"
 			class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased"
 			_="
 			on every htmx:beforeSend in <button:not(.no-disable)/>

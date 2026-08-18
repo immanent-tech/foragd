@@ -263,7 +263,7 @@ templ ArticleCard(idx int, a *models.Article) {
 			"group", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
-		element.WithHXSwap("innerHTML show:top transition:true"),
+		element.WithHXSwap("morph:innerHTML show:top transition:true"),
 		element.WithHXTrigger("click"),
 		element.WithHXPushURL(true),
 		element.WithHXIndicator("this"),
@@ -443,7 +443,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML show:top transition:true"
+							hx-swap="morph:innerHTML show:top transition:true"
 							hx-vals={ templ.JSONString(map[string]any{
 									"view": filters.GetView(),
 									"count": filters.GetCount(),
@@ -661,7 +661,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				class="btn btn-square btn-ghost"
 				hx-get={ "/view/article/" + resp.Article.GetID() + "/prev" }
 				hx-target={ ContentID.Target() }
-				hx-swap="innerHTML transition:true show:top"
+				hx-swap="morph:innerHTML transition:true show:top"
 				hx-vals={ templ.JSONString(vals) }
 				hx-push-url={ "/view/article/" + resp.Article.GetID() }
 			>
@@ -675,7 +675,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				class="btn btn-square btn-ghost"
 				hx-get={ "/view/article/" + resp.Article.GetID() + "/next" }
 				hx-target={ ContentID.Target() }
-				hx-swap="innerHTML transition:true show:top"
+				hx-swap="morph:innerHTML transition:true show:top"
 				hx-vals={ templ.JSONString(vals) }
 				hx-push-url={ "/view/article/" + resp.Article.GetID() }
 			>
