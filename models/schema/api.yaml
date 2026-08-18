@@ -60,6 +60,7 @@ components:
           $ref: 'models.yaml#/components/schemas/URL'
           x-oapi-codegen-extra-tags:
             validate: 'required,url'
+            form: 'url'
         feed_id:
           $ref: 'models.yaml#/components/schemas/FeedID'
     FeedSubscriptionRequest:

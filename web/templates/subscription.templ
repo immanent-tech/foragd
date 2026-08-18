@@ -892,7 +892,7 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 								{ feed.GetTitle() }
 							</h2>
 							<div class="ml-4 shrink-0">
-								<form hx-encoding="multipart/form-data">
+								<form>
 									<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
 									<input type="hidden" name="feed_id" value={ feed.GetID() }/>
 									<button
@@ -900,6 +900,8 @@ templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
 										class="group btn btn-primary"
 										hx-post="/subscription/add/feed"
 										hx-swap="none"
+										hx-disabled-elt="this"
+										hx-encoding="multipart/form-data"
 										data-suggestionid={ "#suggestion-" + feed.GetID() }
 										_="on htmx:afterRequest(successful) remove me"
 									>

@@ -85,7 +85,7 @@ type AddCategoryToSubscriptionRequest struct {
 // AddFeedSubscriptionRequest contains request data for adding a new feed subscription.
 type AddFeedSubscriptionRequest struct {
 	// URL is a URL.
-	URL URL `json:"URL" validate:"required,url"`
+	URL URL `form:"url" json:"URL" validate:"required,url"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
