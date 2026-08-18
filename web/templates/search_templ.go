@@ -1242,7 +1242,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content\" _=\"on change set #global-search's value to my value\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" class=\"textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content\" _=\"bind my value to #global-search's value\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

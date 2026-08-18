@@ -606,7 +606,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				name="text"
 				placeholder={ `+keyword -"some phrase"` }
 				class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-200 brightness-95 textarea-sm textarea-primary text-base-content"
-				_="on change set #global-search's value to my value"
+				_="bind my value to #global-search's value"
 			>
 				if request.Text != "" {
 					{ request.Text }
