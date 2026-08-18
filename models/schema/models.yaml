@@ -197,7 +197,7 @@ components:
       default: '10'
       x-oapi-codegen-extra-tags:
         form: 'count'
-        validate: 'gt=0,lt=20'
+        validate: 'gt=0'
     View:
       description: >
         The state of objects to view.

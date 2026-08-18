@@ -853,7 +853,7 @@ type ListFilters struct {
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"gt=0,lt=20"`
+	Count Count `form:"count" json:"count" validate:"gt=0"`
 
 	// OnlyFavorites indicates whether to filter by favorites only.
 	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`

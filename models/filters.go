@@ -26,8 +26,6 @@ var ErrNoFilters = &APIError{
 }
 
 const (
-	// maxUserCount is the maximum number of results a user can retrieve at a single time.
-	maxUserCount = 12
 	// minUserCount is the minimum number of results a user can retrieve at a single time.
 	minUserCount = 1
 	// defaultCount is to show 9 objects.
@@ -180,7 +178,7 @@ func setValidSort(value Sort) Sort {
 // represents. If the value is not a valid Count, the default Count is
 // returned.
 func setValidCount(value Count) Count {
-	if value < minUserCount || value > maxUserCount {
+	if value < minUserCount {
 		return defaultCount
 	}
 	return value
