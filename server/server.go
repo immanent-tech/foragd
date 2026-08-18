@@ -60,9 +60,13 @@ func Start() error {
 		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
+	// Set up assets storage.
 	if err := assets.New(web.StaticContentFS, "content"); err != nil {
 		return fmt.Errorf("load assets: %w", err)
 	}
+
+	// Load the session manager.
+	sessionManager := session.Load()
 
 	// Set up OpenTelemetry if specified in the config.
 	if cfg.EnableOTEL {
@@ -176,7 +180,7 @@ func Start() error {
 		// Sign-up/Login routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
-				session.LoadAndSave,
+				sessionManager.LoadAndSave,
 				htmx.SetupHTMX,
 			)
 			r.Get("/signup", handlers.HandleLogin)
@@ -189,7 +193,7 @@ func Start() error {
 		// Web payment routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
-				session.LoadAndSave,
+				sessionManager.LoadAndSave,
 				htmx.SetupHTMX,
 				middlewares.ExtractUserFromSession,
 			)
@@ -208,7 +212,7 @@ func Start() error {
 	router.Group(func(r chi.Router) {
 		r.Use(
 			htmx.SetupHTMX,
-			session.LoadAndSave,
+			sessionManager.LoadAndSave,
 			middlewares.ExtractUserFromSession,
 			middlewares.RequireValidUser,
 			// middlewares.PushCriticalAssets,
