@@ -106,7 +106,7 @@ templ (a *Article) shareButton() {
 	// Mobile share action via navigator API.
 	<a
 		role="button"
-		class="hidden items-center gap-1 rounded-field border border-neutral/15 text-sm"
+		class="hidden btn btn-outline border-neutral/15"
 		data-title={ a.GetTitle() }
 		data-url={ a.GetLink() }
 		_="init if navigator.share remove .hidden from me end
@@ -115,18 +115,25 @@ templ (a *Article) shareButton() {
 		      navigator.share({ title: me.dataset.title, url: me.dataset.url })
 		   end"
 	>
-		@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-		<span class="text-sm/6">Share</span>
+		<div class="inline-flex items-center gap-1">
+			@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+			<span class="text-sm/6">Share</span>
+		</div>
 	</a>
 	// Desktop share action with modal and options.
 	<a
 		role="button"
-		class="hidden items-center gap-1 rounded-field border border-neutral/15 text-sm"
+		class="hidden btn btn-outline border-neutral/15"
 		_="init if not navigator.share remove .hidden from me"
-		{ a.desktopShareAttributes()... }
+		hx-post={ "/share/article/" + a.GetID() }
+		hx-target={ ModalContainerID.Target() }
+		hx-trigger="click consume"
+		hx-vals={ templ.JSONString(map[string]string{"item_id": a.GetID(), "title": a.GetTitle(), "link": a.GetLink()}) }
 	>
-		@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-		<span class="text-sm/6">Share</span>
+		<div class="inline-flex items-center gap-1">
+			@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+			<span class="text-sm/6">Share</span>
+		</div>
 	</a>
 }
 
@@ -134,31 +141,32 @@ templ (a *Article) shareButton() {
 templ (a *Article) viewOriginalButton() {
 	<a
 		role="button"
-		class="items-center gap-1 rounded-field border border-neutral/15 text-sm"
+		class="btn btn-outline border-neutral/15"
 		href={ a.GetLink() }
 		target="_blank"
 		rel="noopener"
 		_="on click halt the event's bubbling"
 	>
-		@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-		<span class="text-sm/6">View Remote</span>
+		<div class="inline-flex items-center gap-1">
+			@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+			<span class="text-sm/6">View Remote</span>
+		</div>
 	</a>
 }
 
 // showRemoteContentButton renders a button to show the remote content.
 templ (a *Article) showRemoteContentButton() {
-	<a
+	<button
 		role="button"
 		id="show-remote-content-button"
-		class="group rounded-field border border-neutral/15 text-sm"
-		_="
-	    on htmx:beforeRequest from me
-    	  set my.disabled to true
-    	on htmx:afterRequest from me
-      		set my.disabled to false
-		on htmx:afterRequest(failed) add @disabled to me
-		"
-		{ a.showContentAttributes(true)... }
+		class="group btn btn-outline border-neutral/15"
+		hx-get={ "/view/article/" + a.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-swap="morph:innerHTML transition:true show:top"
+		hx-trigger="click consume"
+		hx-replace-url={ "/view/article/" + a.GetID() + "show_full_content=true" }
+		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
+		hx-disabled-elt="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
@@ -168,7 +176,7 @@ templ (a *Article) showRemoteContentButton() {
 			@tableroutline.Download(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
 			<span class="text-sm/6">Get Remote Content</span>
 		</span>
-	</a>
+	</button>
 }
 
 // showFeedContentButton renders a button to show the feed content.
@@ -176,14 +184,14 @@ templ (a *Article) showFeedContentButton() {
 	<a
 		role="button"
 		id="show-feed-content-button"
-		class="group rounded-field border border-neutral/15 text-sm"
-		_="
-	    on htmx:beforeRequest from me
-    	  set my.disabled to true
-    	on htmx:afterRequest from me
-      		set my.disabled to false
-		"
-		{ a.showContentAttributes(false)... }
+		class="group btn btn-outline border-neutral/15"
+		hx-get={ "/view/article/" + a.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-swap="morph:innerHTML transition:true show:top"
+		hx-trigger="click consume"
+		hx-replace-url={ "/view/article/" + a.GetID() + "show_full_content=false" }
+		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
+		hx-disabled-elt="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-xs loading-spinner"></span>
@@ -207,7 +215,7 @@ templ (a *Article) actionsMenu() {
 			@partials.Menu(element.WithAttribute("aria-labelledby", a.GetID()+"-actions-menu")) {
 				// View original article action.
 				@partials.MenuItem() {
-					<a { a.viewOriginalAttributes()... }>
+					<a href={ a.GetLink() } rel="noopener" target="_blank" _="on click halt the event's bubbling">
 						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Go To Article</span>
 					</a>
@@ -237,7 +245,12 @@ templ (a *Article) actionsMenu() {
 				}
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
-					<a { a.desktopShareAttributes()... }>
+					<a
+						hx-post={ "/share/article/" + a.GetID() }
+						hx-target={ ModalContainerID.Target() }
+						hx-trigger="click consume"
+						hx-vals={ templ.JSONString(map[string]string{"item_id": a.GetID(), "title": a.GetTitle(), "link": a.GetLink()}) }
+					>
 						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
 					</a>

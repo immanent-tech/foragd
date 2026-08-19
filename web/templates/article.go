@@ -4,9 +4,7 @@
 package templates
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/a-h/templ"
 
@@ -51,61 +49,14 @@ func (a *Article) favoriteAttributes() templ.Attributes {
 	).GetAttributes()
 }
 
-// showContentAttributes are the htmx attributes for showing either the feed or remote article content.
-func (a *Article) showContentAttributes(value bool) templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodGet, "/view/article/"+a.GetID()),
-		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("innerHTML transition:true show:top"),
-		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXReplaceURL("/view/article/"+a.GetID()+"show_full_content="+strconv.FormatBool(value)),
-		htmx.WithHXVals(map[string]any{"show_full_content": value, "from": "/list/articles"}),
-	).GetAttributes()
-}
-
-// viewOriginalAttributes are the attributes for viewing the original (remote) article.
-func (a *Article) viewOriginalAttributes() templ.Attributes {
-	return templ.Attributes{
-		"href":   a.GetLink(),
-		"target": "_blank",
-		"rel":    "noopener",
-		"_":      "on click halt the event's bubbling",
-	}
-}
-
 // findSimilarAttributes are the htmx attributes for finding similar articles to this one.
 func (a *Article) findSimilarAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/view/article/"+a.GetID()+"/similar"),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("innerHTML transition:true"),
+		htmx.WithHXSwap("morph:innerHTML transition:true"),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(map[string]any{"from": "/list/articles"}),
-	).GetAttributes()
-}
-
-// mobileShareAttributes are the attributes for sharing an article via the navigator API on mobile.
-func (a *Article) mobileShareAttributes() templ.Attributes {
-	return templ.Attributes{
-		"_": "on click " + fmt.Sprintf(
-			"navigator.share({title: %q, url: %q})",
-			a.GetTitle(),
-			a.GetLink(),
-		) + "then halt the event's bubbling",
-	}
-}
-
-// desktopShareAttributes are the htmx attributes for sharing an article via a modal on desktop.
-func (a *Article) desktopShareAttributes() templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodPost, "/share/article/"+a.GetID()),
-		htmx.WithHXTarget(ModalContainerID.Target()),
-		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXVals(map[string]string{
-			"item_id": a.GetID(),
-			"title":   a.GetTitle(),
-			"link":    a.GetLink(),
-		}),
 	).GetAttributes()
 }
 
