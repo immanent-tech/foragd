@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.218.0](https://github.com/immanent-tech/foragd/compare/v0.217.0...v0.218.0) (2026-08-19)
+
+
+### Features
+
+* ✨ basic pagination and scroll restoration on subscriptions list when navigating back ([f695fa9](https://github.com/immanent-tech/foragd/commit/f695fa9f3c8253bc22cb93998920e7cbc9d1dd1f))
+* **templates:** ♻️ use idiomorph htmx extension for innerHTML swaps ([1283b81](https://github.com/immanent-tech/foragd/commit/1283b81ef638ff4a644131e8d137cb5512b28959))
+
+
+### Bug Fixes
+
+* **subscriptions:** 🔧 fix form parsing for adding new subscriptions ([09adf3d](https://github.com/immanent-tech/foragd/commit/09adf3d3f8b85c6747dfb0af6c2a738df3afdc24))
+* **templates/search:** 🔧 bind search and advanced search text fields ([eaad55f](https://github.com/immanent-tech/foragd/commit/eaad55f7887ec37cf5fcd5d9f4f095080955c1ed))
+
+
+### Performance Improvements
+
+* **models:** ⚡ allow larger counts for scroll restoration ([b4d783b](https://github.com/immanent-tech/foragd/commit/b4d783b1631cf12d82696d6c9798a346676d9a46))
+* **templates:** ⚡ always refresh on history miss ([e5579e0](https://github.com/immanent-tech/foragd/commit/e5579e06b49ad3b07951440e10ff3f92de16d466))
+* **templates:** ⚡ remove content-auto css classes that interfere with masonry grid layout for large number of cards ([f84769a](https://github.com/immanent-tech/foragd/commit/f84769ab9ad1cb318f4a1407fde0adc135616e91))
+* **zyte:** ⚡ set retry conditions, retry backoff and request timeouts for zyte requests ([fc36c9d](https://github.com/immanent-tech/foragd/commit/fc36c9d73be7c5a10420a89a9b862ec2dee8084f))
+
 ## [0.217.0](https://github.com/immanent-tech/foragd/compare/v0.216.1...v0.217.0) (2026-08-13)
 
 
