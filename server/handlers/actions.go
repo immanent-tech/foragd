@@ -19,7 +19,7 @@ import (
 
 // GetSubscriptionActionSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionActionSuggestions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
 		text := validation.SanitizeString(req.FormValue("command-text"))
 		subscriptions, err := service.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
@@ -37,5 +37,5 @@ func GetSubscriptionActionSuggestions() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.ActionSuggestionSubscriptions(subscriptions),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }

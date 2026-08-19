@@ -129,8 +129,6 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	// Save profile to session.
 	session.Save(req.Context(), "profile", profile)
 
-	// loginChain := alice.New()
-
 	var user *models.User
 	user, err = service.GetUserByExternalID(req.Context(), profile.GetID())
 	switch {

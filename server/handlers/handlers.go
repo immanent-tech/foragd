@@ -10,9 +10,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
-
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
@@ -28,8 +25,6 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var internalPageHandlerChain = alice.New()
-
 // setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.
 //
@@ -41,17 +36,6 @@ func setRedirect(res http.ResponseWriter, request htmx.HXLocationRequest) error 
 	}
 	res.Header().Set(htmx.HeaderLocation, string(requestJSON))
 	return nil
-}
-
-// refreshOnHistoryRestore will trigger a full client-side refresh on a HTMX history restore request.
-func refreshOnHistoryRestore(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if htmx.IsHistoryRestoreRequest(req) {
-			slogctx.FromCtx(req.Context()).Debug("Is history restore")
-			res.Header().Set(htmx.HeaderRefresh, "true")
-		}
-		next.ServeHTTP(res, req)
-	})
 }
 
 func parseForm[T forms.FormInput](req *http.Request) (T, error) {

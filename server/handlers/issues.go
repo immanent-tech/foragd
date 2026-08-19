@@ -50,7 +50,7 @@ func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
 func HandleReportIssue() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -72,12 +72,12 @@ func HandleReportIssue() http.HandlerFunc {
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
 			),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleSubmitIssue handles processing the user submitted subscription issues form.
 func HandleSubmitIssue() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
 		if err != nil {
@@ -159,7 +159,7 @@ func HandleSubmitIssue() http.HandlerFunc {
 				"We will look into it and implement fixes as appropriate.",
 			),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // processScreenshots handles processing an uploaded screenshot file, storing in the server cache and generating a

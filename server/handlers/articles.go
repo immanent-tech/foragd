@@ -64,7 +64,7 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
 func HandleListArticles() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -205,12 +205,12 @@ func HandleListArticles() http.HandlerFunc {
 			}
 
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
 func HandleListArticlesUpdates() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Parse and process articleFilters.
 		articleFilters := getListArticleFilters(req)
 
@@ -306,7 +306,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
-	}).ServeHTTP
+	}
 }
 
 type SimilarArticles struct {
@@ -334,7 +334,7 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
 func HandleFindSimilarArticles() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// TODO: wrap id and count in a request object.
 		const similarArticlesCount = 15
 		// Extract request parameters.
@@ -361,7 +361,7 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 			},
 			template: templates.SimilarArticles(articles),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // ArticleContent contains the data to view article content.
@@ -388,7 +388,7 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 
 // HandleViewArticle handles showing an article's content.
 func HandleViewArticle() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
@@ -469,7 +469,7 @@ func HandleViewArticle() http.HandlerFunc {
 				// Filters: filters,
 			}),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 func HandleNextArticle() http.HandlerFunc {
@@ -531,7 +531,7 @@ func HandleNextArticle() http.HandlerFunc {
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.MarkArticleRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -558,12 +558,12 @@ func MarkArticle() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 // MarkArticles handles marking multiple articles as read/unread and updating the UI appropriately.
 func MarkArticles() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, err := parseForm[*models.MarkArticlesRequest](req)
 		if err != nil {
@@ -601,7 +601,7 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 func markArticles(
@@ -633,7 +633,7 @@ func markArticles(
 
 // FavoriteArticle handles adding an article favorite.
 func FavoriteArticle() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.FavoriteArticleRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -661,12 +661,12 @@ func FavoriteArticle() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 // ShareArticle handles sharing an article.
 func ShareArticle() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.ShareArticleRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -675,7 +675,7 @@ func ShareArticle() http.HandlerFunc {
 		RenderPartial(&Modal{
 			template: templates.ShareArticleModal(request),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // archiveArticle will index the given article content to the article archive for permanent storage.

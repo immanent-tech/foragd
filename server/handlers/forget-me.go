@@ -12,7 +12,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
-	"github.com/justinas/alice"
 
 	"github.com/immanent-tech/go-base/config"
 
@@ -65,7 +64,7 @@ func HandleForgetMe() http.HandlerFunc {
 }
 
 func HandleSubmitForgetMe() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		contact, err := mail.ParseAddress(req.FormValue("contact_email"))
 		if err != nil {
 			HandleExternalError(&models.APIError{
@@ -111,5 +110,5 @@ func HandleSubmitForgetMe() http.HandlerFunc {
 				"We will reply via email to confirm and then once the request is complete.",
 			),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }

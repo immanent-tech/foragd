@@ -17,7 +17,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -64,19 +63,19 @@ func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Reques
 
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		RenderInternalPage(&UserSettings{
 			title: templates.PageTitle{
 				Summary:     "Settings",
 				Description: "Configure the app",
 			},
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
 func HandleShowDisplaySettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -87,12 +86,12 @@ func HandleShowDisplaySettings() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.DisplaySettings(user),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleShowAccountSettings handles showing the settings related to user accounts.
 func HandleShowAccountSettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -103,12 +102,12 @@ func HandleShowAccountSettings() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.AccountSettings(user),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
 func HandleShowSubscriptionsSettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -141,12 +140,12 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 				Subscriptions: subscriptions,
 			}),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleSaveSubscriptionsSettings handles saving any subscription settings the user has applied.
 func HandleSaveSubscriptionsSettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -185,12 +184,12 @@ func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 		RenderPartial(&Notification{
 			msg: models.NewSuccessMessage("Account edits saved!", ""),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
 func HandleSaveDisplaySettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -218,14 +217,14 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 		RenderPartial(&Notification{
 			msg: models.NewSuccessMessage("Account edits saved!", ""),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleSaveAccountSettings handles processing and saving new account settings.
 //
 //nolint:funlen
 func HandleSaveAccountSettings() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -333,13 +332,12 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleChangePassword handles a change password request from the user.
 func HandleChangePassword() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.ChangePasswordRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -359,14 +357,14 @@ func HandleChangePassword() http.HandlerFunc {
 		RenderPartial(&Notification{
 			msg: models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password."),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.DeactivationRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -507,12 +505,12 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				template: templates.DeactivateAccountModal(),
 			}).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
 func HandleAddFeedset(static embed.FS) http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			slogctx.FromCtx(req.Context()).Debug("No feedsets selected.")
@@ -623,7 +621,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 				),
 			}).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 func HandleAccountSuccess() http.HandlerFunc {
@@ -662,7 +660,7 @@ func HandleAccountIssue() http.HandlerFunc {
 }
 
 func HandleManageAccountSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		if sessionID := req.FormValue("session_id"); sessionID == "" {
 			HandleExternalError(&models.APIError{
 				InternalError: errors.New("no session id"),
@@ -672,11 +670,11 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 		}
 		// Redirect to payment processor to complete checkout.
 		http.Redirect(res, req, "/", http.StatusSeeOther)
-	}).ServeHTTP
+	}
 }
 
 func HandleGenerateSubscriptionEmail() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -701,7 +699,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.ShowSubscriptionEmail(*settings.SubscriptionEmail),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // Unsubscribe represents an unsubscribe request.
@@ -749,7 +747,7 @@ func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.R
 // HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
 // (user manually goes to page) and non-interactive (as per RFC 8058).
 func HandleUserUnsubscribe() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		token := chi.RouteContext(req.Context()).URLParam("token")
 		if token == "" {
 			HandleExternalError(&models.APIError{
@@ -825,7 +823,7 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 
 			displayResults(nil)
 		}
-	}).ServeHTTP
+	}
 }
 
 func ValidateSubscriptionLimits(next http.Handler) http.Handler {

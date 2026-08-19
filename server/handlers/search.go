@@ -12,7 +12,6 @@ import (
 
 	"github.com/a-h/templ"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -47,7 +46,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func HandleSearchSuggestions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -145,7 +144,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 				Articles:      articles,
 			}),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 type SearchResults struct {
@@ -194,7 +193,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
 func HandleSearchResults() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
 		search, err := parseForm[*models.SearchRequest](req)
 		if err != nil {
@@ -411,12 +410,12 @@ func HandleSearchResults() http.HandlerFunc {
 				Pagination:   &newPagination,
 			},
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
 func HandleSearchUpdates() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -474,12 +473,12 @@ func HandleSearchUpdates() http.HandlerFunc {
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
-	}).ServeHTTP
+	}
 }
 
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		subscription, err := parseForm[*models.AddSubscriptionSearchFilterRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -489,12 +488,12 @@ func AddSubscriptionFilter() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.AddSearchSubscriptionFilter(subscription),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionFilterSuggestions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
 		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil || !valid {
@@ -524,5 +523,5 @@ func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.SearchSubscriptionFilterSuggestions(subscriptions),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }

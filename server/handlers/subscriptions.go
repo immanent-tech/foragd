@@ -20,7 +20,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -72,7 +71,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
 func HandleListSubscriptions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -240,12 +239,12 @@ func HandleListSubscriptions() http.HandlerFunc {
 					slog.Any("error", err))
 			}
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
 func HandleListSubscriptionsUpdates() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Parse and process filters.
 		filters := getListSubscriptionsFilters(req)
 
@@ -335,12 +334,12 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
 func HandleMarkSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, err := parseForm[*models.MarkSubscriptionRequest](req)
 		if err != nil {
@@ -382,12 +381,12 @@ func HandleMarkSubscription() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 // HandleMarkSubscriptions handles marking subscriptions as read/unread.
 func HandleMarkSubscriptions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, err := parseForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil {
@@ -447,12 +446,12 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			return
 		}
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 // HandleFavoriteSubscription handles managing a favorite subscription for a user.
 func HandleFavoriteSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.FavoriteSubscriptionRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -488,12 +487,12 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
+	}
 }
 
 // HandleRemoveSubscription handles removing (unsubscribing) from a subscription.
 func HandleRemoveSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request := &models.RemoveSubscriptionRequest{
 			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
 			Nickname:       req.FormValue("nickname"),
@@ -545,7 +544,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 // EditSubscription contains the data for rendering a page for editing a subscription.
@@ -569,7 +568,7 @@ func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Re
 
 // HandleEditSubscription handles presenting the user with a form for editing a subscription.
 func HandleEditSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if id == "" {
@@ -730,12 +729,12 @@ func HandleEditSubscription() http.HandlerFunc {
 				template: template,
 			},
 		).ServeHTTP(res, req.WithContext(ctx))
-	}).ServeHTTP
+	}
 }
 
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
 func HandleSaveSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if id == "" {
 			HandleInternalError(
@@ -858,7 +857,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 				),
 			},
 		).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // AddSubscription contains the data for rendering a page for editing a subscription.
@@ -883,7 +882,7 @@ func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Req
 
 // HandleAddSubscription handles showing a form for adding a new subscription.
 func HandleAddSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -932,12 +931,12 @@ func HandleAddSubscription() http.HandlerFunc {
 				),
 			},
 		).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 // HandleAddNewFeedSubscription handles adding a new feed subscription for a user.
 func HandleAddNewFeedSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -1015,11 +1014,11 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 				subscription.GetTitle(),
 			),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 func HandleSuggestFeeds() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get suggestion text.
 		text := validation.SanitizeString(req.FormValue("suggestion_text"))
 		source := validation.SanitizeString(req.FormValue("suggestion_source"))
@@ -1078,12 +1077,12 @@ func HandleSuggestFeeds() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleAddSearchSubscription handles adding a new search subscription.
 func HandleAddSearchSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -1157,11 +1156,11 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
@@ -1186,11 +1185,11 @@ func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: partials.SubscriptionSuggestions(subscriptions),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
 
 func HandleAddSubscriptionToSearch() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.AddSubscriptionToSearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
@@ -1212,12 +1211,12 @@ func HandleAddSubscriptionToSearch() http.HandlerFunc {
 			}
 		}
 		res.WriteHeader(http.StatusNoContent)
-	}).ServeHTTP
+	}
 }
 
 // HandleAddGroupSubscription handles adding a new group subscription.
 func HandleAddGroupSubscription() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -1307,11 +1306,11 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 func HandleAddSubscriptionToGroup() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Parse add subscription to group request.
 		request, err := parseForm[*models.AddSubscriptionToGroupRequest](req)
 		if err != nil {
@@ -1336,7 +1335,7 @@ func HandleAddSubscriptionToGroup() http.HandlerFunc {
 			}
 		}
 		res.WriteHeader(http.StatusNoContent)
-	}).ServeHTTP
+	}
 }
 
 // ImportSubscriptions contains the data for rendering a page for importing subscriptions.
@@ -1368,7 +1367,7 @@ func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, re
 
 // HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func HandleImportSubscriptions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
@@ -1452,7 +1451,7 @@ func HandleImportSubscriptions() http.HandlerFunc {
 				),
 			}).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 // ExportSubscriptions contains the data for rendering a page for exporting subscriptions.
@@ -1476,7 +1475,7 @@ func (h *ExportSubscriptions) PartialResponse(res http.ResponseWriter, req *http
 
 // HandleExportSubscriptions handles configuring and performing an export of user subscriptions.
 func HandleExportSubscriptions() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Get the user details.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1526,13 +1525,13 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(opmlFile))
 		}
-	}).ServeHTTP
+	}
 }
 
 // HandleSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
 func HandleSubscriptionCategories() http.HandlerFunc {
-	return internalPageHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.AddCategoryToSubscriptionRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
@@ -1552,7 +1551,7 @@ func HandleSubscriptionCategories() http.HandlerFunc {
 			}
 			RenderPartial(&PartialTemplate{template: templates.AddCategory(category)}).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
+	}
 }
 
 func processThumbnail(req *http.Request, objectID string) (string, error) {

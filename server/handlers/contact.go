@@ -11,7 +11,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
-	"github.com/justinas/alice"
 
 	"github.com/immanent-tech/go-base/config"
 
@@ -64,7 +63,7 @@ func HandleContact() http.HandlerFunc {
 }
 
 func HandleSubmitContact() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ContactRequest](req)
 		if err != nil {
@@ -108,5 +107,5 @@ func HandleSubmitContact() http.HandlerFunc {
 				"If we need to reach out to discuss, we will send you an email to the address that was submitted.",
 			),
 		}).ServeHTTP(res, req)
-	}).ServeHTTP
+	}
 }
