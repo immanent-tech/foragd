@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 	"time"
@@ -40,23 +41,45 @@ var initClient = func(ctx context.Context) error {
 	return nil
 }
 
-// Channel represents a Youtube channel. It contains the id, title, description, published date and an image.
-type Channel struct {
+// SearchResult represents a search result retrieved from Youtube. It contains the id, title, description, published
+// date and an image.
+type SearchResult struct {
 	ID          string
+	Type        string
 	Title       string
 	Description string
 	PublishedAt string
 	Image       *models.RemoteImage
 }
 
-// FindChannels will search Youtube for channels matching the given query string and return a slice of matches.
-func FindChannels(ctx context.Context, query string) ([]Channel, error) {
+const (
+	// TypeChannel is a channel search result.
+	TypeChannel = "youtube#channel"
+	// TypePlaylist is a playlist search result.
+	TypePlaylist = "youtube#playlist"
+)
+
+// SourceURL returns the appropriate source URL for a search result.
+func (r SearchResult) SourceURL() string {
+	switch r.Type {
+	case TypeChannel:
+		return "https://www.youtube.com/feeds/videos.xml?channel_id=" + r.ID
+	case TypePlaylist:
+		return "https://www.youtube.com/feeds/videos.xml?playlist_id=" + r.ID
+	default:
+		return ""
+	}
+}
+
+// FindVideos will search Youtube for channels/playlists matching the given query string and return a slice of matches.
+func FindVideos(ctx context.Context, query string) ([]SearchResult, error) {
 	if err := initClient(ctx); err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
-	// Then e.g.:
+
+	// Search for channels or playlists that match the query.
 	resp, err := client.Search.List([]string{"snippet"}).
-		Type("channel").
+		Type("channel", "playlist").
 		Q(query).
 		MaxResults(5).
 		Do()
@@ -64,14 +87,24 @@ func FindChannels(ctx context.Context, query string) ([]Channel, error) {
 		return nil, fmt.Errorf("search channels: %w", err)
 	}
 
-	results := make([]Channel, 0, len(resp.Items))
-
+	// Extract and format into our custom result format.
+	results := make([]SearchResult, 0, len(resp.Items))
 	for result := range slices.Values(resp.Items) {
-		details := Channel{
-			ID:          result.Id.ChannelId,
+		details := SearchResult{
+			Type:        result.Id.Kind,
 			Title:       result.Snippet.ChannelTitle,
 			Description: result.Snippet.Description,
 			PublishedAt: result.Snippet.PublishedAt,
+		}
+		switch result.Id.Kind {
+		case TypeChannel:
+			details.ID = result.Id.ChannelId
+		case TypePlaylist:
+			details.ID = result.Id.PlaylistId
+		default:
+			slogctx.Debug(ctx, "Unsupported result.",
+				slog.String("type", result.Id.Kind))
+			continue
 		}
 		if result.Snippet.Thumbnails != nil {
 			details.Image = models.NewRemoteImage(result.Snippet.Thumbnails.Default.Url, details.Title)
@@ -79,14 +112,15 @@ func FindChannels(ctx context.Context, query string) ([]Channel, error) {
 		results = append(results, details)
 	}
 
-	results = slices.CompactFunc(results, func(a, b Channel) bool {
+	// Remove duplicates.
+	results = slices.CompactFunc(results, func(a, b SearchResult) bool {
 		return a.ID == b.ID
 	})
 
 	return results, nil
 }
 
-func FetchChannelVideosSince(ctx context.Context, channelID string, since time.Time) ([]*youtube.Video, error) {
+func FetchVideosSince(ctx context.Context, channelID string, since time.Time) ([]*youtube.Video, error) {
 	if err := initClient(ctx); err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}

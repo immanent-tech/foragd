@@ -261,14 +261,14 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	}
 
 	// Perform a search on youtube to find a channel that matches the user's query.
-	channelResults, err := youtube.FindChannels(ctx, text)
+	ytResults, err := youtube.FindVideos(ctx, text)
 	if err != nil {
 		return nil, fmt.Errorf("search youtube channels: %w", err)
 	}
 	// Extract the channel RSS feed urls.
-	urls := make([]string, 0, len(channelResults))
-	for channel := range slices.Values(channelResults) {
-		urls = append(urls, "https://www.youtube.com/feeds/videos.xml?channel_id="+channel.ID)
+	urls := make([]string, 0, len(ytResults))
+	for result := range slices.Values(ytResults) {
+		urls = append(urls, result.SourceURL())
 	}
 	var feeds models.Feeds
 	// Try to find existing feeds that match the query.
@@ -1099,6 +1099,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 			SetDoNotParseResponse(true).
 			// SetDebug(true).
 			Get(sourceURL.String())
+		defer resp.RawBody().Close()
 		switch {
 		case err != nil:
 			return nil, models.NewAPIError(http.StatusInternalServerError, err)
@@ -1112,9 +1113,10 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 					FetchWithFeedID(opts.FeedID),
 				)
 			}
+			// data, err := io.ReadAll(resp.RawBody())
+			// godump.Dump(data, err)
 			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
-		defer resp.RawBody().Close()
 
 		contentType = resp.Header().Get("Content-Type")
 
