@@ -29,7 +29,6 @@ templ PostsIndex(posts []*markdownx.File) {
 				of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find
 				guides and opinions here to help you get the most out of independent web reading.
 			</p>
-			@masonryGrid()
 			{{ postsJSONLD := make([]map[string]any, 0, len(posts)) }}
 			@grid(element.WithClasses("masonry-grid", "relative", "my-12"),
 				element.WithAttribute("_", "install MasonryGrid")) {

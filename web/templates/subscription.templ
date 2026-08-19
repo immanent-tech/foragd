@@ -295,7 +295,6 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters, categories: response.Subscriptions.GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
-		@scrollRestore()
 		@templ.Fragment(ContentFragment) {
 			@partials.PullToRefresh()
 			@buttonBackToTop()
@@ -315,7 +314,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					</div>
 					if len(response.Subscriptions) > 0 {
 						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
-							@masonryGrid()
 							@grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
 								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),

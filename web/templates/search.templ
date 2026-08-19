@@ -404,7 +404,6 @@ templ SearchResults(results *models.SearchResults) {
 								<p class="text-lg/loose font-semibold">Refreshing...</p>
 							</div>
 						</div>
-						@masonryGrid()
 						@grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid"),
 							element.WithHXMethod(http.MethodGet, "/search"),

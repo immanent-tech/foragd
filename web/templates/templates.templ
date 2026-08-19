@@ -235,12 +235,15 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<title>{ p.Title }</title>
 			// Load the default application metadata JSON-LD.
 			@components.AppMetadataJSONLD()
-			// Disable browser scroll restoration (we handle this ourselves).
+			// Scroll/page restoration management.
 			<script>
   if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
   }
 </script>
+			@components.ScrollRestoreBehavior()
+			// MasonryGrid for list layouts.
+			@components.MasonryGridBehavior()
 		</head>
 		<body
 			hx-ext="morph"

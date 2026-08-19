@@ -735,7 +735,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						</div>
 					</div>
 					if len(response.Articles) > 0 {
-						@masonryGrid()
 						@grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid"),
 							element.WithHXMethod(http.MethodGet, "/list/articles"),
