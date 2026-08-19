@@ -1,10 +1,40 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.216"
-date      = "Aug 12, 2026"
+version   = "v0.218"
+date      = "Aug 19, 2026"
 type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+When navigating back to the subscriptions list, your scroll position should be remembered and restored.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Many themes have been reworked to meet WCAG contrast guidelines and improve color range.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Icons and form inputs should be more visible on dark themes.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Backend changes when updating feeds should result in more feeds having more details.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Adding new feeds was broken due to recent backend changes. Fixed now.
+"""
+
+[[releases]]
+version = "v0.216"
+date    = "Aug 12, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
