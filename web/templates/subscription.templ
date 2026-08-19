@@ -750,7 +750,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			}
 			hx-swap="none"
 			hx-encoding="multipart/form-data"
-			hx-disinherit="*"
+			hx-disabled-elt="find button[type='submit']"
 			class="group"
 		>
 			// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1023,7 +1023,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						}
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
-						hx-disinherit="*"
+						hx-disabled-elt="find button[type='submit']"
 						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1254,7 +1254,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
 						hx-params="not suggestion_text,suggestions,category"
-						hx-disinherit="*"
+						hx-disabled-elt="find button[type='submit']"
 						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1430,7 +1430,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 					hx-post={ "/subscription/save/" + string(request.SubscriptionID) }
 					hx-swap="none"
 					hx-encoding="multipart/form-data"
-					hx-disinherit="*"
+					hx-disabled-elt="find button[type='submit']"
 					class="group"
 				>
 					// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1531,6 +1531,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
+				hx-disabled-elt="find button[type='submit']"
 				{ props.Attributes()... }
 				class="flex"
 				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"

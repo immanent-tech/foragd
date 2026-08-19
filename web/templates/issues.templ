@@ -39,7 +39,7 @@ templ ReportIssue(details *models.ReportIssueRequest) {
 						hx-target-error={ ContentID.Target() }
 						hx-encoding="multipart/form-data"
 						hx-swap="none"
-						hx-push-url="false"
+						hx-disabled-elt="find button[type='submit']"
 						class="mt-12"
 					>
 						<input type="hidden" name="page_url" value={ details.PageUrl }/>

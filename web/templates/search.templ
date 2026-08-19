@@ -750,6 +750,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				hx-target={ ContentID.Target() }
 				hx-include="[id='timezone'],#search-filters"
 				hx-params="not subscription-text,#global-search"
+				hx-disabled-elt="find button[type='submit']"
 				_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
 			>
 				<button

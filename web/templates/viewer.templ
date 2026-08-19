@@ -132,6 +132,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						hx-push-url="true"
 						hx-target="#viewer-results"
 						hx-swap="morph:innerHTML"
+						hx-disabled-elt="find button[type='submit']"
 						_="on htmx:beforeRequest set the innerHTML of #viewer-results to ''"
 						class="group"
 					>

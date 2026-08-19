@@ -66,6 +66,7 @@ templ DeactivateAccountModal() {
 					hx-post="/user/deactivate"
 					hx-swap="none"
 					hx-vals={ templ.JSONString(map[string]any{"confirmed": true}) }
+					hx-disabled-elt="this"
 					_="on htmx:afterRequest remove @open from  the closest <el-dialog/>"
 					class="group btn btn-error"
 				>

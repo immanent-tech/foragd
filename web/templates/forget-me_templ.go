@@ -98,7 +98,7 @@ func ForgetMe() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-push-url=\"false\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"></div><span class=\"text-sm font-semibold\">Use the email address associated with your account.</span></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-disabled-elt=\"find button[type='submit']\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"></div><span class=\"text-sm font-semibold\">Use the email address associated with your account.</span></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

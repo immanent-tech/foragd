@@ -301,7 +301,7 @@ templ AccountSettings(user *models.User) {
 							to your account on the external service to make changes to your nickname, email, avatar or password.
 						</p>
 					} else {
-						<form hx-encoding="multipart/form-data" class="min-w-0">
+						<form class="min-w-0">
 							<label class="fieldset">
 								<span class="label">Nickname</span>
 								<input
@@ -413,7 +413,9 @@ templ AccountSettings(user *models.User) {
 							</label>
 							<div class="mt-4 flex w-full justify-end">
 								<button
+									hx-encoding="multipart/form-data"
 									hx-post="/user/settings/account"
+									hx-disabled-elt="this"
 									hx-swap="none"
 									type="submit"
 									class="group btn btn-primary"
@@ -450,6 +452,7 @@ templ AccountSettings(user *models.User) {
 								class="group btn btn-primary"
 								hx-post="/user/settings/password"
 								hx-swap="none"
+								hx-disabled-elt="this"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
@@ -510,6 +513,7 @@ templ AccountSettings(user *models.User) {
 										hx-post={ models.RouteUserDeactivateAccount }
 										hx-target={ ModalContainerID.Target() }
 										hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
+										hx-disabled-elt="this"
 										type="submit"
 										class="btn btn-error"
 									>
@@ -536,6 +540,7 @@ templ AccountSettings(user *models.User) {
 												hx-post={ models.RouteUserDeactivateAccount }
 												hx-target={ ModalContainerID.Target() }
 												hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
+												hx-disabled-elt="this"
 												type="submit"
 												class="btn btn-error"
 											>
@@ -593,6 +598,7 @@ templ DisplaySettings(user *models.User) {
 						hx-post="/user/settings/display"
 						hx-swap="none"
 						hx-include="#theme-settings"
+						hx-disabled-elt="find button[type='submit']"
 						class="group"
 					>
 						<label class="fieldset py-4">
