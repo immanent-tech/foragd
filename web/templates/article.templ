@@ -10,6 +10,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/config"
@@ -691,8 +692,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 	{{ controls := &listControls{path: "/list/articles", filters: response.Filters, categories: response.Articles.GetCategoryCounts().GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@partials.PullToRefresh()
 			@buttonBackToTop()
+			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"),
 				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.

@@ -5,6 +5,7 @@ package templates
 import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"net/http"
@@ -351,8 +352,8 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 templ SearchResults(results *models.SearchResults) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@partials.PullToRefresh()
 			@buttonBackToTop()
+			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
 				@pageHeading() {

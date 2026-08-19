@@ -244,6 +244,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			@components.ScrollRestoreBehavior()
 			// MasonryGrid for list layouts.
 			@components.MasonryGridBehavior()
+			// Pull-to-refresh.
+			@components.PullToRefreshBehavior()
 		</head>
 		<body
 			hx-ext="morph"

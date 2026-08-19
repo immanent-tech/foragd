@@ -7,7 +7,7 @@ var scrollRestoreOnce = templ.NewOnceHandle()
 
 templ ScrollRestoreBehavior() {
 	@scrollRestoreOnce.Once() {
-		<script type="text/hyperscript">
+		<script id="scroll-restore-behavior" type="text/hyperscript">
 behavior ScrollRestore(gridSelector, cardSelector, endpoint, storageKey)
   def doRestore()
     log 'performing restore'

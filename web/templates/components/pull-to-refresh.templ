@@ -1,19 +1,23 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package components
+
+var pullToRefreshOnce = templ.NewOnceHandle()
 
 // PullToRefresh loads a hyperscript behaviour and sentinel element for controlling pull-to-refresh behavior on an
 // element. Usage:
 //
+//  @PullToRefreshSentinel()
 //  <div class="ptr-scroll" _="install PullToRefresh(threshold: 70)">
 //      <!-- Element that can be pulled -->
 //      <div class="ptr-content">
 //          <!-- Content that will be refreshed. -->
 //      </div>
 //  </div>
-templ PullToRefresh() {
-	<script type="text/hyperscript">
+templ PullToRefreshBehavior() {
+	@pullToRefreshOnce.Once() {
+		<script id="pull-to-refresh-behavior" type="text/hyperscript">
   behavior PullToRefresh(threshold)
     init
       set my.startY to 0
@@ -116,6 +120,10 @@ templ PullToRefresh() {
 
   end
 </script>
+	}
+}
+
+templ PullToRefreshSentinel() {
 	<div
 		id="ptr-sentinel"
 		style="height:1px;"
