@@ -1,10 +1,20 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.218"
-date      = "Aug 19, 2026"
-type      = "major"
+version   = "v0.219"
+date      = "Aug 20, 2026"
+type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+More reliable Youtube search. When searching for new Youtube feeds, both playlist and channel results will be returned.
+"""
+
+[[releases]]
+version = "v0.218"
+date    = "Aug 19, 2026"
+type    = "major"
 [[releases.changes]]
 type = "new"
 description = """
