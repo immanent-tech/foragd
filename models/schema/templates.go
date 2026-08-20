@@ -243,6 +243,7 @@ var (
 								"search": types.NewSearchAsYouTypeProperty(),
 							},
 						}),
+						templates.WithFlattenedMapping("source_data"),
 					),
 				),
 				templates.WithTemplateSettings(

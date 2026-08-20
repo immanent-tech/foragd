@@ -261,7 +261,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 	}
 
 	// Perform a search on youtube to find a channel that matches the user's query.
-	ytResults, err := youtube.FindVideos(ctx, text)
+	ytResults, err := youtube.Find(ctx, text, 5)
 	if err != nil {
 		return nil, fmt.Errorf("search youtube channels: %w", err)
 	}
@@ -321,30 +321,16 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 		}, nil
 	}
 
-	// Try to create new feeds for the urls.
-	latestItems := make(map[models.FeedID]models.Items)
-	for url := range slices.Values(urls) {
-		slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
-			slog.String("url", url),
-		)
-		newFeed, err := FetchFeed(ctx, url)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to find feed at URL.",
-				slog.String("url", url),
-				slog.Any("error", err),
-			)
-			continue
-		}
-		// Retrieve the latest 3 articles for each feed.
-		if items := newFeed.GetItems().SortByTimestamp(); len(items) > 0 {
-			// Truncate to 3 items.
-			if len(items) > 3 {
-				items = items[:3]
-			}
-			latestItems[newFeed.GetID()] = items
-		}
-		feeds = append(feeds, newFeed)
+	// Create new Youtube feeds from the results.
+	feeds, err = youtube.CreateFeeds(ctx, ytResults...)
+	if err != nil {
+		return nil, fmt.Errorf("generate feeds: %w", err)
 	}
+	latestItems := make(map[models.FeedID]models.Items)
+	for feed := range slices.Values(feeds) {
+		latestItems[feed.GetID()] = feed.GetItems()
+	}
+
 	return &models.FeedSuggestionsResults{
 		Text:        text,
 		Feeds:       feeds,
@@ -1068,11 +1054,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
 	}
 
-	// Add source-specific options.
-	for extraOption := range slices.Values(addFetchOptions(sourceURL)) {
-		extraOption(opts)
-	}
-
 	// Create a buffer for the feed data.
 	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
@@ -1254,12 +1235,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	}
 
 	return feed, nil
-}
-
-// addFetchOptions returns fetch options that are source-specific. This will append or override existing fetch options
-// to ensure the feed can be fetched correctly.
-func addFetchOptions(feedURL *url.URL) []FetchOption {
-	return nil
 }
 
 // FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,

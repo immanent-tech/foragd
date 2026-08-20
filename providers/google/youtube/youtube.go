@@ -9,10 +9,14 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 
@@ -20,26 +24,17 @@ import (
 	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
-var client *youtube.Service
-
-var initClient = func(ctx context.Context) error {
-	err := sync.OnceValue(func() error {
-		cfg, err := gcp.LoadConfig()
-		if err != nil {
-			return fmt.Errorf("load config: %w", err)
-		}
-		client, err = youtube.NewService(ctx, option.WithAPIKey(cfg.APIKey))
-		if err != nil {
-			return fmt.Errorf("load youtube client: %w", err)
-		}
-		slogctx.FromCtx(ctx).Info("Youtube client created.")
-		return nil
-	})()
+var initClient = sync.OnceValues(func() (*youtube.Service, error) {
+	cfg, err := gcp.LoadConfig()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("load config: %w", err)
 	}
-	return nil
-}
+	client, err := youtube.NewService(context.Background(), option.WithAPIKey(cfg.APIKey))
+	if err != nil {
+		return nil, fmt.Errorf("load youtube client: %w", err)
+	}
+	return client, nil
+})
 
 // SearchResult represents a search result retrieved from Youtube. It contains the id, title, description, published
 // date and an image.
@@ -71,9 +66,10 @@ func (r SearchResult) SourceURL() string {
 	}
 }
 
-// FindVideos will search Youtube for channels/playlists matching the given query string and return a slice of matches.
-func FindVideos(ctx context.Context, query string) ([]SearchResult, error) {
-	if err := initClient(ctx); err != nil {
+// Find will search Youtube for channels/playlists matching the given query string and return a slice of matches.
+func Find(ctx context.Context, query string, count int64) ([]SearchResult, error) {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
@@ -81,7 +77,7 @@ func FindVideos(ctx context.Context, query string) ([]SearchResult, error) {
 	resp, err := client.Search.List([]string{"snippet"}).
 		Type("channel", "playlist").
 		Q(query).
-		MaxResults(5).
+		MaxResults(count).
 		Do()
 	if err != nil {
 		return nil, fmt.Errorf("search channels: %w", err)
@@ -120,19 +116,198 @@ func FindVideos(ctx context.Context, query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func FetchVideosSince(ctx context.Context, channelID string, since time.Time) ([]*youtube.Video, error) {
-	if err := initClient(ctx); err != nil {
+func CreateFeeds(ctx context.Context, results ...SearchResult) (models.Feeds, error) {
+	// Filter channel results.
+	channels := slices.Collect(models.FilterSlice(results, func(e SearchResult) bool {
+		return e.Type == TypeChannel
+	}))
+	// Filter playlist results.
+	playlists := slices.Collect(models.FilterSlice(results, func(e SearchResult) bool {
+		return e.Type == TypeChannel
+	}))
+
+	feeds := make(models.Feeds, 0)
+	var mu sync.Mutex
+
+	fetchJobs, jobCtx := errgroup.WithContext(ctx)
+	defer jobCtx.Done()
+
+	// Generate feeds for channels.
+	fetchJobs.Go(func() error {
+		ids := make([]string, 0, len(channels))
+		for channel := range slices.Values(channels) {
+			ids = append(ids, channel.ID)
+		}
+		channels, err := getChannelDetails(ids)
+		if err != nil {
+			return fmt.Errorf("fetch channel details: %w", err)
+		}
+		for channel := range slices.Values(channels) {
+			feed := newChannelFeed(channel)
+			if videos, err := FetchVideos(channel.Id, TypeChannel, 3); err == nil {
+				feed.Items = CreateItems(feed, videos...)
+			}
+			mu.Lock()
+			feeds = append(feeds, feed)
+			mu.Unlock()
+		}
+		return nil
+	})
+
+	// Generate feeds for playlists.
+	fetchJobs.Go(func() error {
+		ids := make([]string, 0, len(channels))
+		for playlist := range slices.Values(playlists) {
+			ids = append(ids, playlist.ID)
+		}
+		playlists, err := getPlaylistDetails(ids)
+		if err != nil {
+			return fmt.Errorf("fetch channel details: %w", err)
+		}
+		for playlist := range slices.Values(playlists) {
+			feed := newPlaylistFeed(playlist)
+			if videos, err := FetchVideos(playlist.Id, TypePlaylist, 3); err == nil {
+				feed.Items = CreateItems(feed, videos...)
+			}
+			mu.Lock()
+			feeds = append(feeds, feed)
+			mu.Unlock()
+		}
+		return nil
+	})
+
+	if err := fetchJobs.Wait(); err != nil {
+		return nil, fmt.Errorf("create feeds: %w", err)
+	}
+
+	return feeds, nil
+}
+
+func newChannelFeed(channel *youtube.Channel) *models.Feed {
+	id := "feed_" + strconv.FormatUint(xxh3.Hash([]byte(channel.Id)), 10)
+	feed := &models.Feed{
+		FeedID:         id,
+		CreatedAt:      time.Now().UTC(),
+		LastFetched:    models.UnixEpoch,
+		Title:          channel.Snippet.Title,
+		Description:    &channel.Snippet.Description,
+		SourceType:     models.SourceTypeYoutube,
+		SourceURLs:     []string{"https://www.youtube.com/feeds/videos.xml?channel_id=" + channel.Id},
+		URL:            "https://youtube.com/channel/" + channel.Id,
+		Language:       &channel.Snippet.DefaultLanguage,
+		Domain:         "www.youtube.com",
+		FetchMethod:    models.FeedFetchMethodDirect,
+		UpdateInterval: int64(24 * time.Hour),
+	}
+
+	// Add categories.
+	if keywords := channel.BrandingSettings.Channel.Keywords; keywords != "" {
+		categories := make(models.Categories, 0)
+		for category := range slices.Values(strings.Split(keywords, ",")) {
+			categories = append(categories, category)
+		}
+		feed.Categories = categories
+	}
+
+	// Add source data.
+	feed.SourceData = &models.Feed_SourceData{}
+	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{
+		ID:   channel.Id,
+		Type: TypeChannel,
+	})
+
+	// Set the published date. If no published date in the source, set it to unix epoch.
+	if pubDate, err := time.Parse(time.RFC3339, channel.Snippet.PublishedAt); err != nil {
+		feed.Published = pubDate.UTC()
+	} else {
+		feed.Published = models.UnixEpoch
+	}
+
+	// Add any image found.
+	if channel.BrandingSettings != nil && channel.BrandingSettings.Image != nil &&
+		channel.BrandingSettings.Image.WatchIconImageUrl != "" {
+		feed.Image = &models.RemoteImage{
+			URL:   &channel.BrandingSettings.Image.WatchIconImageUrl,
+			Title: new(channel.Snippet.Title),
+		}
+	}
+
+	return feed
+}
+
+func newPlaylistFeed(playlist *youtube.Playlist) *models.Feed {
+	id := "feed_" + strconv.FormatUint(xxh3.Hash([]byte(playlist.Id)), 10)
+	feed := &models.Feed{
+		FeedID:         id,
+		CreatedAt:      time.Now().UTC(),
+		LastFetched:    models.UnixEpoch,
+		Title:          playlist.Snippet.Title,
+		Description:    &playlist.Snippet.Description,
+		SourceType:     models.SourceTypeYoutube,
+		SourceURLs:     []string{"https://www.youtube.com/feeds/videos.xml?playlist_id=" + playlist.Id},
+		URL:            "https://youtube.com/playlist/" + playlist.Id,
+		Language:       &playlist.Snippet.DefaultLanguage,
+		Domain:         "www.youtube.com",
+		FetchMethod:    models.FeedFetchMethodDirect,
+		UpdateInterval: int64(24 * time.Hour),
+	}
+
+	// Add source data.
+	feed.SourceData = &models.Feed_SourceData{}
+	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{
+		ID:   playlist.Id,
+		Type: TypePlaylist,
+	})
+
+	// Set the published date. If no published date in the source, set it to unix epoch.
+	if pubDate, err := time.Parse(time.RFC3339, playlist.Snippet.PublishedAt); err != nil {
+		feed.Published = pubDate.UTC()
+	} else {
+		feed.Published = models.UnixEpoch
+	}
+
+	return feed
+}
+
+func FetchVideos(id string, objectType string, count int) ([]*youtube.Video, error) {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
+	if objectType == TypeChannel {
+		uploadsID, err := getUploadsPlaylistID(id)
+		if err != nil {
+			return nil, fmt.Errorf("get channel playlist id: %w", err)
+		}
+		id = uploadsID
+	}
+
+	videoIDs := make([]string, 0, count)
+
+	resp, err := client.PlaylistItems.List([]string{"snippet", "contentDetails"}).
+		PlaylistId(id).
+		MaxResults(int64(count)).Do()
+	if err != nil {
+		return nil, fmt.Errorf("get video details: %w", err)
+	}
+
+	for item := range slices.Values(resp.Items) {
+		videoIDs = append(videoIDs, item.ContentDetails.VideoId)
+	}
+
+	return getVideoDetails(videoIDs)
+}
+
+func FetchVideosSince(channelID string, since time.Time) ([]*youtube.Video, error) {
 	// 1 unit
-	uploadsID, err := getUploadsPlaylistID(ctx, channelID)
+	uploadsID, err := getUploadsPlaylistID(channelID)
 	if err != nil {
 		return nil, err
 	}
 
 	// 1 unit per 50 videos
-	videoIDs, err := getVideosSince(ctx, uploadsID, since)
+	videoIDs, err := getVideosSince(uploadsID, since)
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +317,84 @@ func FetchVideosSince(ctx context.Context, channelID string, since time.Time) ([
 	}
 
 	// 1 unit per 50 videos
-	return getVideoDetails(ctx, videoIDs)
+	return getVideoDetails(videoIDs)
 }
 
-func getUploadsPlaylistID(ctx context.Context, channelID string) (string, error) {
-	if err := initClient(ctx); err != nil {
+func CreateItems(feed *models.Feed, videos ...*youtube.Video) models.Items {
+	items := make(models.Items, 0, len(videos))
+
+	for video := range slices.Values(videos) {
+		item := &models.Item{
+			ItemID:      "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+video.Id)), 10),
+			FeedID:      feed.GetID(),
+			Timestamp:   time.Now().UTC(),
+			Title:       video.Snippet.Title,
+			Description: &video.Snippet.Description,
+			SourceType:  models.SourceTypeYoutube,
+			URL:         "https://www.youtube.com/watch?v=" + video.Id,
+			Authors:     []string{video.Snippet.ChannelTitle},
+			Language:    &video.Snippet.DefaultLanguage,
+			Categories:  video.Snippet.Tags,
+			FeedTitle:   feed.GetTitle(),
+		}
+
+		// Set the published date. If no published date in the source, set it to unix epoch.
+		if pubDate, err := time.Parse(time.RFC3339, video.Snippet.PublishedAt); err != nil {
+			feed.Published = pubDate.UTC()
+		} else {
+			feed.Published = models.UnixEpoch
+		}
+
+		// Make some assumptions on video size, API does not expose these directly.
+		var width, height int
+		switch video.ContentDetails.Definition {
+		case "hd":
+			width = 1920
+			height = 1080
+		default:
+			width = 640
+			height = 480
+		}
+
+		// Add youtube extension data if found.
+		item.ExtensionType = new(models.ItemExtensionTypeYoutube)
+		item.ExtensionData = &models.Item_ExtensionData{}
+		item.ExtensionData.FromItemExtensionYoutube(models.ItemExtensionYoutube{
+			VideoId: video.Id,
+			Width:   &width,
+			Height:  &height,
+		})
+
+		// Set the image.
+		if img := getBestVideoThumbnail(video); img != nil {
+			item.Image = img
+		}
+
+		items = append(items, item)
+	}
+
+	return items
+}
+
+func getBestVideoThumbnail(video *youtube.Video) *models.RemoteImage {
+	switch details := video.Snippet.Thumbnails; {
+	case details.Maxres != nil:
+		return models.NewRemoteImage(details.Maxres.Url, video.Snippet.Title)
+	case details.High != nil:
+		return models.NewRemoteImage(details.High.Url, video.Snippet.Title)
+	case details.Medium != nil:
+		return models.NewRemoteImage(details.Medium.Url, video.Snippet.Title)
+	case details.Standard != nil:
+		return models.NewRemoteImage(details.Standard.Url, video.Snippet.Title)
+	case details.Default != nil:
+		return models.NewRemoteImage(details.Default.Url, video.Snippet.Title)
+	}
+	return nil
+}
+
+func getUploadsPlaylistID(channelID string) (string, error) {
+	client, err := initClient()
+	if err != nil {
 		return "", fmt.Errorf("init client: %w", err)
 	}
 
@@ -154,7 +402,7 @@ func getUploadsPlaylistID(ctx context.Context, channelID string) (string, error)
 		Id(channelID).
 		Do()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("list channel: %w", err)
 	}
 	if len(resp.Items) == 0 {
 		return "", errors.New("channel not found")
@@ -162,14 +410,15 @@ func getUploadsPlaylistID(ctx context.Context, channelID string) (string, error)
 	return resp.Items[0].ContentDetails.RelatedPlaylists.Uploads, nil
 }
 
-func getVideosSince(ctx context.Context, uploadsPlaylistID string, since time.Time) ([]string, error) {
-	if err := initClient(ctx); err != nil {
+func getVideosSince(uploadsPlaylistID string, since time.Time) ([]string, error) {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
 	var videoIDs []string
-	pageToken := ""
 
+	pageToken := ""
 	for {
 		call := client.PlaylistItems.List([]string{"contentDetails"}).
 			PlaylistId(uploadsPlaylistID).
@@ -178,7 +427,7 @@ func getVideosSince(ctx context.Context, uploadsPlaylistID string, since time.Ti
 
 		resp, err := call.Do()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("list playlist items: %w", err)
 		}
 
 		done := false
@@ -206,8 +455,10 @@ func getVideosSince(ctx context.Context, uploadsPlaylistID string, since time.Ti
 	return videoIDs, nil
 }
 
-func getVideoDetails(ctx context.Context, videoIDs []string) ([]*youtube.Video, error) {
-	if err := initClient(ctx); err != nil {
+// getVideoDetails fetches the details of the given videos.
+func getVideoDetails(videoIDs []string) ([]*youtube.Video, error) {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
@@ -215,10 +466,7 @@ func getVideoDetails(ctx context.Context, videoIDs []string) ([]*youtube.Video, 
 
 	// videos.list accepts up to 50 IDs per call
 	for i := 0; i < len(videoIDs); i += 50 {
-		end := i + 50
-		if end > len(videoIDs) {
-			end = len(videoIDs)
-		}
+		end := min(i+50, len(videoIDs))
 		batch := videoIDs[i:end]
 
 		resp, err := client.Videos.List([]string{"snippet", "contentDetails", "statistics"}).
@@ -231,4 +479,56 @@ func getVideoDetails(ctx context.Context, videoIDs []string) ([]*youtube.Video, 
 	}
 
 	return videos, nil
+}
+
+// getChannelDetails fetches the details for the given channels.
+func getChannelDetails(channelIDs []string) ([]*youtube.Channel, error) {
+	client, err := initClient()
+	if err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
+	}
+
+	var channels []*youtube.Channel
+
+	// videos.list accepts up to 50 IDs per call
+	for i := 0; i < len(channelIDs); i += 50 {
+		end := min(i+50, len(channelIDs))
+		batch := channelIDs[i:end]
+
+		resp, err := client.Channels.List([]string{"snippet", "brandingSettings"}).
+			Id(batch...).
+			Do()
+		if err != nil {
+			return nil, fmt.Errorf("list videos: %w", err)
+		}
+		channels = append(channels, resp.Items...)
+	}
+
+	return channels, nil
+}
+
+// getPlaylistDetails fetches the details for the given playlists.
+func getPlaylistDetails(playlistIDs []string) ([]*youtube.Playlist, error) {
+	client, err := initClient()
+	if err != nil {
+		return nil, fmt.Errorf("init client: %w", err)
+	}
+
+	var playlists []*youtube.Playlist
+
+	// videos.list accepts up to 50 IDs per call
+	for i := 0; i < len(playlistIDs); i += 50 {
+		end := min(i+50, len(playlistIDs))
+		batch := playlistIDs[i:end]
+
+		resp, err := client.Playlists.List([]string{"snippet"}).
+			Id(batch...).
+			Do()
+		if err != nil {
+			return nil, fmt.Errorf("list videos: %w", err)
+		}
+		playlists = append(playlists, resp.Items...)
+	}
+
+	return playlists, nil
 }

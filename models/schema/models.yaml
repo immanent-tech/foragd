@@ -6,7 +6,7 @@ info:
     Contains common fields and objects that are shared and reused through the application.
   license:
     name: 'AGPL 3.0'
-    idenfiier: AGPL-3.0-or-later
+    identifier: AGPL-3.0-or-later
   contact:
     name: 'Immanent Tech'
 components:
@@ -155,7 +155,7 @@ components:
       description: >
         indicates what type of source the object came from.
       type: string
-      enum: ['RSS', 'Atom', 'JSONFeed', 'Email']
+      enum: ['RSS', 'Atom', 'JSONFeed', 'Email', 'Youtube']
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -768,7 +768,6 @@ components:
               type: array
               items:
                 x-go-type: '*Item'
-                # $ref: '#/components/schemas/Item'
               x-oapi-codegen-extra-tags:
                 json: '-'
               x-go-type-skip-optional-pointer: true
@@ -791,6 +790,30 @@ components:
                 validate: 'required,oneof=direct proxied zyte-products zyte-articles'
             quirks:
               $ref: '#/components/schemas/FeedQuirks'
+            source_data:
+              description: >
+                contains data related to the specific source type of the feed.
+              oneOf:
+                - $ref: '#/components/schemas/YoutubeFeedData'
+    YoutubeFeedData:
+      description: >
+        contains data for fetching and parsing a Youtube feed.
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          description: is the Youtube ID for the object.
+          type: string
+          x-go-name: ID
+          x-oapi-codegen-extra-tags:
+            validate: required
+        type:
+          description: is the type of object (i.e., channel, playlist).
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
     FeedQuirks:
       description: >
         contains data on quirks for a feed.

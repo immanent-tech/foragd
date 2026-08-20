@@ -156,6 +156,7 @@ const (
 	SourceTypeEmail    SourceType = "Email"
 	SourceTypeJSONFeed SourceType = "JSONFeed"
 	SourceTypeRSS      SourceType = "RSS"
+	SourceTypeYoutube  SourceType = "Youtube"
 )
 
 // Valid indicates whether the value is a known member of the SourceType enum.
@@ -168,6 +169,8 @@ func (e SourceType) Valid() bool {
 	case SourceTypeJSONFeed:
 		return true
 	case SourceTypeRSS:
+		return true
+	case SourceTypeYoutube:
 		return true
 	default:
 		return false
@@ -652,6 +655,9 @@ type Feed struct {
 	// Quirks contains data on quirks for a feed.
 	Quirks *FeedQuirks `json:"quirks,omitempty"`
 
+	// SourceData contains data related to the specific source type of the feed.
+	SourceData *Feed_SourceData `json:"source_data,omitempty"`
+
 	// SourceType indicates what type of source the object came from.
 	SourceType SourceType `json:"source_type"`
 
@@ -673,6 +679,11 @@ type Feed struct {
 
 // FeedFetchMethod defines how this feed should be fetched.
 type FeedFetchMethod string
+
+// Feed_SourceData contains data related to the specific source type of the feed.
+type Feed_SourceData struct {
+	union json.RawMessage
+}
 
 // FeedID is the unique ID of a feed.
 type FeedID = string
@@ -1377,6 +1388,15 @@ type UserSubscriptionType string
 // View The state of objects to view.
 type View string
 
+// YoutubeFeedData contains data for fetching and parsing a Youtube feed.
+type YoutubeFeedData struct {
+	// ID is the Youtube ID for the object.
+	ID string `json:"id" validate:"required"`
+
+	// Type is the type of object (i.e., channel, playlist).
+	Type string `json:"type" validate:"required"`
+}
+
 // YoutubeVideoStatistics contains statistics about a Youtube video.
 type YoutubeVideoStatistics struct {
 	// CommentCount is the number of comments for the video.
@@ -1489,6 +1509,42 @@ func (t CheckoutRequest_SubscriptionData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *CheckoutRequest_SubscriptionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsYoutubeFeedData returns the union data inside the Feed_SourceData as a YoutubeFeedData
+func (t Feed_SourceData) AsYoutubeFeedData() (YoutubeFeedData, error) {
+	var body YoutubeFeedData
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromYoutubeFeedData overwrites any union data inside the Feed_SourceData as the provided YoutubeFeedData
+func (t *Feed_SourceData) FromYoutubeFeedData(v YoutubeFeedData) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeYoutubeFeedData performs a merge with any union data inside the Feed_SourceData, using the provided YoutubeFeedData
+func (t *Feed_SourceData) MergeYoutubeFeedData(v YoutubeFeedData) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Feed_SourceData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Feed_SourceData) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
