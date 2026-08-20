@@ -211,7 +211,7 @@ func newChannelFeed(channel *youtube.Channel) *models.Feed {
 
 	// Add source data.
 	feed.SourceData = &models.Feed_SourceData{}
-	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{
+	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{ //nolint:errcheck // should never fail.
 		ID:   channel.Id,
 		Type: TypeChannel,
 	})
@@ -254,7 +254,7 @@ func newPlaylistFeed(playlist *youtube.Playlist) *models.Feed {
 
 	// Add source data.
 	feed.SourceData = &models.Feed_SourceData{}
-	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{
+	feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{ //nolint:errcheck // should never fail.
 		ID:   playlist.Id,
 		Type: TypePlaylist,
 	})
@@ -359,7 +359,7 @@ func CreateItems(feed *models.Feed, videos ...*youtube.Video) models.Items {
 		// Add youtube extension data if found.
 		item.ExtensionType = new(models.ItemExtensionTypeYoutube)
 		item.ExtensionData = &models.Item_ExtensionData{}
-		item.ExtensionData.FromItemExtensionYoutube(models.ItemExtensionYoutube{
+		item.ExtensionData.FromItemExtensionYoutube(models.ItemExtensionYoutube{ //nolint:errcheck // should never fail.
 			VideoId: video.Id,
 			Width:   &width,
 			Height:  &height,
