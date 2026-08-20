@@ -87,22 +87,6 @@ var ViewerFAQ = []partials.FAQEntry{
 templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@LayoutExternal() {
 		@container() {
-			@partials.RenderJSONLD("pricing",
-				&partials.PriceJSONLD{
-					Context:             "https://schema.org",
-					Type:                []string{"SoftwareApplication", "WebApplication"},
-					Name:                "Foragd",
-					ApplicationCategory: "News & RSS Reader",
-					OperatingSystem:     "Web",
-					Offers: []partials.OfferJSONLD{partials.OfferJSONLD{
-						Type:          "Offer",
-						Price:         "59",
-						PriceCurrency: "USD",
-					}},
-					Description: "A web-based RSS and feed reader. Follow any website, blog or newsletter in one place. No algorithms, no ads, fully searchable.",
-					URL:         "https://foragd.app/",
-				},
-			)
 			<div class="isolate">
 				@pageHeading(element.WithClasses("mt-12")) {
 					@pageTitle("Free RSS and Atom Feed Viewer")

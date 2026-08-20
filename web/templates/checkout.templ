@@ -98,24 +98,34 @@ templ showSubscriptionPlans(request *models.CheckoutRequest) {
 							<div class="group/tier card w-full bg-base-200 shadow-sm sm:w-lg">
 								<div class="card-body">
 									<h2 class="text-lg/7 font-semibold text-primary">The One <span class="sr-only">plan</span></h2>
-									<p class="mt-2 text-sm/6 text-pretty text-neutral">Single plan, all features, generous inclusions.</p>
-									<div class="mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=annual]:checked]/tiers:hidden">
-										<div class="text-5xl font-semibold">$59</div>
+									<div class="flex-separated mt-2 flex flex-wrap items-center justify-center text-pretty text-neutral">
+										<span>Single plan</span>
+										<span>All features included</span>
+										<span>Generous limits</span>
+									</div>
+									<div class="mt-4 mb-auto flex items-start gap-4 group-not-has-[[name=frequency][value=annual]:checked]/tiers:hidden">
+										<div class="text-5xl font-semibold">$36</div>
 										<div class="text-sm">
 											<p>USD</p>
 											<p>annual</p>
 										</div>
 									</div>
-									<div class="mt-4 mb-auto flex items-center gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
-										<div class="text-5xl font-semibold">$7</div>
+									<div class="mt-4 mb-auto flex items-start gap-4 group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">
+										<div class="text-5xl font-semibold">$5</div>
 										<div class="text-sm">
 											<p>USD</p>
 											<p>per month</p>
 										</div>
 									</div>
+									<p class="mt-2 text-left text-sm/6 font-semibold text-accent">
+										<span class="badge badge-sm text-warning-content badge-warning">Sale</span>
+										Limited time only.
+										<span class="group-not-has-[[name=frequency][value=annually]:checked]/tiers:hidden">Regular price $59</span>
+										<span class="group-not-has-[[name=frequency][value=monthly]:checked]/tiers:hidden">Regular price $7</span>
+									</p>
 									<p class="mt-2 text-sm/6 font-semibold text-pretty text-accent group-not-has-[[name=frequency][value=annual]:checked]/tiers:hidden">
 										<span class="badge badge-sm text-warning-content badge-warning">Best value</span>
-										Save ~30% discount vs. monthly subscription.
+										Save ~40% discount vs. monthly subscription.
 									</p>
 									<div class="mt-8">
 										<h3 class="text-sm/6 font-medium">Features:</h3>
