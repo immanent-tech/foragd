@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.219.0](https://github.com/immanent-tech/foragd/compare/v0.218.0...v0.219.0) (2026-08-20)
+
+
+### Features
+
+* ✨ adjust price to sale price ([b049485](https://github.com/immanent-tech/foragd/commit/b049485f8c809da0749c26af47ff682eec5bd773))
+* ✨ more reliable Youtube search ([daa7348](https://github.com/immanent-tech/foragd/commit/daa7348516315672e88801370dd324c3c956f03c))
+* ✨ support adding feeds for youtube channels or playlists ([690269b](https://github.com/immanent-tech/foragd/commit/690269b84f22e24ba8505a51e7fe3c114ca1448e))
+
 ## [0.218.0](https://github.com/immanent-tech/foragd/compare/v0.217.0...v0.218.0) (2026-08-19)
 
 
