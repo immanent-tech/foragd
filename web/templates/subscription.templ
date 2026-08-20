@@ -55,7 +55,14 @@ templ (s *Subscription) subscriptionMarkToggle() {
 				mark = models.MarkUnread
 			}
 		}}
-		<div class="tooltip tooltip-top tooltip-end" data-tip={ "Toggle mark" }>
+		<div
+			class="tooltip tooltip-top tooltip-end"
+			if s.GetStats().IsUnread() {
+				data-tip="Mark unread"
+			} else {
+				data-tip="Mark read"
+			}
+		>
 			<label
 				id={ s.GetID() + "-toggle-mark" }
 				aria-label={ "Toggle mark status for " + s.GetTitle() }
@@ -87,11 +94,23 @@ templ (s *Subscription) subscriptionMarkToggle() {
 				/>
 				<input
 					type="checkbox"
-					_="on click halt the event's bubbling"
 					if s.GetStats().IsUnread() {
 						checked
+						aria-label="Mark read"
+					} else {
+						aria-label="Mark unread"
 					}
-					aria-label={ "Toggle mark status for " + s.GetTitle() }
+					_="
+					on click halt the event's bubbling
+					on change
+						if my.checked
+							set @aria-label to 'Mark unread'
+							set @data-tip of closest .tooltip to 'Mark unread'
+						else
+							set @aria-label to 'Mark read'
+							set @data-tip of closest .tooltip to 'Mark read'
+						end
+				"
 				/>
 				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
 				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})

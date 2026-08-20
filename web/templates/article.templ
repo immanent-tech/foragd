@@ -58,7 +58,14 @@ templ (a *Article) markToggle() {
 			mark = models.MarkUnread
 		}
 	}}
-	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
+	<div
+		class="tooltip tooltip-top tooltip-end"
+		if a.IsUnread() {
+			data-tip="Mark unread"
+		} else {
+			data-tip="Mark read"
+		}
+	>
 		<label
 			id={ a.GetID() + "-mark-toggle" }
 			class="btn swap btn-square btn-ghost btn-sm"
@@ -89,11 +96,23 @@ templ (a *Article) markToggle() {
 			/>
 			<input
 				type="checkbox"
-				_="on click halt the event's bubbling"
+				_="
+					on click halt the event's bubbling
+					on change
+						if my.checked
+							set @aria-label to 'Mark unread'
+							set @data-tip of closest .tooltip to 'Mark unread'
+						else
+							set @aria-label to 'Mark read'
+							set @data-tip of closest .tooltip to 'Mark read'
+						end
+				"
 				if a.IsUnread() {
 					checked
+					aria-label="Mark read"
+				} else {
+					aria-label="Mark unread"
 				}
-				aria-label={ "Toggle mark status for " + a.GetTitle() }
 			/>
 			@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
 			@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
