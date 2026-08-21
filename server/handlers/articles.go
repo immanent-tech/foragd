@@ -138,6 +138,34 @@ func HandleListArticles() http.HandlerFunc {
 			)
 		}
 
+		if htmx.IsHistoryRestoreRequest(req) {
+			// Get the current count of items displayed.
+			if currentTotal, err := session.Restore[int](
+				req.Context(),
+				"listArticlesTotal",
+			); err != nil {
+				slogctx.Warn(
+					req.Context(),
+					"Could not retrieve current articles total from session for history restore.",
+					slog.Any("error", err),
+				)
+			} else {
+				// Reset pagination.
+				request.Pagination = nil
+				// Adjust count to fetch current articles plus count.
+				request.Filters.Count = currentTotal + filters.GetCount()
+				// Update the current total in the session
+				if err := session.SaveAndCommit(
+					req.Context(),
+					"listArticlesTotal",
+					request.Filters.Count,
+				); err != nil {
+					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
+						slog.Any("error", err))
+				}
+			}
+		}
+
 		// Get articles matching filters.
 		var next models.Pagination
 		articles, next, err = service.FilterArticles(req.Context(), request)
@@ -174,6 +202,18 @@ func HandleListArticles() http.HandlerFunc {
 		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
+			if !htmx.IsHistoryRestoreRequest(req) {
+				if err := session.SaveAndCommit(
+					req.Context(),
+					"listArticlesTotal",
+					request.Filters.Count,
+				); err != nil {
+					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
+						slog.Any("error", err))
+				}
+			} else {
+				response.Filters.Count = models.DefaultCount
+			}
 			RenderInternalPage(&ListArticles{
 				title:    title,
 				template: templates.ListArticles(response),
@@ -203,7 +243,27 @@ func HandleListArticles() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req.WithContext(ctx))
 			}
-
+			// Get the current count of items displayed.
+			if currentTotal, err := session.Restore[int](
+				req.Context(),
+				"listArticlesTotal",
+			); err != nil {
+				slogctx.Warn(
+					req.Context(),
+					"Could not retrieve current articles total from session for history restore.",
+					slog.Any("error", err),
+				)
+			} else {
+				// Update the current total in the session
+				if err := session.SaveAndCommit(
+					req.Context(),
+					"listArticlesTotal",
+					currentTotal+models.DefaultCount,
+				); err != nil {
+					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
+						slog.Any("error", err))
+				}
+			}
 		}
 	}
 }

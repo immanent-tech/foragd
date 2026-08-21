@@ -28,8 +28,8 @@ var ErrNoFilters = &APIError{
 const (
 	// minUserCount is the minimum number of results a user can retrieve at a single time.
 	minUserCount = 1
-	// defaultCount is to show 9 objects.
-	defaultCount = 9
+	// DefaultCount is to show 9 objects.
+	DefaultCount = 9
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 )
@@ -69,7 +69,7 @@ type Filters interface {
 func NewListDisplayFilters() ListFilters {
 	return ListFilters{
 		Sort:  defaultSort,
-		Count: defaultCount,
+		Count: DefaultCount,
 		View:  defaultView,
 	}
 }
@@ -178,7 +178,7 @@ func setValidSort(value Sort) Sort {
 // Count, the default Count is returned.
 func setValidCount(value int) int {
 	if value < minUserCount {
-		return defaultCount
+		return DefaultCount
 	}
 	return value
 }
