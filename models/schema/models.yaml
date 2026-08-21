@@ -342,6 +342,16 @@ components:
           x-omitempty: false
         global_filters:
           $ref: '#/components/schemas/ArticleFilters'
+        theme:
+          description: is the user's preferred theme.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: theme
+        font_style:
+          description: is the user's preferred font style.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: font_style
     UserLimit:
       description: >
         represents details about a user account limit

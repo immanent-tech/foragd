@@ -1357,6 +1357,9 @@ type UserSession struct {
 
 // UserSettings contains user-specific settings for the application.
 type UserSettings struct {
+	// FontStyle is the user's preferred font style.
+	FontStyle *string `form:"font_style" json:"font_style,omitempty"`
+
 	// GlobalFilters holds filters to apply to the articles within a subscription.
 	GlobalFilters *ArticleFilters `form:"article_filters" json:"global_filters"`
 
@@ -1377,6 +1380,9 @@ type UserSettings struct {
 
 	// SubscriptionEmail is an email address the user can use to subscribe to email newsletters.
 	SubscriptionEmail *string `form:"subscription_email" json:"subscription_email,omitempty" validate:"omitempty,email"`
+
+	// Theme is the user's preferred theme.
+	Theme *string `form:"theme" json:"theme,omitempty"`
 
 	// UpdatesInterval is the interval on which to check for new updates.
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`

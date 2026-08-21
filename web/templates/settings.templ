@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"fmt"
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
@@ -698,40 +699,122 @@ templ DisplaySettings(user *models.User) {
 					</form>
 				</fieldset>
 			</div>
-			// 	<div id="font-settings" class="min-w-0 py-8">
-			// 		<div class="text-xl font-medium">Font Size</div>
-			// 		<p>Adjust the font size of the interface.</p>
-			// 		<div class="flex gap-2" role="group" aria-label="Text size">
-			// 			<button
-			// 				class="btn btn-outline"
-			// 				_="on click
-			//  set :scale to (Number(getComputedStyle(document.documentElement).getPropertyValue('--font-scale')) or 1) - 0.1
-			//  if :scale < 0.8 set :scale to 0.8 end
-			//  call document.documentElement.style.setProperty('--font-scale', :scale)
-			//  set localStorage.fontSize to :scale"
-			// 			>
-			// 				A-
-			// 			</button>
-			// 			<button
-			// 				class="btn btn-outline"
-			// 				_="on click
-			//  call document.documentElement.style.setProperty('--font-scale', 1)
-			//  set localStorage.fontSize to 1"
-			// 			>
-			// 				Reset
-			// 			</button>
-			// 			<button
-			// 				class="btn btn-outline"
-			// 				_="on click
-			//  set :scale to (Number(getComputedStyle(document.documentElement).getPropertyValue('--font-scale')) or 1) + 0.1
-			//  if :scale > 1.5 set :scale to 1.5 end
-			//  call document.documentElement.style.setProperty('--font-scale', :scale)
-			//  set localStorage.fontSize to :scale"
-			// 			>
-			// 				A+
-			// 			</button>
-			// 		</div>
-			// 	</div>
+			<div id="font-settings" class="min-w-0 py-8">
+				<h3 class="text-xl font-medium">Fonts</h3>
+				<p>Adjust font settings of the app.</p>
+				<label class="fieldset py-4">
+					<span class="label">Article Text</span>
+					<select
+						hx-post="/user/settings/fonts"
+						hx-swap="none"
+						class="select"
+						name="font_style"
+						_="
+						on change
+							set fontStyle to my value
+						    set computedFontStyle to getComputedStyle(document.documentElement).getPropertyValue(my value)
+							call document.documentElement.style.setProperty('--font-serif', computedFontStyle)
+							then set document.cookie to `font_style=${fontStyle};path=/;max-age=31536000;samesite=lax`"
+					>
+						<option
+							value="--font-oldstyle"
+							if FontStyleFromCtx(ctx) == "--font-oldstyle" {
+								selected
+							}
+						>
+							<span class="font-oldstyle">Oldstyle (default)</span>
+						</option>
+						<option
+							value="--font-systemui"
+							if FontStyleFromCtx(ctx) == "--font-systemui" {
+								selected
+							}
+						>
+							<span class="font-systemui">System UI</span>
+						</option>
+						<option
+							value="--font-transitional"
+							if FontStyleFromCtx(ctx) == "--font-transitional" {
+								selected
+							}
+						>
+							<span class="font-transitional">Transitional</span>
+						</option>
+						<option
+							value="--font-humanist"
+							if FontStyleFromCtx(ctx) == "--font-humanist" {
+								selected
+							}
+						>
+							<span class="font-humanist">Humanist</span>
+						</option>
+						<option
+							value="--font-geohumanist"
+							if FontStyleFromCtx(ctx) == "--font-geohumanist" {
+								selected
+							}
+						>
+							<span class="font-geohumanist">Geometric Humanist</span>
+						</option>
+						<option
+							value="--font-classhuman"
+							if FontStyleFromCtx(ctx) == "--font-classhuman" {
+								selected
+							}
+						>
+							<span class="font-classhuman">Classical Humanist</span>
+						</option>
+						<option
+							value="--font-neogrote"
+							if FontStyleFromCtx(ctx) == "--font-neogrote" {
+								selected
+							}
+						>
+							<span class="font-neogrote">Neo-Grotesque</span>
+						</option>
+					</select>
+					<p class="mt-4">Preview:</p>
+					<p class="font-serif">
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+						labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+						laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+						voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+						non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+					</p>
+				</label>
+				// 	<div class="text-xl font-medium">Font Size</div>
+				// 	<p>Adjust the font size of the interface.</p>
+				// 	<div class="flex gap-2" role="group" aria-label="Text size">
+				// 		<button
+				// 			class="btn btn-outline"
+				// 			_="on click
+				//  set :scale to (Number(getComputedStyle(document.documentElement).getPropertyValue('--font-scale')) or 1) - 0.1
+				//  if :scale < 0.8 set :scale to 0.8 end
+				//  call document.documentElement.style.setProperty('--font-scale', :scale)
+				//  set localStorage.fontSize to :scale"
+				// 		>
+				// 			A-
+				// 		</button>
+				// 		<button
+				// 			class="btn btn-outline"
+				// 			_="on click
+				//  call document.documentElement.style.setProperty('--font-scale', 1)
+				//  set localStorage.fontSize to 1"
+				// 		>
+				// 			Reset
+				// 		</button>
+				// 		<button
+				// 			class="btn btn-outline"
+				// 			_="on click
+				//  set :scale to (Number(getComputedStyle(document.documentElement).getPropertyValue('--font-scale')) or 1) + 0.1
+				//  if :scale > 1.5 set :scale to 1.5 end
+				//  call document.documentElement.style.setProperty('--font-scale', :scale)
+				//  set localStorage.fontSize to :scale"
+				// 		>
+				// 			A+
+				// 		</button>
+				// 	</div>
+			</div>
 			// Theme settings.
 			<div id="theme-settings" class="min-w-0 py-8">
 				<h3 class="text-xl font-medium">Theme</h3>
@@ -743,6 +826,13 @@ templ DisplaySettings(user *models.User) {
 			</div>
 		</div>
 	}
+}
+
+templ SetFontStyle(style string) {
+	{{ rootFontStyle := fmt.Sprintf("<style>:root { --font-serif: var(%s); }</style>", style) }}
+	<head>
+		@templ.Raw(rootFontStyle)
+	</head>
 }
 
 type SubscriptionSettingsData struct {

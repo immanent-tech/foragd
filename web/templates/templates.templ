@@ -247,8 +247,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			// Pull-to-refresh.
 			@components.PullToRefreshBehavior()
 		</head>
+		@SetFontStyle(FontStyleFromCtx(ctx))
 		<body
-			hx-ext="morph"
+			hx-ext="morph,head-support"
 			class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased"
 			_="
 			on htmx:historyCacheMiss

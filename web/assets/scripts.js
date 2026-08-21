@@ -5,6 +5,7 @@
 import htmx from 'htmx.org/dist/htmx.esm'
 window.htmx = htmx
 import 'idiomorph/htmx'
+import 'htmx-ext-head-support'
 
 // hyperscript
 import 'hyperscript.org'

@@ -11,6 +11,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -18,6 +19,7 @@ import (
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // ExtractUserFromSession will extract the user data from the session, retrieve the user details from the backend and
@@ -264,5 +266,20 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 func validateAndroidSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		next.ServeHTTP(res, req)
+	})
+}
+
+func Customisation(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		if c, err := req.Cookie("font_style"); err == nil && c.Value != "" {
+			if err := validation.Validate.Var(
+				c.Value,
+				"oneof=--font-systemui --font-transitional --font-oldstyle --font-humanist --font-geohumanist --font-classhuman --font-neogrote",
+			); err == nil {
+				ctx = templates.FontStyleToCtx(req.Context(), c.Value)
+			}
+		}
+		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

@@ -100,6 +100,7 @@ func Start() error {
 		security.ContentSecurityPolicy,
 		security.GeneralSecurity,
 		security.PreventCSRF,
+		middlewares.Customisation,
 		// middlewares.RateLimit,
 		etag.Etag,
 		middlewares.SetClient,
@@ -327,6 +328,7 @@ func Start() error {
 				r.Get("/subscription", handlers.HandleManageAccountSubscription())
 				r.With(htmx.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
+				r.With(htmx.RequireHTMX).Post("/fonts", handlers.HandleSaveFontSettings())
 			})
 			r.With(htmx.RequireHTMX).Post("/deactivate", handlers.HandleDeactivateAccount())
 		})

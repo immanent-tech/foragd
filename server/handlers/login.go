@@ -217,7 +217,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		}
 	default: // Existing user.
 		// Sync user data from the backend.
-		service.SyncUser(req.Context(), user)
+		service.SyncUser(res, req, user)
 	}
 
 	ctx := models.UserToCtx(req.Context(), user)

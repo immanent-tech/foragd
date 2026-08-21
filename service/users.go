@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/maypok86/otter/v2"
@@ -166,17 +167,17 @@ func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) 
 }
 
 // SyncUser tries to sync relevant user data from the auth backend to the local data.
-func SyncUser(ctx context.Context, localUser *models.User) {
+func SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
 	if otel.IsEnabled() {
 		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "sync-user")
+			Start(req.Context(), "sync-user")
 		defer span.End()
 	}
 
-	auth0User, err := auth0.GetUser(ctx, localUser.GetExternalID())
+	auth0User, err := auth0.GetUser(req.Context(), user.GetExternalID())
 	if err != nil {
-		slogctx.FromCtx(ctx).Error("Could not sync user data.",
-			slog.String("user_id", localUser.GetID()),
+		slogctx.Error(req.Context(), "Could not sync user data.",
+			slog.String("user_id", user.GetID()),
 			slog.Any("error", err))
 		return
 	}
@@ -184,29 +185,29 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different
-	if avatarURL := auth0User.GetUserResponseContent.GetPicture(); localUser.GetAvatar() != avatarURL {
+	if avatarURL := auth0User.GetUserResponseContent.GetPicture(); user.GetAvatar() != avatarURL {
 		updates["avatar_url"] = avatarURL
-		localUser.AvatarURL = &avatarURL
+		user.AvatarURL = &avatarURL
 	}
 	// Overwrite local nickname with remote nickname if different
-	if nickname := auth0User.GetUserResponseContent.GetNickname(); localUser.GetNickname() != nickname {
+	if nickname := auth0User.GetUserResponseContent.GetNickname(); user.GetNickname() != nickname {
 		updates["nickname"] = nickname
-		localUser.Nickname = nickname
+		user.Nickname = nickname
 	}
 	// Overwrite local email with remote email if different
-	if email := auth0User.GetUserResponseContent.GetEmail(); localUser.GetEmail() != email {
+	if email := auth0User.GetUserResponseContent.GetEmail(); user.GetEmail() != email {
 		updates["email"] = email
-		localUser.Email = email
+		user.Email = email
 	}
 	// Update login count.
 	updates["login_count"] = auth0User.GetUserResponseContent.GetLoginsCount()
 	// Update last login timestamp.
-	if lastLogin := auth0User.GetUserResponseContent.GetLastLogin(); lastLogin.After(localUser.LastLogin) {
+	if lastLogin := auth0User.GetUserResponseContent.GetLastLogin(); lastLogin.After(user.LastLogin) {
 		updates["last_login"] = lastLogin
 	}
 
 	// Update user metadata.
-	metadata := localUser.Metadata
+	metadata := user.Metadata
 	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok &&
 		metadata.PoliciesAccepted != accepted {
 		metadata.PoliciesAccepted = accepted
@@ -214,14 +215,25 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	if emailVerified := auth0User.GetUserResponseContent.GetEmailVerified(); emailVerified != metadata.EmailVerified {
 		metadata.EmailVerified = emailVerified
 	}
-	localUser.Metadata = metadata
+	user.Metadata = metadata
 	updates["metadata"] = metadata
+
+	// Sync user's preferred font style to long-lived customisation cookie.
+	if fontStyle := user.GetSettings().FontStyle; fontStyle != nil {
+		http.SetCookie(res, &http.Cookie{
+			Name:     "font_sans",
+			Value:    *fontStyle,
+			Path:     "/",
+			MaxAge:   365 * 24 * 60 * 60,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
 
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
-		if err := UpdateUser(ctx, localUser, updates); err != nil {
-			slogctx.FromCtx(ctx).Error("Could not sync user data.",
-				slog.String("user_id", localUser.GetID()),
+		if err := UpdateUser(req.Context(), user, updates); err != nil {
+			slogctx.Error(req.Context(), "Could not sync user data.",
+				slog.String("user_id", user.GetID()),
 				slog.Any("error", err))
 			return
 		}
