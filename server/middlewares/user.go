@@ -190,7 +190,6 @@ func RequireValidUser(next http.Handler) http.Handler {
 				res.WriteHeader(http.StatusForbidden)
 				return
 			}
-
 		case user.InTrialGracePeriod():
 			// Trial grace period. User can still use the app but will see a permanent (dismissable) notification that
 			// they need to buy a subscription.
@@ -198,19 +197,10 @@ func RequireValidUser(next http.Handler) http.Handler {
 			return
 
 		default:
-			// ! While Android app is in beta, allow Android app users to continue using the app after their trial has
-			// ! expired.
-			if client := models.ClientTypeFromCtx(req.Context()); client != models.ClientTypeTwa && !user.InTrial() {
-				slogctx.FromCtx(req.Context()).Error("Trial expired. User account requires activation.")
-				ctx := models.UserToCtx(req.Context(), user)
-				http.Redirect(res, req.WithContext(ctx), "/checkout", http.StatusSeeOther)
-				return
-			} else {
-				slogctx.FromCtx(req.Context()).Info("Android app using out of trial.")
-			}
+			// Unknown or unhandled user. Display a warning to contact support.
+			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			return
 		}
-
-		next.ServeHTTP(res, req)
 	})
 }
 
@@ -231,7 +221,7 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
 		}
-		// ! Note that trials are implemented outside of Paddle so we don't check the subscription status is trial here.
+		// NOTE: that trials are implemented outside of Paddle so we don't check the subscription status is trial here.
 		switch {
 		case paddle.IsPastDue(&userSubscription):
 			// User account is past due or has other payment issues.

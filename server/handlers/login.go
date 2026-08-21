@@ -222,7 +222,6 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 
 	ctx := models.UserToCtx(req.Context(), user)
 
-	// loginChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(ctx).Info("User logged in.",
 		slog.String("user_id", user.GetID()),
 	)
@@ -237,23 +236,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		)
 		http.Redirect(res, req.WithContext(ctx), returnTo, http.StatusFound)
 	}
-	// }).ServeHTTP(res, req)
 }
-
-// func handleNewUser(h http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 		// Create a new local account for the user
-// 		user, err = createNewLocalUser(req.Context(), *profile)
-// 		if err != nil {
-// 			HandleExternalError(&models.APIError{
-// 				InternalError: fmt.Errorf("create user: %w", err),
-// 				StatusCode:    http.StatusInternalServerError,
-// 			}).ServeHTTP(res, req)
-// 			return
-// 		}
-
-// 	})
-// }
 
 // HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password
 // reset links.
