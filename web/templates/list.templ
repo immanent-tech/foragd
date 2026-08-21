@@ -39,7 +39,7 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 								@viewFilterOption(c.path, models.ViewUnread, c.filters)
 								@viewFilterOption(c.path, models.ViewRead, c.filters)
 								@viewFilterOption(c.path, models.ViewAll, c.filters)
-								@viewFilterFavorites(c.path, c.filters)
+								@viewFilterOption(c.path, models.ViewFavorites, c.filters)
 							</ul>
 							// Mobile Sort Filters.
 							<li class="menu-title">Sort</li>
@@ -149,7 +149,7 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 					@viewFilterOption(c.path, models.ViewUnread, c.filters)
 					@viewFilterOption(c.path, models.ViewRead, c.filters)
 					@viewFilterOption(c.path, models.ViewAll, c.filters)
-					@viewFilterFavorites(c.path, c.filters)
+					@viewFilterOption(c.path, models.ViewFavorites, c.filters)
 				</ul>
 			</div>
 			// Custom button actions.
@@ -180,32 +180,6 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal capitalize text-base-content", templ.KV("font-semibold",active) }>{ string(view) }</span>
-			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
-				@tableroutline.Check(templ.Attributes{"class": "size-5"})
-			</span>
-		</a>
-	</li>
-}
-
-templ viewFilterFavorites(path string, filters models.ListFilters) {
-	{{
-		var active bool
-		values := filters.Values()
-		if filters.OnlyFavorites {
-			active = true
-		}
-		values["only_favorites"] = !filters.OnlyFavorites
-	}}
-	<li>
-		<a
-			hx-get={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-vals={ templ.JSONString(values) }
-			class="flex justify-between gap-2"
-		>
-			<span class={ "font-normal text-base-content", templ.KV("font-semibold",active) }>Favorites</span>
 			<span aria-hidden="true" class={ "text-accent", templ.KV("hidden",!active) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>

@@ -545,6 +545,10 @@ func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions 
 // FilterByView returns a slice containing the subscription which match the given view state.
 func (s Subscriptions) FilterByView(view View) Subscriptions {
 	switch view {
+	case ViewFavorites:
+		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+			return subscription.IsFavorite()
+		}))
 	case ViewRead:
 		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
 			return !subscription.GetStats().IsUnread()
@@ -556,16 +560,6 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	default:
 		return s
 	}
-}
-
-// FilterByFavorites returns a slice containing only favorite subscriptions.
-func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
-	if !value {
-		return s
-	}
-	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return subscription.IsFavorite()
-	}))
 }
 
 // FilterByType returns a slice containing subscriptions of the specified type.

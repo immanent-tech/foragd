@@ -84,7 +84,7 @@ func HandleListFavorites() http.HandlerFunc {
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
-			subscriptions = subscriptions.FilterByFavorites(true)
+			subscriptions = subscriptions.FilterByView(models.ViewFavorites)
 			// Update subscription dynamic info.
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 				return fmt.Errorf("update subscription dynamic info: %w", err)

@@ -174,21 +174,21 @@ func setValidSort(value Sort) Sort {
 	}
 }
 
-// setValidCount takes a value representing a count and returns a valid Count it
-// represents. If the value is not a valid Count, the default Count is
-// returned.
-func setValidCount(value Count) Count {
+// setValidCount takes a value representing a count and returns a valid Count it represents. If the value is not a valid
+// Count, the default Count is returned.
+func setValidCount(value int) int {
 	if value < minUserCount {
 		return defaultCount
 	}
 	return value
 }
 
-// setValidView takes a string representing a View and returns a valid View it
-// represents. If the value is not a valid View, the default View is
-// returned.
+// setValidView takes a string representing a View and returns a valid View it represents. If the value is not a valid
+// View, the default View is returned.
 func setValidView(value View) View {
 	switch value {
+	case ViewFavorites:
+		return ViewFavorites
 	case ViewAll:
 		return ViewAll
 	case ViewRead:
@@ -200,8 +200,8 @@ func setValidView(value View) View {
 	}
 }
 
-// setValidMark takes a string representing a Mark and returns a valid Mark it
-// represents. If the value is not a valid Mark, it returns MarkRead.
+// setValidMark takes a string representing a Mark and returns a valid Mark it represents. If the value is not a valid
+// Mark, it returns MarkRead.
 func setValidMark(value Mark) Mark {
 	switch value {
 	case MarkRead:

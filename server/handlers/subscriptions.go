@@ -168,9 +168,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Apply all base filtering and sorting.
+
 		var next models.Pagination
 		subscriptions, next = subscriptions.
-			FilterByFavorites(request.Filters.OnlyFavorites).
 			FilterByView(request.Filters.GetView()).
 			FilterByCategories(request.Filters.GetCategories()...).
 			FilterByIDs(request.Filters.GetSubscriptions()...).
@@ -282,7 +282,6 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 		}
 		// Apply all base filtering and sorting.
 		subscriptions = subscriptions.
-			FilterByFavorites(filters.OnlyFavorites).
 			FilterByView(filters.GetView()).
 			FilterByCategories(filters.GetCategories()...).
 			FilterByIDs(filters.GetSubscriptions()...)

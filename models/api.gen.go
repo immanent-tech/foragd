@@ -247,7 +247,7 @@ type NextArticleRequest struct {
 	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05.999999999Z07:00"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
 // NextArticleRequestDirection defines model for NextArticleRequest.Direction.
@@ -298,7 +298,7 @@ type SearchRequest struct {
 	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
 // SearchRequestPublishedWithin represents a time range within which the objects should be published

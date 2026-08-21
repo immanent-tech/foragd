@@ -99,7 +99,7 @@ func BuildSearchResultsQuery(
 					// Boost items that are from a favorite subscription.
 					query.Terms(
 						"feed_id",
-						subscriptions.FilterByFavorites(true).GetFeedIDs(),
+						subscriptions.FilterByView(models.ViewFavorites).GetFeedIDs(),
 						query.WithQueryName[*query.TermsQuery]("boost-favorites"),
 						query.WithQueryBoost[*query.TermsQuery](2.0),
 					),

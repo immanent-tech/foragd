@@ -190,22 +190,14 @@ components:
         count:
           type: integer
           minimum: 0
-    Count:
-      description: >
-        is the count of items to retrieve with a request.
-      type: integer
-      default: '10'
-      x-oapi-codegen-extra-tags:
-        form: 'count'
-        validate: 'gt=0'
     View:
       description: >
         The state of objects to view.
       type: string
-      enum: ['read', 'unread', 'all']
+      enum: ['read', 'unread', 'all', 'favorites']
       default: 'unread'
       x-oapi-codegen-extra-tags:
-        validate: 'required,oneof=read unread all'
+        validate: 'required,oneof=read unread all favorites'
         form: 'view'
     Pagination:
       description: contains data for paginating through results.
@@ -1440,7 +1432,21 @@ components:
         - sort
       properties:
         count:
-          $ref: '#/components/schemas/Count'
+          description: >
+            is the number of items to retrieve with a request. This number will be added to the upto value to get the
+            total number of items retrieved, else, will this number of items will be retrieved from the pagination point
+            specified with pagination value.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            form: 'count'
+            validate: 'gt=0'
+        upto:
+          description: >
+            is a number of items to retrieve. It is only non-zero for history restore requests.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            form: 'upto'
+            validate: 'omitempty,gt=0'
         view:
           $ref: '#/components/schemas/View'
         sort:
@@ -1465,17 +1471,6 @@ components:
             json: 'subscriptions'
             form: 'subscriptions'
             validate: 'omitnil,dive,startswith=sub_'
-          x-go-type-skip-optional-pointer: true
-        onlyFavorites:
-          description: >
-            indicates whether to filter by favorites only.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            json: 'only_favorites'
-            form: 'only_favorites'
-            validate: 'omitempty,boolean'
-          x-omit-zero: false
-          x-omitempty: false
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'required'

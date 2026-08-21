@@ -197,16 +197,29 @@ func BuildItemQueries(
 	subscriptions models.Subscriptions,
 ) []query.Option {
 	queries := make([]query.Option, 0, len(subscriptions))
-	// Work out what query to use based on the state filter.
+
+	// Ignore if no subscriptions specified.
 	if len(subscriptions) == 0 {
 		return nil
 	}
+
+	// Filter to favorites.
+	if view == models.ViewFavorites {
+		return []query.Option{
+			query.Terms(
+				"item_id",
+				user.ItemFavorites,
+				query.WithQueryName[*query.TermsQuery]("favorite-items"),
+			),
+		}
+	}
+
+	// Filter based on read/unread/all.
 	for subscription := range slices.Values(subscriptions) {
 		// Ignore subscriptions that aren't based on a feed object.
 		if subscription.GetFeedID() == "" {
 			continue
 		}
-
 		switch view {
 		case models.ViewRead:
 			queries = append(queries, queryReadItems(user, subscription))

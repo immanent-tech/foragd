@@ -290,15 +290,18 @@ func (e UserSubscriptionType) Valid() bool {
 
 // Defines values for View.
 const (
-	ViewAll    View = "all"
-	ViewRead   View = "read"
-	ViewUnread View = "unread"
+	ViewAll       View = "all"
+	ViewFavorites View = "favorites"
+	ViewRead      View = "read"
+	ViewUnread    View = "unread"
 )
 
 // Valid indicates whether the value is a known member of the View enum.
 func (e View) Valid() bool {
 	switch e {
 	case ViewAll:
+		return true
+	case ViewFavorites:
 		return true
 	case ViewRead:
 		return true
@@ -545,9 +548,6 @@ type CheckoutRequest_SubscriptionData struct {
 
 // ClientType represents which type of client is accessing the app.
 type ClientType string
-
-// Count is the count of items to retrieve with a request.
-type Count = int
 
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
@@ -863,11 +863,8 @@ type ListFilters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
-	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"gt=0"`
-
-	// OnlyFavorites indicates whether to filter by favorites only.
-	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`
+	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
+	Count int `form:"count" json:"count" validate:"gt=0"`
 
 	// Sort is how a list of objects is sorted.
 	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
@@ -875,8 +872,11 @@ type ListFilters struct {
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,dive,startswith=sub_"`
 
+	// Upto is a number of items to retrieve. It is only non-zero for history restore requests.
+	Upto *int `form:"upto" json:"upto,omitempty" validate:"omitempty,gt=0"`
+
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
 // ListRequest contains the parameters needed for listing subscriptions or articles.
@@ -939,7 +939,7 @@ type MarkSubscriptionsRequest struct {
 	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
 // Nickname is an optional friendly name.
