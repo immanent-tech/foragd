@@ -374,6 +374,45 @@ func HandleSaveFontSettings() http.HandlerFunc {
 	}
 }
 
+func HandleSaveThemeSettings() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Get user object
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
+			return
+		}
+
+		// Get the font style entered.
+		theme := req.FormValue("theme")
+		if err := validation.Validate.Var(
+			theme,
+			"oneof=greenhouse minimal-light forest evergreen catppuccin-latte catppuccin-mocha solarized-light solarized-dark enterprise minimal-dark",
+		); err != nil {
+			HandleInternalError(
+				http.StatusBadRequest,
+				fmt.Errorf("invalid theme: %s: %w", theme, err),
+			).ServeHTTP(res, req)
+			return
+		}
+
+		// Update the user settings.
+		settings := user.GetSettings()
+		settings.Theme = &theme
+		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("update font style: %w", err),
+			).ServeHTTP(res, req)
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+	}
+}
+
 // HandleChangePassword handles a change password request from the user.
 func HandleChangePassword() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {

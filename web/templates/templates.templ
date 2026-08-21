@@ -138,13 +138,16 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 	<html
 		lang="en"
 		_="on load
-             set theme to localStorage.getItem('theme')
-             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end
   			 if localStorage.fontSize
   			   call document.documentElement.style.setProperty('--font-scale', localStorage.fontSize)
   			 end
-  		   on mutation of @data-theme send themeChange end"
+  		   on mutation of @data-theme
+		    set theme to @data-theme
+			then set document.cookie to `theme=${theme};path=/;max-age=31536000;samesite=lax`
+  			then send themeChanged(theme:theme)
+		   "
 		class="min-h-dvh scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none"
+		data-theme={ ThemeFromCtx(ctx) }
 	>
 		<head>
 			<meta charset="UTF-8"/>

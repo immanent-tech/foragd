@@ -329,6 +329,7 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
 				r.With(htmx.RequireHTMX).Post("/fonts", handlers.HandleSaveFontSettings())
+				r.With(htmx.RequireHTMX).Post("/theme", handlers.HandleSaveThemeSettings())
 			})
 			r.With(htmx.RequireHTMX).Post("/deactivate", handlers.HandleDeactivateAccount())
 		})

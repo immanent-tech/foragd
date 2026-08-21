@@ -1094,8 +1094,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 					FetchWithFeedID(opts.FeedID),
 				)
 			}
-			// data, err := io.ReadAll(resp.RawBody())
-			// godump.Dump(data, err)
 			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
 

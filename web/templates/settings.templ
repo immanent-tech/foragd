@@ -12,6 +12,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/veqryn/slog-context"
 	"log/slog"
+	"net/http"
 	"slices"
 	"strings"
 )
@@ -1263,10 +1264,12 @@ templ themeCards() {
 }
 
 templ themePreviewCard(theme string) {
-	@partials.Card(
-		element.WithAttribute("data-theme", theme),
-		element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
+	@partials.Card(element.WithAttribute("data-theme", theme),
+		element.WithAttribute("_", "on click set @data-theme of <html/> to my @data-theme then send themeChanged(theme:my @data-theme) end"),
 		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]"),
+		element.WithHXMethod(http.MethodPost, "/user/settings/theme"),
+		element.WithHXValues(map[string]any{"theme": theme}),
+		element.WithHXSwap("none"),
 	) {
 		@partials.CardHeader() {
 			<div class="flex items-center">
@@ -1280,7 +1283,27 @@ templ themePreviewCard(theme string) {
 				<div>
 					<h2
 						class="card-title line-clamp-3 tracking-tight text-pretty capitalize transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none"
-						_={ "on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end" }
+						_="
+							on load
+								js
+      								const match = document.cookie.match(/(?:^|;\s*)theme=([^;]*)/);
+      								return match ? decodeURIComponent(match[1]) : null;
+    							end
+    							set theme to it
+								set :myTheme to @data-theme of closest .card
+								if theme == :myTheme
+									set my innerText to :myTheme + ' (current)'
+								else
+									set my innerText to :myTheme
+								end
+							on themeChanged(theme) from <body/>
+								set :myTheme to @data-theme of closest .card
+								if theme == :myTheme
+									set my innerText to :myTheme + ' (current)'
+								else
+									set my innerText to :myTheme
+								end
+						"
 					>
 						{ theme }
 					</h2>

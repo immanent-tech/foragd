@@ -280,6 +280,14 @@ func Customisation(next http.Handler) http.Handler {
 				ctx = templates.FontStyleToCtx(req.Context(), c.Value)
 			}
 		}
+		if c, err := req.Cookie("theme"); err == nil && c.Value != "" {
+			if err := validation.Validate.Var(
+				c.Value,
+				"oneof=greenhouse minimal-light forest evergreen catppuccin-latte catppuccin-mocha solarized-light solarized-dark enterprise minimal-dark",
+			); err == nil {
+				ctx = templates.ThemeToCtx(req.Context(), c.Value)
+			}
+		}
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

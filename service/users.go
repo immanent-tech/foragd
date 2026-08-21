@@ -229,6 +229,17 @@ func SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
 		})
 	}
 
+	// Sync user's preferred theme to long-lived customisation cookie.
+	if theme := user.GetSettings().Theme; theme != nil {
+		http.SetCookie(res, &http.Cookie{
+			Name:     "theme",
+			Value:    *theme,
+			Path:     "/",
+			MaxAge:   365 * 24 * 60 * 60,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
+
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
 		if err := UpdateUser(req.Context(), user, updates); err != nil {
