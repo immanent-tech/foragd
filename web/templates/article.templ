@@ -768,103 +768,105 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						</div>
 					</div>
 					if len(response.Articles) > 0 {
-						@grid(element.WithClasses("masonry-grid", "relative"),
-							element.WithAttribute("_", "install MasonryGrid"),
-							element.WithHXMethod(http.MethodGet, "/list/articles"),
-							element.WithHXTarget(ContentID.Target()),
-							element.WithHXTrigger("refresh"),
-							element.WithHXIndicator("#refreshing"),
-						) {
-							@templ.Fragment(PaginateFragment) {
-								for idx, article := range response.Articles {
-									@ArticleCard(idx, article)
+						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/articles', storageKey: 'articlesList')">
+							@grid(element.WithClasses("masonry-grid", "relative"),
+								element.WithAttribute("_", "install MasonryGrid"),
+								element.WithHXMethod(http.MethodGet, "/list/articles"),
+								element.WithHXTarget(ContentID.Target()),
+								element.WithHXTrigger("refresh"),
+								element.WithHXIndicator("#refreshing"),
+							) {
+								@templ.Fragment(PaginateFragment) {
+									for idx, article := range response.Articles {
+										@ArticleCard(idx, article)
+									}
 								}
 							}
-						}
-						@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
-						<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
-							<div class="hidden text-center group-[.htmx-request]:inline-flex">
-								<span class="loading mr-3 loading-xl loading-bars"></span>
-								<p class="text-lg/loose font-semibold">Loading content...</p>
+							@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
+							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
+								<div class="hidden text-center group-[.htmx-request]:inline-flex">
+									<span class="loading mr-3 loading-xl loading-bars"></span>
+									<p class="text-lg/loose font-semibold">Loading content...</p>
+								</div>
 							</div>
-						</div>
-						// Show some actions at the bottom of the list.
-						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-							// Mark all subscriptions action.
-							if response.Subscription == nil {
-								// Mark all articles action.
-								<li>
-									<a
-										role="button"
-										class="group rounded-field border border-neutral/15 text-sm"
-										if response.Filters.GetView() == models.ViewUnread {
-											hx-post="/list/articles/mark/read"
-											hx-vals={ templ.JSONString(map[string]any{
-														"mark": models.MarkRead,
-													}) }
-										} else {
-											hx-post="/list/articles/mark/unread"
-											hx-vals={ templ.JSONString(map[string]any{
-														"mark": models.MarkUnread,
-													}) }
-										}
-										hx-target={ ContentID.Target() }
-										hx-include="article > input"
-									>
-										<span class="hidden items-center group-[.htmx-request]:inline-flex">
-											<span class="loading mr-3 loading-spinner"></span>
-											<span class="text-sm/6">Loading</span>
-										</span>
-										<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
-											if response.Filters.GetView() == models.ViewUnread {
-												@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-												<span class="text-sm/6">Mark Articles Read</span>
-											} else {
-												@tableroutline.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-												<span class="text-sm/6">Mark Articles Unread</span>
-											}
-										</span>
-									</a>
-								</li>
-							} else {
-								// Show mark read/unread action when not viewing all articles.
-								if response.Filters.GetView() != models.ViewAll {
-									// Mark subscription action.
-									{{
-										values := make(map[string]any)
-										values["subscription_id"] = response.Subscription.GetID()
-										values["view"] = response.Filters.GetView()
-										if response.Filters.GetView() == models.ViewUnread {
-											values["mark"] = models.MarkRead
-										} else {
-											values["mark"] = models.MarkUnread
-										}
-									}}
+							// Show some actions at the bottom of the list.
+							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
+								// Mark all subscriptions action.
+								if response.Subscription == nil {
+									// Mark all articles action.
 									<li>
 										<a
 											role="button"
-											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-											hx-vals={ templ.JSONString(values) }
 											class="group rounded-field border border-neutral/15 text-sm"
+											if response.Filters.GetView() == models.ViewUnread {
+												hx-post="/list/articles/mark/read"
+												hx-vals={ templ.JSONString(map[string]any{
+														"mark": models.MarkRead,
+													}) }
+											} else {
+												hx-post="/list/articles/mark/unread"
+												hx-vals={ templ.JSONString(map[string]any{
+														"mark": models.MarkUnread,
+													}) }
+											}
+											hx-target={ ContentID.Target() }
+											hx-include="article > input"
 										>
 											<span class="hidden items-center group-[.htmx-request]:inline-flex">
 												<span class="loading mr-3 loading-spinner"></span>
-												Loading
+												<span class="text-sm/6">Loading</span>
 											</span>
 											<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 												if response.Filters.GetView() == models.ViewUnread {
-													@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-													<span class="text-sm/6">Mark Subscription Read</span>
+													@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+													<span class="text-sm/6">Mark Articles Read</span>
 												} else {
-													@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-													<span class="text-sm/6">Mark Subscription Unread</span>
+													@tableroutline.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+													<span class="text-sm/6">Mark Articles Unread</span>
 												}
 											</span>
 										</a>
 									</li>
+								} else {
+									// Show mark read/unread action when not viewing all articles.
+									if response.Filters.GetView() != models.ViewAll {
+										// Mark subscription action.
+										{{
+											values := make(map[string]any)
+											values["subscription_id"] = response.Subscription.GetID()
+											values["view"] = response.Filters.GetView()
+											if response.Filters.GetView() == models.ViewUnread {
+												values["mark"] = models.MarkRead
+											} else {
+												values["mark"] = models.MarkUnread
+											}
+										}}
+										<li>
+											<a
+												role="button"
+												hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+												hx-vals={ templ.JSONString(values) }
+												class="group rounded-field border border-neutral/15 text-sm"
+											>
+												<span class="hidden items-center group-[.htmx-request]:inline-flex">
+													<span class="loading mr-3 loading-spinner"></span>
+													Loading
+												</span>
+												<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
+													if response.Filters.GetView() == models.ViewUnread {
+														@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+														<span class="text-sm/6">Mark Subscription Read</span>
+													} else {
+														@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+														<span class="text-sm/6">Mark Subscription Unread</span>
+													}
+												</span>
+											</a>
+										</li>
+									}
 								}
-							}
-						</ul>
+							</ul>
+						</div>
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
 						@partials.NoContent()

@@ -2270,6 +2270,10 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if len(response.Articles) > 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "<div _=\"install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/articles', storageKey: 'articlesList')\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
 						templ_7745c5c3_Var95 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 							templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 							templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -2318,15 +2322,11 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, " ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
 						templ_7745c5c3_Err = ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, " <div id=\"loading-items\" class=\"group mx-auto mt-4 flex w-full justify-center\"><div class=\"hidden text-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div> <ul class=\"menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<div id=\"loading-items\" class=\"group mx-auto mt-4 flex w-full justify-center\"><div class=\"hidden text-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-xl loading-bars\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></div><ul class=\"menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2345,7 +2345,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 									"mark": models.MarkRead,
 								}))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 804, Col: 15}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 805, Col: 15}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var97)
 								if templ_7745c5c3_Err != nil {
@@ -2365,7 +2365,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 									"mark": models.MarkUnread,
 								}))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 809, Col: 15}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 810, Col: 15}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var98)
 								if templ_7745c5c3_Err != nil {
@@ -2383,7 +2383,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 							var templ_7745c5c3_Var99 string
 							templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 811, Col: 40}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 812, Col: 41}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var99)
 							if templ_7745c5c3_Err != nil {
@@ -2441,7 +2441,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 								var templ_7745c5c3_Var100 string
 								templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.ResolveAttributeValue("/mark/subscription/" + response.Subscription.GetID())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 846, Col: 74}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 847, Col: 75}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var100)
 								if templ_7745c5c3_Err != nil {
@@ -2454,7 +2454,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 								var templ_7745c5c3_Var101 string
 								templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(values))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 847, Col: 45}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 848, Col: 46}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var101)
 								if templ_7745c5c3_Err != nil {
@@ -2489,7 +2489,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 								}
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "</ul>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "</ul></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2518,7 +2518,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 				var templ_7745c5c3_Var102 string
 				templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(response.Filters.Values()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 879, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 881, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var102)
 				if templ_7745c5c3_Err != nil {
@@ -2646,7 +2646,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 			var templ_7745c5c3_Var105 string
 			templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 919, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 921, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var105)
 			if templ_7745c5c3_Err != nil {
@@ -2659,7 +2659,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 			var templ_7745c5c3_Var106 string
 			templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"mark": string(mark)}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 921, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 923, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var106)
 			if templ_7745c5c3_Err != nil {
@@ -2726,7 +2726,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 				var templ_7745c5c3_Var107 string
 				templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.ResolveAttributeValue("/mark/subscription/" + response.Subscription.GetID())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 948, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 950, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var107)
 				if templ_7745c5c3_Err != nil {
@@ -2743,7 +2743,7 @@ func listArticlesButtons(response *models.ListArticlesResponse) templ.Component 
 					"view":            string(response.Filters.GetView()),
 				}))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 953, Col: 6}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 955, Col: 6}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var108)
 				if templ_7745c5c3_Err != nil {
@@ -2831,7 +2831,7 @@ func ShareArticleModal(request *models.ShareArticleRequest) templ.Component {
 			var templ_7745c5c3_Var111 string
 			templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.JoinStringErrs(request.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 985, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 987, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var111))
 			if templ_7745c5c3_Err != nil {
@@ -2844,7 +2844,7 @@ func ShareArticleModal(request *models.ShareArticleRequest) templ.Component {
 			var templ_7745c5c3_Var112 templ.SafeURL
 			templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(request.Title), request.Link))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 991, Col: 100}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 993, Col: 100}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var112))
 			if templ_7745c5c3_Err != nil {
@@ -2865,7 +2865,7 @@ func ShareArticleModal(request *models.ShareArticleRequest) templ.Component {
 			var templ_7745c5c3_Var113 string
 			templ_7745c5c3_Var113, templ_7745c5c3_Err = templ.ResolveAttributeValue(request.Link)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 1000, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 1002, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var113)
 			if templ_7745c5c3_Err != nil {
@@ -2878,7 +2878,7 @@ func ShareArticleModal(request *models.ShareArticleRequest) templ.Component {
 			var templ_7745c5c3_Var114 string
 			templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.ResolveAttributeValue("on click set currentValue to (my innerHTML) then writeText('" + request.Link + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 1004, Col: 171}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 1006, Col: 171}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var114)
 			if templ_7745c5c3_Err != nil {
