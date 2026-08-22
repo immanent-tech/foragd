@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.220.0](https://github.com/immanent-tech/foragd/compare/v0.219.0...v0.220.0) (2026-08-22)
+
+
+### Features
+
+* ✨ add ability to choose a font style for article text ([11e10a3](https://github.com/immanent-tech/foragd/commit/11e10a3c2b0c54f333ef27c7f851f8615427de8c))
+* ✨ pagination and scroll restore on article list page ([0b0f445](https://github.com/immanent-tech/foragd/commit/0b0f4458956d5da9e2858f5850b3bd28f0c85a4c))
+* **templates:** ✨ more descriptive tooltips for read status toggles ([d1fcd6c](https://github.com/immanent-tech/foragd/commit/d1fcd6c2d8e7b72db13b54786335a278bc1274d1))
+
+
+### Bug Fixes
+
+* 🔧 remove flash of theme change ([6794ac2](https://github.com/immanent-tech/foragd/commit/6794ac2af31ec2213579666ddba340afeb992826))
+* **providers/auth0:** 🔧 don't use short-lived context for initialising authenticator ([75991da](https://github.com/immanent-tech/foragd/commit/75991da341f399c89319d124b2730eae58063355))
+* **templates/articles:** 🔧 add frontend code for scroll restore in articles list page ([eaf8cee](https://github.com/immanent-tech/foragd/commit/eaf8cee2def6d3212310704f14c690fcc2d53bdc))
+
 ## [0.219.0](https://github.com/immanent-tech/foragd/compare/v0.218.0...v0.219.0) (2026-08-20)
 
 
