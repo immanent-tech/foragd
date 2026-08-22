@@ -1,10 +1,30 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.219"
-date      = "Aug 20, 2026"
+version   = "v0.220"
+date      = "Aug 22, 2026"
 type      = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+You can now choose from a selection of font styles for article text in the display settings.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Scroll position should be preserved when navigating back to the articles list.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Better tooltip text in various places.
+"""
+
+[[releases]]
+version = "v0.219"
+date    = "Aug 20, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
