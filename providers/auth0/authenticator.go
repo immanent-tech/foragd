@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/auth0/go-auth0/v2/authentication"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/server/session"
 )
@@ -54,41 +56,35 @@ type Authenticator struct {
 
 var authClient Authenticator
 
-// initAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will only
-// perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
-var initAuthenticator = func(ctx context.Context) error {
-	err := sync.OnceValue(func() error {
-		err := loadConfigOnce()
-		if err != nil {
-			return fmt.Errorf("load config: %w", err)
-		}
-
-		provider, err := oidc.NewProvider(
-			ctx,
-			"https://"+cfg.Domain+"/",
-		)
-		if err != nil {
-			return fmt.Errorf("create provider: %w", err)
-		}
-
-		conf := oauth2.Config{
-			ClientID:     cfg.ClientID,
-			ClientSecret: cfg.ClientSecret,
-			RedirectURL:  cfg.CallbackURL,
-			Endpoint:     provider.Endpoint(),
-			Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
-		}
-		authClient = Authenticator{
-			Provider: provider,
-			Config:   conf,
-		}
-		return nil
-	})()
+// initAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will
+// only perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
+var initAuthenticator = sync.OnceValue(func() error {
+	err := loadConfigOnce()
 	if err != nil {
-		return err
+		return fmt.Errorf("load config: %w", err)
+	}
+
+	provider, err := oidc.NewProvider(
+		context.Background(),
+		"https://"+cfg.Domain+"/",
+	)
+	if err != nil {
+		return fmt.Errorf("create provider: %w", err)
+	}
+
+	conf := oauth2.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURL:  cfg.CallbackURL,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
+	}
+	authClient = Authenticator{
+		Provider: provider,
+		Config:   conf,
 	}
 	return nil
-}
+})
 
 // postToken sends a POST request to the Auth0 token endpoint and decodes the response.
 func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenResponse, error) {
@@ -116,7 +112,7 @@ func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenR
 // Exchange handles verifying and exchanging the authorization code for an access token. It also extracts the ID token
 // and user profile.
 func Exchange(ctx context.Context, code, verifier string) (*TokenResponse, *UserProfile, error) {
-	if err := initAuthenticator(ctx); err != nil {
+	if err := initAuthenticator(); err != nil {
 		return nil, nil, fmt.Errorf("init authenticator: %w", err)
 	}
 	// token, err := AuthClient.Exchange(ctx, code, oauth2.VerifierOption(verifier))
@@ -150,7 +146,7 @@ func Exchange(ctx context.Context, code, verifier string) (*TokenResponse, *User
 
 // RefreshTokens exchanges a refresh token for a new set of tokens.
 func RefreshTokens(ctx context.Context, refreshToken string) (*TokenResponse, error) {
-	if err := initAuthenticator(ctx); err != nil {
+	if err := initAuthenticator(); err != nil {
 		return nil, fmt.Errorf("init authenticator: %w", err)
 	}
 	form := url.Values{}
@@ -164,7 +160,7 @@ func RefreshTokens(ctx context.Context, refreshToken string) (*TokenResponse, er
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
 func VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, string, error) {
-	if err := initAuthenticator(ctx); err != nil {
+	if err := initAuthenticator(); err != nil {
 		return nil, "", fmt.Errorf("init authenticator: %w", err)
 	}
 	rawIDToken, ok := token.Extra("id_token").(string)
@@ -191,7 +187,7 @@ type AuthURLResult struct {
 
 // GenerateAuthURL constructs the Auth0 Universal Login redirect URL using PKCE.
 func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
-	if err := initAuthenticator(req.Context()); err != nil {
+	if err := initAuthenticator(); err != nil {
 		return nil, fmt.Errorf("init authenticator: %w", err)
 	}
 
@@ -230,7 +226,7 @@ func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
 func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
-	if err := initAuthenticator(req.Context()); err != nil {
+	if err := initAuthenticator(); err != nil {
 		return nil, fmt.Errorf("init authenticator: %w", err)
 	}
 	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")
@@ -252,11 +248,15 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 }
 
 func PutState(req *http.Request, state string) {
-	session.Save(req.Context(), sessionKeyState, state)
+	if err := session.Save(req.Context(), sessionKeyState, state); err != nil {
+		slogctx.Warn(req.Context(), "Unable to save session state.", slog.Any("error", err))
+	}
 }
 
 func PutCodeVerifier(req *http.Request, verifier string) {
-	session.Save(req.Context(), sessionKeyCodeVerifier, verifier)
+	if err := session.Save(req.Context(), sessionKeyCodeVerifier, verifier); err != nil {
+		slogctx.Warn(req.Context(), "Unable to verification code.", slog.Any("error", err))
+	}
 }
 
 func PutReturnTo(req *http.Request, path string) {
@@ -267,7 +267,9 @@ func PutReturnTo(req *http.Request, path string) {
 	case strings.HasSuffix(path, "/paginate"):
 		path = strings.TrimSuffix(path, "/paginate")
 	}
-	session.Save(req.Context(), sessionKeyReturnTo, path)
+	if err := session.Save(req.Context(), sessionKeyReturnTo, path); err != nil {
+		slogctx.Warn(req.Context(), "Unable to save return to path.", slog.Any("error", err))
+	}
 }
 
 func GetState(req *http.Request) (string, error) {
@@ -343,27 +345,49 @@ func IsAccessTokenExpired(req *http.Request) bool {
 
 // SaveTokens saves the access token and data in the session.
 func SaveTokens(ctx context.Context, token *TokenResponse) {
-	session.Save(ctx, sessionKeyAccessToken, token.AccessToken)
-	session.Save(ctx, sessionKeyIDToken, token.IDToken)
-	session.Save(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn))
+	if err := session.Save(ctx, sessionKeyAccessToken, token.AccessToken); err != nil {
+		slogctx.Warn(ctx, "Unable to save access token.", slog.Any("error", err))
+	}
+	if err := session.Save(ctx, sessionKeyIDToken, token.IDToken); err != nil {
+		slogctx.Warn(ctx, "Unable to save ID token.", slog.Any("error", err))
+	}
+	if err := session.Save(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn)); err != nil {
+		slogctx.Warn(ctx, "Unable to save token expiry.", slog.Any("error", err))
+	}
 	if token.RefreshToken != "" {
-		session.Save(ctx, sessionKeyRefreshToken, token.RefreshToken)
+		if err := session.Save(ctx, sessionKeyRefreshToken, token.RefreshToken); err != nil {
+			slogctx.Warn(ctx, "Unable to save refresh token.", slog.Any("error", err))
+		}
 	}
 }
 
 // ClearAuth removes all authentication-related keys from the session.
 func ClearAuth(req *http.Request) {
-	session.Remove(req.Context(), sessionKeyAccessToken)
-	session.Remove(req.Context(), sessionKeyRefreshToken)
-	session.Remove(req.Context(), sessionKeyIDToken)
-	session.Remove(req.Context(), sessionKeyTokenExpiry)
-	session.Remove(req.Context(), sessionKeyUserProfile)
+	if err := session.Remove(req.Context(), sessionKeyAccessToken); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove access token.", slog.Any("error", err))
+	}
+	if err := session.Remove(req.Context(), sessionKeyRefreshToken); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove refresh token.", slog.Any("error", err))
+	}
+	if err := session.Remove(req.Context(), sessionKeyIDToken); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove ID token.", slog.Any("error", err))
+	}
+	if err := session.Remove(req.Context(), sessionKeyTokenExpiry); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove token expiry.", slog.Any("error", err))
+	}
+	if err := session.Remove(req.Context(), sessionKeyUserProfile); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove user profile.", slog.Any("error", err))
+	}
 }
 
 // ClearState removes all data related to an authorization exchange from the session.
 func ClearState(req *http.Request) {
-	session.Remove(req.Context(), sessionKeyState)
-	session.Remove(req.Context(), sessionKeyCodeVerifier)
+	if err := session.Remove(req.Context(), sessionKeyState); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove state.", slog.Any("error", err))
+	}
+	if err := session.Remove(req.Context(), sessionKeyCodeVerifier); err != nil {
+		slogctx.Warn(req.Context(), "Unable to remove verification code.", slog.Any("error", err))
+	}
 }
 
 // tokenExpiry calculates the absolute expiry time from an ExpiresIn value.
