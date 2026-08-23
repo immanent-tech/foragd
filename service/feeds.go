@@ -1080,7 +1080,6 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 			SetDoNotParseResponse(true).
 			// SetDebug(true).
 			Get(sourceURL.String())
-		defer resp.RawBody().Close()
 		switch {
 		case err != nil:
 			return nil, models.NewAPIError(http.StatusInternalServerError, err)
@@ -1096,6 +1095,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 			}
 			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
+		defer resp.RawBody().Close()
 
 		contentType = resp.Header().Get("Content-Type")
 
