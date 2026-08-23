@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/dimmerz92/go-icons/tabler-outline"
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -11,6 +12,7 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"slices"
 	"strings"
+	"time"
 )
 
 var ViewerFAQ = []partials.FAQEntry{
@@ -252,9 +254,9 @@ templ ViewerResults(feed *models.Feed) {
 										// sm:1 - strip metadata
 										// kcr:1 - keep copyright
 										// scp:1 - convert color profile to sRGB
-										@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
-											element.WithAttribute("width", "48"),
-											element.WithAttribute("height", "48"),
+										@partials.NewProxiedImage(img, "rs:auto:64:64/q:80/sm:1/kcr:1/scp:1/ext:webp",
+											element.WithAttribute("width", "64"),
+											element.WithAttribute("height", "64"),
 											element.WithAttribute("loading", "lazy"),
 											element.WithAttribute("decoding", "async"),
 										)
@@ -279,40 +281,61 @@ templ ViewerResults(feed *models.Feed) {
 						</div>
 					</div>
 				</div>
-				<div class="mt-5 flex justify-center sm:mt-0">
+				<div class="mt-5 flex flex-col items-center justify-center gap-2 sm:mt-0">
+					// Go to feed website button.
 					<a
 						href={ feed.GetLink() }
 						target="_blank"
 						rel="noopener"
 						role="button"
-						class="btn flex link items-center link-hover btn-primary"
+						class="btn flex items-center btn-primary"
 					>
 						View Website
 						@tabler.ExternalLink()
 					</a>
+					// Copy feed URL button.
+					<div>
+						<el-copyable id="feed-url" class="hidden">{ feed.GetSourceURLs()[0] }</el-copyable>
+						<button command="--copy" commandfor="feed-url" class="btn btn-secondary">
+							<span class="in-data-copied:hidden">Copy Feed URL</span>
+							<span class="not-in-data-copied:hidden">Copied!</span>
+							@tabler.Copy()
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="mx-auto grid grid-cols-1 justify-center sm:grid-cols-3">
-			<div class="px-6 py-5 text-center text-sm font-medium">
-				<span class="">{ len(feed.GetItems()) }</span>
-				<span class="">Items</span>
+		// Show some feed stats/details.
+		<div class="flex sm:flex-separated gap-8 justify-center p-6">
+			<div class="text-center font-medium">
+				<span>{ len(feed.GetItems()) }</span>
+				<span>Items</span>
 			</div>
-			<div class="px-6 py-5 text-center text-sm font-medium">
-				<span class="">Last Updated</span>
-				<span class="label">
-					if !feed.GetTimestamp().Equal(models.UnixEpoch) {
-						<relative-time
-							datetime={ feed.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
-							format="relative"
-							class="tabular-nums"
-						>
-							{ feed.GetTimestamp().Format("Jan _2, 2006") }
-						</relative-time>
-					} else {
-						Unknown
-					}
-				</span>
+			<div class="font-medium text-center">
+				if !feed.GetTimestamp().Equal(models.UnixEpoch) {
+					Last Updated:&nbsp;
+					<relative-time
+						datetime={ feed.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
+						format="relative"
+						class="tabular-nums"
+					>
+						{ feed.GetTimestamp().Format("Jan _2, 2006") }
+					</relative-time>
+				} else {
+					Unknown
+				}
+			</div>
+			<div class="text-center font-medium">
+				switch  {
+					case feed.GetUpdateInterval() < time.Hour:
+						<span>Updates frequently</span>
+					case feed.GetUpdateInterval() < 24*time.Hour:
+						<span>Updates daily</span>
+					case feed.GetUpdateInterval() < 7*24*time.Hour:
+						<span>Updates weekly</span>
+					default:
+						<span>Updates infrequently</span>
+				}
 			</div>
 		</div>
 	</div>
@@ -322,6 +345,15 @@ templ ViewerResults(feed *models.Feed) {
 				@viewerItemCard(item)
 			}
 		}
+	} else {
+		<div class="text-center">
+			@tableroutline.QuestionMark(templ.Attributes{"class": "mx-auto size-12 stroke-accent"})
+			<h3 class="mt-2 text-base font-semibold">No items.</h3>
+			<p class="mt-1 text-sm">Feed appears empty?</p>
+		</div>
+	}
+	if feed.GetRights() != "" {
+		<p class="text-sm mt-4">{ feed.GetRights() }</p>
 	}
 }
 
