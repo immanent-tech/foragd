@@ -4,6 +4,7 @@
 
 - [Foragd Help](#foragd-help)
   - [Where to Get Help](#where-to-get-help)
+    - [Reporting Issues and Bugs](#reporting-issues-and-bugs)
   - [Terminology](#terminology)
   - [Getting Started](#getting-started)
     - [Navigating Around the Interface](#navigating-around-the-interface)
@@ -23,6 +24,7 @@
     - [Viewing Remote Article Content](#viewing-remote-article-content)
   - [Saving and Viewing Your Favorite Subscriptions and Articles](#saving-and-viewing-your-favorite-subscriptions-and-articles)
   - [Accounts](#accounts)
+  - [Feature Requests](#feature-requests)
   - [References](#references)
     - [Search Operators \& Filtering Guide](#search-operators--filtering-guide)
     - [Using Keyboard Shortcuts (on Desktops)](#using-keyboard-shortcuts-on-desktops)
@@ -34,6 +36,14 @@
 - This document.
 - Email us at [support@immanent.tech](mailto:support@immanent.tech).
 - [Use the contact form](/contact).
+
+### Reporting Issues and Bugs
+
+Find a bug, issue or something not quite working? You can report issues by selecting *Report an Issue* from the user
+settings menu at the top-right. Alternatively, you can [go directly to the report an issue page](/issue). If you find an
+issue with a particular feed or item, you can select the *Report an issue* option in the item's action menu.
+
+Otherwise, just [email us](mailto:support@immanent.tech) with details and we will look into it.
 
 ## Terminology
 
@@ -211,6 +221,11 @@ kept indefinitely. Foragd makes a copy of the article and stores it specially fo
 Billing](https://myaccount.google.com/intro/payments-and-subscriptions) for Android app users. You will be taken to a
 hosted Paddle payment page, or your Play Billing Subscriptions, for managing your subscriptions and payments.
 
+## Feature Requests
+
+Got a suggestion about the app, or a feature you'd love to see implemented?  [Email us](mailto:support@immanent.tech)
+with detailsl; we'd love to know how to make the app more useful to you!
+
 ## References
 
 ### Search Operators & Filtering Guide
@@ -261,4 +276,4 @@ The following shortcut keys are available on desktop:
 
 ## Last Updated
 
-Jul 28th, 2026
+Aug 23rd, 2026
