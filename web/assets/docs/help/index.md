@@ -224,7 +224,7 @@ hosted Paddle payment page, or your Play Billing Subscriptions, for managing you
 ## Feature Requests
 
 Got a suggestion about the app, or a feature you'd love to see implemented?  [Email us](mailto:support@immanent.tech)
-with detailsl; we'd love to know how to make the app more useful to you!
+with details; we'd love to know how to make the app more useful to you!
 
 ## References
 
