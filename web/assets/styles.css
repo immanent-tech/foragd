@@ -69,6 +69,13 @@
     'Monaspace Neon', var(--font-monocode), 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* --min-font: 16px;
+  --max-font: 20px;
+  --min-width: 320px;
+  --max-width: 1200px;
+
+  --font-scale: clamp(var(--min-font), calc(16px + 0.5vw), var(--max-font));
+
   --text-xs: calc(0.75rem * var(--font-scale, 1));
   --text-xs--line-height: calc(1 / 0.75);
   --text-sm: calc(0.875rem * var(--font-scale, 1));
@@ -88,7 +95,7 @@
   --text-5xl: calc(3rem * var(--font-scale, 1));
   --text-5xl--line-height: 1;
   --text-7xl: calc(4.5rem * var(--font-scale, 1));
-  --text-7xl--line-height: 1;
+  --text-7xl--line-height: 1; */
 
   --sidebar-width: var(--w-sm);
 
@@ -370,9 +377,11 @@
     @apply hidden;
   }
 
-  /* Remove empty list elements. */
-  li:empty {
-    @apply hidden!;
+  /* Remove empty elements. */
+  td:empty,
+  li:empty,
+  p:empty {
+    @apply hidden;
   }
 }
 
