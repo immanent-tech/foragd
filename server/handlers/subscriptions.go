@@ -1618,10 +1618,11 @@ func getSubscriptionCategorySuggestions(
 				return !slices.Contains(models.CommonCategoryFilters, category)
 			}),
 		)
-		suggestions = suggestedCategories
+		suggestions = append(suggestions, suggestedCategories...)
 	}
 
-	return suggestions
+	slices.Sort(suggestions)
+	return slices.Compact(suggestions)
 }
 
 func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
