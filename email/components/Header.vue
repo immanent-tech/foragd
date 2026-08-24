@@ -17,7 +17,7 @@
         <Column class="w-1/2 text-right">
             <Link
                 href="https://foragd.app/home"
-                class="text-sm font-medium text-neutral font-nunito"
+                class="text-sm font-medium text-base-content font-nunito"
             >
             Home
             </Link>

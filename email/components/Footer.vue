@@ -13,10 +13,10 @@
 
         <Spacer class="h-9" />
 
-        <Text class="m-0 text-xs/4.5 text-neutral font-nunito">
+        <Text class="m-0 text-xs/4.5 text-base-content font-nunito">
             &copy; {{ new Date().getFullYear() }} Immanent Tech. All rights reserved.
         </Text>
-        <Text class="m-0 text-xs/4.5 text-neutral font-nunito">
+        <Text class="m-0 text-xs/4.5 text-base-content font-nunito">
             PO Box 528 Hamilton Central
         </Text>
     </Section>

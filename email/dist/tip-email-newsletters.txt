@@ -18,15 +18,15 @@ Activate this feature: Go to your Settings
 
 https://foragd.app/user/settings?utm_medium=email&utm_source=notification
 
-->Account tab. Scroll down to Subscribe to Email Newsletters. Click the Generate email address button. Copy the email that is displayed. ‍ Use the generated email when subscribing to newsletters and get all the benefits of content management in Foragd and protect your own email.
+->Account tab. Scroll down to Subscribe to Email Newsletters. Click the Generate email address button. Copy the email that is displayed. ‍
+Use the generated email when subscribing to newsletters and get all the benefits of content management in Foragd and protect your own email.
 
 Also, check out the
 help documentation
 
 https://foragd.app/docs?utm_medium=email&utm_source=notification
 
-for more information. Got questions or comments? Just reply to this email. It goes straight to
-me. Cheers, Josh
+for more information. Got questions or comments? Just reply to this email. It goes straight to me. Cheers, Josh
 
 Unsubscribe
 

@@ -14,7 +14,7 @@ https://foragd.app{{ url | escape }}
 
 Or use this link {{ url | escape }}
 
-Got questions or comments? Just reply to this
-email.
+Got questions or comments? Just reply to
+this email.
 
 ‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central

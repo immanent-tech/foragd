@@ -10,7 +10,7 @@ https://foragd.app/home
 
 {{ code | escape }}
 
-Got questions or comments? Just reply to this
-email.
+Got questions or comments? Just reply to
+this email.
 
 ‍ © 2026 Immanent Tech. All rights reserved. PO Box 528 Hamilton Central
