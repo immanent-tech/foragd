@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.221.0](https://github.com/immanent-tech/foragd/compare/v0.220.0...v0.221.0) (2026-08-24)
+
+
+### Features
+
+* **blog:** ➕ add "Getting News You Choose" blog article ([83c2c90](https://github.com/immanent-tech/foragd/commit/83c2c90887d3340657b807bf74e8aa9eeb83bbc9))
+* **templates/viewer:** ✨ add additional details to feed viewer ([2ab7216](https://github.com/immanent-tech/foragd/commit/2ab72161de98089f4ed2b7e784845277e2bf467b))
+
+
+### Bug Fixes
+
+* **content:** 🔧 ensure share_target in manifest captures all shared url details ([70e6586](https://github.com/immanent-tech/foragd/commit/70e65865d45625c493467dcc00bb9f3177c6bcc6))
+* **service/feeds:** 🔧 fix defer placement ([6a81478](https://github.com/immanent-tech/foragd/commit/6a814780351814717ee6da78db393cb581cc2b26))
+* **service/feeds:** 🔧 only consider a url ending with "feed" as a potential feed url ([93b9ea2](https://github.com/immanent-tech/foragd/commit/93b9ea2b07015cd9101dc6b12329c89d275f5a1a))
+* **styles:** 🔧 remove empty elements in article content ([184335b](https://github.com/immanent-tech/foragd/commit/184335b37be68d7b71638f087bc6f4af7da4d519))
+
 ## [0.220.0](https://github.com/immanent-tech/foragd/compare/v0.219.0...v0.220.0) (2026-08-22)
 
 
