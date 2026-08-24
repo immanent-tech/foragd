@@ -46,8 +46,8 @@ date as they publish new content.
 
 ### Feedle World
 
-- [Visit](https://feedle.world)
-- [Subscribe in Foragd](/subscription/add?url=https://feedle.world/top-stories/rss)
+- 🔗 [Visit](https://feedle.world)
+- ➕ [Subscribe in Foragd](/subscription/add?url=https://feedle.world/top-stories/rss)
 
 Feedle is a search engine for blogs and feeds, so is a great place to find new blogs and sites to follow. They even have
 a cheeky [feeling lucky](https://feedle.world/random) random search, a tribute to the old function in the early days of
@@ -55,16 +55,16 @@ Google Search.
 
 ### Kagi Small Web
 
-- [Visit](https://kagi.com/smallweb).
-- [Subscribe in Foragd](/subscription/add?url=https://kagi.com/smallweb).
+- 🔗 [Visit](https://kagi.com/smallweb).
+- ➕ [Subscribe in Foragd](/subscription/add?url=https://kagi.com/smallweb).
 
 Kagi is an alternative traditional web search engine and a big supported of independent websites and the indie web. They
 have a *Kagi Small Web* blog aggregator that is an excellent jumping point off to various people's blogs and sites.
 
 ### kottke.org
 
-- [Visit](https://kottke.org)
-- [Subscribe in Foragd](/subscription/add?url=https://kottke.org)
+- 🔗 [Visit](https://kottke.org)
+- ➕ [Subscribe in Foragd](/subscription/add?url=https://kottke.org)
 
 kottke.org might just be one of the oldest blogs on the internet, having started in 1998. Jason Kottke, the author
 provides a curated selection of posts across a wide range of topics from art and science to tech and news on
@@ -72,8 +72,8 @@ semi-regular basis. It's a great site for random discovery and inspiration.
 
 ### webcurios
 
-- [Visit](https://webcurios.co.uk/)
-- [Subscribe in Foragd](/subscription/add?url=https://webcurios.co.uk/)
+- 🔗 [Visit](https://webcurios.co.uk/)
+- ➕ [Subscribe in Foragd](/subscription/add?url=https://webcurios.co.uk/)
 
 Across the pond, Matt has been publishing webcurios since 2010 a long-form part link aggregator, part opinion piece,
 part news update on various topics. There is some magical and wonderful links in each post, along with (and often
@@ -82,8 +82,8 @@ plenty of time to digest it in full. Published roughly weekly.
 
 ### waxy.org
 
-- [Visit](https://waxy.org/)
-- [Subscribe in Foragd](/subscription/add?url=https://waxy.org/)
+- 🔗 [Visit](https://waxy.org/)
+- ➕ [Subscribe in Foragd](/subscription/add?url=https://waxy.org/)
 
 Another site that has been around for like, *the entire history of the web*. Andy Baio publishes links to fun
 little browser games to interesting news and events from over the web.
