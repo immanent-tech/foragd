@@ -677,6 +677,9 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 		return sourceURL.String(), nil
 	}
 
+	// RSS feed auto-discovery.
+	//
+	// https://www.rssboard.org/rss-autodiscovery
 	findCanonicalLinkAttribute := func(elem *html.Node) string {
 		// Needs to have attributes rel="alternate".
 		if !slices.ContainsFunc(
@@ -701,17 +704,17 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 		return ""
 	}
 
+	// Commonly used links based on path.
 	findCommonFeedURL := func(elem *html.Node) string {
 		for a := range slices.Values(elem.Attr) {
 			// href attribute should contain a well-known substring.
 			if a.Key == "href" &&
-				(strings.Contains(a.Val, "feed") || strings.Contains(a.Val, "rss") || strings.Contains(a.Val, "atom")) {
+				(strings.HasSuffix(a.Val, "feed") || strings.Contains(a.Val, "rss") || strings.Contains(a.Val, "atom")) {
 				return a.Val
 			}
 		}
 		return ""
 	}
-
 	var findURL func(*html.Node) string
 	findURL = func(n *html.Node) string {
 		if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "link") {
