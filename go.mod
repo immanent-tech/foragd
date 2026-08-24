@@ -61,7 +61,6 @@ require (
 	github.com/ggicci/httpin v0.20.3 // indirect
 	github.com/ggicci/owl v0.8.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-json-experiment/json v0.0.0-20260820222146-c27c302e5fc3 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.1.0 // indirect
 	github.com/go-playground/validator/v10 v10.30.3 // indirect
@@ -188,7 +187,6 @@ require (
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/veqryn/slog-context v0.9.0
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
-	github.com/veqryn/slog-json v0.5.0 // indirect
 	github.com/yuin/goldmark v1.8.5 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.3.0 // indirect
 	go.opentelemetry.io/otel v1.45.0
