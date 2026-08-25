@@ -20,7 +20,7 @@ var iabTier1Categories = []CategoryEmbedding{
 	{Label: "Disasters", Description: "natural disasters, accidents, emergencies, and their aftermath"},
 	{Label: "Education", Description: "schools, studying, online courses, academic topics, learning resources"},
 	{Label: "Entertainment", Description: "movies, music, television, celebrities, streaming media"},
-	{Label: "Events", Description: "concerts, festivals, conferences, scheduled happenings, release notes, changelogs"},
+	{Label: "Events", Description: "concerts, festivals, conferences, meetings, scheduled happenings"},
 	{Label: "Family and Relationships", Description: "parenting, dating, marriage, family life"},
 	{Label: "Fine Art", Description: "painting, sculpture, photography, art history and criticism"},
 	{Label: "Food & Drink", Description: "recipes, cooking, restaurants, wine, coffee, beverages"},
@@ -41,7 +41,7 @@ var iabTier1Categories = []CategoryEmbedding{
 	{Label: "Pop Culture", Description: "internet trends, memes, celebrity gossip, viral content"},
 	{
 		Label:       "Technology & Computing",
-		Description: "software, gadgets, programming, the internet, AI, IT, information technology, world wide web, online, open source",
+		Description: "software, gadgets, programming, the internet, AI, IT, information technology, world wide web, online, open source, release notes, changelogs",
 	},
 	{Label: "Real Estate", Description: "buying, selling, and renting property; real estate market topics"},
 	{Label: "Religion & Spirituality", Description: "faith, religious practice, meditation, spiritual growth"},
