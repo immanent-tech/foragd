@@ -646,23 +646,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'confirm_new_password'
             validate: 'required'
-    UserSession:
-      description: tracks a user session.
-      type: object
-      required:
-        - token
-        - data
-        - expiry
-      properties:
-        token:
-          description: the session token for the user.
-          type: string
-        data:
-          description: the encoded session data.
-          x-go-type: '[]byte'
-        expiry:
-          description: the time at which this session token expires.
-          x-go-type: time.Time
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -1424,7 +1407,7 @@ components:
           x-go-type-skip-optional-pointer: true
     ListFilters:
       description: >
-        contains filters for altering the display of objects.
+        contains filters for altering the display of a list of subscriptions or articles.
       type: object
       required:
         - view
@@ -1474,6 +1457,62 @@ components:
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'required'
+    ListFilters2:
+      description: >
+        contains filters for altering the display of a list of subscriptions or articles.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Pagination2'
+          x-oapi-codegen-extra-tags:
+            form: 'pagination'
+            validate: 'omitempty,dive'
+        - type: object
+          required:
+            - view
+            - count
+            - sort
+          properties:
+            view:
+              $ref: '#/components/schemas/View'
+            count:
+              description: >
+                is the number of items to retrieve with a request. This number will be added to the upto value to get the
+                total number of items retrieved, else, will this number of items will be retrieved from the pagination point
+                specified with pagination value.
+              type: integer
+              x-oapi-codegen-extra-tags:
+                form: 'count'
+                validate: 'gt=0'
+            sort:
+              $ref: '#/components/schemas/Sort'
+            category:
+              $ref: '#/components/schemas/Category'
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+    Pagination2:
+      description: contains data for paginating through a list of subscriptions or articles.
+      type: object
+      properties:
+        from:
+          description: is the count from which to retrieve objects.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            form: 'from'
+            # validate: 'required_without=UpTo SearchAfter,gte=0'
+        searchAfter:
+          description: is the data indicating the point after which objects should be retrieved.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'search_after'
+            json: 'search_after,omitempty'
+            # validate: 'required_without=UpTo From'
+        upTo:
+          description: is the number up to which objects to should be retrieved.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            form: 'upto'
+            json: 'upto'
+            # validate: 'required_without=From SearchAfter,gt=0'
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.

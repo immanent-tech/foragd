@@ -241,6 +241,7 @@ func Start() error {
 		})
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())

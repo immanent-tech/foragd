@@ -6,7 +6,7 @@ info:
     Request objects used within the service.
   license:
     name: AGPL 3.0
-    idenfiier: AGPL-3.0-or-later
+    identifier: AGPL-3.0-or-later
   contact:
     name: Immanent Tech
 components:

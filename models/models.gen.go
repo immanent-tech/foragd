@@ -519,7 +519,7 @@ type CategoryCount struct {
 type CategoryFilters struct {
 	Categories CategoryCounts `json:"categories"`
 
-	// Filters contains filters for altering the display of objects.
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
 	Filters ListFilters `json:"filters" validate:"required"`
 	Path    string      `json:"path"`
 }
@@ -858,7 +858,7 @@ type ItemID = string
 // LastFetched indicates when an object was last fetched.
 type LastFetched = time.Time
 
-// ListFilters contains filters for altering the display of objects.
+// ListFilters contains filters for altering the display of a list of subscriptions or articles.
 type ListFilters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
@@ -879,9 +879,33 @@ type ListFilters struct {
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
+// ListFilters2 contains filters for altering the display of a list of subscriptions or articles.
+type ListFilters2 struct {
+	// Category represents a taxonomy applied to an object.
+	Category *Category `form:"category" json:"category,omitempty"`
+
+	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
+	Count int `form:"count" json:"count" validate:"gt=0"`
+
+	// From is the count from which to retrieve objects.
+	From *int `form:"from" json:"from,omitempty"`
+
+	// SearchAfter is the data indicating the point after which objects should be retrieved.
+	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
+
+	// Sort is how a list of objects is sorted.
+	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
+
+	// UpTo is the number up to which objects to should be retrieved.
+	UpTo *int `form:"upto" json:"upto"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
+}
+
 // ListRequest contains the parameters needed for listing subscriptions or articles.
 type ListRequest struct {
-	// Filters contains filters for altering the display of objects.
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
 	Filters ListFilters `json:"filters" validate:"required"`
 
 	// Pagination contains data for paginating through results.
@@ -1037,6 +1061,18 @@ type PaddleSubscription struct {
 
 // Pagination contains data for paginating through results.
 type Pagination = string
+
+// Pagination2 contains data for paginating through a list of subscriptions or articles.
+type Pagination2 struct {
+	// From is the count from which to retrieve objects.
+	From *int `form:"from" json:"from,omitempty"`
+
+	// SearchAfter is the data indicating the point after which objects should be retrieved.
+	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
+
+	// UpTo is the number up to which objects to should be retrieved.
+	UpTo *int `form:"upto" json:"upto"`
+}
 
 // RemoteImage contains details about a remote image.
 type RemoteImage struct {
@@ -1341,18 +1377,6 @@ type UserMetadata struct {
 
 	// SubscriptionLimit represents details about a user account limit
 	SubscriptionLimit *UserLimit `json:"subscription_limit,omitempty"`
-}
-
-// UserSession tracks a user session.
-type UserSession struct {
-	// Data the encoded session data.
-	Data []byte `json:"data"`
-
-	// Expiry the time at which this session token expires.
-	Expiry time.Time `json:"expiry"`
-
-	// Token the session token for the user.
-	Token string `json:"token"`
 }
 
 // UserSettings contains user-specific settings for the application.

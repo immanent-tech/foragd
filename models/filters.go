@@ -4,9 +4,11 @@
 package models
 
 import (
+	"context"
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
@@ -14,22 +16,27 @@ import (
 	"strings"
 
 	"github.com/immanent-tech/go-base/validation"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 func init() {
 	gob.Register(ListFilters{})
+	gob.Register(ListFilters2{})
 }
 
-var ErrNoFilters = &APIError{
-	InternalError: errors.New("no filters found"),
-	StatusCode:    http.StatusNotFound,
-}
+var ErrNoFilters = NewAPIError(http.StatusBadRequest, errors.New("no filters found"))
 
 const (
 	// minUserCount is the minimum number of results a user can retrieve at a single time.
 	minUserCount = 1
 	// DefaultCount is to show 9 objects.
 	DefaultCount = 9
+	// MaxCount is the maximum number of objects to fetch at once.
+	MaxCount = 90
+	// MaxUpTo is the maximum number of objects to fetch when restoring the page.
+	MaxUpTo = 1000
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 )
@@ -52,17 +59,6 @@ func (s Sort) String() string {
 	default:
 		return "Unknown"
 	}
-}
-
-// Filters represents either Subscription or Article filters.
-type Filters interface {
-	Valid() error
-	GetSort() Sort
-	GetCount() int
-	GetView() View
-	GetCategories() Categories
-	Values() map[string]any
-	QueryString() string
 }
 
 // NewListDisplayFilters creates a new set of display filters with sensible defaults.
@@ -211,4 +207,145 @@ func setValidMark(value Mark) Mark {
 	default:
 		return MarkRead
 	}
+}
+
+var validSort = map[Sort]bool{
+	SortNewestFirst:  true,
+	SortOldestFirst:  true,
+	SortMostUnread:   true,
+	SortLeastUnread:  true,
+	SortMostRelevant: true,
+}
+var validView = map[View]bool{ViewAll: true, ViewUnread: true, ViewRead: true, ViewFavorites: true}
+
+func NewListFilters() *ListFilters2 {
+	return &ListFilters2{
+		Sort:  defaultSort,
+		Count: DefaultCount,
+		View:  defaultView,
+	}
+}
+
+// Sanitise performs sanitisation of the filter values to ensure correctness.
+func (f *ListFilters2) Sanitise() error {
+	if f == nil {
+		f = NewListFilters()
+	}
+	if !validSort[f.Sort] {
+		f.Sort = defaultSort
+	}
+	if !validView[f.View] {
+		f.View = defaultView
+	}
+	if f.Count < 0 || f.Count > MaxCount {
+		f.Count = MaxCount
+	}
+	if f.UpTo != nil {
+		switch {
+		case *f.UpTo < 0:
+			f.UpTo = nil
+		case *f.UpTo > MaxUpTo:
+			f.UpTo = new(MaxUpTo)
+		}
+	}
+	if f.From != nil && *f.From < 0 {
+		f.From = new(0)
+	}
+	return nil
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *ListFilters2) Valid() error {
+	switch {
+	case f == nil:
+		return fmt.Errorf("invalid filters: %w", ErrNoFilters)
+	case f.From != nil && (f.UpTo != nil || f.SearchAfter != nil):
+		return errors.New("invalid filters: from can only be set if upto or searchAfter is unset")
+	case f.SearchAfter != nil && (f.UpTo != nil || f.From != nil):
+		return errors.New("invalid filters: searchAfter can only be set if upto or from is unset")
+	case f.UpTo != nil && (f.From != nil || f.SearchAfter != nil):
+		return errors.New("invalid filters: upto can only be set if from or searchAfter is unset")
+	}
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("filters are invalid: %w", err)
+	}
+	return nil
+}
+
+func ParseListFilters(query url.Values) *ListFilters2 {
+	filters := NewListFilters()
+	if v := query.Get("sort"); validSort[Sort(v)] {
+		filters.Sort = Sort(v)
+	}
+	if v := query.Get("view"); validView[View(v)] {
+		filters.View = View(v)
+	}
+	if v, err := strconv.Atoi(query.Get("count")); err == nil && v > 0 {
+		filters.Count = v
+	}
+	if c := query.Get("category"); c != "" {
+		filters.Category = &c
+	}
+	if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
+		filters.From = &v
+	}
+	if v, err := strconv.Atoi(query.Get("upto")); err == nil && v > 0 {
+		filters.UpTo = &v
+	}
+	if a := query.Get("search_after"); a != "" {
+		filters.SearchAfter = &a
+	}
+	return filters
+}
+
+// Encode returns the query string encoded value of the filters.
+func (f ListFilters2) Encode() string {
+	query := url.Values{}
+	query.Set("sort", string(f.Sort))
+	query.Set("view", string(f.View))
+	query.Set("count", strconv.Itoa(f.Count))
+	if f.Category != nil {
+		query.Set("category", *f.Category)
+	}
+	if f.From != nil {
+		query.Set("from", strconv.Itoa(*f.From))
+	}
+	if f.UpTo != nil {
+		query.Set("upto", strconv.Itoa(*f.UpTo))
+	}
+	if f.SearchAfter != nil {
+		query.Set("search_after", *f.SearchAfter)
+	}
+	return query.Encode()
+}
+
+const filtersCtxKey contextKey = "listFilters"
+
+func ListFiltersToCtx(ctx context.Context, filters *ListFilters2) context.Context {
+	return context.WithValue(ctx, filtersCtxKey, *filters)
+}
+
+func ListFiltersFromCtx(ctx context.Context) *ListFilters2 {
+	if filters, ok := ctx.Value(filtersCtxKey).(ListFilters2); ok {
+		return &filters
+	}
+	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
+	return NewListFilters()
+}
+
+func ListFiltersToSession(ctx context.Context, filters *ListFilters2) {
+	if err := session.Save(ctx, string(filtersCtxKey), *filters); err != nil {
+		slogctx.Warn(ctx, "Unable to save filters to session.", slog.Any("error", err))
+	}
+}
+
+func ListFiltersFromSession(ctx context.Context) *ListFilters2 {
+	filters, err := session.Restore[ListFilters2](ctx, string(filtersCtxKey))
+	if err != nil {
+		slogctx.Warn(ctx, "Unable to restore filters from session. Using defaults.", slog.Any("error", err))
+		return NewListFilters()
+	}
+	return &filters
+
 }

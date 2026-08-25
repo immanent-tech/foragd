@@ -858,9 +858,9 @@ func getListArticleFilters(req *http.Request) *models.ListFilters {
 			slog.Any("filters", filters),
 		)
 		// Try to restore filters from session.
-		filters = session.GetListArticleFiltersFromSession(req.Context())
+		filters = models.GetListArticleFiltersFromSession(req.Context())
 	default:
-		session.StoreListArticleFiltersInSession(req.Context(), *filters)
+		models.StoreListArticleFiltersInSession(req.Context(), *filters)
 	}
 
 	return filters

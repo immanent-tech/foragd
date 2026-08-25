@@ -214,6 +214,10 @@ templ ListPaginationControl(path string, filters *models.ListFilters, pagination
 	{{
 		values := filters.Values()
 		values["pagination"] = pagination
+		switch path {
+		case "/list/subscriptions/paginate":
+			values["from"] = pagination
+		}
 	}}
 	<div
 		id="pagination-sentinel-wrapper"

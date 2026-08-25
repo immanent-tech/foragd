@@ -8,7 +8,6 @@ import (
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -472,7 +471,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6 text-neutral">
-						{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
+						{{ filters := models.GetListArticleFiltersFromSession(ctx) }}
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
@@ -675,10 +674,10 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 		switch FromPathFromCtx(ctx) {
 		case "/list/subscriptions":
 			vals["subscription_id"] = resp.Article.GetSubscriptionID()
-			filters := session.GetListSubscriptionFiltersFromSession(ctx)
+			filters := models.GetListSubscriptionFiltersFromSession(ctx)
 			vals["view"] = filters.GetView()
 		case "/list/articles":
-			filters := session.GetListArticleFiltersFromSession(ctx)
+			filters := models.GetListArticleFiltersFromSession(ctx)
 			if len(filters.GetSubscriptions()) > 0 {
 				vals["subscription_id"] = filters.GetSubscriptions()[0]
 			}

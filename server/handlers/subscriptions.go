@@ -1635,9 +1635,9 @@ func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
 			slog.Any("filters", filters),
 		)
 		// Try to restore filters from session.
-		filters = session.GetListSubscriptionFiltersFromSession(req.Context())
+		filters = models.GetListSubscriptionFiltersFromSession(req.Context())
 	default:
-		session.StoreListSubscriptionFiltersInSession(req.Context(), *filters)
+		models.StoreListSubscriptionFiltersInSession(req.Context(), *filters)
 	}
 
 	return filters

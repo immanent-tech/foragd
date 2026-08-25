@@ -16,16 +16,12 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
-const (
-	sessionLifetime = 4320 * time.Minute
-
-	listSubscriptionFiltersKey = "listSubscriptionFilters"
-	listArticleFiltersKey      = "listArticleFilters"
-)
+// sessionLifetime is the lifetime after which the session is expired. Set to the maximum session lifetime of Auth0
+// sessions.
+const sessionLifetime = 4320 * time.Minute
 
 var Load = sync.OnceValue(func() *scs.SessionManager {
 	// Set up the session manager.
@@ -92,32 +88,4 @@ func Clear(ctx context.Context) error {
 		return fmt.Errorf("clear session: %w", err)
 	}
 	return nil
-}
-
-func GetListSubscriptionFiltersFromSession(ctx context.Context) *models.ListFilters {
-	restored, err := Restore[models.ListFilters](ctx, listSubscriptionFiltersKey)
-	if err != nil {
-		// Use new filters if unable to restore from session or form data.
-		restored = models.NewListDisplayFilters()
-	}
-
-	return &restored
-}
-
-func StoreListSubscriptionFiltersInSession(ctx context.Context, filters models.ListFilters) error {
-	return Save(ctx, listSubscriptionFiltersKey, filters)
-}
-
-func GetListArticleFiltersFromSession(ctx context.Context) *models.ListFilters {
-	restored, err := Restore[models.ListFilters](ctx, listArticleFiltersKey)
-	if err != nil {
-		// Use new filters if unable to restore from session or form data.
-		restored = models.NewListDisplayFilters()
-	}
-
-	return &restored
-}
-
-func StoreListArticleFiltersInSession(ctx context.Context, filters models.ListFilters) error {
-	return Save(ctx, listArticleFiltersKey, filters)
 }

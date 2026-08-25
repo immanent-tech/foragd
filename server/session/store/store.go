@@ -11,7 +11,6 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -27,6 +26,18 @@ var (
 	_ scs.IterableCtxStore = (*Store)(nil)
 	_ scs.CtxStore         = (*Store)(nil)
 )
+
+// UserSession tracks a user session.
+type UserSession struct {
+	// Data the encoded session data.
+	Data []byte `json:"data"`
+
+	// Expiry the time at which this session token expires.
+	Expiry time.Time `json:"expiry"`
+
+	// Token the session token for the user.
+	Token string `json:"token"`
+}
 
 // Store satisfies the session store interface for storing sessions in a custom backend.
 type Store struct{}
@@ -55,7 +66,7 @@ func (s *Store) Delete(token string) error {
 // tokens should result in a found return value of false and a nil err value. The err return value should be used for
 // system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	session, err := elastic.GetDoc[string, models.UserSession](ctx, schema.SessionsIndexRO(), token)
+	session, err := elastic.GetDoc[string, UserSession](ctx, schema.SessionsIndexRO(), token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
@@ -104,7 +115,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 	const defaultPaginationSize = 5000
-	sessions, err := elastic.SearchAll[models.UserSession](
+	sessions, err := elastic.SearchAll[UserSession](
 		ctx,
 		schema.SessionsIndexRO(),
 		query.Since("expiry", time.Now().UTC()),

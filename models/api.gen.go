@@ -200,7 +200,7 @@ type GroupSubscriptionRequest struct {
 type ListArticlesResponse struct {
 	Articles Articles `json:"articles"`
 
-	// Filters contains filters for altering the display of objects.
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
 	Filters ListFilters `json:"filters" validate:"required"`
 
 	// Pagination contains data for paginating through results.
@@ -219,7 +219,7 @@ type ListFavoritesResponse struct {
 
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
 type ListSubscriptionsResponse struct {
-	// Filters contains filters for altering the display of objects.
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
 	Filters ListFilters `json:"filters" validate:"required"`
 
 	// LatestArticles is a map of the latest articles for each subscription in the result.
