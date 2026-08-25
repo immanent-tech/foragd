@@ -91,6 +91,7 @@ jobs:
         include:
           - service: scheduler
           - service: server
+          - service: ollama
 
     env:
       REGISTRY: ghcr.io
