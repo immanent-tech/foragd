@@ -16,6 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/go-base/validation"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -48,8 +48,8 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 func HandleSearchSuggestions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
-		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
+		search, err := forms.DecodeForm[*models.SearchRequest](req)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
 			res.WriteHeader(http.StatusUnprocessableEntity)
@@ -417,8 +417,8 @@ func HandleSearchResults() http.HandlerFunc {
 func HandleSearchUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search request.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
+		request, err := forms.DecodeForm[*models.SearchRequest](req)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to extract search request.",
 				slog.Any("error", models.ErrCtxValueNotFound),
 			)
@@ -495,8 +495,8 @@ func AddSubscriptionFilter() http.HandlerFunc {
 func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
-		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
-		if err != nil || !valid {
+		suggestion, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Invalid subscription suggestion input.",
 				slog.Any("error", err),
 			)

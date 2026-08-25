@@ -24,6 +24,7 @@ import (
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/go-base/config"
 
@@ -32,7 +33,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -1160,8 +1160,8 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 
 func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
-		if err != nil || !valid {
+		request, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
 				slog.Any("error", err),
 			)
@@ -1189,8 +1189,8 @@ func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 
 func HandleAddSubscriptionToSearch() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.AddSubscriptionToSearchRequest](req)
-		if err != nil || !valid {
+		request, err := forms.DecodeForm[*models.AddSubscriptionToSearchRequest](req)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
 				slog.Any("error", err),
 			)
@@ -1396,7 +1396,7 @@ func HandleImportSubscriptions() http.HandlerFunc {
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
-			opmlData, err := forms.DecodeMultipartFile(req, "source")
+			opmlData, err := decodeMultipartFile(req, "source")
 			if err != nil {
 				HandleInternalError(
 					http.StatusUnprocessableEntity,
@@ -1557,7 +1557,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
 
 	// Get any uploaded image.
-	image, err := forms.DecodeMultipartFile(req, models.ParamThumbnail)
+	image, err := decodeMultipartFile(req, models.ParamThumbnail)
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("parse thumbnail data: %w", err)
 	}
@@ -1627,7 +1627,7 @@ func getSubscriptionCategorySuggestions(
 
 func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
 	// Parse and process filters.
-	filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
+	filters, err := forms.DecodeForm[*models.ListFilters](req)
 	switch {
 	case err != nil:
 		slogctx.FromCtx(req.Context()).Warn("Unable to subscription filters. Using filters from session.",
@@ -1636,9 +1636,6 @@ func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
 		)
 		// Try to restore filters from session.
 		filters = session.GetListSubscriptionFiltersFromSession(req.Context())
-	case !valid:
-		slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Creating new filters.")
-		session.StoreListSubscriptionFiltersInSession(req.Context(), models.NewListDisplayFilters())
 	default:
 		session.StoreListSubscriptionFiltersInSession(req.Context(), *filters)
 	}

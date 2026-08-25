@@ -20,13 +20,13 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
+	"github.com/immanent-tech/go-base/server/forms"
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -850,7 +850,7 @@ func updateFavoriteArticle(
 
 func getListArticleFilters(req *http.Request) *models.ListFilters {
 	// Parse and process filters.
-	filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
+	filters, err := forms.DecodeForm[*models.ListFilters](req)
 	switch {
 	case err != nil:
 		slogctx.FromCtx(req.Context()).Warn("Unable to decode article filters. Using filters from session.",
@@ -859,9 +859,6 @@ func getListArticleFilters(req *http.Request) *models.ListFilters {
 		)
 		// Try to restore filters from session.
 		filters = session.GetListArticleFiltersFromSession(req.Context())
-	case !valid:
-		slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Creating new filters.")
-		session.StoreListArticleFiltersInSession(req.Context(), models.NewListDisplayFilters())
 	default:
 		session.StoreListArticleFiltersInSession(req.Context(), *filters)
 	}

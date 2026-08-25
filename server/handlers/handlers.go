@@ -8,12 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/forms"
 )
 
 type Route = string
@@ -39,7 +40,7 @@ func setRedirect(res http.ResponseWriter, request htmx.HXLocationRequest) error 
 }
 
 func parseForm[T forms.FormInput](req *http.Request) (T, error) {
-	request, valid, err := forms.DecodeForm[T](req)
+	request, err := forms.DecodeForm[T](req)
 	if err != nil {
 		return request, &models.APIError{
 			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -47,16 +48,6 @@ func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 			UserMessage: models.NewErrorMessage(
 				"Unable to parse input",
 				"This might be a temporary issue, please try again.",
-			),
-		}
-	}
-	if !valid {
-		return request, &models.APIError{
-			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-			StatusCode:    http.StatusUnprocessableEntity,
-			UserMessage: models.NewErrorMessage(
-				"Invalid data submitted",
-				"Please check your inputs and try again.",
 			),
 		}
 	}
@@ -64,7 +55,7 @@ func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 }
 
 func parseMultipartForm[T forms.FormInput](req *http.Request) (T, error) {
-	request, valid, err := forms.DecodeMultiPartForm[T](req)
+	request, err := forms.DecodeMultiPartForm[T](req)
 	if err != nil {
 		return request, &models.APIError{
 			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -75,15 +66,39 @@ func parseMultipartForm[T forms.FormInput](req *http.Request) (T, error) {
 			),
 		}
 	}
-	if !valid {
-		return request, &models.APIError{
-			InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-			StatusCode:    http.StatusUnprocessableEntity,
-			UserMessage: models.NewErrorMessage(
-				"Invalid data submitted",
-				"Please check your inputs and try again.",
-			),
-		}
-	}
 	return request, nil
+}
+
+// FileUpload represents file data uploaded through a mutlipart form.
+type FileUpload interface {
+	Set(hdr *multipart.FileHeader, data multipart.File)
+}
+
+// DecodeMultipartFile will the file represented by the given field in a multipart form
+// submission. It will perform validation of the file and will return the file
+// object and a boolean true if it is valid. If decoding fails, a non-nill error
+// is returned.
+func decodeMultipartFile(req *http.Request, field string) (*models.FileUpload, error) {
+	// defaultMaxSize for a multipart for submission is 32 MB.
+	const defaultMaxSize = 32 << 20
+
+	// Parse form values in request.
+	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
+		return nil, fmt.Errorf("decode multipart form: %w", err)
+	}
+	// Decode the form values.
+	data, hdr, err := req.FormFile(field)
+	if err != nil {
+		return nil, fmt.Errorf("decode form file: %w", err)
+	}
+	// Create a models.FileUpload object.
+	upload := &models.FileUpload{
+		Data:   data,
+		Header: hdr,
+	}
+	// Validate file upload.
+	if err := upload.Valid(); err != nil {
+		return nil, fmt.Errorf("validate file upload: %w", err)
+	}
+	return upload, nil
 }

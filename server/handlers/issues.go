@@ -22,7 +22,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -168,7 +167,7 @@ func processScreenshots(req *http.Request) (string, error) {
 	const maxScreenshotSize = 10000000 // Max screenshot size is 10 MB.
 
 	// Get any uploaded screenshot.
-	image, err := forms.DecodeMultipartFile(req, "screenshot")
+	image, err := decodeMultipartFile(req, "screenshot")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("decode screenshot upload: %w", err)
 	}

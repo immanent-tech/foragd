@@ -32,7 +32,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -243,7 +242,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 		}
 
 		// Parse and process avatar.
-		avatar, err := forms.DecodeMultipartFile(req, "avatar")
+		avatar, err := decodeMultipartFile(req, "avatar")
 		if err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,

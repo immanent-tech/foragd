@@ -11,9 +11,10 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/server/forms"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -25,18 +26,9 @@ func ListCategories() http.HandlerFunc {
 		case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
 			filters := getListSubscriptionsFilters(req)
 			// Parse the list of displayed subscriptions.
-			request, valid, err := forms.DecodeForm[*models.ListSubscriptionCategoriesRequest](req)
+			request, err := forms.DecodeForm[*models.ListSubscriptionCategoriesRequest](req)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
-					slog.Any("error", err),
-				)
-				RenderPartial(&PartialTemplate{
-					template: templates.CategoryFilters(&models.CategoryFilters{}),
-				}).ServeHTTP(res, req)
-				return
-			}
-			if !valid {
-				slogctx.FromCtx(req.Context()).Warn("Invalid list categories request",
 					slog.Any("error", err),
 				)
 				RenderPartial(&PartialTemplate{
