@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.221.1](https://github.com/immanent-tech/foragd/compare/v0.221.0...v0.221.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* **email:** 🔧 update email templates for new greenhouse theme ([d483eae](https://github.com/immanent-tech/foragd/commit/d483eaef354dc5b306b36835d1c04d3f95ae9a12))
+* **handlers:** 🔧 combine (don't overwrite!) categories from feed and items for suggestions ([d491af9](https://github.com/immanent-tech/foragd/commit/d491af9f83498604691cfb169a78b7faaabeff0e))
+
 ## [0.221.0](https://github.com/immanent-tech/foragd/compare/v0.220.0...v0.221.0) (2026-08-24)
 
 
