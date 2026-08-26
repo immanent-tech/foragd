@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/goforj/godump"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/server/forms"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -20,12 +21,22 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			filters := models.ParseListFilters(req.URL.Query())
-			canonical := filters.Encode()
-			if req.URL.RawQuery != canonical {
-				req.URL.RawQuery = canonical
-				http.Redirect(res, req, req.URL.String(), http.StatusFound)
-				return
+			var filters *models.ListFilters2
+			if htmx.IsHistoryRestoreRequest(req) {
+				// For a history restore request, fetch the filters from the session.
+				filters = models.ListFiltersFromSession(req.Context())
+				// Set upto to the value of from and reset from.
+				upto := *filters.From
+				filters.UpTo = &upto
+				filters.From = nil
+			} else {
+				// For regular requests, parse the filters from the query. If they differ, redirect the user.
+				filters = models.ParseListFilters(req.URL.Query())
+				if canonical := filters.Encode(); req.URL.RawQuery != canonical {
+					req.URL.RawQuery = canonical
+					http.Redirect(res, req, req.URL.String(), http.StatusFound)
+					return
+				}
 			}
 			ctx := models.ListFiltersToCtx(req.Context(), filters)
 			models.ListFiltersToSession(ctx, filters)
