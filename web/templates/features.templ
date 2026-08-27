@@ -58,92 +58,124 @@ var featureGroups = []partials.ListItemJSONLD{
 	},
 }
 
+templ collectFeaturesList() {
+	<div class="card-body">
+		<div class="text-xs font-semibold tracking-widest text-primary/80 uppercase">
+			01 · Collect
+		</div>
+		<h3 class="mt-1 font-display text-xl font-medium tracking-tight">
+			Gather everything, from everywhere
+		</h3>
+		<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
+			Subscribe to websites, YouTube channels, subreddits, Google News searches and email newsletters. Foragd
+			finds the feed so you don't have to hunt for a URL.
+		</p>
+		<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
+			<li>
+				A masked newsletter address keeps your real inbox clean.
+			</li>
+			<li>
+				One-click OPML import from Feedly, Inoreader and other apps.
+			</li>
+			<li>
+				Curated starter packs to get going in seconds.
+			</li>
+			<li>
+				Subscribe to Youtube channels or playlists or Google News feeds easily.
+			</li>
+			<li>
+				Want a feed for a site without one? Just ask support and we'll attempt to create one where
+				possible.
+			</li>
+			<li>
+				Your data is synced on our servers so you can stay up to date anywhere.
+			</li>
+		</ul>
+		<a href="/features/collect" class="mt-4 inline-block link text-sm font-medium link-primary">
+			Explore Collect →
+		</a>
+	</div>
+}
+
+templ curateFeaturesList() {
+	<div class="card-body">
+		<div class="text-xs font-semibold tracking-widest text-secondary/80 uppercase">
+			02 · Curate
+		</div>
+		<h3 class="mt-1 font-display text-xl font-medium tracking-tight">
+			Organize it your way, not the algorithm's
+		</h3>
+		<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
+			Sort sources into collections that make sense to you. Filter the noisy ones, star the essentials, and keep
+			things exactly as tidy or as loose as you like.
+		</p>
+		<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
+			<li>
+				Flexible tagging instead of rigid folders.
+			</li>
+			<li>
+				Group similar subscriptions into a single unified feed.
+			</li>
+			<li>
+				Search by text or topic and save the results as a subscription.
+			</li>
+			<li>
+				Filter articles without complicated forms and logic.
+			</li>
+		</ul>
+		<a href="/features/curate" class="mt-4 inline-block link text-sm font-medium link-secondary">
+			Explore Curate →
+		</a>
+	</div>
+}
+
+templ consumeFeaturesList() {
+	<div class="card-body">
+		<div class="text-xs font-semibold tracking-widest text-accent/80 uppercase">
+			03 · Consume
+		</div>
+		<h3 class="mt-1 font-display text-xl font-medium tracking-tight">
+			Read like it's a magazine, not a queue
+		</h3>
+		<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
+			Designed with a distraction-free reading view and real typography, so articles feel like articles again and
+			not one more thing to clear.
+		</p>
+		<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
+			<li>
+				Clean reading view, stripped of ads and clutter.
+			</li>
+			<li>
+				Enriched articles with images and summaries pulled from the source when missing from the feed.
+			</li>
+			<li>
+				Full-text search by keywords and phrases. Or semantic search by topic or area of interest.
+			</li>
+			<li>
+				A "save for later" list that actually gets read.
+			</li>
+			<li>
+				A range of light and dark themes.
+			</li>
+			<li>
+				A responsive design that works in any web browser. On any device.
+			</li>
+		</ul>
+		<a href="/features/consume" class="mt-4 inline-block link text-sm font-medium text-accent">Explore Consume →</a>
+	</div>
+}
+
 templ featuresLists() {
 	// Pillars Mobile.
 	<div class="flex flex-col gap-y-8 sm:hidden">
 		<div class="card mx-2 border-base-300 bg-base-200 text-left card-border">
-			<div class="card-body">
-				<div class="text-xs font-semibold tracking-widest text-primary/80 uppercase">01 · Collect</div>
-				<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Gather everything, from everywhere</h3>
-				<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-					Subscribe to websites, YouTube channels, subreddits, Google News
-					searches and email newsletters. Foragd finds the feed so you don't
-					have to hunt for a URL.
-				</p>
-				<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-					<li>
-						A masked newsletter address keeps your real inbox clean
-					</li>
-					<li>
-						One-click OPML import from Feedly or Inoreader
-					</li>
-					<li>
-						Curated starter packs to get going in seconds
-					</li>
-					<li>
-						Your data is synced on our servers so you can stay up to date anywhere.
-					</li>
-				</ul>
-				<a href="/features/collect" class="mt-4 inline-block link text-sm font-medium link-primary">
-					Explore Collect →
-				</a>
-			</div>
+			@collectFeaturesList()
 		</div>
 		<div class="card mx-2 border-base-300 bg-base-200 text-left card-border">
-			<div class="card-body">
-				<div class="text-xs font-semibold tracking-widest text-secondary/80 uppercase">02 · Curate</div>
-				<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Organize it your way, not the algorithm's</h3>
-				<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-					Sort sources into collections that make sense to you. Filter the noisy ones, star the
-					essentials, and keep things exactly as tidy or as loose as you like.
-				</p>
-				<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-					<li>
-						Flexible tagging instead of rigid folders
-					</li>
-					<li>
-						Group similar subscriptions into a single unified feed
-					</li>
-					<li>
-						Search for keywords or phrases and save the results as a subscription
-					</li>
-					<li>
-						Filter articles with easy text-based keywords
-					</li>
-				</ul>
-				<a href="/features/curate" class="mt-4 inline-block link text-sm font-medium link-secondary">
-					Explore Curate →
-				</a>
-			</div>
+			@curateFeaturesList()
 		</div>
 		<div class="card mx-2 border-base-300 bg-base-200 text-left card-border">
-			<div class="card-body">
-				<div class="text-xs font-semibold tracking-widest text-accent/80 uppercase">03 · Consume</div>
-				<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Read like it's a magazine, not a queue</h3>
-				<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-					Designed with a distraction-free reading view and real typography, so articles feel like articles
-					again and not one more thing to clear.
-				</p>
-				<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-					<li>
-						Clean reading view, stripped of ads and clutter
-					</li>
-					<li>
-						Full-text search by keywords and phrases. Or semantic search by topic or area of
-						interest
-					</li>
-					<li>
-						A "save for later" list that actually gets read
-					</li>
-					<li>
-						A range of light and dark themes
-					</li>
-					<li>
-						A responsive design that works in any web browser. On any device.
-					</li>
-				</ul>
-				<a href="/features/consume" class="mt-4 inline-block link text-sm font-medium text-accent">Explore Consume →</a>
-			</div>
+			@consumeFeaturesList()
 		</div>
 	</div>
 	// Pillars Desktop.
@@ -155,31 +187,7 @@ templ featuresLists() {
 				</span>
 			</div>
 			<div class="card timeline-end border-base-300 bg-base-200 text-left card-border md:max-w-lg">
-				<div class="card-body">
-					<div class="text-xs font-semibold tracking-widest text-primary/80 uppercase">01 · Collect</div>
-					<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Gather everything, from everywhere</h3>
-					<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-						Subscribe to websites, YouTube channels, subreddits, Google News searches and email newsletters.
-						Foragd finds the feed so you don't have to hunt for a URL.
-					</p>
-					<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-						<li>
-							A masked newsletter address keeps your real inbox clean
-						</li>
-						<li>
-							One-click OPML import from Feedly or Inoreader
-						</li>
-						<li>
-							Curated starter packs to get going in seconds
-						</li>
-						<li>
-							Your data is synced on our servers so you can stay up to date anywhere.
-						</li>
-					</ul>
-					<a href="/features/collect" class="mt-4 inline-block link text-sm font-medium link-primary">
-						Explore Collect →
-					</a>
-				</div>
+				@collectFeaturesList()
 			</div>
 			<hr class="bg-primary/25"/>
 		</li>
@@ -191,31 +199,7 @@ templ featuresLists() {
 				</span>
 			</div>
 			<div class="card timeline-start border-base-300 bg-base-200 text-left card-border md:ml-auto md:max-w-lg">
-				<div class="card-body">
-					<div class="text-xs font-semibold tracking-widest text-secondary/80 uppercase">02 · Curate</div>
-					<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Organize it your way, not the algorithm's</h3>
-					<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-						Sort sources into collections that make sense to you. Filter the noisy ones, star the
-						essentials, and keep things exactly as tidy or as loose as you like.
-					</p>
-					<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-						<li>
-							Flexible tagging instead of rigid folders
-						</li>
-						<li>
-							Group similar subscriptions into a single unified feed
-						</li>
-						<li>
-							Search for keywords or phrases and save the results as a subscription
-						</li>
-						<li>
-							Filter articles with easy text-based keywords
-						</li>
-					</ul>
-					<a href="/features/curate" class="mt-4 inline-block link text-sm font-medium link-secondary">
-						Explore Curate →
-					</a>
-				</div>
+				@curateFeaturesList()
 			</div>
 			<hr class="bg-secondary/25"/>
 		</li>
@@ -227,33 +211,7 @@ templ featuresLists() {
 				</span>
 			</div>
 			<div class="card timeline-end border-base-300 bg-base-200 text-left card-border md:max-w-lg">
-				<div class="card-body">
-					<div class="text-xs font-semibold tracking-widest text-accent/80 uppercase">03 · Consume</div>
-					<h3 class="mt-1 font-display text-xl font-medium tracking-tight">Read like it's a magazine, not a queue</h3>
-					<p class="mt-2 font-serif text-sm text-pretty text-base-content/70">
-						Designed with a distraction-free reading view and real typography, so articles feel like articles
-						again and not one more thing to clear.
-					</p>
-					<ul class="mt-3 list-disc space-y-1.5 pl-3 font-serif text-sm text-pretty text-base-content/70 marker:text-accent">
-						<li>
-							Clean reading view, stripped of ads and clutter
-						</li>
-						<li>
-							Full-text search by keywords and phrases. Or semantic search by topic or area of
-							interest
-						</li>
-						<li>
-							A "save for later" list that actually gets read
-						</li>
-						<li>
-							A range of light and dark themes
-						</li>
-						<li>
-							A responsive design that works in any browser, on any device.
-						</li>
-					</ul>
-					<a href="/features/consume" class="mt-4 inline-block link text-sm font-medium text-accent">Explore Consume →</a>
-				</div>
+				@consumeFeaturesList()
 			</div>
 		</li>
 	</ul>
