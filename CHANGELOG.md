@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.221.2](https://github.com/immanent-tech/foragd/compare/v0.221.1...v0.221.2) (2026-08-27)
+
+
+### Bug Fixes
+
+* **providers/zyte:** 🔧 don't perform sanitisation on entire response (performed after parsing) ([e333946](https://github.com/immanent-tech/foragd/commit/e333946e62afc90c513e36814a582017a28cb4c9))
+
 ## [0.221.1](https://github.com/immanent-tech/foragd/compare/v0.221.0...v0.221.1) (2026-08-25)
 
 
