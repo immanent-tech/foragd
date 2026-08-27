@@ -146,7 +146,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 		if filters.GetCategories().HasCategory(category) {
 			checked = true
 		}
-		filters.Categories = []models.Category{category}
+		filters.Category = &category
 		var id string
 		id, err := gonanoid.New()
 		if err != nil {
@@ -163,7 +163,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions"
 		>
 			if checked {
@@ -178,7 +178,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 
 templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 	// Remove all current category filters.
-	{{ filters.Categories = nil }}
+	{{ filters.Category = nil }}
 	@partials.MenuItem() {
 		<button
 			class="group relative flex items-center"
@@ -186,7 +186,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions,categories"
 		>
 			@tableroutline.X(templ.Attributes{"class": "size-5 shrink-0 stroke-accent", "aria-hidden": "true"})

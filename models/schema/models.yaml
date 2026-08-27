@@ -199,12 +199,12 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required,oneof=read unread all favorites'
         form: 'view'
-    Pagination:
-      description: contains data for paginating through results.
-      type: string
-      x-oapi-codegen-extra-tags:
-        form: 'pagination'
-        validate: 'omitempty,url_encoded'
+    # Pagination:
+    #   description: contains data for paginating through results.
+    #   type: string
+    #   x-oapi-codegen-extra-tags:
+    #     form: 'pagination'
+    #     validate: 'omitempty,url_encoded'
     Sort:
       description: is how a list of objects is sorted.
       type: string
@@ -1409,60 +1409,8 @@ components:
       description: >
         contains filters for altering the display of a list of subscriptions or articles.
       type: object
-      required:
-        - view
-        - count
-        - sort
-      properties:
-        count:
-          description: >
-            is the number of items to retrieve with a request. This number will be added to the upto value to get the
-            total number of items retrieved, else, will this number of items will be retrieved from the pagination point
-            specified with pagination value.
-          type: integer
-          x-oapi-codegen-extra-tags:
-            form: 'count'
-            validate: 'gt=0'
-        upto:
-          description: >
-            is a number of items to retrieve. It is only non-zero for history restore requests.
-          type: integer
-          x-oapi-codegen-extra-tags:
-            form: 'upto'
-            validate: 'omitempty,gt=0'
-        view:
-          $ref: '#/components/schemas/View'
-        sort:
-          $ref: '#/components/schemas/Sort'
-        categories:
-          description: is a list of categories.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            json: 'categories'
-            form: 'categories'
-            validate: 'omitnil,unique,dive,url_encoded'
-          x-go-type-skip-optional-pointer: true
-        subscriptions:
-          description: >
-            is a list of subscription IDs.
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionID'
-          x-oapi-codegen-extra-tags:
-            json: 'subscriptions'
-            form: 'subscriptions'
-            validate: 'omitnil,dive,startswith=sub_'
-          x-go-type-skip-optional-pointer: true
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-    ListFilters2:
-      description: >
-        contains filters for altering the display of a list of subscriptions or articles.
-      type: object
       allOf:
-        - $ref: '#/components/schemas/Pagination2'
+        - $ref: '#/components/schemas/Pagination'
           x-oapi-codegen-extra-tags:
             form: 'pagination'
             validate: 'omitempty,dive'
@@ -1487,9 +1435,18 @@ components:
               $ref: '#/components/schemas/Sort'
             category:
               $ref: '#/components/schemas/Category'
+            subscriptions:
+              description: is a list of subscription IDs to filter on.
+              type: array
+              items:
+                $ref: '#/components/schemas/SubscriptionID'
+              x-oapi-codegen-extra-tags:
+                form: 'subscriptions'
+                validate: 'omitempty,unique,dive,startswith=sub_'
+              x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'required'
-    Pagination2:
+    Pagination:
       description: contains data for paginating through a list of subscriptions or articles.
       type: object
       properties:
@@ -1499,6 +1456,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'from'
             # validate: 'required_without=UpTo SearchAfter,gte=0'
+          x-omitzero: true
         searchAfter:
           description: is the data indicating the point after which objects should be retrieved.
           type: string
@@ -1506,31 +1464,14 @@ components:
             form: 'search_after'
             json: 'search_after,omitempty'
             # validate: 'required_without=UpTo From'
+          x-omitzero: true
         upTo:
           description: is the number up to which objects to should be retrieved.
           type: integer
           x-oapi-codegen-extra-tags:
             form: 'upto'
-            json: 'upto'
+            json: 'upto,omitempty,omitzero'
             # validate: 'required_without=From SearchAfter,gt=0'
-    ListRequest:
-      description: >
-        contains the parameters needed for listing subscriptions or articles.
-      type: object
-      required:
-        - filters
-      properties:
-        filters:
-          $ref: '#/components/schemas/ListFilters'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        query:
-          description: >
-            is an additional query to apply for this request.
-          x-go-type: query.Option
-          x-go-type-import:
-            path: 'github.com/immanent-tech/foragd/providers/elastic/query'
-          x-go-type-skip-optional-pointer: true
     ListSubscriptionCategoriesRequest:
       description: >
         contains data for listing categories for a list of subscriptions.

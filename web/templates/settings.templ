@@ -512,7 +512,7 @@ templ AccountSettings(user *models.User) {
 							<div class="mt-4 flex w-full justify-end">
 								<form>
 									<button
-										hx-post={ models.RouteUserDeactivateAccount }
+										hx-post="/user/deactivate"
 										hx-target={ ModalContainerID.Target() }
 										hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
 										hx-disabled-elt="this"
@@ -539,7 +539,7 @@ templ AccountSettings(user *models.User) {
 									<div class="mt-4 flex w-full justify-end">
 										<form>
 											<button
-												hx-post={ models.RouteUserDeactivateAccount }
+												hx-post="/user/deactivate"
 												hx-target={ ModalContainerID.Target() }
 												hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
 												hx-disabled-elt="this"
@@ -1191,7 +1191,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 											// Favorite action.
 											@s.subscriptionFavoriteToggle()
 											// Mark action.
-											@s.subscriptionMarkToggle()
+											@s.subscriptionMarkToggle(models.ViewAll)
 											// Edit action.
 											<div class="tooltip" data-tip="Edit subscription">
 												<button

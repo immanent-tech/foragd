@@ -18,8 +18,6 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/server/forms"
 
-	"github.com/immanent-tech/go-base/validation"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -33,7 +31,6 @@ import (
 const (
 	defaultSubscriptionSuggestionsCount = 3
 	defaultArticleSuggestionsCount      = 10
-	defaultArticleResultsCount          = 15
 )
 
 type SearchSuggestions struct {
@@ -162,7 +159,7 @@ func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request)
 func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
 	case "/search":
-		res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Query())
+		res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Encode())
 		template := templates.SearchResults(h.results)
 		if len(h.results.Articles) > 0 {
 			// Also update the search filters element.
@@ -184,7 +181,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 			RenderPartial(&PartialTemplate{
 				template: templates.SearchPaginationControl(
 					&h.results.Search,
-					*h.results.Pagination,
+					element.WithHXSwapOOB("true"),
 				),
 			}).ServeHTTP(res, req)
 		}
@@ -194,13 +191,8 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
 func HandleSearchResults() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Extract the search search.
-		search, err := parseForm[*models.SearchRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
-			return
-		}
-
+		// Retrieve search params.
+		search := models.SearchParamsFromCtx(req.Context())
 		if txt := req.FormValue("advanced-search-text"); txt != "" {
 			search.Text = txt
 		}
@@ -218,7 +210,6 @@ func HandleSearchResults() http.HandlerFunc {
 
 		// If the search request has subscription filters, get subscription details.
 		if len(search.Subscriptions) > 0 {
-			// Get subscriptions.
 			subscriptions, err := service.GetSubscriptionsByID(ctx, search.Subscriptions...)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(
@@ -238,39 +229,13 @@ func HandleSearchResults() http.HandlerFunc {
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
 
-		// Retrieve currentPagination.
-		currentPagination := req.FormValue(models.ParamPagination)
-		if err := validation.Validate.Var(currentPagination, "omitempty,url_encoded"); err != nil {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("get pagination: %w", err),
-			).ServeHTTP(res, req)
-		}
+		var (
+			articles   models.Articles
+			categories []models.Category
+			pagination models.Pagination
+		)
 
-		// Find articles that match search request.
-		var articles models.Articles
-		var categories []models.Category
-		var newPagination models.Pagination
-		// regularSearchQuery, err := service.BuildSearchResultsQuery(
-		// 	ctx,
-		// 	user,
-		// 	search,
-		// 	service.StandardSearchResultsClause(search),
-		// )
-		// if err != nil && !errors.Is(err, models.ErrNotFound) {
-		// 	HandleInternalError(req.URL.Path,
-		// 		&models.APIError{
-		// 			InternalError: fmt.Errorf("build articles search query: %w", err),
-		// 			StatusCode:    http.StatusInternalServerError,
-		// 		}).ServeHTTP(res, req)
-		// 	return
-		// }
-		// semanticSearchQuery, err := service.BuildSearchResultsQuery(
-		// 	ctx,
-		// 	user,
-		// 	search,
-		// 	service.SemanticSearchResultsClause(search),
-		// )
+		// Generate the filter query for finding results.
 		filterQuery, err := service.BuildSearchResultsQuery(ctx, user, search, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
@@ -280,15 +245,14 @@ func HandleSearchResults() http.HandlerFunc {
 			return
 		}
 
-		// if regularSearchQuery != nil || semanticSearchQuery != nil {
+		// Set up background search jobs.
 		searchJobs, jobCtx := errgroup.WithContext(req.Context())
 		defer jobCtx.Done()
 
-		// Search for articles.
+		// Search for results.
 		searchJobs.Go(func() error {
 			var items models.Items
-
-			items, newPagination, err = service.RetrieveItems(
+			items, pagination, err = service.RetrieveItems(
 				ctx,
 				retriever.WithReciprocalRankFusionRetriever(
 					retriever.WithRankWindowSize(150),
@@ -304,8 +268,8 @@ func HandleSearchResults() http.HandlerFunc {
 						),
 					),
 				),
-				defaultArticleResultsCount,
-				&currentPagination,
+				search.Count,
+				&models.Pagination{From: search.From},
 			)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
@@ -386,8 +350,8 @@ func HandleSearchResults() http.HandlerFunc {
 			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).ServeHTTP(res, req)
 			return
 		}
-		// }
 
+		// If this search is a search subscription, get the subscription details to add to the results.
 		var subscription *models.Subscription
 		if search.SubscriptionID != nil {
 			subscription, err = service.GetSubscription(req.Context(), *search.SubscriptionID)
@@ -397,18 +361,22 @@ func HandleSearchResults() http.HandlerFunc {
 			}
 		}
 
+		// Create results object.
+		results := &models.SearchResults{
+			Search:       *search,
+			Subscription: subscription,
+			Articles:     articles,
+			Categories:   categories,
+		}
+		results.Search.From = pagination.From
+
+		// Render.
 		RenderInternalPage(&SearchResults{
 			title: templates.PageTitle{
 				Summary:     "Search Results",
 				Description: search.Text,
 			},
-			results: &models.SearchResults{
-				Search:       *search,
-				Subscription: subscription,
-				Articles:     articles,
-				Categories:   categories,
-				Pagination:   &newPagination,
-			},
+			results: results,
 		}).ServeHTTP(res, req)
 	}
 }
@@ -416,15 +384,8 @@ func HandleSearchResults() http.HandlerFunc {
 // HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
 func HandleSearchUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Extract the search request.
-		request, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to extract search request.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
+		// Extract the search search.
+		search := models.SearchParamsFromCtx(req.Context())
 
 		// Build query.
 		user := models.UserFromCtx(req.Context())
@@ -436,12 +397,12 @@ func HandleSearchUpdates() http.HandlerFunc {
 			return
 		}
 		// Override the published within on the search request to last 5 minutes for updates.
-		request.PublishedWithin = models.SearchRequestPublishedWithinLast5mins
+		search.PublishedWithin = models.SearchRequestPublishedWithinLast5mins
 		updatesQuery, err := service.BuildSearchResultsQuery(
 			req.Context(),
 			user,
-			request,
-			service.StandardSearchResultsClause(request),
+			search,
+			service.StandardSearchResultsClause(search),
 		)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot build search query.",
@@ -468,7 +429,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
-				element.WithHXValues(request.Values()),
+				element.WithHXValues(search),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)

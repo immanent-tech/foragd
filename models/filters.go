@@ -5,11 +5,9 @@ package models
 
 import (
 	"context"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -21,28 +19,20 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 )
 
-func init() {
-	gob.Register(ListFilters{})
-	gob.Register(ListFilters2{})
-}
-
-var ErrNoFilters = NewAPIError(http.StatusBadRequest, errors.New("no filters found"))
-
 const (
-	// minUserCount is the minimum number of results a user can retrieve at a single time.
-	minUserCount = 1
-	// DefaultCount is to show 9 objects.
-	DefaultCount = 9
-	// MaxCount is the maximum number of objects to fetch at once.
-	MaxCount = 90
-	// MaxUpTo is the maximum number of objects to fetch when restoring the page.
-	MaxUpTo = 1000
+	// maxCount is the maximum number of objects to fetch at once.
+	maxCount = 90
+	// maxUpTo is the maximum number of objects to fetch when restoring the page.
+	maxUpTo = 1000
+	// defaultCount is to show 9 objects.
+	defaultCount = 9
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
+	// defaultSort is newest first.
+	defaultSort = SortNewestFirst
+	// defaultMark is Mark Read.
+	defaultMark = MarkRead
 )
-
-// defaultSort is newest first.
-var defaultSort = SortNewestFirst
 
 func (s Sort) String() string {
 	switch s {
@@ -61,219 +51,28 @@ func (s Sort) String() string {
 	}
 }
 
-// NewListDisplayFilters creates a new set of display filters with sensible defaults.
-func NewListDisplayFilters() ListFilters {
-	return ListFilters{
-		Sort:  defaultSort,
-		Count: DefaultCount,
-		View:  defaultView,
-	}
-}
-
-// GetSubscriptions retrieves any subscription filters.
-func (f *ListFilters) GetSubscriptions() []SubscriptionID {
-	return f.Subscriptions
-}
-
-// Sanitise performs sanitisation of the filter values to ensure correctness.
-func (f *ListFilters) Sanitise() error {
-	if f == nil {
-		return ErrNoFilters
-	}
-	if len(f.Subscriptions) > 0 {
-		f.Subscriptions = slices.Compact(f.Subscriptions)
-	}
-	// Set required filters to valid values as necessary.
-	f.Sort = setValidSort(f.Sort)
-	f.Count = setValidCount(f.Count)
-	f.View = setValidView(f.View)
-	return nil
-}
-
-// Valid will return a boolean indicating whether the filters are valid and a
-// non-nil error with details if not.
-func (f *ListFilters) Valid() error {
-	if f == nil {
-		return ErrNoFilters
-	}
-	if err := validation.Validate.Struct(f); err != nil {
-		return fmt.Errorf("filters are invalid: %w", err)
-	}
-	return nil
-}
-
-// GetSort returns the Sort object for the Filters.
-func (f *ListFilters) GetSort() Sort {
-	return f.Sort
-}
-
-// GetCount returns the count value (encoded as a string in the filters) as an int.
-func (f *ListFilters) GetCount() int {
-	return f.Count
-}
-
-// GetView returns the view filter.
-func (f *ListFilters) GetView() View {
-	return f.View
-}
-
-// GetCategories returns any category filters.
-func (f *ListFilters) GetCategories() Categories {
-	return f.Categories
-}
-
-// QueryParams converts the filters into query parameters.
-func (f *ListFilters) QueryParams() url.Values {
-	params := make(url.Values)
-	if len(f.Subscriptions) > 0 {
-		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
-	}
-	if len(f.Categories) > 0 {
-		params.Set(ParamCategories, strings.Join(f.Categories, ","))
-	}
-	params.Set(ParamSort, string(f.GetSort()))
-	params.Set(ParamView, string(f.GetView()))
-	params.Set(ParamCount, strconv.Itoa(f.Count))
-	return params
-}
-
-// QueryString converts the filters into a string that can be appended to a URL to represent the filters.
-func (f *ListFilters) QueryString() string {
-	return f.QueryParams().Encode()
-}
-
-// Values converts the filters into a map[string]string object, that can be further manipulated before being (most
-// likely) used as the value of hx-vals in a HTMX request.
-func (f *ListFilters) Values() map[string]any {
-	params := make(map[string]any)
-	if len(f.Subscriptions) > 0 {
-		params[ParamSubscriptions] = f.Subscriptions
-	}
-	if len(f.Categories) > 0 {
-		params[ParamCategories] = strings.Join(f.Categories, ",")
-	}
-	params[ParamSort] = string(f.GetSort())
-	params[ParamView] = string(f.GetView())
-	params[ParamCount] = f.Count
-	return params
-}
-
-// setValidSortBy takes a string value and returns the SortBy value it
-// represents. If the string is not a valid SortBy value, the default SortBy
-// value is returned.
-func setValidSort(value Sort) Sort {
-	switch value {
-	case SortLeastUnread, SortMostUnread, SortNewestFirst, SortOldestFirst, SortMostRelevant:
-		return value
-	default:
-		return defaultSort
-	}
-}
-
-// setValidCount takes a value representing a count and returns a valid Count it represents. If the value is not a valid
-// Count, the default Count is returned.
-func setValidCount(value int) int {
-	if value < minUserCount {
-		return DefaultCount
-	}
-	return value
-}
-
-// setValidView takes a string representing a View and returns a valid View it represents. If the value is not a valid
-// View, the default View is returned.
-func setValidView(value View) View {
-	switch value {
-	case ViewFavorites:
-		return ViewFavorites
-	case ViewAll:
-		return ViewAll
-	case ViewRead:
-		return ViewRead
-	case ViewUnread:
-		return ViewUnread
-	default:
-		return defaultView
-	}
-}
-
-// setValidMark takes a string representing a Mark and returns a valid Mark it represents. If the value is not a valid
-// Mark, it returns MarkRead.
-func setValidMark(value Mark) Mark {
-	switch value {
-	case MarkRead:
-		return MarkRead
-	case MarkUnread:
-		return MarkUnread
-	default:
-		return MarkRead
-	}
-}
-
 var validSort = map[Sort]bool{
-	SortNewestFirst:  true,
-	SortOldestFirst:  true,
-	SortMostUnread:   true,
 	SortLeastUnread:  true,
 	SortMostRelevant: true,
-}
-var validView = map[View]bool{ViewAll: true, ViewUnread: true, ViewRead: true, ViewFavorites: true}
-
-func NewListFilters() *ListFilters2 {
-	return &ListFilters2{
-		Sort:  defaultSort,
-		Count: DefaultCount,
-		View:  defaultView,
-	}
+	SortMostUnread:   true,
+	SortNewestFirst:  true,
+	SortOldestFirst:  true,
 }
 
-// Sanitise performs sanitisation of the filter values to ensure correctness.
-func (f *ListFilters2) Sanitise() error {
-	if f == nil {
-		f = NewListFilters()
-	}
-	if !validSort[f.Sort] {
-		f.Sort = defaultSort
-	}
-	if !validView[f.View] {
-		f.View = defaultView
-	}
-	if f.Count < 0 || f.Count > MaxCount {
-		f.Count = MaxCount
-	}
-	if f.UpTo != nil {
-		switch {
-		case *f.UpTo < 0:
-			f.UpTo = nil
-		case *f.UpTo > MaxUpTo:
-			f.UpTo = new(MaxUpTo)
-		}
-	}
-	if f.From != nil && *f.From < 0 {
-		f.From = new(0)
-	}
-	return nil
+var validMark = map[Mark]bool{
+	MarkRead:   true,
+	MarkUnread: true,
 }
 
-// Valid will return a boolean indicating whether the filters are valid and a
-// non-nil error with details if not.
-func (f *ListFilters2) Valid() error {
-	switch {
-	case f == nil:
-		return fmt.Errorf("invalid filters: %w", ErrNoFilters)
-	case f.From != nil && (f.UpTo != nil || f.SearchAfter != nil):
-		return errors.New("invalid filters: from can only be set if upto or searchAfter is unset")
-	case f.SearchAfter != nil && (f.UpTo != nil || f.From != nil):
-		return errors.New("invalid filters: searchAfter can only be set if upto or from is unset")
-	case f.UpTo != nil && (f.From != nil || f.SearchAfter != nil):
-		return errors.New("invalid filters: upto can only be set if from or searchAfter is unset")
-	}
-	if err := validation.Validate.Struct(f); err != nil {
-		return fmt.Errorf("filters are invalid: %w", err)
-	}
-	return nil
+var validView = map[View]bool{
+	ViewAll:       true,
+	ViewUnread:    true,
+	ViewRead:      true,
+	ViewFavorites: true,
 }
 
-func ParseListFilters(query url.Values) *ListFilters2 {
+// ParseListFilters creates a new ListFilters from the given URL query values.
+func ParseListFilters(query url.Values) *ListFilters {
 	filters := NewListFilters()
 	if v := query.Get("sort"); validSort[Sort(v)] {
 		filters.Sort = Sort(v)
@@ -294,19 +93,117 @@ func ParseListFilters(query url.Values) *ListFilters2 {
 		filters.UpTo = &v
 	}
 	if a := query.Get("search_after"); a != "" {
-		filters.SearchAfter = &a
+		if pagination, err := url.QueryUnescape(a); err != nil {
+			filters.SearchAfter = &pagination
+		}
+	}
+	if s := query.Get("subscriptions"); s != "" {
+		filters.Subscriptions = strings.Split(s, ",")
 	}
 	return filters
 }
 
+// NewListFilters creates a new ListFilters with default values.
+func NewListFilters() *ListFilters {
+	return &ListFilters{
+		Sort:  defaultSort,
+		Count: defaultCount,
+		View:  defaultView,
+	}
+}
+
+func (f ListFilters) GetView() View {
+	return f.View
+}
+
+func (f ListFilters) GetCount() int {
+	return f.Count
+}
+
+func (f ListFilters) GetSort() Sort {
+	return f.Sort
+}
+
+func (f ListFilters) GetCategories() Categories {
+	if f.Category != nil {
+		return []Category{*f.Category}
+	}
+	return nil
+}
+
+func (f ListFilters) GetSubscriptions() []SubscriptionID {
+	return f.Subscriptions
+}
+
+// Sanitise performs sanitisation of the filter values to ensure correctness.
+func (f *ListFilters) Sanitise() error {
+	if f == nil {
+		f = NewListFilters()
+	}
+	if !validSort[f.Sort] {
+		f.Sort = defaultSort
+	}
+	if !validView[f.View] {
+		f.View = defaultView
+	}
+	if f.Count < 0 || f.Count > maxCount {
+		f.Count = maxCount
+	}
+	if f.Category != nil {
+		f.Category = new(validation.SanitizeString(*f.Category))
+	}
+	if len(f.Subscriptions) > 0 {
+		slices.Sort(f.Subscriptions)
+		f.Subscriptions = slices.Compact(f.Subscriptions)
+	}
+	if f.UpTo != nil {
+		switch {
+		case *f.UpTo < 0:
+			f.UpTo = nil
+		case *f.UpTo > maxUpTo:
+			f.UpTo = new(maxUpTo)
+		}
+	}
+	if f.From != nil && *f.From < 0 {
+		f.From = new(0)
+	}
+	if f.SearchAfter != nil {
+		if pagination, err := url.QueryUnescape(*f.SearchAfter); err != nil {
+			f.SearchAfter = nil
+		} else {
+			f.SearchAfter = &pagination
+		}
+	}
+	return nil
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a non-nil error with details if not.
+func (f ListFilters) Valid() error {
+	switch {
+	case f.From != nil && (f.UpTo != nil || f.SearchAfter != nil):
+		return errors.New("invalid filters: from can only be set if upto or searchAfter is unset")
+	case f.SearchAfter != nil && (f.UpTo != nil || f.From != nil):
+		return errors.New("invalid filters: searchAfter can only be set if upto or from is unset")
+	case f.UpTo != nil && (f.From != nil || f.SearchAfter != nil):
+		return errors.New("invalid filters: upto can only be set if from or searchAfter is unset")
+	}
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("filters are invalid: %w", err)
+	}
+	return nil
+}
+
 // Encode returns the query string encoded value of the filters.
-func (f ListFilters2) Encode() string {
+func (f ListFilters) Encode() string {
 	query := url.Values{}
 	query.Set("sort", string(f.Sort))
 	query.Set("view", string(f.View))
 	query.Set("count", strconv.Itoa(f.Count))
 	if f.Category != nil {
 		query.Set("category", *f.Category)
+	}
+	if len(f.Subscriptions) > 0 {
+		query.Set("subscriptions", strings.Join(f.Subscriptions, ","))
 	}
 	if f.From != nil {
 		query.Set("from", strconv.Itoa(*f.From))
@@ -315,37 +212,62 @@ func (f ListFilters2) Encode() string {
 		query.Set("upto", strconv.Itoa(*f.UpTo))
 	}
 	if f.SearchAfter != nil {
-		query.Set("search_after", *f.SearchAfter)
+		query.Set("search_after", url.QueryEscape(*f.SearchAfter))
 	}
 	return query.Encode()
 }
 
-const filtersCtxKey contextKey = "listFilters"
+const listFiltersCtxKey contextKey = "listFilters"
+const listCountCtxKey contextKey = "listCount"
 
-func ListFiltersToCtx(ctx context.Context, filters *ListFilters2) context.Context {
-	return context.WithValue(ctx, filtersCtxKey, *filters)
+// ListFiltersToCtx stores the given list filters in the context.
+func ListFiltersToCtx(ctx context.Context, filters *ListFilters) context.Context {
+	return context.WithValue(ctx, listFiltersCtxKey, *filters)
 }
 
-func ListFiltersFromCtx(ctx context.Context) *ListFilters2 {
-	if filters, ok := ctx.Value(filtersCtxKey).(ListFilters2); ok {
+// ListFiltersFromCtx retrieves the given list filters in the context.
+func ListFiltersFromCtx(ctx context.Context) *ListFilters {
+	if filters, ok := ctx.Value(listFiltersCtxKey).(ListFilters); ok {
 		return &filters
 	}
 	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
 	return NewListFilters()
 }
 
-func ListFiltersToSession(ctx context.Context, filters *ListFilters2) {
-	if err := session.Save(ctx, string(filtersCtxKey), *filters); err != nil {
+// ListFiltersToSession stores the given list filters in the session. The path is used as a suffix so that filters are
+// stored per-route.
+func ListFiltersToSession(ctx context.Context, path string, filters *ListFilters) {
+	if err := session.Save(ctx, string(listFiltersCtxKey)+path, *filters); err != nil {
 		slogctx.Warn(ctx, "Unable to save filters to session.", slog.Any("error", err))
 	}
 }
 
-func ListFiltersFromSession(ctx context.Context) *ListFilters2 {
-	filters, err := session.Restore[ListFilters2](ctx, string(filtersCtxKey))
+// ListFiltersFromSession retrieves the given list filters in the session. The path is used as a suffix so that filters
+// are retrieved per-route.
+func ListFiltersFromSession(ctx context.Context, path string) *ListFilters {
+	filters, err := session.Restore[ListFilters](ctx, string(listFiltersCtxKey)+path)
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to restore filters from session. Using defaults.", slog.Any("error", err))
 		return NewListFilters()
 	}
 	return &filters
+}
 
+// ListCountToSession stores the current count of objects displayed in the list in the session. The path is used as a
+// suffix so that the count is stored per-route.
+func ListCountToSession(ctx context.Context, path string, count int) {
+	if err := session.Save(ctx, string(listCountCtxKey)+path, count); err != nil {
+		slogctx.Warn(ctx, "Unable to save list count to session.", slog.Any("error", err))
+	}
+}
+
+// ListCountFromSession stores the current count of objects displayed in the list in the session. The path is used as a
+// suffix so that the count is retrieved per-route.
+func ListCountFromSession(ctx context.Context, path string) int {
+	count, err := session.Restore[int](ctx, string(listCountCtxKey)+path)
+	if err != nil {
+		slogctx.Warn(ctx, "Unable to restore list count from session. Using defaults.", slog.Any("error", err))
+		return defaultCount
+	}
+	return count
 }

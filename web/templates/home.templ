@@ -72,7 +72,7 @@ templ UserHome(data *HomeData) {
 								}
 								<div class="masonry-grid relative mt-2 grid grid-cols-1 items-start gap-2 sm:grid-cols-2" _="install MasonryGrid">
 									for idx, article := range data.LatestArticles {
-										@ArticleCard(idx, article)
+										@ArticleCard(idx, article, models.ViewAll)
 									}
 								</div>
 							</section>
@@ -147,13 +147,13 @@ templ UserHome(data *HomeData) {
 									<div class="flex flex-wrap justify-center gap-1.5 p-4">
 										for category := range slices.Values(data.TopCategories) {
 											{{
-												filters := models.NewListDisplayFilters()
-												filters.Categories = append(filters.Categories, category.Category)
+												filters := models.NewListFilters()
+												filters.Category = &category.Category
 											}}
 											@CategoryBadge(category.Category,
 												element.WithHXMethod(http.MethodGet, "/list/articles"),
 												element.WithHXTarget(ContentID.Target()),
-												element.WithHXValues(filters.Values()),
+												element.WithHXValues(filters),
 												element.WithHXIndicator("this"),
 												element.WithAttribute("_", "on click halt the event's bubbling"),
 											)
@@ -166,12 +166,12 @@ templ UserHome(data *HomeData) {
 				}
 			}
 			// Updates Toast.
-			{{ filters := new(models.NewListDisplayFilters()) }}
+			{{ filters := models.NewListFilters() }}
 			<div
 				id="updates"
 				class="toast toast-center z-10"
 				hx-post="/list/articles/updates"
-				hx-vals={ templ.JSONString(filters.Values()) }
+				hx-vals={ templ.JSONString(filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"
 			></div>

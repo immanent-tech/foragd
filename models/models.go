@@ -5,6 +5,7 @@
 package models
 
 import (
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"iter"
@@ -13,6 +14,11 @@ import (
 	"slices"
 	"time"
 )
+
+func init() {
+	gob.Register(ListFilters{})
+	gob.Register(SearchRequest{})
+}
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 

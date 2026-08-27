@@ -377,7 +377,7 @@ templ SearchResults(results *models.SearchResults) {
 						id="updates"
 						class="toast toast-center"
 						hx-post="/search/updates"
-						hx-vals={ templ.JSONString(results.Search.Values()) }
+						hx-vals={ templ.JSONString(results.Search) }
 						hx-trigger="every 5m"
 						hx-target="#updates"
 					></div>
@@ -391,7 +391,7 @@ templ SearchResults(results *models.SearchResults) {
 									@CategoryBadge(category,
 										element.WithHXMethod(http.MethodGet, "/search"),
 										element.WithHXTarget(ContentID.Target()),
-										element.WithHXValues(search.Values()),
+										element.WithHXValues(search),
 									)
 								}
 							</div>
@@ -405,26 +405,28 @@ templ SearchResults(results *models.SearchResults) {
 								<p class="text-lg/loose font-semibold">Refreshing...</p>
 							</div>
 						</div>
-						@grid(element.WithClasses("masonry-grid", "relative"),
-							element.WithAttribute("_", "install MasonryGrid"),
-							element.WithHXMethod(http.MethodGet, "/search"),
-							element.WithHXTarget(ContentID.Target()),
-							element.WithHXTrigger("refresh"),
-							element.WithHXIndicator("#refreshing"),
-							element.WithHXValues(results.Search.Values()),
-						) {
-							@templ.Fragment(PaginateFragment) {
-								for idx, article := range results.Articles {
-									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-									@ArticleCard(idx, article)
+						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/search', storageKey: 'search')">
+							@grid(element.WithClasses("masonry-grid", "relative"),
+								element.WithAttribute("_", "install MasonryGrid"),
+								element.WithHXMethod(http.MethodGet, "/search"),
+								element.WithHXTarget(ContentID.Target()),
+								element.WithHXTrigger("refresh"),
+								element.WithHXIndicator("#refreshing"),
+								element.WithHXValues(results.Search),
+							) {
+								@templ.Fragment(PaginateFragment) {
+									for idx, article := range results.Articles {
+										<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
+										@ArticleCard(idx, article, models.ViewAll)
+									}
 								}
 							}
-						}
-						@SearchPaginationControl(&results.Search, *results.Pagination)
-						<div id="loading-items" class="mx-auto mt-4 flex w-full justify-center">
-							<div class="hidden text-center group-[.htmx-request]:inline-flex">
-								<span class="loading mr-3 loading-xl loading-bars"></span>
-								<p class="text-lg/loose font-semibold">Loading content...</p>
+							@SearchPaginationControl(&results.Search)
+							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
+								<div class="hidden text-center group-[.htmx-request]:inline-flex">
+									<span class="loading mr-3 loading-xl loading-bars"></span>
+									<p class="text-lg/loose font-semibold">Loading content...</p>
+								</div>
 							</div>
 						</div>
 					</section>
@@ -492,7 +494,7 @@ templ SearchControls(results *models.SearchResults) {
 								// Edit action.
 								<li>
 									<a
-										{ s.editAttributes("/search?"+results.Search.Query())... }
+										{ s.editAttributes("/search?"+results.Search.Encode())... }
 										class="group/item flex items-center gap-x-2"
 									>
 										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -553,7 +555,7 @@ templ SearchControls(results *models.SearchResults) {
 					}
 					// Edit action.
 					<button
-						{ s.editAttributes("/search?"+results.Search.Query())... }
+						{ s.editAttributes("/search?"+results.Search.Encode())... }
 						class="btn border-neutral/15 btn-outline btn-sm"
 					>
 						@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -575,27 +577,31 @@ templ SearchControls(results *models.SearchResults) {
 	</div>
 }
 
-templ SearchPaginationControl(search *models.SearchRequest, pagination models.Pagination) {
-	{{
-		values := search.Values()
-		values["pagination"] = pagination
-	}}
+templ SearchPaginationControl(search *models.SearchRequest, options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
 	<div
 		id="pagination-sentinel-wrapper"
-		hx-swap-oob="true"
 		hx-post="/search/paginate"
-		hx-vals={ templ.JSONString(values) }
+		hx-vals={ templ.JSONString(search) }
 		hx-trigger="intersect once"
 		hx-target="#grid-objects"
 		hx-swap="beforeend transition:false"
 		hx-indicator="#loading-items"
-		hx-sync="#grid-objects:abort"
+		_="
+		on htmx:historyRestore from body
+			toggle .hidden on me until gridLayoutComplete from body
+		on htmx:beforeRequest from <[hx-push-url]/>
+			toggle .hidden on me until gridLayoutComplete from body
+		"
+		{ props.Attributes()... }
 	></div>
 }
 
 templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
 	<fieldset id="search-filters" { attributes... } class="min-w-0 p-4">
+		<input type="hidden" name="count" value={ models.DefaultSearchCount }/>
+		<input type="hidden" name="sort" value={ string(models.DefaultSearchSort) }/>
 		// Full text search filter.
 		<label class="fieldset">
 			<span class="col-span-full label">Includes the words:</span>
@@ -856,7 +862,7 @@ templ SimilarArticles(articles models.Articles) {
 					<section class="mt-4">
 						@grid() {
 							for idx, article := range articles {
-								@ArticleCard(idx, article)
+								@ArticleCard(idx, article, models.ViewAll)
 							}
 						}
 					</section>

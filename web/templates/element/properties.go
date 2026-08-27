@@ -136,7 +136,7 @@ func WithHXMethod(method, value string) PropertiesOption {
 
 // WithHXValues sets a "hx-vals" attribute. Note that the given map is marshaled to JSON and any marshaling error will
 // silently result in no attribute being set.
-func WithHXValues(values map[string]any) PropertiesOption {
+func WithHXValues(values any) PropertiesOption {
 	return func(p *Properties) {
 		data, err := json.Marshal(values)
 		if err != nil {

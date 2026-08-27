@@ -8,7 +8,6 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -44,7 +43,7 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 	</div>
 }
 
-templ (s *Subscription) subscriptionMarkToggle() {
+templ (s *Subscription) subscriptionMarkToggle(view models.View) {
 	// Mark action.
 	if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
 		{{
@@ -84,7 +83,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
     			  		toggle @checked on <input[type='checkbox']/> in me
 					end
 				"
-				{ s.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
+				{ s.markAttributes(view)... }
 			>
 				<input
 					id={ s.GetID() + "-mark-action" }
@@ -122,7 +121,7 @@ templ (s *Subscription) subscriptionMarkToggle() {
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
-templ SubscriptionCard(idx int, path string, subscription *models.Subscription) {
+templ SubscriptionCard(idx int, path string, subscription *models.Subscription, view models.View) {
 	{{ s := &Subscription{Subscription: subscription} }}
 	@partials.Card(element.WithAttribute("id", s.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
@@ -207,7 +206,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription) 
 					// Favorite action.
 					@s.subscriptionFavoriteToggle()
 					// Mark action.
-					@s.subscriptionMarkToggle()
+					@s.subscriptionMarkToggle(view)
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
@@ -273,8 +272,8 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 		<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
 			for idx, category := range categories {
 				{{
-					filters := models.NewListDisplayFilters()
-					filters.Categories = append(filters.Categories, category)
+					filters := models.NewListFilters()
+					filters.Category = &category
 					var extraClasses string
 					// Only show the first three categories, hide all others behind a button toggle.
 					if idx >= 3 {
@@ -284,7 +283,7 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 				@CategoryBadge(category,
 					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 					element.WithHXTarget(ContentID.Target()),
-					element.WithHXValues(filters.Values()),
+					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
 					element.WithAttribute("_", "on click halt the event's bubbling"),
 				)
@@ -343,7 +342,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							) {
 								@templ.Fragment(PaginateFragment) {
 									for idx, subscription := range response.Subscriptions {
-										@SubscriptionCard(idx, "/list/subscriptions", subscription) {
+										@SubscriptionCard(idx, "/list/subscriptions", subscription, response.Filters.View) {
 											if response.LatestArticles != nil {
 												{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
 												if ok {
@@ -377,7 +376,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									}
 								}
 							}
-							@ListPaginationControl("/list/subscriptions/paginate", &response.Filters, response.Pagination)
+							@ListPaginationControl("/list/subscriptions/paginate", &response.Filters)
 							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
 								<div class="hidden text-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-xl loading-bars"></span>
@@ -431,7 +430,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				id="updates"
 				class="toast toast-center z-10"
 				hx-post="/list/subscriptions/updates"
-				hx-vals={ templ.JSONString(response.Filters.Values()) }
+				hx-vals={ templ.JSONString(response.Filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"
 			></div>
@@ -773,7 +772,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 		>
 			// Add hidden inputs when editing a subscription to know which subscription we are editing.
 			if action == "edit" {
-				<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
+				<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 			}
 			// Customisation.
@@ -1046,7 +1045,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
 						if action == "edit" {
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.Search.SubscriptionID) }/>
+							<input type="hidden" name="subscription_id" value={ string(*request.Search.SubscriptionID) }/>
 							<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 						}
 						<fieldset class="fieldset min-w-0 py-8">
@@ -1277,7 +1276,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
 						if action == "edit" {
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.SubscriptionID) }/>
+							<input type="hidden" name="subscription_id" value={ string(*request.SubscriptionID) }/>
 							<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
 						}
 						// Customisation.
@@ -1452,7 +1451,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 					class="group"
 				>
 					// Add hidden inputs when editing a subscription to know which subscription we are editing.
-					<input type="hidden" name={ models.ParamSubscriptionID } value={ string(request.SubscriptionID) }/>
+					<input type="hidden" name="subscription_id" value={ string(request.SubscriptionID) }/>
 					<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
 					<div class="space-y-12 sm:space-y-16">
 						// Subscription name, suggestions and existing subscriptions.
@@ -1602,67 +1601,66 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 }
 
 func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "morph:innerHTML show:top transition:true"
-	attrs["hx-trigger"] = "click consume"
-	attrs["hx-push-url"] = true
+	props := element.NewProperties(
+		element.WithHXTarget(ContentID.Target()),
+		element.WithHXSwap("morph:innerHTML show:top transition:true"),
+		element.WithHXTrigger("click consume"),
+		element.WithHXPushURL(true),
+	)
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = []string{s.GetID()}
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"], _ = templ.JSONString(values)
-		attrs["hx-get"] = "/list/articles"
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		element.WithHXValues(filters)(props)
+		element.WithHXMethod(http.MethodGet, "/list/articles")(props)
 	case models.SubscriptionTypeGroup:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.Subscriptions
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		attrs["hx-vals"], _ = templ.JSONString(values)
-		attrs["hx-get"] = "/list/articles"
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		element.WithHXValues(filters)(props)
+		element.WithHXMethod(http.MethodGet, "/list/articles")(props)
 	case models.SubscriptionTypeSearch:
-		attrs["hx-get"] = "/search"
 		s.SearchData.Search.SubscriptionID = new(s.GetID())
-		attrs["hx-vals"] = s.SearchData.Search.HXVals()
+		element.WithHXValues(s.SearchData.Search)(props)
+		element.WithHXMethod(http.MethodGet, "/search")(props)
 	}
-	return attrs
+	return props.Attributes()
 }
 
 func subscriptionViewArticlesLink(s *models.Subscription) string {
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = []string{s.GetID()}
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		return "/list/articles?" + filters.QueryParams().Encode()
+		return "/list/articles?" + filters.Encode()
 	case models.SubscriptionTypeGroup:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.Subscriptions
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		return "/list/articles?" + filters.QueryParams().Encode()
+		return "/list/articles?" + filters.Encode()
 	case models.SubscriptionTypeSearch:
 		s.SearchData.Search.SubscriptionID = new(s.GetID())
-		return "/search?" + s.SearchData.Search.Query()
+		return "/search?" + s.SearchData.Search.Encode()
 	}
 	return "/list/articles"
 }

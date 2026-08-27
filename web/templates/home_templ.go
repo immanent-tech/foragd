@@ -242,7 +242,7 @@ func UserHome(data *HomeData) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						for idx, article := range data.LatestArticles {
-							templ_7745c5c3_Err = ArticleCard(idx, article).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = ArticleCard(idx, article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -468,12 +468,12 @@ func UserHome(data *HomeData) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							for category := range slices.Values(data.TopCategories) {
-								filters := models.NewListDisplayFilters()
-								filters.Categories = append(filters.Categories, category.Category)
+								filters := models.NewListFilters()
+								filters.Category = &category.Category
 								templ_7745c5c3_Err = CategoryBadge(category.Category,
 									element.WithHXMethod(http.MethodGet, "/list/articles"),
 									element.WithHXTarget(ContentID.Target()),
-									element.WithHXValues(filters.Values()),
+									element.WithHXValues(filters),
 									element.WithHXIndicator("this"),
 									element.WithAttribute("_", "on click halt the event's bubbling"),
 								).Render(ctx, templ_7745c5c3_Buffer)
@@ -502,15 +502,15 @@ func UserHome(data *HomeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				filters := new(models.NewListDisplayFilters())
+				filters := models.NewListFilters()
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div id=\"updates\" class=\"toast toast-center z-10\" hx-post=\"/list/articles/updates\" hx-vals=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var21 string
-				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters.Values()))
+				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 174, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 174, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 				if templ_7745c5c3_Err != nil {

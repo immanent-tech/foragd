@@ -39,12 +39,12 @@ templ Dock(options ...element.PropertiesOption) {
 			</span>
 			<span class="dock-label not-sr-only">Home</span>
 		</a>
-		{{ filters := models.NewListDisplayFilters() }}
+		{{ filters := models.NewListFilters() }}
 		<a
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-params={ "not " + models.ParamSubscriptions }
+			hx-vals={ templ.JSONString(filters) }
+			hx-params="not subscriptions"
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
@@ -63,7 +63,7 @@ templ Dock(options ...element.PropertiesOption) {
 		<a
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-vals={ templ.JSONString(filters) }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),

@@ -52,7 +52,7 @@ func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
 	return subscriptions
 }
 
-// ClientTypeFromCtx stores a ClientType in the context.
+// ClientTypeToCtx stores a ClientType in the context.
 func ClientTypeToCtx(ctx context.Context, clientType ClientType) context.Context {
 	return context.WithValue(ctx, clientTypeCtxKey, clientType)
 }

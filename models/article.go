@@ -63,7 +63,7 @@ func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]C
 	topCategories := make([]Category, 0)
 
 	for bucket := range slices.Values(topCategoriesBuckets) {
-		if category, ok := bucket.Key.(Category); ok {
+		if category, okBucket := bucket.Key.(Category); okBucket {
 			topCategories = append(topCategories, category)
 		}
 	}
@@ -327,21 +327,25 @@ func (r *MarkArticlesRequest) Valid() error {
 
 // Sanitise will alter MarkArticlesRequest data to ensure safety, where needed.
 func (r *MarkArticlesRequest) Sanitise() error {
-	r.Mark = setValidMark(r.Mark)
 	return nil
 }
 
 func (r *MarkArticleRequest) Valid() error {
-	return validation.Validate.Struct(r)
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate mark article request: %w", err)
+	}
+	return nil
 }
 
 func (r *MarkArticleRequest) Sanitise() error {
-	r.Mark = setValidMark(r.Mark)
 	return nil
 }
 
 func (r *FavoriteArticleRequest) Valid() error {
-	return validation.Validate.Struct(r)
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate favorite article request: %w", err)
+	}
+	return nil
 }
 
 func (r *FavoriteArticleRequest) Sanitise() error {
@@ -349,7 +353,10 @@ func (r *FavoriteArticleRequest) Sanitise() error {
 }
 
 func (r *ShareArticleRequest) Valid() error {
-	return validation.Validate.Struct(r)
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate share article request: %w", err)
+	}
+	return nil
 }
 
 func (r *ShareArticleRequest) Sanitise() error {

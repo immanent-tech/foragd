@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"time"
 
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -860,27 +859,6 @@ type LastFetched = time.Time
 
 // ListFilters contains filters for altering the display of a list of subscriptions or articles.
 type ListFilters struct {
-	// Categories is a list of categories.
-	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
-
-	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
-	Count int `form:"count" json:"count" validate:"gt=0"`
-
-	// Sort is how a list of objects is sorted.
-	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
-
-	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,dive,startswith=sub_"`
-
-	// Upto is a number of items to retrieve. It is only non-zero for history restore requests.
-	Upto *int `form:"upto" json:"upto,omitempty" validate:"omitempty,gt=0"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
-}
-
-// ListFilters2 contains filters for altering the display of a list of subscriptions or articles.
-type ListFilters2 struct {
 	// Category represents a taxonomy applied to an object.
 	Category *Category `form:"category" json:"category,omitempty"`
 
@@ -888,7 +866,7 @@ type ListFilters2 struct {
 	Count int `form:"count" json:"count" validate:"gt=0"`
 
 	// From is the count from which to retrieve objects.
-	From *int `form:"from" json:"from,omitempty"`
+	From *int `form:"from" json:"from,omitempty,omitzero"`
 
 	// SearchAfter is the data indicating the point after which objects should be retrieved.
 	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
@@ -896,23 +874,14 @@ type ListFilters2 struct {
 	// Sort is how a list of objects is sorted.
 	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
+	// Subscriptions is a list of subscription IDs to filter on.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions,omitempty" validate:"omitempty,unique,dive,startswith=sub_"`
+
 	// UpTo is the number up to which objects to should be retrieved.
-	UpTo *int `form:"upto" json:"upto"`
+	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
-}
-
-// ListRequest contains the parameters needed for listing subscriptions or articles.
-type ListRequest struct {
-	// Filters contains filters for altering the display of a list of subscriptions or articles.
-	Filters ListFilters `json:"filters" validate:"required"`
-
-	// Pagination contains data for paginating through results.
-	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
-
-	// Query is an additional query to apply for this request.
-	Query query.Option `json:"query,omitempty"`
 }
 
 // ListSubscriptionCategoriesRequest contains data for listing categories for a list of subscriptions.
@@ -1059,19 +1028,16 @@ type PaddleSubscription struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
-// Pagination contains data for paginating through results.
-type Pagination = string
-
-// Pagination2 contains data for paginating through a list of subscriptions or articles.
-type Pagination2 struct {
+// Pagination contains data for paginating through a list of subscriptions or articles.
+type Pagination struct {
 	// From is the count from which to retrieve objects.
-	From *int `form:"from" json:"from,omitempty"`
+	From *int `form:"from" json:"from,omitempty,omitzero"`
 
 	// SearchAfter is the data indicating the point after which objects should be retrieved.
 	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
 
 	// UpTo is the number up to which objects to should be retrieved.
-	UpTo *int `form:"upto" json:"upto"`
+	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 }
 
 // RemoteImage contains details about a remote image.

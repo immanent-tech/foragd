@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 // Defines values for NextArticleRequestDirection.
@@ -201,10 +203,7 @@ type ListArticlesResponse struct {
 	Articles Articles `json:"articles"`
 
 	// Filters contains filters for altering the display of a list of subscriptions or articles.
-	Filters ListFilters `json:"filters" validate:"required"`
-
-	// Pagination contains data for paginating through results.
-	Pagination   Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+	Filters      ListFilters   `json:"filters" validate:"required"`
 	Subscription *Subscription `json:"subscription,omitempty"`
 }
 
@@ -217,6 +216,15 @@ type ListFavoritesResponse struct {
 	Subscriptions  Subscriptions `json:"subscriptions,omitempty"`
 }
 
+// ListRequest contains the parameters needed for listing subscriptions or articles.
+type ListRequest struct {
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
+	Filters ListFilters `json:"filters" validate:"required"`
+
+	// Query is an additional query to apply for this request.
+	Query query.Option `json:"query,omitempty"`
+}
+
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
 type ListSubscriptionsResponse struct {
 	// Filters contains filters for altering the display of a list of subscriptions or articles.
@@ -224,9 +232,6 @@ type ListSubscriptionsResponse struct {
 
 	// LatestArticles is a map of the latest articles for each subscription in the result.
 	LatestArticles *sync.Map `json:"latest_articles,omitempty"`
-
-	// Pagination contains data for paginating through results.
-	Pagination Pagination `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
 
 	// Subscriptions is the list of subscriptions.
 	Subscriptions Subscriptions `json:"subscriptions"`
@@ -279,8 +284,17 @@ type SearchRequest struct {
 	// Categories a list of search terms for categories.
 	Categories *string `form:"categories" json:"categories,omitempty"`
 
+	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
+	Count int `form:"count" json:"count" validate:"required,gt=0"`
+
+	// From is the count from which to retrieve objects.
+	From *int `form:"from" json:"from,omitempty,omitzero"`
+
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
+
+	// SearchAfter is the data indicating the point after which objects should be retrieved.
+	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
 
 	// Sort is how a list of objects is sorted.
 	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
@@ -297,6 +311,9 @@ type SearchRequest struct {
 	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
 	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
 
+	// UpTo is the number up to which objects to should be retrieved.
+	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
+
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
@@ -310,9 +327,6 @@ type SearchResults struct {
 
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
-
-	// Pagination contains data for paginating through results.
-	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Search represents a search request by the user.
 	Search SearchRequest `form:"search" json:"search" validate:"required"`

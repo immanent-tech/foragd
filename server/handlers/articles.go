@@ -20,14 +20,12 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
-	"github.com/immanent-tech/go-base/server/forms"
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -74,11 +72,8 @@ func HandleListArticles() http.HandlerFunc {
 		}
 
 		// Build request object.
-		pagination := req.FormValue(models.ParamPagination)
-		filters := getListArticleFilters(req)
 		request := &models.ListRequest{
-			Filters:    *filters,
-			Pagination: &pagination,
+			Filters: *models.ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Valid(); err != nil {
 			HandleInternalError(
@@ -86,17 +81,6 @@ func HandleListArticles() http.HandlerFunc {
 				fmt.Errorf("parse query values: %w", err),
 			).ServeHTTP(res, req)
 			return
-		}
-
-		// Redirect to include query parameters in address bar.
-		if !strings.HasSuffix(req.URL.Path, "/paginate") {
-			switch {
-			case htmx.IsHTMX(req):
-				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
-			case len(req.URL.Query()) == 0:
-				req.URL.RawQuery = request.Filters.QueryParams().Encode()
-				http.Redirect(res, req, req.URL.String(), http.StatusSeeOther)
-			}
 		}
 
 		var (
@@ -138,34 +122,6 @@ func HandleListArticles() http.HandlerFunc {
 			)
 		}
 
-		if htmx.IsHistoryRestoreRequest(req) {
-			// Get the current count of items displayed.
-			if currentTotal, err := session.Restore[int](
-				req.Context(),
-				"listArticlesTotal",
-			); err != nil {
-				slogctx.Warn(
-					req.Context(),
-					"Could not retrieve current articles total from session for history restore.",
-					slog.Any("error", err),
-				)
-			} else {
-				// Reset pagination.
-				request.Pagination = nil
-				// Adjust count to fetch current articles plus count.
-				request.Filters.Count = currentTotal + filters.GetCount()
-				// Update the current total in the session
-				if err := session.SaveAndCommit(
-					req.Context(),
-					"listArticlesTotal",
-					request.Filters.Count,
-				); err != nil {
-					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
-						slog.Any("error", err))
-				}
-			}
-		}
-
 		// Get articles matching filters.
 		var next models.Pagination
 		articles, next, err = service.FilterArticles(req.Context(), request)
@@ -176,9 +132,18 @@ func HandleListArticles() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
-		request.Pagination = &next
 
-		// If the list of articles is from a single subscription, update the page tile to include the subscription
+		// Create response.
+		response := &models.ListArticlesResponse{
+			Subscription: subscription,
+			Articles:     articles,
+			Filters:      request.Filters,
+		}
+		// Update response filters.
+		response.Filters.SearchAfter = next.SearchAfter
+		response.Filters.UpTo = nil
+
+		// If the list of articles is from a single subscription, update the page title to include the subscription
 		// name.
 		var titleSummary string
 		if len(articles) > 0 && subscription != nil {
@@ -188,81 +153,40 @@ func HandleListArticles() http.HandlerFunc {
 		}
 		title := templates.PageTitle{
 			Summary:     titleSummary,
-			Description: string(request.Filters.GetView()) + " | " + request.Filters.GetSort().String(),
+			Description: string(response.Filters.GetView()) + " | " + response.Filters.GetSort().String(),
 		}
 
-		response := &models.ListArticlesResponse{
-			Subscription: subscription,
-			Articles:     articles,
-			Filters:      request.Filters,
-			Pagination:   *request.Pagination,
-		}
-
-		// Choose rendering method based on method (get = page, post = partial).
-		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
+		// Choose rendering method based on method.
 		switch req.Method {
 		case http.MethodGet:
-			if !htmx.IsHistoryRestoreRequest(req) {
-				if err := session.SaveAndCommit(
-					req.Context(),
-					"listArticlesTotal",
-					request.Filters.Count,
-				); err != nil {
-					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
-						slog.Any("error", err))
-				}
-			} else {
-				response.Filters.Count = models.DefaultCount
-			}
+			// GET: render full page.
 			RenderInternalPage(&ListArticles{
 				title:    title,
 				template: templates.ListArticles(response),
-			}).ServeHTTP(res, req.WithContext(ctx))
+			}).ServeHTTP(res, req)
 		case http.MethodPost:
-			// Render new article cards.
+			// POST: render cards only.
 			RenderPartial(&ListArticles{
 				title:    title,
 				template: templates.ListArticles(response),
-			}).ServeHTTP(res, req.WithContext(ctx))
-			// Render new category filters.
+			}).ServeHTTP(res, req)
+			// Update category filters.
 			RenderPartial(&PartialTemplate{
 				template: templates.UpdateListCategoryFilters(
 					"/list/articles",
 					response.Filters,
 					response.Articles.GetCategoryCounts().GetCategories(),
 				),
-			}).ServeHTTP(res, req.WithContext(ctx))
+			}).ServeHTTP(res, req)
 			// Update pagination control element.
-			if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
+			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(
 						"/list/articles/paginate",
 						&response.Filters,
-						response.Pagination,
 						element.WithHXSwapOOB("true"),
 					),
-				}).ServeHTTP(res, req.WithContext(ctx))
-			}
-			// Get the current count of items displayed.
-			if currentTotal, err := session.Restore[int](
-				req.Context(),
-				"listArticlesTotal",
-			); err != nil {
-				slogctx.Warn(
-					req.Context(),
-					"Could not retrieve current articles total from session for history restore.",
-					slog.Any("error", err),
-				)
-			} else {
-				// Update the current total in the session
-				if err := session.SaveAndCommit(
-					req.Context(),
-					"listArticlesTotal",
-					currentTotal+models.DefaultCount,
-				); err != nil {
-					slogctx.Warn(req.Context(), "Could not save current articles total value to session.",
-						slog.Any("error", err))
-				}
+				}).ServeHTTP(res, req)
 			}
 		}
 	}
@@ -271,11 +195,10 @@ func HandleListArticles() http.HandlerFunc {
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
 func HandleListArticlesUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Parse and process articleFilters.
-		articleFilters := getListArticleFilters(req)
+		filters := models.ListFiltersFromCtx(req.Context())
 
 		// Don't bother calculating updates if user is not viewing unread items.
-		if articleFilters.GetView() != models.ViewUnread {
+		if filters.GetView() != models.ViewUnread {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -308,8 +231,8 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		}
 		// Filter subscriptions.
 		subscriptions = subscriptions.
-			FilterByView(articleFilters.GetView()).
-			FilterByIDs(articleFilters.GetSubscriptions()...)
+			FilterByView(filters.GetView()).
+			FilterByIDs(filters.GetSubscriptions()...)
 		if len(subscriptions) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 			return
@@ -329,10 +252,10 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				// Must match any of the given feed IDs.
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				// Must match any of the given categories.
-				query.Terms("categories.raw", articleFilters.GetCategories()),
+				query.Terms("categories.raw", filters.GetCategories()),
 				// And should match one feed clause.
 				query.Bool(
-					query.Filter(service.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
+					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			),
 		)
@@ -361,7 +284,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
-				element.WithHXValues(articleFilters.Values()),
+				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -398,7 +321,7 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 		// TODO: wrap id and count in a request object.
 		const similarArticlesCount = 15
 		// Extract request parameters.
-		itemID := chi.URLParam(req, models.ParamItemID)
+		itemID := chi.URLParam(req, "item_id")
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -450,7 +373,7 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 func HandleViewArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
-		itemID := chi.URLParam(req, models.ParamItemID)
+		itemID := chi.URLParam(req, "item_id")
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -476,7 +399,7 @@ func HandleViewArticle() http.HandlerFunc {
 		article := articles[0]
 
 		// Get the "show_full_content" value and override the article value.
-		if fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent)); err != nil ||
+		if fullContent, err := strconv.ParseBool(req.FormValue("show_full_content")); err != nil ||
 			!fullContent {
 			article.ShowFullContent = false
 		} else if fullContent {
@@ -846,22 +769,4 @@ func updateFavoriteArticle(
 		}
 	}
 	return nil
-}
-
-func getListArticleFilters(req *http.Request) *models.ListFilters {
-	// Parse and process filters.
-	filters, err := forms.DecodeForm[*models.ListFilters](req)
-	switch {
-	case err != nil:
-		slogctx.FromCtx(req.Context()).Warn("Unable to decode article filters. Using filters from session.",
-			slog.Any("error", err),
-			slog.Any("filters", filters),
-		)
-		// Try to restore filters from session.
-		filters = models.GetListArticleFiltersFromSession(req.Context())
-	default:
-		models.StoreListArticleFiltersInSession(req.Context(), *filters)
-	}
-
-	return filters
 }

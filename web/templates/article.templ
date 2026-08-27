@@ -8,7 +8,6 @@ import (
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -48,7 +47,7 @@ templ (a *Article) favoriteToggle() {
 }
 
 // markToggle renders a button toggle for toggling the read status of an article.
-templ (a *Article) markToggle() {
+templ (a *Article) markToggle(view models.View) {
 	{{
 		var mark models.Mark
 		if a.IsUnread() {
@@ -85,7 +84,7 @@ templ (a *Article) markToggle() {
     			  toggle @checked on next <input[type='checkbox']/> in me
 				end
 				"
-			{ a.markAttributes(service.ListFiltersFromCtx(ctx).View)... }
+			{ a.markAttributes(view)... }
 		>
 			<input
 				id={ a.markValueID().String() }
@@ -286,7 +285,7 @@ templ (a *Article) actionsMenu() {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(idx int, a *models.Article) {
+templ ArticleCard(idx int, a *models.Article, view models.View) {
 	{{ article := &Article{Article: a} }}
 	@partials.Card(element.WithAttribute("id", article.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
@@ -348,8 +347,8 @@ templ ArticleCard(idx int, a *models.Article) {
 				<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
 					for idx, category := range article.GetCategories(categoryLimit) {
 						{{
-							filters := models.NewListDisplayFilters()
-							filters.Categories = append(filters.Categories, category)
+							filters := models.NewListFilters()
+							filters.Category = &category
 							filters.Subscriptions = []models.SubscriptionID{a.SubscriptionID}
 							var extraClasses string
 							// Only show the first three categories, hide all others behind a button toggle.
@@ -360,7 +359,7 @@ templ ArticleCard(idx int, a *models.Article) {
 						@CategoryBadge(category,
 							element.WithHXMethod(http.MethodGet, "/list/articles"),
 							element.WithHXTarget(ContentID.Target()),
-							element.WithHXValues(filters.Values()),
+							element.WithHXValues(filters),
 							element.WithClasses(extraClasses),
 							element.WithAttribute("_", "on click halt the event's bubbling"),
 						)
@@ -434,7 +433,7 @@ templ ArticleCard(idx int, a *models.Article) {
 					// Toggle favorite action.
 					@article.favoriteToggle()
 					// Toggle mark action.
-					@article.markToggle()
+					@article.markToggle(view)
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Actions menu.
@@ -467,11 +466,11 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 			@buttonBackToTop()
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
-				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+				<input type="hidden" name="subscriptions" value={ article.GetSubscriptionID() }/>
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6 text-neutral">
-						{{ filters := models.GetListArticleFiltersFromSession(ctx) }}
+						{{ filters := models.ListFiltersFromSession(ctx, "/list/articles") }}
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
@@ -504,13 +503,13 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
 							for category := range slices.Values(article.GetCategories(5)) {
 								{{
-									filters := models.NewListDisplayFilters()
-									filters.Categories = append(filters.Categories, category)
+									filters := models.NewListFilters()
+									filters.Category = &category
 								}}
 								@CategoryBadge(category,
 									element.WithHXMethod(http.MethodGet, "/list/articles"),
 									element.WithHXTarget(ContentID.Target()),
-									element.WithHXValues(filters.Values()),
+									element.WithHXValues(filters),
 									element.WithHXParams("not subscription_id"),
 									element.WithAttribute("_", "on click halt the event's bubbling"),
 								)
@@ -555,7 +554,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							// Toggle favorite action.
 							@article.favoriteToggle()
 							// Toggle mark action.
-							@article.markToggle()
+							@article.markToggle(models.ViewAll)
 							// Actions menu.
 							@article.actionsMenu()
 						</div>
@@ -674,10 +673,10 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 		switch FromPathFromCtx(ctx) {
 		case "/list/subscriptions":
 			vals["subscription_id"] = resp.Article.GetSubscriptionID()
-			filters := models.GetListSubscriptionFiltersFromSession(ctx)
+			filters := models.ListFiltersFromSession(ctx, "/list/subscriptions")
 			vals["view"] = filters.GetView()
 		case "/list/articles":
-			filters := models.GetListArticleFiltersFromSession(ctx)
+			filters := models.ListFiltersFromSession(ctx, "/list/articles")
 			if len(filters.GetSubscriptions()) > 0 {
 				vals["subscription_id"] = filters.GetSubscriptions()[0]
 			}
@@ -777,11 +776,11 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							) {
 								@templ.Fragment(PaginateFragment) {
 									for idx, article := range response.Articles {
-										@ArticleCard(idx, article)
+										@ArticleCard(idx, article, response.Filters.View)
 									}
 								}
 							}
-							@ListPaginationControl("/list/articles/paginate", &response.Filters, response.Pagination)
+							@ListPaginationControl("/list/articles/paginate", &response.Filters)
 							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
 								<div class="hidden text-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-xl loading-bars"></span>
@@ -877,7 +876,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				id="updates"
 				class="toast toast-center"
 				hx-post="/list/articles/updates"
-				hx-vals={ templ.JSONString(response.Filters.Values()) }
+				hx-vals={ templ.JSONString(response.Filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"
 			></div>

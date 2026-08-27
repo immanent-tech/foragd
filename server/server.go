@@ -227,6 +227,7 @@ func Start() error {
 		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeSearchParams)
 			r.Get("/", handlers.HandleSearchResults())
 			r.With(htmx.RequireHTMX).Post("/suggestions", handlers.HandleSearchSuggestions())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleSearchResults())
@@ -287,6 +288,7 @@ func Start() error {
 
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListArticles())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(htmx.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())

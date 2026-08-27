@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strconv"
 
 	"codeberg.org/readeck/go-readability/v2"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -80,8 +79,8 @@ func SearchItems(
 	query query.Option,
 	count int,
 	sort *models.Sort,
-	pagination *models.Pagination,
-) (models.Items, models.Pagination, error) {
+	pagination *string,
+) (models.Items, string, error) {
 	searchAfter, err := elastic.DecodePagination(pagination)
 	if err != nil {
 		return nil, "", models.ErrInvalidParams
@@ -98,7 +97,7 @@ func SearchItems(
 		return nil, "", fmt.Errorf("search items: %w", err)
 	}
 	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[models.Pagination](resp.Pagination)
+	newPagination, err := elastic.EncodePagination[string](resp.Pagination)
 	if err != nil {
 		return nil, "", models.ErrInvalidParams
 	}
@@ -112,15 +111,10 @@ func RetrieveItems(
 	pagination *models.Pagination,
 ) (models.Items, models.Pagination, error) {
 	var from int
-	if pagination == nil || *pagination == "" {
+	if pagination.From == nil {
 		from = 0
 	} else {
-		var err error
-		from, err = strconv.Atoi(*pagination)
-		// searchAfter, err := elastic.DecodePagination(pagination)
-		if err != nil {
-			return nil, "", models.ErrInvalidParams
-		}
+		from = *pagination.From
 	}
 
 	// Perform search.
@@ -132,11 +126,10 @@ func RetrieveItems(
 		elastic.WithSize(count),
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("search items: %w", err)
+		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
 	}
 	// Parse last search after value into pagination.
-	newPagination := strconv.Itoa(from + count)
-	return resp.Results, newPagination, nil
+	return resp.Results, models.Pagination{From: new(from + count)}, nil
 }
 
 func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error) {

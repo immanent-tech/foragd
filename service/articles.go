@@ -165,7 +165,7 @@ func FilterArticles(
 ) (models.Articles, models.Pagination, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, "", fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+		return nil, models.Pagination{}, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
 	var (
@@ -180,9 +180,9 @@ func FilterArticles(
 	}
 	switch {
 	case err != nil:
-		return nil, "", fmt.Errorf("get subscriptions: %w", err)
+		return nil, models.Pagination{}, fmt.Errorf("get subscriptions: %w", err)
 	case len(subscriptions) == 0:
-		return nil, "", models.ErrNotFound
+		return nil, models.Pagination{}, models.ErrNotFound
 	}
 
 	// Build article query.
@@ -204,27 +204,36 @@ func FilterArticles(
 		),
 	)
 
+	// Set sorting of results.
 	sort := request.Filters.GetSort()
+
+	// Set number of items to fetch.
+	var count int
+	if request.Filters.UpTo != nil {
+		count = *request.Filters.UpTo
+	} else {
+		count = request.Filters.Count
+	}
 
 	// Find items matching filters.
 	items, pagination, err := SearchItems(
 		ctx,
 		articleQuery,
-		request.Filters.GetCount(),
+		count,
 		&sort,
-		request.Pagination,
+		request.Filters.SearchAfter,
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
+		return nil, models.Pagination{}, fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
 
 	// Generate articles.
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
-		return nil, "", fmt.Errorf("could not generate articles from items: %w", err)
+		return nil, models.Pagination{}, fmt.Errorf("could not generate articles from items: %w", err)
 	}
 
-	return articles, pagination, nil
+	return articles, models.Pagination{SearchAfter: &pagination}, nil
 }
 
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the

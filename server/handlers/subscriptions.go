@@ -33,7 +33,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -80,13 +79,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 			return
 		}
 
-		// Parse and process filters.
-		filters := getListSubscriptionsFilters(req)
-
 		// Generate request object.
 		request := &models.ListRequest{
-			Filters:    *filters,
-			Pagination: new(req.FormValue(models.ParamPagination)),
+			Filters: *models.ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Valid(); err != nil {
 			HandleInternalError(
@@ -96,48 +91,10 @@ func HandleListSubscriptions() http.HandlerFunc {
 			return
 		}
 
-		// Redirect to include query parameters in address bar.
-		if !strings.HasSuffix(req.URL.Path, "/paginate") {
-			switch {
-			case htmx.IsHTMX(req):
-				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
-			case req.URL.RawQuery == "":
-				req.URL.RawQuery = request.Filters.QueryParams().Encode()
-				http.Redirect(res, req, req.URL.String(), http.StatusSeeOther)
-			}
-		}
-
 		var (
 			subscriptions models.Subscriptions
 			err           error
 		)
-
-		// Handle history restore (i.e. back button navigation).
-		if htmx.IsHistoryRestoreRequest(req) {
-			// Remove any subscription filters.
-			request.Filters.Subscriptions = nil
-			// Retrieve and set the previous pagination/scroll point.
-			if prevPagination, err := session.Restore[models.Pagination](
-				req.Context(),
-				"listSubscriptionsPagination",
-			); err != nil {
-				slogctx.Warn(
-					req.Context(),
-					"Could not retrieve previous pagination details from session for history restore.",
-					slog.Any("error", err),
-				)
-			} else {
-				if upto, err := strconv.Atoi(prevPagination); err != nil {
-					slogctx.Warn(
-						req.Context(),
-						"Could not retrieve convert pagination to count.",
-						slog.Any("error", err),
-					)
-				} else {
-					request.Filters.Count = upto
-				}
-			}
-		}
 
 		// Get subscriptions matching filters.
 		subscriptions, err = service.GetAllSubscriptions(req.Context())
@@ -167,49 +124,54 @@ func HandleListSubscriptions() http.HandlerFunc {
 			return
 		}
 
-		// Apply all base filtering and sorting.
-
-		var next models.Pagination
-		subscriptions, next = subscriptions.
+		// Get subscriptions with filters applied.
+		var pagination models.Pagination
+		subscriptions, pagination = subscriptions.
 			FilterByView(request.Filters.GetView()).
 			FilterByCategories(request.Filters.GetCategories()...).
 			FilterByIDs(request.Filters.GetSubscriptions()...).
 			Sort(request.Filters.GetSort()).
-			Paginate(*request.Pagination, request.Filters.GetCount())
+			Paginate(&request.Filters)
 
+		// Get latest articles for subscriptions.
 		var latestItems *sync.Map
 		if len(subscriptions) > 0 {
 			latestItems = service.GetLatestItems(req.Context(), request.Filters.GetView(), subscriptions)
 		}
 
+		// Create response object
 		response := &models.ListSubscriptionsResponse{
 			Filters:        request.Filters,
-			Pagination:     next,
 			Subscriptions:  subscriptions,
 			LatestArticles: latestItems,
+		}
+		// Update filters in response.
+		response.Filters.From = pagination.From
+		if request.Filters.UpTo != nil {
+			response.Filters.UpTo = nil
 		}
 
 		// If the list of articles is from a single subscription, update the page tile to include the subscription
 		// name.
 		title := templates.PageTitle{
 			Summary:     "Subscriptions",
-			Description: string(request.Filters.GetView()) + " | " + request.Filters.GetSort().String(),
+			Description: string(response.Filters.GetView()) + " | " + response.Filters.GetSort().String(),
 		}
 
 		// Choose rendering method based on method (get = page, post = partial).
-		ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
+		// ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
 				title:    title,
 				template: templates.ListSubscriptions(response),
-			}).ServeHTTP(res, req.WithContext(ctx))
+			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Render new subscription cards.
 			RenderPartial(&ListSubscriptions{
 				title:    title,
 				template: templates.ListSubscriptions(response),
-			}).ServeHTTP(res, req.WithContext(ctx))
+			}).ServeHTTP(res, req)
 			// Render new category filters.
 			RenderPartial(&PartialTemplate{
 				template: templates.UpdateListCategoryFilters(
@@ -217,26 +179,16 @@ func HandleListSubscriptions() http.HandlerFunc {
 					response.Filters,
 					response.Subscriptions.GetCategories(),
 				),
-			}).ServeHTTP(res, req.WithContext(ctx))
+			}).ServeHTTP(res, req)
 			// Update pagination control element.
-			if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
+			if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(
 						"/list/subscriptions/paginate",
 						&response.Filters,
-						response.Pagination,
 						element.WithHXSwapOOB("true"),
 					),
-				}).ServeHTTP(res, req.WithContext(ctx))
-			}
-			// Store the current pagination value in the session.
-			if err := session.SaveAndCommit(
-				req.Context(),
-				"listSubscriptionsPagination",
-				response.Pagination,
-			); err != nil {
-				slogctx.Warn(req.Context(), "Could not save current pagination value to session.",
-					slog.Any("error", err))
+				}).ServeHTTP(res, req)
 			}
 		}
 	}
@@ -245,8 +197,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
 func HandleListSubscriptionsUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Parse and process filters.
-		filters := getListSubscriptionsFilters(req)
+		filters := models.ListFiltersFromCtx(req.Context())
 
 		// Don't bother calculating updates if user is not viewing unread items.
 		if filters.GetView() != models.ViewUnread {
@@ -328,7 +279,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
 				element.WithHXPushURL(true),
-				element.WithHXValues(filters.Values()),
+				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
@@ -365,7 +316,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 					Path:   "/list/subscriptions",
 					Target: templates.ContentID.Target(),
 					Swap:   "morph:innerHTML transition:true show:top",
-					Values: getListSubscriptionsFilters(req).Values(),
+					Values: models.ListFiltersFromSession(req.Context(), "/list/subscriptions"),
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
 				}
@@ -493,7 +444,7 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 func HandleRemoveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request := &models.RemoveSubscriptionRequest{
-			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
+			SubscriptionID: chi.URLParam(req, "subscription_id"),
 			Nickname:       req.FormValue("nickname"),
 		}
 		if err := request.Valid(); err != nil {
@@ -569,7 +520,7 @@ func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Re
 func HandleEditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the subscription ID from the URL parameter.
-		id := chi.URLParam(req, models.ParamSubscriptionID)
+		id := chi.URLParam(req, "subscription_id")
 		if id == "" {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -734,7 +685,7 @@ func HandleEditSubscription() http.HandlerFunc {
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
 func HandleSaveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		id := chi.URLParam(req, models.ParamSubscriptionID)
+		id := chi.URLParam(req, "subscription_id")
 		if id == "" {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -1557,7 +1508,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
 
 	// Get any uploaded image.
-	image, err := decodeMultipartFile(req, models.ParamThumbnail)
+	image, err := decodeMultipartFile(req, "thumbnail")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("parse thumbnail data: %w", err)
 	}
@@ -1623,22 +1574,4 @@ func getSubscriptionCategorySuggestions(
 
 	slices.Sort(suggestions)
 	return slices.Compact(suggestions)
-}
-
-func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
-	// Parse and process filters.
-	filters, err := forms.DecodeForm[*models.ListFilters](req)
-	switch {
-	case err != nil:
-		slogctx.FromCtx(req.Context()).Warn("Unable to subscription filters. Using filters from session.",
-			slog.Any("error", err),
-			slog.Any("filters", filters),
-		)
-		// Try to restore filters from session.
-		filters = models.GetListSubscriptionFiltersFromSession(req.Context())
-	default:
-		models.StoreListSubscriptionFiltersInSession(req.Context(), *filters)
-	}
-
-	return filters
 }

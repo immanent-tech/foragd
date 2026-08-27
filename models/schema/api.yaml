@@ -236,8 +236,6 @@ components:
           x-go-type: sync.Map
         filters:
           $ref: 'models.yaml#/components/schemas/ListFilters'
-        pagination:
-          $ref: 'models.yaml#/components/schemas/Pagination'
     ListArticlesResponse:
       description: >
         contains the data retrieved and relevant for listing articles.
@@ -254,16 +252,8 @@ components:
           x-go-type-skip-optional-pointer: false
         articles:
           x-go-type: Articles
-          # description: >
-          #   is a list of subscriptions.
-          # type: array
-          # items:
-          #   $ref: 'models.yaml#/components/schemas/Subscription'
-          # x-go-type-skip-optional-pointer: true
         filters:
           $ref: 'models.yaml#/components/schemas/ListFilters'
-        pagination:
-          $ref: 'models.yaml#/components/schemas/Pagination'
     ListFavoritesResponse:
       description: >
         contains the data for displaying the favorites page.
@@ -325,78 +315,94 @@ components:
       description: >
         represents a search request by the user.
       type: object
-      required:
-        - published_within
-        - timezone
-        - text
-        - view
-        - sort
-      properties:
-        subscription_id:
-          description: >
-            will be a subscription ID if the user has created a SearchSubscription for this request.
-          allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionID'
-          x-go-name: SubscriptionID
+      allOf:
+        - $ref: 'models.yaml#/components/schemas/Pagination'
           x-oapi-codegen-extra-tags:
-            form: 'subscription_id'
-            validate: 'omitzero,startswith=sub_'
-        text:
-          description: >
-            is the text to search.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'text'
-            validate: 'omitempty,required'
-        categories:
-          description: >
-            a list of search terms for categories.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'categories'
-        authors:
-          description: >
-            a list of search terms for authors.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'authors'
-        view:
-          $ref: 'models.yaml#/components/schemas/View'
-        subscriptions:
-          description: >
-            is a list of subscription IDs.
-          type: array
-          items:
-            $ref: 'models.yaml#/components/schemas/SubscriptionID'
-          x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
-            validate: 'omitempty,unique,dive,startswith=sub_'
-          x-go-type-skip-optional-pointer: true
-        published_within:
-          description: >
-            represents a time range within which the objects should be published
-          type: string
-          enum:
-            - last_5mins
-            - last_hour
-            - last_12hours
-            - last_day
-            - last_week
-            - last_month
-            - all_time
-          default: all_time
-          x-oapi-codegen-extra-tags:
-            form: 'published_within'
-            validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
-        sort:
-          $ref: 'models.yaml#/components/schemas/Sort'
-        timezone:
-          description: >
-            represents the timezone of the browser (i.e., user), used for calculating published_within offset.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'timezone'
-            validate: 'required,timezone'
+            form: 'pagination'
+            validate: 'omitempty,dive'
+        - type: object
+          required:
+            - published_within
+            - timezone
+            - text
+            - view
+            - sort
+            - count
+          properties:
+            subscription_id:
+              description: >
+                will be a subscription ID if the user has created a SearchSubscription for this request.
+              allOf:
+                - $ref: 'models.yaml#/components/schemas/SubscriptionID'
+              x-go-name: SubscriptionID
+              x-oapi-codegen-extra-tags:
+                form: 'subscription_id'
+                validate: 'omitzero,startswith=sub_'
+            text:
+              description: >
+                is the text to search.
+              type: string
+              x-oapi-codegen-extra-tags:
+                form: 'text'
+                validate: 'omitempty,required'
+            categories:
+              description: >
+                a list of search terms for categories.
+              type: string
+              x-oapi-codegen-extra-tags:
+                form: 'categories'
+            authors:
+              description: >
+                a list of search terms for authors.
+              type: string
+              x-oapi-codegen-extra-tags:
+                form: 'authors'
+            view:
+              $ref: 'models.yaml#/components/schemas/View'
+            count:
+              description: >
+                is the number of items to retrieve with a request. This number will be added to the upto value to get the
+                total number of items retrieved, else, will this number of items will be retrieved from the pagination point
+                specified with pagination value.
+              type: integer
+              x-oapi-codegen-extra-tags:
+                form: 'count'
+                validate: 'required,gt=0'
+            subscriptions:
+              description: >
+                is a list of subscription IDs.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/SubscriptionID'
+              x-oapi-codegen-extra-tags:
+                form: 'subscriptions'
+                validate: 'omitempty,unique,dive,startswith=sub_'
+              x-go-type-skip-optional-pointer: true
+            published_within:
+              description: >
+                represents a time range within which the objects should be published
+              type: string
+              enum:
+                - last_5mins
+                - last_hour
+                - last_12hours
+                - last_day
+                - last_week
+                - last_month
+                - all_time
+              default: all_time
+              x-oapi-codegen-extra-tags:
+                form: 'published_within'
+                validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
+            sort:
+              $ref: 'models.yaml#/components/schemas/Sort'
+            timezone:
+              description: >
+                represents the timezone of the browser (i.e., user), used for calculating published_within offset.
+              type: string
+              x-oapi-codegen-extra-tags:
+                form: 'timezone'
+                validate: 'required,timezone'
       x-oapi-codegen-extra-tags:
         validate: 'required'
         form: 'search'
@@ -427,8 +433,6 @@ components:
             form: 'categories'
             validate: 'omitnil,unique,dive,url_encoded'
           x-go-type-skip-optional-pointer: true
-        pagination:
-          $ref: 'models.yaml#/components/schemas/Pagination'
     FeedSuggestionsResults:
       description: >
         contains a list of feeds and their latest items, based on the provided text query.
@@ -541,3 +545,19 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: comments
+    ListRequest:
+      description: >
+        contains the parameters needed for listing subscriptions or articles.
+      type: object
+      required:
+        - filters
+      properties:
+        filters:
+          $ref: 'models.yaml#/components/schemas/ListFilters'
+        query:
+          description: >
+            is an additional query to apply for this request.
+          x-go-type: query.Option
+          x-go-type-import:
+            path: 'github.com/immanent-tech/foragd/providers/elastic/query'
+          x-go-type-skip-optional-pointer: true

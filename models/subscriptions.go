@@ -584,7 +584,9 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	if len(s) == 0 {
 		return s
 	}
-	sort = setValidSort(sort)
+	if !validSort[sort] {
+		sort = defaultSort
+	}
 	switch sort {
 	case SortNewestFirst, SortOldestFirst:
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
@@ -633,16 +635,23 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 
 // Paginate will paginate through a slice of subscriptions, returning a new slice of subscriptions and the next
 // pagination value (if any).
-func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
-	var from, to int
-	if pagination != "" {
-		if value, err := strconv.Atoi(pagination); err == nil {
-			from = value
-		}
+func (s Subscriptions) Paginate(filters *ListFilters) (Subscriptions, Pagination) {
+	switch {
+	case filters.UpTo != nil:
+		// History restore request. Retrieve all subscriptions upto value.
+		to := *filters.UpTo
+		return s[:to], Pagination{From: &to}
+	case filters.From != nil:
+		// Pagination request. Retrieve subscriptions from.
+		from := *filters.From
+		to := min(from+filters.Count, len(s))
+		return s[from:to], Pagination{From: &to}
+	default:
+		// Fresh request. Get from start
+		from := 0
+		to := min(from+filters.Count, len(s))
+		return s[from:to], Pagination{From: &to}
 	}
-	to = min(from+count, len(s))
-	newPagination := strconv.Itoa(to)
-	return s[from:to], newPagination
 }
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
@@ -699,7 +708,9 @@ func (s *MarkSubscriptionsRequest) Sanitise() error {
 	for idx, id := range s.Subscriptions {
 		s.Subscriptions[idx] = validation.SanitizeString(id)
 	}
-	s.View = setValidView(s.View)
+	if !validView[s.View] {
+		s.View = defaultView
+	}
 	return nil
 }
 

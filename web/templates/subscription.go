@@ -24,28 +24,26 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 	)
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = []string{s.GetID()}
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		vals = values
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		vals = filters
 		path = "/list/articles"
 	case models.SubscriptionTypeGroup:
-		filters := models.NewListDisplayFilters()
+		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.Subscriptions
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
-		values := filters.Values()
-		values[models.ParamSubscriptionID] = s.GetID()
-		vals = values
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		vals = filters
 		path = "/list/articles"
 	case models.SubscriptionTypeSearch:
 		s.SearchData.Search.SubscriptionID = new(s.GetID())

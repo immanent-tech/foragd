@@ -22,9 +22,9 @@ import (
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
 func ListCategories() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		filters := models.ListFiltersFromCtx(req.Context())
 		switch {
 		case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
-			filters := getListSubscriptionsFilters(req)
 			// Parse the list of displayed subscriptions.
 			request, err := forms.DecodeForm[*models.ListSubscriptionCategoriesRequest](req)
 			if err != nil {
@@ -60,7 +60,6 @@ func ListCategories() http.HandlerFunc {
 				),
 			}).ServeHTTP(res, req)
 		case strings.HasPrefix(req.URL.Path, "/list/articles"):
-			articleFilters := getListArticleFilters(req)
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
 				slogctx.FromCtx(req.Context()).Warn("Could not get user data.")
@@ -91,8 +90,8 @@ func ListCategories() http.HandlerFunc {
 			}
 			// Filter subscriptions.
 			subscriptions = subscriptions.
-				FilterByView(articleFilters.GetView()).
-				FilterByIDs(articleFilters.GetSubscriptions()...)
+				FilterByView(filters.GetView()).
+				FilterByIDs(filters.GetSubscriptions()...)
 
 			if len(subscriptions) == 0 {
 				res.WriteHeader(http.StatusNoContent)
@@ -103,7 +102,7 @@ func ListCategories() http.HandlerFunc {
 			counts, err := service.GetTopCategoriesForItems(
 				req.Context(),
 				query.Bool(
-					query.Filter(service.BuildItemQueries(user, articleFilters.GetView(), subscriptions)...),
+					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 				),
 			)
 			if err != nil {
@@ -122,7 +121,7 @@ func ListCategories() http.HandlerFunc {
 					&models.CategoryFilters{
 						Categories: counts,
 						Path:       "/list/articles",
-						Filters:    *articleFilters,
+						Filters:    *filters,
 					},
 				),
 			}).ServeHTTP(res, req)

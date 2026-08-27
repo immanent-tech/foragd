@@ -43,12 +43,12 @@ templ SideBar(options ...element.PropertiesOption) {
 							<span class="not-sr-only text-base font-semibold text-base-content">Home</span>
 						</a>
 					</li>
-					{{ filters := models.NewListDisplayFilters() }}
+					{{ filters := models.NewListFilters() }}
 					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/subscriptions") }>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
-							hx-vals={ templ.JSONString(filters.Values()) }
+							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML show:top transition:true"
 							hx-sync="#page-sidebar:drop"
@@ -73,7 +73,7 @@ templ SideBar(options ...element.PropertiesOption) {
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
-							hx-vals={ templ.JSONString(filters.Values()) }
+							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML show:top transition:true"
 							hx-sync="#page-sidebar:drop"
