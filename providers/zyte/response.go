@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
-	"github.com/immanent-tech/go-base/validation"
 )
 
 // GetHTMLResponse retrieves the response body from an HTML request (created by the httpResponseBody Request option).
@@ -22,7 +21,7 @@ func (r *Response) GetHTMLResponse() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("decode body: %w", err)
 		}
-		return validation.SanitizeBytes(body), nil
+		return body, nil
 	}
 	return nil, ErrNotFound
 }
@@ -30,7 +29,7 @@ func (r *Response) GetHTMLResponse() ([]byte, error) {
 // GetBrowserResponse retrieves the response body from a browser request (created by the browserHtml Request option).
 func (r *Response) GetBrowserResponse() ([]byte, error) {
 	if r.BrowserHtml != nil {
-		return []byte(validation.SanitizeString(*r.BrowserHtml)), nil
+		return []byte(*r.BrowserHtml), nil
 	}
 	return nil, ErrNotFound
 }
