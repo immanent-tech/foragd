@@ -364,6 +364,7 @@ templ ViewerError(msg *models.UserMessage) {
 		</h2>
 		if msg.HasDetails() {
 			<p>{ *msg.Details }</p>
+			<p>Found a known feed that is generating this error? <a href={ htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToSubject("Broken Feed")) }>let us know</a> and we will fix it!</p>
 		}
 	</div>
 }
