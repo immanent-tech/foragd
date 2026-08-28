@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"time"
 
+	externalRef0 "github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -636,6 +637,9 @@ type Feed struct {
 	// FetchMethod defines how this feed should be fetched.
 	FetchMethod FeedFetchMethod `json:"fetch_method" validate:"required,oneof=direct proxied zyte-products zyte-articles"`
 
+	// FetchOptions contains information to assist the fetch method.
+	FetchOptions *Feed_FetchOptions `json:"fetch_options,omitempty"`
+
 	// Image contains details about a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
@@ -679,6 +683,11 @@ type Feed struct {
 // FeedFetchMethod defines how this feed should be fetched.
 type FeedFetchMethod string
 
+// Feed_FetchOptions contains information to assist the fetch method.
+type Feed_FetchOptions struct {
+	union json.RawMessage
+}
+
 // Feed_SourceData contains data related to the specific source type of the feed.
 type Feed_SourceData struct {
 	union json.RawMessage
@@ -689,9 +698,6 @@ type FeedID = string
 
 // FeedQuirks contains data on quirks for a feed.
 type FeedQuirks struct {
-	// FetchItemSummaries when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
-	FetchItemSummaries bool `json:"fetch_item_summaries,omitempty"`
-
 	// NoImage when set to true, indicates that the feed has no discoverable image, either in its source or on the website that it represents. Setting this quirk to true will stop any logic that tries to update the feed image.
 	NoImage bool `json:"no_image,omitempty"`
 }
@@ -728,6 +734,15 @@ type FeedSubscription struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
+
+// FetchDirectOptions contains information to assist with direct feed fetching.
+type FetchDirectOptions struct {
+	// FetchItemSummaries when set to true, indicates that item summaries should be fetched separately when updating the feed. Useful to set for feeds known to have no item summaries (i.e., Hacker News, Lobste.rs).
+	FetchItemSummaries bool `json:"fetch_item_summaries,omitempty"`
+}
+
+// FetchZyteOptions contains information to assist with Zyte feed fetching.
+type FetchZyteOptions = externalRef0.ExtractOptions
 
 // FileUpload represents a file upload by a user.
 type FileUpload struct {
@@ -1505,6 +1520,68 @@ func (t CheckoutRequest_SubscriptionData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *CheckoutRequest_SubscriptionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsFetchDirectOptions returns the union data inside the Feed_FetchOptions as a FetchDirectOptions
+func (t Feed_FetchOptions) AsFetchDirectOptions() (FetchDirectOptions, error) {
+	var body FetchDirectOptions
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFetchDirectOptions overwrites any union data inside the Feed_FetchOptions as the provided FetchDirectOptions
+func (t *Feed_FetchOptions) FromFetchDirectOptions(v FetchDirectOptions) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFetchDirectOptions performs a merge with any union data inside the Feed_FetchOptions, using the provided FetchDirectOptions
+func (t *Feed_FetchOptions) MergeFetchDirectOptions(v FetchDirectOptions) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsFetchZyteOptions returns the union data inside the Feed_FetchOptions as a FetchZyteOptions
+func (t Feed_FetchOptions) AsFetchZyteOptions() (FetchZyteOptions, error) {
+	var body FetchZyteOptions
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFetchZyteOptions overwrites any union data inside the Feed_FetchOptions as the provided FetchZyteOptions
+func (t *Feed_FetchOptions) FromFetchZyteOptions(v FetchZyteOptions) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFetchZyteOptions performs a merge with any union data inside the Feed_FetchOptions, using the provided FetchZyteOptions
+func (t *Feed_FetchOptions) MergeFetchZyteOptions(v FetchZyteOptions) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Feed_FetchOptions) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Feed_FetchOptions) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

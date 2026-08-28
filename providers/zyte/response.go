@@ -34,6 +34,18 @@ func (r *Response) GetBrowserResponse() ([]byte, error) {
 	return nil, ErrNotFound
 }
 
+// GetBody retrieves the response body from either the browser request or response HTML, trying in that order.
+func (r *Response) GetBody() ([]byte, error) {
+	switch {
+	case r.BrowserHtml != nil:
+		return r.GetBrowserResponse()
+	case r.HttpResponseBody != nil:
+		return r.GetHTMLResponse()
+	default:
+		return nil, errors.New("no response body")
+	}
+}
+
 func (r *Response) GetURL() (*url.URL, error) {
 	pageURL, err := url.Parse(r.URL)
 	if err != nil {

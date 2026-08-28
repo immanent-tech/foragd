@@ -200,7 +200,7 @@ func proxyFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buf
 		remoteURL,
 		zyte.WithResponseBody(true),
 		zyte.WithFollowRedirects(true),
-		zyte.WithTag("proxy_image", "true"),
+		zyte.WithTag("action", "proxy_image"),
 	)
 	if err != nil {
 		return &models.APIError{

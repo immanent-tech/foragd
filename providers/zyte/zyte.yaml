@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   version: 1.0.0
   title: Zyte API
@@ -6,7 +6,7 @@ info:
     Zyte API models.
   license:
     name: AGPL 3.0
-    idenfiier: AGPL-3.0-or-later
+    identifier: AGPL-3.0-or-later
   contact:
     name: Immanent Tech
 components:
@@ -74,6 +74,11 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             json: 'articleList,omitzero'
+        articleListOptions:
+          allOf:
+            - $ref: '#/components/schemas/ExtractOptions'
+          x-oapi-codegen-extra-tags:
+            json: 'articleListOptions,omitzero'
         pageContent:
           description: >
             Set to true to get page content data in the pageContent response field.
@@ -85,6 +90,11 @@ components:
             - $ref: '#/components/schemas/ExtractOptions'
           x-oapi-codegen-extra-tags:
             json: 'pageContentOptions,omitzero'
+        timeout:
+          description: sets the timeout for the request.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            json: '-'
     Response:
       description: >
         is a response from the Zyte API.
@@ -120,6 +130,8 @@ components:
             json: 'browserHtml'
         article:
           $ref: '#/components/schemas/Article'
+        articleList:
+          $ref: '#/components/schemas/ArticleList'
     ResponseError:
       description: >
         is an error response from the Zyte API.
@@ -163,20 +175,32 @@ components:
         If not specified, browserHtml is currently used by default for AI extraction, while httpResponseBody is used by
         default for non-AI extraction. In the future, the default value may depend on the target website.
       type: string
-      enum: ['httpResponseBody','browserHtml','browserHtmlOnly']
+      enum: ['httpResponseBody', 'browserHtml', 'browserHtmlOnly']
       x-oapi-codegen-extra-tags:
         json: 'extractFrom'
         validate: 'omitempty,oneof=httpResponseBody browserHtml browserHtmlOnly'
     ExtractOptions:
-      description:
-        are options for controlling article extraction.
+      description: are options for controlling article extraction.
       type: object
       properties:
         extractFrom:
           $ref: '#/components/schemas/ExtractFrom'
+    ArticleList:
+      description: is a list of articles extracted from the response.
+      type: object
+      required:
+        - articles
+      properties:
+        articles:
+          description: is the list of articles.
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,dive'
     Article:
-      description: >
-        is an extracted article.
+      description: is an extracted article.
       type: object
       required:
         - url
@@ -352,7 +376,7 @@ components:
     RequestMethod:
       description: is the request method.
       type: string
-      enum: ["GET","POST","PUT","DELETE","OPTIONS","TRACE","PATCH","HEAD"]
+      enum: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH', 'HEAD']
       x-oapi-codegen-extra-tags:
         validate: 'omitempty,oneof=GET POST PUT DELETE OPTIONS TRACE PATCH HEAD'
         json: 'httpRequestMethod,omitempty'

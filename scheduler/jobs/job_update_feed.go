@@ -105,9 +105,23 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
 	// Get new feed data.
-	feed, feedURL, err := fetchNewFeedData(ctx, data, details)
+	var (
+		feed    *models.Feed
+		feedURL string
+	)
+	switch details.FetchMethod {
+	case models.FeedFetchMethodZyteArticles:
+		// Zyte article list extraction.
+		feed, feedURL, err = service.FetchFeedAsArticles(ctx, details)
+	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
+		// Direct (or proxied) request.
+		fallthrough
+	default:
+		// Assume a regular web-based feed. Fetch feed data directly.
+		feed, feedURL, err = fetchDirect(ctx, data, details)
+	}
 	if err != nil {
-		return err
+		return fmt.Errorf("fetch feed: %w", err)
 	}
 
 	// Record the feed URL used in the logs.
@@ -187,7 +201,9 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	return nil
 }
 
-func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.Feed) (*models.Feed, models.URL, error) {
+// fetchDirect fetches a feed "directly", either by issuing the get request directly and potentially asking Zyte to
+// proxy it on certain error responses.
+func fetchDirect(ctx context.Context, data UpdateFeedJob, details *models.Feed) (*models.Feed, models.URL, error) {
 	// Set fetch options.
 	var (
 		proxyRequest bool
@@ -207,41 +223,19 @@ func fetchNewFeedData(ctx context.Context, data UpdateFeedJob, details *models.F
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logMsg := newFeedStatusMsg(details.GetID())
-			logMsg.FeedStatus.URL = feedURL
-			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-				logMsg.StatusCode = apiErr.StatusCode
-				logMsg.StatusMessage = new(apiErr.Error())
-			} else {
-				logMsg.StatusCode = http.StatusInternalServerError
-				logMsg.StatusMessage = new(err.Error())
-			}
-			if err := logMsg.log(ctx); err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-					slog.Any("error", err),
-				)
-			}
+			logGeneralError(ctx, err, feedURL, details)
 			continue
 		}
 		return feed, feedURL, nil
 	}
 
 	// No feed data returned by any url. Log and return error.
-	logMsg := newFeedStatusMsg(details.GetID())
-	logMsg.StatusMessage = new("failed to fetch feed details with any source URL: " + errors.Join(errs...).Error())
-	logMsg.StatusCode = http.StatusNoContent
-	if err := logMsg.log(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-			slog.Any("error", err),
-		)
-	}
-
-	return nil, "", fmt.Errorf(
-		"%w: %s (%s)",
-		ErrFetchFailed,
-		*logMsg.StatusMessage,
-		strings.Join(details.GetSourceURLs(), ","),
+	err := models.NewAPIError(
+		http.StatusNoContent,
+		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
 	)
+	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details)
+	return nil, "", err
 }
 
 func addItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
@@ -253,7 +247,7 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 				slog.Any("error", err),
 			)
 		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
-			return nil, fmt.Errorf("bulk add items: %w", err)
+			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
 		}
 		return map[string]models.Items{"updated": items}, nil
 	}
@@ -290,7 +284,7 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	results["updated"] = updatedItems
 	results["new"] = newItems
 	if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), slices.Concat(updatedItems, newItems)...); err != nil {
-		return nil, fmt.Errorf("add/update items: %w", err)
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
 	}
 
 	return results, nil
@@ -372,4 +366,38 @@ func (l *feedStatusLogMsg) log(ctx context.Context) error {
 		return fmt.Errorf("add bulk action: %w", err)
 	}
 	return nil
+}
+
+func logZyteError(ctx context.Context, err error, feedURL string, details *models.Feed) {
+	logMsg := newFeedStatusMsg(details.GetID())
+	logMsg.FeedStatus.URL = feedURL
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		logMsg.StatusCode = apiErr.StatusCode
+		logMsg.StatusMessage = new(apiErr.Error())
+	} else {
+		logMsg.StatusCode = http.StatusInternalServerError
+		logMsg.StatusMessage = new(err.Error())
+	}
+	if err := logMsg.log(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
+}
+
+func logGeneralError(ctx context.Context, err error, feedURL string, details *models.Feed) {
+	logMsg := newFeedStatusMsg(details.GetID())
+	logMsg.FeedStatus.URL = feedURL
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		logMsg.StatusCode = apiErr.StatusCode
+		logMsg.StatusMessage = new(apiErr.Error())
+	} else {
+		logMsg.StatusCode = http.StatusInternalServerError
+		logMsg.StatusMessage = new(err.Error())
+	}
+	if err := logMsg.log(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
 }

@@ -19,11 +19,9 @@ import (
 )
 
 var (
-	// DefaultExtractRequestTimeout is the timeout for extraction requests. This is greater than proxy requests as these
+	// DefaultRequestTimeout is the timeout for extraction requests. This is greater than proxy requests as these
 	// often take more time.
-	DefaultExtractRequestTimeout = time.Minute
-	// DefaultProxyRequestTimeout is the timeout for proxy requests.
-	DefaultProxyRequestTimeout = 30 * time.Second
+	DefaultRequestTimeout = time.Minute
 )
 
 type RequestOption func(*Request)
@@ -31,7 +29,8 @@ type RequestOption func(*Request)
 // NewRequest creates a new Zyte API request with the given options.
 func NewRequest(url string, options ...RequestOption) *Request {
 	req := &Request{
-		URL: url,
+		URL:     url,
+		Timeout: &DefaultRequestTimeout,
 	}
 	for option := range slices.Values(options) {
 		option(req)
@@ -51,6 +50,20 @@ func WithResponseBody(value bool) RequestOption {
 func WithBrowserHTML(value bool) RequestOption {
 	return func(r *Request) {
 		r.BrowserHtml = &value
+	}
+}
+
+// WithExtractFrom option sets the extraction source.
+func WithExtractFrom(from ExtractFrom) RequestOption {
+	return func(r *Request) {
+		switch from {
+		case ExtractFromBrowserHtml:
+			r.BrowserHtml = new(true)
+		case ExtractFromHttpResponseBody:
+			fallthrough
+		default:
+			r.HttpResposeBody = new(true)
+		}
 	}
 }
 
@@ -78,6 +91,14 @@ func WithTag(key, value string) RequestOption {
 	}
 }
 
+// WithTimeout option sets the timeout after which a request will be cancelled. If not set, an appropriate default value
+// will be used.
+func WithTimeout(timeout time.Duration) RequestOption {
+	return func(r *Request) {
+		r.Timeout = &timeout
+	}
+}
+
 // AsArticle will configure Zyte to perform automatic article extraction.
 func AsArticle(opts *ExtractOptions) RequestOption {
 	return func(r *Request) {
@@ -88,11 +109,18 @@ func AsArticle(opts *ExtractOptions) RequestOption {
 	}
 }
 
+// AsArticleList will configure Zyte to perform automatic article list extraction.
+func AsArticleList(opts *ExtractOptions) RequestOption {
+	return func(r *Request) {
+		r.ArticleList = new(true)
+		if opts != nil {
+			r.ArticleListOptions = opts
+		}
+	}
+}
+
 // ExtractArticle attempts to extract an article from the given URL.
 func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption) (*Article, error) {
-	ctx, cancelFunc := context.WithTimeout(ctx, DefaultExtractRequestTimeout)
-	defer cancelFunc()
-
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -106,6 +134,9 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 
 	result := &Response{}
 	errResult := &ResponseError{}
+
+	ctx, cancelFunc := context.WithTimeout(ctx, *req.Timeout)
+	defer cancelFunc()
 
 	slogctx.FromCtx(ctx).Debug("Extracting article", slog.String("url", rawURL))
 
@@ -150,9 +181,6 @@ func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption
 
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
-	ctx, cancelFunc := context.WithTimeout(ctx, DefaultProxyRequestTimeout)
-	defer cancelFunc()
-
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -166,6 +194,9 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 
 	result := &Response{}
 	errResult := &ResponseError{}
+
+	ctx, cancelFunc := context.WithTimeout(ctx, *req.Timeout)
+	defer cancelFunc()
 
 	slogctx.FromCtx(ctx).Debug("proxying request", slog.String("url", rawURL))
 

@@ -234,6 +234,7 @@ var (
 						templates.WithInt64Mapping("update_interval"),
 						templates.WithKeywordMapping("source_urls"),
 						templates.WithKeywordMapping("fetch_method"),
+						templates.WithFlattenedMapping("fetch_options"),
 						templates.WithFlattenedMapping("quirks"),
 						templates.WithTextMapping("domain", &types.TextProperty{
 							Type:     "text",

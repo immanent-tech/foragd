@@ -4,6 +4,7 @@
 package models
 
 import (
+	"fmt"
 	"html"
 	"net/url"
 	"slices"
@@ -12,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/immanent-tech/go-base/validation"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/zeebo/xxh3"
 )
@@ -131,6 +133,26 @@ func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	}
 
 	return feed
+}
+
+func (f Feed) Validate() error {
+	if f.FetchOptions != nil {
+		// If the feed has fetch_options, validate the options are appropriate for the fetch type.
+		switch f.FetchMethod {
+		case FeedFetchMethodDirect, FeedFetchMethodProxied:
+			if _, err := f.FetchOptions.AsFetchDirectOptions(); err != nil {
+				return fmt.Errorf("validate feed: invalid fetch options: %w", err)
+			}
+		case FeedFetchMethodZyteArticles, FeedFetchMethodZyteProducts:
+			if _, err := f.FetchOptions.AsFetchZyteOptions(); err != nil {
+				return fmt.Errorf("validate feed: invalid fetch options: %w", err)
+			}
+		}
+	}
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("validate feed: %w", err)
+	}
+	return nil
 }
 
 // GetID returns the ID of the Feed.

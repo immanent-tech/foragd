@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 	"golang.org/x/net/html"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -440,6 +442,10 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	var feedSearchQuery query.Option
 	switch {
 	case strings.HasPrefix(text, "http"):
+		parsedURL, err := url.Parse(text)
+		if err != nil {
+			return nil, fmt.Errorf("malformed URL %s: %w", text, err)
+		}
 		feedSearchQuery = query.Bool(
 			query.MustNot(
 				// User must not already be subscribed.
@@ -449,19 +455,18 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				// For URLs, match with and without a trailing slash. Boost source_urls over url.
 				query.Term(
 					"source_urls",
-					strings.TrimSuffix(text, "/"),
+					strings.TrimSuffix(parsedURL.String(), "/"),
 					query.WithQueryBoost[*query.TermQuery](10.0),
 				),
 				query.Term(
 					"url",
-					strings.TrimSuffix(text, "/"),
+					strings.TrimSuffix(parsedURL.String(), "/"),
 					query.WithQueryBoost[*query.TermQuery](5.0),
 				),
-				query.Term("source_urls", text, query.WithQueryBoost[*query.TermQuery](10.0)),
-				query.Term("url", text, query.WithQueryBoost[*query.TermQuery](5.0)),
-				// Wildcard URL prefix.
-				// query.Wildcard("source_urls", text+"*"),
-				// query.Wildcard("url", text+"*"),
+				query.Term("source_urls", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](10.0)),
+				query.Term("url", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](5.0)),
+				// Match the URL domain.
+				query.Term("domain.raw", parsedURL.Hostname(), query.WithQueryBoost[*query.TermQuery](10.0)),
 			),
 		)
 	default:
@@ -1284,6 +1289,165 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	}
 	// Otherwise use the new feed.
 	return newFeed, true, nil
+}
+
+// fetchArticles fetches and generates a feed from a Zyte articlesList response. This is used where a site does not
+// publish its own feed, but does have a list of articles that can be interpreted as a feed.
+func FetchFeedAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+	// Get any extraction options from the feed.
+	var extractOptions zyte.ExtractOptions
+	if details.FetchOptions != nil {
+		var err error
+		extractOptions, err = details.FetchOptions.AsFetchZyteOptions()
+		if err != nil {
+			return nil, "", fmt.Errorf("extract fetch options: %w", err)
+		}
+	}
+
+	// Set from where the list will be extracted.
+	extractFrom := zyte.ExtractFromHttpResponseBody
+	if extractOptions.ExtractFrom != nil {
+		extractFrom = *extractOptions.ExtractFrom
+	}
+
+	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
+	var errs []error
+	for feedURL := range slices.Values(details.GetSourceURLs()) {
+		// Fetch the feed details using Zyte as an article list.
+		resp, err := zyte.Proxy(
+			ctx,
+			feedURL,
+			zyte.WithExtractFrom(extractFrom),
+			zyte.AsArticleList(&extractOptions),
+			zyte.WithTag("feed_id", details.GetID()),
+			zyte.WithTag("action", "update_feed"),
+		)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
+			logZyteError(ctx, err, feedURL, details)
+			continue
+		}
+		// Generate feed details from Zyte response.
+		feed, err := NewFeedFromZyteResponse(ctx, resp)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
+			logGeneralError(ctx, err, feedURL, details)
+			continue
+		}
+
+		// Extract and enrich articles from Zyte response.
+		items, err := NewItemsFromZyteArticles(ctx, feed, resp.ArticleList)
+		if err != nil {
+			logGeneralError(ctx, err, feedURL, details)
+			return nil, feedURL, fmt.Errorf("%s: %w", feedURL, err)
+		}
+		feed.Items = items
+
+		return feed, feedURL, nil
+	}
+
+	// No feed data returned by any url. Log and return error.
+	err := models.NewAPIError(
+		http.StatusNoContent,
+		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
+	)
+	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details)
+	return nil, "", err
+}
+
+func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.Feed, error) {
+	// Create a buffer for the feed data.
+	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return nil, models.NewAPIError(http.StatusInternalServerError, errors.New("get feed buffer failed"))
+	}
+	feedBuf.Reset()
+	defer bufPool.Put(feedBuf)
+	// Extract the response body
+	body, err := resp.GetBody()
+	if err != nil {
+		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("get response body: %w", err))
+	}
+	if _, err := feedBuf.Write(body); err != nil {
+		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+	}
+
+	sourceURL, err := url.Parse(resp.URL)
+	if err != nil {
+		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse response URL: %w", err))
+	}
+
+	// Extract metadata (opengraph, readability) from HTML.
+	ogData, rdData := extractMetadataFromHTML(ctx, sourceURL, body)
+
+	feed := &models.Feed{
+		FeedID:      "feed_" + strconv.FormatUint(xxh3.Hash([]byte(sourceURL.String())), 10),
+		CreatedAt:   time.Now().UTC(),
+		LastFetched: models.UnixEpoch,
+		SourceType:  models.SourceTypeRSS,
+		SourceURLs:  []string{sourceURL.String()},
+		URL:         sourceURL.String(),
+		Domain:      sourceURL.Hostname(),
+	}
+	if resp.ArticleList != nil {
+		feed.FetchMethod = models.FeedFetchMethodZyteArticles
+	}
+
+	// Parse info from opengraph data.
+	if ogData != nil {
+		if ogData.Title != "" {
+			feed.Title = ogData.Title
+		}
+		if ogData.Description != "" {
+			feed.Description = &ogData.Description
+		}
+		if ogData.Image != "" {
+			feed.Image = models.NewRemoteImage(ogData.Image, feed.Title)
+		}
+	}
+	// Parse info from readability data.
+	if rdData != nil {
+		if rdData.Title() != "" && feed.Title != "" {
+			feed.Title = rdData.Title()
+		}
+		if rdData.Byline() != "" && feed.Description == nil {
+			feed.Description = new(rdData.Byline())
+		}
+	}
+
+	// Parse timestamps.
+	if published, err := rdData.PublishedTime(); err != nil {
+		feed.Published = models.UnixEpoch
+	} else {
+		feed.Published = published.UTC()
+	}
+	if updated, _ := rdData.ModifiedTime(); !updated.IsZero() {
+		updUTC := updated.UTC()
+		feed.Updated = &updUTC
+	}
+
+	// Set extract options
+	var extractFrom zyte.ExtractFrom
+	switch {
+	case resp.BrowserHtml != nil:
+		extractFrom = zyte.ExtractFromBrowserHtml
+	case resp.HttpResponseBody != nil:
+		fallthrough
+	default:
+		extractFrom = zyte.ExtractFromHttpResponseBody
+	}
+	var fetchOptions models.Feed_FetchOptions
+	if err := fetchOptions.FromFetchZyteOptions(models.FetchZyteOptions{ExtractFrom: &extractFrom}); err != nil {
+		return feed, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("set fetch options: %w", err))
+	}
+	feed.FetchOptions = &fetchOptions
+
+	// Make sure we have generated valid feed data.
+	if err := feed.Validate(); err != nil {
+		return feed, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("validate feed: %w", err))
+	}
+
+	return feed, nil
 }
 
 // FeedSorting contains the sort options for sorting item search results.

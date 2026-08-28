@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
 	"os/signal"
 	"slices"
@@ -22,6 +23,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
@@ -32,13 +34,14 @@ type FeedCmd struct {
 	Fetch        FetchFeedCmd        `cmd:"" help:"fetch a feed (by either URL or ID)"`
 	ResetUpdates ResetFeedUpdatesCmd `cmd:"" help:"reset the feed updates job"`
 	Update       UpdateFeedCmd       `cmd:"" help:"update the feed"`
+	AddCustom    AddCustomFeedCmd    `cmd:"" help:"add a custom feed"`
 }
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
 type FetchFeedCmd struct {
-	FeedID   models.FeedID `help:"ID of feed"`
-	FeedURL  string        `help:"URL of feed"`
-	Validate bool          `help:"validate the feed" default:"false"`
+	FeedID   *models.FeedID `help:"ID of feed"        validate:"required_without=FeedURL,startswith=feed_"`
+	FeedURL  *string        `help:"URL of feed"       validate:"required_without=FeedID,omitempty,url"`
+	Validate bool           `help:"validate the feed"                                                      default:"false"`
 }
 
 // Run performs the operations for fetching feed details.
@@ -47,32 +50,42 @@ func (c *FetchFeedCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
+	}
+
 	var (
-		details, feed *models.Feed
-		err           error
+		details *models.Feed
+		feed    *models.Feed
+		err     error
 	)
 
 	switch {
-	case c.FeedID != "" && strings.HasPrefix(c.FeedID, "feed_"):
-		details, err = service.GetFeed(ctx, c.FeedID)
+	case c.FeedID != nil:
+		details, err = service.GetFeed(ctx, *c.FeedID)
 		if err != nil {
-			return fmt.Errorf("get feed by id: %w", err)
+			return fmt.Errorf("get existing feed details: %w", err)
 		}
-		feed, err = service.FetchFeed(ctx, details.GetSourceURLs()[0], service.FetchWithFeedID(details.GetID()))
-		if err != nil {
-			return fmt.Errorf("fetch feed: %w", err)
+		switch details.FetchMethod {
+		case models.FeedFetchMethodZyteArticles:
+			feed, _, err = service.FetchFeedAsArticles(ctx, details)
+		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
+			fallthrough
+		default:
+			feed, err = service.FetchFeed(ctx, details.GetSourceURLs()[0], service.FetchWithFeedID(details.GetID()))
 		}
-	case c.FeedURL != "":
-		feedURL, err := service.NormalizeFeedURL(c.FeedURL)
+	case c.FeedURL != nil:
+		var feedURL *url.URL
+		feedURL, err = service.NormalizeFeedURL(*c.FeedURL)
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
 		feed, err = service.FetchFeed(ctx, feedURL.String())
-		if err != nil {
-			return fmt.Errorf("fetch feed: %w", err)
-		}
 	default:
-		return errors.New("no ID or URL provided")
+		return errors.New("no fetch method specified")
+	}
+	if err != nil {
+		return fmt.Errorf("fetch feed: %w", err)
 	}
 
 	if details != nil {
@@ -98,80 +111,6 @@ func (c *FetchFeedCmd) Run() error {
 	showFeedDetails(feed)
 
 	return nil
-}
-
-func showFeedDetails(feed *models.Feed) {
-	var str strings.Builder
-
-	str.WriteString("Feed: ")
-	str.WriteString(feed.GetTitle())
-	str.WriteRune('\n')
-	str.WriteString("Link: ")
-	str.WriteString(feed.GetLink())
-	str.WriteRune('\n')
-	str.WriteString("Type: ")
-	str.WriteString(string(feed.SourceType))
-	str.WriteRune('\n')
-	if feed.GetDescription() != "" {
-		str.WriteString("Description:")
-		str.WriteRune('\n')
-		str.WriteString(feed.GetDescription())
-		str.WriteRune('\n')
-	}
-	str.WriteString("Updated: ")
-	str.WriteString(feed.GetTimestamp().String())
-	str.WriteRune('\n')
-	if len(feed.GetCategories()) > 0 {
-		str.WriteString("Categories: ")
-		str.WriteString(strings.Join(feed.GetCategories(), ","))
-		str.WriteRune('\n')
-	}
-	if feed.GetImage() != nil {
-		str.WriteString("Image: ")
-		str.WriteString(feed.GetImage().String())
-	}
-	str.WriteRune('\n')
-	str.WriteRune('\n')
-
-	for article := range slices.Values(feed.GetItems().SortByTimestamp()) {
-		str.WriteString("---")
-		str.WriteRune('\n')
-		str.WriteString("Item ID: ")
-		str.WriteString(article.GetID())
-		str.WriteRune('\n')
-		str.WriteString("Title: ")
-		str.WriteString(article.GetTitle())
-		str.WriteRune('\n')
-		str.WriteString("Link: ")
-		str.WriteString(article.GetLink())
-		str.WriteRune('\n')
-		if article.GetDescription() != "" {
-			str.WriteString("Description:")
-			str.WriteRune('\n')
-			str.WriteString(article.GetDescription())
-			str.WriteRune('\n')
-		}
-		str.WriteString("Published: ")
-		str.WriteString(article.GetTimestamp().String())
-		str.WriteRune('\n')
-		if len(article.GetCategories()) > 0 {
-			str.WriteString("Categories: ")
-			str.WriteString(strings.Join(article.GetCategories(), ","))
-			str.WriteRune('\n')
-		}
-		if article.GetImage() != nil {
-			str.WriteString("Image: ")
-			str.WriteString(article.GetImage().String())
-		}
-		if article.GetContent() != "" {
-			str.WriteString("Content:")
-			str.WriteRune('\n')
-			str.WriteString(article.GetContent())
-		}
-		str.WriteRune('\n')
-	}
-
-	fmt.Fprintf(os.Stdout, "%s", str.String())
 }
 
 // ResetFeedUpdatesCmd is a CLI command to reset the updates for a feed. It will reset the last_fetched timestamp on the
@@ -276,7 +215,7 @@ func (c *UpdateFeedCmd) Run() error {
 		} else {
 			quirks = feed.Quirks
 		}
-		quirks.FetchItemSummaries = true
+		// quirks.FetchItemSummaries = true
 		updates["quirks"] = quirks
 		// Update the feed.
 		if err := service.UpdateFeed(ctx, c.FeedID, updates); err != nil {
@@ -288,4 +227,144 @@ func (c *UpdateFeedCmd) Run() error {
 		slog.String("feed_id", c.FeedID))
 
 	return nil
+}
+
+// AddCustomFeedCmd is a command that will add a custom feed with the given options.
+type AddCustomFeedCmd struct {
+	FeedURL        string `help:"URL of feed"                                 validate:"required,url"`
+	UpdateInterval string `help:"update interval for feed"                    validate:"required"`
+	WithBrowser    bool   `help:"use a browser request for fetching the feed"`
+}
+
+func (c *AddCustomFeedCmd) Run() error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
+	}
+
+	// Parse the given URL.
+	feedURL, err := url.Parse(c.FeedURL)
+	if err != nil {
+		return fmt.Errorf("parse URL: %w", err)
+	}
+
+	// Parse the given update interval.
+	updateInterval, err := time.ParseDuration(c.UpdateInterval)
+	if err != nil {
+		return fmt.Errorf("parse update interval: %w", err)
+	}
+
+	// Parse the extraction options.
+	extractFrom := zyte.ExtractFromHttpResponseBody
+	if c.WithBrowser {
+		extractFrom = zyte.ExtractFromBrowserHtml
+	}
+
+	// Fetch the details with Zyte.
+	resp, err := zyte.Proxy(
+		ctx,
+		feedURL.String(),
+		zyte.WithExtractFrom(extractFrom),
+		zyte.AsArticleList(&zyte.ExtractOptions{ExtractFrom: &extractFrom}),
+		zyte.WithTag("action", "new_custom_feed"),
+	)
+	if err != nil {
+		return fmt.Errorf("fetch details: %w", err)
+	}
+
+	// Generate the feed from the Zyte response.
+	feed, err := service.NewFeedFromZyteResponse(ctx, resp)
+	if err != nil {
+		return fmt.Errorf("generate feed: %w", err)
+	}
+	feed.UpdateInterval = int64(updateInterval)
+
+	// Add the new feed.
+	if err := service.AddFeed(ctx, feed); err != nil {
+		return fmt.Errorf("add feed: %w", err)
+	}
+
+	slogctx.Info(ctx, "Feed added.",
+		slog.String("feed_id", feed.GetID()),
+		slog.String("feed_url", feed.GetSourceURLs()[0]),
+	)
+
+	return nil
+}
+
+func showFeedDetails(feed *models.Feed) {
+	var str strings.Builder
+
+	str.WriteString("Feed: ")
+	str.WriteString(feed.GetTitle())
+	str.WriteRune('\n')
+	str.WriteString("Link: ")
+	str.WriteString(feed.GetLink())
+	str.WriteRune('\n')
+	str.WriteString("Type: ")
+	str.WriteString(string(feed.SourceType))
+	str.WriteRune('\n')
+	if feed.GetDescription() != "" {
+		str.WriteString("Description:")
+		str.WriteRune('\n')
+		str.WriteString(feed.GetDescription())
+		str.WriteRune('\n')
+	}
+	str.WriteString("Updated: ")
+	str.WriteString(feed.GetTimestamp().String())
+	str.WriteRune('\n')
+	if len(feed.GetCategories()) > 0 {
+		str.WriteString("Categories: ")
+		str.WriteString(strings.Join(feed.GetCategories(), ","))
+		str.WriteRune('\n')
+	}
+	if feed.GetImage() != nil {
+		str.WriteString("Image: ")
+		str.WriteString(feed.GetImage().String())
+	}
+	str.WriteRune('\n')
+	str.WriteRune('\n')
+
+	for article := range slices.Values(feed.GetItems().SortByTimestamp()) {
+		str.WriteString("---")
+		str.WriteRune('\n')
+		str.WriteString("Item ID: ")
+		str.WriteString(article.GetID())
+		str.WriteRune('\n')
+		str.WriteString("Title: ")
+		str.WriteString(article.GetTitle())
+		str.WriteRune('\n')
+		str.WriteString("Link: ")
+		str.WriteString(article.GetLink())
+		str.WriteRune('\n')
+		if article.GetDescription() != "" {
+			str.WriteString("Description:")
+			str.WriteRune('\n')
+			str.WriteString(article.GetDescription())
+			str.WriteRune('\n')
+		}
+		str.WriteString("Published: ")
+		str.WriteString(article.GetTimestamp().String())
+		str.WriteRune('\n')
+		if len(article.GetCategories()) > 0 {
+			str.WriteString("Categories: ")
+			str.WriteString(strings.Join(article.GetCategories(), ","))
+			str.WriteRune('\n')
+		}
+		if article.GetImage() != nil {
+			str.WriteString("Image: ")
+			str.WriteString(article.GetImage().String())
+		}
+		if article.GetContent() != "" {
+			str.WriteString("Content:")
+			str.WriteRune('\n')
+			str.WriteString(article.GetContent())
+		}
+		str.WriteRune('\n')
+	}
+
+	fmt.Fprintf(os.Stdout, "%s", str.String())
 }

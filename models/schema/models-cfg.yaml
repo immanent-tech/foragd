@@ -15,3 +15,4 @@ compatibility:
   always-prefix-enum-values: true
 import-mapping:
   api.yaml: '-'
+  ../../providers/zyte/zyte.yaml: 'github.com/immanent-tech/foragd/providers/zyte'

@@ -4,7 +4,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,14 +11,17 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
+	"time"
 
-	"codeberg.org/readeck/go-readability/v2"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -406,9 +408,24 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
 	}
 
+	// Check if the feed indicates summaries should be fetched separately.
+	var fetchSummaries bool
+	if feed.FetchMethod == models.FeedFetchMethodDirect || feed.FetchMethod == models.FeedFetchMethodProxied {
+		if feed.FetchOptions != nil {
+			if fetchOptions, err := feed.FetchOptions.AsFetchDirectOptions(); err != nil {
+				slogctx.Warn(ctx, "Unable to parse feed fetch options.",
+					slog.Any("error", err))
+			} else {
+				if fetchOptions.FetchItemSummaries {
+					fetchSummaries = true
+				}
+			}
+		}
+	}
+
 	// Flag if the item needs enrichment.
 	var needsEnriching bool
-	if feed.Quirks != nil && feed.Quirks.FetchItemSummaries {
+	if fetchSummaries {
 		needsEnriching = true
 	}
 	if item.GetImage() == nil {
@@ -425,20 +442,8 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		return err
 	}
 
-	// Extract any Opengraph data.
-	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source))
-	if err != nil {
-		slogctx.FromCtx(ctx).Debug("Unable to extract opengraph data for item.",
-			slog.Any("error", err),
-		)
-	}
-	// Extract readability data.
-	readabilityData, err := readability.FromReader(bytes.NewReader(source), itemURL)
-	if err != nil {
-		slogctx.FromCtx(ctx).Debug("Unable to extract readability data for item.",
-			slog.Any("error", err),
-		)
-	}
+	// Extract opengraph and readability data from item HTML source.
+	opengraphData, readabilityData := extractMetadataFromHTML(ctx, itemURL, source)
 
 	// Add an image if needed.
 	if item.GetImage() == nil {
@@ -458,8 +463,8 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		}
 	}
 
-	// Add a description if needed.
-	if feed.Quirks != nil && feed.Quirks.FetchItemSummaries {
+	// When item summaries needed to be fetched, check and add an item description if missing.
+	if fetchSummaries {
 		switch {
 		case opengraphData != nil && opengraphData.Description != "":
 			item.Description = &opengraphData.Description
@@ -496,6 +501,7 @@ func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
 		link,
 		zyte.WithResponseBody(true),
 		zyte.WithFollowRedirects(true),
+		zyte.WithTag("action", "enrich_item"),
 	); {
 	case err != nil:
 		if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
@@ -511,4 +517,66 @@ func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
 		}
 		return source, nil
 	}
+}
+
+func NewItemsFromZyteArticles(
+	ctx context.Context,
+	feed *models.Feed,
+	articles *zyte.ArticleList,
+) (models.Items, error) {
+	items := make(models.Items, 0, len(articles.Articles))
+	for article := range slices.Values(articles.Articles) {
+		item := &models.Item{
+			ItemID:      "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+article.URL)), 10),
+			FeedID:      feed.GetID(),
+			Timestamp:   time.Now().UTC(),
+			Description: article.Description,
+			SourceType:  feed.SourceType,
+			URL:         article.URL,
+			Language:    article.InLanguage,
+			FeedTitle:   feed.GetTitle(),
+		}
+		if article.Headline != nil {
+			item.Title = *article.Headline
+		}
+		item.Authors = make([]string, 0, len(article.Authors))
+		for author := range slices.Values(article.Authors) {
+			item.Authors = append(item.Authors, author.Name)
+		}
+
+		if article.GetContent() != "" {
+			item.Content = new(validation.SanitizeString(article.GetContent()))
+		}
+
+		if pubDate, err := article.GetPublishedDate(); err != nil {
+			item.Published = item.Timestamp
+		} else {
+			item.Published = pubDate.UTC()
+		}
+		if valid, _ := models.ValidateDatetime(item.Published); !valid {
+			item.Published = feed.GetTimestamp()
+		}
+		if updDate, _ := article.GetUpdatedDate(); !updDate.IsZero() {
+			updDateUTC := updDate.UTC()
+			item.Updated = &updDateUTC
+
+		}
+
+		if article.MainImage != nil {
+			item.Image = models.NewRemoteImage(article.MainImage.URL, item.Title)
+		}
+
+		if err := validation.Validate.Struct(item); err != nil {
+			slogctx.Warn(ctx, "Invalid item. Ignoring",
+				slog.String("feed_id", feed.GetID()),
+				slog.String("item_id", item.GetID()),
+				slog.Any("error", err),
+			)
+			continue
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
 }

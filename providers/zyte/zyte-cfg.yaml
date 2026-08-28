@@ -8,9 +8,6 @@ output: zyte.gen.go
 generate:
   models: true
 output-options:
-  # to make sure that all types are generated
   skip-prune: true
 compatibility:
   always-prefix-enum-values: true
-import-mapping:
-  ../../models/schema/models.yaml: github.com/immanent-tech/models
