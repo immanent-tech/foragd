@@ -969,10 +969,12 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					<div class="stat">
 						<div class="stat-title">Group Subscriptions</div>
 						<div class="stat-value">{ len(data.Subscriptions.FilterByType(models.SubscriptionTypeGroup)) }</div>
+						<div class="stat-desc">Unlimited</div>
 					</div>
 					<div class="stat">
 						<div class="stat-title">Search Subscriptions</div>
 						<div class="stat-value">{ len(data.Subscriptions.FilterByType(models.SubscriptionTypeSearch)) }</div>
+						<div class="stat-desc">Unlimited</div>
 					</div>
 				</div>
 			</div>
