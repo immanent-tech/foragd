@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
-version   = "v0.220"
-date      = "Aug 22, 2026"
-type      = "minor"
+version   = "v0.222"
+date      = "Aug 28, 2026"
+type      = "major"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Rolling out support for sites without a native feed. There is currently a feed for Associated Press website (https://apnews.com) in the database (search for the URL or just "AP News" to add it). More to come.
+"""
+[[releases.changes]]
+type = "new"
+description = """
+Support for requesting custom feeds. Just contact us with details about a site without a feed, and we'll work out and do the work to make a custom feed/subscription for you.
+"""
+
+[[releases]]
+version = "v0.220"
+date    = "Aug 22, 2026"
+type    = "minor"
 [[releases.changes]]
 type = "new"
 description = """
