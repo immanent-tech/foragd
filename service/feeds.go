@@ -43,6 +43,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/google/language"
@@ -1324,21 +1325,21 @@ func FetchFeedAsArticles(ctx context.Context, details *models.Feed) (*models.Fee
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logZyteError(ctx, err, feedURL, details)
+			logZyteError(ctx, err, feedURL, details.GetID())
 			continue
 		}
 		// Generate feed details from Zyte response.
 		feed, err := NewFeedFromZyteResponse(ctx, resp)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logGeneralError(ctx, err, feedURL, details)
+			logGeneralError(ctx, err, feedURL, details.GetID())
 			continue
 		}
 
 		// Extract and enrich articles from Zyte response.
 		items, err := NewItemsFromZyteArticles(ctx, feed, resp.ArticleList)
 		if err != nil {
-			logGeneralError(ctx, err, feedURL, details)
+			logGeneralError(ctx, err, feedURL, details.GetID())
 			return nil, feedURL, fmt.Errorf("%s: %w", feedURL, err)
 		}
 		feed.Items = items
@@ -1351,7 +1352,7 @@ func FetchFeedAsArticles(ctx context.Context, details *models.Feed) (*models.Fee
 		http.StatusNoContent,
 		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
 	)
-	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details)
+	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
 	return nil, "", err
 }
 
@@ -1536,4 +1537,70 @@ func NewFeedSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
+}
+
+type feedStatusLogMsg struct {
+	*models.FeedStatus
+
+	Labels map[string]string `json:"labels"`
+}
+
+func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
+	return &feedStatusLogMsg{
+		FeedStatus: &models.FeedStatus{
+			Timestamp: time.Now().UTC(),
+			FeedID:    id,
+		},
+		Labels: map[string]string{
+			"env":  config.GetEnvironment().String(),
+			"type": "feed-status",
+		},
+	}
+}
+
+func (l *feedStatusLogMsg) log(ctx context.Context) error {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			l,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string]("logs"),
+		),
+	); err != nil {
+		return fmt.Errorf("add bulk action: %w", err)
+	}
+	return nil
+}
+
+func logZyteError(ctx context.Context, err error, feedURL string, feedID models.FeedID) {
+	logMsg := newFeedStatusMsg(feedID)
+	logMsg.FeedStatus.URL = feedURL
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		logMsg.StatusCode = apiErr.StatusCode
+		logMsg.StatusMessage = new(apiErr.Error())
+	} else {
+		logMsg.StatusCode = http.StatusInternalServerError
+		logMsg.StatusMessage = new(err.Error())
+	}
+	if err := logMsg.log(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
+}
+
+func logGeneralError(ctx context.Context, err error, feedURL string, feedID models.FeedID) {
+	logMsg := newFeedStatusMsg(feedID)
+	logMsg.FeedStatus.URL = feedURL
+	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		logMsg.StatusCode = apiErr.StatusCode
+		logMsg.StatusMessage = new(apiErr.Error())
+	} else {
+		logMsg.StatusCode = http.StatusInternalServerError
+		logMsg.StatusMessage = new(err.Error())
+	}
+	if err := logMsg.log(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
 }

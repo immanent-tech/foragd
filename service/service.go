@@ -6,13 +6,11 @@ package service
 import (
 	"bytes"
 	"context"
-	"log/slog"
 	"net/url"
 	"sync"
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 var bufPool = sync.Pool{
@@ -27,19 +25,9 @@ func extractMetadataFromHTML(
 	source []byte,
 ) (*htmlx.OpenGraph, *readability.Article) {
 	// Extract any Opengraph data.
-	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source))
-	if err != nil {
-		slogctx.Debug(ctx, "Unable to extract opengraph data for item.",
-			slog.Any("error", err),
-		)
-	}
+	opengraphData, _ := htmlx.DecodeOpengraph(bytes.NewReader(source))
 	// Extract readability data.
-	readabilityData, err := readability.FromReader(bytes.NewReader(source), sourceURL)
-	if err != nil {
-		slogctx.Debug(ctx, "Unable to extract readability data for item.",
-			slog.Any("error", err),
-		)
-	}
+	readabilityData, _ := readability.FromReader(bytes.NewReader(source), sourceURL)
 
 	return opengraphData, &readabilityData
 }
