@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/logging"
@@ -97,18 +96,18 @@ func (l *Logger) LogRoundTrip(
 
 		requestAttributes = append(requestAttributes, slog.String("body", buf.String()))
 	}
-	if req != nil && req.Body != nil && req.Body != http.NoBody {
-		var (
-			buf bytes.Buffer
-		)
-		if req.GetBody != nil {
-			b, _ := req.GetBody()
-			_, err = buf.ReadFrom(b)
-		} else {
-			_, err = buf.ReadFrom(req.Body)
-		}
-		godump.Dump(req.URL.Path, quoteReplacer.Replace(buf.String()))
-	}
+	// if req != nil && req.Body != nil && req.Body != http.NoBody {
+	// 	var (
+	// 		buf bytes.Buffer
+	// 	)
+	// 	if req.GetBody != nil {
+	// 		b, _ := req.GetBody()
+	// 		_, err = buf.ReadFrom(b)
+	// 	} else {
+	// 		_, err = buf.ReadFrom(req.Body)
+	// 	}
+	// 	godump.Dump(req.URL.Path, quoteReplacer.Replace(buf.String()))
+	// }
 
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
