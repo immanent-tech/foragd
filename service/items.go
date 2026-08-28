@@ -454,7 +454,10 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	// Extract opengraph and readability data from item HTML source.
-	opengraphData, readabilityData := extractMetadataFromHTML(ctx, itemURL, itemContentBuf.Bytes())
+	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
+	if err != nil {
+		logGeneralError(ctx, err, feed.GetSourceURLs()[0], feed.GetID())
+	}
 
 	// Add an image if needed.
 	if item.GetImage() == nil {

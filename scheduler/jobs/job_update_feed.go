@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -112,13 +111,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
 		// Zyte article list extraction.
-		feed, feedURL, err = service.FetchFeedAsArticles(ctx, details)
+		feed, feedURL, err = service.FetchFeedUpdatesAsArticles(ctx, details)
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		// Direct (or proxied) request.
 		fallthrough
 	default:
 		// Assume a regular web-based feed. Fetch feed data directly.
-		feed, feedURL, err = fetchDirect(ctx, data, details)
+		feed, feedURL, err = service.FetchFeedUpdates(ctx, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)
@@ -199,43 +198,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		slog.Duration("took", time.Since(start)))
 
 	return nil
-}
-
-// fetchDirect fetches a feed "directly", either by issuing the get request directly and potentially asking Zyte to
-// proxy it on certain error responses.
-func fetchDirect(ctx context.Context, data UpdateFeedJob, details *models.Feed) (*models.Feed, models.URL, error) {
-	// Set fetch options.
-	var (
-		proxyRequest bool
-	)
-	if details.FetchMethod == models.FeedFetchMethodProxied {
-		proxyRequest = true
-	}
-
-	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
-	var errs []error
-	for feedURL := range slices.Values(details.GetSourceURLs()) {
-		feed, err := service.FetchFeed(
-			ctx,
-			feedURL,
-			service.FetchWithFeedID(data.FeedID),
-			service.FetchWithProxy(proxyRequest),
-		)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
-			logGeneralError(ctx, err, feedURL, details)
-			continue
-		}
-		return feed, feedURL, nil
-	}
-
-	// No feed data returned by any url. Log and return error.
-	err := models.NewAPIError(
-		http.StatusNoContent,
-		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
-	)
-	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details)
-	return nil, "", err
 }
 
 func addItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {

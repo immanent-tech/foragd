@@ -5,7 +5,7 @@ package service
 
 import (
 	"bytes"
-	"context"
+	"errors"
 	"net/url"
 	"sync"
 
@@ -20,14 +20,20 @@ var bufPool = sync.Pool{
 }
 
 func extractMetadataFromHTML(
-	ctx context.Context,
 	sourceURL *url.URL,
 	source []byte,
-) (*htmlx.OpenGraph, *readability.Article) {
+) (*htmlx.OpenGraph, *readability.Article, error) {
+	var errs []error
 	// Extract any Opengraph data.
-	opengraphData, _ := htmlx.DecodeOpengraph(bytes.NewReader(source))
+	opengraphData, err := htmlx.DecodeOpengraph(bytes.NewReader(source))
+	if err != nil {
+		errs = append(errs, err)
+	}
 	// Extract readability data.
-	readabilityData, _ := readability.FromReader(bytes.NewReader(source), sourceURL)
+	readabilityData, err := readability.FromReader(bytes.NewReader(source), sourceURL)
+	if err != nil {
+		errs = append(errs, err)
+	}
 
-	return opengraphData, &readabilityData
+	return opengraphData, &readabilityData, errors.Join(errs...)
 }

@@ -361,7 +361,10 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 	}
 
 	// Extract opengraph and readability data from item HTML source.
-	_, readabilityData := extractMetadataFromHTML(ctx, articleURL, itemPageBuf.Bytes())
+	_, readabilityData, err := extractMetadataFromHTML(articleURL, itemPageBuf.Bytes())
+	if err != nil {
+		logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
+	}
 
 	// Extract article content using readability.
 	var articleBuf bytes.Buffer

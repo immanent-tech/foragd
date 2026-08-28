@@ -68,11 +68,11 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		switch details.FetchMethod {
 		case models.FeedFetchMethodZyteArticles:
-			feed, _, err = service.FetchFeedAsArticles(ctx, details)
+			feed, _, err = service.FetchFeedUpdatesAsArticles(ctx, details)
 		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 			fallthrough
 		default:
-			feed, err = service.FetchFeed(ctx, details.GetSourceURLs()[0], service.FetchWithFeedID(details.GetID()))
+			feed, _, err = service.FetchFeedUpdates(ctx, details)
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL

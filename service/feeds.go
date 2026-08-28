@@ -1292,9 +1292,49 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 	return newFeed, true, nil
 }
 
-// fetchArticles fetches and generates a feed from a Zyte articlesList response. This is used where a site does not
-// publish its own feed, but does have a list of articles that can be interpreted as a feed.
-func FetchFeedAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+// FetchFeedUpdates fetches an updated version of the feed, including items. It returns the updated feed, and the source
+// URL used to fetch the updates (for disambiguation of feeds with multiple source URLs). A non-nil error is returned
+// where there is a critical error fetching the feed details.
+func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+	// Set fetch options.
+	var (
+		proxyRequest bool
+	)
+	if details.FetchMethod == models.FeedFetchMethodProxied {
+		proxyRequest = true
+	}
+
+	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
+	var errs []error
+	for feedURL := range slices.Values(details.GetSourceURLs()) {
+		feed, err := FetchFeed(
+			ctx,
+			feedURL,
+			FetchWithFeedID(details.GetID()),
+			FetchWithProxy(proxyRequest),
+		)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
+			logGeneralError(ctx, err, feedURL, details.GetID())
+			continue
+		}
+		return feed, feedURL, nil
+	}
+
+	// No feed data returned by any url. Log and return error.
+	err := models.NewAPIError(
+		http.StatusNoContent,
+		errors.New("failed to fetch feed details with any source URL: "+errors.Join(errs...).Error()),
+	)
+	logGeneralError(ctx, err, strings.Join(details.GetSourceURLs(), ","), details.GetID())
+	return nil, "", err
+}
+
+// FetchFeedUpdatesAsArticles fetches an updated version of the feed, using Zyte to generate a feed from the source
+// website articles list. It returns the updated feed, and the source URL used to fetch the updates (for disambiguation
+// of feeds with multiple source URLs). A non-nil error is returned where there is a critical error fetching the feed
+// details.
+func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
 	// Get any extraction options from the feed.
 	var extractOptions zyte.ExtractOptions
 	if details.FetchOptions != nil {
@@ -1378,11 +1418,16 @@ func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse response URL: %w", err))
 	}
 
+	feedID := "feed_" + strconv.FormatUint(xxh3.Hash([]byte(sourceURL.String())), 10)
+
 	// Extract metadata (opengraph, readability) from HTML.
-	ogData, rdData := extractMetadataFromHTML(ctx, sourceURL, body)
+	ogData, rdData, err := extractMetadataFromHTML(sourceURL, body)
+	if err != nil {
+		logGeneralError(ctx, err, resp.URL, feedID)
+	}
 
 	feed := &models.Feed{
-		FeedID:      "feed_" + strconv.FormatUint(xxh3.Hash([]byte(sourceURL.String())), 10),
+		FeedID:      feedID,
 		CreatedAt:   time.Now().UTC(),
 		LastFetched: models.UnixEpoch,
 		SourceType:  models.SourceTypeRSS,
