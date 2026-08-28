@@ -5,6 +5,7 @@ package zyte
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"codeberg.org/readeck/go-readability/v2"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 // GetHTMLResponse retrieves the response body from an HTML request (created by the httpResponseBody Request option).
@@ -102,7 +104,7 @@ func (r *Response) extractWithReadability() (*Article, error) {
 			return nil, fmt.Errorf("render text: %w", err)
 		}
 	} else {
-		return nil, fmt.Errorf("get text buffer: %w", err)
+		return nil, errors.New("get text buffer failed")
 	}
 	htmlBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if ok {
@@ -112,7 +114,7 @@ func (r *Response) extractWithReadability() (*Article, error) {
 			return nil, fmt.Errorf("render html: %w", err)
 		}
 	} else {
-		return nil, fmt.Errorf("get html buffer: %w", err)
+		return nil, errors.New("get html buffer failed")
 	}
 
 	article := &Article{
@@ -129,12 +131,32 @@ func (r *Response) extractWithReadability() (*Article, error) {
 	article.Authors = []Author{author}
 
 	if modified, err := extracted.ModifiedTime(); err != nil {
-		article.DateModified = new(modified.UTC().Format(time.RFC3339))
+		modifiedUTC := modified.UTC().Format(time.RFC3339)
+		article.DateModified = &modifiedUTC
 	}
 
 	if published, err := extracted.PublishedTime(); err != nil {
-		article.DatePublished = new(published.UTC().Format(time.RFC3339))
+		publishedUTC := published.UTC().Format(time.RFC3339)
+		article.DatePublished = &publishedUTC
 	}
 
 	return article, nil
+}
+
+func (e *ResponseError) Error() string { return fmt.Sprintf("%s: %s", e.Title, e.Detail) }
+func (e *ResponseError) Unwrap() error { return fmt.Errorf("%s: %s", e.Title, e.Detail) }
+
+// HTTPStatus returns the status code of the API error.
+func (e *ResponseError) HTTPStatus() int { return e.Status }
+
+// WriteLog writes the ResponseError to the log at the appropriate level.
+func (e *ResponseError) WriteLog(ctx context.Context) {
+	switch {
+	case e.HTTPStatus() < 400: //nolint:mnd // easier to read as a number.
+		slogctx.FromCtx(ctx).DebugContext(ctx, e.Error())
+	case e.HTTPStatus() < 500: //nolint:mnd // easier to read as a number.
+		slogctx.FromCtx(ctx).WarnContext(ctx, e.Error())
+	default:
+		slogctx.FromCtx(ctx).ErrorContext(ctx, e.Error())
+	}
 }

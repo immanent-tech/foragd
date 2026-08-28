@@ -119,66 +119,6 @@ func AsArticleList(opts *ExtractOptions) RequestOption {
 	}
 }
 
-// ExtractArticle attempts to extract an article from the given URL.
-func ExtractArticle(ctx context.Context, rawURL string, options ...RequestOption) (*Article, error) {
-	sourceURL, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
-	}
-
-	req := NewRequest(sourceURL.String(), options...)
-
-	if err := loadConfig(); err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-
-	result := &Response{}
-	errResult := &ResponseError{}
-
-	ctx, cancelFunc := context.WithTimeout(ctx, *req.Timeout)
-	defer cancelFunc()
-
-	slogctx.FromCtx(ctx).Debug("Extracting article", slog.String("url", rawURL))
-
-	client, err := client.Load()
-	if err != nil {
-		return nil, fmt.Errorf("load http client: %w", err)
-	}
-	switch resp, err := client.
-		// Add retry logic for 429 and 520 responses as per Zyte API guidelines.
-		SetRetryCount(3).
-		AddRetryCondition(
-			func(r *resty.Response, _ error) bool {
-				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == 520
-			},
-		).
-		R().
-		SetContext(ctx).
-		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
-		SetBasicAuth(cfg.APIKey, "").
-		SetHeader("Content-Type", "application/json").
-		SetBody(req).
-		SetError(errResult).
-		// SetDebug(true).
-		SetResult(result).
-		Post(extractEndpoint); {
-	case err != nil:
-		return nil, fmt.Errorf("send api request: %w", &ResponseError{Title: err.Error(), Status: resp.StatusCode()})
-	case resp.IsError():
-		return nil, fmt.Errorf("send api request %w", errResult)
-	}
-
-	article, err := result.ExtractArticle()
-	if err != nil {
-		return nil, fmt.Errorf(
-			"extract article: %w",
-			&ResponseError{Title: err.Error(), Status: http.StatusUnprocessableEntity},
-		)
-	}
-
-	return article, nil
-}
-
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
 	sourceURL, err := url.Parse(rawURL)

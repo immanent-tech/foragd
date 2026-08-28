@@ -6,13 +6,10 @@ package zyte
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
-
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
@@ -47,24 +44,6 @@ var loadConfig = sync.OnceValue(func() error {
 	slog.Info("Zyte config loaded.") //nolint:sloglint // we don't pass a context.
 	return nil
 })
-
-func (e *ResponseError) Error() string { return fmt.Sprintf("%s: %s", e.Title, e.Detail) }
-func (e *ResponseError) Unwrap() error { return fmt.Errorf("%s: %s", e.Title, e.Detail) }
-
-// HTTPStatus returns the status code of the API error.
-func (e *ResponseError) HTTPStatus() int { return e.Status }
-
-// WriteLog writes the ResponseError to the log at the appropriate level.
-func (e *ResponseError) WriteLog(ctx context.Context) {
-	switch {
-	case e.HTTPStatus() < 400: //nolint:mnd // easier to read as a number.
-		slogctx.FromCtx(ctx).DebugContext(ctx, e.Error())
-	case e.HTTPStatus() < 500: //nolint:mnd // easier to read as a number.
-		slogctx.FromCtx(ctx).WarnContext(ctx, e.Error())
-	default:
-		slogctx.FromCtx(ctx).ErrorContext(ctx, e.Error())
-	}
-}
 
 var bufPool = sync.Pool{
 	New: func() any {
