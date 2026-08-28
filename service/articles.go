@@ -6,26 +6,19 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
-	"os"
+	"net/url"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/google/gcs"
-	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
 // GetArticles generates Article objects from the Items with the given IDs.
@@ -355,80 +348,29 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 
 // GetArticleRemoteContent populates the article content with the item source.
 func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
-	source, err := getItemSource(ctx, article.GetID(), article.GetLink())
+	// Get the complete item HTML source, either from the cache or fetch fresh.
+	itemPageBuf, err := getItemContent(ctx, &article.Item)
 	if err != nil {
-		return fmt.Errorf("get article remote content: %w", err)
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
-	article.Content = &source
+
+	// Parse the item URL.
+	articleURL, err := url.Parse(article.GetLink())
+	if err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse article URL: %w", err))
+	}
+
+	// Extract opengraph and readability data from item HTML source.
+	_, readabilityData := extractMetadataFromHTML(ctx, articleURL, itemPageBuf.Bytes())
+
+	// Extract article content using readability.
+	var articleBuf bytes.Buffer
+	if err := readabilityData.RenderHTML(&articleBuf); err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("render article HTML: %w", err))
+	}
+
+	// Set the article content to the extracted content.
+	article.Content = new(articleBuf.String())
 
 	return nil
 }
-
-// getItemSource attempts to fetch remote content for an item. It will check if the remote content has already been
-// fetched and cached in GCS and use that content. Otherwise, it uses the Zyte API to fetch the remote content and then
-// cache it for reuse.
-func getItemSource(ctx context.Context, id models.ItemID, sourceURL string) (string, error) {
-	// Try to load content from the article cache.
-	if err := loadArticleCache(); err != nil {
-		slogctx.FromCtx(ctx).Debug("Unable to load article cache.",
-			slog.Any("error", err),
-		)
-	} else {
-		var articleBuf bytes.Buffer
-		if err := articleCache.Copy(ctx, id, &articleBuf); err != nil {
-			if !errors.Is(err, fs.ErrNotExist) {
-				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
-					slog.Any("error", err),
-				)
-			}
-		} else {
-			return articleBuf.String(), nil
-		}
-	}
-
-	// Fetch article from remote.
-	var source string
-	switch extracted, err := zyte.ExtractArticle(ctx,
-		sourceURL,
-		zyte.WithResponseBody(true),
-		zyte.WithFollowRedirects(true),
-		zyte.WithTag("item_id", id),
-	); {
-	case err != nil:
-		if zyteErr, ok := errors.AsType[*zyte.ResponseError](err); ok {
-			return "", models.NewAPIError(zyteErr.HTTPStatus(), zyteErr)
-		}
-		return "", models.NewAPIError(http.StatusInternalServerError, err)
-	case extracted == nil:
-		return "", models.NewAPIError(http.StatusInternalServerError, errors.New("no content extracted"))
-	default:
-		source = extracted.GetHTML()
-	}
-
-	// Cache the content.
-	articleCache.Set(ctx, id, []byte(source))
-
-	return source, nil
-}
-
-var articleCache objectCache
-
-var loadArticleCache = sync.OnceValue(func() error {
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
-		var err error
-		articleCache, err = gcs.Connect(context.Background(), bucketName, "articles")
-		if err != nil {
-			return fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		articleCache, err = newDirCache("articles")
-		if err != nil {
-			return fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return nil
-})

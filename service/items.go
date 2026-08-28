@@ -4,14 +4,18 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
+	"sync"
 	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -20,6 +24,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
+	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/validation"
 
@@ -28,6 +33,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
+	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
@@ -408,8 +414,9 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
 	}
 
-	// Check if the feed indicates summaries should be fetched separately.
 	var fetchSummaries bool
+
+	// Check if the feed indicates summaries should be fetched separately.
 	if feed.FetchMethod == models.FeedFetchMethodDirect || feed.FetchMethod == models.FeedFetchMethodProxied {
 		if feed.FetchOptions != nil {
 			if fetchOptions, err := feed.FetchOptions.AsFetchDirectOptions(); err != nil {
@@ -421,6 +428,10 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 				}
 			}
 		}
+	}
+	// Check if the item has a summary.
+	if item.GetDescription() == "" {
+		fetchSummaries = true
 	}
 
 	// Flag if the item needs enrichment.
@@ -436,14 +447,14 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		return nil
 	}
 
-	// Fetch the item's HTML source, used for enrichment.
-	source, err := fetchItemDirect(ctx, item.GetLink())
+	// Get the item content, either from the cache or fetch fresh.
+	itemContentBuf, err := getItemContent(ctx, item)
 	if err != nil {
-		return err
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
 
 	// Extract opengraph and readability data from item HTML source.
-	opengraphData, readabilityData := extractMetadataFromHTML(ctx, itemURL, source)
+	opengraphData, readabilityData := extractMetadataFromHTML(ctx, itemURL, itemContentBuf.Bytes())
 
 	// Add an image if needed.
 	if item.GetImage() == nil {
@@ -453,7 +464,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		case readabilityData.ImageURL() != "":
 			item.Image = models.NewRemoteImage(readabilityData.ImageURL(), item.GetTitle())
 		default:
-			if imgURL, imgAlt, err := htmlx.ExtractImage(string(source), item.GetLink()); err != nil {
+			if imgURL, imgAlt, err := htmlx.ExtractImage(itemContentBuf.String(), item.GetLink()); err != nil {
 				slogctx.FromCtx(ctx).Debug("Unable to find suitable image for item.",
 					slog.Any("error", err),
 				)
@@ -475,6 +486,36 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	return nil
+}
+
+func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, error) {
+	var itemContentBuf bytes.Buffer
+	// Try to load content from the article cache.
+	if err := loaditemPageCache(); err != nil {
+		slogctx.FromCtx(ctx).Debug("Unable to load item content cache.",
+			slog.Any("error", err),
+		)
+	} else {
+		if err := itemPageCache.Copy(ctx, item.GetID(), &itemContentBuf); err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
+				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
+					slog.Any("error", err),
+				)
+			}
+		}
+	}
+	// If no item content cached, fetch from remote.
+	if itemContentBuf.Len() == 0 {
+		// Fetch the item's HTML source, used for enrichment.
+		source, err := fetchItemDirect(ctx, item.GetLink())
+		if err != nil {
+			return nil, fmt.Errorf("fetch item: %w", err)
+		}
+		if _, err := itemContentBuf.Write(source); err != nil {
+			return nil, fmt.Errorf("write fetched item content to buffer: %w", err)
+		}
+	}
+	return &itemContentBuf, nil
 }
 
 func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
@@ -580,3 +621,25 @@ func NewItemsFromZyteArticles(
 
 	return items, nil
 }
+
+var itemPageCache objectCache
+
+var loaditemPageCache = sync.OnceValue(func() error {
+	switch config.GetEnvironment() {
+	case config.EnvProduction:
+		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
+		var err error
+		itemPageCache, err = gcs.Connect(context.Background(), bucketName, "articles")
+		if err != nil {
+			return fmt.Errorf("connect to gcs: %w", err)
+		}
+	default:
+		var err error
+		itemPageCache, err = newDirCache("articles")
+		if err != nil {
+			return fmt.Errorf("create dir cache: %w", err)
+		}
+	}
+
+	return nil
+})
