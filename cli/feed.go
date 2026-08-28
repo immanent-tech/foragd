@@ -116,7 +116,7 @@ func (c *FetchFeedCmd) Run() error {
 // ResetFeedUpdatesCmd is a CLI command to reset the updates for a feed. It will reset the last_fetched timestamp on the
 // feed and delete any scheduled job for feed updates.
 type ResetFeedUpdatesCmd struct {
-	FeedID models.FeedID `help:"ID of feed"`
+	FeedID models.FeedID `help:"ID of feed" validate:"required,startswith=feed_"`
 }
 
 // Run performs the operations for resetting feed updates.
@@ -125,8 +125,8 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_"); err != nil {
-		return fmt.Errorf("invalid feed: %w", err)
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
 	}
 
 	// Reset the last_fetched timestamp on the feed.
@@ -153,7 +153,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 
 // UpdateFeedCmd performs updates on a feed.
 type UpdateFeedCmd struct {
-	FeedID                models.FeedID `help:"ID of feed"`
+	FeedID                models.FeedID `help:"ID of feed"                                   validate:"required,startswith=feed_"`
 	Interval              string        `help:"update the interval to the given value"`
 	FetchItemDescriptions bool          `help:"always fetch item descriptions when updating"`
 }
@@ -164,8 +164,8 @@ func (c *UpdateFeedCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := validation.Validate.Var(c.FeedID, "required,startswith=feed_"); err != nil {
-		return fmt.Errorf("invalid feed: %w", err)
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
 	}
 
 	feed, err := service.GetFeed(ctx, c.FeedID)
