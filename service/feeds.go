@@ -23,6 +23,8 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -115,6 +117,65 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 			slog.String("feed_id", feed.GetID()),
 		)
 	}
+	return nil
+}
+
+// ApplyFeedUpdates takes an existing feed and new feed data, compares the two, updates any fields as appropriate and
+// writes the updated feed back to the database. The lastFetched parameter indicates when the new data was fetched and
+// will always be updated in the database for the feed, regardless if the old and new feed data is the same.
+func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+	// If the feed does not have categories, use the classifier to generate some.
+	if len(oldData.GetCategories()) == 0 {
+		slogctx.FromCtx(ctx).Info("Feed needs classifying")
+		// newData.Categories = service.ClassifyFeed(ctx, newData)
+	} else {
+		newData.Categories = oldData.Categories
+	}
+	// Compare new/old feed data and update as appropriate.
+	if diff := cmp.Diff(
+		*oldData,
+		*newData,
+		cmpopts.IgnoreFields(
+			models.Feed{},
+			"Updated",
+			"Published",
+			"LastFetched",
+			"CreatedAt",
+			"FetchOptions",
+			"SourceData",
+		),
+		cmpopts.EquateEmpty(),
+		cmpopts.IgnoreUnexported(),
+	); diff != "" {
+		// Update feed data.
+		newData.LastFetched = lastFetched
+		newData.Updated = new(time.Now().UTC())
+		if err := bulk.AddAction(ctx,
+			bulk.NewAction(
+				newData,
+				bulk.AsOperation[models.FeedID](bulk.OpIndex),
+				bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+			),
+		); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
+	} else {
+		// No changes. Just update last_fetched.
+		if err := bulk.AddAction(ctx,
+			bulk.NewAction(&bulk.PartialDocument{
+				Parts: map[string]any{
+					"last_fetched": lastFetched,
+				},
+				ID: newData.GetID(),
+			},
+				bulk.AsOperation[string](bulk.OpUpdate),
+				bulk.ToIndex[string](schema.FeedsIndexRW()),
+			),
+		); err != nil {
+			return fmt.Errorf("update feed last_fetched: %w", err)
+		}
+	}
+
 	return nil
 }
 

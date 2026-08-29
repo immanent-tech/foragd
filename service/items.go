@@ -488,14 +488,21 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 }
 
 func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, error) {
-	var itemContentBuf bytes.Buffer
+	// Create a buffer for the feed data.
+	itemContentBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return nil, errors.New("get item content buffer failed")
+	}
+	itemContentBuf.Reset()
+	defer bufPool.Put(itemContentBuf)
+
 	// Try to load content from the article cache.
 	if err := loaditemPageCache(); err != nil {
 		slogctx.FromCtx(ctx).Debug("Unable to load item content cache.",
 			slog.Any("error", err),
 		)
 	} else {
-		if err := itemPageCache.Copy(ctx, item.GetID(), &itemContentBuf); err != nil {
+		if err := itemPageCache.Copy(ctx, item.GetID(), itemContentBuf); err != nil {
 			if !errors.Is(err, fs.ErrNotExist) {
 				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
 					slog.Any("error", err),
@@ -514,7 +521,7 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 			return nil, fmt.Errorf("write fetched item content to buffer: %w", err)
 		}
 	}
-	return &itemContentBuf, nil
+	return itemContentBuf, nil
 }
 
 func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {

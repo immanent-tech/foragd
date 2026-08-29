@@ -137,10 +137,15 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return nil
 	}
 	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+		const maxConcurrentEnrichment = 25
+		sem := make(chan struct{}, maxConcurrentEnrichment)
+		defer close(sem)
 		// Try to enrich item with additional data if possible.
 		var wg sync.WaitGroup
 		for item := range slices.Values(newItems) {
+			sem <- struct{}{}
 			wg.Go(func() {
+				defer func() { <-sem }()
 				if err := service.EnrichItem(ctx, feed, item); err != nil {
 					slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 						slog.Any("error", err),
@@ -167,7 +172,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			}
 			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 			// newer articles where a feed lags behind real-time.
-			if err := updateFeed(
+			if err := service.ApplyFeedUpdates(
 				ctx,
 				details,
 				feed,
@@ -250,62 +255,6 @@ func addItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	}
 
 	return results, nil
-}
-
-func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
-	// If the feed does not have categories, use the classifier to generate some.
-	if len(oldData.GetCategories()) == 0 {
-		slogctx.FromCtx(ctx).Info("Feed needs classifying")
-		// newData.Categories = service.ClassifyFeed(ctx, newData)
-	} else {
-		newData.Categories = oldData.Categories
-	}
-	// Compare new/old feed data and update as appropriate.
-	if diff := cmp.Diff(
-		*oldData,
-		*newData,
-		cmpopts.IgnoreFields(
-			models.Feed{},
-			"Updated",
-			"Published",
-			"LastFetched",
-			"CreatedAt",
-			"FetchOptions",
-			"SourceData",
-		),
-		cmpopts.EquateEmpty(),
-		cmpopts.IgnoreUnexported(),
-	); diff != "" {
-		// Update feed data.
-		newData.LastFetched = lastFetched
-		newData.Updated = new(time.Now().UTC())
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(
-				newData,
-				bulk.AsOperation[models.FeedID](bulk.OpIndex),
-				bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
-			),
-		); err != nil {
-			return fmt.Errorf("update feed: %w", err)
-		}
-	} else {
-		// No changes. Just update last_fetched.
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(&bulk.PartialDocument{
-				Parts: map[string]any{
-					"last_fetched": lastFetched,
-				},
-				ID: newData.GetID(),
-			},
-				bulk.AsOperation[string](bulk.OpUpdate),
-				bulk.ToIndex[string](schema.FeedsIndexRW()),
-			),
-		); err != nil {
-			return fmt.Errorf("update feed last_fetched: %w", err)
-		}
-	}
-
-	return nil
 }
 
 type feedStatusLogMsg struct {
