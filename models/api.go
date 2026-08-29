@@ -9,7 +9,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 )
 
-func (r *GetSubscriptionsSuggestionRequest) Valid() error {
+func (r *GetSubscriptionsSuggestionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription suggestion is invalid: %w", err)
 	}
@@ -21,7 +21,7 @@ func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
 	return nil
 }
 
-func (r *AddSubscriptionToSearchRequest) Valid() error {
+func (r *AddSubscriptionToSearchRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription suggestion is invalid: %w", err)
 	}
@@ -33,7 +33,7 @@ func (r *AddSubscriptionToSearchRequest) Sanitise() error {
 	return nil
 }
 
-func (r *AddCategoryToSubscriptionRequest) Valid() error {
+func (r *AddCategoryToSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("add subscription category request is invalid: %w", err)
 	}
@@ -48,7 +48,7 @@ func (r *AddCategoryToSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-func (r *FeedSubscriptionRequest) Valid() error {
+func (r *FeedSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("add subscription category request is invalid: %w", err)
 	}
@@ -80,7 +80,7 @@ func NewGroupSubscriptionRequest(
 	}
 }
 
-func (r *GroupSubscriptionRequest) Valid() error {
+func (r *GroupSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("group subscription error: %w", err)
 	}
@@ -97,7 +97,7 @@ func (r *GroupSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-func (r *AddSubscriptionToGroupRequest) Valid() error {
+func (r *AddSubscriptionToGroupRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("add subscription to group error: %w", err)
 	}
@@ -109,7 +109,7 @@ func (r *AddSubscriptionToGroupRequest) Sanitise() error {
 	return nil
 }
 
-func (r *ContactRequest) Valid() error {
+func (r *ContactRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("contact request invalid: %w", err)
 	}
@@ -122,7 +122,7 @@ func (r *ContactRequest) Sanitise() error {
 	return nil
 }
 
-func (r *DeactivationRequest) Valid() error {
+func (r *DeactivationRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("contact request invalid: %w", err)
 	}
@@ -136,7 +136,7 @@ func (r *DeactivationRequest) Sanitise() error {
 	return nil
 }
 
-func (r *NextArticleRequest) Valid() error {
+func (r *NextArticleRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate next article request: %w", err)
 	}

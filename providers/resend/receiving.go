@@ -66,7 +66,7 @@ func (e *ReceivedEmail) GetFrom() *mail.Address {
 }
 
 // Valid returns a non-nil error when the ReceivedEmail contains invalid fields.
-func (e *ReceivedEmail) Valid() error {
+func (e *ReceivedEmail) Validate() error {
 	if err := validation.Validate.Var(e.From, "required,email"); err != nil {
 		return fmt.Errorf("%w: from: %w", ErrInvalidEmail, err)
 	}

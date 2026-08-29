@@ -43,7 +43,7 @@ func NewTemplatedEmail(templateID string, options ...EmailOption) (*Email, error
 		option(email)
 	}
 
-	if err := email.Valid(); err != nil {
+	if err := email.Validate(); err != nil {
 		return nil, fmt.Errorf("validate email: %w", err)
 	}
 
@@ -85,7 +85,7 @@ func (e *Email) SetRemoteAttachment(attachment *Attachment) {
 	e.attachments = append(e.attachments, attachment.Attachment)
 }
 
-func (e *Email) Valid() error {
+func (e *Email) Validate() error {
 	if len(e.To) == 0 && len(e.Bcc) == 0 && len(e.Cc) == 0 {
 		// Must have a To, Cc, or Bcc.
 		return fmt.Errorf("%w: no address(es) specified", ErrInvalidEmail)
@@ -204,7 +204,7 @@ func SendEmail(ctx context.Context, options ...EmailOption) error {
 		option(email)
 	}
 
-	if err := email.Valid(); err != nil {
+	if err := email.Validate(); err != nil {
 		return fmt.Errorf("email is not valid: %w", err)
 	}
 

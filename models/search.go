@@ -83,7 +83,7 @@ func NewSearchRequest() *SearchRequest {
 }
 
 // Valid returns a boolean indicating whether the search request data is valid.
-func (r *SearchRequest) Valid() error {
+func (r *SearchRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("search request is invalid: %w", err)
 	}
@@ -207,7 +207,7 @@ func SearchCountFromSession(ctx context.Context) int {
 }
 
 // Valid returns a boolean indicating whether the add subscription search filter data is valid.
-func (r *AddSubscriptionSearchFilterRequest) Valid() error {
+func (r *AddSubscriptionSearchFilterRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription search filer is invalid: %w", err)
 	}

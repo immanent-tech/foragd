@@ -136,7 +136,7 @@ func (a Articles) FilterByView(view View) Articles {
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (a *Article) Valid() error {
+func (a *Article) Validate() error {
 	if err := validation.Validate.Struct(a); err != nil {
 		return fmt.Errorf("article is invalid: %w", err)
 	}
@@ -311,7 +311,7 @@ func (a *Article) GetObjectType() ObjectType {
 }
 
 // Valid ensures that the MarkArticlesRequest contains valid data.
-func (r *MarkArticlesRequest) Valid() error {
+func (r *MarkArticlesRequest) Validate() error {
 	for key, value := range r.DisplayedArticles {
 		err := validation.Validate.Var(key, "startswith=sub_")
 		if err != nil {
@@ -330,7 +330,7 @@ func (r *MarkArticlesRequest) Sanitise() error {
 	return nil
 }
 
-func (r *MarkArticleRequest) Valid() error {
+func (r *MarkArticleRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate mark article request: %w", err)
 	}
@@ -341,7 +341,7 @@ func (r *MarkArticleRequest) Sanitise() error {
 	return nil
 }
 
-func (r *FavoriteArticleRequest) Valid() error {
+func (r *FavoriteArticleRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate favorite article request: %w", err)
 	}
@@ -352,7 +352,7 @@ func (r *FavoriteArticleRequest) Sanitise() error {
 	return nil
 }
 
-func (r *ShareArticleRequest) Valid() error {
+func (r *ShareArticleRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate share article request: %w", err)
 	}

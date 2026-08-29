@@ -15,7 +15,7 @@ import (
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s FeedSubscription) Valid() error {
+func (s FeedSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("feed subscription is invalid: %w", err)
 	}
@@ -27,7 +27,7 @@ func (s *FeedSubscription) GetFeedID() FeedID {
 	return s.FeedID
 }
 
-func (f AddFeedSubscriptionRequest) Valid() error {
+func (f AddFeedSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("validate add subscription request: %w", err)
 	}
@@ -42,14 +42,14 @@ func (f *AddFeedSubscriptionRequest) Sanitise() error {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s SearchSubscription) Valid() error {
+func (s SearchSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("validate search subscription: %w", err)
 	}
 	return nil
 }
 
-func (r SearchSubscriptionRequest) Valid() error {
+func (r SearchSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription validation error: %w", err)
 	}
@@ -70,7 +70,7 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s GroupSubscription) Valid() error {
+func (s GroupSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("validate group subscription: %w", err)
 	}
@@ -95,7 +95,7 @@ func (s GroupSubscription) GetGroupedSubscriptionFeedIDs() []FeedID {
 	return ids
 }
 
-func (r GroupSubscriptionSuggestionRequest) Valid() error {
+func (r GroupSubscriptionSuggestionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription suggestion request is invalid: %w", err)
 	}
@@ -108,7 +108,7 @@ func (r *GroupSubscriptionSuggestionRequest) Sanitise() error {
 }
 
 // Valid returns a non-nil error if the EmailSubscription contains invalid data.
-func (s EmailSubscription) Valid() error {
+func (s EmailSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("email subscription is invalid: %w", err)
 	}
@@ -117,7 +117,7 @@ func (s EmailSubscription) Valid() error {
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r EditEmailSubscriptionRequest) Valid() error {
+func (r EditEmailSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("email subscription validation error: %w", err)
 	}
@@ -134,7 +134,7 @@ func (r *EditEmailSubscriptionRequest) Sanitise() error {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s Subscription) Valid() error {
+func (s Subscription) Validate() error {
 	// Subscriptions require a nickname set.
 	if s.Customisation.GetNickname() == "" {
 		return fmt.Errorf("validate subscription: %w: nickname is required", validation.ErrInvalid)
@@ -626,18 +626,18 @@ func GetCategoryCounts(subscriptions ...*Subscription) CategoryCounts {
 }
 
 // Valid will return an error if the request object does not pass validation.
-func (r *ListRequest) Valid() error {
+func (r *ListRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate list subscription request: %w", err)
 	}
-	if err := r.Filters.Valid(); err != nil {
+	if err := r.Filters.Validate(); err != nil {
 		return fmt.Errorf("validate filters: %w", err)
 	}
 	return nil
 }
 
 // Valid checks that the MarkSubscriptionRequest contains valid data.
-func (s *MarkSubscriptionRequest) Valid() error {
+func (s *MarkSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("mark subscription request is invalid: %w", err)
 	}
@@ -650,7 +650,7 @@ func (s *MarkSubscriptionRequest) Sanitise() error {
 }
 
 // Valid checks that the MarkSubscriptionsRequest contains valid data.
-func (s *MarkSubscriptionsRequest) Valid() error {
+func (s *MarkSubscriptionsRequest) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("mark subscriptions request is invalid: %w", err)
 	}
@@ -669,7 +669,7 @@ func (s *MarkSubscriptionsRequest) Sanitise() error {
 }
 
 // Valid checks that the FavoriteSubscriptionsRequest contains valid data.
-func (s *FavoriteSubscriptionRequest) Valid() error {
+func (s *FavoriteSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("favorite subscriptions request is invalid: %w", err)
 	}
@@ -682,7 +682,7 @@ func (s *FavoriteSubscriptionRequest) Sanitise() error {
 }
 
 // Valid checks that the RemoveSubscriptionRequest contains valid data.
-func (r *RemoveSubscriptionRequest) Valid() error {
+func (r *RemoveSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("remove subscription request is invalid: %w", err)
 	}
@@ -742,7 +742,7 @@ func (c *SubscriptionCustomisation) GetCategories() Categories {
 	return c.Categories
 }
 
-func (c *SubscriptionCustomisation) Valid() error {
+func (c *SubscriptionCustomisation) Validate() error {
 	if err := validation.Validate.Struct(c); err != nil {
 		return fmt.Errorf("validate subscription customisation: %w", err)
 	}
@@ -763,7 +763,7 @@ func (c *SubscriptionCustomisation) Sanitise() error {
 	return nil
 }
 
-func (f ArticleFilters) Valid() error {
+func (f ArticleFilters) Validate() error {
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("validate article filters: %w", err)
 	}

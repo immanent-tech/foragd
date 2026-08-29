@@ -83,7 +83,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		request := &models.ListRequest{
 			Filters: *models.ListFiltersFromCtx(req.Context()),
 		}
-		if err := request.Valid(); err != nil {
+		if err := request.Validate(); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("validate request: %w", err),
@@ -447,7 +447,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 			SubscriptionID: chi.URLParam(req, "subscription_id"),
 			Nickname:       req.FormValue("nickname"),
 		}
-		if err := request.Valid(); err != nil {
+		if err := request.Validate(); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("validate remove subscription request: %w", err),
@@ -1208,7 +1208,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 				return
 			}
 			// Validate subscription.
-			if err = subscription.Valid(); err != nil {
+			if err = subscription.Validate(); err != nil {
 				HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("validate group subscription: %w", err),

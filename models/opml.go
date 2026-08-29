@@ -23,7 +23,7 @@ type OPMLFile struct {
 
 // Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
 // will contain details about validation failures.
-func (f *OPMLFile) Valid() (bool, error) {
+func (f *OPMLFile) Validate() (bool, error) {
 	mediaType, err := f.ParseMimetype()
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrInvalidMimeType, err)
@@ -76,7 +76,7 @@ func GenerateRequestsFromOutlines(outlines ...opml.Outline) []FeedSubscriptionRe
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *AddFeedsetRequest) Valid() error {
+func (r *AddFeedsetRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("add feedset validation error: %w", err)
 	}

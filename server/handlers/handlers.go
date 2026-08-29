@@ -97,7 +97,7 @@ func decodeMultipartFile(req *http.Request, field string) (*models.FileUpload, e
 		Header: hdr,
 	}
 	// Validate file upload.
-	if err := upload.Valid(); err != nil {
+	if err := upload.Validate(); err != nil {
 		return nil, fmt.Errorf("validate file upload: %w", err)
 	}
 	return upload, nil

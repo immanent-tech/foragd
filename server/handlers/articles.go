@@ -75,7 +75,7 @@ func HandleListArticles() http.HandlerFunc {
 		request := &models.ListRequest{
 			Filters: *models.ListFiltersFromCtx(req.Context()),
 		}
-		if err := request.Valid(); err != nil {
+		if err := request.Validate(); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("parse query values: %w", err),

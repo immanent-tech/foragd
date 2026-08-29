@@ -69,7 +69,7 @@ func (c CategoryCounts) Limit(count int) CategoryCounts {
 	return c[:count]
 }
 
-func (r *ListSubscriptionCategoriesRequest) Valid() error {
+func (r *ListSubscriptionCategoriesRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("list subscription categories request is invalid: %w", err)
 	}

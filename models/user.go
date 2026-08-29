@@ -152,7 +152,7 @@ func (u *User) HasValidSubscription() bool {
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *UserSettings) Valid() error {
+func (s *UserSettings) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user settings: %w", err)
 	}
@@ -192,7 +192,7 @@ func (s *UserSettings) GetAuthorFilters() *string {
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *UserMetadata) Valid() error {
+func (s *UserMetadata) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user metadata: %w", err)
 	}
@@ -201,7 +201,7 @@ func (s *UserMetadata) Valid() error {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *EditUserRequest) Valid() error {
+func (s *EditUserRequest) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}
@@ -216,7 +216,7 @@ func (s *EditUserRequest) Sanitise() error {
 }
 
 // Valid returns a boolean indicating whether the ChangePasswordRequest contains valid data.
-func (r *ChangePasswordRequest) Valid() error {
+func (r *ChangePasswordRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}

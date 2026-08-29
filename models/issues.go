@@ -5,7 +5,7 @@ package models
 
 import "github.com/immanent-tech/go-base/validation"
 
-func (i *ReportIssueRequest) Valid() error {
+func (i *ReportIssueRequest) Validate() error {
 	if err := validation.Validate.Struct(i); err != nil {
 		return err
 	}

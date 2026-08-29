@@ -256,7 +256,7 @@ func NewFeedSubscription(
 	}
 
 	// Validate.
-	if err := subscription.Valid(); err != nil {
+	if err := subscription.Validate(); err != nil {
 		return nil, fmt.Errorf("new feed subscription: %w", err)
 	}
 
@@ -289,6 +289,7 @@ func EditFeedSubscription(
 			subscription.FeedData.ArticleFilters.Categories = edits.ArticleFilters.Categories
 		}
 	}
+
 	return nil
 }
 
@@ -990,7 +991,7 @@ func CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSu
 		if err != nil {
 			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
 		}
-		err = subscription.Valid()
+		err = subscription.Validate()
 		if err != nil {
 			return fmt.Errorf("create search subscription: invalid data: %w", err)
 		}

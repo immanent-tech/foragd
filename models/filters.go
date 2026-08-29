@@ -178,7 +178,7 @@ func (f *ListFilters) Sanitise() error {
 }
 
 // Valid will return a boolean indicating whether the filters are valid and a non-nil error with details if not.
-func (f ListFilters) Valid() error {
+func (f ListFilters) Validate() error {
 	switch {
 	case f.From != nil && (f.UpTo != nil || f.SearchAfter != nil):
 		return errors.New("invalid filters: from can only be set if upto or searchAfter is unset")

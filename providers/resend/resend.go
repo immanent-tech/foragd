@@ -128,7 +128,7 @@ func ForwardAdminEmail(ctx context.Context, received *EmailRecieved) error {
 	if err != nil {
 		return fmt.Errorf("parse email: %w", err)
 	}
-	if err := email.Valid(); err != nil {
+	if err := email.Validate(); err != nil {
 		return fmt.Errorf("validate email: %w", err)
 	}
 

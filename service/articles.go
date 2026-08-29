@@ -334,7 +334,7 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 		// Toggle marking read on view.
 		article.MarkArticleReadOnView = user.GetSettings().MarkArticleReadOnView
 		// Validate the article.
-		if err := article.Valid(); err != nil {
+		if err := article.Validate(); err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
 				slog.String("item_id", item.GetID()),
