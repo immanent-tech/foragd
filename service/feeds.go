@@ -453,7 +453,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
 			),
 			query.Should(
-				// For URLs, match with and without a trailing slash. Boost source_urls over url.
+				// For URLs, match with and without a trailing slash. Boost source_URLs over URL.
 				query.Term(
 					"source_urls",
 					strings.TrimSuffix(parsedURL.String(), "/"),
@@ -467,7 +467,8 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				query.Term("source_urls", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.Term("url", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](5.0)),
 				// Match the URL domain.
-				query.Term("domain.raw", parsedURL.Hostname(), query.WithQueryBoost[*query.TermQuery](10.0)),
+				query.Match("domain", parsedURL.Hostname()),
+				query.Term("domain.raw", parsedURL.Hostname(), query.WithQueryBoost[*query.TermQuery](15.0)),
 			),
 		)
 	default:
@@ -498,7 +499,7 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				query.Term("categories", text),
 				// Try to match the domain.
 				query.Match("domain", text),
-				query.Term("domain", text),
+				query.Term("domain.raw", text, query.WithQueryBoost[*query.TermQuery](15.0)),
 			),
 		)
 	}
