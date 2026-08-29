@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.222.0](https://github.com/immanent-tech/foragd/compare/v0.221.2...v0.222.0) (2026-08-29)
+
+
+### Features
+
+* ✨ support generating feeds from sites without a native feed ([8d70463](https://github.com/immanent-tech/foragd/commit/8d70463a7cf099018e006071d8ac74adb5f08fa5))
+* **comparisons:** ➕ add comparison to FreshRSS ([6e07b93](https://github.com/immanent-tech/foragd/commit/6e07b939e51aa4905930fcf1776c6eea2c3730ba))
+
+
+### Bug Fixes
+
+* 🔧 fix group subscriptions not showing articles list when clicked ([5ff00e1](https://github.com/immanent-tech/foragd/commit/5ff00e1fa266391913c50bd755b8cdcd9841b165))
+* 🔧 rename Valid() to Validate() as per go-base changes ([82283e4](https://github.com/immanent-tech/foragd/commit/82283e435d359e1e8b208a1b940e1cae54c0c481))
+* **cli:** 🔧 better validation of feed cli commands arguments ([a78f715](https://github.com/immanent-tech/foragd/commit/a78f715d5d4ad0e595e21c9ba2f5d3bb736e1005))
+* **providers/elastic:** 🗑️ remove debug logging ([44fd93a](https://github.com/immanent-tech/foragd/commit/44fd93a5dbd610c475eab7ec9ca88f0be4f0427a))
+* **templates/article:** 🎨 avoid long feed titles in badges ([91177eb](https://github.com/immanent-tech/foragd/commit/91177eb8218fd78029d148adf45035bc35d5d601))
+* **templates/settings:** ➕ explicitly mention there are no limits for search and group subscriptions in subscription settings ([de1d058](https://github.com/immanent-tech/foragd/commit/de1d0588c5153449b2de1c5f40c93ec1aead295d))
+
+
+### Performance Improvements
+
+* **service:** ⚡ improved article/item caching ([9de2133](https://github.com/immanent-tech/foragd/commit/9de2133437463fc5692802e84389291c187d3516))
+
 ## [0.221.2](https://github.com/immanent-tech/foragd/compare/v0.221.1...v0.221.2) (2026-08-27)
 
 
