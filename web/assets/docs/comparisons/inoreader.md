@@ -1,7 +1,7 @@
 +++
 title = "Foragd vs Inoreader Feed Reader Comparison"
 page_title = "Foragd vs Inoreader Feed Reader Comparison"
-description = "A comparison of Foragd and Inoreader, by price features and functionality"
+description = "A comparison of Foragd and Inoreader, by price, features and functionality"
 created_at = "2026-06-25"
 updated_at = "2026-07-20"
 author = "Joshua Rich"

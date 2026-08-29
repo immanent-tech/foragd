@@ -1,7 +1,7 @@
 +++
 title = "Foragd vs Feedly Feed Reader Comparison"
 page_title = "Foragd vs Feedly Feed Reader Comparison"
-description = "A comparison of Foragd and Feedly, by price features and functionality"
+description = "A comparison of Foragd and Feedly, by price, features and functionality"
 created_at = "2026-06-25"
 updated_at = "2026-07-20"
 author = "Joshua Rich"
@@ -19,7 +19,6 @@ at USD $4.92/month billed annually. Feedly's base plan at $6.99/month with a 100
 This page further breaks down the key differences to help you choose.
 
 ## Feature Comparison at a Glance
-
 
 | Feature                        | Foragd                                                 | Feedly (base plan)       |
 | ------------------------------ | ------------------------------------------------------ | ------------------------ |
