@@ -3902,7 +3902,7 @@ func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes
 		element.WithHXMethod(http.MethodGet, "/list/articles")(props)
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
-		filters.Subscriptions = s.GroupData.Subscriptions
+		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
@@ -3932,7 +3932,7 @@ func subscriptionViewArticlesLink(s *models.Subscription) string {
 		return "/list/articles?" + filters.Encode()
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
-		filters.Subscriptions = s.GroupData.Subscriptions
+		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {

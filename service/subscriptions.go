@@ -11,6 +11,8 @@ import (
 	"maps"
 	"net/mail"
 	"slices"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,7 +20,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -219,6 +224,276 @@ func GetSubscriptionsByID(
 	return slices.Collect(maps.Values(results)), nil
 }
 
+// NewFeedSubscription creates a new subscription for a feed with any user customisations given.
+func NewFeedSubscription(
+	ctx context.Context,
+	feed *models.Feed,
+	customisation *models.SubscriptionCustomisation,
+) (*models.Subscription, error) {
+	// Create state based on feed and user data.
+	feedSubscription := &models.FeedSubscription{
+		FeedID:        feed.GetID(),
+		ArticleStates: make(map[models.ItemID]models.ArticleState),
+	}
+
+	// Set up subscription customisation.
+	if customisation == nil {
+		customisation = &models.SubscriptionCustomisation{}
+	}
+	// Make sure nickname is not empty.
+	if customisation.GetNickname() == "" {
+		customisation.Nickname = new(feed.GetTitle())
+	}
+	// Add the feed image if the user has not specified one.
+	if customisation.ImageURL == nil && feed.GetImage() != nil {
+		customisation.ImageURL = new(feed.GetImage().GetURL())
+	}
+
+	// Create the subscription with the feed data and customisations.
+	subscription, err := newBaseSubscription(ctx, *customisation, &models.SubscriptionSettings{}, feedSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("new feed subscription: %w", err)
+	}
+
+	// Validate.
+	if err := subscription.Valid(); err != nil {
+		return nil, fmt.Errorf("new feed subscription: %w", err)
+	}
+
+	return subscription, nil
+}
+
+func EditFeedSubscription(
+	ctx context.Context,
+	subscription *models.Subscription,
+	edits *models.FeedSubscriptionRequest,
+) error {
+	// Update customisation.
+	subscription.Customisation = edits.Customisation
+	// Update settings.
+	if edits.Settings != nil {
+		subscription.Settings = *edits.Settings
+	}
+	// Update article filters.
+	if edits.ArticleFilters != nil {
+		if subscription.FeedData.ArticleFilters == nil {
+			subscription.FeedData.ArticleFilters = &models.ArticleFilters{}
+		}
+		if edits.ArticleFilters.Text != nil {
+			subscription.FeedData.ArticleFilters.Text = edits.ArticleFilters.Text
+		}
+		if edits.ArticleFilters.Authors != nil {
+			subscription.FeedData.ArticleFilters.Authors = edits.ArticleFilters.Authors
+		}
+		if edits.ArticleFilters.Categories != nil {
+			subscription.FeedData.ArticleFilters.Categories = edits.ArticleFilters.Categories
+		}
+	}
+	return nil
+}
+
+// NewGroupSubscription creates a GroupSubscription. A GroupSubscription is a kind of meta-subscription that aggregates
+// all articles from multiple individual subscriptions into a single custom subscription.
+func NewGroupSubscription(ctx context.Context, request *models.GroupSubscriptionRequest) (*models.Subscription, error) {
+	// Get details of the grouped subscriptions.
+	grouped, err := GetSubscriptionsByID(ctx, slices.Collect(maps.Keys(request.Subscriptions))...)
+	if err != nil {
+		return nil, fmt.Errorf("get grouped subscription details: %w", err)
+	}
+	//
+	groupSubscription := &models.GroupSubscription{
+		Subscriptions: slices.Collect(maps.Keys(request.Subscriptions)),
+		Metadata:      make([]models.GroupedSubscriptionMetadata, 0, len(grouped)),
+	}
+	for subscription := range slices.Values(grouped) {
+		groupSubscription.Metadata = append(groupSubscription.Metadata, models.GroupedSubscriptionMetadata{
+			SubscriptionID: subscription.GetID(),
+			FeedID:         subscription.GetFeedID(),
+		})
+	}
+
+	subscription, err := newBaseSubscription(ctx, *request.Customisation, request.Settings, groupSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("create subscription: %w", err)
+	}
+	subscription.Favorite = true
+	return subscription, nil
+}
+
+func EditGroupSubscription(
+	ctx context.Context,
+	subscription *models.Subscription,
+	edits *models.GroupSubscriptionRequest,
+) error {
+	// Update customisation.
+	subscription.Customisation = edits.Customisation
+	// Update settings.
+	if edits.Settings != nil {
+		subscription.Settings = *edits.Settings
+	}
+	// Update grouped subscriptions.
+	grouped, err := GetSubscriptionsByID(ctx, slices.Collect(maps.Keys(edits.Subscriptions))...)
+	if err != nil {
+		return fmt.Errorf("get grouped subscription details: %w", err)
+	}
+	subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(edits.Subscriptions))
+	for subscription := range slices.Values(grouped) {
+		subscription.GroupData.Metadata = append(subscription.GroupData.Metadata, models.GroupedSubscriptionMetadata{
+			SubscriptionID: subscription.GetID(),
+			FeedID:         subscription.GetFeedID(),
+		})
+	}
+	// Update article filters.
+	if edits.ArticleFilters != nil {
+		if subscription.GroupData.ArticleFilters == nil {
+			subscription.GroupData.ArticleFilters = &models.ArticleFilters{}
+		}
+		if edits.ArticleFilters.Text != nil {
+			subscription.GroupData.ArticleFilters.Text = edits.ArticleFilters.Text
+		}
+		if edits.ArticleFilters.Authors != nil {
+			subscription.GroupData.ArticleFilters.Authors = edits.ArticleFilters.Authors
+		}
+		if edits.ArticleFilters.Categories != nil {
+			subscription.GroupData.ArticleFilters.Categories = edits.ArticleFilters.Categories
+		}
+	}
+	return nil
+}
+
+// NewSearchSubscription creates a new SearchSubscription. A SearchSubscription collates articles that match a search
+// into a single custom subscription.
+func NewSearchSubscription(
+	ctx context.Context,
+	request *models.SearchSubscriptionRequest,
+) (*models.Subscription, error) {
+	searchSubscription := &models.SearchSubscription{
+		Search: request.Search,
+	}
+	subscription, err := newBaseSubscription(ctx, *request.Customisation, request.Settings, searchSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("new search subscription: %w", err)
+	}
+	subscription.Favorite = true
+	return subscription, nil
+}
+
+func EditSearchSubscription(
+	ctx context.Context,
+	subscription *models.Subscription,
+	edits *models.SearchSubscriptionRequest,
+) error {
+	// Update customisation.
+	subscription.Customisation = edits.Customisation
+	// Update settings.
+	if edits.Settings != nil {
+		subscription.Settings = *edits.Settings
+	}
+	// Update search.
+	subscription.SearchData.Search = edits.Search
+	return nil
+}
+
+func NewEmailSubscription(
+	ctx context.Context,
+	userID models.UserID,
+	from *mail.Address,
+) (*models.Subscription, error) {
+	// Validate sender address.
+	if from.Address == "" {
+		return nil, fmt.Errorf("%w: blank sender address", validation.ErrInvalid)
+	}
+	if err := validation.Validate.Var(from.Address, "required,email"); err != nil {
+		return nil, fmt.Errorf("%w: sender address: %w", validation.ErrInvalid, err)
+	}
+
+	emailSubscription := &models.EmailSubscription{
+		EmailSenderID: from.Address,
+	}
+	customisation := &models.SubscriptionCustomisation{
+		Nickname: new(from.String()),
+	}
+	settings := &models.SubscriptionSettings{}
+
+	subscription, err := newBaseSubscription(ctx, *customisation, settings, emailSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("new group subscription: %w", err)
+	}
+
+	// Override the default SubscriptionID generation
+	subscription.SubscriptionID = "sub_" + strconv.FormatUint(
+		xxh3.Hash([]byte(userID+from.Address)),
+		10,
+	)
+
+	// Generate a "virtual" FeedID.
+	subscription.EmailData.FeedID = strings.ReplaceAll(subscription.GetID(), "sub_", "feed_")
+
+	return subscription, nil
+}
+
+func EditEmailSubscription(
+	ctx context.Context,
+	subscription *models.Subscription,
+	edits *models.EditEmailSubscriptionRequest,
+) error {
+	// Update customisation.
+	subscription.Customisation = edits.Customisation
+	// Update settings.
+	if edits.Settings != nil {
+		subscription.Settings = *edits.Settings
+	}
+	return nil
+}
+
+func newBaseSubscription(
+	ctx context.Context,
+	customisation models.SubscriptionCustomisation,
+	settings *models.SubscriptionSettings,
+	data any,
+) (*models.Subscription, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	ts := time.Now().UTC()
+	maxHistory := user.GetMaxHistory()
+	subscription := &models.Subscription{
+		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.GetNickname())), 10),
+		UserID:         user.GetID(),
+		UpdatedAt:      &ts,
+		CreatedAt:      ts,
+		MarkedReadAt:   &maxHistory,
+		Customisation:  &customisation,
+		Settings:       models.SubscriptionSettings{},
+		Favorite:       false,
+	}
+	if settings != nil {
+		subscription.Settings = *settings
+	}
+
+	switch typeData := data.(type) {
+	case *models.FeedSubscription:
+		subscription.Type = models.SubscriptionTypeFeed
+		subscription.FeedData = typeData
+	case *models.SearchSubscription:
+		subscription.Type = models.SubscriptionTypeSearch
+		subscription.SearchData = typeData
+		subscription.Favorite = true
+	case *models.GroupSubscription:
+		subscription.Type = models.SubscriptionTypeGroup
+		subscription.GroupData = typeData
+		subscription.Favorite = true
+	case *models.EmailSubscription:
+		subscription.Type = models.SubscriptionTypeEmail
+		subscription.EmailData = typeData
+	default:
+		return nil, fmt.Errorf("new subscription: %w", models.ErrInvalidAPIResult)
+	}
+
+	return subscription, nil
+}
+
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
 	user := models.UserFromCtx(ctx)
@@ -330,7 +605,7 @@ func MarkSubscriptions(
 
 	for subscription := range slices.Values(subscriptions) {
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
-			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
+			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.GetGroupedSubscriptionIDs()...); err != nil {
 				return fmt.Errorf("mark group subscription: %w", err)
 			}
 		} else {
@@ -711,7 +986,7 @@ func CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSu
 			slog.String("feed", request.Customisation.GetNickname()),
 		)
 		// Generate metadata.
-		subscription, err := models.NewSearchSubscription(ctx, request)
+		subscription, err := NewSearchSubscription(ctx, request)
 		if err != nil {
 			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
 		}
@@ -745,7 +1020,7 @@ func GetEmailSubscription(ctx context.Context, user *models.User, from *mail.Add
 		return nil, fmt.Errorf("%w: ambiguous subscription match for sender", models.ErrInvalidAPIResult)
 	case len(subscriptions) == 0:
 		// Create a new email subscription for this sender.
-		subscription, err = models.NewEmailSubscription(ctx, user.GetID(), from)
+		subscription, err = NewEmailSubscription(ctx, user.GetID(), from)
 		if err != nil {
 			return nil, fmt.Errorf("create email subscription: %w", err)
 		}
@@ -980,7 +1255,7 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 		var unreadCount int
 		var lastUpdates []time.Time
 		// Get the avg daily updates and last update for each subscription in the group.
-		for id := range slices.Values(subscription.GroupData.Subscriptions) {
+		for id := range slices.Values(subscription.GroupData.GetGroupedSubscriptionIDs()) {
 			childSubscription, err := GetSubscription(ctx, id)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to fetch child subscription details.",

@@ -122,7 +122,7 @@ func HandleHome() http.HandlerFunc {
 		hiddenSubscriptions := make([]models.SubscriptionID, 0)
 		if user.GetSettings().HideGrouped {
 			for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
-				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.Subscriptions...)
+				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			}
 		}
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)

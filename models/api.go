@@ -74,7 +74,7 @@ func NewGroupSubscriptionRequest(
 ) *GroupSubscriptionRequest {
 	return &GroupSubscriptionRequest{
 		Customisation:          &SubscriptionCustomisation{},
-		Settings:               newSubscriptionSettings(),
+		Settings:               &SubscriptionSettings{},
 		SuggestedSubscriptions: suggestedSubscriptions,
 		SuggestedCategories:    suggestedCategories,
 	}

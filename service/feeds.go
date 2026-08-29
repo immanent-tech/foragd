@@ -206,7 +206,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 			}
 
 			// Create feed newSubscription.
-			newSubscription, err := models.NewFeedSubscription(ctx, feed, nil)
+			newSubscription, err := NewFeedSubscription(ctx, feed, nil)
 			if err != nil {
 				resultsCh <- models.FeedSubscriptionResult{
 					Request: &request,

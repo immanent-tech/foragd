@@ -1129,7 +1129,15 @@ components:
       type: object
       required:
         - subscriptions
+        - metadata
       properties:
+        metadata:
+          description: is the list of metadata of grouped subscriptions.
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupedSubscriptionMetadata'
+          x-oapi-codegen-extra-tags:
+            validate: 'required,dive'
         subscriptions:
           description: >
             is the list of subscription IDs belonging to the group.
@@ -1144,6 +1152,17 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
+    GroupedSubscriptionMetadata:
+      description: contains metadata about a grouped subscription.
+      type: object
+      required:
+        - subscription_id
+        - feed_id
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        feed_id:
+          $ref: '#/components/schemas/FeedID'
     SearchSubscription:
       description: >
         is a custom subscription created from a search request.

@@ -5,61 +5,17 @@ package models
 
 import (
 	"cmp"
-	"context"
 	"fmt"
 	"maps"
-	"net/mail"
 	"slices"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/immanent-tech/go-base/validation"
-	"github.com/zeebo/xxh3"
 )
-
-// NewFeedSubscription creates a new subscription for a feed with any user customisations given.
-func NewFeedSubscription(
-	ctx context.Context,
-	feed *Feed,
-	customisation *SubscriptionCustomisation,
-) (*Subscription, error) {
-	// Create state based on feed and user data.
-	feedSubscription := &FeedSubscription{
-		FeedID:        feed.GetID(),
-		ArticleStates: make(map[ItemID]ArticleState),
-	}
-
-	// Set up subscription customisation.
-	if customisation == nil {
-		customisation = &SubscriptionCustomisation{}
-	}
-	// Make sure nickname is not empty.
-	if customisation.GetNickname() == "" {
-		customisation.Nickname = new(feed.GetTitle())
-	}
-	// Add the feed image if the user has not specified one.
-	if customisation.ImageURL == nil && feed.GetImage() != nil {
-		customisation.ImageURL = new(feed.GetImage().GetURL())
-	}
-
-	// Create the subscription with the feed data and customisations.
-	subscription, err := newSubscription(ctx, *customisation, newSubscriptionSettings(), feedSubscription)
-	if err != nil {
-		return nil, fmt.Errorf("new feed subscription: %w", err)
-	}
-
-	// Validate.
-	if err := subscription.Valid(); err != nil {
-		return nil, fmt.Errorf("new feed subscription: %w", err)
-	}
-
-	return subscription, nil
-}
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *FeedSubscription) Valid() error {
+func (s FeedSubscription) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("feed subscription is invalid: %w", err)
 	}
@@ -71,90 +27,88 @@ func (s *FeedSubscription) GetFeedID() FeedID {
 	return s.FeedID
 }
 
-// NewSearchSubscription creates a new SearchSubscription. A SearchSubscription collates articles that match a search
-// into a single custom subscription.
-func NewSearchSubscription(ctx context.Context, request *SearchSubscriptionRequest) (*Subscription, error) {
-	searchSubscription := &SearchSubscription{
-		Search: request.Search,
-	}
-	subscription, err := newSubscription(ctx, *request.Customisation, request.Settings, searchSubscription)
-	if err != nil {
-		return nil, fmt.Errorf("new search subscription: %w", err)
-	}
-	subscription.Favorite = true
-	return subscription, nil
-}
-
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
-// (false) a non-nil error is also returned which contains validation issues.
-func (s *SearchSubscription) Valid() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("search subscription is invalid: %w", err)
+func (f AddFeedSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(f); err != nil {
+		return fmt.Errorf("validate add subscription request: %w", err)
 	}
 	return nil
 }
 
-// NewGroupSubscription creates a GroupSubscription. A GroupSubscription is a kind of meta-subscription that aggregates
-// all articles from multiple individual subscriptions into a single custom subscription.
-func NewGroupSubscription(ctx context.Context, request *GroupSubscriptionRequest) (*Subscription, error) {
-	groupSubscription := &GroupSubscription{
-		Subscriptions: slices.Collect(maps.Keys(request.Subscriptions)),
-	}
-	subscription, err := newSubscription(ctx, *request.Customisation, request.Settings, groupSubscription)
-	if err != nil {
-		return nil, fmt.Errorf("new group subscription: %w", err)
-	}
-	subscription.Favorite = true
-	return subscription, nil
+func (f *AddFeedSubscriptionRequest) Sanitise() error {
+	f.URL = validation.SanitizeString(f.URL)
+	f.FeedID = validation.SanitizeString(f.FeedID)
+	return nil
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *GroupSubscription) Valid() error {
+func (s SearchSubscription) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("feed subscription is invalid: %w", err)
+		return fmt.Errorf("validate search subscription: %w", err)
 	}
 	return nil
 }
 
-func NewEmailSubscription(
-	ctx context.Context,
-	userID UserID,
-	from *mail.Address,
-) (*Subscription, error) {
-	// Validate sender address.
-	if from.Address == "" {
-		return nil, fmt.Errorf("%w: blank sender address", validation.ErrInvalid)
+func (r SearchSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("subscription validation error: %w", err)
 	}
-	if err := validation.Validate.Var(from.Address, "required,email"); err != nil {
-		return nil, fmt.Errorf("%w: sender address: %w", validation.ErrInvalid, err)
+	return nil
+}
+
+func (r *SearchSubscriptionRequest) Sanitise() error {
+	if err := r.Search.Sanitise(); err != nil {
+		return err
 	}
-
-	emailSubscription := &EmailSubscription{
-		EmailSenderID: from.Address,
+	if r.Customisation != nil {
+		if err := r.Customisation.Sanitise(); err != nil {
+			return fmt.Errorf("sanitise search subscription request: %w", err)
+		}
 	}
-	customisation := newSubscriptionCustomisation(from.String(), nil, nil)
-	settings := newSubscriptionSettings()
+	return nil
+}
 
-	subscription, err := newSubscription(ctx, *customisation, settings, emailSubscription)
-	if err != nil {
-		return nil, fmt.Errorf("new group subscription: %w", err)
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s GroupSubscription) Valid() error {
+	if err := validation.Validate.Struct(s); err != nil {
+		return fmt.Errorf("validate group subscription: %w", err)
 	}
+	return nil
+}
 
-	// Override the default SubscriptionID generation
-	subscription.SubscriptionID = "sub_" + strconv.FormatUint(
-		xxh3.Hash([]byte(userID+from.Address)),
-		10,
-	)
+// GetGroupedSubscriptionIDs returns the subscription IDs of the subscriptions in this group.
+func (s GroupSubscription) GetGroupedSubscriptionIDs() []SubscriptionID {
+	ids := make([]SubscriptionID, 0, len(s.Metadata))
+	for grouped := range slices.Values(s.Metadata) {
+		ids = append(ids, grouped.SubscriptionID)
+	}
+	return ids
+}
 
-	// Generate a "virtual" FeedID.
-	subscription.EmailData.FeedID = strings.ReplaceAll(subscription.GetID(), "sub_", "feed_")
+// GetGroupedSubscriptionFeedIDs returns the feed IDs associated with the subscriptions in this group.
+func (s GroupSubscription) GetGroupedSubscriptionFeedIDs() []FeedID {
+	ids := make([]FeedID, 0, len(s.Metadata))
+	for grouped := range slices.Values(s.Metadata) {
+		ids = append(ids, grouped.FeedID)
+	}
+	return ids
+}
 
-	return subscription, nil
+func (r GroupSubscriptionSuggestionRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("subscription suggestion request is invalid: %w", err)
+	}
+	return nil
+}
+
+func (r *GroupSubscriptionSuggestionRequest) Sanitise() error {
+	r.Text = validation.SanitizeString(r.Text)
+	return nil
 }
 
 // Valid returns a non-nil error if the EmailSubscription contains invalid data.
-func (s *EmailSubscription) Valid() error {
+func (s EmailSubscription) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("email subscription is invalid: %w", err)
 	}
@@ -163,7 +117,7 @@ func (s *EmailSubscription) Valid() error {
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *EditEmailSubscriptionRequest) Valid() error {
+func (r EditEmailSubscriptionRequest) Valid() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("email subscription validation error: %w", err)
 	}
@@ -180,13 +134,13 @@ func (r *EditEmailSubscriptionRequest) Sanitise() error {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *Subscription) Valid() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("subscription is invalid: %w", err)
-	}
+func (s Subscription) Valid() error {
 	// Subscriptions require a nickname set.
 	if s.Customisation.GetNickname() == "" {
-		return fmt.Errorf("%w: nickname is required", validation.ErrInvalid)
+		return fmt.Errorf("validate subscription: %w: nickname is required", validation.ErrInvalid)
+	}
+	if err := validation.Validate.Struct(s); err != nil {
+		return fmt.Errorf("validate subscription: %w", err)
 	}
 	return nil
 }
@@ -454,21 +408,6 @@ func (s Subscriptions) GetIDs() []SubscriptionID {
 	return ids
 }
 
-// GetFeedIDs returns the IDs of feeds the subscriptions are for. This may return an empty slice if the subscriptions
-// are only of type search, for example as those subscriptions do not represent any particular feed.
-func (s Subscriptions) GetFeedIDs() []FeedID {
-	ids := make([]FeedID, 0)
-	for subscription := range slices.Values(s) {
-		switch subscription.Type {
-		case SubscriptionTypeFeed, SubscriptionTypeEmail:
-			ids = append(ids, subscription.GetFeedID())
-		case SubscriptionTypeGroup:
-			ids = append(ids, subscription.GroupData.Subscriptions...)
-		}
-	}
-	return slices.Compact(ids)
-}
-
 // GetCategories returns all categories across all the subscriptions. Duplicates are removed.
 func (s Subscriptions) GetCategories() Categories {
 	categories := make(Categories, 0)
@@ -496,6 +435,21 @@ func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
 		return s[idx]
 	}
 	return nil
+}
+
+// GetFeedIDs returns the IDs of feeds the subscriptions are for. This may return an empty slice if the subscriptions
+// are only of type search, for example as those subscriptions do not represent any particular feed.
+func (s Subscriptions) GetFeedIDs() []FeedID {
+	ids := make([]FeedID, 0)
+	for subscription := range slices.Values(s) {
+		switch subscription.Type {
+		case SubscriptionTypeFeed, SubscriptionTypeEmail:
+			ids = append(ids, subscription.GetFeedID())
+		case SubscriptionTypeGroup:
+			ids = append(ids, subscription.GroupData.GetGroupedSubscriptionFeedIDs()...)
+		}
+	}
+	return slices.Compact(ids)
 }
 
 // FilterByIDs returns a new slice containing the subscriptions which have a SubscriptionID matching the given ids.
@@ -765,73 +719,10 @@ func (s *SubscriptionStats) IsUnread() bool {
 	return s.UnreadCount > 0
 }
 
-func newSubscription(
-	ctx context.Context,
-	customisation SubscriptionCustomisation,
-	settings *SubscriptionSettings,
-	data any,
-) (*Subscription, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
-	}
-	ts := time.Now().UTC()
-	maxHistory := user.GetMaxHistory()
-	subscription := &Subscription{
-		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.GetNickname())), 10),
-		UserID:         user.GetID(),
-		UpdatedAt:      &ts,
-		CreatedAt:      ts,
-		MarkedReadAt:   &maxHistory,
-		Customisation:  &customisation,
-		Settings:       *newSubscriptionSettings(),
-		Favorite:       false,
-	}
-	if settings != nil {
-		subscription.Settings = *settings
-	}
-
-	switch typeData := data.(type) {
-	case *FeedSubscription:
-		subscription.Type = SubscriptionTypeFeed
-		subscription.FeedData = typeData
-	case *SearchSubscription:
-		subscription.Type = SubscriptionTypeSearch
-		subscription.SearchData = typeData
-		subscription.Favorite = true
-	case *GroupSubscription:
-		subscription.Type = SubscriptionTypeGroup
-		subscription.GroupData = typeData
-		subscription.Favorite = true
-	case *EmailSubscription:
-		subscription.Type = SubscriptionTypeEmail
-		subscription.EmailData = typeData
-	default:
-		return nil, fmt.Errorf("new subscription: %w", ErrInvalidAPIResult)
-	}
-
-	return subscription, nil
-}
-
 const (
 	ParamCustomisationCategories = "customisation.categories"
 	ParamCustomisationNickname   = "customisation.nickname"
 )
-
-func newSubscriptionCustomisation(
-	nickname string,
-	image *RemoteImage,
-	categories Categories,
-) *SubscriptionCustomisation {
-	customisation := &SubscriptionCustomisation{
-		Nickname:   new(nickname),
-		Categories: categories,
-	}
-	if image != nil {
-		customisation.ImageURL = new(image.GetURL())
-	}
-	return customisation
-}
 
 func (c *SubscriptionCustomisation) GetNickname() string {
 	if c.Nickname != nil {
@@ -872,7 +763,7 @@ func (c *SubscriptionCustomisation) Sanitise() error {
 	return nil
 }
 
-func (f *ArticleFilters) Valid() error {
+func (f ArticleFilters) Valid() error {
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("validate article filters: %w", err)
 	}
@@ -904,23 +795,4 @@ func (f *ArticleFilters) IsEmpty() bool {
 	}
 	return (f.Text == nil || *f.Text == "") && (f.Authors == nil || *f.Authors == "") &&
 		(f.Categories == nil || *f.Categories == "")
-}
-
-func newSubscriptionSettings() *SubscriptionSettings {
-	return &SubscriptionSettings{
-		ShowFullArticleContent: false,
-	}
-}
-
-func (f *AddFeedSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(f); err != nil {
-		return fmt.Errorf("validate add subscription request: %w", err)
-	}
-	return nil
-}
-
-func (f *AddFeedSubscriptionRequest) Sanitise() error {
-	f.URL = validation.SanitizeString(f.URL)
-	f.FeedID = validation.SanitizeString(f.FeedID)
-	return nil
 }

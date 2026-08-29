@@ -767,6 +767,9 @@ type GroupSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
 	ArticleFilters *ArticleFilters `form:"article_filters" json:"article_filters"`
 
+	// Metadata is the list of metadata of grouped subscriptions.
+	Metadata []GroupedSubscriptionMetadata `json:"metadata" validate:"required,dive"`
+
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
@@ -778,6 +781,15 @@ type GroupSubscriptionSuggestionRequest struct {
 
 	// Text is the text of a subscription to match for a suggestion.
 	Text string `form:"text" json:"text"`
+}
+
+// GroupedSubscriptionMetadata contains metadata about a grouped subscription.
+type GroupedSubscriptionMetadata struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
 // Item represents an individual item (e.g., an individual feed item).

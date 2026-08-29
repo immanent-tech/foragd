@@ -110,7 +110,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		hiddenSubscriptions := make([]models.SubscriptionID, 0)
 		if user.GetSettings().HideGrouped {
 			for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
-				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.Subscriptions...)
+				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			}
 		}
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
@@ -602,7 +602,7 @@ func HandleEditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			childSubscriptions, err := service.GetSubscriptionsByID(
 				ctx,
-				existingSubscription.GroupData.Subscriptions...)
+				existingSubscription.GroupData.GetGroupedSubscriptionIDs()...)
 			if err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
@@ -642,7 +642,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			request.SuggestedSubscriptions = suggestedSubscriptions.
 				FilterByType(models.SubscriptionTypeFeed).
-				ExcludeIDs(existingSubscription.GroupData.Subscriptions...)
+				ExcludeIDs(existingSubscription.GroupData.GetGroupedSubscriptionIDs()...)
 
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
@@ -712,23 +712,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
-			subscription.Customisation = request.Customisation
-			if request.Settings != nil {
-				subscription.Settings = *request.Settings
-			}
-			if request.ArticleFilters != nil {
-				if subscription.FeedData.ArticleFilters == nil {
-					subscription.FeedData.ArticleFilters = &models.ArticleFilters{}
-				}
-				if request.ArticleFilters.Text != nil {
-					subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
-				}
-				if request.ArticleFilters.Authors != nil {
-					subscription.FeedData.ArticleFilters.Authors = request.ArticleFilters.Authors
-				}
-				if request.ArticleFilters.Categories != nil {
-					subscription.FeedData.ArticleFilters.Categories = request.ArticleFilters.Categories
-				}
+			if err := service.EditFeedSubscription(req.Context(), subscription, request); err != nil {
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				return
 			}
 		case models.SubscriptionTypeSearch:
 			request, err := parseMultipartForm[*models.SearchSubscriptionRequest](req)
@@ -736,35 +722,19 @@ func HandleSaveSubscription() http.HandlerFunc {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
-			subscription.Customisation = request.Customisation
-			if request.Settings != nil {
-				subscription.Settings = *request.Settings
+			if err := service.EditSearchSubscription(req.Context(), subscription, request); err != nil {
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				return
 			}
-			subscription.SearchData.Search = request.Search
 		case models.SubscriptionTypeGroup:
 			request, err := parseMultipartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
-			subscription.Customisation = request.Customisation
-			if request.Settings != nil {
-				subscription.Settings = *request.Settings
-			}
-			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
-			if request.ArticleFilters != nil {
-				if subscription.GroupData.ArticleFilters == nil {
-					subscription.GroupData.ArticleFilters = &models.ArticleFilters{}
-				}
-				if request.ArticleFilters.Text != nil {
-					subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text
-				}
-				if request.ArticleFilters.Authors != nil {
-					subscription.GroupData.ArticleFilters.Authors = request.ArticleFilters.Authors
-				}
-				if request.ArticleFilters.Categories != nil {
-					subscription.GroupData.ArticleFilters.Categories = request.ArticleFilters.Categories
-				}
+			if err := service.EditGroupSubscription(req.Context(), subscription, request); err != nil {
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				return
 			}
 		case models.SubscriptionTypeEmail:
 			request, err := parseMultipartForm[*models.EditEmailSubscriptionRequest](req)
@@ -772,9 +742,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
-			subscription.Customisation = request.Customisation
-			if request.Settings != nil {
-				subscription.Settings = *request.Settings
+			if err := service.EditEmailSubscription(req.Context(), subscription, request); err != nil {
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				return
 			}
 		}
 
@@ -935,7 +905,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		}
 
 		// Create a new subscription.
-		subscription, err := models.NewFeedSubscription(req.Context(), feed, nil)
+		subscription, err := service.NewFeedSubscription(req.Context(), feed, nil)
 		if err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -1085,7 +1055,11 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 						Description: "New Search Subscription",
 					},
 					template: templates.AddSearchSubscription(
-						models.NewSearchSubscriptionRequest(*request, suggestedCategories),
+						&models.SearchSubscriptionRequest{
+							Search:              *request,
+							Customisation:       &models.SubscriptionCustomisation{},
+							SuggestedCategories: suggestedCategories,
+						},
 					),
 				},
 			).ServeHTTP(res, req.WithContext(ctx))
@@ -1225,7 +1199,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			}
 
 			// Generate subscription metadata from request.
-			subscription, err := models.NewGroupSubscription(req.Context(), request)
+			subscription, err := service.NewGroupSubscription(req.Context(), request)
 			if err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,

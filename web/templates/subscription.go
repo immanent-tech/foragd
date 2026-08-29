@@ -36,7 +36,7 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 		path = "/list/articles"
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
-		filters.Subscriptions = s.GroupData.Subscriptions
+		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
