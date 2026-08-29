@@ -261,8 +261,18 @@ func updateFeed(ctx context.Context, oldData, newData *models.Feed, lastFetched 
 		newData.Categories = oldData.Categories
 	}
 	// Compare new/old feed data and update as appropriate.
-	if diff := cmp.Diff(*oldData, *newData,
-		cmpopts.IgnoreFields(models.Feed{}, "Updated", "Published", "LastFetched", "CreatedAt"),
+	if diff := cmp.Diff(
+		*oldData,
+		*newData,
+		cmpopts.IgnoreFields(
+			models.Feed{},
+			"Updated",
+			"Published",
+			"LastFetched",
+			"CreatedAt",
+			"FetchOptions",
+			"SourceData",
+		),
 		cmpopts.EquateEmpty(),
 		cmpopts.IgnoreUnexported(),
 	); diff != "" {
