@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.222.1](https://github.com/immanent-tech/foragd/compare/v0.222.0...v0.222.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 allowing overriding the feed title when adding a custom feed ([79c3dff](https://github.com/immanent-tech/foragd/commit/79c3dffea26de1970893e759585861dae291dc20))
+* **scheduler:** 🔧 ignore oneOf fields when comparing if feed is updated ([7b2b4c7](https://github.com/immanent-tech/foragd/commit/7b2b4c7dfb70a27c0032ec43009ebae77b3329cd))
+
 ## [0.222.0](https://github.com/immanent-tech/foragd/compare/v0.221.2...v0.222.0) (2026-08-29)
 
 
