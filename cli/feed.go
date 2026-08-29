@@ -231,9 +231,10 @@ func (c *UpdateFeedCmd) Run() error {
 
 // AddCustomFeedCmd is a command that will add a custom feed with the given options.
 type AddCustomFeedCmd struct {
-	FeedURL        string `help:"URL of feed"                                 validate:"required,url"`
-	UpdateInterval string `help:"update interval for feed"                    validate:"required"`
-	WithBrowser    bool   `help:"use a browser request for fetching the feed"`
+	FeedURL        string  `help:"URL of feed"                                 validate:"required,url"`
+	Name           *string `help:"Optional name of the feed"`
+	UpdateInterval string  `help:"update interval for feed"                    validate:"required"`
+	WithBrowser    bool    `help:"use a browser request for fetching the feed"`
 }
 
 func (c *AddCustomFeedCmd) Run() error {
@@ -281,6 +282,11 @@ func (c *AddCustomFeedCmd) Run() error {
 		return fmt.Errorf("generate feed: %w", err)
 	}
 	feed.UpdateInterval = int64(updateInterval)
+
+	// Add any optionally specified values.
+	if c.Name != nil {
+		feed.Title = *c.Name
+	}
 
 	// Add the new feed.
 	if err := service.AddFeed(ctx, feed); err != nil {
