@@ -15,6 +15,11 @@ type = "new"
 description = """
 Support for requesting custom feeds. Just contact us with details about a site without a feed, and we'll work out and do the work to make a custom feed/subscription for you.
 """
+[[releases.changes]]
+type = "fixed"
+description = """
+When clicking through group subscriptions, unread articles were not displayed. This has been fixed!
+"""
 
 [[releases]]
 version = "v0.220"
