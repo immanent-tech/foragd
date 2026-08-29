@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.222.2](https://github.com/immanent-tech/foragd/compare/v0.222.1...v0.222.2) (2026-08-29)
+
+
+### Performance Improvements
+
+* **scheduler:** ⚡ limit the number of parallel item enrichment goroutines that can run at once ([65e5a4a](https://github.com/immanent-tech/foragd/commit/65e5a4a905fcdc0c91633dd7993383e829f12323))
+* **service/feeds:** ⚡ tweak suggestions results when adding a feed ([6caa946](https://github.com/immanent-tech/foragd/commit/6caa9466809085d16662f20c2f114e40a56a4930))
+
 ## [0.222.1](https://github.com/immanent-tech/foragd/compare/v0.222.0...v0.222.1) (2026-08-29)
 
 
