@@ -18,19 +18,12 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-var (
-	// DefaultRequestTimeout is the timeout for extraction requests. This is greater than proxy requests as these
-	// often take more time.
-	DefaultRequestTimeout = time.Minute
-)
-
 type RequestOption func(*Request)
 
 // NewRequest creates a new Zyte API request with the given options.
 func NewRequest(url string, options ...RequestOption) *Request {
 	req := &Request{
-		URL:     url,
-		Timeout: &DefaultRequestTimeout,
+		URL: url,
 	}
 	for option := range slices.Values(options) {
 		option(req)
@@ -134,9 +127,6 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 
 	result := &Response{}
 	errResult := &ResponseError{}
-
-	ctx, cancelFunc := context.WithTimeout(ctx, *req.Timeout)
-	defer cancelFunc()
 
 	slogctx.FromCtx(ctx).Debug("proxying request", slog.String("url", rawURL))
 
