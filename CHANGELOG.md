@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.222.4](https://github.com/immanent-tech/foragd/compare/v0.222.3...v0.222.4) (2026-08-30)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 allow adding any feed with add feed command ([7c4976d](https://github.com/immanent-tech/foragd/commit/7c4976d6ce2ebd5d2cb4e631af1e6dc16cc2b2ed))
+* **cli:** 🔧 support updating fetch_options and title of existing feeds ([1615ca6](https://github.com/immanent-tech/foragd/commit/1615ca62e5b7f1ce42e55cdbf7328abdcc1a64d6))
+* **models:** 🗑️ remove deprecated field from group subscriptions data ([fa3e8a1](https://github.com/immanent-tech/foragd/commit/fa3e8a194408ed1695932a18c79d963e2f801be3))
+
 ## [0.222.3](https://github.com/immanent-tech/foragd/compare/v0.222.2...v0.222.3) (2026-08-30)
 
 
