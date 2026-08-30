@@ -29,6 +29,22 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
+type FeedArgs struct {
+	DirectFetchArgs `embed:""`
+	ZyteFetchArgs   `embed:""`
+
+	Name           *string `help:"Optional name of the feed" optional:""`
+	UpdateInterval *string `help:"update interval for feed"  optional:""`
+}
+
+type DirectFetchArgs struct {
+	models.FetchDirectOptions
+}
+
+type ZyteFetchArgs struct {
+	models.FetchZyteOptions `embed:""`
+}
+
 // FeedCmd contains subcommands for interacting with feeds.
 type FeedCmd struct {
 	Fetch        FetchFeedCmd        `cmd:"" help:"fetch a feed (by either URL or ID)"`
@@ -153,9 +169,9 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 
 // UpdateFeedCmd performs updates on a feed.
 type UpdateFeedCmd struct {
-	FeedID                models.FeedID `help:"ID of feed"                                   validate:"required,startswith=feed_"`
-	Interval              string        `help:"update the interval to the given value"`
-	FetchItemDescriptions bool          `help:"always fetch item descriptions when updating"`
+	FeedArgs `embed:""`
+
+	FeedID models.FeedID `help:"ID of feed" required:"" validate:"required,startswith=feed_"`
 }
 
 // Run performs the operations for resetting feed updates.
@@ -175,9 +191,9 @@ func (c *UpdateFeedCmd) Run() error {
 
 	// Process required updates.
 	updates := make(map[string]any)
-	switch {
-	case c.Interval != "":
-		interval, err := time.ParseDuration(c.Interval)
+
+	if c.UpdateInterval != nil {
+		interval, err := time.ParseDuration(*c.UpdateInterval)
 		if err != nil {
 			return fmt.Errorf("parse interval: %w", err)
 		}
@@ -208,19 +224,61 @@ func (c *UpdateFeedCmd) Run() error {
 			slog.String("job_id", newJob.JobDetail().JobKey().String()),
 			slog.String("job_schedule", newJob.Trigger().Description()),
 		)
-	case c.FetchItemDescriptions:
-		var quirks *models.FeedQuirks
-		if feed.Quirks == nil {
-			quirks = &models.FeedQuirks{}
+	}
+
+	if c.Name != nil {
+		updates["title"] = *c.Name
+	}
+
+	switch feed.FetchMethod {
+	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
+		if feed.FetchOptions != nil {
+			// Compare and update fetch options if needed.
+			currentFetchOptions, err := feed.FetchOptions.AsFetchDirectOptions()
+			if err != nil {
+				return fmt.Errorf("extract fetch options: %w", err)
+			}
+			if c.DirectFetchArgs.FetchItemSummaries != currentFetchOptions.FetchItemSummaries {
+				newFetchOptions := models.Feed_FetchOptions{}
+				if err := newFetchOptions.FromFetchDirectOptions(c.DirectFetchArgs.FetchDirectOptions); err != nil {
+					return fmt.Errorf("update direct fetch options: %w", err)
+				}
+				updates["fetch_options"] = newFetchOptions
+			}
 		} else {
-			quirks = feed.Quirks
+			// Add new fetch options.
+			newFetchOptions := models.Feed_FetchOptions{}
+			if err := newFetchOptions.FromFetchDirectOptions(c.DirectFetchArgs.FetchDirectOptions); err != nil {
+				return fmt.Errorf("update direct fetch options: %w", err)
+			}
+			updates["fetch_options"] = newFetchOptions
 		}
-		// quirks.FetchItemSummaries = true
-		updates["quirks"] = quirks
-		// Update the feed.
-		if err := service.UpdateFeed(ctx, c.FeedID, updates); err != nil {
-			return fmt.Errorf("update feed: %w", err)
+	case models.FeedFetchMethodZyteArticles:
+		currentFetchOptions, err := feed.FetchOptions.AsFetchZyteOptions()
+		if err != nil {
+			return fmt.Errorf("extract fetch options: %w", err)
 		}
+		var changed bool
+		if currentFetchOptions.ExtractFrom != nil && c.ZyteFetchArgs.ExtractFrom != nil {
+			if *currentFetchOptions.ExtractFrom != *c.ZyteFetchArgs.ExtractFrom {
+				currentFetchOptions.ExtractFrom = c.ZyteFetchArgs.ExtractFrom
+				changed = true
+			}
+		} else if c.ZyteFetchArgs.ExtractFrom != nil {
+			currentFetchOptions = c.ZyteFetchArgs.FetchZyteOptions
+			changed = true
+		}
+		if changed {
+			newFetchOptions := models.Feed_FetchOptions{}
+			if err := newFetchOptions.FromFetchZyteOptions(currentFetchOptions); err != nil {
+				return fmt.Errorf("update zyte fetch options: %w", err)
+			}
+			updates["fetch_options"] = newFetchOptions
+		}
+	}
+
+	if err := service.UpdateFeed(ctx, c.FeedID, updates); err != nil {
+		return fmt.Errorf("update feed: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Info("Feed updated.",
@@ -231,20 +289,10 @@ func (c *UpdateFeedCmd) Run() error {
 
 // AddFeedCmd is a command that will add a custom feed with the given options.
 type AddFeedCmd struct {
-	URL                string                 `help:"URL of feed"               required:"" validate:"required,url"`
-	FetchMethod        models.FeedFetchMethod `help:"how the feed is fetched"   required:"" validate:"required,oneof=direct proxied zyte-articles" enum:"direct,proxied,zyte-articles" default:"direct"`
-	DirectFetchOptions DirectFetchOptions     `                                                                                                                                                         embed:""`
-	ZyteFetchOptions   ZyteFetchOptions       `                                                                                                                                                         embed:""`
-	Name               *string                `help:"Optional name of the feed"                                                                                                                                  optional:""`
-	UpdateInterval     *string                `help:"update interval for feed"                                                                                                                                   optional:""`
-}
+	FeedArgs `embed:""`
 
-type DirectFetchOptions struct {
-	models.FetchDirectOptions `embed:""`
-}
-
-type ZyteFetchOptions struct {
-	models.FetchZyteOptions `embed:""`
+	URL         string                 `help:"URL of feed"             required:"" validate:"required,url"`
+	FetchMethod models.FeedFetchMethod `help:"how the feed is fetched" required:"" validate:"required,oneof=direct proxied zyte-articles" enum:"direct,proxied,zyte-articles" default:"direct"`
 }
 
 func (c *AddFeedCmd) Run() error {
@@ -280,8 +328,8 @@ func (c *AddFeedCmd) Run() error {
 	case models.FeedFetchMethodZyteArticles:
 		// Parse the extraction options.
 		extractFrom := zyte.ExtractFromHttpResponseBody
-		if c.ZyteFetchOptions.ExtractFrom != nil {
-			extractFrom = *c.ZyteFetchOptions.ExtractFrom
+		if c.ZyteFetchArgs.ExtractFrom != nil {
+			extractFrom = *c.ZyteFetchArgs.ExtractFrom
 		}
 		// Fetch the details with Zyte.
 		resp, err := zyte.Proxy(
