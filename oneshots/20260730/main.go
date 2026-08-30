@@ -48,21 +48,26 @@ func main() {
 		}
 
 		var (
-			itemText strings.Builder
+			classificationText strings.Builder
 		)
-		// Append together all item content for classification.
+
+		// Append together all content for classification.
+		if feed.GetDescription() != "" {
+			classificationText.WriteString(feed.GetDescription())
+			classificationText.WriteRune('\n')
+		}
 		for item := range slices.Values(items) {
 			switch {
 			case item.GetContent() != "":
-				itemText.WriteString(item.GetContent())
-				itemText.WriteRune('\n')
+				classificationText.WriteString(item.GetContent())
+				classificationText.WriteRune('\n')
 			case item.GetDescription() != "":
-				itemText.WriteString(item.GetDescription())
-				itemText.WriteRune('\n')
+				classificationText.WriteString(item.GetDescription())
+				classificationText.WriteRune('\n')
 			}
 		}
 
-		if textx.CountWords(itemText.String()) < 20 {
+		if textx.CountWords(classificationText.String()) < 20 {
 			// Ignore feed when there is too little content for good processing.
 			slogctx.FromCtx(ctx).Warn("Not enough content to classify feed. Assigning 'Uncategorized'.")
 			feed.Categories = []models.Category{"Uncategorized"}
@@ -70,7 +75,7 @@ func main() {
 			// Classify from IAB Tier 1 Categories.
 			slogctx.FromCtx(ctx).Info("Assigning categories to feed based on current item content.")
 
-			categories, err := ollama.Classify(itemText.String(), feed.GetLink(), nil, nil, 0.8)
+			categories, err := ollama.Classify(classificationText.String(), feed.GetLink(), nil, nil, 0.8)
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Could not classify feed. Leaving uncategorized.",
 					slog.Any("error", err))
