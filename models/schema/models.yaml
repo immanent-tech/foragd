@@ -1128,7 +1128,6 @@ components:
         represents a subscription that combines other subscriptions.
       type: object
       required:
-        - subscriptions
         - metadata
       properties:
         metadata:
@@ -1138,15 +1137,6 @@ components:
             $ref: '#/components/schemas/GroupedSubscriptionMetadata'
           x-oapi-codegen-extra-tags:
             validate: 'required,dive'
-        subscriptions:
-          description: >
-            is the list of subscription IDs belonging to the group.
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionID'
-          x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
-            validate: 'required,dive,startswith=sub_'
         article_filters:
           $ref: '#/components/schemas/ArticleFilters'
       x-oapi-codegen-extra-tags:

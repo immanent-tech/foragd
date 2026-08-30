@@ -131,21 +131,21 @@ func main() {
 		slogctx.Info(ctx, "Processing group subscriptions for user.",
 			slog.String("user_id", user.GetID()),
 			slog.Int("count", len(groupSubscriptions)))
-		for subscription := range slices.Values(groupSubscriptions) {
-			grouped, err := service.GetSubscriptionsByID(ctx, subscription.GroupData.Subscriptions...)
-			if err != nil {
-				panic(fmt.Errorf("get grouped subscription details: %w", err))
-			}
-			for g := range slices.Values(grouped) {
-				subscription.GroupData.Metadata = append(
-					subscription.GroupData.Metadata,
-					models.GroupedSubscriptionMetadata{
-						SubscriptionID: g.GetID(),
-						FeedID:         g.GetFeedID(),
-					},
-				)
-			}
-		}
+		// for subscription := range slices.Values(groupSubscriptions) {
+		// 	grouped, err := service.GetSubscriptionsByID(ctx, subscription.GroupData.Subscriptions...)
+		// 	if err != nil {
+		// 		panic(fmt.Errorf("get grouped subscription details: %w", err))
+		// 	}
+		// 	for g := range slices.Values(grouped) {
+		// 		subscription.GroupData.Metadata = append(
+		// 			subscription.GroupData.Metadata,
+		// 			models.GroupedSubscriptionMetadata{
+		// 				SubscriptionID: g.GetID(),
+		// 				FeedID:         g.GetFeedID(),
+		// 			},
+		// 		)
+		// 	}
+		// }
 		if err := service.UpdateSubscriptions(ctx, groupSubscriptions...); err != nil {
 			panic(err)
 		}

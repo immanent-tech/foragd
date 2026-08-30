@@ -769,9 +769,6 @@ type GroupSubscription struct {
 
 	// Metadata is the list of metadata of grouped subscriptions.
 	Metadata []GroupedSubscriptionMetadata `json:"metadata" validate:"required,dive"`
-
-	// Subscriptions is the list of subscription IDs belonging to the group.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
 // GroupSubscriptionSuggestionRequest contains details for suggesting a subscription to add to a group.

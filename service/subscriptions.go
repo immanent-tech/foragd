@@ -303,8 +303,7 @@ func NewGroupSubscription(ctx context.Context, request *models.GroupSubscription
 	}
 	//
 	groupSubscription := &models.GroupSubscription{
-		Subscriptions: slices.Collect(maps.Keys(request.Subscriptions)),
-		Metadata:      make([]models.GroupedSubscriptionMetadata, 0, len(grouped)),
+		Metadata: make([]models.GroupedSubscriptionMetadata, 0, len(grouped)),
 	}
 	for subscription := range slices.Values(grouped) {
 		groupSubscription.Metadata = append(groupSubscription.Metadata, models.GroupedSubscriptionMetadata{
@@ -337,7 +336,6 @@ func EditGroupSubscription(
 	if err != nil {
 		return fmt.Errorf("get grouped subscription details: %w", err)
 	}
-	subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(edits.Subscriptions))
 	for subscription := range slices.Values(grouped) {
 		subscription.GroupData.Metadata = append(subscription.GroupData.Metadata, models.GroupedSubscriptionMetadata{
 			SubscriptionID: subscription.GetID(),
@@ -885,7 +883,7 @@ func getGroupSubscriptionLatestItems(
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
 			// Get details of all subscriptions that comprise the group.
-			childSubscriptions, err := GetSubscriptionsByID(ctx, subscription.GroupData.Subscriptions...)
+			childSubscriptions, err := GetSubscriptionsByID(ctx, subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
 					slog.Any("error", err),
