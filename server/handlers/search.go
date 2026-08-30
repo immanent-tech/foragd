@@ -26,6 +26,7 @@ import (
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 const (
@@ -424,7 +425,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
-			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
+			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/search"),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),

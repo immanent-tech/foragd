@@ -17,7 +17,6 @@ import (
 var (
 	ContentID        = htmx.ID("content")
 	ModalContainerID = htmx.ID("modals")
-	NotificationsID  = htmx.ID("notifications")
 )
 
 type templFragmentKey string
@@ -272,7 +271,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			}
 			// Notifications.
 			<div aria-live="assertive" class="pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start">
-				<div id={ NotificationsID.String() } class="m-4 flex w-full flex-col items-center space-y-4 sm:items-end"></div>
+				<div id="notifications" class="m-4 flex w-full flex-col items-center space-y-4 sm:items-end"></div>
 			</div>
 		</body>
 	</html>

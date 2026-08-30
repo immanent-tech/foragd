@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // Notification contains a message that will be displayed to the user as a notification.
@@ -21,7 +21,7 @@ type Notification struct {
 
 // PartialResponse renders the notification into the notification container on the page as an OOB response.
 func (n *Notification) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.Notification(n.msg, templates.WithNotificationTimeout(n.timeout))).ServeHTTP(res, req)
+	templ.Handler(partials.Notification(n.msg, partials.WithNotificationTimeout(n.timeout))).ServeHTTP(res, req)
 }
 
 type Modal struct {

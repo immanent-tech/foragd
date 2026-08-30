@@ -29,6 +29,7 @@ import (
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // ListArticles holds data for generating the articles list page.
@@ -279,7 +280,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 			default:
 				route = "/list/articles"
 			}
-			RenderPartial(&PartialTemplate{template: templates.UpdatesToast(
+			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, route),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
