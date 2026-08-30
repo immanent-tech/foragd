@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -503,10 +502,12 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 		)
 	} else {
 		if err := itemPageCache.Copy(ctx, item.GetID(), itemContentBuf); err != nil {
-			if !errors.Is(err, fs.ErrNotExist) {
-				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
-					slog.Any("error", err),
-				)
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+				if apiErr.StatusCode != http.StatusNotFound {
+					slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
+						slog.Any("error", err),
+					)
+				}
 			}
 		}
 	}
