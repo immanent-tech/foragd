@@ -443,9 +443,9 @@ func (a *Article) showRemoteContentButton() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var18 string
-		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + a.GetID() + "show_full_content=true")
+		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + a.GetID() + "?show_full_content=true")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 184, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 184, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 		if templ_7745c5c3_Err != nil {
@@ -533,9 +533,9 @@ func (a *Article) showFeedContentButton() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
-		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + a.GetID() + "show_full_content=false")
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + a.GetID() + "?show_full_content=false")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 209, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 209, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 		if templ_7745c5c3_Err != nil {

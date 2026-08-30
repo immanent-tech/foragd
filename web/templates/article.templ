@@ -181,7 +181,7 @@ templ (a *Article) showRemoteContentButton() {
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + a.GetID() + "show_full_content=true" }
+		hx-replace-url={ "/view/article/" + a.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
@@ -206,7 +206,7 @@ templ (a *Article) showFeedContentButton() {
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + a.GetID() + "show_full_content=false" }
+		hx-replace-url={ "/view/article/" + a.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
