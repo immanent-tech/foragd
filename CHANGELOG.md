@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.222.3](https://github.com/immanent-tech/foragd/compare/v0.222.2...v0.222.3) (2026-08-30)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 fix validation of fetch feed command options ([68b275d](https://github.com/immanent-tech/foragd/commit/68b275d7d2484b507c1ed94c79c27bb0014453a4))
+* **service/items:** 🔧 reduce log spam when a (new) item is not found in the item content cache ([1590155](https://github.com/immanent-tech/foragd/commit/1590155cba5dd81da526b2e8deccb91c2654e7d1))
+
+
+### Performance Improvements
+
+* **providers/zyte:** ⚡ inherit timeout/cancellation from parent context for zyte proxy requests ([bcd599b](https://github.com/immanent-tech/foragd/commit/bcd599bceea117161ca8592b938cc074688021a3))
+* **scheduler:** ⚡ use a buffer for item enrichment parallel processing over a semaphore ([beb6732](https://github.com/immanent-tech/foragd/commit/beb67329ed605c41cf79cedbf4e5f9dbeb6c0bdc))
+
 ## [0.222.2](https://github.com/immanent-tech/foragd/compare/v0.222.1...v0.222.2) (2026-08-29)
 
 
