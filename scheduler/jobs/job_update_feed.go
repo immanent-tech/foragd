@@ -138,21 +138,24 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	}
 	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
 		const maxConcurrentEnrichment = 25
-		sem := make(chan struct{}, maxConcurrentEnrichment)
-		defer close(sem)
-		// Try to enrich item with additional data if possible.
+		enrichJobCh := make(chan *models.Item, 100)
 		var wg sync.WaitGroup
-		for item := range slices.Values(newItems) {
-			sem <- struct{}{}
+		for range maxConcurrentEnrichment {
+			// Try to enrich item with additional data if possible.
 			wg.Go(func() {
-				defer func() { <-sem }()
-				if err := service.EnrichItem(ctx, feed, item); err != nil {
-					slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
-						slog.Any("error", err),
-					)
+				for item := range enrichJobCh {
+					if err := service.EnrichItem(ctx, feed, item); err != nil {
+						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
+							slog.Any("error", err),
+						)
+					}
 				}
 			})
 		}
+		for item := range slices.Values(newItems) {
+			enrichJobCh <- item
+		}
+		close(enrichJobCh)
 		wg.Wait()
 
 		// Add new items.
