@@ -39,9 +39,9 @@ type FeedCmd struct {
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
 type FetchFeedCmd struct {
-	FeedID   *models.FeedID `help:"ID of feed"        validate:"required_without=FeedURL,startswith=feed_"`
-	FeedURL  *string        `help:"URL of feed"       validate:"required_without=FeedID,omitempty,url"`
-	Validate bool           `help:"validate the feed"                                                      default:"false"`
+	FeedID   *models.FeedID `help:"ID of feed"        validate:"omitempty,required_without=FeedURL,startswith=feed_"`
+	FeedURL  *string        `help:"URL of feed"       validate:"omitempty,required_without=FeedID,omitempty,url"`
+	Validate bool           `help:"validate the feed"                                                                default:"false"`
 }
 
 // Run performs the operations for fetching feed details.
