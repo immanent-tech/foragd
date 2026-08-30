@@ -8,13 +8,14 @@ package gcs
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"path"
 
 	"cloud.google.com/go/storage"
 	slogctx "github.com/veqryn/slog-context"
+
+	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
 type Bucket struct {
@@ -50,13 +51,13 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 func (b *Bucket) Copy(ctx context.Context, key string, buf io.Writer) error {
 	r, err := b.object(key).NewReader(ctx)
 	if err != nil {
-		return fmt.Errorf("create object reader: %w", err)
+		return gcp.APIError("copy object", err) //nolint:wrapcheck // unnecessary.
 	}
 	defer r.Close()
 
 	_, err = io.Copy(buf, r)
 	if err != nil {
-		return fmt.Errorf("copy object: %w", err)
+		return gcp.APIError("copy object", err) //nolint:wrapcheck // unnecessary.
 	}
 
 	return nil
@@ -95,7 +96,7 @@ func (b *Bucket) object(key string) *storage.ObjectHandle {
 func Connect(ctx context.Context, name, prefix string) (*Bucket, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("create storage client: %w", err)
+		return nil, gcp.APIError("create storage client", err) //nolint:wrapcheck // unnecessary.
 	}
 
 	slogctx.FromCtx(ctx).Info("Connect to GCS bucket.",
