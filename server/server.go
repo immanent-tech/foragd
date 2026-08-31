@@ -240,6 +240,11 @@ func Start() error {
 			r.With(htmx.RequireHTMX).
 				Post("/subscription/suggestions", handlers.GetSubscriptionActionSuggestions())
 		})
+		r.Route("/discover", func(r chi.Router) {
+			r.Use(middlewares.CheckUserLimits)
+			r.Get("/", handlers.HandleDiscover())
+			r.Post("/suggest", handlers.HandleDiscoverSuggestions())
+		})
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)

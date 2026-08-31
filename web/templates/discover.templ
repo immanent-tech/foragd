@@ -1,0 +1,210 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/ollama"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"slices"
+)
+
+templ Discover(request *models.SuggestFeedsRequest) {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@templ.Fragment(ContentFragment) {
+			@container(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					@pageTitle("Discover Feeds")
+				}
+				<label class="input w-full mt-4 p-2 input-primary sm:w-2/3 sm:p-0">
+					<span class="label">
+						@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 stroke-primary"})
+					</span>
+					<input
+						id="discover"
+						type="search"
+						name="text"
+						if request != nil && request.Text != "" {
+							value={ request.Text }
+						}
+						autocomplete="off"
+						placeholder="Site name, URL or topic..."
+						hx-post="/discover/suggest"
+						hx-target="#discover-suggestions"
+						hx-trigger="keyup changed delay:500ms, keyup[key=='Enter'], categorySuggestions"
+						hx-sync="this:replace"
+						hx-indicator="#discover-loading"
+						hx-include="#category-suggestions"
+						_="
+						on htmx:beforeRequest set #discover-suggestions.innerHTML to ''
+						on keydown[key=='Enter'] halt the event
+						"
+					/>
+				</label>
+				<form>
+					<div id="category-suggestions" class="filter mt-4 gap-1">
+						for category := range slices.Values(ollama.IABTier1Categories) {
+							<input
+								class="btn btn-sm"
+								type="checkbox"
+								name="categories"
+								aria-label={ category.Label }
+								value={ category.Label }
+								if request != nil && slices.Contains(request.Categories, category.Label) {
+									checked
+								}
+								_="on change send categorySuggestions to #discover"
+							/>
+						}
+						<input
+							class="btn btn-sm btn-square"
+							type="reset"
+							value="×"
+							_="on change send categorySuggestions to #discover"
+						/>
+					</div>
+				</form>
+				// Loading skeleton.
+				<div id="discover-loading" class="group">
+					<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
+						<ul class="divide-y divide-neutral/15">
+							<li>
+								<div class="mt-8 h-12 w-lg skeleton"></div>
+								<div class="mt-8 flex flex-col gap-y-4">
+									<div class="flex">
+										<div class="mr-4 shrink-0 self-center">
+											<div class="size-16 skeleton"></div>
+										</div>
+										<div>
+											<div class="h-6 w-48 skeleton"></div>
+											<div class="mt-2 h-12 w-96 skeleton"></div>
+										</div>
+									</div>
+									<div class="flex">
+										<div class="mr-4 shrink-0 self-center">
+											<div class="size-16 skeleton"></div>
+										</div>
+										<div>
+											<div class="h-6 w-48 skeleton"></div>
+											<div class="mt-2 h-12 w-96 skeleton"></div>
+										</div>
+									</div>
+									<div class="flex">
+										<div class="mr-4 shrink-0 self-center">
+											<div class="size-16 skeleton"></div>
+										</div>
+										<div>
+											<div class="h-6 w-48 skeleton"></div>
+											<div class="mt-2 h-12 w-96 skeleton"></div>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+				// Suggestions.
+				@narrowContainer() {
+					<div id="discover-suggestions" class="mt-8"></div>
+				}
+			}
+		}
+	}
+}
+
+templ DiscoverSuggestions(suggestions models.SuggestFeedsResults) {
+	if len(suggestions.Feeds) == 0 {
+		// No matches.
+		<div class="flex">
+			<div class="mr-4 shrink-0 self-center">
+				@tablerfilled.ZoomQuestion(templ.Attributes{"class": "size-16 fill-primary"})
+			</div>
+			<div>
+				<h2 class="text-lg font-semibold">No results.</h2>
+				if suggestions.Text != "" {
+					<p class="mt-1 text-neutral">
+						We could not find any good matches for <strong>{ suggestions.Text }</strong>.
+					</p>
+				}
+				<p class="mt-1 text-neutral">
+					Double-check the keywords you've entered or add additional ones to focus the search.
+				</p>
+				<p class="mt-1 text-neutral">
+					Try expanding the category selections.
+				</p>
+			</div>
+		</div>
+	} else {
+		<ul role="list" class="divide-y divide-neutral/15">
+			for feed := range slices.Values(suggestions.Feeds) {
+				@feedSuggestion(feed, suggestions.LatestItems[feed.GetID()])
+			}
+		</ul>
+	}
+}
+
+templ feedSuggestion(feed *models.Feed, items models.Items) {
+	<li class="py-5">
+		<div class="flex items-center justify-between gap-x-6">
+			<div class="flex min-w-0">
+				<div class="mr-4 shrink-0">
+					@feedThumbnail(feed)
+				</div>
+				<div>
+					<h4 class="text-lg font-bold">{ feed.GetTitle() }</h4>
+					if feed.GetDescription() != "" {
+						<p class="mt-1 text-sm text-neutral line-clamp-3">{ feed.GetDescription() } </p>
+					}
+				</div>
+			</div>
+			<div class="flex flex-none items-center gap-x-4">
+				<form>
+					<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
+					<input type="hidden" name="feed_id" value={ feed.GetID() }/>
+					<button
+						type="submit"
+						class="group btn btn-primary"
+						hx-post="/subscription/add/feed"
+						hx-swap="none"
+						hx-disabled-elt="this"
+						hx-encoding="multipart/form-data"
+						data-suggestionid={ "#suggestion-" + feed.GetID() }
+						_="on htmx:afterRequest(successful) remove me"
+					>
+						<span class="hidden items-center group-[.htmx-request]:inline-flex">
+							<span class="loading mr-3 loading-spinner text-primary"></span>
+							Subscribing
+						</span>
+						<span class="inline-flex items-center group-[.htmx-request]:hidden">
+							Subscribe
+						</span>
+					</button>
+				</form>
+			</div>
+		</div>
+		if len(items) > 0 {
+			<div>
+				<div class="flex mx-auto justify-center">
+					<button command="--toggle" commandfor={ feed.GetID() + "_latest_items" } type="button">
+						<span class="sr-only">Show latest items</span>
+						@tableroutline.ChevronDown(templ.Attributes{
+							"class":       "size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+							"aria-hidden": "true"})
+					</button>
+				</div>
+				<el-disclosure hidden id={ feed.GetID() + "_latest_items" }>
+					<ul role="list" class="latest-items">
+						for item := range slices.Values(items) {
+							<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+								{ item.GetTitle() }
+							</li>
+						}
+					</ul>
+				</el-disclosure>
+			</div>
+		}
+	</li>
+}

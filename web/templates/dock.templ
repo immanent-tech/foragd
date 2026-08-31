@@ -102,6 +102,24 @@ templ Dock(options ...element.PropertiesOption) {
 			<span class="dock-label not-sr-only">Favorites</span>
 		</a>
 		<a
+			hx-get="/discover"
+			hx-target={ ContentID.Target() }
+			hx-swap="morph:innerHTML show:top transition:true"
+			hx-sync="#page-dock:drop"
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/discover")) }
+		>
+			<span class="sr-only">Discover Feeds</span>
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
+				<span class="loading loading-md loading-spinner text-base-content"></span>
+			</span>
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
+				@tableroutline.WorldSearch(templ.Attributes{
+					"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
+					"aria-hidden": "true"})
+			</span>
+			<span class="dock-label not-sr-only">Discover</span>
+		</a>
+		<a
 			hx-get="/subscription/add"
 			hx-target={ ContentID.Target() }
 			hx-swap="morph:innerHTML show:top transition:true"

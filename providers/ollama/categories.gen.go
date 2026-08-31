@@ -5,11 +5,11 @@ package ollama
 
 import "fmt"
 
-// iabTier1Categories holds the 37 official Tier 1 labels from IAB Tech Lab's Content Taxonomy v3.1
+// IABTier1Categories holds the 37 official Tier 1 labels from IAB Tech Lab's Content Taxonomy v3.1
 // (InteractiveAdvertisingBureau/Taxonomies, Content Taxonomy 3.1.tsv). Labels are verbatim from the spec; Descriptions
 // are short paraphrases written to aid zero-shot embedding classification — the taxonomy itself does not ship
 // descriptions.
-var iabTier1Categories = []CategoryEmbedding{
+var IABTier1Categories = []CategoryEmbedding{
 	{Label: "Attractions", Description: "amusement parks, theme parks, bars, restaurants, and things to visit"},
 	{Label: "Automotive", Description: "cars, motorcycles, vehicles, personal transport"},
 	{Label: "Books and Literature", Description: "novels, poetry, book reviews, authors, reading recommendations"},

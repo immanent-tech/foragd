@@ -317,7 +317,7 @@ func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionReq
 }
 
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
-func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 	// Get user subscriptions.
 	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
@@ -378,7 +378,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 				slog.Any("error", err),
 			)
 		}
-		return &models.FeedSuggestionsResults{
+		return &models.SuggestFeedsResults{
 			Text:        text,
 			Feeds:       feeds,
 			LatestItems: latestItems,
@@ -395,7 +395,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 		latestItems[feed.GetID()] = feed.GetItems()
 	}
 
-	return &models.FeedSuggestionsResults{
+	return &models.SuggestFeedsResults{
 		Text:        text,
 		Feeds:       feeds,
 		LatestItems: latestItems,
@@ -403,7 +403,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.FeedSuggesti
 }
 
 // SuggestGoogleNewsFeeds will return a google news RSS feed for the given search query.
-func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 	newsURL, err := news.GenerateRSSURL(text)
 	if err != nil {
 		return nil, fmt.Errorf("generate news RSS URL: %w", err)
@@ -459,7 +459,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 				slog.Any("error", err),
 			)
 		}
-		return &models.FeedSuggestionsResults{
+		return &models.SuggestFeedsResults{
 			Text:        text,
 			Feeds:       feeds,
 			LatestItems: latestItems,
@@ -484,7 +484,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 		latestItems[newFeed.GetID()] = items
 	}
 	feeds = append(feeds, newFeed)
-	return &models.FeedSuggestionsResults{
+	return &models.SuggestFeedsResults{
 		Text:        text,
 		Feeds:       feeds,
 		LatestItems: latestItems,
@@ -493,7 +493,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.FeedSugge
 
 // SuggestFeeds returns a feeds and their latest articles that match the given text. It will search first for existing
 // feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
-func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResults, error) {
+func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
 	// Get user subscriptions.
 	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
@@ -503,15 +503,17 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
 	var feedSearchQuery query.Option
 	switch {
-	case strings.HasPrefix(text, "http"):
-		parsedURL, err := url.Parse(text)
+	case strings.HasPrefix(request.Text, "http"):
+		parsedURL, err := url.Parse(request.Text)
 		if err != nil {
-			return nil, fmt.Errorf("malformed URL %s: %w", text, err)
+			return nil, fmt.Errorf("malformed URL %s: %w", request.Text, err)
 		}
 		feedSearchQuery = query.Bool(
 			query.MustNot(
 				// User must not already be subscribed.
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+				// Exclude google news custom feeds.
+				query.Term("domain.raw", "news.google.com"),
 			),
 			query.Should(
 				// For URLs, match with and without a trailing slash. Boost source_URLs over URL.
@@ -537,30 +539,33 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 			query.MustNot(
 				// User must not already be subscribed.
 				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+				// Exclude google news custom feeds.
+				query.Term("domain.raw", "news.google.com"),
+			),
+			query.Must(
+				// Must match any category filters.
+				query.Terms("categories.raw", request.Categories),
 			),
 			query.Should(
 				// Exact match text on title with significant boost.
 				query.Term(
 					"title.exact",
-					text,
+					request.Text,
 					query.WithQueryBoost[*query.TermQuery](10.0),
 				),
 				// Title or description contains text, with boost for title.
 				query.MultiMatch(
-					text,
+					request.Text,
 					[]string{"title^5", "description"},
-					query.WithFuzziness[*query.MultiMatchQuery]("2"),
+					query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
 				),
 				// Match phrase in description.
-				query.MatchPhrase(
-					"description",
-					text,
-				),
+				query.Match("description", request.Text),
 				// Match an existing subscription category.
-				query.Term("categories", text),
+				query.Match("categories", request.Text),
 				// Try to match the domain.
-				query.Match("domain", text),
-				query.Term("domain.raw", text, query.WithQueryBoost[*query.TermQuery](15.0)),
+				query.Match("domain", request.Text),
+				query.Term("domain.raw", request.Text, query.WithQueryBoost[*query.TermQuery](15.0)),
 			),
 		)
 	}
@@ -570,7 +575,8 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 		ctx,
 		schema.FeedsIndexRO(),
 		elastic.WithQueryOptions[*elastic.SearchRequest](feedSearchQuery),
-		elastic.WithSize(5),
+		elastic.WithSize(request.Count),
+		elastic.WithSort(NewFeedSortOptions(new(models.SortMostRelevant))...),
 	)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to find feed suggestions.",
@@ -585,16 +591,16 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				slog.Any("error", err),
 			)
 		}
-		return &models.FeedSuggestionsResults{
-			Text:        text,
+		return &models.SuggestFeedsResults{
+			Text:        request.Text,
 			Feeds:       resp.Results,
 			LatestItems: latestItems,
 		}, nil
 	}
 
 	// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
-	if strings.HasPrefix(text, "http") {
-		if newFeedURL, err := NormalizeFeedURL(text); err == nil {
+	if strings.HasPrefix(request.Text, "http") {
+		if newFeedURL, err := NormalizeFeedURL(request.Text); err == nil {
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
@@ -610,8 +616,8 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 				}
 				latestItems[newFeed.GetID()] = items
 			}
-			return &models.FeedSuggestionsResults{
-				Text:        text,
+			return &models.SuggestFeedsResults{
+				Text:        request.Text,
 				Feeds:       models.Feeds{newFeed},
 				LatestItems: latestItems,
 			}, nil
@@ -619,8 +625,8 @@ func SuggestFeeds(ctx context.Context, text string) (*models.FeedSuggestionsResu
 	}
 
 	// No results, send empty set.
-	return &models.FeedSuggestionsResults{
-		Text:        text,
+	return &models.SuggestFeedsResults{
+		Text:        request.Text,
 		LatestItems: make(map[models.FeedID]models.Items),
 	}, nil
 }

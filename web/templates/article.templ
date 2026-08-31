@@ -1011,3 +1011,20 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 		</div>
 	}
 }
+
+templ articleThumbnail(article *models.Article) {
+	if article.GetImage() != nil {
+		@partials.Thumbnail(
+			&models.RemoteImage{
+				URL:   new(article.GetImage().GetURL()),
+				Title: new(article.GetTitle()),
+			},
+			article.GetTitle(),
+			"size-6",
+		)
+	} else {
+		@tableroutline.FileRss(templ.Attributes{
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"aria-hidden": "true"})
+	}
+}

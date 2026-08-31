@@ -26,7 +26,7 @@ var (
 )
 
 var buildIABCategoryEmbeddings = sync.OnceValues(func() ([]CategoryEmbedding, error) {
-	embedCache = iabTier1Categories
+	embedCache = IABTier1Categories
 	embedOnce.Do(func() {
 		embedErr = BuildCategories(embedCache)
 	})

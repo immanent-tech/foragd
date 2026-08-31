@@ -982,7 +982,7 @@ func HandleSuggestFeeds() http.HandlerFunc {
 		case "web":
 			fallthrough
 		default:
-			results, err := service.SuggestFeeds(req.Context(), text)
+			results, err := service.SuggestFeeds(req.Context(), &models.SuggestFeedsRequest{Text: text, Count: 10})
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate feed suggestions.",
 					slog.Any("error", err),

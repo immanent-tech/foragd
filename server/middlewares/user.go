@@ -16,6 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
+	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/service"
@@ -279,5 +280,29 @@ func Customisation(next http.Handler) http.Handler {
 			}
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func CheckUserLimits(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			handlers.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			handlers.HandleInternalError(
+				http.StatusForbidden,
+				models.ErrEmailNewsletterLimitExceeded,
+			).ServeHTTP(res, req)
+			return
+		}
+		next.ServeHTTP(res, req)
 	})
 }

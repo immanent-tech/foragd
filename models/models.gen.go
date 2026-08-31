@@ -549,6 +549,9 @@ type CheckoutRequest_SubscriptionData struct {
 // ClientType represents which type of client is accessing the app.
 type ClientType string
 
+// Count is the number of items to retrieve with a request.
+type Count = int
+
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
 
@@ -886,8 +889,8 @@ type ListFilters struct {
 	// Category represents a taxonomy applied to an object.
 	Category *Category `form:"category" json:"category,omitempty"`
 
-	// Count is the number of items to retrieve with a request. This number will be added to the upto value to get the total number of items retrieved, else, will this number of items will be retrieved from the pagination point specified with pagination value.
-	Count int `form:"count" json:"count" validate:"gt=0"`
+	// Count is the number of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"gt=0"`
 
 	// From is the count from which to retrieve objects.
 	From *int `form:"from" json:"from,omitempty,omitzero"`
@@ -904,7 +907,7 @@ type ListFilters struct {
 	// UpTo is the number up to which objects to should be retrieved.
 	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 
-	// View The state of objects to view.
+	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
@@ -955,7 +958,7 @@ type MarkSubscriptionsRequest struct {
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
 
-	// View The state of objects to view.
+	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
@@ -1405,7 +1408,7 @@ type UserSettings struct {
 // UserSubscriptionType is the type of subscription the user has purchased.
 type UserSubscriptionType string
 
-// View The state of objects to view.
+// View is the state of objects to view.
 type View string
 
 // YoutubeFeedData contains data for fetching and parsing a Youtube feed.

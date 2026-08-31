@@ -148,3 +148,26 @@ func (r *NextArticleRequest) Sanitise() error {
 	r.Timestamp = validation.SanitizeString(r.Timestamp)
 	return nil
 }
+
+func (r SuggestFeedsRequest) Validate() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate discover feeds request: %w", err)
+	}
+	return nil
+}
+
+func (r *SuggestFeedsRequest) Sanitise() error {
+	if r == nil {
+		return nil
+	}
+	r.Text = validation.SanitizeString(r.Text)
+	if r.Count <= 0 {
+		r.Count = 10
+	}
+	if len(r.Categories) > 0 {
+		for idx, category := range r.Categories {
+			r.Categories[idx] = validation.SanitizeString(category)
+		}
+	}
+	return nil
+}

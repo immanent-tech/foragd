@@ -433,7 +433,31 @@ components:
             form: 'categories'
             validate: 'omitnil,unique,dive,url_encoded'
           x-go-type-skip-optional-pointer: true
-    FeedSuggestionsResults:
+    SuggestFeedsRequest:
+      description: >
+        contains data for discovering new feeds.
+      type: object
+      required:
+        - text
+        - count
+      properties:
+        text:
+          description: is text used to find suggested feeds.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: text
+        categories:
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: 'categories'
+            validate: 'omitnil,unique,dive,url_encoded'
+          x-go-type-skip-optional-pointer: true
+        count:
+          $ref: 'models.yaml#/components/schemas/Count'
+    SuggestFeedsResults:
       description: >
         contains a list of feeds and their latest items, based on the provided text query.
       type: object

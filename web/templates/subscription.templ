@@ -878,7 +878,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 	</div>
 }
 
-templ ShowFeedSuggestions(request *models.FeedSuggestionsResults) {
+templ ShowFeedSuggestions(request *models.SuggestFeedsResults) {
 	if len(request.Feeds) == 0 {
 		@ShowNoSuggestions(request.Text)
 	} else {

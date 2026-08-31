@@ -166,18 +166,6 @@ type FeedSubscriptionResult struct {
 	Subscription *Subscription `json:"subscription,omitempty"`
 }
 
-// FeedSuggestionsResults contains a list of feeds and their latest items, based on the provided text query.
-type FeedSuggestionsResults struct {
-	// Feeds is a slice of feeds.
-	Feeds Feeds `json:"feeds"`
-
-	// LatestItems is a map of latest items for each suggested feed.
-	LatestItems map[FeedID]Items `json:"latest_items"`
-
-	// Text is the query text that generated the suggestions.
-	Text string `json:"text"`
-}
-
 // GroupSubscriptionRequest represents a request to create a group subscription.
 type GroupSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
@@ -251,7 +239,7 @@ type NextArticleRequest struct {
 	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitempty,startswith=sub_"`
 	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05.999999999Z07:00"`
 
-	// View The state of objects to view.
+	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
@@ -314,7 +302,7 @@ type SearchRequest struct {
 	// UpTo is the number up to which objects to should be retrieved.
 	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 
-	// View The state of objects to view.
+	// View is the state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
 }
 
@@ -340,6 +328,30 @@ type SearchResults struct {
 type ShowArticleResponse struct {
 	// Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
 	Article Article `json:"article"`
+}
+
+// SuggestFeedsRequest contains data for discovering new feeds.
+type SuggestFeedsRequest struct {
+	// Categories is a list of categories.
+	Categories []Category `form:"categories" json:"categories,omitempty" validate:"omitnil,unique,dive,url_encoded"`
+
+	// Count is the number of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"gt=0"`
+
+	// Text is text used to find suggested feeds.
+	Text string `form:"text" json:"text"`
+}
+
+// SuggestFeedsResults contains a list of feeds and their latest items, based on the provided text query.
+type SuggestFeedsResults struct {
+	// Feeds is a slice of feeds.
+	Feeds Feeds `json:"feeds"`
+
+	// LatestItems is a map of latest items for each suggested feed.
+	LatestItems map[FeedID]Items `json:"latest_items"`
+
+	// Text is the query text that generated the suggestions.
+	Text string `json:"text"`
 }
 
 // Getter for additional properties for APIError. Returns the specified
