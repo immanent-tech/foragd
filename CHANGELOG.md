@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.223.0](https://github.com/immanent-tech/foragd/compare/v0.222.4...v0.223.0) (2026-08-31)
+
+
+### Features
+
+* ✨ add a discover page to explore feeds in the Foragd database ([efbf514](https://github.com/immanent-tech/foragd/commit/efbf514583770c62a1be3683d73878fb698d3149))
+
+
+### Bug Fixes
+
+* **models:** 🔧 store feed customisation (title, description) as separate fields ([1da540e](https://github.com/immanent-tech/foragd/commit/1da540edf580858eb2595341108960997948202b))
+* **oneshots:** 🔧 add feed description to text for category classification ([8c4ec09](https://github.com/immanent-tech/foragd/commit/8c4ec09bd0087b695f96b64986b7d7e0d8231389))
+* **schema:** 🔧 add requried tokenizers and analyzers to feeds component template ([5599e9a](https://github.com/immanent-tech/foragd/commit/5599e9ae6dd2ef32fcd4438b43d2c96a38361dee))
+* **service/feeds:** 🔧 improved feed changes code ([75a3c88](https://github.com/immanent-tech/foragd/commit/75a3c886e7d2cdd5cbddc7dfe819964d7a4f431e))
+* **templates/articles:** 🔧 fix url replacement for showing article content ([2f7b45b](https://github.com/immanent-tech/foragd/commit/2f7b45b5adc03e00b8f8283a3c1e7705364a31bb))
+
 ## [0.222.4](https://github.com/immanent-tech/foragd/compare/v0.222.3...v0.222.4) (2026-08-30)
 
 
