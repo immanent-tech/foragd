@@ -9,6 +9,7 @@
   - [Getting Started](#getting-started)
     - [Navigating Around the Interface](#navigating-around-the-interface)
     - [Adding Sources](#adding-sources)
+    - [Discovering Feeds](#discovering-feeds)
   - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
     - [About Search Results](#about-search-results)
   - [Managing Your Subscriptions](#managing-your-subscriptions)
@@ -84,6 +85,14 @@ search.
 Watch the following video for a demonstration:
 
 <mux-player crossorigin playback-id="Ol019frfRSTV81VZO00YUAwJbWJ028m378MW9EZ7pPqKBs" metadata-video-title="Getting Started"></mux-player>
+
+### Discovering Feeds
+
+If you don't have a particular site in mind and would rather browse available feeds by keyword, topic, or category, you
+can go to [/discover](/discover) to search and browse for feeds.
+
+Enter a search and/or filter by category and view a selection of available feeds that match. You can subscribe directly
+to any feed shown and see the latest articles from the feed.
 
 ## How to Search Articles & Subscriptions
 
@@ -276,4 +285,4 @@ The following shortcut keys are available on desktop:
 
 ## Last Updated
 
-Aug 23rd, 2026
+Sept 1, 2026
