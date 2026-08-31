@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -120,18 +121,74 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 	return nil
 }
 
+type Change struct {
+	Old any `json:"old"`
+	New any `json:"new"`
+}
+
+type diffReporter struct {
+	path    cmp.Path
+	Changes map[string]Change
+}
+
+func (r *diffReporter) PushStep(ps cmp.PathStep) {
+	r.path = append(r.path, ps)
+}
+
+func (r *diffReporter) Report(rs cmp.Result) {
+	if rs.Equal() {
+		return
+	}
+	if r.Changes == nil {
+		r.Changes = make(map[string]Change)
+	}
+
+	// Find the nearest StructField step to get the JSON tag.
+	var tag string
+	for i, v := range slices.Backward(r.path) {
+		sf, ok := v.(cmp.StructField)
+		if !ok {
+			continue
+		}
+		parentType := r.path[i-1].Type()
+		if parentType.Kind() == reflect.Ptr {
+			parentType = parentType.Elem()
+		}
+		field := parentType.Field(sf.Index())
+		tag = field.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			tag = field.Name
+		}
+		break
+	}
+	if tag == "" {
+		return // not inside a struct field, skip
+	}
+
+	// Grab the actual differing values from the current (leaf) step.
+	last := r.path[len(r.path)-1]
+	vx, vy := last.Values()
+
+	r.Changes[tag] = Change{Old: vx.Interface(), New: vy.Interface()}
+}
+
+func (r *diffReporter) PopStep() {
+	r.path = r.path[:len(r.path)-1]
+}
+
 // ApplyFeedUpdates takes an existing feed and new feed data, compares the two, updates any fields as appropriate and
 // writes the updated feed back to the database. The lastFetched parameter indicates when the new data was fetched and
 // will always be updated in the database for the feed, regardless if the old and new feed data is the same.
 func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
-		slogctx.FromCtx(ctx).Info("Feed needs classifying")
+		slogctx.FromCtx(ctx).Debug("Feed needs classifying")
 		// newData.Categories = service.ClassifyFeed(ctx, newData)
 	} else {
 		newData.Categories = oldData.Categories
 	}
 	// Compare new/old feed data and update as appropriate.
+	var r diffReporter
 	if diff := cmp.Diff(
 		*oldData,
 		*newData,
@@ -143,13 +200,31 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFe
 			"CreatedAt",
 			"FetchOptions",
 			"SourceData",
+			"Items",
+			"UpdateInterval",
+			"Quirks",
+			"Customisation",
 		),
 		cmpopts.EquateEmpty(),
 		cmpopts.IgnoreUnexported(),
+		cmp.Reporter(&r),
 	); diff != "" {
 		// Update feed data.
 		newData.LastFetched = lastFetched
 		newData.Updated = new(time.Now().UTC())
+		// Re-add excluded fields that exist in the original.
+		if oldData.FetchOptions != nil {
+			newData.FetchOptions = oldData.FetchOptions
+		}
+		if oldData.SourceData != nil {
+			newData.SourceData = oldData.SourceData
+		}
+		if oldData.Quirks != nil {
+			newData.Quirks = oldData.Quirks
+		}
+		if oldData.Customisation != nil {
+			newData.Customisation = oldData.Customisation
+		}
 		if err := bulk.AddAction(ctx,
 			bulk.NewAction(
 				newData,
@@ -159,6 +234,17 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFe
 		); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
+
+		var slogAttrs []slog.Attr
+		for key, value := range r.Changes {
+			slogAttrs = append(slogAttrs,
+				slog.Group(key,
+					slog.Any("old", fmt.Sprintf("%+v", value.Old)),
+					slog.Any("new", fmt.Sprintf("%+v", value.New)),
+				),
+			)
+		}
+		slogctx.LogAttrs(ctx, slog.LevelInfo, "Feed data updated.", slogAttrs...)
 	} else {
 		// No changes. Just update last_fetched.
 		if err := bulk.AddAction(ctx,
