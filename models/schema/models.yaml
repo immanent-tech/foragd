@@ -782,6 +782,8 @@ components:
                 contains data related to the specific source type of the feed.
               oneOf:
                 - $ref: '#/components/schemas/YoutubeFeedData'
+            customisation:
+              $ref: '#/components/schemas/FeedCustomisation'
       x-oapi-codegen-extra-tags:
         validate: 'validateFn'
     FetchDirectOptions:
@@ -828,6 +830,16 @@ components:
             that it represents. Setting this quirk to true will stop any logic that tries to update the feed image.
           type: boolean
           x-go-type-skip-optional-pointer: true
+    FeedCustomisation:
+      description: contains customisation of the feed data.
+      type: object
+      properties:
+        title:
+          description: is a custom title for the feed.
+          type: string
+        description:
+          description: is a custom description for the feed.
+          type: string
     FeedStatus:
       description: >
         represents the status of fetching the feed.

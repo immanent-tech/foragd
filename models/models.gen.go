@@ -628,6 +628,9 @@ type Feed struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
+	// Customisation contains customisation of the feed data.
+	Customisation *FeedCustomisation `json:"customisation,omitempty"`
+
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
@@ -694,6 +697,15 @@ type Feed_FetchOptions struct {
 // Feed_SourceData contains data related to the specific source type of the feed.
 type Feed_SourceData struct {
 	union json.RawMessage
+}
+
+// FeedCustomisation contains customisation of the feed data.
+type FeedCustomisation struct {
+	// Description is a custom description for the feed.
+	Description *string `json:"description,omitempty"`
+
+	// Title is a custom title for the feed.
+	Title *string `json:"title,omitempty"`
 }
 
 // FeedID is the unique ID of a feed.

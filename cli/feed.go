@@ -33,8 +33,9 @@ type FeedArgs struct {
 	DirectFetchArgs `embed:""`
 	ZyteFetchArgs   `embed:""`
 
-	Name           *string `help:"Optional name of the feed" optional:""`
-	UpdateInterval *string `help:"update interval for feed"  optional:""`
+	Name           *string `help:"Optional name of the feed"        optional:""`
+	Description    *string `help:"Optional description of the feed" optional:""`
+	UpdateInterval *string `help:"update interval for feed"         optional:""`
 }
 
 type DirectFetchArgs struct {
@@ -227,7 +228,10 @@ func (c *UpdateFeedCmd) Run() error {
 	}
 
 	if c.Name != nil {
-		updates["title"] = *c.Name
+		updates["customisation.title"] = *c.Name
+	}
+	if c.Description != nil {
+		updates["customisation.description"] = *c.Description
 	}
 
 	switch feed.FetchMethod {

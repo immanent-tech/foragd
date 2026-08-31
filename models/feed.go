@@ -172,11 +172,17 @@ func (f *Feed) GetLink() URL {
 
 // GetTitle returns the feed title.
 func (f *Feed) GetTitle() string {
+	if f.Customisation != nil && f.Customisation.Title != nil {
+		return *f.Customisation.Title
+	}
 	return html.UnescapeString(f.Title)
 }
 
 // GetDescription returns the feed description, if any.
 func (f *Feed) GetDescription() string {
+	if f.Customisation != nil && f.Customisation.Description != nil {
+		return *f.Customisation.Description
+	}
 	if f.Description != nil {
 		return *f.Description
 	}

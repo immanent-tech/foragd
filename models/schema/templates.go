@@ -245,6 +245,22 @@ var (
 							},
 						}),
 						templates.WithFlattenedMapping("source_data"),
+						templates.WithObjectMapping("customisation",
+							templates.WithTextMapping("title", &types.TextProperty{
+								Type: "text",
+								Fields: map[string]types.Property{
+									"raw": types.NewKeywordProperty(),
+									"exact": types.TextProperty{
+										Analyzer: &englishExactAnalyzer.Name,
+									},
+									"search": types.NewSearchAsYouTypeProperty(),
+								},
+							}),
+							templates.WithTextMapping("description", &types.TextProperty{
+								Type:     "text",
+								Analyzer: &htmlAnalyzer.Name,
+							}),
+						),
 					),
 				),
 				templates.WithTemplateSettings(
