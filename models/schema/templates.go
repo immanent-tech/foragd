@@ -266,10 +266,13 @@ var (
 				templates.WithTemplateSettings(
 					templates.WithAnalysis(types.IndexSettingsAnalysis{
 						Analyzer: map[string]types.Analyzer{
-							domainNameAnalyzer.Name: domainNameAnalyzer.Definition,
+							domainNameAnalyzer.Name:   domainNameAnalyzer.Definition,
+							htmlAnalyzer.Name:         htmlAnalyzer.Definition,
+							englishExactAnalyzer.Name: englishExactAnalyzer.Definition,
 						},
 						Tokenizer: map[string]types.Tokenizer{
 							domainTokenizer.Name: domainTokenizer.Definition,
+							emailTokenizer.Name:  emailTokenizer.Definition,
 						},
 					}),
 				),
