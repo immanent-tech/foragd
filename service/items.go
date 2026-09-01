@@ -19,6 +19,7 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -502,7 +503,8 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 		)
 	} else {
 		if err := itemPageCache.Copy(ctx, item.GetID(), itemContentBuf); err != nil {
-			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+			if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
+				godump.Dump(apiErr)
 				if apiErr.StatusCode != http.StatusNotFound {
 					slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
 						slog.Any("error", err),
