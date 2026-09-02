@@ -4,6 +4,7 @@ FROM ollama/ollama:0.33.2@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb0
 # then kill it — the weights get baked into the image layer.
 RUN <<EOF
 (ollama serve &)
+sleep 5
 ollama pull qwen3-embedding:0.6b
 pkill ollama
 exit 0
