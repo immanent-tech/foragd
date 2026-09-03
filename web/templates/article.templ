@@ -1016,7 +1016,7 @@ templ articleThumbnail(article *models.Article) {
 	if article.GetImage() != nil {
 		@partials.Thumbnail(
 			&models.RemoteImage{
-				URL:   new(article.GetImage().GetURL()),
+				URL:   article.GetImage().GetURL(),
 				Title: new(article.GetTitle()),
 			},
 			article.GetTitle(),

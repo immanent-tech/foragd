@@ -37,6 +37,7 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/rdf"
 	"github.com/immanent-tech/go-syndication/rss"
+	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
@@ -1317,36 +1318,36 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(data)); {
 	case err != nil:
 		return nil, fmt.Errorf("detect feed type: %w", err)
-	case feedType == feeds.SourceTypeUnknown:
+	case feedType == types.SourceUnknown:
 		return nil, models.NewAPIError(
 			http.StatusUnsupportedMediaType,
 			errors.New("cannot determine feed type"),
 		)
-	case feedType == feeds.SourceTypeAtom:
+	case feedType == types.SourceAtom:
 		// Atom feed.
 		feedData, err = feeds.NewDecoder[*atom.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
 		}
-	case feedType == feeds.SourceTypeRSS:
+	case feedType == types.SourceRSS:
 		// RSS 2.0 feed.
 		feedData, err = feeds.NewDecoder[*rss.RSS](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == feeds.SourceTypeRDF:
+	case feedType == types.SourceRDF:
 		// RDF/RSS 1.0 feed.
 		feedData, err = feeds.NewDecoder[*rdf.RDF](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == feeds.SourceTypeJSONFeed:
+	case feedType == types.SourceJSONFeed:
 		// JSONFeed.
 		feedData, err = feeds.NewDecoder[*jsonfeed.Feed](bytes.NewReader(data))
 		if err != nil {
 			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
 		}
-	case feedType == feeds.SourceTypeHTML:
+	case feedType == types.SourceHTML:
 		// HTML web page. Use "autodiscovery" to find feed.
 		if newURL, err := DiscoverFeedURL(
 			sourceURL,

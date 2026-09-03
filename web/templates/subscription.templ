@@ -796,7 +796,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					<span class="label">Thumbnail</span>
 					<div class="flex items-center gap-4">
 						if request.Customisation != nil && request.Customisation.ImageURL != nil {
-							@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, *request.Customisation.Nickname)
+							@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, *request.Customisation.Nickname)
 						} else {
 							@subscriptionThumbnail(nil, *request.Customisation.Nickname)
 						}
@@ -901,7 +901,7 @@ templ ShowFeedSuggestions(request *models.SuggestFeedsResults) {
 										imgTitle = *feed.Image.Title
 									}
 								}}
-								@subscriptionThumbnail(models.NewRemoteImage(*feed.Image.URL, imgTitle), feed.GetTitle())
+								@subscriptionThumbnail(models.NewRemoteImage(feed.Image.URL, imgTitle), feed.GetTitle())
 							}
 						</div>
 						<div class="flex flex-1">
@@ -1068,7 +1068,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+										@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
 									} else {
 										@subscriptionThumbnail(nil, "")
 									}
@@ -1300,7 +1300,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+										@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
 									} else {
 										@subscriptionThumbnail(nil, "")
 									}
@@ -1477,7 +1477,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<div class="col-span-full mt-2 flex items-center gap-x-2">
 											if request.Customisation != nil && request.Customisation.ImageURL != nil {
-												@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+												@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
 											} else {
 												@subscriptionThumbnail(nil, "")
 											}

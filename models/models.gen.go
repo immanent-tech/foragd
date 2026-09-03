@@ -9,6 +9,8 @@ import (
 	"time"
 
 	externalRef0 "github.com/immanent-tech/foragd/providers/zyte"
+	externalRef1 "github.com/immanent-tech/go-syndication/extensions/georss"
+	externalRef2 "github.com/immanent-tech/go-syndication/types"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -412,7 +414,10 @@ type ArticleArchive struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Image contains details about a remote image.
+	// Geo contains geographic information related to an item.
+	Geo *ItemGeo `json:"geo,omitempty"`
+
+	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
@@ -646,7 +651,7 @@ type Feed struct {
 	// FetchOptions contains information to assist the fetch method.
 	FetchOptions *Feed_FetchOptions `json:"fetch_options,omitempty"`
 
-	// Image contains details about a remote image.
+	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// Items contains the list of items in the feed.
@@ -839,7 +844,10 @@ type Item struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Image contains details about a remote image.
+	// Geo contains geographic information related to an item.
+	Geo *ItemGeo `json:"geo,omitempty"`
+
+	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
@@ -889,6 +897,9 @@ type ItemExtensionYoutube struct {
 	// Width is the video width.
 	Width *int `json:"width,omitempty"`
 }
+
+// ItemGeo contains geographic information related to an item.
+type ItemGeo = externalRef1.GeoRSSSimple
 
 // ItemID is the unique ID of an item.
 type ItemID = string
@@ -994,7 +1005,7 @@ type ObjectCommon struct {
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
-	// Image contains details about a remote image.
+	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// Language is the language the content is written in.
@@ -1079,14 +1090,8 @@ type Pagination struct {
 	UpTo *int `form:"upto" json:"upto,omitempty,omitzero"`
 }
 
-// RemoteImage contains details about a remote image.
-type RemoteImage struct {
-	// Title the description of the image
-	Title *string `json:"title,omitempty"`
-
-	// URL is a URL.
-	URL *URL `json:"url,omitempty" validate:"omitzero,url"`
-}
+// RemoteImage represents a remote image.
+type RemoteImage = externalRef2.Image
 
 // RemoveSubscriptionRequest contains the parameters for removing a subscription.
 type RemoveSubscriptionRequest struct {

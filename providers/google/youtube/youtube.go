@@ -227,7 +227,7 @@ func newChannelFeed(channel *youtube.Channel) *models.Feed {
 	if channel.BrandingSettings != nil && channel.BrandingSettings.Image != nil &&
 		channel.BrandingSettings.Image.WatchIconImageUrl != "" {
 		feed.Image = &models.RemoteImage{
-			URL:   &channel.BrandingSettings.Image.WatchIconImageUrl,
+			URL:   channel.BrandingSettings.Image.WatchIconImageUrl,
 			Title: new(channel.Snippet.Title),
 		}
 	}

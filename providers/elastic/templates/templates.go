@@ -275,6 +275,15 @@ func WithObjectMapping(fieldname string, options ...PropertiesOption) Properties
 	}
 }
 
+// WithGeoPointMapping option creates a new field with a geo_point mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/geo-point
+func WithGeoPointMapping(fieldname string) PropertiesOption {
+	return func(mp Properties) {
+		mp[fieldname] = types.NewGeoPointProperty()
+	}
+}
+
 // ComponentTemplate represents a component template, a template that can be used within an index template.
 type ComponentTemplate struct {
 	*putcomponenttemplate.Request

@@ -82,7 +82,7 @@ func ActionSuggestionSubscriptions(subscriptions models.Subscriptions) templ.Com
 			} else {
 				templ_7745c5c3_Err = partials.Thumbnail(
 					&models.RemoteImage{
-						URL:   new(subscription.GetImage()),
+						URL:   subscription.GetImage(),
 						Title: new(subscription.GetTitle()),
 					},
 					subscription.GetTitle(),
@@ -298,7 +298,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				if subscription.GetImage() != "" {
 					templ_7745c5c3_Err = partials.Thumbnail(
 						&models.RemoteImage{
-							URL:   new(subscription.GetImage()),
+							URL:   subscription.GetImage(),
 							Title: new(subscription.GetTitle()),
 						},
 						subscription.GetTitle(),
@@ -373,7 +373,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				if article.GetImage() != nil {
 					templ_7745c5c3_Err = partials.Thumbnail(
 						&models.RemoteImage{
-							URL:   new(article.GetImage().GetURL()),
+							URL:   article.GetImage().GetURL(),
 							Title: new(article.GetTitle()),
 						},
 						article.GetTitle(),

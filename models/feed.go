@@ -127,7 +127,7 @@ func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	// Add any image found.
 	if sourceImg := source.GetImage(); sourceImg != nil {
 		feed.Image = &RemoteImage{
-			URL:   new(sourceImg.GetURL()),
+			URL:   sourceImg.GetURL(),
 			Title: new(sourceImg.GetTitle()),
 		}
 	}

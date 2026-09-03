@@ -2915,7 +2915,7 @@ func articleThumbnail(article *models.Article) templ.Component {
 		if article.GetImage() != nil {
 			templ_7745c5c3_Err = partials.Thumbnail(
 				&models.RemoteImage{
-					URL:   new(article.GetImage().GetURL()),
+					URL:   article.GetImage().GetURL(),
 					Title: new(article.GetTitle()),
 				},
 				article.GetTitle(),

@@ -28,7 +28,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 				} else {
 					@partials.Thumbnail(
 						&models.RemoteImage{
-							URL:   new(subscription.GetImage()),
+							URL:   subscription.GetImage(),
 							Title: new(subscription.GetTitle()),
 						},
 						subscription.GetTitle(),
@@ -231,7 +231,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						if subscription.GetImage() != "" {
 							@partials.Thumbnail(
 								&models.RemoteImage{
-									URL:   new(subscription.GetImage()),
+									URL:   subscription.GetImage(),
 									Title: new(subscription.GetTitle()),
 								},
 								subscription.GetTitle(),
@@ -267,7 +267,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					if article.GetImage() != nil {
 						@partials.Thumbnail(
 							&models.RemoteImage{
-								URL:   new(article.GetImage().GetURL()),
+								URL:   article.GetImage().GetURL(),
 								Title: new(article.GetTitle()),
 							},
 							article.GetTitle(),

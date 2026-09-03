@@ -147,6 +147,9 @@ var (
 						}),
 						templates.WithKeywordMapping("extension_type"),
 						templates.WithFlattenedMapping("extension_data"),
+						templates.WithObjectMapping("geo",
+							templates.WithGeoPointMapping("point"),
+						),
 					),
 				),
 				templates.WithTemplateSettings(

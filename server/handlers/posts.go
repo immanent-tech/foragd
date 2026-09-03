@@ -231,8 +231,8 @@ func HandlePostsFeed() http.HandlerFunc {
 				rss.WithItemDescription(post.Frontmatter.Description, false),
 				rss.WithItemLink(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug),
 				rss.WithItemGUID(rss.NewGUID(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug, true)),
-				rss.WithItemImage(&types.ImageInfo{
-					Title: post.Frontmatter.Title,
+				rss.WithItemImage(&types.Image{
+					Title: &post.Frontmatter.Title,
 					URL:   config.GetBaseURL() + *post.Frontmatter.Image,
 				}),
 				rss.WithItemContent(contentStr, true),

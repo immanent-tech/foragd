@@ -1997,7 +1997,7 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			return templ_7745c5c3_Err
 		}
 		if request.Customisation != nil && request.Customisation.ImageURL != nil {
-			templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2153,7 +2153,7 @@ func ShowFeedSuggestions(request *models.SuggestFeedsResults) templ.Component {
 					} else {
 						imgTitle = *feed.Image.Title
 					}
-					templ_7745c5c3_Err = subscriptionThumbnail(models.NewRemoteImage(*feed.Image.URL, imgTitle), feed.GetTitle()).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = subscriptionThumbnail(models.NewRemoteImage(feed.Image.URL, imgTitle), feed.GetTitle()).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2634,7 +2634,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						return templ_7745c5c3_Err
 					}
 					if request.Customisation != nil && request.Customisation.ImageURL != nil {
-						templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -3135,7 +3135,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						return templ_7745c5c3_Err
 					}
 					if request.Customisation != nil && request.Customisation.ImageURL != nil {
-						templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -3594,7 +3594,7 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest) templ.C
 								return templ_7745c5c3_Err
 							}
 							if request.Customisation != nil && request.Customisation.ImageURL != nil {
-								templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "").Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
