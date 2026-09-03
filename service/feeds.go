@@ -617,7 +617,6 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 				query.Term("source_urls", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](10.0)),
 				query.Term("url", parsedURL.String(), query.WithQueryBoost[*query.TermQuery](5.0)),
 				// Match the URL domain.
-				query.Match("domain", parsedURL.Hostname()),
 				query.Term("domain.raw", parsedURL.Hostname(), query.WithQueryBoost[*query.TermQuery](15.0)),
 			),
 		)
@@ -657,6 +656,12 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 		)
 	}
 
+	suggestions := &models.SuggestFeedsResults{
+		Text:        request.Text,
+		Feeds:       make(models.Feeds, 0),
+		LatestItems: make(map[models.FeedID]models.Items),
+	}
+
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
@@ -678,14 +683,11 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 				slog.Any("error", err),
 			)
 		}
-		return &models.SuggestFeedsResults{
-			Text:        request.Text,
-			Feeds:       resp.Results,
-			LatestItems: latestItems,
-		}, nil
+		suggestions.Feeds = resp.Results
+		suggestions.LatestItems = latestItems
 	}
 
-	// If no matching feeds but the query is a valid URL, try to find a feed at the URL.
+	// If the request text is a URL, also
 	if strings.HasPrefix(request.Text, "http") {
 		if newFeedURL, err := NormalizeFeedURL(request.Text); err == nil {
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
@@ -695,27 +697,18 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 			if err != nil {
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
-			latestItems := make(map[models.FeedID]models.Items)
 			if items := newFeed.GetItems().SortByTimestamp(); len(items) > 0 {
 				// Truncate to 3 items.
 				if len(items) > 3 {
 					items = items[:3]
 				}
-				latestItems[newFeed.GetID()] = items
+				suggestions.LatestItems[newFeed.GetID()] = items
 			}
-			return &models.SuggestFeedsResults{
-				Text:        request.Text,
-				Feeds:       models.Feeds{newFeed},
-				LatestItems: latestItems,
-			}, nil
+			suggestions.Feeds = slices.Concat(models.Feeds{newFeed}, suggestions.Feeds)
 		}
 	}
 
-	// No results, send empty set.
-	return &models.SuggestFeedsResults{
-		Text:        request.Text,
-		LatestItems: make(map[models.FeedID]models.Items),
-	}, nil
+	return suggestions, nil
 }
 
 // GenerateOPML generates an OPML file of the feeds listed by the given IDs.
