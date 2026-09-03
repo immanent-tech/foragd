@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.224.0](https://github.com/immanent-tech/foragd/compare/v0.223.0...v0.224.0) (2026-09-03)
+
+
+### Features
+
+* **comparisons:** ➕ add newsblur comparison ([415179a](https://github.com/immanent-tech/foragd/commit/415179ad1bb0db015d8d91581cc1fc0fa3618897))
+* **models:** ✨ implement additional feed extension support ([d584002](https://github.com/immanent-tech/foragd/commit/d5840022afdd3be4e0df16530035359a81d8e7eb))
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 fix adding new feeds ([db697eb](https://github.com/immanent-tech/foragd/commit/db697eb160514c5e69c0fa2ab2397715229f706f))
+* **service/items:** 🔧 add debug output to check error code response for article caching ([bf0b72f](https://github.com/immanent-tech/foragd/commit/bf0b72fae43bb2e3115ba8dd3a1fba4267dfb8cc))
+
 ## [0.223.0](https://github.com/immanent-tech/foragd/compare/v0.222.4...v0.223.0) (2026-08-31)
 
 
