@@ -5,3 +5,6 @@ JSONFeed
 OPML
 IMHO
 GCP
+Youtube
+FreshRSS
+Newsblur

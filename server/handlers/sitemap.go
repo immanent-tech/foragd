@@ -37,6 +37,8 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 			"Compare with Inoreader",
 			config.GetBaseURL()+"/compare/inoreader",
 		),
+		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with Newsblur", config.GetBaseURL()+"/compare/newsblur"),
+		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with FreshRSS", config.GetBaseURL()+"/compare/freshrss"),
 	)
 	// Add all posts.
 	posts, err := getPosts()

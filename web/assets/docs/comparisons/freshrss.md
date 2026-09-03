@@ -131,9 +131,3 @@ FreshRSS instance remains untouched, so you can keep it running in parallel unti
 or shut down the server once you're ready and stop paying for hosting (or stop maintaining it yourself).
 
 Don't have a Foragd account yet? [Start a free trial](https://foragd.app/signup). No credit card required for a trial.
-
-## Compare Foragd with more services:
-
-- [Foragd vs Feedly](https://foragd.app/compare/feedly)
-- [Foragd vs Inoreader](https://foragd.app/compare/inoreader)
-- Foragd vs FreshRSS (this page)

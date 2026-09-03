@@ -63,7 +63,7 @@ in Feedly can be moved to Foragd in a single file import.
 ### 1. Export your feeds from Feedly
 
 Log into Feedly and go to your profile settings. Under the "Organize" section, look for the OPML export option. Feedly
-will generate a single .opml file containing every feed you currently subscribe to, organised into whatever folders
+will generate a single `.opml` file containing every feed you currently subscribe to, organized into whatever folders
 you've created. Download this file — it's yours to keep regardless of what you do next.
 
 ### 2. Import into Foragd
@@ -79,7 +79,3 @@ Feedly account remains untouched, you still need to cancel any existing subscrip
 it at any time, or, keep both running in parallel until you're comfortable with the switch.
 
 Don't have a Foragd account yet? [Start a free trial](/signup). No credit card required for a trial.
-
-## Last Updated
-
-July 21, 2026

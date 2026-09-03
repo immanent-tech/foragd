@@ -109,7 +109,3 @@ Inoreader account remains untouched, you still need to cancel any existing subsc
 it at any time, or, keep both running in parallel until you're comfortable with the switch.
 
 Don't have a Foragd account yet? [Start a free trial](/signup). No credit card required for a trial.
-
-## Last Updated
-
-July 20, 2026

@@ -513,7 +513,7 @@ func FeaturesPageCollect() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Coming from Feedly, Inoreader, or another reader? Foragd imports your existing subscriptions easily using OPML, a widely-used standard for feed imports and exports.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary\"><li>You always own and control your data. You can import and export freely, anytime</li><li>One file, one import. No manual re-adding of every subscription</li></ul><div class=\"mt-5 flex flex-wrap gap-x-5 gap-y-1 font-serif text-pretty\">Compare: <a href=\"/compare/feedly\" class=\"link link-primary\">Foragd vs Feedly</a> <a href=\"/compare/inoreader\" class=\"link link-primary\">Foragd vs Inoreader</a> <a href=\"/compare/freshrss\" class=\"link link-primary\">Foragd vs FreshRSS</a></div></div><img src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"OPML import results showing subscriptions migrated from another feed reader into Foragd\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<p class=\"mt-4 font-serif text-pretty text-base-content/70\">Coming from Feedly, Inoreader, Newsblur, or another reader? Foragd imports your existing subscriptions easily using OPML, a widely-used standard for feed imports and exports.</p><ul class=\"mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary\"><li>You always own and control your data. You can import and export freely, anytime</li><li>One file, one import. No manual re-adding of every subscription</li></ul><div class=\"mt-5 flex flex-wrap gap-x-5 gap-y-1 font-serif text-pretty\">Compare: <a href=\"/compare/feedly\" class=\"link link-primary\">Foragd vs Feedly</a> <a href=\"/compare/inoreader\" class=\"link link-primary\">Foragd vs Inoreader</a> <a href=\"/compare/newsblur\" class=\"link link-primary\">Foragd vs Newsblur</a> <a href=\"/compare/freshrss\" class=\"link link-primary\">Foragd vs FreshRSS</a></div></div><img src=\"/content/screenshots/screenshot-feature-import.webp\" alt=\"OPML import results showing subscriptions migrated from another feed reader into Foragd\" class=\"box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl\" loading=\"lazy\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1331,7 +1331,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var39 string
 						templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.ResolveAttributeValue(time.Now().Format("2006-01-02T15:04:05-0700"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1072, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1073, Col: 64}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
 						if templ_7745c5c3_Err != nil {
@@ -1344,7 +1344,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var40 string
 						templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Jan _2, 2006"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1076, Col: 43}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1077, Col: 43}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 						if templ_7745c5c3_Err != nil {
@@ -1680,7 +1680,7 @@ func featurePanel(id string) templ.Component {
 		var templ_7745c5c3_Var49 string
 		templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1213, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1214, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var49)
 		if templ_7745c5c3_Err != nil {
@@ -1730,7 +1730,7 @@ func featureTitle(title string) templ.Component {
 		var templ_7745c5c3_Var51 string
 		templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1219, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1220, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 		if templ_7745c5c3_Err != nil {

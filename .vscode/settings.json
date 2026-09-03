@@ -9,6 +9,18 @@
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
   },
+  "[markdown]": {
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
   "emmet.includeLanguages": {
     "templ": "html"
   },
@@ -40,5 +52,6 @@
   "xmlTools.splitAttributesOnFormat": true,
   "git.autofetch": true,
   "git.followTagsWhenSync": true,
-  "git.enableSmartCommit": true
+  "git.enableSmartCommit": true,
+  "markdown.validate.enabled": true
 }

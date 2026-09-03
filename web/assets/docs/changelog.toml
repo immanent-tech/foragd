@@ -1,10 +1,9 @@
 #:schema https://json.schemastore.org/any.json
 
-
 [[releases]]
-version   = "v0.223"
-date      = "Aug 28, 2026"
-type      = "major"
+version = "v0.223"
+date = "Aug 28, 2026"
+type = "major"
 is_latest = true
 [[releases.changes]]
 type = "new"
@@ -14,8 +13,8 @@ You can now browse and discover feeds in the Foragd database on the <a href="/di
 
 [[releases]]
 version = "v0.222"
-date    = "Aug 28, 2026"
-type    = "major"
+date = "Aug 28, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -34,8 +33,8 @@ When clicking through group subscriptions, unread articles were not displayed. T
 
 [[releases]]
 version = "v0.220"
-date    = "Aug 22, 2026"
-type    = "minor"
+date = "Aug 22, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -54,8 +53,8 @@ Better tooltip text in various places.
 
 [[releases]]
 version = "v0.219"
-date    = "Aug 20, 2026"
-type    = "minor"
+date = "Aug 20, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -64,8 +63,8 @@ More reliable Youtube search. When searching for new Youtube feeds, both playlis
 
 [[releases]]
 version = "v0.218"
-date    = "Aug 19, 2026"
-type    = "major"
+date = "Aug 19, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -94,8 +93,8 @@ Adding new feeds was broken due to recent backend changes. Fixed now.
 
 [[releases]]
 version = "v0.216"
-date    = "Aug 12, 2026"
-type    = "major"
+date = "Aug 12, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -104,8 +103,8 @@ Default theme renewed. More green, more vibrant, less brown.
 
 [[releases]]
 version = "v0.213"
-date    = "Aug 6, 2026"
-type    = "minor"
+date = "Aug 6, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -114,8 +113,8 @@ Added a display option to hide grouped subscriptions from the home page and subs
 
 [[releases]]
 version = "v0.212"
-date    = "Aug 4, 2026"
-type    = "minor"
+date = "Aug 4, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -124,8 +123,8 @@ When viewing an article, there are now buttons to move to the previous or next a
 
 [[releases]]
 version = "v0.211"
-date    = "Aug 3, 2026"
-type    = "minor"
+date = "Aug 3, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -134,8 +133,8 @@ Trial period is now 30 days!
 
 [[releases]]
 version = "v0.210"
-date    = "Aug 2, 2026"
-type    = "minor"
+date = "Aug 2, 2026"
+type = "minor"
 [[releases.changes]]
 type = "fixed"
 description = """
@@ -149,8 +148,8 @@ Tweaks to search performance.
 
 [[releases]]
 version = "v0.209"
-date    = "Jul 30, 2026"
-type    = "minor"
+date = "Jul 30, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -159,8 +158,8 @@ Improved themes. Removed dracula, light and dark themes. Added minimal (light an
 
 [[releases]]
 version = "v0.207"
-date    = "Jul 28, 2026"
-type    = "minor"
+date = "Jul 28, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -169,8 +168,8 @@ You can now define global article filters, that will filter articles across all 
 
 [[releases]]
 version = "v0.204"
-date    = "Jul 24, 2026"
-type    = "minor"
+date = "Jul 24, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -184,8 +183,8 @@ Favorites are no longer hidden!
 
 [[releases]]
 version = "v0.201"
-date    = "Jul 21, 2026"
-type    = "major"
+date = "Jul 21, 2026"
+type = "major"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -199,8 +198,8 @@ Changes that should result is encountering less jarring layout shifts when loadi
 
 [[releases]]
 version = "v0.200"
-date    = "Jul 17, 2026"
-type    = "major"
+date = "Jul 17, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -214,8 +213,8 @@ Fix support for JSONFeed.
 
 [[releases]]
 version = "v0.199"
-date    = "Jul 17, 2026"
-type    = "minor"
+date = "Jul 17, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -224,8 +223,8 @@ Add an indicator on subscriptions that have article filters applied.
 
 [[releases]]
 version = "v0.195"
-date    = "Jul 15, 2026"
-type    = "minor"
+date = "Jul 15, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -244,8 +243,8 @@ On tablet-sized screens, the home page has less columns, making it less squished
 
 [[releases]]
 version = "v0.192"
-date    = "Jul 14, 2026"
-type    = "minor"
+date = "Jul 14, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -254,8 +253,8 @@ Foragd will detect and fetch the feed for Substack blogs/newsletters now.
 
 [[releases]]
 version = "v0.189"
-date    = "Jul 10, 2026"
-type    = "minor"
+date = "Jul 10, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -269,8 +268,8 @@ Backend tuning should result in a more responsive interface.
 
 [[releases]]
 version = "v0.188"
-date    = "Jul 9, 2026"
-type    = "minor"
+date = "Jul 9, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -289,8 +288,8 @@ Fixed search results pagination.
 
 [[releases]]
 version = "v0.187"
-date    = "Jul 7, 2026"
-type    = "minor"
+date = "Jul 7, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -314,8 +313,8 @@ Removed errant hoziontal scrolling on certain pages.
 
 [[releases]]
 version = "v0.180"
-date    = "Jul 3, 2026"
-type    = "major"
+date = "Jul 3, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -324,8 +323,8 @@ On the home page and the subscriptions/articles list pages, you can now pull dow
 
 [[releases]]
 version = "v0.177"
-date    = "Jul 1, 2026"
-type    = "major"
+date = "Jul 1, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -334,8 +333,8 @@ Semantic search is here! In addition to traditional search by keywords and phras
 
 [[releases]]
 version = "v0.176"
-date    = "Jun 29, 2026"
-type    = "minor"
+date = "Jun 29, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -349,8 +348,8 @@ Relevance of results overall should be improved with more backend search tweaks.
 
 [[releases]]
 version = "v0.173"
-date    = "Jun 29, 2026"
-type    = "minor"
+date = "Jun 29, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -359,8 +358,8 @@ Fetching remote content should result in better detection and extraction of the 
 
 [[releases]]
 version = "v0.170"
-date    = "Jun 25, 2026"
-type    = "major"
+date = "Jun 25, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -389,8 +388,8 @@ When clicking on a category badge on an article to filter by that category, the 
 
 [[releases]]
 version = "v0.167"
-date    = "Jun 19, 2026"
-type    = "patch"
+date = "Jun 19, 2026"
+type = "patch"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -404,8 +403,8 @@ Billing logic fixes.
 
 [[releases]]
 version = "v0.166"
-date    = "Jun 19, 2026"
-type    = "patch"
+date = "Jun 19, 2026"
+type = "patch"
 [[releases.changes]]
 type = "fixed"
 description = """
@@ -414,8 +413,8 @@ Fixed the button on the add subscription page to generate your email address for
 
 [[releases]]
 version = "v0.164"
-date    = "Jun 18, 2026"
-type    = "patch"
+date = "Jun 18, 2026"
+type = "patch"
 [[releases.changes]]
 type = "fixed"
 description = """
@@ -429,8 +428,8 @@ On pages with back buttons, hitting the back button will load fresh content on t
 
 [[releases]]
 version = "v0.163"
-date    = "Jun 17, 2026"
-type    = "major"
+date = "Jun 17, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -444,8 +443,8 @@ When toggling read status of a subscription/article, the card will now change br
 
 [[releases]]
 version = "v0.160"
-date    = "Jun 15, 2026"
-type    = "major"
+date = "Jun 15, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -469,8 +468,8 @@ Styling improvements. Consistent page/section headings. Tooltips on card actions
 
 [[releases]]
 version = "v0.159"
-date    = "Jun 8, 2026"
-type    = "minor"
+date = "Jun 8, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -479,8 +478,8 @@ Foragd will now automically detect feeds for medium.com blogs/pages.
 
 [[releases]]
 version = "v0.158"
-date    = "Jun 8, 2026"
-type    = "minor"
+date = "Jun 8, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -494,8 +493,8 @@ Backend changes for Android app support (app coming soon!)
 
 [[releases]]
 version = "v0.156"
-date    = "Jun 8, 2026"
-type    = "minor"
+date = "Jun 8, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -514,8 +513,8 @@ On the add subscription page, the additional instructions are now source-specifi
 
 [[releases]]
 version = "v0.155"
-date    = "Jun 5, 2026"
-type    = "minor"
+date = "Jun 5, 2026"
+type = "minor"
 [[releases.changes]]
 type = "improved"
 description = """
@@ -524,8 +523,8 @@ More vibrant notifications. Notifications now have a color that reflects their s
 
 [[releases]]
 version = "v0.154"
-date    = "Jun 4, 2026"
-type    = "major"
+date = "Jun 4, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
@@ -534,42 +533,42 @@ You can now add Google News RSS feeds easily. On the <a class="link" href="/subs
 
 [[releases]]
 version = "v0.153"
-date    = "Jun 3, 2026"
-type    = "major"
+date = "Jun 3, 2026"
+type = "major"
 [[releases.changes]]
-type        = "new"
+type = "new"
 description = "Added a changelog page."
 
 [[releases]]
 version = "v0.152"
-date    = "Jun 3, 2026"
-type    = "patch"
+date = "Jun 3, 2026"
+type = "patch"
 [[releases.changes]]
-type        = "improved"
+type = "improved"
 description = "Foragd now suggests a colour for the browser or OS to use when rendering surfaces around the site based on your theme."
 [[releases.changes]]
-type        = "improved"
+type = "improved"
 description = "OPML export has been streamlined."
 [[releases.changes]]
-type        = "improved"
+type = "improved"
 description = "The informed/inspired/enlightened starter feedsets have been updated and now generated dynamically."
 
 
 [[releases]]
 version = "v0.151"
-date    = "Jun 2, 2026"
-type    = "patch"
+date = "Jun 2, 2026"
+type = "patch"
 [[release.changes]]
-type        = "fixed"
+type = "fixed"
 description = "You can now focus the global search box with Alt+k again."
 [[releases.changes]]
-type        = "improved"
+type = "improved"
 description = "Foragd will try to protect you from breaching your account limits."
 
 [[releases]]
 version = "v0.150"
-date    = "May 29, 2026"
-type    = "major"
+date = "May 29, 2026"
+type = "major"
 [[releases.changes]]
 type = "new"
 description = """
