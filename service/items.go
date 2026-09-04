@@ -19,7 +19,8 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/goforj/godump"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -31,6 +32,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
@@ -78,6 +80,65 @@ func CountItems(ctx context.Context, query query.Option) (int64, error) {
 	}
 
 	return count, nil
+}
+
+// AddItems will add the given items to the database. It returns a map divided into "updated" and "new" items, to
+// indicate items that existed and were updated vs. items that were added as new.
+func AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+	// Get any existing versions of the items.
+	existingItems, err := GetItems(ctx, items.GetIDs()...)
+	if err != nil {
+		slogctx.FromCtx(ctx).
+			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
+				slog.Any("error", err),
+			)
+		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
+			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
+		}
+		return map[string]models.Items{"updated": items}, nil
+	}
+
+	// Collect updated items. Ignore no-op updates like timestamp changes.
+	// TODO: add a custom comparer when ExtensionData contains information worth updating.
+	updatedItems := make(models.Items, 0, len(existingItems))
+	for existingItem := range slices.Values(existingItems) {
+		if updatedItem := items.FindByID(existingItem.GetID()); updatedItem != nil {
+			if diff := cmp.Diff(
+				*existingItem,
+				*updatedItem,
+				cmpopts.IgnoreFields(
+					models.Item{},
+					"Updated",
+					"Published",
+					"Timestamp",
+					"ExtensionData",
+					"ExtensionType",
+				),
+				cmpopts.EquateEmpty(),
+				cmpopts.IgnoreUnexported(),
+			); diff != "" {
+				updatedItems = append(updatedItems, updatedItem)
+			}
+		}
+	}
+
+	// Collect new items.
+	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
+
+	// Index all items.
+	results := make(map[string]models.Items)
+	results["updated"] = updatedItems
+	results["new"] = newItems
+	if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), slices.Concat(updatedItems, newItems)...); err != nil {
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
+	}
+
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Flush bulk request failed.",
+			slog.Any("error", err))
+	}
+
+	return results, nil
 }
 
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
@@ -697,7 +758,6 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 	} else {
 		if err := itemPageCache.Copy(ctx, item.GetID(), itemContentBuf); err != nil {
 			if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
-				godump.Dump(apiErr)
 				if apiErr.StatusCode != http.StatusNotFound {
 					slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
 						slog.Any("error", err),

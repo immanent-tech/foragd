@@ -8,17 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
-	"slices"
-	"sync"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -126,202 +119,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
-	// Create a new FeedStatus for this update.
-	logMsg := newFeedStatusMsg(details.GetID())
-	logMsg.FeedStatus.URL = feedURL
-
-	// Add any new items since the last feed update.
-	if len(feed.GetItems()) == 0 {
-		logMsg.StatusCode = http.StatusNoContent
-		slogctx.FromCtx(ctx).Warn("Feed data did not contain any items.")
-		return nil
-	}
-	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-		const maxConcurrentEnrichment = 25
-		enrichJobCh := make(chan *models.Item, 100)
-		var wg sync.WaitGroup
-		for range maxConcurrentEnrichment {
-			// Try to enrich item with additional data if possible.
-			wg.Go(func() {
-				for item := range enrichJobCh {
-					if err := service.EnrichItem(ctx, feed, item); err != nil {
-						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
-							slog.Any("error", err),
-						)
-					}
-				}
-			})
-		}
-		for item := range slices.Values(newItems) {
-			enrichJobCh <- item
-		}
-		close(enrichJobCh)
-		wg.Wait()
-
-		// Add new items.
-		results, err := addItems(ctx, newItems)
-		if err != nil {
-			return fmt.Errorf("add new items: %w", err)
-		}
-		if len(results["new"]) > 0 || len(results["updated"]) > 0 {
-			slogctx.FromCtx(ctx).Debug("Added new/updated items.",
-				slog.Time("since", details.LastFetched),
-				slog.Int("new", len(results["new"])),
-				slog.Int("updated", len(results["updated"])),
-			)
-			var allItems models.Items
-			for _, v := range results {
-				allItems = append(allItems, v...)
-			}
-			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
-			// newer articles where a feed lags behind real-time.
-			if err := service.ApplyFeedUpdates(
-				ctx,
-				details,
-				feed,
-				allItems.SortByTimestamp()[0].GetTimestamp(),
-			); err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to update feed details.",
-					slog.Any("error", err),
-				)
-			}
-			logMsg.Items = allItems.GetIDs()
-		}
-		logMsg.StatusCode = http.StatusOK
-	} else {
-		logMsg.StatusCode = http.StatusNoContent
-	}
-	// Index FeedStatus for this update.
-	if err := logMsg.log(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-			slog.Any("error", err),
-		)
-	}
-
-	if err := bulk.Flush(ctx); err != nil {
-		return fmt.Errorf("update feed job: flush updates: %w", err)
+	if err := service.ApplyFeedUpdates(ctx, details, feed); err != nil {
+		slogctx.Error(ctx, "Could not apply feed updates.",
+			slog.Any("error", err))
 	}
 
 	slogctx.FromCtx(ctx).Debug("Finished update feed job.",
 		slog.Duration("took", time.Since(start)))
 
 	return nil
-}
-
-func addItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
-	// Get any existing versions of the items.
-	existingItems, err := service.GetItems(ctx, items.GetIDs()...)
-	if err != nil {
-		slogctx.FromCtx(ctx).
-			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
-				slog.Any("error", err),
-			)
-		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
-			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
-		}
-		return map[string]models.Items{"updated": items}, nil
-	}
-
-	// Collect updated items. Ignore no-op updates like timestamp changes.
-	// TODO: add a custom comparer when ExtensionData contains information worth updating.
-	updatedItems := make(models.Items, 0, len(existingItems))
-	for existingItem := range slices.Values(existingItems) {
-		if updatedItem := items.FindByID(existingItem.GetID()); updatedItem != nil {
-			if diff := cmp.Diff(
-				*existingItem,
-				*updatedItem,
-				cmpopts.IgnoreFields(
-					models.Item{},
-					"Updated",
-					"Published",
-					"Timestamp",
-					"ExtensionData",
-					"ExtensionType",
-				),
-				cmpopts.EquateEmpty(),
-				cmpopts.IgnoreUnexported(),
-			); diff != "" {
-				updatedItems = append(updatedItems, updatedItem)
-			}
-		}
-	}
-
-	// Collect new items.
-	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
-
-	// Index all items.
-	results := make(map[string]models.Items)
-	results["updated"] = updatedItems
-	results["new"] = newItems
-	if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), slices.Concat(updatedItems, newItems)...); err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
-	}
-
-	return results, nil
-}
-
-type feedStatusLogMsg struct {
-	*models.FeedStatus
-
-	Labels map[string]string `json:"labels"`
-}
-
-func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
-	return &feedStatusLogMsg{
-		FeedStatus: &models.FeedStatus{
-			Timestamp: time.Now().UTC(),
-			FeedID:    id,
-		},
-		Labels: map[string]string{
-			"env":  config.GetEnvironment().String(),
-			"type": "feed-status",
-		},
-	}
-}
-
-func (l *feedStatusLogMsg) log(ctx context.Context) error {
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			l,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string]("logs"),
-		),
-	); err != nil {
-		return fmt.Errorf("add bulk action: %w", err)
-	}
-	return nil
-}
-
-func logZyteError(ctx context.Context, err error, feedURL string, details *models.Feed) {
-	logMsg := newFeedStatusMsg(details.GetID())
-	logMsg.FeedStatus.URL = feedURL
-	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-		logMsg.StatusCode = apiErr.StatusCode
-		logMsg.StatusMessage = new(apiErr.Error())
-	} else {
-		logMsg.StatusCode = http.StatusInternalServerError
-		logMsg.StatusMessage = new(err.Error())
-	}
-	if err := logMsg.log(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-			slog.Any("error", err),
-		)
-	}
-}
-
-func logGeneralError(ctx context.Context, err error, feedURL string, details *models.Feed) {
-	logMsg := newFeedStatusMsg(details.GetID())
-	logMsg.FeedStatus.URL = feedURL
-	if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-		logMsg.StatusCode = apiErr.StatusCode
-		logMsg.StatusMessage = new(apiErr.Error())
-	} else {
-		logMsg.StatusCode = http.StatusInternalServerError
-		logMsg.StatusMessage = new(err.Error())
-	}
-	if err := logMsg.log(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-			slog.Any("error", err),
-		)
-	}
 }

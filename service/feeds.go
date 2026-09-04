@@ -177,10 +177,86 @@ func (r *diffReporter) PopStep() {
 	r.path = r.path[:len(r.path)-1]
 }
 
+// UpdateFeedItems determines if there are new items in the feed and then adds them to the database, performing item
+// enrichment as needed. It returns a timestamp indicating a new lastFetched value for the feed, based off the latest
+// new item's timestamp.
+func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.Time, error) {
+	// Add any new items since the last feed update.
+	if len(newData.GetItems()) == 0 {
+		logMsg := newFeedStatusMsg(oldData.GetID())
+		logMsg.StatusCode = http.StatusNoContent
+		if err := logMsg.log(ctx); err != nil {
+			slogctx.Error(ctx, "Unable to write feed status.",
+				slog.Any("error", err))
+		}
+		return oldData.LastFetched, nil
+	}
+	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
+		const maxConcurrentEnrichment = 25
+		enrichJobCh := make(chan *models.Item, 100)
+		var wg sync.WaitGroup
+		for range maxConcurrentEnrichment {
+			// Try to enrich item with additional data if possible.
+			wg.Go(func() {
+				for item := range enrichJobCh {
+					if err := EnrichItem(ctx, oldData, item); err != nil {
+						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
+							slog.Any("error", err),
+						)
+					}
+				}
+			})
+		}
+		for item := range slices.Values(newItems) {
+			enrichJobCh <- item
+		}
+		close(enrichJobCh)
+		wg.Wait()
+
+		// Add new items.
+		results, err := AddItems(ctx, newItems)
+		if err != nil {
+			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
+		}
+		if len(results["new"]) > 0 || len(results["updated"]) > 0 {
+			slogctx.FromCtx(ctx).Debug("Added new/updated items.",
+				slog.Time("since", oldData.LastFetched),
+				slog.Int("new", len(results["new"])),
+				slog.Int("updated", len(results["updated"])),
+			)
+			var allItems models.Items
+			for _, v := range results {
+				allItems = append(allItems, v...)
+			}
+			logMsg := newFeedStatusMsg(oldData.GetID())
+			logMsg.StatusCode = http.StatusOK
+			logMsg.Items = allItems.GetIDs()
+			if err := logMsg.log(ctx); err != nil {
+				slogctx.Error(ctx, "Unable to write feed status.",
+					slog.Any("error", err))
+			}
+			return allItems.SortByTimestamp()[0].GetTimestamp(), nil
+		}
+	}
+	logMsg := newFeedStatusMsg(oldData.GetID())
+	logMsg.StatusCode = http.StatusNoContent
+	if err := logMsg.log(ctx); err != nil {
+		slogctx.Error(ctx, "Unable to write feed status.",
+			slog.Any("error", err))
+	}
+	return oldData.LastFetched, nil
+}
+
 // ApplyFeedUpdates takes an existing feed and new feed data, compares the two, updates any fields as appropriate and
-// writes the updated feed back to the database. The lastFetched parameter indicates when the new data was fetched and
-// will always be updated in the database for the feed, regardless if the old and new feed data is the same.
-func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFetched time.Time) error {
+// writes the updated feed back to the database. It will add/update both any new/updated items and any updates to the
+// feed metadata.
+func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error {
+	// Add any new or update existing items.
+	lastFetched, err := UpdateFeedItems(ctx, oldData, newData)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to add new or update existing items.",
+			slog.Any("error", err))
+	}
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
 		slogctx.FromCtx(ctx).Debug("Feed needs classifying")
@@ -211,7 +287,9 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFe
 		cmp.Reporter(&r),
 	); diff != "" {
 		// Update feed data.
-		newData.LastFetched = lastFetched
+		if oldData.LastFetched.Compare(lastFetched) < 0 {
+			newData.LastFetched = lastFetched
+		}
 		newData.Updated = new(time.Now().UTC())
 		// Re-add excluded fields that exist in the original.
 		if oldData.FetchOptions != nil {
@@ -248,18 +326,20 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed, lastFe
 		slogctx.LogAttrs(ctx, slog.LevelInfo, "Feed data updated.", slogAttrs...)
 	} else {
 		// No changes. Just update last_fetched.
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(&bulk.PartialDocument{
-				Parts: map[string]any{
-					"last_fetched": lastFetched,
+		if oldData.LastFetched.Compare(lastFetched) < 0 {
+			if err := bulk.AddAction(ctx,
+				bulk.NewAction(&bulk.PartialDocument{
+					Parts: map[string]any{
+						"last_fetched": lastFetched,
+					},
+					ID: newData.GetID(),
 				},
-				ID: newData.GetID(),
-			},
-				bulk.AsOperation[string](bulk.OpUpdate),
-				bulk.ToIndex[string](schema.FeedsIndexRW()),
-			),
-		); err != nil {
-			return fmt.Errorf("update feed last_fetched: %w", err)
+					bulk.AsOperation[string](bulk.OpUpdate),
+					bulk.ToIndex[string](schema.FeedsIndexRW()),
+				),
+			); err != nil {
+				return fmt.Errorf("update feed last_fetched: %w", err)
+			}
 		}
 	}
 
