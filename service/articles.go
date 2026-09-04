@@ -39,6 +39,9 @@ func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption 
 	if filters == nil {
 		return nil
 	}
+	if filters.IsEmpty() {
+		return nil
+	}
 	return query.Must(
 		query.SimpleQueryString(
 			query.WithSimpleQueryStringText(filters.Text),
