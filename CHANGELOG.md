@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.225.1](https://github.com/immanent-tech/foragd/compare/v0.225.0...v0.225.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* 🔧 fix logic for feed updates ([d98b9a3](https://github.com/immanent-tech/foragd/commit/d98b9a330d82d942d5a86ed12ae84382bb2875f1))
+
 ## [0.225.0](https://github.com/immanent-tech/foragd/compare/v0.224.0...v0.225.0) (2026-09-04)
 
 
