@@ -186,19 +186,17 @@ func FilterArticles(
 		query.Filter(
 			slices.Concat(
 				[]query.Option{
-					query.Terms(
-						"feed_id",
-						subscriptions.GetFeedIDs(),
-						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
-					),
-					query.Terms("categories.raw", request.Filters.GetCategories(),
-						query.WithQueryName[*query.TermsQuery]("match-categories"),
-					),
-					query.Bool(
-						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-					),
+					// Must match these feed IDs.
+					query.Terms("feed_id", subscriptions.GetFeedIDs()),
+					// Must match these categories.
+					query.Terms("categories.raw", request.Filters.GetCategories()),
+					// Must match these global article filters.
+					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
+					// Must match this additional query.
 					request.Query,
-				}, BuildItemQueries(user, request.Filters.GetView(), subscriptions))...,
+				},
+				// Must match one of the subscription filter clauses.
+				BuildItemQueries(user, request.Filters.GetView(), subscriptions))...,
 		),
 	)
 
