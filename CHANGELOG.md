@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.225.2](https://github.com/immanent-tech/foragd/compare/v0.225.1...v0.225.2) (2026-09-04)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 pass old feed details to enrichment ([c83a1cc](https://github.com/immanent-tech/foragd/commit/c83a1ccd13f25be2e17c576aa7389f5393e39703))
+* **service:** 🔧 fix view clauses for matching items ([e788def](https://github.com/immanent-tech/foragd/commit/e788def523937faf5687cab15b7d097d05dc0d8b))
+
 ## [0.225.1](https://github.com/immanent-tech/foragd/compare/v0.225.0...v0.225.1) (2026-09-04)
 
 
