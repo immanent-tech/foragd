@@ -114,7 +114,7 @@ func (c *FetchFeedCmd) Run() error {
 			var wg sync.WaitGroup
 			for item := range slices.Values(newItems) {
 				wg.Go(func() {
-					if err := service.EnrichItem(ctx, feed, item); err != nil {
+					if err := service.EnrichItem(ctx, details, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
