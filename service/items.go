@@ -306,7 +306,7 @@ func BuildItemQueries(
 		// queries = append(queries, queryAllItems(user, subscription))
 		filters := allSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
 		query := query.Bool(
-			query.WithBoolShouldMinimumMatch(1),
+			// Must match any subscription clause.
 			query.Should(filters...),
 		)
 		queries = append(queries, query)
@@ -314,10 +314,17 @@ func BuildItemQueries(
 		// queries = append(queries, queryReadItems(user, subscription))
 		filters := readSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
 		query := query.Bool(
-			query.WithBoolShouldMinimumMatch(1),
+			// Should match one of these.
+			query.Should(
+				// Must not match unread items.
+				query.Bool(
+					query.MustNot(query.Terms("item_id", unreadItems)),
+				),
+				// Match read items.
+				query.Terms("item_id", readItems),
+			),
+			// Must match any subscription clause.
 			query.Should(filters...),
-			query.Should(query.Terms("item_id", readItems)),
-			query.MustNot(query.Terms("item_id", unreadItems)),
 		)
 		queries = append(queries, query)
 	case models.ViewUnread:
@@ -326,10 +333,17 @@ func BuildItemQueries(
 		// queries = append(queries, queryUnreadItems(user, subscription))
 		filters := unReadSubscriptionFilters(grouped, filtered)
 		query := query.Bool(
-			query.WithBoolShouldMinimumMatch(1),
+			// Should match one of these.
+			query.Should(
+				// Must not match read items.
+				query.Bool(
+					query.MustNot(query.Terms("item_id", readItems)),
+				),
+				// Match unread items.
+				query.Terms("item_id", unreadItems),
+			),
+			// Match any subscription clause.
 			query.Should(filters...),
-			query.Should(query.Terms("item_id", unreadItems)),
-			query.MustNot(query.Terms("item_id", readItems)),
 		)
 		queries = append(queries, query)
 	}
