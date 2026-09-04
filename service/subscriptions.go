@@ -749,14 +749,18 @@ func getFeedSubscriptionLatestItems(
 	subscriptionFilters := make(map[string]*estypes.Query)
 	for subscription := range slices.Values(subscriptions) {
 		switch view {
-		case models.ViewRead:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(queryReadItems(user, subscription))
 		case models.ViewAll:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(queryAllItems(user, subscription))
+			subscriptionFilters[subscription.GetFeedID()] = query.Build(
+				allItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			)
+		case models.ViewRead:
+			subscriptionFilters[subscription.GetFeedID()] = query.Build(
+				readItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			)
 		case models.ViewUnread:
 			fallthrough
 		default:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(queryUnreadItems(user, subscription))
+			subscriptionFilters[subscription.GetFeedID()] = query.Build(unreadItemsForSubscriptionClause(subscription))
 		}
 	}
 
@@ -765,14 +769,8 @@ func getFeedSubscriptionLatestItems(
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.Filter(
-					query.Terms(
-						"feed_id",
-						feedIDs,
-						query.WithQueryName[*query.TermsQuery]("match-feed-id"),
-					),
-					query.Bool(
-						ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-					),
+					query.Terms("feed_id", feedIDs),
+					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
 				),
 			),
 		),
@@ -1302,7 +1300,7 @@ func getSubscriptionUnreadCounts(
 	// Generate clauses for aggregation filter buckets.
 	subscriptionFilters := make(map[string]*estypes.Query)
 	for subscription := range slices.Values(subscriptions) {
-		subscriptionFilters[subscription.GetFeedID()] = query.Build(queryUnreadItems(user, subscription))
+		subscriptionFilters[subscription.GetFeedID()] = query.Build(unreadItemsForSubscriptionClause(subscription))
 	}
 
 	feedIDs := subscriptions.GetFeedIDs()

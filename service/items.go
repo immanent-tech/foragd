@@ -216,102 +216,295 @@ func BuildItemQueries(
 	}
 
 	// Filter based on read/unread/all.
+	grouped := make(map[string][]models.FeedID)
+	filtered := make(models.Subscriptions, 0)
+	unreadItems := make([]models.ItemID, 0)
+	readItems := make([]models.ItemID, 0)
 	for subscription := range slices.Values(subscriptions) {
 		// Ignore subscriptions that aren't based on a feed object.
 		if subscription.GetFeedID() == "" {
 			continue
 		}
-		switch view {
-		case models.ViewRead:
-			queries = append(queries, queryReadItems(user, subscription))
-		case models.ViewAll:
-			queries = append(queries, queryAllItems(user, subscription))
-		case models.ViewUnread:
-			fallthrough
-		default:
-			queries = append(queries, queryUnreadItems(user, subscription))
+		// Gather read and unread item IDs.
+		unreadItems = append(unreadItems, subscription.GetUnreadItems()...)
+		readItems = append(readItems, subscription.GetReadItems()...)
+		if filters := subscription.GetArticleFilters(); filters != nil && !filters.IsEmpty() {
+			// Record subscriptions with article filters.
+			filtered = append(filtered, subscription)
+		} else {
+			// Group subscriptions by the 5m window in which they were marked read.
+			tsIdx := roundDownTo5Min(subscription.GetMarkedReadAt()).Format("2006-01-02T15:04:05Z")
+			feedIDs := grouped[tsIdx]
+			feedIDs = append(feedIDs, subscription.GetFeedID())
+			grouped[tsIdx] = feedIDs
 		}
 	}
+
+	switch view {
+	case models.ViewAll:
+		// queries = append(queries, queryAllItems(user, subscription))
+		filters := allSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
+		query := query.Bool(
+			query.WithBoolShouldMinimumMatch(1),
+			query.Should(filters...),
+		)
+		queries = append(queries, query)
+	case models.ViewRead:
+		// queries = append(queries, queryReadItems(user, subscription))
+		filters := readSubscriptionFilters(grouped, filtered, user.GetMaxHistory())
+		query := query.Bool(
+			query.WithBoolShouldMinimumMatch(1),
+			query.Should(filters...),
+			query.Should(query.Terms("item_id", readItems)),
+			query.MustNot(query.Terms("item_id", unreadItems)),
+		)
+		queries = append(queries, query)
+	case models.ViewUnread:
+		fallthrough
+	default:
+		// queries = append(queries, queryUnreadItems(user, subscription))
+		filters := unReadSubscriptionFilters(grouped, filtered)
+		query := query.Bool(
+			query.WithBoolShouldMinimumMatch(1),
+			query.Should(filters...),
+			query.Should(query.Terms("item_id", unreadItems)),
+			query.MustNot(query.Terms("item_id", readItems)),
+		)
+		queries = append(queries, query)
+	}
+
 	return queries
 }
 
-// queryReadItems generates a query for finding read items for the given subscription.
-func queryReadItems(user *models.User, source models.ItemSource) query.Option {
-	return query.Bool(
-		query.WithBoolQueryName(source.GetFeedID()+"_read_items"),
-		query.Filter(
-			// Must match this feed.
-			query.Term("feed_id", source.GetFeedID()),
-			// And should be between the user max history and last read time.
+// unReadSubscriptionFilters generates a set of query options to fetch unread articles for the given subscriptions.
+func unReadSubscriptionFilters(grouped map[string][]models.FeedID, filtered models.Subscriptions) []query.Option {
+	filters := make([]query.Option, 0)
+	// Add filters for grouped subscriptions.
+	for ts, feedIDs := range grouped {
+		filters = append(filters,
 			query.Bool(
-				query.Should(
-					query.Between("published", source.GetMarkedReadAt(), user.GetMaxHistory()),
-					query.Between("updated", source.GetMarkedReadAt(), user.GetMaxHistory()),
-					query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
+				query.Filter(
+					query.Terms("feed_id", feedIDs),
+					query.Bool(
+						query.WithBoolShouldMinimumMatch(1),
+						query.Should(
+							query.Since("published", ts),
+							query.Since("updated", ts),
+						),
+					),
 				),
-				// Must not match any unread items for the feed
-				query.MustNot(
-					query.Terms(
-						"item_id",
-						source.GetUnreadItems(),
-						query.WithQueryName[*query.TermsQuery]("unread-items"),
+			),
+		)
+	}
+	// Add filters for subscriptions with article filters.
+	for subscription := range slices.Values(filtered) {
+		filters = append(filters, unreadItemsForSubscriptionClause(subscription))
+	}
+	return filters
+}
+
+// unreadItemsForSubscriptionClause generates a bool query that can be used to get unread items for a subscription.
+func unreadItemsForSubscriptionClause(subscription *models.Subscription) query.Option {
+	return query.Bool(
+		query.WithBoolQueryName(subscription.GetID()+"_unread"),
+		query.Filter(
+			query.Term("feed_id", subscription.GetFeedID()),
+			query.Bool(
+				query.WithBoolShouldMinimumMatch(1),
+				query.Should(
+					query.Since("published", subscription.GetMarkedReadAt().Format("2006-01-02T15:04:05Z")),
+					query.Since("updated", subscription.GetMarkedReadAt().Format("2006-01-02T15:04:05Z")),
+				),
+			),
+		),
+		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
+	)
+}
+
+// readSubscriptionFilters generates a set of query options to fetch read articles for the given subscriptions.
+func readSubscriptionFilters(
+	grouped map[string][]models.FeedID,
+	filtered models.Subscriptions,
+	maxHistory time.Time,
+) []query.Option {
+	filters := make([]query.Option, 0)
+	// Add filters for grouped subscriptions.
+	for ts, feedIDs := range grouped {
+		filters = append(filters,
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs),
+					query.Bool(
+						query.WithBoolShouldMinimumMatch(1),
+						query.Should(
+							query.Between("published", ts, maxHistory.Format("2006-01-02T15:04:05Z")),
+							query.Between("updated", ts, maxHistory.Format("2006-01-02T15:04:05Z")),
+						),
+					),
+				),
+			),
+		)
+	}
+	// Add filters for subscriptions with article filters.
+	for subscription := range slices.Values(filtered) {
+		filters = append(filters, readItemsForSubscriptionClause(subscription, maxHistory))
+	}
+	return filters
+}
+
+// readItemsForSubscriptionClause generates a bool query that can be used to get read items for a subscription.
+func readItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) query.Option {
+	return query.Bool(
+		query.Filter(
+			query.Term("feed_id", subscription.GetFeedID()),
+			query.Bool(
+				query.WithBoolShouldMinimumMatch(1),
+				query.Should(
+					query.Between(
+						"published",
+						subscription.GetMarkedReadAt().Format("2006-01-02T15:04:05Z"),
+						maxHistory.Format("2006-01-02T15:04:05Z"),
+					),
+					query.Between(
+						"updated",
+						subscription.GetMarkedReadAt().Format("2006-01-02T15:04:05Z"),
+						maxHistory.Format("2006-01-02T15:04:05Z"),
 					),
 				),
 			),
 		),
-		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source.GetArticleFilters()),
+		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 	)
 }
 
-// QueryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(_ *models.User, source models.ItemSource) query.Option {
-	return query.Bool(
-		query.WithBoolQueryName(source.GetFeedID()+"_unread_items"),
-		query.Filter(
-			// Must match this feed.
-			query.Term("feed_id", source.GetFeedID()),
-			query.Bool(
-				query.Should(
-					query.Since("published", source.GetMarkedReadAt()),
-					query.Since("updated", source.GetMarkedReadAt()),
-					query.Terms(
-						"item_id",
-						source.GetUnreadItems(),
-						query.WithQueryName[*query.TermsQuery]("unread-items"),
+// allSubscriptionFilters generates a set of query options to fetch all articles for the given subscriptions.
+func allSubscriptionFilters(
+	grouped map[string][]models.FeedID,
+	filtered models.Subscriptions,
+	maxHistory time.Time,
+) []query.Option {
+	filters := make([]query.Option, 0)
+	// Add filters for grouped subscriptions.
+	filteredIDs := make([]models.FeedID, 0)
+	for _, feedIDs := range grouped {
+		filteredIDs = append(filteredIDs, feedIDs...)
+	}
+	filters = append(filters,
+		query.Bool(
+			query.Filter(
+				query.Terms("feed_id", filteredIDs),
+				query.Bool(
+					query.WithBoolShouldMinimumMatch(1),
+					query.Should(
+						query.Since("published", maxHistory.Format("2006-01-02T15:04:05Z")),
+						query.Since("updated", maxHistory.Format("2006-01-02T15:04:05Z")),
 					),
 				),
 			),
 		),
-		// Must not match any read items for the feed
-		query.MustNot(
-			query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
-		),
-		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source.GetArticleFilters()),
 	)
+	// Add filters for subscriptions with article filters.
+	for subscription := range slices.Values(filtered) {
+		filters = append(filters, allItemsForSubscriptionClause(subscription, maxHistory))
+	}
+	return filters
 }
 
-// subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func queryAllItems(user *models.User, source models.ItemSource) query.Option {
-	maxHistory := user.GetMaxHistory()
+// allItemsForSubscriptionClause generates a bool query that can be used to get all items for a subscription.
+func allItemsForSubscriptionClause(subscription *models.Subscription, maxHistory time.Time) query.Option {
 	return query.Bool(
-		query.WithBoolQueryName(source.GetFeedID()+"_all_items"),
 		query.Filter(
-			// Must match this feed.
-			query.Term("feed_id", source.GetFeedID()),
-			// And be published/updated since the user max history.
+			query.Term("feed_id", subscription.GetFeedID()),
 			query.Bool(
+				query.WithBoolShouldMinimumMatch(1),
 				query.Should(
-					query.Since("published", maxHistory),
-					query.Since("updated", maxHistory),
+					query.Since("published", maxHistory.Format("2006-01-02T15:04:05Z")),
+					query.Since("updated", maxHistory.Format("2006-01-02T15:04:05Z")),
 				),
 			),
 		),
-		// User-specified field-level filtering.
-		ArticleFiltersQueryClause(source.GetArticleFilters()),
+		ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 	)
 }
+
+// // queryReadItems generates a query for finding read items for the given subscription.
+// func queryReadItems(user *models.User, source models.ItemSource) query.Option {
+// 	return query.Bool(
+// 		query.WithBoolQueryName(source.GetFeedID()+"_read_items"),
+// 		query.Filter(
+// 			// Must match this feed.
+// 			query.Term("feed_id", source.GetFeedID()),
+// 			// And should be between the user max history and last read time.
+// 			query.Bool(
+// 				query.Should(
+// 					query.Between("published", source.GetMarkedReadAt(), user.GetMaxHistory()),
+// 					query.Between("updated", source.GetMarkedReadAt(), user.GetMaxHistory()),
+// 					query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
+// 				),
+// 				// Must not match any unread items for the feed
+// 				query.MustNot(
+// 					query.Terms(
+// 						"item_id",
+// 						source.GetUnreadItems(),
+// 						query.WithQueryName[*query.TermsQuery]("unread-items"),
+// 					),
+// 				),
+// 			),
+// 		),
+// 		// User-specified field-level filtering.
+// 		ArticleFiltersQueryClause(source.GetArticleFilters()),
+// 	)
+// }
+
+// // QueryUnreadItems generates a query for finding unread items for the given subscription.
+// func queryUnreadItems(_ *models.User, source models.ItemSource) query.Option {
+
+// 	return query.Bool(
+// 		query.WithBoolQueryName(source.GetFeedID()+"_unread_items"),
+// 		query.Filter(
+// 			// Must match this feed.
+// 			query.Term("feed_id", source.GetFeedID()),
+// 			query.Bool(
+// 				query.Should(
+// 					query.Since("published", source.GetMarkedReadAt()),
+// 					query.Since("updated", source.GetMarkedReadAt()),
+// 					query.Terms(
+// 						"item_id",
+// 						source.GetUnreadItems(),
+// 						query.WithQueryName[*query.TermsQuery]("unread-items"),
+// 					),
+// 				),
+// 			),
+// 		),
+// 		// Must not match any read items for the feed
+// 		query.MustNot(
+// 			query.Terms("item_id", source.GetReadItems(), query.WithQueryName[*query.TermsQuery]("read-items")),
+// 		),
+// 		// User-specified field-level filtering.
+// 		ArticleFiltersQueryClause(source.GetArticleFilters()),
+// 	)
+// }
+
+// // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
+// func queryAllItems(user *models.User, source models.ItemSource) query.Option {
+// 	maxHistory := user.GetMaxHistory()
+// 	return query.Bool(
+// 		query.WithBoolQueryName(source.GetFeedID()+"_all_items"),
+// 		query.Filter(
+// 			// Must match this feed.
+// 			query.Term("feed_id", source.GetFeedID()),
+// 			// And be published/updated since the user max history.
+// 			query.Bool(
+// 				query.Should(
+// 					query.Since("published", maxHistory),
+// 					query.Since("updated", maxHistory),
+// 				),
+// 			),
+// 		),
+// 		// User-specified field-level filtering.
+// 		ArticleFiltersQueryClause(source.GetArticleFilters()),
+// 	)
+// }
 
 // ItemSorting contains the sort options for sorting item search results.
 type ItemSorting struct {
@@ -652,3 +845,10 @@ var loaditemPageCache = sync.OnceValue(func() error {
 
 	return nil
 })
+
+// roundDownTo5Min truncates t to the most recent 5-minute boundary (floor), not the nearest one. For a "since" cutoff
+// you almost always want floor, not round-to-nearest — rounding up risks skipping records that fall between the true
+// cutoff and the rounded-up boundary.
+func roundDownTo5Min(t time.Time) time.Time {
+	return t.UTC().Truncate(5 * time.Minute)
+}
