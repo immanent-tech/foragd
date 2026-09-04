@@ -368,18 +368,23 @@ func Wildcard(field string, value string, options ...func(*WildcardQuery)) Optio
 // Since adds a "Range" query to find documents newer than the given time.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func Since(field string, since time.Time) Option {
+func Since(field string, since any) Option {
 	return func(query *types.Query) {
 		var sinceStr string
-		if since.IsZero() {
+		switch v := since.(type) {
+		case time.Time:
+			if v.IsZero() {
+				return
+			}
+			sinceStr = v.UTC().Format(time.RFC3339Nano)
+		case string:
+			sinceStr = v
+		default:
 			return
 		}
-		sinceStr = since.UTC().Format(time.RFC3339Nano)
-		name := "since-" + field
 		query.Range = map[string]types.RangeQuery{
 			field: types.DateRangeQuery{
-				Gte:        &sinceStr,
-				QueryName_: &name,
+				Gte: &sinceStr,
 			},
 		}
 	}
@@ -388,20 +393,23 @@ func Since(field string, since time.Time) Option {
 // Before adds a "Range" query to find documents older than the given time.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func Before(field string, before time.Time) Option {
+func Before(field string, before any) Option {
 	return func(query *types.Query) {
 		var beforeStr string
-		if before.IsZero() {
+		switch v := before.(type) {
+		case time.Time:
+			if v.IsZero() {
+				return
+			}
+			beforeStr = v.UTC().Format(time.RFC3339Nano)
+		case string:
+			beforeStr = v
+		default:
 			return
 		}
-		beforeStr = before.UTC().Format(time.RFC3339Nano)
-
-		name := "before-" + field
-
 		query.Range = map[string]types.RangeQuery{
 			field: types.DateRangeQuery{
-				Lte:        &beforeStr,
-				QueryName_: &name,
+				Lte: &beforeStr,
 			},
 		}
 	}
@@ -410,19 +418,30 @@ func Before(field string, before time.Time) Option {
 // Between adds a "Range" query to find documents between (or equal to) the given times.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func Between(field string, from time.Time, to time.Time) Option {
+func Between(field string, from, to any) Option {
 	return func(query *types.Query) {
-		if !from.IsZero() && !to.IsZero() {
-			fromStr := from.UTC().Format(time.RFC3339Nano)
-			toStr := to.UTC().Format(time.RFC3339Nano)
-			name := "between-" + field
-			query.Range = map[string]types.RangeQuery{
-				field: types.DateRangeQuery{
-					Gte:        &fromStr,
-					Lte:        &toStr,
-					QueryName_: &name,
-				},
-			}
+		var fromStr, toStr string
+		switch v := from.(type) {
+		case time.Time:
+			fromStr = v.UTC().Format(time.RFC3339Nano)
+		case string:
+			fromStr = v
+		default:
+			return
+		}
+		switch v := to.(type) {
+		case time.Time:
+			toStr = v.UTC().Format(time.RFC3339Nano)
+		case string:
+			toStr = v
+		default:
+			return
+		}
+		query.Range = map[string]types.RangeQuery{
+			field: types.DateRangeQuery{
+				Gte: &fromStr,
+				Lte: &toStr,
+			},
 		}
 	}
 }
@@ -678,6 +697,12 @@ func WithBoolQueryName(name string) BoolOption {
 func WithBoolQueryBoost(boost float32) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		boolQueryClause.Boost = &boost
+	}
+}
+
+func WithBoolShouldMinimumMatch(match int) BoolOption {
+	return func(query *types.BoolQuery) {
+		query.MinimumShouldMatch = match
 	}
 }
 
