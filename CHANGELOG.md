@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.225.0](https://github.com/immanent-tech/foragd/compare/v0.224.0...v0.225.0) (2026-09-04)
+
+
+### Features
+
+* **providers/elastic:** ✨ support string or time.Time values for date-based query options ([431d3d2](https://github.com/immanent-tech/foragd/commit/431d3d2bf6d0829a1b2dbf9e6e52076c1c2636f1))
+
+
+### Bug Fixes
+
+* **service/articles:** 🔧 don't generate an article filters clause if all the filters are empty strings ([0a3e95f](https://github.com/immanent-tech/foragd/commit/0a3e95f204133b74792ed7ecf3f706474a006fb3))
+
+
+### Performance Improvements
+
+* **service/search:** ⚡ simplify search query ([8529f98](https://github.com/immanent-tech/foragd/commit/8529f9831fb9190e9b9f69f73bdafa731f0beb2b))
+* **service:** ⚡ improved item queries ([1b71de7](https://github.com/immanent-tech/foragd/commit/1b71de70234fda1d018f9d38250109bd7693e4b5))
+
 ## [0.224.0](https://github.com/immanent-tech/foragd/compare/v0.223.0...v0.224.0) (2026-09-03)
 
 
