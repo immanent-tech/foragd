@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -118,34 +117,24 @@ func StandardSearchResultsClause(search *models.SearchRequest) query.Option {
 	// search suggestion).
 	return query.Bool(
 		query.Must(
-			// Search across title, description and content fields, with preference for match in that order (via field
-			// boosting).
 			query.Bool(
 				query.Should(
+					// Boost match title exactly.
 					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
+					// Simple query string across most fields. Boost title and description matches.
 					query.SimpleQueryString(
 						query.WithSimpleQueryStringText(&search.Text),
-						query.WithSimpleQueryStringFields("title^3", "description^2", "content"),
+						query.WithSimpleQueryStringFields(
+							"title^3",
+							"description^2",
+							"content",
+							"categories",
+							"authors",
+							"contributors",
+						),
 						query.WithSimpleQueryStringOperator(&operator.And),
 					),
-					query.MultiMatch(
-						search.Text,
-						[]string{"description^2", "content"},
-						query.WithTextQueryType(textquerytype.Phrase),
-					),
 				),
-			),
-			// Search in categories.
-			query.SimpleQueryString(
-				query.WithSimpleQueryStringText(search.Categories),
-				query.WithSimpleQueryStringFields("categories"),
-				query.WithSimpleQueryStringOperator(&operator.And),
-			),
-			// Search in authors, contributors.
-			query.SimpleQueryString(
-				query.WithSimpleQueryStringText(search.Authors),
-				query.WithSimpleQueryStringFields("authors", "contributors"),
-				query.WithSimpleQueryStringOperator(&operator.And),
 			),
 		),
 	)
