@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.225.3](https://github.com/immanent-tech/foragd/compare/v0.225.2...v0.225.3) (2026-09-05)
+
+
+### Bug Fixes
+
+* **providers/google:** 🔧 use errors.AsType to infer errors ([8486e75](https://github.com/immanent-tech/foragd/commit/8486e754cc6b50936abf985bb272cc02bb8e994e))
+* **subscriptions:** 🔧 fix editing group subscriptions ([8a2eea0](https://github.com/immanent-tech/foragd/commit/8a2eea0b83e0724bf835fbc8f289715db925fddb))
+
 ## [0.225.2](https://github.com/immanent-tech/foragd/compare/v0.225.1...v0.225.2) (2026-09-04)
 
 
