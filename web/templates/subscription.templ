@@ -1319,18 +1319,18 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							<legend class="text-lg font-medium">Subscriptions</legend>
 							<label class="fieldset">
 								<span class="label">Add Subscriptions</span>
-								<div class="join mt-2 sm:mt-0">
-									<el-autocomplete id="suggestions" class="join join-item sm:col-span-4">
+								<div class="mt-2 sm:mt-0 join">
+									<el-autocomplete id="suggestions" class="join">
 										<input
 											id="subscription-suggestion"
 											name="suggestion_text"
-											class="input join-item bg-base-300 brightness-95 input-primary"
+											class="input input-primary join-item bg-base-300 brightness-95"
 											placeholder="Subscription..."
 											_="on keydown[key=='Enter'] send subscriptionSuggestionSelected then halt the event"
 										/>
 										<button
 											type="button"
-											class="btn join-item bg-base-100 brightness-95"
+											class="btn btn-primary join-item"
 											aria-label="Show subscription suggestions"
 										>
 											@tableroutline.ChevronDown(templ.Attributes{"class": "transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
@@ -1360,7 +1360,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										hx-swap="beforeend"
 										hx-trigger="click, subscriptionSuggestionSelected from:body"
 										type="button"
-										class="btn join-item btn-primary"
+										class="join-item btn btn-secondary"
 										_="on htmx:afterRequest set #subscription-suggestion.value to ''"
 										aria-label="Add subscription to group"
 									>
@@ -1368,7 +1368,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									</button>
 								</div>
 							</label>
-							<label class="fieldset">
+							<div class="fieldset">
 								<span class="label">Existing Subscriptions</span>
 								<div
 									id="subscriptions"
@@ -1378,7 +1378,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										@AddSubscriptionToGroup(id, name)
 									}
 								</div>
-							</label>
+							</div>
 						</fieldset>
 						// Categories.
 						if request.Customisation != nil {
@@ -1425,13 +1425,13 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 // button removes it from the group.
 templ AddSubscriptionToGroup(id, name string) {
 	<button
-		class="btn btn-outline hover:btn-error"
+		class="btn btn-sm btn-outline hover:btn-error"
 		_="on click remove me"
-		aria-label="Remove subscription from group"
+		aria-label={ "Remove " + name + " from group" }
 	>
 		<input type="hidden" name={ "subscriptions[" + id + "]" } value={ name }/>
 		{ name }
-		@tableroutline.X(templ.Attributes{"aria-hidden": "true"})
+		@tableroutline.X(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 	</button>
 }
 

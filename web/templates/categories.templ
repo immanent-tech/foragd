@@ -81,14 +81,14 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 				}
 			</div>
 		</label>
-		<label class="fieldset">
+		<div class="fieldset">
 			<span class="label">Existing Categories</span>
 			<div id="current-categories" class="mt-2 flex flex-wrap gap-2 p-2 sm:col-span-2 sm:mt-0">
 				for category := range slices.Values(existing) {
 					@AddCategory(category)
 				}
 			</div>
-		</label>
+		</div>
 	</fieldset>
 }
 
@@ -98,11 +98,11 @@ templ AddCategory(category models.Category) {
 		type="button"
 		aria-label={ "Remove category " + category }
 		_="on click remove me"
-		class="badge badge-outline"
+		class="btn btn-sm btn-outline hover:btn-error"
 	>
 		{ category }
 		<input type="hidden" name={ models.ParamCustomisationCategories } value={ category }/>
-		<span class="sr-only">Remove category</span>
+		<span class="sr-only">Remove category { category }</span>
 		@tableroutline.X(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 	</button>
 }
