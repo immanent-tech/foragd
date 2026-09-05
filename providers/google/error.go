@@ -18,8 +18,7 @@ import (
 
 // APIError wraps the error returned by a GCP API endpoint in a models.APIError.
 func APIError(desc string, err error) error {
-	var apiErr *apierror.APIError
-	if ok := errors.As(err, &apiErr); ok {
+	if apiErr, ok := errors.AsType[*apierror.APIError](err); ok {
 		godump.Dump(apiErr)
 		// ae.HTTPCode() is the HTTP status code.
 		// ae.GRPCStatus().Code() is the gRPC status code
@@ -34,8 +33,7 @@ func APIError(desc string, err error) error {
 			),
 		)
 	}
-	var googErr *googleapi.Error
-	if ok := errors.As(err, &googErr); ok {
+	if googErr, ok := errors.AsType[*googleapi.Error](err); ok {
 		godump.Dump(googErr)
 		// e.Code is the HTTP status code.
 		// e.Message is the error message.
