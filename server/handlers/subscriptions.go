@@ -620,8 +620,8 @@ func HandleEditSubscription() http.HandlerFunc {
 				ArticleFilters: existingSubscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
-			for subscription := range slices.Values(childSubscriptions) {
-				request.Subscriptions[subscription.GetID()] = subscription.GetTitle()
+			for childSubscription := range slices.Values(childSubscriptions) {
+				request.Subscriptions[childSubscription.GetID()] = childSubscription.GetTitle()
 			}
 			ctx = models.SubscriptionsToCtx(ctx, childSubscriptions)
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories

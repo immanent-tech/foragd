@@ -336,10 +336,11 @@ func EditGroupSubscription(
 	if err != nil {
 		return fmt.Errorf("get grouped subscription details: %w", err)
 	}
-	for subscription := range slices.Values(grouped) {
+	subscription.GroupData.Metadata = make([]models.GroupedSubscriptionMetadata, 0, len(grouped))
+	for groupedSubscription := range slices.Values(grouped) {
 		subscription.GroupData.Metadata = append(subscription.GroupData.Metadata, models.GroupedSubscriptionMetadata{
-			SubscriptionID: subscription.GetID(),
-			FeedID:         subscription.GetFeedID(),
+			SubscriptionID: groupedSubscription.GetID(),
+			FeedID:         groupedSubscription.GetFeedID(),
 		})
 	}
 	// Update article filters.
