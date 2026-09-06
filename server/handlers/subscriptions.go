@@ -312,24 +312,25 @@ func HandleMarkSubscription() http.HandlerFunc {
 			switch {
 			case strings.Contains(currentURL, "/list/articles"):
 				// On /list/articles, redirect back to subscriptions after marking.
-				if err := setRedirect(res, htmx.HXLocationRequest{
-					Path:   "/list/subscriptions",
-					Target: templates.ContentID.Target(),
-					Swap:   "morph:innerHTML transition:true show:top",
-					Values: models.ListFiltersFromSession(req.Context(), "/list/subscriptions"),
-				}); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
-				}
+				htmx.LocationResponse(
+					htmx.WithLocationPath("/list/subscriptions"),
+					htmx.WithLocationTarget(templates.ContentID.Target()),
+					htmx.WithLocationSwap("morph:innerHTML transition:true"),
+					htmx.WithLocationHeaders(map[string]string{
+						models.ActionHeader: "mark-subscription",
+					}),
+					htmx.WithLocationValues(models.ListFiltersFromSession(req.Context(), "/list/subscriptions")),
+				).ServeHTTP(res, req)
 			case strings.Contains(currentURL, "/list/subscriptions"):
 				// If we aren't viewing all subscriptions, remove the subscription card.
 				if models.View(req.FormValue("view")) != models.ViewAll {
 					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.SubscriptionID).Target())
 					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+					res.Header().Set(models.ActionHeader, "mark-subscription")
 				}
 			}
 		}
-
 		res.WriteHeader(http.StatusOK)
 	}
 }
@@ -343,6 +344,8 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
+
+		res.Header().Set(models.ActionHeader, "mark-subscriptions")
 
 		// Determine actions to apply based on which route this handler was called from.
 		ctx := req.Context()

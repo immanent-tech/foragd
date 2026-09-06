@@ -5,13 +5,11 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
@@ -25,19 +23,6 @@ var (
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
-
-// setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
-// redirection without reloading the whole page.
-//
-// https://htmx.org/headers/hx-location/
-func setRedirect(res http.ResponseWriter, request htmx.HXLocationRequest) error {
-	requestJSON, err := json.Marshal(request)
-	if err != nil {
-		return fmt.Errorf("set redirect: marshal request: %w", err)
-	}
-	res.Header().Set(htmx.HeaderLocation, string(requestJSON))
-	return nil
-}
 
 func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 	request, err := forms.DecodeForm[T](req)

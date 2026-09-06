@@ -29,7 +29,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 		switch req.Method {
 		case http.MethodGet:
 			var filters *models.ListFilters
-			if htmx.IsHistoryRestoreRequest(req) {
+			if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
 				// For a history restore request, fetch the filters from the session.
 				filters = models.ListFiltersFromSession(req.Context(), path)
 				switch {

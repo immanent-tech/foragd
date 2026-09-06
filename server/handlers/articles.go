@@ -537,6 +537,7 @@ func MarkArticle() http.HandlerFunc {
 					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.ItemID).Target())
 					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+					res.Header().Set(models.ActionHeader, "mark-article")
 				}
 			}
 		}
@@ -564,27 +565,26 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		if currentURL, found := htmx.GetCurrentURL(req); !found {
-			err = setRedirect(res, htmx.HXLocationRequest{
-				Path:   RouteHome,
-				Target: templates.ContentID.Target(),
-				Swap:   "morph:innerHTML show:top transition:true",
-			})
+			htmx.LocationResponse(
+				htmx.WithLocationPath("/home"),
+				htmx.WithLocationTarget(templates.ContentID.Target()),
+				htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+				htmx.WithLocationHeaders(map[string]string{
+					models.ActionHeader: "mark-articles",
+				}),
+			).ServeHTTP(res, req)
+			return
 		} else {
-			err = setRedirect(res, htmx.HXLocationRequest{
-				Path:   currentURL,
-				Target: templates.ContentID.Target(),
-				Swap:   "morph:innerHTML show:top transition:true",
-			})
-		}
-		if err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("mark subscriptions: %w", err),
+			htmx.LocationResponse(
+				htmx.WithLocationPath(currentURL),
+				htmx.WithLocationTarget(templates.ContentID.Target()),
+				htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+				htmx.WithLocationHeaders(map[string]string{
+					models.ActionHeader: "mark-articles",
+				}),
 			).ServeHTTP(res, req)
 			return
 		}
-
-		res.WriteHeader(http.StatusOK)
 	}
 }
 
