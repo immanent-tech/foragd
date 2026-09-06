@@ -761,7 +761,9 @@ func getFeedSubscriptionLatestItems(
 		case models.ViewUnread:
 			fallthrough
 		default:
-			subscriptionFilters[subscription.GetFeedID()] = query.Build(unreadItemsForSubscriptionClause(subscription))
+			subscriptionFilters[subscription.GetFeedID()] = query.Build(
+				unreadItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+			)
 		}
 	}
 
@@ -1301,7 +1303,9 @@ func getSubscriptionUnreadCounts(
 	// Generate clauses for aggregation filter buckets.
 	subscriptionFilters := make(map[string]*estypes.Query)
 	for subscription := range slices.Values(subscriptions) {
-		subscriptionFilters[subscription.GetFeedID()] = query.Build(unreadItemsForSubscriptionClause(subscription))
+		subscriptionFilters[subscription.GetFeedID()] = query.Build(
+			unreadItemsForSubscriptionClause(subscription, user.GetMaxHistory()),
+		)
 	}
 
 	feedIDs := subscriptions.GetFeedIDs()
