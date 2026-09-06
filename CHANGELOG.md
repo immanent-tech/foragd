@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.225.4](https://github.com/immanent-tech/foragd/compare/v0.225.3...v0.225.4) (2026-09-06)
+
+
+### Bug Fixes
+
+* **service:** 🔧 fix logic for determining read/unread/all status ([a3c94a3](https://github.com/immanent-tech/foragd/commit/a3c94a30b51d07210ec74155561bdbecaf2ae471))
+
 ## [0.225.3](https://github.com/immanent-tech/foragd/compare/v0.225.2...v0.225.3) (2026-09-05)
 
 
