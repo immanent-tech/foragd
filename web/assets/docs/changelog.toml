@@ -8,7 +8,7 @@ is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
-GeoRSS support. There is an experimental <a href="/map">Map</a> page that shows the latest 50 articles that have geo data, on a world map.
+GeoRSS support. There is an experimental <a href="/map" class="link">Map</a> page that shows the latest 50 articles that have geo data, on a world map.
 """
 [[releases.changes]]
 type = "improved"
