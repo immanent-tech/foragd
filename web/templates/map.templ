@@ -1,0 +1,91 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"bytes"
+	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/components"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
+)
+
+// ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
+templ MapArticles(response *models.ListArticlesResponse) {
+	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@templ.Fragment(ContentFragment) {
+			@components.LeafletAssets()
+			@buttonBackToTop()
+			@container(element.WithClasses("pt-4")) {
+				// Show a page header.
+				@pageHeading() {
+					{{ var title string }}
+					if response.Subscription != nil {
+						{{ title = response.Subscription.GetTitle() }}
+					} else {
+						{{ title = "Articles" }}
+					}
+					<div class="flex items-center gap-1">
+						@pageTitle(title)
+						// Show unread count in badge at top right if user wants stats shown.
+						if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats && response.Subscription != nil {
+							<span class="badge badge-primary">
+								if response.Subscription.GetStats().UnreadTotal() >= 100 {
+									99+
+								} else {
+									{ response.Subscription.GetStats().UnreadTotal() }
+								}
+							</span>
+						}
+						// Add an icon to indicate whether article filtering is being applied.
+						if response.Subscription != nil {
+							if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
+								<div class="tooltip tooltip-bottom" data-tip="Article filtering applied">
+									<span class="sr-only">Article filtering applied</span>
+									@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-6 fill-accent", "aria-hidden": "true"})
+								</div>
+							}
+						}
+					</div>
+				}
+				// List controls.
+				@NewListControls("/map", response.Filters,
+					WithListCategories(response.Articles.GetCategoryCounts().GetCategories()),
+					WithoutListSorting(),
+					WithListActions(listArticlesActions(response)),
+					WithListButtons(listArticlesButtons(response)),
+				)
+				<section id="articles" class="pt-4">
+					if len(response.Articles) > 0 {
+						@components.LeafletMap() {
+							for article := range slices.Values(response.Articles) {
+								if article.Item.Geo != nil {
+									@components.MapMarker(article.Item.Geo.Point.Lat, article.Item.Geo.Point.Lon) {
+										{{ var card bytes.Buffer }}
+										{{ ArticleMapPopup(article).Render(ctx, &card) }}
+										<l-popup content={ card.String() }></l-popup>
+									}
+								}
+							}
+						}
+					} else {
+						{{ response.Filters.Subscriptions = nil }}
+						@partials.NoContent()
+					}
+				</section>
+			}
+			// Watch for updates.
+			<div
+				id="updates"
+				class="toast toast-center"
+				hx-post="/map/updates"
+				hx-vals={ templ.JSONString(response.Filters) }
+				hx-trigger="every 5m"
+				hx-target="#updates"
+			></div>
+		}
+	}
+}

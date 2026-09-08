@@ -98,7 +98,9 @@ func Start() error {
 		security.SetupCORS,
 		security.CrossOriginProtection,
 		security.ContentSecurityPolicy,
-		security.GeneralSecurity,
+		security.GeneralSecurity(
+			[]string{"camera=()", "microphone=()", "geolocation=self", "usb=()", "bluetooth=()", "web-share=self"},
+		),
 		security.PreventCSRF,
 		middlewares.Customisation,
 		// middlewares.RateLimit,
@@ -307,6 +309,12 @@ func Start() error {
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/next", handlers.HandleNextArticle())
 		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/prev", handlers.HandleNextArticle())
+		// Map
+		r.Route("/map", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeListFilters)
+			r.Get("/", handlers.HandleMap())
+			r.Get("/updates", handlers.HandleMapUpdates())
+		})
 		// General.
 		r.Get("/issue", handlers.HandleReportIssue())
 		r.With(htmx.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())

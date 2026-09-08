@@ -1,0 +1,97 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package components
+
+import "github.com/immanent-tech/foragd/web/templates/element"
+
+const MapMarkersFragment = "MapMarkers"
+
+var leafletOnce = templ.NewOnceHandle()
+
+// Leaflet assets will load the required assets (scripts/stylesheets) for using leaflet maps. This can be called many
+// times, but will only load the assets once.
+templ LeafletAssets() {
+	@leafletOnce.Once() {
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+		<script type="importmap">
+  {
+    "imports": {
+      "leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
+      "leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
+    }
+  }
+</script>
+		<script type="module">
+  import "leaflet-html";
+</script>
+	}
+}
+
+// LeafletMap renders a leaflet map element using leaflet-html. Any optional attributes and classes may be passed and
+// this template may wrap any optional children elements.
+templ LeafletMap(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<l-map
+		id="map"
+		center="[39.73, 39.99]"
+		zoom="4"
+		class={ "block isolate h-[calc(100vh-256px)] w-full z-1 rounded-box", props.Classes() }
+		_="on load
+  		     if sessionStorage.mapView is not null
+  		       set view to JSON.parse(sessionStorage.mapView)
+  		       set @center to JSON.stringify(view.center)
+  		       set @zoom to view.zoom
+  		     else
+			     js
+      				return new Promise((resolve, reject) => {
+      				  navigator.geolocation.getCurrentPosition(
+      				    pos => resolve([pos.coords.latitude, pos.coords.longitude]),
+      				    err => resolve([39.73, 39.99])
+      				  )
+      				})
+    			end
+    			then set my @center to `[${it[0]}, ${it[1]}]`
+			end
+  		   end
+
+  		   on moveend or zoomend debounced at 300ms
+  		     set m to my map
+  		     set c to m.getCenter()
+  		     set view to {center:[c.lat, c.lng], zoom: m.getZoom()}
+  		     set sessionStorage.mapView to JSON.stringify(view)
+  		"
+		on="popupopen moveend zoomend"
+		attribution-control="true"
+		zoom-control="true"
+		{ props.Attributes()... }
+	>
+		<l-tile-layer
+			url-template="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+			attribution='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+		></l-tile-layer>
+		<div id="map-markers">
+			@templ.Fragment(MapMarkersFragment) {
+				{ children... }
+			}
+		</div>
+	</l-map>
+	<script>
+  document.getElementById("map").addEventListener("popupopen", (ev) => {
+    const popupEl = ev.detail.popup.getElement();
+    htmx.process(popupEl);
+  });
+</script>
+}
+
+// MapMarker renders a marker at the given lat/long coordinates, with any optional attributes/classes and child
+// elements.
+templ MapMarker(lat, long float64, options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<l-marker
+		lat-lng={ templ.JSONString([]float64{lat, long}) }
+		{ props.Attributes()... }
+	>
+		{ children... }
+	</l-marker>
+}

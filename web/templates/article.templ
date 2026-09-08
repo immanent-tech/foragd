@@ -12,6 +12,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/config"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 	"html"
 	"net/http"
@@ -22,11 +23,22 @@ import (
 )
 
 // favoriteToggle renders a button toggle for toggling the favorite status of an article.
-templ (a *Article) favoriteToggle() {
+templ articleFavoriteToggle(article *models.Article) {
+	{{
+		attrs := htmx.NewAttributes(
+			htmx.WithHXMethod(http.MethodPost, "/favorite/article/"+article.GetID()),
+			htmx.WithHXSwap("none"),
+			htmx.WithHXTrigger("click consume"),
+			htmx.WithHXVals(map[string]any{
+				"subscription_id": article.GetSubscriptionID(),
+				"item_id":         article.GetID(),
+			}),
+		).GetAttributes()
+	}}
 	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
 		<label
 			class="btn swap btn-square btn-ghost btn-sm"
-			{ a.favoriteAttributes()... }
+			{ attrs... }
 			_="
 		on htmx:afterRequest(successful) halt the event's bubbling end
     	on htmx:afterRequest(failed) toggle @checked on <input /> in me end
@@ -34,11 +46,11 @@ templ (a *Article) favoriteToggle() {
 		>
 			<input
 				type="checkbox"
-				if a.IsFavorite() {
+				if article.IsFavorite() {
 					checked
 				}
 				_="on click halt the event's bubbling"
-				aria-label={ "Toggle favorite status for " + a.GetTitle() }
+				aria-label={ "Toggle favorite status for " + article.GetTitle() }
 			/>
 			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 fill-primary"})
 			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
@@ -46,26 +58,41 @@ templ (a *Article) favoriteToggle() {
 	</div>
 }
 
-// markToggle renders a button toggle for toggling the read status of an article.
-templ (a *Article) markToggle(view models.View) {
+func markValueID(article *models.Article) htmx.ID {
+	return htmx.ID(article.GetID() + "-mark-value")
+}
+
+// articleMarkToggle renders a button toggle for toggling the read status of an article.
+templ articleMarkToggle(article *models.Article, view models.View) {
 	{{
 		var mark models.Mark
-		if a.IsUnread() {
+		if article.IsUnread() {
 			mark = models.MarkRead
 		} else {
 			mark = models.MarkUnread
 		}
+		attrs := htmx.NewAttributes(
+			htmx.WithHXMethod(http.MethodPost, "/mark/article/"+article.GetID()),
+			htmx.WithHXSwap("none"),
+			htmx.WithHXTrigger("click consume"),
+			htmx.WithHXInclude("[id='"+markValueID(article).String()+"']"),
+			htmx.WithHXVals(map[string]string{
+				"subscription_id": article.GetSubscriptionID(),
+				"item_id":         article.GetID(),
+				"view":            string(view),
+			}),
+		).GetAttributes()
 	}}
 	<div
 		class="tooltip tooltip-top tooltip-end"
-		if a.IsUnread() {
+		if article.IsUnread() {
 			data-tip="Mark unread"
 		} else {
 			data-tip="Mark read"
 		}
 	>
 		<label
-			id={ a.GetID() + "-mark-toggle" }
+			id={ article.GetID() + "-mark-toggle" }
 			class="btn swap btn-square btn-ghost btn-sm"
 			_="
 			  on htmx:afterRequest
@@ -84,10 +111,10 @@ templ (a *Article) markToggle(view models.View) {
     			  toggle @checked on next <input[type='checkbox']/> in me
 				end
 				"
-			{ a.markAttributes(view)... }
+			{ attrs... }
 		>
 			<input
-				id={ a.markValueID().String() }
+				id={ markValueID(article).String() }
 				type="hidden"
 				name="mark"
 				value={ string(mark) }
@@ -105,7 +132,7 @@ templ (a *Article) markToggle(view models.View) {
 							set @data-tip of closest .tooltip to 'Mark read'
 						end
 				"
-				if a.IsUnread() {
+				if article.IsUnread() {
 					checked
 					aria-label="Mark read"
 				} else {
@@ -118,14 +145,47 @@ templ (a *Article) markToggle(view models.View) {
 	</div>
 }
 
-// shareAction renders a button for prompting to share an article.
-templ (a *Article) shareButton() {
+// articleGoToToggle shows a toggle that when clicked, will take the user to the original article page.
+templ articleGoToToggle(article *models.Article) {
+	<div
+		class="tooltip tooltip-top tooltip-end"
+		data-tip="Go to article"
+	>
+		<a class="btn btn-square btn-ghost btn-sm" href={ article.GetLink() } rel="noopener" target="_blank" _="on click halt the event's bubbling">
+			@tableroutline.ExternalLink(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+			<span class="sr-only">Go To Article</span>
+		</a>
+	</div>
+}
+
+// articleViewToggle shows a toggle that when clicked, will view the article content.
+templ articleViewToggle(article *models.Article) {
+	<div
+		class="tooltip tooltip-top tooltip-end"
+		data-tip="View article"
+	>
+		<a
+			class="btn btn-square btn-ghost btn-sm"
+			_="on click halt the event's bubbling"
+			hx-get={ "/view/article/" + article.GetID() }
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			hx-swap="morph:innerHTML show:top transition:true"
+		>
+			@tableroutline.Eye(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
+			<span class="sr-only">View Article</span>
+		</a>
+	</div>
+}
+
+// articleShareAction renders a button for prompting to share an article.
+templ articleShareButton(article *models.Article) {
 	// Mobile share action via navigator API.
 	<a
 		role="button"
 		class="hidden btn btn-outline border-neutral/15"
-		data-title={ a.GetTitle() }
-		data-url={ a.GetLink() }
+		data-title={ article.GetTitle() }
+		data-url={ article.GetLink() }
 		_="init if navigator.share remove .hidden from me end
 		   on click
 		   js(me)
@@ -142,10 +202,10 @@ templ (a *Article) shareButton() {
 		role="button"
 		class="hidden btn btn-outline border-neutral/15"
 		_="init if not navigator.share remove .hidden from me"
-		hx-post={ "/share/article/" + a.GetID() }
+		hx-post={ "/share/article/" + article.GetID() }
 		hx-target={ ModalContainerID.Target() }
 		hx-trigger="click consume"
-		hx-vals={ templ.JSONString(map[string]string{"item_id": a.GetID(), "title": a.GetTitle(), "link": a.GetLink()}) }
+		hx-vals={ templ.JSONString(map[string]string{"item_id": article.GetID(), "title": article.GetTitle(), "link": article.GetLink()}) }
 	>
 		<div class="inline-flex items-center gap-1">
 			@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -154,12 +214,12 @@ templ (a *Article) shareButton() {
 	</a>
 }
 
-// viewOriginalButton shows a button to go to the original article.
-templ (a *Article) viewOriginalButton() {
+// articleViewOriginalButton shows a button to go to the original article.
+templ articleViewOriginalButton(article *models.Article) {
 	<a
 		role="button"
 		class="btn btn-outline border-neutral/15"
-		href={ a.GetLink() }
+		href={ article.GetLink() }
 		target="_blank"
 		rel="noopener"
 		_="on click halt the event's bubbling"
@@ -171,17 +231,17 @@ templ (a *Article) viewOriginalButton() {
 	</a>
 }
 
-// showRemoteContentButton renders a button to show the remote content.
-templ (a *Article) showRemoteContentButton() {
+// articleShowRemoteContentButton renders a button to show the remote content.
+templ articleShowRemoteContentButton(article *models.Article) {
 	<button
 		role="button"
 		id="show-remote-content-button"
 		class="group btn btn-outline border-neutral/15"
-		hx-get={ "/view/article/" + a.GetID() }
+		hx-get={ "/view/article/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + a.GetID() + "?show_full_content=true" }
+		hx-replace-url={ "/view/article/" + article.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
@@ -196,17 +256,17 @@ templ (a *Article) showRemoteContentButton() {
 	</button>
 }
 
-// showFeedContentButton renders a button to show the feed content.
-templ (a *Article) showFeedContentButton() {
+// articleShowFeedContentButton renders a button to show the feed content.
+templ articleShowFeedContentButton(article *models.Article) {
 	<a
 		role="button"
 		id="show-feed-content-button"
 		class="group btn btn-outline border-neutral/15"
-		hx-get={ "/view/article/" + a.GetID() }
+		hx-get={ "/view/article/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + a.GetID() + "?show_full_content=false" }
+		hx-replace-url={ "/view/article/" + article.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
@@ -221,25 +281,34 @@ templ (a *Article) showFeedContentButton() {
 	</a>
 }
 
-// actionsMenu renders a menu containing article-specific actions.
-templ (a *Article) actionsMenu() {
+// articleActionsMenu renders a menu containing article-specific actions.
+templ articleActionsMenu(article *models.Article) {
 	<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
 		<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
-			<button id={ a.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
-				<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
+			<button id={ article.GetID() + "-actions-menu" } class="btn btn-square btn-ghost btn-sm">
+				<span class="sr-only">{ article.GetTitle() + " Actions" }</span>
 				@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 			</button>
-			@partials.Menu(element.WithAttribute("aria-labelledby", a.GetID()+"-actions-menu")) {
+			@partials.Menu(element.WithAttribute("aria-labelledby", article.GetID()+"-actions-menu")) {
 				// View original article action.
 				@partials.MenuItem() {
-					<a href={ a.GetLink() } rel="noopener" target="_blank" _="on click halt the event's bubbling">
+					<a href={ article.GetLink() } rel="noopener" target="_blank" _="on click halt the event's bubbling">
 						@tableroutline.ExternalLink(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Go To Article</span>
 					</a>
 				}
 				// Find similar action.
 				@partials.MenuItem() {
-					<a { a.findSimilarAttributes()... }>
+					{{
+						findSimilarAttrs := htmx.NewAttributes(
+							htmx.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
+							htmx.WithHXTarget(ContentID.Target()),
+							htmx.WithHXSwap("morph:innerHTML transition:true"),
+							htmx.WithHXTrigger("click consume"),
+							htmx.WithHXVals(map[string]any{"from": "/list/articles"}),
+						).GetAttributes()
+					}}
+					<a { findSimilarAttrs... }>
 						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Find Similar...</span>
 					</a>
@@ -247,8 +316,8 @@ templ (a *Article) actionsMenu() {
 				// Mobile share action via navigator API.
 				@partials.MenuItem(element.WithAttribute("_", "init if not navigator.share then hide me")) {
 					<a
-						data-title={ a.GetTitle() }
-						data-url={ a.GetLink() }
+						data-title={ article.GetTitle() }
+						data-url={ article.GetLink() }
 						_="init if navigator.share remove .hidden from me end
 						   on click
 		   					js(me)
@@ -263,10 +332,10 @@ templ (a *Article) actionsMenu() {
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
 					<a
-						hx-post={ "/share/article/" + a.GetID() }
+						hx-post={ "/share/article/" + article.GetID() }
 						hx-target={ ModalContainerID.Target() }
 						hx-trigger="click consume"
-						hx-vals={ templ.JSONString(map[string]string{"item_id": a.GetID(), "title": a.GetTitle(), "link": a.GetLink()}) }
+						hx-vals={ templ.JSONString(map[string]string{"item_id": article.GetID(), "title": article.GetTitle(), "link": article.GetLink()}) }
 					>
 						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
@@ -274,7 +343,18 @@ templ (a *Article) actionsMenu() {
 				}
 				// Report issue action.
 				@partials.MenuItem() {
-					<a { a.reportIssueAttributes()... }>
+					{{
+						reportIssueAttrs := htmx.NewAttributes(
+							htmx.WithHXMethod(http.MethodGet, "/issue"),
+							htmx.WithHXTarget(ContentID.Target()),
+							htmx.WithHXReplaceURL(true),
+							htmx.WithHXVals(map[string]any{
+								"object_id": article.GetID(),
+							}),
+							htmx.WithHXTrigger("click consume"),
+						).GetAttributes()
+					}}
+					<a { reportIssueAttrs... }>
 						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Report an Issue</span>
 					</a>
@@ -285,8 +365,7 @@ templ (a *Article) actionsMenu() {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(idx int, a *models.Article, view models.View) {
-	{{ article := &Article{Article: a} }}
+templ ArticleCard(idx int, article *models.Article, view models.View) {
 	@partials.Card(element.WithAttribute("id", article.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
@@ -349,7 +428,7 @@ templ ArticleCard(idx int, a *models.Article, view models.View) {
 						{{
 							filters := models.NewListFilters()
 							filters.Category = &category
-							filters.Subscriptions = []models.SubscriptionID{a.SubscriptionID}
+							filters.Subscriptions = []models.SubscriptionID{article.GetSubscriptionID()}
 							var extraClasses string
 							// Only show the first three categories, hide all others behind a button toggle.
 							if idx >= 3 {
@@ -431,22 +510,110 @@ templ ArticleCard(idx int, a *models.Article, view models.View) {
 				</div>
 				<div class="flex shrink-0 items-center">
 					// Toggle favorite action.
-					@article.favoriteToggle()
+					@articleFavoriteToggle(article)
 					// Toggle mark action.
-					@article.markToggle(view)
+					@articleMarkToggle(article, view)
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Actions menu.
-					@article.actionsMenu()
+					@articleActionsMenu(article)
 				</div>
 			</div>
 		}
 	}
 }
 
+templ ArticleMapPopup(article *models.Article) {
+	<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
+	<div>
+		if img := article.GetImage(); img != nil {
+			{{ img := article.GetImage() }}
+			if img.GetTitle() == "" {
+				{{ img.Title = new(article.GetTitle()) }}
+			}
+			// Article Main Image.
+			<figure class="relative overflow-hidden rounded-t-[inherit]">
+				{{
+					var loadingAttrKey, loadingAttrValue string
+					loadingAttrKey = "loading"
+					loadingAttrValue = "lazy"
+				}}
+				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
+					element.WithAttribute("width", "400"),
+					element.WithAttribute("height", "300"),
+					element.WithAttribute(loadingAttrKey, loadingAttrValue),
+					element.WithClasses("w-full", "aspect-4/3", "object-cover", "transition-transform", "duration-400", "ease-in-out", "group-hover:scale-[1.04]"),
+				)
+				<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+			</figure>
+		} else {
+			// Show the feed name at the top left.
+			<span class="mt-2.5 ml-2.5 badge badge-sm line-clamp-1 truncate">{ article.Item.FeedTitle }</span>
+		}
+	</div>
+	<div class="px-2 pt-5 pb-2">
+		// Article Title.
+		{{
+			var title string
+			if article.GetTitle() != "" {
+				title = article.GetTitle()
+			} else {
+				title = "(no title)"
+			}
+		}}
+		<div class="tooltip tooltip-bottom" data-tip={ title }>
+			<h3
+				class="mb-2 line-clamp-2 font-serif text-lg leading-tight font-bold text-balance transition-colors group-hover:text-primary"
+			>
+				{ title }
+			</h3>
+		</div>
+	</div>
+	<div class="flex items-center justify-between pt-3 px-2 pb-2">
+		<div class="flex-separated flex min-w-0 items-center">
+			if len(article.GetAuthors()) > 0 {
+				{{
+					authors := make([]string, 0)
+					for author := range slices.Values(article.GetAuthors()) {
+						authors = append(authors, author.String())
+					}
+				}}
+				<div class="truncate text-xs/4">
+					{ strings.Join(authors,",") }
+				</div>
+			}
+			<relative-time
+				datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+				format="relative"
+				class="shrink-0 text-xs/4 text-base-content capitalize tabular-nums"
+			>
+				{ article.GetUpdatedDate().Format("Jan _2, 2006") }
+			</relative-time>
+		</div>
+	</div>
+	// Show some buttons for useful actions.
+	<div class="flex justify-around pb-2">
+		// Toggle favorite status.
+		@articleFavoriteToggle(article)
+		// View article content.
+		@articleViewToggle(article)
+		// Go to article URL.
+		@articleGoToToggle(article)
+	</div>
+	// Show subscription name/link.
+	<div class="border-t border-neutral/20 pt-3">
+		<a
+			hx-get="/list/articles"
+			hx-target={ ContentID.Target() }
+			hx-values={ templ.JSONString(map[string]string{"subscriptions": article.GetSubscriptionID()}) }
+			class="link link-hover line-clamp-1 truncate"
+		>{ article.Item.FeedTitle }</a>
+	</div>
+}
+
 // ArticleContent renders the complete content of an article.
 templ ArticleContent(a *models.ShowArticleResponse) {
-	{{ article := &Article{Article: &a.Article} }}
+	{{ article := &a.Article }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			// Show a subtle reading progress bar across the top of the article.
@@ -552,11 +719,11 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						// Actions.
 						<div class="ml-auto content-end items-center">
 							// Toggle favorite action.
-							@article.favoriteToggle()
+							@articleFavoriteToggle(article)
 							// Toggle mark action.
-							@article.markToggle(models.ViewAll)
+							@articleMarkToggle(article, models.ViewAll)
 							// Actions menu.
-							@article.actionsMenu()
+							@articleActionsMenu(article)
 						</div>
 					</div>
 					// Show reading time if content length is greater than around two paragraphs of text...
@@ -603,7 +770,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							}
 							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 								<li>
-									@article.shareButton()
+									@articleShareButton(article)
 								</li>
 							</ul>
 						default:
@@ -623,20 +790,20 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 								// Show a toggle for fetching full content where it appears the feed content is only a summary
 								if !article.IsRemoteContent() {
 									<li>
-										@article.showRemoteContentButton()
+										@articleShowRemoteContentButton(article)
 									</li>
 								} else {
 									<li>
-										@article.showFeedContentButton()
+										@articleShowFeedContentButton(article)
 									</li>
 								}
 								// View original article action.
 								<li>
-									@article.viewOriginalButton()
+									@articleViewOriginalButton(article)
 								</li>
 								// Share article.
 								<li>
-									@article.shareButton()
+									@articleShareButton(article)
 								</li>
 							</ul>
 					}
@@ -719,7 +886,6 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	{{ controls := &listControls{path: "/list/articles", filters: response.Filters, categories: response.Articles.GetCategoryCounts().GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@buttonBackToTop()
@@ -757,7 +923,12 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						}
 					</div>
 				}
-				@controls.Show(listArticlesActions(response), listArticlesButtons(response))
+				// List actions.
+				@NewListControls("/list/articles", response.Filters,
+					WithListCategories(response.Articles.GetCategoryCounts().GetCategories()),
+					WithListActions(listArticlesActions(response)),
+					WithListButtons(listArticlesButtons(response)),
+				)
 				<section id="articles-list" class="ptr-content pt-4">
 					<div id="refreshing" class="group mx-auto flex w-full justify-center">
 						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">

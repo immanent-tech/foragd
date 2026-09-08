@@ -11,19 +11,68 @@ import (
 )
 
 type listControls struct {
-	path       string
-	filters    models.ListFilters
-	categories models.Categories
+	path         string
+	filters      models.ListFilters
+	categories   models.Categories
+	extraActions []templ.Component
+	extraButtons []templ.Component
+	disableSort  bool
+	disableView  bool
 }
 
-templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
+type listControlOption func(*listControls)
+
+// WithListActions option adds additional actions to the mobile menu.
+func WithListActions(actions ...templ.Component) listControlOption {
+	return func(lc *listControls) {
+		lc.extraActions = append(lc.extraActions, actions...)
+	}
+}
+
+// WithListButtons option adds additional buttons at the top of the list.
+func WithListButtons(buttons ...templ.Component) listControlOption {
+	return func(lc *listControls) {
+		lc.extraButtons = append(lc.extraButtons, buttons...)
+	}
+}
+
+// WithListCategories option sets category filters for the list.
+func WithListCategories(categories models.Categories) listControlOption {
+	return func(lc *listControls) {
+		lc.categories = categories
+	}
+}
+
+// WithoutListSorting option will disable showing the sort menu.
+func WithoutListSorting() listControlOption {
+	return func(lc *listControls) {
+		lc.disableSort = true
+	}
+}
+
+// WithoutListView option will disable showing the view menu.
+func WithoutListView() listControlOption {
+	return func(lc *listControls) {
+		lc.disableView = true
+	}
+}
+
+// NewListControls renders an element containing controls (filtering, sorting, view) for a list.
+templ NewListControls(path string, filters models.ListFilters, options ...listControlOption) {
 	{{
+		controls := &listControls{
+			path:    path,
+			filters: filters,
+		}
+		for option := range slices.Values(options) {
+			option(controls)
+		}
 		mobilePanelID := "mobile-options"
-		currentSort := c.filters.GetSort()
+		currentSort := controls.filters.GetSort()
 		// Reset any pagination for controls.
-		c.filters.From = nil
-		c.filters.UpTo = nil
-		c.filters.SearchAfter = nil
+		controls.filters.From = nil
+		controls.filters.UpTo = nil
+		controls.filters.SearchAfter = nil
 	}}
 	<div class="p-2">
 		// Mobile screen dialog containing filters, sorting and custom actions.
@@ -39,34 +88,38 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 							</button>
 						</div>
 						<ul class="menu">
-							// Mobile View Filters.
-							<li class="menu-title">View</li>
-							<ul id="mobile-view-filters">
-								@viewFilterOption(c.path, models.ViewUnread, c.filters)
-								@viewFilterOption(c.path, models.ViewRead, c.filters)
-								@viewFilterOption(c.path, models.ViewAll, c.filters)
-								@viewFilterOption(c.path, models.ViewFavorites, c.filters)
-							</ul>
-							// Mobile Sort Filters.
-							<li class="menu-title">Sort</li>
-							<ul id="mobile-sort-filters">
-								@sortOption(c.path, models.SortNewestFirst, c.filters)
-								@sortOption(c.path, models.SortOldestFirst, c.filters)
-								if c.path == "/list/subscriptions" {
-									@sortOption(c.path, models.SortMostUnread, c.filters)
-									@sortOption(c.path, models.SortLeastUnread, c.filters)
-								}
-							</ul>
+							if !controls.disableSort {
+								// Mobile View Filters.
+								<li class="menu-title">View</li>
+								<ul id="mobile-view-filters">
+									@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
+									@viewFilterOption(controls.path, models.ViewRead, controls.filters)
+									@viewFilterOption(controls.path, models.ViewAll, controls.filters)
+									@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
+								</ul>
+							}
+							if !controls.disableView {
+								// Mobile Sort Filters.
+								<li class="menu-title">Sort</li>
+								<ul id="mobile-sort-filters">
+									@sortOption(controls.path, models.SortNewestFirst, controls.filters)
+									@sortOption(controls.path, models.SortOldestFirst, controls.filters)
+									if controls.path == "/list/subscriptions" {
+										@sortOption(controls.path, models.SortMostUnread, controls.filters)
+										@sortOption(controls.path, models.SortLeastUnread, controls.filters)
+									}
+								</ul>
+							}
 							// Mobile Category
-							if len(c.categories) > 0 {
+							if len(controls.categories) > 0 {
 								<li class="menu-title">Categories</li>
 								<ul id="mobile-category-filters">
-									@ListCategoryFilters(c.path, c.filters, c.categories)
+									@ListCategoryFilters(controls.path, controls.filters, controls.categories)
 								</ul>
-								@clearCategoryFilterOption(c.path, c.filters)
+								@clearCategoryFilterOption(controls.path, controls.filters)
 							}
-							if actions != nil {
-								@actions
+							if len(controls.extraActions) > 0 {
+								@templ.Join(controls.extraActions...)
 							}
 						</ul>
 					</el-dialog-panel>
@@ -90,48 +143,51 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 				<div
 					id="desktop-sort-filters"
 					_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
-					hx-get={ c.path }
+					hx-get={ controls.path }
 					hx-include="#sort-hidden,#view-hidden,#count-hidden"
 					hx-replace-url="true"
 					hx-swap="innerHTML transition:true"
 					hx-target={ ContentID.Target() }
+					hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 					hx-trigger="triggerMe"
 				>
 					<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
-					<input id="view-hidden" name="view" type="hidden" value={ string(c.filters.GetView()) }/>
-					<input id="count-hidden" name="count" type="hidden" value={ c.filters.GetCount() }/>
-					<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
-						<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
-							<el-selectedcontent class="truncate">
-								{ currentSort.String() }
-							</el-selectedcontent>
-							@tableroutline.ChevronDown(templ.Attributes{
-								"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-								"aria-hidden": "true"})
-						</button>
-						<el-options
-							class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-							anchor="bottom start"
-							popover
-						>
-							<div class="menu">
-								<el-option value={ string(models.SortNewestFirst) }>
-									@sortOption(c.path, models.SortNewestFirst, c.filters)
-								</el-option>
-								<el-option value={ string(models.SortOldestFirst) }>
-									@sortOption(c.path, models.SortOldestFirst, c.filters)
-								</el-option>
-								if c.path == "/list/subscriptions" {
-									<el-option value={ string(models.SortMostUnread) }>
-										@sortOption(c.path, models.SortMostUnread, c.filters)
+					<input id="view-hidden" name="view" type="hidden" value={ string(controls.filters.GetView()) }/>
+					<input id="count-hidden" name="count" type="hidden" value={ controls.filters.GetCount() }/>
+					if !controls.disableSort {
+						<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
+							<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
+								<el-selectedcontent class="truncate">
+									{ currentSort.String() }
+								</el-selectedcontent>
+								@tableroutline.ChevronDown(templ.Attributes{
+									"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+									"aria-hidden": "true"})
+							</button>
+							<el-options
+								class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+								anchor="bottom start"
+								popover
+							>
+								<div class="menu">
+									<el-option value={ string(models.SortNewestFirst) }>
+										@sortOption(controls.path, models.SortNewestFirst, controls.filters)
 									</el-option>
-									<el-option value={ string(models.SortLeastUnread) }>
-										@sortOption(c.path, models.SortLeastUnread, c.filters)
+									<el-option value={ string(models.SortOldestFirst) }>
+										@sortOption(controls.path, models.SortOldestFirst, controls.filters)
 									</el-option>
-								}
-							</div>
-						</el-options>
-					</el-select>
+									if controls.path == "/list/subscriptions" {
+										<el-option value={ string(models.SortMostUnread) }>
+											@sortOption(controls.path, models.SortMostUnread, controls.filters)
+										</el-option>
+										<el-option value={ string(models.SortLeastUnread) }>
+											@sortOption(controls.path, models.SortLeastUnread, controls.filters)
+										</el-option>
+									}
+								</div>
+							</el-options>
+						</el-select>
+					}
 				</div>
 				// Desktop Category Filters.
 				<el-dropdown>
@@ -144,24 +200,26 @@ templ (c *listControls) Show(actions templ.Component, buttons templ.Component) {
 					<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
 						<ul class="menu">
 							<ul id="desktop-category-filters">
-								@ListCategoryFilters(c.path, c.filters, c.categories)
+								@ListCategoryFilters(controls.path, controls.filters, controls.categories)
 							</ul>
-							@clearCategoryFilterOption(c.path, c.filters)
+							@clearCategoryFilterOption(controls.path, controls.filters)
 						</ul>
 					</el-menu>
 				</el-dropdown>
-				// Desktop View Filters.
-				<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
-					@viewFilterOption(c.path, models.ViewUnread, c.filters)
-					@viewFilterOption(c.path, models.ViewRead, c.filters)
-					@viewFilterOption(c.path, models.ViewAll, c.filters)
-					@viewFilterOption(c.path, models.ViewFavorites, c.filters)
-				</ul>
+				if !controls.disableView {
+					// Desktop View Filters.
+					<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
+						@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
+						@viewFilterOption(controls.path, models.ViewRead, controls.filters)
+						@viewFilterOption(controls.path, models.ViewAll, controls.filters)
+						@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
+					</ul>
+				}
 			</div>
 			// Custom button actions.
-			if buttons != nil {
+			if len(controls.extraButtons) > 0 {
 				<div class="flex flex-1 justify-end gap-2">
-					@buttons
+					@templ.Join(controls.extraButtons...)
 				</div>
 			}
 		</div>
@@ -183,6 +241,7 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters) }
+			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal capitalize text-base-content", templ.KV("font-semibold",active) }>{ string(view) }</span>
@@ -203,6 +262,7 @@ templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters) }
+			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
@@ -264,6 +324,7 @@ templ categoryFilterOption(category models.Category, path string, filters models
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters) }
+			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
@@ -285,6 +346,7 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
 			hx-vals={ templ.JSONString(filters) }
+			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
 		>
 			<span class="font-normal text-base-content">

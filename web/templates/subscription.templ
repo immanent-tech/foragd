@@ -312,7 +312,6 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	{{ controls := &listControls{path: "/list/subscriptions", filters: response.Filters, categories: response.Subscriptions.GetCategories()} }}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@buttonBackToTop()
@@ -323,7 +322,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					@pageTitle("Subscriptions")
 				}
 				// List actions.
-				@controls.Show(nil, listSubscriptionsButtons(response))
+				@NewListControls("/list/subscriptions", response.Filters,
+					WithListCategories(response.Subscriptions.GetCategories()),
+					WithListButtons(listSubscriptionsButtons(response)),
+				)
 				<section id="subscriptions-list" class="ptr-content pt-4">
 					<div id="refreshing" class="group mx-auto flex w-full justify-center">
 						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
