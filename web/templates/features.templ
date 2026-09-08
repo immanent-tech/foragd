@@ -788,9 +788,49 @@ templ FeaturesPageConsume() {
 				</el-dialog>
 			</div>
 		}
+		// Feature: Map View.
+		@featurePanel("map-view") {
+			<div class="order-2 md:order-1">
+				<div>
+					<button command="show-modal" commandfor="show-screenshot-full-text-search" type="button" class="cursor-pointer">
+						@components.BrowserWindow(config.GetBaseURL()) {
+							<img
+								src="/content/screenshots/screenshot-feature-map.webp"
+								alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
+								class="block w-full"
+								loading="lazy"
+							/>
+						}
+					</button>
+					<el-dialog>
+						<dialog id="show-screenshot-full-text-search" class="mx-auto my-auto max-w-280">
+							<el-dialog-backdrop></el-dialog-backdrop>
+							<el-dialog-panel>
+								@components.BrowserWindow(config.GetBaseURL()) {
+									<img
+										src="/content/screenshots/screenshot-feature-map.webp"
+										alt="Screenshot showing map view of Foragd, with data points on map and a popup open for a data point with the article details"
+										class="block w-full"
+										loading="lazy"
+									/>
+								}
+							</el-dialog-panel>
+						</dialog>
+					</el-dialog>
+				</div>
+			</div>
+			<div class="order-1 md:order-2">
+				@featureTitle("Geo Support")
+				<p class="mt-4 font-serif text-pretty text-base-content/70">
+					If your subscriptions have geo coordinates (i.e., lat/long), then you can view a world map with
+					articles shown where they were posted. Browse content by location and see all posts/content
+					happening in a particular city, country or geographical area.
+				</p>
+			</div>
+		}
 		// Feature: Full-text Search.
 		@featurePanel("full-text-search") {
-			<div class="order-2 md:order-1">
+			<div class="order-1 md:order-2">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-full-text-search" type="button" class="cursor-pointer">
 						@components.BrowserWindow(config.GetBaseURL()) {
@@ -819,7 +859,7 @@ templ FeaturesPageConsume() {
 					</el-dialog>
 				</div>
 			</div>
-			<div class="order-1 md:order-2">
+			<div class="order-2 md:order-1">
 				@featureTitle("Full-text Search, for Humans")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Search by keyword or phrase, and filter by category, author or time period. Or use semantic search
@@ -840,7 +880,7 @@ templ FeaturesPageConsume() {
 		}
 		// Feature: Zero Pressure.
 		@featurePanel("zero-pressure") {
-			<div>
+			<div class="order-1 md:order-2">
 				@featureTitle("Zero Pressure Reading")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Reading shouldn't feel like a chore. Foragd lets you toggle unread counts on and off (off by
@@ -864,12 +904,14 @@ templ FeaturesPageConsume() {
 					</li>
 				</ul>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-settings-behaviour.webp"
-				alt="Settings for controlling unread counts, automatic read marking, and article backlog timespan in Foragd"
-				class="box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl"
-				loading="lazy"
-			/>
+			<div class="order-2 md:order-1">
+				<img
+					src="/content/screenshots/screenshot-settings-behaviour.webp"
+					alt="Settings for controlling unread counts, automatic read marking, and article backlog timespan in Foragd"
+					class="box mx-auto h-96 overflow-hidden rounded border border-base-300 object-scale-down shadow-xl"
+					loading="lazy"
+				/>
+			</div>
 		}
 		// Feature: Favorites.
 		@featurePanel("favorites") {
@@ -891,7 +933,7 @@ templ FeaturesPageConsume() {
 		}
 		// Feature: Themes.
 		@featurePanel("feature-themes") {
-			<div>
+			<div class="order-2 md:order-1">
 				@featureTitle("Choose Your Theme")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Pick from a selection of curated light and dark themes, so your reading space looks the way you want
@@ -989,149 +1031,151 @@ templ FeaturesPageConsume() {
 					/>
 				</form>
 			</div>
-			@partials.Card(element.WithClasses("group shadow-xl"),
-				element.WithAttribute("id", "theme-previewer-card"),
-				element.WithAttribute("data-theme", "greenhouse")) {
-				<div>
-					<figure class="relative overflow-hidden rounded-t-[inherit]">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 64 64"
-							width="400"
-							height="300"
-							role="img"
-							aria-labelledby="c3-title"
-							class="placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
-						>
-							<title id="c3-title">Image unavailable placeholder</title>
-							<rect
-								id="border"
-								x="4"
-								y="4"
-								width="56"
-								height="56"
-								rx="14"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.5"
-								stroke-dasharray="5 5"
-								opacity="0.35"
-							></rect>
-							<circle
-								id="sun"
-								cx="25"
-								cy="24"
-								r="4.5"
-								fill="currentColor"
-								opacity="0.55"
-							></circle>
-							<path
-								id="mountain"
-								d="M12 44 L24 32 L34 42 L42 34 L52 44"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								opacity="0.3"
-							></path>
-						</svg>
-						<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
-						<div class="absolute top-2.5 left-2.5">
-							<span class="badge badge-sm font-medium backdrop-blur-sm badge-neutral">The Source</span>
-						</div>
-					</figure>
-				</div>
-				@partials.CardBody() {
-					<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
-							RSS
-						</span>
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
-							Atom
-						</span>
-						<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
-							Feed Readers
-						</span>
-					</div>
-					<h3 class="mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary">
-						Foragd ranked best feed reader
-					</h3>
-					<div class="prose-summary mb-3">
-						Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built
-						on a simple bet: that following the web can feel like reading a magazine again, not clearing an
-						inbox.
-					</div>
-				}
-				@partials.CardFooter(element.WithClasses("items-center")) {
-					<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
-						<div class="flex-separated flex min-w-0 items-center">
-							<div class="truncate text-xs/4">
-								Immanent Tech
-							</div>
-							<relative-time
-								datetime={ time.Now().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-								class="shrink-0 text-xs/4 text-neutral capitalize tabular-nums"
+			<div class="order-1 md:order-2">
+				@partials.Card(element.WithClasses("group shadow-xl"),
+					element.WithAttribute("id", "theme-previewer-card"),
+					element.WithAttribute("data-theme", "greenhouse")) {
+					<div>
+						<figure class="relative overflow-hidden rounded-t-[inherit]">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 64 64"
+								width="400"
+								height="300"
+								role="img"
+								aria-labelledby="c3-title"
+								class="placeholder-image aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
 							>
-								{ time.Now().Format("Jan _2, 2006") }
-							</relative-time>
-						</div>
-						<div class="flex shrink-0 items-center">
-							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
-								<label class="btn btn-square btn-ghost btn-sm">
-									@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
-								</label>
+								<title id="c3-title">Image unavailable placeholder</title>
+								<rect
+									id="border"
+									x="4"
+									y="4"
+									width="56"
+									height="56"
+									rx="14"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-dasharray="5 5"
+									opacity="0.35"
+								></rect>
+								<circle
+									id="sun"
+									cx="25"
+									cy="24"
+									r="4.5"
+									fill="currentColor"
+									opacity="0.55"
+								></circle>
+								<path
+									id="mountain"
+									d="M12 44 L24 32 L34 42 L42 34 L52 44"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									opacity="0.3"
+								></path>
+							</svg>
+							<div class="pointer-events-none absolute inset-0 rounded-t-[inherit] shadow-[inset_0_-2px_8px_rgba(0,0,0,0.12)]"></div>
+							<div class="absolute top-2.5 left-2.5">
+								<span class="badge badge-sm font-medium backdrop-blur-sm badge-neutral">The Source</span>
 							</div>
-							<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
-								<label class="btn btn-square btn-ghost btn-sm">
-									@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"})
-								</label>
-							</div>
-							<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
-							<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
-								<el-dropdown class="relative ml-auto touch-manipulation">
-									<button id="fake-actions-menu" class="btn btn-square btn-ghost btn-sm">
-										<span class="sr-only">Fake Actions</span>
-										@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
-									</button>
-									@partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")) {
-										@partials.MenuItem() {
-											<a>
-												@tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-												Go To Article
-											</a>
-										}
-										@partials.MenuItem() {
-											<a>
-												@tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-												Find similar...
-											</a>
-										}
-										@partials.MenuItem() {
-											<a>
-												@tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-												Share
-											</a>
-										}
-										// Report issue action.
-										@partials.MenuItem() {
-											<a>
-												@tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
-												Report an issue
-											</a>
-										}
-									}
-								</el-dropdown>
-							</div>
-						</div>
+						</figure>
 					</div>
+					@partials.CardBody() {
+						<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
+							<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
+								RSS
+							</span>
+							<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
+								Atom
+							</span>
+							<span class="category-badge flex items-center rounded-lg bg-accent px-2 py-1 font-display text-xs font-medium text-accent-content transition-transform duration-400 ease-in-out hover:scale-[1.1] active:bg-secondary active:text-secondary-content">
+								Feed Readers
+							</span>
+						</div>
+						<h3 class="mb-2 line-clamp-2 font-serif text-base leading-tight font-bold text-balance transition-colors group-hover:text-primary">
+							Foragd ranked best feed reader
+						</h3>
+						<div class="prose-summary mb-3">
+							Foragd is a new-generation feed aggregator and reader for RSS, Atom and JSONFeed formats. Built
+							on a simple bet: that following the web can feel like reading a magazine again, not clearing an
+							inbox.
+						</div>
+					}
+					@partials.CardFooter(element.WithClasses("items-center")) {
+						<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
+							<div class="flex-separated flex min-w-0 items-center">
+								<div class="truncate text-xs/4">
+									Immanent Tech
+								</div>
+								<relative-time
+									datetime={ time.Now().Format("2006-01-02T15:04:05-0700") }
+									format="relative"
+									class="shrink-0 text-xs/4 text-neutral capitalize tabular-nums"
+								>
+									{ time.Now().Format("Jan _2, 2006") }
+								</relative-time>
+							</div>
+							<div class="flex shrink-0 items-center">
+								<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
+									<label class="btn btn-square btn-ghost btn-sm">
+										@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
+									</label>
+								</div>
+								<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle read status">
+									<label class="btn btn-square btn-ghost btn-sm">
+										@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"})
+									</label>
+								</div>
+								<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
+								<div class="tooltip tooltip-top tooltip-end" data-tip="Article actions">
+									<el-dropdown class="relative ml-auto touch-manipulation">
+										<button id="fake-actions-menu" class="btn btn-square btn-ghost btn-sm">
+											<span class="sr-only">Fake Actions</span>
+											@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
+										</button>
+										@partials.Menu(element.WithAttribute("aria-labelledby", "fake-actions-menu")) {
+											@partials.MenuItem() {
+												<a>
+													@tableroutline.ExternalLink(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
+													Go To Article
+												</a>
+											}
+											@partials.MenuItem() {
+												<a>
+													@tableroutline.Search(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
+													Find similar...
+												</a>
+											}
+											@partials.MenuItem() {
+												<a>
+													@tableroutline.Share(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
+													Share
+												</a>
+											}
+											// Report issue action.
+											@partials.MenuItem() {
+												<a>
+													@tableroutline.Flag2(templ.Attributes{"class": " size-4", "aria-hidden": "true"})
+													Report an issue
+												</a>
+											}
+										}
+									</el-dropdown>
+								</div>
+							</div>
+						</div>
+					}
 				}
-			}
+			</div>
 		}
 		// Feature: Responsive Design.
 		@featurePanel("responsive-design") {
-			<div class="order-2 md:order-1">
+			<div>
 				<div>
 					<button command="show-modal" commandfor="show-video-responsive-design" type="button" class="cursor-pointer">
 						@components.BrowserWindow(config.GetBaseURL()) {
@@ -1165,7 +1209,7 @@ templ FeaturesPageConsume() {
 					</el-dialog>
 				</div>
 			</div>
-			<div class="order-1 md:order-2">
+			<div>
 				@featureTitle("Responsive Design")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Foragd is built with a responsive design that will adapt to the screen size of your device. It works
