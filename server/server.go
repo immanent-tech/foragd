@@ -101,7 +101,10 @@ func Start() error {
 		security.GeneralSecurity(
 			[]string{"camera=()", "microphone=()", "geolocation=self", "usb=()", "bluetooth=()", "web-share=self"},
 		),
-		security.PreventCSRF,
+		security.PreventCSRF(
+			security.WithCSRFInsecureBypassPattern("/checkout/webhooks"),
+			security.WithCSRFInsecureBypassPattern("/mail/webhooks"),
+		),
 		middlewares.Customisation,
 		// middlewares.RateLimit,
 		etag.Etag,
