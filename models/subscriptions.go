@@ -5,8 +5,10 @@ package models
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"maps"
+	"net/url"
 	"slices"
 	"time"
 
@@ -30,6 +32,13 @@ func (s *FeedSubscription) GetFeedID() FeedID {
 func (f AddFeedSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("validate add subscription request: %w", err)
+	}
+	feedURL, err := url.Parse(f.URL)
+	switch {
+	case err != nil:
+		return fmt.Errorf("validate add subscription request: parse URL: %w", err)
+	case !feedURL.IsAbs():
+		return errors.New("validate add subscription request: not absolute URL")
 	}
 	return nil
 }
