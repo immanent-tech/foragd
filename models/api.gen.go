@@ -186,6 +186,12 @@ type GroupSubscriptionRequest struct {
 	SuggestedSubscriptions Subscriptions `form:"-" json:"-"`
 }
 
+// ListArticlesRequest contains additional request data specific for listing articles.
+type ListArticlesRequest struct {
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // ListArticlesResponse contains the data retrieved and relevant for listing articles.
 type ListArticlesResponse struct {
 	Articles Articles `json:"articles"`
@@ -223,6 +229,30 @@ type ListSubscriptionsResponse struct {
 
 	// Subscriptions is the list of subscriptions.
 	Subscriptions Subscriptions `json:"subscriptions"`
+}
+
+// MarkArticleRequest contains parameters for marking an article.
+type MarkArticleRequest struct {
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// Mark applies the given mark action to objects.
+	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// View is the state of objects to view.
+	View *View `form:"view" json:"view,omitempty" validate:"required,oneof=read unread all favorites"`
+}
+
+// MarkArticlesRequest contains the parameters for marking articles.
+type MarkArticlesRequest struct {
+	// DisplayedArticles is a map of item ids per subscription.
+	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles"`
+
+	// Mark applies the given mark action to objects.
+	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // NextArticleRequest contains data for requesting the next/previous article.
@@ -352,6 +382,12 @@ type SuggestFeedsResults struct {
 
 	// Text is the query text that generated the suggestions.
 	Text string `json:"text"`
+}
+
+// ViewArticleRequest contains additional request data for viewing an article.
+type ViewArticleRequest struct {
+	// ShowFullContent indicates whether the full content of the article should be fetched from the source.
+	ShowFullContent *bool `form:"show_full_content" json:"show_full_content,omitempty"`
 }
 
 // Getter for additional properties for APIError. Returns the specified

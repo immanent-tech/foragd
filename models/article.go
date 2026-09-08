@@ -390,3 +390,29 @@ func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item
 	archive.UserID = userID
 	return archive, nil
 }
+
+func (r *ListArticlesRequest) Sanitise() error {
+	if r.SubscriptionID != nil {
+		subID := validation.SanitizeString(*r.SubscriptionID)
+		r.SubscriptionID = &subID
+	}
+	return nil
+}
+
+func (r *ListArticlesRequest) Validate() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate list articles: %w", err)
+	}
+	return nil
+}
+
+func (r *ViewArticleRequest) Sanitise() error {
+	return nil
+}
+
+func (r *ViewArticleRequest) Validate() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate view article: %w", err)
+	}
+	return nil
+}

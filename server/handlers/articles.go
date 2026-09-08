@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -94,9 +93,18 @@ func HandleListArticles() http.HandlerFunc {
 		var subscriptionID models.SubscriptionID
 		if len(request.Filters.GetSubscriptions()) == 1 {
 			subscriptionID = request.Filters.GetSubscriptions()[0]
-		} else if req.FormValue("subscription_id") != "" {
-			subscriptionID = req.FormValue("subscription_id")
+		} else {
+			extraRequestDetails, err := parseForm[*models.ListArticlesRequest](req)
+			if err != nil {
+				slogctx.Warn(req.Context(), "Could not parse list articles request.",
+					slog.Any("error", err))
+			} else {
+				if extraRequestDetails.SubscriptionID != nil && *extraRequestDetails.SubscriptionID != "" {
+					subscriptionID = *extraRequestDetails.SubscriptionID
+				}
+			}
 		}
+
 		if subscriptionID != "" {
 			subscription, err = service.GetSubscription(
 				req.Context(),
@@ -400,11 +408,16 @@ func HandleViewArticle() http.HandlerFunc {
 		article := articles[0]
 
 		// Get the "show_full_content" value and override the article value.
-		if fullContent, err := strconv.ParseBool(req.FormValue("show_full_content")); err != nil ||
-			!fullContent {
-			article.ShowFullContent = false
-		} else if fullContent {
-			article.ShowFullContent = fullContent
+		request, err := parseForm[*models.ViewArticleRequest](req)
+		if err != nil {
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse request params: %w", err),
+			).ServeHTTP(res, req)
+			return
+		}
+		if request != nil && request.ShowFullContent != nil {
+			article.ShowFullContent = *request.ShowFullContent
 		}
 
 		// Fetch and set remote content if required.
@@ -430,17 +443,6 @@ func HandleViewArticle() http.HandlerFunc {
 				return
 			}
 		}
-
-		// Get appropriate filters.
-		// var filters *models.ListFilters
-		// switch templates.FromPathFromCtx(req.Context()) {
-		// case "/list/subscriptions":
-		// 	filters = session.GetListSubscriptionFiltersFromSession(req.Context())
-		// case "/list/articles":
-		// 	filters = session.GetListArticleFiltersFromSession(req.Context())
-		// default:
-		// 	filters = new(models.NewListDisplayFilters())
-		// }
 
 		// Render article content.
 		RenderInternalPage(&ArticleContent{
@@ -533,7 +535,7 @@ func MarkArticle() http.HandlerFunc {
 			switch {
 			case strings.Contains(currentURL, "/list/articles"):
 				// If we aren't viewing all subscriptions, remove the subscription card.
-				if models.View(req.FormValue("view")) != models.ViewAll {
+				if request.View != nil && models.View(*request.View) != models.ViewAll {
 					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.ItemID).Target())
 					res.Header().Set(htmx.HeaderTrigger, "masonry:update")

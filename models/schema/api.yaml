@@ -29,7 +29,7 @@ components:
             is the status code associated with the error. Usually, this is a HTTP status code.
           type: integer
         user_message:
-          $ref: 'models.yaml#/components/schemas/UserMessage'
+          $ref: "models.yaml#/components/schemas/UserMessage"
       additionalProperties: true
     AddCategoryToSubscriptionRequest:
       description: >
@@ -39,15 +39,15 @@ components:
         - category
       properties:
         category:
-          $ref: 'models.yaml#/components/schemas/Category'
+          $ref: "models.yaml#/components/schemas/Category"
         existing_categories:
           description: >
             is a list of categories already assigned to the subscription.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: 'customisation.categories'
+            form: "customisation.categories"
           x-go-type-skip-optional-pointer: true
     AddFeedSubscriptionRequest:
       description: contains request data for adding a new feed subscription.
@@ -57,12 +57,12 @@ components:
         - feed_id
       properties:
         URL:
-          $ref: 'models.yaml#/components/schemas/URL'
+          $ref: "models.yaml#/components/schemas/URL"
           x-oapi-codegen-extra-tags:
-            validate: 'required,url'
-            form: 'url'
+            validate: "required,url"
+            form: "url"
         feed_id:
-          $ref: 'models.yaml#/components/schemas/FeedID'
+          $ref: "models.yaml#/components/schemas/FeedID"
     FeedSubscriptionRequest:
       description: >
         is a request to add a new feed subscription.
@@ -76,33 +76,33 @@ components:
           type: string
           x-go-name: URL
           x-oapi-codegen-extra-tags:
-            form: 'url'
-            validate: 'required_without=SubscriptionID,omitempty,url'
+            form: "url"
+            validate: "required_without=SubscriptionID,omitempty,url"
         subscription_id:
           description: is the existing subscription ID. Will be empty when adding a new feed subscription.
           type: string
           x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
-            form: 'subscription_id'
-            validate: 'required_without=URL,omitempty,startswith=sub_'
+            form: "subscription_id"
+            validate: "required_without=URL,omitempty,startswith=sub_"
         customisation:
-          $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+          $ref: "models.yaml#/components/schemas/SubscriptionCustomisation"
         settings:
           allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionSettings'
+            - $ref: "models.yaml#/components/schemas/SubscriptionSettings"
           x-oapi-codegen-extra-tags:
-            form: 'settings'
+            form: "settings"
         article_filters:
-          $ref: 'models.yaml#/components/schemas/ArticleFilters'
+          $ref: "models.yaml#/components/schemas/ArticleFilters"
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
+            form: "-"
+            json: "-"
           x-go-type-skip-optional-pointer: true
     FeedSubscriptionResult:
       description: >
@@ -110,11 +110,11 @@ components:
       type: object
       properties:
         request:
-          $ref: 'models.yaml#/components/schemas/FeedSubscriptionRequest'
+          $ref: "models.yaml#/components/schemas/FeedSubscriptionRequest"
         error:
-          $ref: 'models.yaml#/components/schemas/APIError'
+          $ref: "models.yaml#/components/schemas/APIError"
         subscription:
-          $ref: 'models.yaml#/components/schemas/Subscription'
+          $ref: "models.yaml#/components/schemas/Subscription"
     GroupSubscriptionRequest:
       description: >
         represents a request to create a group subscription.
@@ -126,48 +126,48 @@ components:
           description: >
             will be a subscription ID if the user is editing an existing group subscription.
           allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionID'
+            - $ref: "models.yaml#/components/schemas/SubscriptionID"
           x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
-            json: '-'
-            form: 'subscription_id'
-            validate: 'omitempty,startswith=sub_'
+            json: "-"
+            form: "subscription_id"
+            validate: "omitempty,startswith=sub_"
         subscriptions:
           description: >
             contains details of the subscriptions in the group.
-          x-go-type: 'map[SubscriptionID]string'
+          x-go-type: "map[SubscriptionID]string"
           x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
-            validate: 'required'
+            form: "subscriptions"
+            validate: "required"
         customisation:
           allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+            - $ref: "models.yaml#/components/schemas/SubscriptionCustomisation"
           x-oapi-codegen-extra-tags:
-            form: 'customisation'
+            form: "customisation"
         settings:
           allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionSettings'
+            - $ref: "models.yaml#/components/schemas/SubscriptionSettings"
           x-oapi-codegen-extra-tags:
-            form: 'settings'
+            form: "settings"
         article_filters:
-          $ref: 'models.yaml#/components/schemas/ArticleFilters'
+          $ref: "models.yaml#/components/schemas/ArticleFilters"
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
+            form: "-"
+            json: "-"
           x-go-type-skip-optional-pointer: true
         suggestedSubscriptions:
           description: >
             is a list of suggested subscriptions for the subscription.
-          x-go-type: 'Subscriptions'
+          x-go-type: "Subscriptions"
           x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
+            form: "-"
+            json: "-"
           x-go-type-skip-optional-pointer: true
     AddSubscriptionToGroupRequest:
       description: >
@@ -182,20 +182,20 @@ components:
             is the name of the new subscription to add.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'suggestion_text'
-            validate: 'required'
+            form: "suggestion_text"
+            validate: "required"
         suggestions:
           description: >
             is the subscription suggestions.
-          x-go-type: 'map[SubscriptionID]string'
+          x-go-type: "map[SubscriptionID]string"
           x-oapi-codegen-extra-tags:
-            form: 'suggestions'
+            form: "suggestions"
         existing_subscriptions:
           description: >
             is the existing subscriptions in the group.
-          x-go-type: 'map[SubscriptionID]string'
+          x-go-type: "map[SubscriptionID]string"
           x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
+            form: "subscriptions"
           x-go-type-skip-optional-pointer: true
     AddSubscriptionToSearchRequest:
       description: >
@@ -209,7 +209,7 @@ components:
             is the name of the subscription that was selected from the suggestions.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'subscription-suggestion-text'
+            form: "subscription-suggestion-text"
         suggested_subscriptions:
           description: >
             is a list of the subscription suggestions.
@@ -235,7 +235,13 @@ components:
             is a map of the latest articles for each subscription in the result.
           x-go-type: sync.Map
         filters:
-          $ref: 'models.yaml#/components/schemas/ListFilters'
+          $ref: "models.yaml#/components/schemas/ListFilters"
+    ListArticlesRequest:
+      description: contains additional request data specific for listing articles.
+      type: object
+      properties:
+        subscription_id:
+          $ref: "models.yaml#/components/schemas/SubscriptionID"
     ListArticlesResponse:
       description: >
         contains the data retrieved and relevant for listing articles.
@@ -248,27 +254,36 @@ components:
       properties:
         subscription:
           allOf:
-            - $ref: 'models.yaml#/components/schemas/Subscription'
+            - $ref: "models.yaml#/components/schemas/Subscription"
           x-go-type-skip-optional-pointer: false
         articles:
           x-go-type: Articles
         filters:
-          $ref: 'models.yaml#/components/schemas/ListFilters'
+          $ref: "models.yaml#/components/schemas/ListFilters"
     ListFavoritesResponse:
       description: >
         contains the data for displaying the favorites page.
       type: object
       properties:
         subscriptions:
-          x-go-type: 'Subscriptions'
+          x-go-type: "Subscriptions"
           x-go-type-skip-optional-pointer: true
         articles:
-          x-go-type: 'Articles'
+          x-go-type: "Articles"
           x-go-type-skip-optional-pointer: true
         latest_articles:
           description: >
             is a map of the latest articles for each subscription in the result.
           x-go-type: sync.Map
+    ViewArticleRequest:
+      description: contains additional request data for viewing an article.
+      type: object
+      properties:
+        show_full_content:
+          description: indicates whether the full content of the article should be fetched from the source.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: show_full_content
     ShowArticleResponse:
       description: contains the data for showing an article.
       type: object
@@ -276,7 +291,40 @@ components:
         - article
       properties:
         article:
-          $ref: 'models.yaml#/components/schemas/Article'
+          $ref: "models.yaml#/components/schemas/Article"
+    MarkArticleRequest:
+      description: >
+        contains parameters for marking an article.
+      type: object
+      required:
+        - mark
+        - subscription_id
+        - item_id
+      properties:
+        item_id:
+          $ref: "models.yaml#/components/schemas/ItemID"
+        subscription_id:
+          $ref: "models.yaml#/components/schemas/SubscriptionID"
+        mark:
+          $ref: "models.yaml#/components/schemas/Mark"
+        view:
+          $ref: "models.yaml#/components/schemas/View"
+    MarkArticlesRequest:
+      description: >
+        contains the parameters for marking articles.
+      type: object
+      required:
+        - displayed_articles
+        - mark
+      properties:
+        displayed_articles:
+          description: >
+            is a map of item ids per subscription.
+          x-go-type: "map[SubscriptionID][]ItemID"
+          x-oapi-codegen-extra-tags:
+            form: "displayed_articles"
+        mark:
+          $ref: "models.yaml#/components/schemas/Mark"
     NextArticleRequest:
       description: contains data for requesting the next/previous article.
       type: object
@@ -287,39 +335,39 @@ components:
         - view
       properties:
         item_id:
-          $ref: 'models.yaml#/components/schemas/ItemID'
+          $ref: "models.yaml#/components/schemas/ItemID"
         timestamp:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required,datetime=2006-01-02T15:04:05.999999999Z07:00'
+            validate: "required,datetime=2006-01-02T15:04:05.999999999Z07:00"
             form: timestamp
         direction:
           type: string
-          enum: ['next', 'previous']
+          enum: ["next", "previous"]
           x-oapi-codegen-extra-tags:
-            validate: 'required,oneof=next previous'
+            validate: "required,oneof=next previous"
             form: direction
         view:
-          $ref: 'models.yaml#/components/schemas/View'
+          $ref: "models.yaml#/components/schemas/View"
         from:
           description: indicates from which page the request came.
           type: string
           x-oapi-codegen-extra-tags:
             form: from
         subscription_id:
-          $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          $ref: "models.yaml#/components/schemas/SubscriptionID"
           x-oapi-codegen-extra-tags:
-            validate: 'omitempty,startswith=sub_'
-            form: 'subscription_id'
+            validate: "omitempty,startswith=sub_"
+            form: "subscription_id"
     SearchRequest:
       description: >
         represents a search request by the user.
       type: object
       allOf:
-        - $ref: 'models.yaml#/components/schemas/Pagination'
+        - $ref: "models.yaml#/components/schemas/Pagination"
           x-oapi-codegen-extra-tags:
-            form: 'pagination'
-            validate: 'omitempty,dive'
+            form: "pagination"
+            validate: "omitempty,dive"
         - type: object
           required:
             - published_within
@@ -333,32 +381,32 @@ components:
               description: >
                 will be a subscription ID if the user has created a SearchSubscription for this request.
               allOf:
-                - $ref: 'models.yaml#/components/schemas/SubscriptionID'
+                - $ref: "models.yaml#/components/schemas/SubscriptionID"
               x-go-name: SubscriptionID
               x-oapi-codegen-extra-tags:
-                form: 'subscription_id'
-                validate: 'omitzero,startswith=sub_'
+                form: "subscription_id"
+                validate: "omitzero,startswith=sub_"
             text:
               description: >
                 is the text to search.
               type: string
               x-oapi-codegen-extra-tags:
-                form: 'text'
-                validate: 'omitempty,required'
+                form: "text"
+                validate: "omitempty,required"
             categories:
               description: >
                 a list of search terms for categories.
               type: string
               x-oapi-codegen-extra-tags:
-                form: 'categories'
+                form: "categories"
             authors:
               description: >
                 a list of search terms for authors.
               type: string
               x-oapi-codegen-extra-tags:
-                form: 'authors'
+                form: "authors"
             view:
-              $ref: 'models.yaml#/components/schemas/View'
+              $ref: "models.yaml#/components/schemas/View"
             count:
               description: >
                 is the number of items to retrieve with a request. This number will be added to the upto value to get the
@@ -366,17 +414,17 @@ components:
                 specified with pagination value.
               type: integer
               x-oapi-codegen-extra-tags:
-                form: 'count'
-                validate: 'required,gt=0'
+                form: "count"
+                validate: "required,gt=0"
             subscriptions:
               description: >
                 is a list of subscription IDs.
               type: array
               items:
-                $ref: 'models.yaml#/components/schemas/SubscriptionID'
+                $ref: "models.yaml#/components/schemas/SubscriptionID"
               x-oapi-codegen-extra-tags:
-                form: 'subscriptions'
-                validate: 'omitempty,unique,dive,startswith=sub_'
+                form: "subscriptions"
+                validate: "omitempty,unique,dive,startswith=sub_"
               x-go-type-skip-optional-pointer: true
             published_within:
               description: >
@@ -392,20 +440,20 @@ components:
                 - all_time
               default: all_time
               x-oapi-codegen-extra-tags:
-                form: 'published_within'
-                validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
+                form: "published_within"
+                validate: "required,oneof=all_time last_hour last_12hours last_day last_week last_month"
             sort:
-              $ref: 'models.yaml#/components/schemas/Sort'
+              $ref: "models.yaml#/components/schemas/Sort"
             timezone:
               description: >
                 represents the timezone of the browser (i.e., user), used for calculating published_within offset.
               type: string
               x-oapi-codegen-extra-tags:
-                form: 'timezone'
-                validate: 'required,timezone'
+                form: "timezone"
+                validate: "required,timezone"
       x-oapi-codegen-extra-tags:
-        validate: 'required'
-        form: 'search'
+        validate: "required"
+        form: "search"
     SearchResults:
       description: >
         contains the results of a search.
@@ -414,9 +462,9 @@ components:
         - search
       properties:
         search:
-          $ref: 'models.yaml#/components/schemas/SearchRequest'
+          $ref: "models.yaml#/components/schemas/SearchRequest"
         subscription:
-          $ref: 'models.yaml#/components/schemas/Subscription'
+          $ref: "models.yaml#/components/schemas/Subscription"
         articles:
           x-go-type: Articles
           x-go-type-skip-optional-pointer: true
@@ -427,11 +475,11 @@ components:
           description: is a list of categories.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            json: 'categories'
-            form: 'categories'
-            validate: 'omitnil,unique,dive,url_encoded'
+            json: "categories"
+            form: "categories"
+            validate: "omitnil,unique,dive,url_encoded"
           x-go-type-skip-optional-pointer: true
     SuggestFeedsRequest:
       description: >
@@ -450,13 +498,13 @@ components:
           description: is a list of categories.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: 'categories'
-            validate: 'omitnil,unique,dive,url_encoded'
+            form: "categories"
+            validate: "omitnil,unique,dive,url_encoded"
           x-go-type-skip-optional-pointer: true
         count:
-          $ref: 'models.yaml#/components/schemas/Count'
+          $ref: "models.yaml#/components/schemas/Count"
     SuggestFeedsResults:
       description: >
         contains a list of feeds and their latest items, based on the provided text query.
@@ -491,37 +539,37 @@ components:
             is the email address the user has entered for getting in touch about the issue.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'user_email'
-            validate: 'required,email'
+            form: "user_email"
+            validate: "required,email"
         page_url:
           description: >
             is the URL of the page on which the user selected the report issue action.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'page_url'
-            validate: 'required,url'
+            form: "page_url"
+            validate: "required,url"
         screenshot_url:
           description: >
             is a URL to a screenshot the user has uploaded that is related to or showing the problem.
           type: string
           x-go-name: ScreenshotURL
           x-oapi-codegen-extra-tags:
-            form: '-'
-            validate: 'omitempty,url'
+            form: "-"
+            validate: "omitempty,url"
         details:
           description: >
             is the user-submitted text about the issue.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'details'
-            validate: 'required'
+            form: "details"
+            validate: "required"
         object_id:
           description: >
             is the object id (i.e., subscription/article id).
           type: string
           x-go-name: ObjectID
           x-oapi-codegen-extra-tags:
-            form: 'object_id'
+            form: "object_id"
     ContactRequest:
       description: >
         contains details submitted via the contact form on the website.
@@ -535,15 +583,15 @@ components:
             is the email address the entered for getting in touch about the issue.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'contact_email'
-            validate: 'required,email'
+            form: "contact_email"
+            validate: "required,email"
         details:
           description: >
             is the text about the issue.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'details'
-            validate: 'required'
+            form: "details"
+            validate: "required"
     DeactivationRequest:
       description: is a request from a user to deactivate their account.
       type: object
@@ -577,11 +625,11 @@ components:
         - filters
       properties:
         filters:
-          $ref: 'models.yaml#/components/schemas/ListFilters'
+          $ref: "models.yaml#/components/schemas/ListFilters"
         query:
           description: >
             is an additional query to apply for this request.
           x-go-type: query.Option
           x-go-type-import:
-            path: 'github.com/immanent-tech/foragd/providers/elastic/query'
+            path: "github.com/immanent-tech/foragd/providers/elastic/query"
           x-go-type-skip-optional-pointer: true

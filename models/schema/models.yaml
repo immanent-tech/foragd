@@ -1558,37 +1558,6 @@ components:
       properties:
         subscription_id:
           $ref: "#/components/schemas/SubscriptionID"
-    MarkArticleRequest:
-      description: >
-        contains parameters for marking an article.
-      type: object
-      required:
-        - mark
-        - subscription_id
-        - item_id
-      properties:
-        item_id:
-          $ref: "#/components/schemas/ItemID"
-        subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
-        mark:
-          $ref: "#/components/schemas/Mark"
-    MarkArticlesRequest:
-      description: >
-        contains the parameters for marking articles.
-      type: object
-      required:
-        - displayed_articles
-        - mark
-      properties:
-        displayed_articles:
-          description: >
-            is a map of item ids per subscription.
-          x-go-type: "map[SubscriptionID][]ItemID"
-          x-oapi-codegen-extra-tags:
-            form: "displayed_articles"
-        mark:
-          $ref: "#/components/schemas/Mark"
     FavoriteArticleRequest:
       description: >
         contains parameters for favoriting an article.

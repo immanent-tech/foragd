@@ -943,27 +943,6 @@ type ListSubscriptionCategoriesRequest struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
-// MarkArticleRequest contains parameters for marking an article.
-type MarkArticleRequest struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
-
-// MarkArticlesRequest contains the parameters for marking articles.
-type MarkArticlesRequest struct {
-	// DisplayedArticles is a map of item ids per subscription.
-	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
 // MarkSubscriptionRequest contains the parameters for marking a subscription.
 type MarkSubscriptionRequest struct {
 	// Mark applies the given mark action to objects.
