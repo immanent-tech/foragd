@@ -372,8 +372,27 @@ templ FeaturesPageCollect() {
 			</div>
 		}
 		// Feature: Email Newsletters.
+		@featurePanel("explore") {
+			<div class="order-1 md:order-2">
+				<img
+					src="/content/screenshots/screenshot-explore.webp"
+					alt="Screenshot of Foragd showing the explore page with a category selected and results shown"
+					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
+					loading="lazy"
+				/>
+			</div>
+			<div class="order-1 md:order-2">
+				@featureTitle("Explore existing feeds")
+				<p class="mt-4 font-serif text-pretty text-base-content/70">
+					Explore the existing feeds in the Foragd database. Search by keyword, phrase or topic, or browse and
+					filter by category. See a sample of the latest articles for each result and easily subscribe to new
+					sources.
+				</p>
+			</div>
+		}
+		// Feature: Email Newsletters.
 		@featurePanel("email-newsletters") {
-			<div class="order-2 md:order-1">
+			<div class="order-1 md:order-2">
 				<img
 					src="/content/screenshots/screenshot-feature-emailnewsletters.webp"
 					alt="Generating a masked email address in Foragd to subscribe to email newsletters"
@@ -381,7 +400,7 @@ templ FeaturesPageCollect() {
 					loading="lazy"
 				/>
 			</div>
-			<div class="order-1 md:order-2">
+			<div class="order-2 md:order-1">
 				@featureTitle("Sign up for email newsletters")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Protect your email and your inbox. Each Foragd account can generate a unique masked email address to
@@ -396,7 +415,7 @@ templ FeaturesPageCollect() {
 		}
 		// Feature: Import.
 		@featurePanel("import") {
-			<div>
+			<div class="order-1 md:order-2">
 				@featureTitle("Migrate from other services")
 				<p class="mt-4 font-serif text-pretty text-base-content/70">
 					Coming from Feedly, Inoreader, Newsblur, or another reader? Foragd imports your existing
@@ -414,16 +433,28 @@ templ FeaturesPageCollect() {
 					<a href="/compare/freshrss" class="link link-primary">Foragd vs FreshRSS</a>
 				</div>
 			</div>
-			<img
-				src="/content/screenshots/screenshot-feature-import.webp"
-				alt="OPML import results showing subscriptions migrated from another feed reader into Foragd"
-				class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-				loading="lazy"
-			/>
+			<div class="order-2 md:order-1">
+				<img
+					src="/content/screenshots/screenshot-feature-import.webp"
+					alt="OPML import results showing subscriptions migrated from another feed reader into Foragd"
+					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
+					loading="lazy"
+				/>
+			</div>
 		}
 		// Feature: Cloud sync.
 		@featurePanel("cloud-sync") {
 			<div class="order-2 md:order-1">
+				@featureTitle("Synced and saved across devices")
+				<p class="mt-4 font-serif text-pretty text-base-content/70">
+					Your data is synced to our servers so you can stay up to date anywhere,
+				</p>
+				<ul class="mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary">
+					<li>Subscribe and manage your subscriptions centrally.</li>
+					<li>Where you are up to and what you've saved are kept in sync no matter which device you use.</li>
+				</ul>
+			</div>
+			<div class="order-1 md:order-2">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-cloud-sync" type="button" class="cursor-pointer">
 						@components.BrowserWindow(config.GetBaseURL()) {
@@ -451,16 +482,6 @@ templ FeaturesPageCollect() {
 						</dialog>
 					</el-dialog>
 				</div>
-			</div>
-			<div class="order-1 md:order-2">
-				@featureTitle("Synced and saved across devices")
-				<p class="mt-4 font-serif text-pretty text-base-content/70">
-					Your data is synced to our servers so you can stay up to date anywhere,
-				</p>
-				<ul class="mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary">
-					<li>Subscribe and manage your subscriptions centrally.</li>
-					<li>Where you are up to and what you've saved are kept in sync no matter which device you use.</li>
-				</ul>
 			</div>
 		}
 		// Navigation to other feature group pages.
