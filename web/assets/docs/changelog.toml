@@ -1,10 +1,30 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version = "v0.226"
+date = "Sept 9, 2026"
+type = "major"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+GeoRSS support. There is an experimental <a href="/map">Map</a> page that shows the latest 50 articles that have geo data, on a world map.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Logic for determining read/unread status has been improved and will properly respect the Max View History value you've set in Display Settings.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Search has been tweaked and relevance of results has been improved.
+"""
+
+[[releases]]
 version = "v0.223"
 date = "Aug 28, 2026"
 type = "major"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
