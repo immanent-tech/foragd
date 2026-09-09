@@ -214,7 +214,7 @@ func HandlePostsFeed() http.HandlerFunc {
 			rss.WithChannelImage(&rss.Image{
 				Link:  config.GetBaseURL(),
 				URL:   config.GetBaseURL() + "/content/logo-vertical-light.webp",
-				Title: "Foragd Logo",
+				Title: "Posts from the Foragd Team",
 			}),
 			rss.WithUpdatePeriod("monthly"),
 			rss.WithUpdateFrequency(2),
