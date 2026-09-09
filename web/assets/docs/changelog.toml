@@ -11,6 +11,11 @@ description = """
 GeoRSS support. There is an experimental <a href="/map" class="link">Map</a> page that shows the latest 50 articles that have geo data, on a world map.
 """
 [[releases.changes]]
+type = "new"
+description = """
+There is a now a linter tool at <a href="/linter" class="link">/linter</a>. If you are a feed producer or developer, this will be useful to ensure your feeds are both valid and implement various optional features for maximum compatibility and user experience.
+"""
+[[releases.changes]]
 type = "improved"
 description = """
 Logic for determining read/unread status has been improved and will properly respect the Max View History value you've set in Display Settings.

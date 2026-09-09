@@ -159,6 +159,9 @@ func Start() error {
 		r.Get("/viewer", handlers.HandleViewer())
 		r.Get("/viewer/url/*", handlers.HandleViewer())
 		r.With(htmx.RequireHTMX).Post("/viewer", handlers.HandleViewer())
+		// Feed Linter.
+		r.Get("/linter", handlers.HandleLinter())
+		r.With(htmx.RequireHTMX).Post("/linter", handlers.HandleLinter())
 		// Help documentation.
 		r.Get("/docs", handlers.DocumentationHandler())
 		// Policy documentation (i.e., terms of service, privacy).
