@@ -88,7 +88,7 @@ func Linter() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><section id=\"viewer\" class=\"mx-auto sm:max-w-5xl\"><div class=\"prose-article\"><p>Enter a URL for an RSS feed and the tool will fetch, lint and provide details about how the feed meets various recommended features.</p><p>Currently, the linter supports linting RSS files. Atom, JSONFeed support coming soon!</p><p>The linter is powered by <a href=\"https://github.com/immanent-tech/go-syndication\" target=\"_blank\" rel=\"noopener\" class=\"link\">go-syndication</a>, an open-source library for reading and writing syndicated formats.</p></div><form id=\"linter-form\" hx-post=\"/linter\" hx-push-url=\"true\" hx-target=\"#linter-results\" hx-swap=\"morph:innerHTML\" hx-disabled-elt=\"find button[type='submit']\" _=\"on htmx:beforeRequest set the innerHTML of #linter-results to ''\" class=\"group\"><div class=\"mt-12\"><label for=\"url\" class=\"block text-sm/6 font-medium text-neutral\">Feed URL</label><div class=\"join mt-2 flex w-full\"><input id=\"url\" type=\"url\" name=\"url\" placeholder=\"https://some.site/feed.rss...\" class=\"input join-item w-full bg-base-300 brightness-95 input-primary\"> <button id=\"lint-button\" type=\"submit\" class=\"btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2 btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> Linting</span> <span class=\"inline-flex group-[.htmx-request]:hidden\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><section id=\"viewer\" class=\"mx-auto sm:max-w-5xl\"><div class=\"prose-article\"><p>The linter will check a feed to ensure it is valid according to the RSS/Atom/JSONFeed specifications. In addition, it checks whether the feed contains optional features that provide maximum compatibility with various readers and provide an optimal user experience.</p><p>Currently, the linter supports linting RSS files. Atom, JSONFeed support coming soon!</p><p>Enter a URL to an RSS feed and the tool will fetch and lint. Want to lint a local file? The linter is powered by <a href=\"https://github.com/immanent-tech/go-syndication\" target=\"_blank\" rel=\"noopener\" class=\"link\">go-syndication</a>, an open-source library for reading and writing syndicated formats. Click the link above to get instructions for running and linting your own local feeds.</p></div><form id=\"linter-form\" hx-post=\"/linter\" hx-push-url=\"true\" hx-target=\"#linter-results\" hx-swap=\"morph:innerHTML\" hx-disabled-elt=\"find button[type='submit']\" _=\"on htmx:beforeRequest set the innerHTML of #linter-results to ''\" class=\"group\"><div class=\"mt-12\"><label for=\"url\" class=\"block text-sm/6 font-medium text-neutral\">Feed URL</label><div class=\"join mt-2 flex w-full\"><input id=\"url\" type=\"url\" name=\"url\" placeholder=\"https://some.site/feed.rss...\" class=\"input join-item w-full bg-base-300 brightness-95 input-primary\"> <button id=\"lint-button\" type=\"submit\" class=\"btn join-item flex shrink-0 items-center gap-x-1.5 px-3 py-2 btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> Linting</span> <span class=\"inline-flex group-[.htmx-request]:hidden\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -153,7 +153,7 @@ func LinterResults(linterResults map[string][]linter.Result) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ruleset)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 88, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 91, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -171,7 +171,7 @@ func LinterResults(linterResults map[string][]linter.Result) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(result.ID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 94, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 97, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -184,7 +184,7 @@ func LinterResults(linterResults map[string][]linter.Result) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(result.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 95, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 98, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -219,7 +219,7 @@ func LinterResults(linterResults map[string][]linter.Result) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(result.Status)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 99, Col: 226}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 102, Col: 226}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -237,7 +237,7 @@ func LinterResults(linterResults map[string][]linter.Result) templ.Component {
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(*result.Message)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 105, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 108, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -294,7 +294,7 @@ func LinterError(msg *models.UserMessage) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 142, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 145, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -312,7 +312,7 @@ func LinterError(msg *models.UserMessage) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(*msg.Details)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 145, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 148, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -325,13 +325,13 @@ func LinterError(msg *models.UserMessage) templ.Component {
 			var templ_7745c5c3_Var16 templ.SafeURL
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinURLErrs(htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToSubject("Broken Feed")))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 146, Col: 144}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/linter.templ`, Line: 152, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">let us know</a> and we will fix it!</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"link\">Let us know</a> and we will fix it!</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

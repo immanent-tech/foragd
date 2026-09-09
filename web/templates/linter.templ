@@ -22,21 +22,24 @@ templ Linter() {
 				<section id="viewer" class="mx-auto sm:max-w-5xl">
 					<div class="prose-article">
 						<p>
-							Enter a URL for an RSS feed and the tool will fetch, lint and provide details about how
-							the feed meets various recommended features.
+							The linter will check a feed to ensure it is valid according to the RSS/Atom/JSONFeed
+							specifications. In addition, it checks whether the feed contains optional features
+							that provide maximum compatibility with various readers and provide an optimal user
+							experience.
 						</p>
 						<p>
 							Currently, the linter supports linting RSS files. Atom, JSONFeed support coming soon!
 						</p>
 						<p>
-							The linter is powered by <a
+							Enter a URL to an RSS feed and the tool will fetch and lint. Want to lint a local file? The
+							linter is powered by <a
 	href="https://github.com/immanent-tech/go-syndication"
 	target="_blank"
 	rel="noopener"
 	class="link"
 >go-syndication</a>,
-							an open-source library for reading and
-							writing syndicated formats.
+							an open-source library for reading and writing syndicated formats. Click the link above to
+							get instructions for running and linting your own local feeds.
 						</p>
 					</div>
 					<form
@@ -143,7 +146,15 @@ templ LinterError(msg *models.UserMessage) {
 		</h2>
 		if msg.HasDetails() {
 			<p>{ *msg.Details }</p>
-			<p>Found a known feed that is generating this error? <a href={ htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToSubject("Broken Feed")) }>let us know</a> and we will fix it!</p>
+			<p>
+				Found a known feed that is generating this error?
+				<a
+					href={ htmlx.NewMailTo("hello@immanent.tech", htmlx.WithMailToSubject("Broken Feed")) }
+					class="link"
+				>
+					Let us know
+				</a> and we will fix it!
+			</p>
 		}
 	</div>
 }
