@@ -43,84 +43,6 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 	</div>
 }
 
-// templ (s *Subscription) subscriptionMarkToggle(view models.View) {
-// 	// Mark action.
-// 	if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
-// 		{{
-// 			var mark models.Mark
-// 			if s.GetStats().IsUnread() {
-// 				mark = models.MarkRead
-// 			} else {
-// 				mark = models.MarkUnread
-// 			}
-
-// 			attrs := htmx.NewAttributes(
-// 				htmx.WithHXMethod(http.MethodPost, "/subscriptions/"+s.GetID()+"/"+string(mark)),
-// 				htmx.WithHXSwap("none"),
-// 			).GetAttributes()
-// 		}}
-// 		<div
-// 			class="tooltip tooltip-top tooltip-end"
-// 			data-tip={ "Mark " + string(mark) }
-// 		>
-// 			<label
-// 				id={ s.GetID() + "-toggle-mark" }
-// 				aria-label={ "Toggle mark status for " + s.GetTitle() }
-// 				class="btn swap btn-square btn-ghost btn-md"
-// 				_="
-// 				  on click
-//      					if my @hx-post contains '/unread'
-// 						  log 'unread'
-//      					  set my @hx-post to my @hx-post.replace('/unread', '/read')
-//      					else
-//      					  set my @hx-post to my @hx-post.replace('/read', '/unread')
-//      					end
-//      					htmx.process(me)
-// 				  end
-// 				  on htmx:afterRequest
-//     				if event.detail.successful
-// 				  		halt the event's bubbling
-// 						if closest .card exists
-// 				  			toggle .brightness-90 on closest .card
-// 						end
-// 					else
-//     			  		toggle @checked on <input[type='checkbox']/> in me
-// 					end
-// 				"
-// 				{ attrs... }
-// 			>
-// 				<input
-// 					id={ s.GetID() + "-mark-action" }
-// 					type="hidden"
-// 					name="mark"
-// 					value={ string(mark) }
-// 				/>
-// 				<input
-// 					type="checkbox"
-// 					if s.GetStats().IsUnread() {
-// 						checked
-// 						aria-label="Mark read"
-// 					} else {
-// 						aria-label="Mark unread"
-// 					}
-// 					_="
-// 					on click halt the event's bubbling
-// 					on change
-// 						if my.checked
-// 							set @aria-label to 'Mark unread'
-// 							set @data-tip of closest .tooltip to 'Mark unread'
-// 						else
-// 							set @aria-label to 'Mark read'
-// 							set @data-tip of closest .tooltip to 'Mark read'
-// 						end
-// 				"
-// 				/>
-// 				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
-// 				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
-// 			</label>
-// 		</div>
-// 	}
-// }
 templ SubscriptionMarkToggle(subscription *models.Subscription, options ...element.PropertiesOption) {
 	{{
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeSearch {
@@ -464,7 +386,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 			<div
 				id="updates"
 				class="toast toast-center z-10"
-				hx-post="/list/subscriptions/updates"
+				hx-post="/subscriptions/updates"
 				hx-vals={ templ.JSONString(response.Filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"

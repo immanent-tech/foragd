@@ -259,7 +259,6 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.Route("/subscriptions", func(r chi.Router) {
@@ -268,6 +267,7 @@ func Start() error {
 			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
 			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
+			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlers.SubscriptionCtx)
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
