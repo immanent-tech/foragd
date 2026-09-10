@@ -23,7 +23,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 		switch {
 		case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
 			path = "/list/subscriptions"
-		case strings.HasPrefix(req.URL.Path, "/list/articles"):
+		case strings.HasPrefix(req.URL.Path, "/list/articles") || strings.HasPrefix(req.URL.Path, "/articles"):
 			path = "/list/articles"
 		}
 		switch req.Method {
@@ -45,15 +45,18 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 					filters.SearchAfter = nil
 				}
 			} else {
-				// For regular requests, parse the filters from the query. If they differ, redirect the user.
+				// For regular requests, parse the filters from the query.
 				filters = models.ParseListFilters(req.URL.Query())
-				if canonical := filters.Encode(); req.URL.RawQuery != canonical {
-					slogctx.Debug(req.Context(), "Redirect after filters canonicalization.",
-						slog.String("query", req.URL.RawQuery),
-						slog.String("canonical", canonical))
-					req.URL.RawQuery = canonical
-					http.Redirect(res, req, req.URL.String(), http.StatusFound)
-					return
+				// For list pages, if the parsed filters differ from the request, redirect.
+				if strings.HasSuffix(req.URL.Path, "/articles") || strings.HasSuffix(req.URL.Path, "/subscriptions") {
+					if canonical := filters.Encode(); req.URL.RawQuery != canonical {
+						slogctx.Debug(req.Context(), "Redirect after filters canonicalization.",
+							slog.String("query", req.URL.RawQuery),
+							slog.String("canonical", canonical))
+						req.URL.RawQuery = canonical
+						http.Redirect(res, req, req.URL.String(), http.StatusFound)
+						return
+					}
 				}
 			}
 			// Save values.
@@ -63,7 +66,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			filters, err := forms.DecodeForm[*models.ListFilters](req)
-			if err != nil {
+			if err != nil || filters == nil {
 				// Try to restore filters from session.
 				filters = models.ListFiltersFromSession(req.Context(), path)
 				slogctx.FromCtx(req.Context()).Warn("Unable to decode list filters. Using filters from session.",

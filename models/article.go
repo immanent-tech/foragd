@@ -310,34 +310,16 @@ func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }
 
-// Valid ensures that the MarkArticlesRequest contains valid data.
-func (r *MarkArticlesRequest) Validate() error {
-	for key, value := range r.DisplayedArticles {
-		err := validation.Validate.Var(key, "startswith=sub_")
-		if err != nil {
-			return fmt.Errorf("mark articles request: invalid subscription ID: %w", err)
-		}
-		err = validation.Validate.Var(value, "dive,startswith=item_")
-		if err != nil {
-			return fmt.Errorf("mark articles request: invalid item IDs: %w", err)
-		}
+const articleCtxKey contextKey = "article"
+
+func ArticleToCtx(ctx context.Context, article *Article) context.Context {
+	return context.WithValue(ctx, articleCtxKey, *article)
+}
+
+func ArticleFromCtx(ctx context.Context) *Article {
+	if article, ok := ctx.Value(articleCtxKey).(Article); ok {
+		return &article
 	}
-	return nil
-}
-
-// Sanitise will alter MarkArticlesRequest data to ensure safety, where needed.
-func (r *MarkArticlesRequest) Sanitise() error {
-	return nil
-}
-
-func (r *MarkArticleRequest) Validate() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("validate mark article request: %w", err)
-	}
-	return nil
-}
-
-func (r *MarkArticleRequest) Sanitise() error {
 	return nil
 }
 
@@ -392,6 +374,9 @@ func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item
 }
 
 func (r *ListArticlesRequest) Sanitise() error {
+	if r == nil {
+		return nil
+	}
 	if r.SubscriptionID != nil {
 		subID := validation.SanitizeString(*r.SubscriptionID)
 		r.SubscriptionID = &subID
@@ -400,6 +385,9 @@ func (r *ListArticlesRequest) Sanitise() error {
 }
 
 func (r *ListArticlesRequest) Validate() error {
+	if r == nil {
+		return nil
+	}
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate list articles: %w", err)
 	}

@@ -459,17 +459,13 @@ templ SearchControls(results *models.SearchResults) {
 									// Mark all read action.
 									<li>
 										<a
-											hx-post="/list/articles/mark/read"
-											hx-target={ ContentID.Target() }
+											hx-post="/articles/read"
+											hx-target={ ModalContainerID.Target() }
 											hx-include="#grid-objects"
-											hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewUnread),
-														"mark": string(models.MarkRead),
-													}) }
 											class="group/item flex items-center gap-x-2"
 										>
 											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark all Read
+											Mark shown read
 										</a>
 									</li>
 								}
@@ -477,17 +473,13 @@ templ SearchControls(results *models.SearchResults) {
 									// Mark all unread action.
 									<li>
 										<a
-											hx-post="/list/articles/mark/unread"
-											hx-target={ ContentID.Target() }
+											hx-post="/articles/unread"
+											hx-target={ ModalContainerID.Target() }
 											hx-include="#grid-objects"
-											hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewRead),
-														"mark": string(models.MarkUnread),
-													}) }
 											class="group/item flex items-center gap-x-2"
 										>
 											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-											Mark all Unread
+											Mark shown unread
 										</a>
 									</li>
 								}
@@ -524,29 +516,21 @@ templ SearchControls(results *models.SearchResults) {
 				<div class="hidden flex-1 items-center justify-end gap-2 sm:flex">
 					if results.Search.View == models.ViewUnread {
 						<button
-							hx-post="/list/articles/mark/read"
+							hx-post="/articles/read"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects"
-							hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewUnread),
-														"mark": string(models.MarkRead),
-													}) }
 							class="btn border-neutral/15 btn-outline btn-sm"
 						>
 							@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
-							Mark all Read
+							Mark shown read
 						</button>
 					}
 					if results.Search.View == models.ViewRead {
 						// Mark all unread action.
 						<button
-							hx-post="/list/articles/mark/unread"
-							hx-target={ ContentID.Target() }
+							hx-post="/articles/unread"
+							hx-target={ ModalContainerID.Target() }
 							hx-include="#grid-objects"
-							hx-vals={ templ.JSONString(map[string]string{
-														"view": string(models.ViewRead),
-														"mark": string(models.MarkUnread),
-													}) }
 							class="btn border-neutral/15 btn-outline btn-sm"
 						>
 							@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})

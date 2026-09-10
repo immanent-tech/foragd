@@ -13,6 +13,7 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -37,6 +38,13 @@ func StorePaths(next http.Handler) http.Handler {
 		}
 		ctx := templates.FromPathToCtx(req.Context(), from)
 		ctx = templates.PathToCtx(ctx, req.URL.Path)
+		returnTo := req.URL.Query().Get("return_to")
+		if returnTo != "" {
+			if !isSafeLocalPath(returnTo) {
+				returnTo = "/home"
+			}
+			ctx = models.ReturnToCtx(ctx, returnTo)
+		}
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

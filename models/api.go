@@ -136,19 +136,6 @@ func (r *DeactivationRequest) Sanitise() error {
 	return nil
 }
 
-func (r *NextArticleRequest) Validate() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("validate next article request: %w", err)
-	}
-	return nil
-}
-
-func (r *NextArticleRequest) Sanitise() error {
-	r.Direction = NextArticleRequestDirection(validation.SanitizeString(string(r.Direction)))
-	r.Timestamp = validation.SanitizeString(r.Timestamp)
-	return nil
-}
-
 func (r SuggestFeedsRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate discover feeds request: %w", err)
@@ -168,6 +155,28 @@ func (r *SuggestFeedsRequest) Sanitise() error {
 		for idx, category := range r.Categories {
 			r.Categories[idx] = validation.SanitizeString(category)
 		}
+	}
+	return nil
+}
+
+func (r *ConfirmRequest) Sanitise() error {
+	return nil
+}
+
+func (r ConfirmRequest) Validate() error {
+	if err := validation.Validate.Struct(&r); err != nil {
+		return fmt.Errorf("validate confirmation: %w", err)
+	}
+	return nil
+}
+
+func (r *BulkMarkArticlesRequest) Sanitise() error {
+	return nil
+}
+
+func (r *BulkMarkArticlesRequest) Validate() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate bulk mark articles: %w", err)
 	}
 	return nil
 }

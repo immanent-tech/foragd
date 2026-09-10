@@ -25,6 +25,7 @@ import (
 
 	"github.com/immanent-tech/go-base/server/handlers/assets"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/google/android"
@@ -262,6 +263,19 @@ func Start() error {
 			r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
+		r.Route("/subscriptions", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeListFilters)
+			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
+			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
+			// r.With(htmx.RequireHTMX).Post("/read")
+			// r.With(htmx.RequireHTMX).Post("/unread")
+			// r.Route("/{subscriptionID}", func(r chi.Router) {
+			// 	r.Use(middlewares.SubscriptionCtx) // loads sub, 404s if missing
+			// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
+			// 	r.With(htmx.RequireHTMX).Post("/read")
+			// 	r.With(htmx.RequireHTMX).Post("/unread")
+			// })
+		})
 		r.With(htmx.RequireHTMX).
 			Post("/mark/subscription/{subscription_id}", handlers.HandleMarkSubscription())
 		r.With(htmx.RequireHTMX).
@@ -304,17 +318,29 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListArticles())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
-			r.With(htmx.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
 			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
-		r.With(htmx.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
 		r.With(htmx.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.With(htmx.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
-		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/next", handlers.HandleNextArticle())
-		r.With(htmx.RequireHTMX).Get("/view/article/{item_id}/prev", handlers.HandleNextArticle())
+		r.Route("/articles", func(r chi.Router) {
+			r.Use(middlewares.CanonicalizeListFilters)
+			// r.Get("/", handlers.HandleListSubscriptions())
+			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
+			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkArticles(models.MarkRead))
+			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkArticles(models.MarkRead))
+			r.Route("/{articleID}", func(r chi.Router) {
+				r.Use(handlers.ArticleCtx)
+				r.With(htmx.RequireHTMX).Get("/next", handlers.HandleBrowseArticles("next"))
+				r.With(htmx.RequireHTMX).Get("/prev", handlers.HandleBrowseArticles("prev"))
+				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
+				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkArticle(models.MarkRead))
+				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkArticle(models.MarkUnread))
+			})
+		})
+
 		// Map
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)

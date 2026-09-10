@@ -31,6 +31,29 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
+func ArticleCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		id := chi.URLParam(req, "articleID")
+		articles, err := service.GetArticles(req.Context(), id)
+		if err != nil {
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("fetch article %s details: %w", id, err),
+			).ServeHTTP(res, req)
+			return
+		}
+		if len(articles) == 0 {
+			HandleInternalError(
+				http.StatusNotFound,
+				fmt.Errorf("fetch article %s: not found", id),
+			).ServeHTTP(res, req)
+			return
+		}
+		ctx := models.ArticleToCtx(req.Context(), articles[0])
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 // ListArticles holds data for generating the articles list page.
 type ListArticles struct {
 	title    templates.PageTitle
@@ -98,7 +121,7 @@ func HandleListArticles() http.HandlerFunc {
 			if err != nil {
 				slogctx.Warn(req.Context(), "Could not parse list articles request.",
 					slog.Any("error", err))
-			} else {
+			} else if extraRequestDetails != nil {
 				if extraRequestDetails.SubscriptionID != nil && *extraRequestDetails.SubscriptionID != "" {
 					subscriptionID = *extraRequestDetails.SubscriptionID
 				}
@@ -458,31 +481,24 @@ func HandleViewArticle() http.HandlerFunc {
 	}
 }
 
-func HandleNextArticle() http.HandlerFunc {
+func HandleBrowseArticles(direction string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Parse the request.
-		request, err := parseForm[*models.NextArticleRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
-			return
-		}
-		// Parse the timestamp.
-		ts, err := time.Parse(time.RFC3339Nano, request.Timestamp)
-		if err != nil {
+		article := models.ArticleFromCtx(req.Context())
+		if article == nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				errors.New("no article in context"),
 			).ServeHTTP(res, req)
 			return
 		}
 
 		article, err := service.GetNextArticle(
 			req.Context(),
-			request.ItemID,
-			request.SubscriptionID,
-			request.View,
-			request.Direction,
-			ts,
+			article.GetID(),
+			article.GetSubscriptionID(),
+			models.ViewUnread,
+			direction,
+			article.GetUpdatedDate().UTC(),
 		)
 		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 			HandleInternalError(
@@ -515,78 +531,90 @@ func HandleNextArticle() http.HandlerFunc {
 	}
 }
 
-// MarkArticle handles marking an article as read/unread and updates the UI accordingly.
-func MarkArticle() http.HandlerFunc {
+// HandleMarkArticle handles marking an article as read or unread.
+func HandleMarkArticle(mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseForm[*models.MarkArticleRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+		// Retrieve the article details.
+		article := models.ArticleFromCtx(req.Context())
+		if article == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
-
 		// Mark the article.
-		if err := markArticles(req.Context(), request.Mark, request.SubscriptionID, request.ItemID); err != nil {
+		if err := markArticles(
+			req.Context(),
+			mark,
+			article.GetSubscriptionID(),
+			article.GetID(),
+		); err != nil {
 			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
-
-		// Do extra processing based on the current URL.
-		if currentURL, found := htmx.GetCurrentURL(req); found {
-			switch {
-			case strings.Contains(currentURL, "/list/articles"):
-				// If we aren't viewing all subscriptions, remove the subscription card.
-				if request.View != nil && models.View(*request.View) != models.ViewAll {
-					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
-					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.ItemID).Target())
-					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
-					res.Header().Set(models.ActionHeader, "mark-article")
-				}
+		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/list/articles") {
+			filters := models.ListFiltersFromCtx(req.Context())
+			// Remove the article card.
+			if filters.GetView() != models.ViewAll {
+				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
+				res.Header().Set(htmx.HeaderRetarget, htmx.ID(article.GetID()).Target())
+				res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+				res.Header().Set(models.ActionHeader, "mark-article")
 			}
 		}
-
 		res.WriteHeader(http.StatusOK)
 	}
 }
 
-// MarkArticles handles marking multiple articles as read/unread and updating the UI appropriately.
-func MarkArticles() http.HandlerFunc {
+// HandleBulkMarkArticles handles marking multiple articles.
+func HandleBulkMarkArticles(mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Decode request parameters.
-		request, err := parseForm[*models.MarkArticlesRequest](req)
+		// Parse confirmation.
+		request, err := parseForm[*models.BulkMarkArticlesRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
-		// Mark Articles.
-		for subscriptionID, itemIDs := range request.DisplayedArticles {
-			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+		switch request.Confirmed {
+		case false:
+			// Show modal to confirm bulk mark articles.
+			RenderPartial(&Modal{
+				template: templates.BulkMarkArticlesModal(mark,
+					element.WithHXSwap("none"),
+				)}).ServeHTTP(res, req)
+		case true:
+			// For each subscription's articles shown, mark.
+			for subscriptionID, itemIDs := range request.DisplayedArticles {
+				if err = markArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
+					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+					return
+				}
+			}
+
+			// Redirect/refresh as appropriate.
+			if currentURL, found := htmx.GetCurrentURL(req); !found {
+				htmx.LocationResponse(
+					htmx.WithLocationPath("/home"),
+					htmx.WithLocationTarget(templates.ContentID.Target()),
+					htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+					htmx.WithLocationHeaders(map[string]string{
+						models.ActionHeader: "mark-articles",
+					}),
+				).ServeHTTP(res, req)
+				return
+			} else {
+				htmx.LocationResponse(
+					htmx.WithLocationPath(currentURL),
+					htmx.WithLocationTarget(templates.ContentID.Target()),
+					htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+					htmx.WithLocationHeaders(map[string]string{
+						models.ActionHeader: "mark-articles",
+					}),
+				).ServeHTTP(res, req)
 				return
 			}
 		}
 
-		if currentURL, found := htmx.GetCurrentURL(req); !found {
-			htmx.LocationResponse(
-				htmx.WithLocationPath("/home"),
-				htmx.WithLocationTarget(templates.ContentID.Target()),
-				htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
-				htmx.WithLocationHeaders(map[string]string{
-					models.ActionHeader: "mark-articles",
-				}),
-			).ServeHTTP(res, req)
-			return
-		} else {
-			htmx.LocationResponse(
-				htmx.WithLocationPath(currentURL),
-				htmx.WithLocationTarget(templates.ContentID.Target()),
-				htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
-				htmx.WithLocationHeaders(map[string]string{
-					models.ActionHeader: "mark-articles",
-				}),
-			).ServeHTTP(res, req)
-			return
-		}
+		res.WriteHeader(http.StatusOK)
 	}
 }
 

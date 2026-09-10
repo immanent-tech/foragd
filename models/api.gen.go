@@ -11,24 +11,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-// Defines values for NextArticleRequestDirection.
-const (
-	NextArticleRequestDirectionNext     NextArticleRequestDirection = "next"
-	NextArticleRequestDirectionPrevious NextArticleRequestDirection = "previous"
-)
-
-// Valid indicates whether the value is a known member of the NextArticleRequestDirection enum.
-func (e NextArticleRequestDirection) Valid() bool {
-	switch e {
-	case NextArticleRequestDirectionNext:
-		return true
-	case NextArticleRequestDirectionPrevious:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -112,6 +94,21 @@ type AddSubscriptionToSearchRequest struct {
 
 	// SuggestedSubscriptions is a list of the subscription suggestions.
 	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
+}
+
+// BulkMarkArticlesRequest contains data for bulk marking articles.
+type BulkMarkArticlesRequest struct {
+	// Confirmed indicates the user confirmation.
+	Confirmed bool `form:"confirmed" json:"confirmed"`
+
+	// DisplayedArticles is a map of item ids per subscription.
+	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles" validate:"omitempty,dive,keys,startswith=sub_,endkeys,dive,startswith=item_"`
+}
+
+// ConfirmRequest contains a value indicating whether a user has confirmed a destructive request.
+type ConfirmRequest struct {
+	// Confirmed indicates the user confirmation.
+	Confirmed bool `form:"confirmed" json:"confirmed"`
 }
 
 // ContactRequest contains details submitted via the contact form on the website.
@@ -230,51 +227,6 @@ type ListSubscriptionsResponse struct {
 	// Subscriptions is the list of subscriptions.
 	Subscriptions Subscriptions `json:"subscriptions"`
 }
-
-// MarkArticleRequest contains parameters for marking an article.
-type MarkArticleRequest struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// View is the state of objects to view.
-	View *View `form:"view" json:"view,omitempty" validate:"required,oneof=read unread all favorites"`
-}
-
-// MarkArticlesRequest contains the parameters for marking articles.
-type MarkArticlesRequest struct {
-	// DisplayedArticles is a map of item ids per subscription.
-	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// NextArticleRequest contains data for requesting the next/previous article.
-type NextArticleRequest struct {
-	Direction NextArticleRequestDirection `form:"direction" json:"direction" validate:"required,oneof=next previous"`
-
-	// From indicates from which page the request came.
-	From *string `form:"from" json:"from,omitempty"`
-
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitempty,startswith=sub_"`
-	Timestamp      string          `form:"timestamp" json:"timestamp" validate:"required,datetime=2006-01-02T15:04:05.999999999Z07:00"`
-
-	// View is the state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
-}
-
-// NextArticleRequestDirection defines model for NextArticleRequest.Direction.
-type NextArticleRequestDirection string
 
 // ReportIssueRequest contains details about an issue with the service.
 type ReportIssueRequest struct {

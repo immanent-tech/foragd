@@ -67,9 +67,9 @@ func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption 
 func GetNextArticle(
 	ctx context.Context,
 	currentID models.ItemID,
-	subscriptionID *models.SubscriptionID,
+	subscriptionID models.SubscriptionID,
 	view models.View,
-	direction models.NextArticleRequestDirection,
+	direction string,
 	ts time.Time,
 ) (*models.Article, error) {
 	user := models.UserFromCtx(ctx)
@@ -84,34 +84,21 @@ func GetNextArticle(
 	exclusions = append(exclusions, query.Term("item_id", currentID))
 
 	// Define filters/exclusions based on subscription(s).
-	if subscriptionID != nil {
-		subscription, err := GetSubscription(ctx, *subscriptionID)
-		if err != nil {
-			return nil, fmt.Errorf("get subscription: %w", err)
-		}
-		filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
-		filters = append(filters,
-			query.Bool(
-				ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-				query.Should(BuildItemQueries(user, view, models.Subscriptions{subscription})...)),
-		)
-	} else {
-		allSubscriptions, err := GetAllSubscriptions(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("get all subscriptions: %w", err)
-		}
-		filters = append(filters, query.Terms("feed_id", allSubscriptions.GetFeedIDs()))
-		filters = append(filters,
-			query.Bool(
-				ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
-				query.Should(BuildItemQueries(user, view, allSubscriptions)...)),
-		)
+	subscription, err := GetSubscription(ctx, subscriptionID)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription: %w", err)
 	}
+	filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
+	filters = append(filters,
+		query.Bool(
+			ArticleFiltersQueryClause(user.GetSettings().GlobalFilters),
+			query.Should(BuildItemQueries(user, view, models.Subscriptions{subscription})...)),
+	)
 
 	// Define filters and sorting based on direction.
 	var sort models.Sort
 	switch direction {
-	case models.NextArticleRequestDirectionNext:
+	case "next":
 		filters = append(filters, query.Bool(
 			query.Should(
 				query.Since("published", ts),
@@ -119,7 +106,7 @@ func GetNextArticle(
 			),
 		))
 		sort = models.SortOldestFirst
-	case models.NextArticleRequestDirectionPrevious:
+	case "prev":
 		filters = append(filters, query.Bool(
 			query.Should(
 				query.Before("published", ts),

@@ -72,15 +72,15 @@ templ articleMarkToggle(article *models.Article, view models.View) {
 			mark = models.MarkUnread
 		}
 		attrs := htmx.NewAttributes(
-			htmx.WithHXMethod(http.MethodPost, "/mark/article/"+article.GetID()),
+			htmx.WithHXMethod(http.MethodPost, "/articles/"+article.GetID()+"/"+string(mark)),
 			htmx.WithHXSwap("none"),
 			htmx.WithHXTrigger("click consume"),
-			htmx.WithHXInclude("[id='"+markValueID(article).String()+"']"),
-			htmx.WithHXVals(map[string]string{
-				"subscription_id": article.GetSubscriptionID(),
-				"item_id":         article.GetID(),
-				"view":            string(view),
-			}),
+			// htmx.WithHXInclude("[id='"+markValueID(article).String()+"']"),
+			// htmx.WithHXVals(map[string]string{
+			// 	"subscription_id": article.GetSubscriptionID(),
+			// 	"item_id":         article.GetID(),
+			// 	"view":            string(view),
+			// }),
 		).GetAttributes()
 	}}
 	<div
@@ -811,16 +811,16 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
 				if article.IsUnread() && article.MarkArticleReadOnView {
+					// hx-vals={ templ.JSONString(map[string]any{
+					// 	"subscription_id": article.GetSubscriptionID(),
+					// 	"item_id": article.GetID(),
+					// 	"mark": models.MarkRead,
+					// }) }
 					<div
 						id="auto-mark-read"
 						hx-target="#auto-mark-read"
-						hx-post={ "/mark/article/" + article.GetID() }
+						hx-post={ "/articles/" + article.GetID() + "/read" }
 						hx-swap="delete transition:false"
-						hx-vals={ templ.JSONString(map[string]any{
-							"subscription_id": article.GetSubscriptionID(),
-							"item_id": article.GetID(),
-							"mark": models.MarkRead,
-						}) }
 						hx-trigger="intersect once delay:5s,load delay:5s"
 						aria-hidden="true"
 						_={ "on htmx:afterRequest(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
@@ -832,49 +832,25 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 }
 
 templ showNextPrevActions(resp *models.ShowArticleResponse) {
-	{{
-		vals := make(map[string]any)
-		vals["item_id"] = resp.Article.GetID()
-		vals["timestamp"] = resp.Article.GetUpdatedDate().Format(time.RFC3339Nano)
-		vals["from"] = FromPathFromCtx(ctx)
-		switch FromPathFromCtx(ctx) {
-		case "/list/subscriptions":
-			vals["subscription_id"] = resp.Article.GetSubscriptionID()
-			filters := models.ListFiltersFromSession(ctx, "/list/subscriptions")
-			vals["view"] = filters.GetView()
-		case "/list/articles":
-			filters := models.ListFiltersFromSession(ctx, "/list/articles")
-			if len(filters.GetSubscriptions()) > 0 {
-				vals["subscription_id"] = filters.GetSubscriptions()[0]
-			}
-			vals["view"] = filters.GetView()
-		default:
-			vals["view"] = models.ViewUnread
-		}
-	}}
 	<div class="mt-4 flex w-full items-center justify-between">
-		{{ vals["direction"] = models.NextArticleRequestDirectionPrevious }}
 		<div class="tooltip tooltip-right" data-tip="Previous Article">
 			<button
 				class="btn btn-square btn-ghost"
-				hx-get={ "/view/article/" + resp.Article.GetID() + "/prev" }
+				hx-get={ "/articles/" + resp.Article.GetID() + "/prev" }
 				hx-target={ ContentID.Target() }
 				hx-swap="morph:innerHTML transition:true show:top"
-				hx-vals={ templ.JSONString(vals) }
 				hx-push-url={ "/view/article/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowLeft()
 				<span class="sr-only">Previous Article</span>
 			</button>
 		</div>
-		{{ vals["direction"] = models.NextArticleRequestDirectionNext }}
 		<div class="tooltip tooltip-left" data-tip="Next Article">
 			<button
 				class="btn btn-square btn-ghost"
-				hx-get={ "/view/article/" + resp.Article.GetID() + "/next" }
+				hx-get={ "/articles/" + resp.Article.GetID() + "/next" }
 				hx-target={ ContentID.Target() }
 				hx-swap="morph:innerHTML transition:true show:top"
-				hx-vals={ templ.JSONString(vals) }
 				hx-push-url={ "/view/article/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowRight()
@@ -968,17 +944,11 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											role="button"
 											class="group rounded-field border border-neutral/15 text-sm"
 											if response.Filters.GetView() == models.ViewUnread {
-												hx-post="/list/articles/mark/read"
-												hx-vals={ templ.JSONString(map[string]any{
-														"mark": models.MarkRead,
-													}) }
+												hx-post="/articles/read"
 											} else {
-												hx-post="/list/articles/mark/unread"
-												hx-vals={ templ.JSONString(map[string]any{
-														"mark": models.MarkUnread,
-													}) }
+												hx-post="/articles/unread"
 											}
-											hx-target={ ContentID.Target() }
+											hx-target={ ModalContainerID.Target() }
 											hx-include="article > input"
 										>
 											<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -988,10 +958,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 												if response.Filters.GetView() == models.ViewUnread {
 													@tableroutline.MailOpened(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-													<span class="text-sm/6">Mark Articles Read</span>
+													<span class="text-sm/6">Mark shown read</span>
 												} else {
 													@tableroutline.Mail(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
-													<span class="text-sm/6">Mark Articles Unread</span>
+													<span class="text-sm/6">Mark shown unread</span>
 												}
 											</span>
 										</a>
@@ -1083,13 +1053,13 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		// Mark all button.
 		<button
 			if response.Filters.GetView() == models.ViewUnread {
-				hx-post="/list/articles/mark/read"
+				hx-post="/articles/read"
 			} else {
-				hx-post="/list/articles/mark/unread"
+				hx-post="/articles/unread"
 			}
-			hx-target={ ContentID.Target() }
 			hx-include=".card > input"
-			hx-vals={ templ.JSONString(map[string]string{"mark": string(mark)}) }
+			hx-target={ ModalContainerID.Target() }
+			hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
 			class="group btn border-neutral/15 btn-outline btn-sm"
 		>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -1099,10 +1069,10 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
 				if response.Filters.GetView() == models.ViewUnread {
 					@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-					<span class="ml-2">Mark Shown Read</span>
+					<span class="ml-2">Mark shown read</span>
 				} else {
 					@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
-					<span class="ml-2">Mark Show Unread</span>
+					<span class="ml-2">Mark shown unread</span>
 				}
 			</span>
 		</button>
@@ -1197,5 +1167,48 @@ templ articleThumbnail(article *models.Article) {
 		@tableroutline.FileRss(templ.Attributes{
 			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
 			"aria-hidden": "true"})
+	}
+}
+
+// RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
+templ BulkMarkArticlesModal(mark models.Mark, options ...element.PropertiesOption) {
+	{{
+		props := element.NewProperties(options...)
+		id := "bulk-mark-articles"
+	}}
+	@partials.Modal(id, true) {
+		<div class="sm:flex sm:items-start">
+			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
+				@tableroutline.AlertTriangle(templ.Attributes{"class": "size-12"})
+			</span>
+			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+				<h3 id="dialog-title" class="text-lg font-medium">Marking shown articles as { string(mark) }</h3>
+				<div class="mt-2">
+					<p class="text-sm">Are you sure?</p>
+				</div>
+			</div>
+		</div>
+		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
+			<form
+				hx-post={ "/articles/" + string(mark) }
+				hx-disabled-elt="find button[type='submit']"
+				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
+				hx-include=".card > input"
+				{ props.Attributes()... }
+				class="flex"
+				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+			>
+				<button
+					type="submit"
+					class="btn btn-primary"
+				>Yes</button>
+			</form>
+			<button
+				type="button"
+				command="close"
+				commandfor={ id }
+				class="btn btn-secondary hover:btn-error"
+			>No</button>
+		</div>
 	}
 }

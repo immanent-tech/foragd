@@ -292,73 +292,6 @@ components:
       properties:
         article:
           $ref: "models.yaml#/components/schemas/Article"
-    MarkArticleRequest:
-      description: >
-        contains parameters for marking an article.
-      type: object
-      required:
-        - mark
-        - subscription_id
-        - item_id
-      properties:
-        item_id:
-          $ref: "models.yaml#/components/schemas/ItemID"
-        subscription_id:
-          $ref: "models.yaml#/components/schemas/SubscriptionID"
-        mark:
-          $ref: "models.yaml#/components/schemas/Mark"
-        view:
-          $ref: "models.yaml#/components/schemas/View"
-    MarkArticlesRequest:
-      description: >
-        contains the parameters for marking articles.
-      type: object
-      required:
-        - displayed_articles
-        - mark
-      properties:
-        displayed_articles:
-          description: >
-            is a map of item ids per subscription.
-          x-go-type: "map[SubscriptionID][]ItemID"
-          x-oapi-codegen-extra-tags:
-            form: "displayed_articles"
-        mark:
-          $ref: "models.yaml#/components/schemas/Mark"
-    NextArticleRequest:
-      description: contains data for requesting the next/previous article.
-      type: object
-      required:
-        - item_id
-        - timestamp
-        - direction
-        - view
-      properties:
-        item_id:
-          $ref: "models.yaml#/components/schemas/ItemID"
-        timestamp:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: "required,datetime=2006-01-02T15:04:05.999999999Z07:00"
-            form: timestamp
-        direction:
-          type: string
-          enum: ["next", "previous"]
-          x-oapi-codegen-extra-tags:
-            validate: "required,oneof=next previous"
-            form: direction
-        view:
-          $ref: "models.yaml#/components/schemas/View"
-        from:
-          description: indicates from which page the request came.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: from
-        subscription_id:
-          $ref: "models.yaml#/components/schemas/SubscriptionID"
-          x-oapi-codegen-extra-tags:
-            validate: "omitempty,startswith=sub_"
-            form: "subscription_id"
     SearchRequest:
       description: >
         represents a search request by the user.
@@ -633,3 +566,29 @@ components:
           x-go-type-import:
             path: "github.com/immanent-tech/foragd/providers/elastic/query"
           x-go-type-skip-optional-pointer: true
+    ConfirmRequest:
+      description: contains a value indicating whether a user has confirmed a destructive request.
+      type: object
+      required:
+        - confirmed
+      properties:
+        confirmed:
+          description: indicates the user confirmation.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: confirmed
+    BulkMarkArticlesRequest:
+      description: contains data for bulk marking articles.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/ConfirmRequest"
+        - type: object
+          required:
+            - displayed_articles
+          properties:
+            displayed_articles:
+              description: is a map of item ids per subscription.
+              x-go-type: "map[SubscriptionID][]ItemID"
+              x-oapi-codegen-extra-tags:
+                form: "displayed_articles"
+                validate: "omitempty,dive,keys,startswith=sub_,endkeys,dive,startswith=item_"
