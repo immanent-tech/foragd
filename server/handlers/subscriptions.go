@@ -39,6 +39,30 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
+// SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
+func SubscriptionCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		id := chi.URLParam(req, "subscriptionID")
+		subscription, err := service.GetSubscription(req.Context(), id)
+		if err != nil {
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("fetch subscription %s details: %w", id, err),
+			).ServeHTTP(res, req)
+			return
+		}
+		if subscription == nil {
+			HandleInternalError(
+				http.StatusNotFound,
+				fmt.Errorf("fetch subscription %s: not found", id),
+			).ServeHTTP(res, req)
+			return
+		}
+		ctx := models.SubscriptionToCtx(req.Context(), subscription)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 // ListSubscriptions holds data for generating the subscriptions list page.
 type ListSubscriptions struct {
 	title    templates.PageTitle
@@ -288,17 +312,19 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func HandleMarkSubscription() http.HandlerFunc {
+func HandleMarkSubscription(mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Decode request parameters.
-		request, err := parseForm[*models.MarkSubscriptionRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+		res.Header().Set(models.ActionHeader, "mark-subscription")
+
+		// Retrieve the subscription details.
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark subscription.
-		if err := service.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
+		if err := service.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("mark subscriptions: %w", err),
@@ -306,98 +332,110 @@ func HandleMarkSubscription() http.HandlerFunc {
 			return
 		}
 
-		// res.Header().Set(htmx.HeaderRefresh, "true")
-		// Do extra processing based on the current URL.
-		if currentURL, found := htmx.GetCurrentURL(req); found {
-			switch {
-			case strings.Contains(currentURL, "/list/articles"):
-				// On /list/articles, redirect back to subscriptions after marking.
-				htmx.LocationResponse(
-					htmx.WithLocationPath("/list/subscriptions"),
-					htmx.WithLocationTarget(templates.ContentID.Target()),
-					htmx.WithLocationSwap("morph:innerHTML transition:true"),
-					htmx.WithLocationHeaders(map[string]string{
-						models.ActionHeader: "mark-subscription",
-					}),
-					htmx.WithLocationValues(models.ListFiltersFromSession(req.Context(), "/list/subscriptions")),
+		// Get any from value.
+		from := templates.FromPathFromCtx(req.Context())
+
+		// Update toggle.
+		RenderPartial(&PartialTemplate{
+			template: templates.SubscriptionMarkToggle(subscription,
+				element.WithHXSwapOOB("true"),
+				element.WithHXValues(map[string]string{"from": from}),
+			),
+		}).ServeHTTP(res, req)
+
+		// Perform post handling hooks.
+		var postMarkHooks = map[string]PostHandlerHook{
+			"/list/subscriptions": postMarkSubscriptionList,
+			"/list/articles":      postMarkSubscriptionArticles,
+		}
+		if hook, ok := postMarkHooks[from]; ok {
+			if err := hook(res, req); err != nil {
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("run post mark hook: %w", err),
 				).ServeHTTP(res, req)
-			case strings.Contains(currentURL, "/list/subscriptions"):
-				// If we aren't viewing all subscriptions, remove the subscription card.
-				if models.View(req.FormValue("view")) != models.ViewAll {
-					res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
-					res.Header().Set(htmx.HeaderRetarget, htmx.ID(request.SubscriptionID).Target())
-					res.Header().Set(htmx.HeaderTrigger, "masonry:update")
-					res.Header().Set(models.ActionHeader, "mark-subscription")
-				}
+				return
 			}
 		}
+
 		res.WriteHeader(http.StatusOK)
 	}
 }
 
-// HandleMarkSubscriptions handles marking subscriptions as read/unread.
-func HandleMarkSubscriptions() http.HandlerFunc {
+// postMarkSubscriptionList performs post-mark steps when the subscription was marked from the list subscriptions page.
+func postMarkSubscriptionList(res http.ResponseWriter, req *http.Request) error {
+	subscription := models.SubscriptionFromCtx(req.Context())
+	if subscription == nil {
+		return fmt.Errorf("no subscription in context")
+	}
+	filters := models.ListFiltersFromCtx(req.Context())
+	// If we aren't viewing all subscriptions, remove the subscription card.
+	if models.View(filters.GetView()) != models.ViewAll {
+		res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
+		res.Header().Set(htmx.HeaderRetarget, htmx.ID(subscription.GetID()).Target())
+		res.Header().Set(htmx.HeaderTrigger, "masonry:update")
+		res.Header().Set(models.ActionHeader, "mark-subscription")
+	}
+	return nil
+}
+
+// postMarkSubscriptionArticles performs post-mark steps when the subscription was marked from the list articles page.
+func postMarkSubscriptionArticles(res http.ResponseWriter, req *http.Request) error {
+	subscription := models.SubscriptionFromCtx(req.Context())
+	if subscription == nil {
+		return fmt.Errorf("no subscription in context")
+	}
+	htmx.LocationResponse(
+		htmx.WithLocationPath("/list/subscriptions"),
+		htmx.WithLocationTarget(templates.ContentID.Target()),
+		htmx.WithLocationSwap("morph:innerHTML transition:true"),
+		htmx.WithLocationHeaders(map[string]string{
+			models.ActionHeader: "mark-subscription",
+		}),
+		htmx.WithLocationValues(models.ListFiltersFromSession(req.Context(), "/list/subscriptions")),
+	).ServeHTTP(res, req)
+	return nil
+}
+
+// HandleBulkMarkSubscriptions handles bulk marking subscriptions as read/unread.
+func HandleBulkMarkSubscriptions(mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set(models.ActionHeader, "bulk-mark-subscriptions")
+
 		// Decode request parameters.
-		request, err := parseForm[*models.MarkSubscriptionsRequest](req)
+		request, err := parseForm[*models.BulkMarkSubscriptionsRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
-		res.Header().Set(models.ActionHeader, "mark-subscriptions")
-
-		// Determine actions to apply based on which route this handler was called from.
-		ctx := req.Context()
-		switch {
-		case strings.Contains(req.Referer(), "/user/settings"):
-			// /user/settings#susbcriptions: refresh the page.
-			ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
-			res.Header().Set(htmx.HeaderRefresh, "true")
-		default:
-			// /list/subscriptions: redirect appropriately.
-			res.Header().Set(htmx.HeaderRefresh, "true")
-			// switch request.View {
-			// case models.ViewUnread:
-			// 	err = setRedirect(res, htmx.HXLocationRequest{
-			// 		Path:   RouteHome,
-			// 		Target: templates.ContentID.Target(),
-			// 	})
-			// case models.ViewRead:
-			// 	err = setRedirect(res, htmx.HXLocationRequest{
-			// 		Path:   RouteHome,
-			// 		Target: templates.ContentID.Target(),
-			// 	})
-			// default:
-			// 	err = setRedirect(res, htmx.HXLocationRequest{
-			// 		Path:   "/list/subscriptions",
-			// 		Target: templates.ContentID.Target(),
-			// 		Values: getListSubscriptionsFilters(req).Values(),
-			// 	})
-			// }
-			// if err != nil {
-			// 	HandleInternalError(req.URL.Path,
-			// 		&models.APIError{
-			// 			InternalError: fmt.Errorf("set redirect: %w", err),
-			// 			StatusCode:    http.StatusInternalServerError,
-			// 			UserMessage: models.NewErrorMessage(
-			// 				"Unable to mark subscription",
-			// 				"This might be a temporary issue, please try again.",
-			// 			),
-			// 		}).ServeHTTP(res, req)
-			// 	return
-			// }
+		switch request.Confirmed {
+		case false:
+			// Show modal to confirm bulk mark articles.
+			RenderPartial(&Modal{
+				template: templates.BulkMarkSubscriptionsModal(mark,
+					element.WithHXSwap("none"),
+				)}).ServeHTTP(res, req)
+		case true:
+			// Determine actions to apply based on which route this handler was called from.
+			ctx := req.Context()
+			switch {
+			case strings.Contains(req.Referer(), "/user/settings"):
+				ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
+				res.Header().Set(htmx.HeaderRefresh, "true")
+			default:
+				res.Header().Set(htmx.HeaderRefresh, "true")
+			}
+			// Mark selected subscriptions.
+			if err = service.MarkSubscriptions(ctx, mark, request.Subscriptions...); err != nil {
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("mark subscriptions: %w", err),
+				).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
 		}
 
-		// Mark subscriptions.
-		err = service.MarkSubscriptions(ctx, request.Mark, request.Subscriptions...)
-		if err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("mark subscriptions: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
 		res.WriteHeader(http.StatusOK)
 	}
 }

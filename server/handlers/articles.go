@@ -31,6 +31,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
+// ArticleCtx retrieves the article matching the URL param and stores it in the context.
 func ArticleCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "articleID")

@@ -971,20 +971,17 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									if response.Filters.GetView() != models.ViewAll {
 										// Mark subscription action.
 										{{
-											values := make(map[string]any)
-											values["subscription_id"] = response.Subscription.GetID()
-											values["view"] = response.Filters.GetView()
+											var mark models.Mark
 											if response.Filters.GetView() == models.ViewUnread {
-												values["mark"] = models.MarkRead
+												mark = models.MarkRead
 											} else {
-												values["mark"] = models.MarkUnread
+												mark = models.MarkUnread
 											}
 										}}
 										<li>
 											<a
 												role="button"
-												hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-												hx-vals={ templ.JSONString(values) }
+												hx-post={ "/subscriptions/" + response.Subscription.GetID() + "/" + string(mark) }
 												class="group rounded-field border border-neutral/15 text-sm"
 											>
 												<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -1086,12 +1083,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		// Mark all button.
 		if response.Filters.GetView() != models.ViewAll {
 			<button
-				hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-				hx-vals={ templ.JSONString(map[string]string{
-					"mark": string(mark),
-					"subscription_id": response.Subscription.GetID(),
-					"view": string(response.Filters.GetView()),
-				}) }
+				hx-post={ "/subscriptions/" + response.Subscription.GetID() + "/" + string(mark) }
 				class="group btn border-neutral/15 btn-outline btn-sm"
 			>
 				<span class="hidden items-center group-[.htmx-request]:inline-flex">

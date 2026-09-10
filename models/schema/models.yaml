@@ -1515,40 +1515,6 @@ components:
             form: "selected_subscriptions"
             validate: "omitempty,dive,startswith=sub_"
           x-go-type-skip-optional-pointer: true
-    MarkSubscriptionRequest:
-      description: >
-        contains the parameters for marking a subscription.
-      type: object
-      required:
-        - subscription_id
-        - mark
-      properties:
-        subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
-        mark:
-          $ref: "#/components/schemas/Mark"
-    MarkSubscriptionsRequest:
-      description: >
-        contains the parameters for marking a list of subscriptions.
-      type: object
-      required:
-        - subscriptions
-        - view
-        - mark
-      properties:
-        subscriptions:
-          description: >
-            is a list of subscription IDs.
-          type: array
-          items:
-            $ref: "#/components/schemas/SubscriptionID"
-          x-oapi-codegen-extra-tags:
-            form: "selected_subscriptions"
-            validate: "omitempty,dive,startswith=sub_"
-        view:
-          $ref: "#/components/schemas/View"
-        mark:
-          $ref: "#/components/schemas/Mark"
     FavoriteSubscriptionRequest:
       description: >
         contains parameters for favoriting a subscription.

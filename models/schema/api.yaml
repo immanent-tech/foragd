@@ -592,3 +592,20 @@ components:
               x-oapi-codegen-extra-tags:
                 form: "displayed_articles"
                 validate: "omitempty,dive,keys,startswith=sub_,endkeys,dive,startswith=item_"
+    BulkMarkSubscriptionsRequest:
+      description: contains data for bulk marking subscriptions.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/ConfirmRequest"
+        - type: object
+          required:
+            - subscriptions
+          properties:
+            subscriptions:
+              description: is the list of subscription IDs
+              type: array
+              items:
+                $ref: "models.yaml#/components/schemas/SubscriptionID"
+              x-oapi-codegen-extra-tags:
+                form: "selected_subscriptions"
+                validate: "omitempty,dive,startswith=sub_"

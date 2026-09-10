@@ -87,3 +87,7 @@ func decodeMultipartFile(req *http.Request, field string) (*models.FileUpload, e
 	}
 	return upload, nil
 }
+
+// PostHandlerHook is a function that can be run after a handler has done its main processing. Used mainly to perform
+// route-specific or other conditional logic without complicating the handler code.
+type PostHandlerHook func(res http.ResponseWriter, req *http.Request) error

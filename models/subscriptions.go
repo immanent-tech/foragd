@@ -5,6 +5,7 @@ package models
 
 import (
 	"cmp"
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -405,6 +406,19 @@ func (s *Subscription) MarkItems(mark Mark, itemIDs ...ItemID) {
 	}
 }
 
+const subscriptionCtxKey contextKey = "subscription"
+
+func SubscriptionToCtx(ctx context.Context, subscription *Subscription) context.Context {
+	return context.WithValue(ctx, subscriptionCtxKey, *subscription)
+}
+
+func SubscriptionFromCtx(ctx context.Context) *Subscription {
+	if subscription, ok := ctx.Value(subscriptionCtxKey).(Subscription); ok {
+		return &subscription
+	}
+	return nil
+}
+
 // Subscriptions is a slice of subscriptions of any type.
 type Subscriptions []*Subscription
 
@@ -641,38 +655,6 @@ func (r *ListRequest) Validate() error {
 	}
 	if err := r.Filters.Validate(); err != nil {
 		return fmt.Errorf("validate filters: %w", err)
-	}
-	return nil
-}
-
-// Valid checks that the MarkSubscriptionRequest contains valid data.
-func (s *MarkSubscriptionRequest) Validate() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("mark subscription request is invalid: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the MarkSubscriptionRequest, ensuring it contains valid field values.
-func (s *MarkSubscriptionRequest) Sanitise() error {
-	return nil
-}
-
-// Valid checks that the MarkSubscriptionsRequest contains valid data.
-func (s *MarkSubscriptionsRequest) Validate() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("mark subscriptions request is invalid: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the MarkSubscriptionsRequest, ensuring it contains valid field values.
-func (s *MarkSubscriptionsRequest) Sanitise() error {
-	for idx, id := range s.Subscriptions {
-		s.Subscriptions[idx] = validation.SanitizeString(id)
-	}
-	if !validView[s.View] {
-		s.View = defaultView
 	}
 	return nil
 }

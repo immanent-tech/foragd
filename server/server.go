@@ -259,7 +259,6 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			r.With(htmx.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
 			r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
@@ -267,17 +266,15 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			// r.With(htmx.RequireHTMX).Post("/read")
-			// r.With(htmx.RequireHTMX).Post("/unread")
-			// r.Route("/{subscriptionID}", func(r chi.Router) {
-			// 	r.Use(middlewares.SubscriptionCtx) // loads sub, 404s if missing
-			// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
-			// 	r.With(htmx.RequireHTMX).Post("/read")
-			// 	r.With(htmx.RequireHTMX).Post("/unread")
-			// })
+			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
+			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
+			r.Route("/{subscriptionID}", func(r chi.Router) {
+				r.Use(handlers.SubscriptionCtx)
+				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
+				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkSubscription(models.MarkRead))
+				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkSubscription(models.MarkUnread))
+			})
 		})
-		r.With(htmx.RequireHTMX).
-			Post("/mark/subscription/{subscription_id}", handlers.HandleMarkSubscription())
 		r.With(htmx.RequireHTMX).
 			Post("/favorite/subscription/{subscription_id}", handlers.HandleFavoriteSubscription())
 		r.With(htmx.RequireHTMX).

@@ -43,79 +43,118 @@ templ (s *Subscription) subscriptionFavoriteToggle() {
 	</div>
 }
 
-templ (s *Subscription) subscriptionMarkToggle(view models.View) {
-	// Mark action.
-	if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
-		{{
-			var mark models.Mark
-			if s.GetStats().IsUnread() {
-				mark = models.MarkRead
-			} else {
-				mark = models.MarkUnread
-			}
-		}}
-		<div
-			class="tooltip tooltip-top tooltip-end"
-			if s.GetStats().IsUnread() {
-				data-tip="Mark unread"
-			} else {
-				data-tip="Mark read"
-			}
+// templ (s *Subscription) subscriptionMarkToggle(view models.View) {
+// 	// Mark action.
+// 	if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+// 		{{
+// 			var mark models.Mark
+// 			if s.GetStats().IsUnread() {
+// 				mark = models.MarkRead
+// 			} else {
+// 				mark = models.MarkUnread
+// 			}
+
+// 			attrs := htmx.NewAttributes(
+// 				htmx.WithHXMethod(http.MethodPost, "/subscriptions/"+s.GetID()+"/"+string(mark)),
+// 				htmx.WithHXSwap("none"),
+// 			).GetAttributes()
+// 		}}
+// 		<div
+// 			class="tooltip tooltip-top tooltip-end"
+// 			data-tip={ "Mark " + string(mark) }
+// 		>
+// 			<label
+// 				id={ s.GetID() + "-toggle-mark" }
+// 				aria-label={ "Toggle mark status for " + s.GetTitle() }
+// 				class="btn swap btn-square btn-ghost btn-md"
+// 				_="
+// 				  on click
+//      					if my @hx-post contains '/unread'
+// 						  log 'unread'
+//      					  set my @hx-post to my @hx-post.replace('/unread', '/read')
+//      					else
+//      					  set my @hx-post to my @hx-post.replace('/read', '/unread')
+//      					end
+//      					htmx.process(me)
+// 				  end
+// 				  on htmx:afterRequest
+//     				if event.detail.successful
+// 				  		halt the event's bubbling
+// 						if closest .card exists
+// 				  			toggle .brightness-90 on closest .card
+// 						end
+// 					else
+//     			  		toggle @checked on <input[type='checkbox']/> in me
+// 					end
+// 				"
+// 				{ attrs... }
+// 			>
+// 				<input
+// 					id={ s.GetID() + "-mark-action" }
+// 					type="hidden"
+// 					name="mark"
+// 					value={ string(mark) }
+// 				/>
+// 				<input
+// 					type="checkbox"
+// 					if s.GetStats().IsUnread() {
+// 						checked
+// 						aria-label="Mark read"
+// 					} else {
+// 						aria-label="Mark unread"
+// 					}
+// 					_="
+// 					on click halt the event's bubbling
+// 					on change
+// 						if my.checked
+// 							set @aria-label to 'Mark unread'
+// 							set @data-tip of closest .tooltip to 'Mark unread'
+// 						else
+// 							set @aria-label to 'Mark read'
+// 							set @data-tip of closest .tooltip to 'Mark read'
+// 						end
+// 				"
+// 				/>
+// 				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
+// 				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
+// 			</label>
+// 		</div>
+// 	}
+// }
+templ SubscriptionMarkToggle(subscription *models.Subscription, options ...element.PropertiesOption) {
+	{{
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeSearch {
+			return
+		}
+		var mark models.Mark
+		if subscription.GetStats().IsUnread() {
+			mark = models.MarkRead
+		} else {
+			mark = models.MarkUnread
+		}
+		props := element.NewProperties(options...)
+	}}
+	<div
+		id={ subscription.GetID() + "-toggle-mark" }
+		class="tooltip tooltip-top tooltip-end"
+		data-tip={ "Mark " + string(mark) }
+		hx-inherit="*"
+		{ props.Attributes()... }
+	>
+		<button
+			aria-label={ "Toggle mark status for " + subscription.GetTitle() }
+			class="btn btn-square btn-ghost btn-md"
+			hx-post={ "/subscriptions/" + subscription.GetID() + "/" + string(mark) }
+			hx-swap="none"
 		>
-			<label
-				id={ s.GetID() + "-toggle-mark" }
-				aria-label={ "Toggle mark status for " + s.GetTitle() }
-				class="btn swap btn-square btn-ghost btn-md"
-				_="
-				  on htmx:afterRequest
-    				if event.detail.successful
-				  		halt the event's bubbling
-						if closest .card exists
-				  			toggle .brightness-90 on closest .card
-						end
-						set :mark to the first <input/> in me
-						if :mark.value is 'read'
-							set :mark.value to 'unread'
-						else if :mark.value is 'unread'
-							set :mark.value to 'read'
-						end
-					else
-    			  		toggle @checked on <input[type='checkbox']/> in me
-					end
-				"
-				{ s.markAttributes(view)... }
-			>
-				<input
-					id={ s.GetID() + "-mark-action" }
-					type="hidden"
-					name="mark"
-					value={ string(mark) }
-				/>
-				<input
-					type="checkbox"
-					if s.GetStats().IsUnread() {
-						checked
-						aria-label="Mark read"
-					} else {
-						aria-label="Mark unread"
-					}
-					_="
-					on click halt the event's bubbling
-					on change
-						if my.checked
-							set @aria-label to 'Mark unread'
-							set @data-tip of closest .tooltip to 'Mark unread'
-						else
-							set @aria-label to 'Mark read'
-							set @data-tip of closest .tooltip to 'Mark read'
-						end
-				"
-				/>
-				@tableroutline.MailOpened(templ.Attributes{"class": "swap-on size-5 stroke-primary"})
-				@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
-			</label>
-		</div>
-	}
+			switch mark {
+				case models.MarkRead:
+					@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"})
+				case models.MarkUnread:
+					@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
+			}
+		</button>
+	</div>
 }
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
@@ -206,7 +245,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 					// Favorite action.
 					@s.subscriptionFavoriteToggle()
 					// Mark action.
-					@s.subscriptionMarkToggle(view)
+					@SubscriptionMarkToggle(s.Subscription)
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
@@ -392,17 +431,11 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									<button
 										class="group btn border-neutral/15 btn-outline"
 										if response.Filters.GetView() == models.ViewUnread {
-											hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
-											hx-vals={ templ.JSONString(map[string]any{
-										"mark": models.MarkRead,
-									}) }
+											hx-post={ "/subscriptions/" + string(models.MarkRead) }
 										} else {
-											hx-post={ "/list/subscriptions/mark/" + string(models.MarkUnread) }
-											hx-vals={ templ.JSONString(map[string]any{
-										"mark": models.MarkUnread,
-									}) }
+											hx-post={ "/subscriptions/" + string(models.MarkUnread) }
 										}
-										hx-target={ ContentID.Target() }
+										hx-target={ ModalContainerID.Target() }
 										hx-include="article > input"
 									>
 										<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -450,13 +483,9 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		}
 	}}
 	<button
-		hx-post={ "/list/subscriptions/mark/" + string(mark) }
-		hx-target={ ContentID.Target() }
+		hx-post={ "/subscriptions/" + string(mark) }
+		hx-target={ ModalContainerID.Target() }
 		hx-include=".card > input"
-		hx-vals={ templ.JSONString(map[string]string{
-			"view": string(response.Filters.GetView()),
-			"mark": string(mark),
-		}) }
 		class="btn border-neutral/15 btn-outline btn-sm"
 	>
 		if response.Filters.GetView() == models.ViewUnread {
@@ -1665,4 +1694,47 @@ func subscriptionViewArticlesLink(s *models.Subscription) string {
 		return "/search?" + s.SearchData.Search.Encode()
 	}
 	return "/list/articles"
+}
+
+// BulkMarkSubscriptionsModal renders a modal for the user to confirm marking multiple subscriptions.
+templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.PropertiesOption) {
+	{{
+		props := element.NewProperties(options...)
+		id := "bulk-mark-subscriptions"
+	}}
+	@partials.Modal(id, true) {
+		<div class="sm:flex sm:items-start">
+			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
+				@tableroutline.AlertTriangle(templ.Attributes{"class": "size-12"})
+			</span>
+			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+				<h3 id="dialog-title" class="text-lg font-medium">Marking shown subscriptions as { string(mark) }</h3>
+				<div class="mt-2">
+					<p class="text-sm">Are you sure?</p>
+				</div>
+			</div>
+		</div>
+		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
+			<form
+				hx-post={ "/subscriptions/" + string(mark) }
+				hx-disabled-elt="find button[type='submit']"
+				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
+				hx-include=".card > input"
+				{ props.Attributes()... }
+				class="flex"
+				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+			>
+				<button
+					type="submit"
+					class="btn btn-primary"
+				>Yes</button>
+			</form>
+			<button
+				type="button"
+				command="close"
+				commandfor={ id }
+				class="btn btn-secondary hover:btn-error"
+			>No</button>
+		</div>
+	}
 }

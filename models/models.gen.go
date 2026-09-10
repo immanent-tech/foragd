@@ -943,27 +943,6 @@ type ListSubscriptionCategoriesRequest struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
-// MarkSubscriptionRequest contains the parameters for marking a subscription.
-type MarkSubscriptionRequest struct {
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
-
-// MarkSubscriptionsRequest contains the parameters for marking a list of subscriptions.
-type MarkSubscriptionsRequest struct {
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-
-	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
-
-	// View is the state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all favorites"`
-}
-
 // Nickname is an optional friendly name.
 type Nickname = string
 

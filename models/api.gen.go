@@ -105,6 +105,15 @@ type BulkMarkArticlesRequest struct {
 	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles" validate:"omitempty,dive,keys,startswith=sub_,endkeys,dive,startswith=item_"`
 }
 
+// BulkMarkSubscriptionsRequest contains data for bulk marking subscriptions.
+type BulkMarkSubscriptionsRequest struct {
+	// Confirmed indicates the user confirmation.
+	Confirmed bool `form:"confirmed" json:"confirmed"`
+
+	// Subscriptions is the list of subscription IDs
+	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
+}
+
 // ConfirmRequest contains a value indicating whether a user has confirmed a destructive request.
 type ConfirmRequest struct {
 	// Confirmed indicates the user confirmation.

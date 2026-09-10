@@ -180,3 +180,14 @@ func (r *BulkMarkArticlesRequest) Validate() error {
 	}
 	return nil
 }
+
+func (r *BulkMarkSubscriptionsRequest) Sanitise() error {
+	return nil
+}
+
+func (r *BulkMarkSubscriptionsRequest) Validate() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("validate bulk mark subscriptions: %w", err)
+	}
+	return nil
+}

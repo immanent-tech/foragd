@@ -1112,13 +1112,9 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										<div class="tooltip" data-tip="Mark selected read">
 											<button
 												class="btn btn-square btn-ghost btn-md"
-												hx-post={ "/list/subscriptions/mark/" + string(models.MarkRead) }
+												hx-post={ "/subscriptions/" + string(models.MarkRead) }
 												hx-target={ ContentID.Target() }
 												hx-include="[name='selected_subscriptions']"
-												hx-vals={ templ.JSONString(map[string]string{
-										"mark": string(models.MarkRead),
-										"view": string(models.ViewAll),
-									}) }
 											>
 												@tableroutline.MailOpened(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
@@ -1127,13 +1123,9 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										<div class="tooltip" data-tip="Mark selected unread">
 											<button
 												class="btn btn-square btn-ghost btn-md"
-												hx-post={ "/list/subscriptions/mark/" + string(models.MarkUnread) }
+												hx-post={ "/subscriptions/" + string(models.MarkUnread) }
 												hx-target={ ContentID.Target() }
 												hx-include="[name='selected_subscriptions']"
-												hx-vals={ templ.JSONString(map[string]string{
-										"mark": string(models.MarkUnread),
-										"view": string(models.ViewAll),
-									}) }
 											>
 												@tableroutline.Mail(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
@@ -1193,7 +1185,8 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 											// Favorite action.
 											@s.subscriptionFavoriteToggle()
 											// Mark action.
-											@s.subscriptionMarkToggle(models.ViewAll)
+											@SubscriptionMarkToggle(s.Subscription)
+											// @s.subscriptionMarkToggle(models.ViewAll)
 											// Edit action.
 											<div class="tooltip" data-tip="Edit subscription">
 												<button
