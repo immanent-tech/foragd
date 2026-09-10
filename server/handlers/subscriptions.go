@@ -87,7 +87,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	case "/list/subscriptions/paginate":
+	case "/subscriptions/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
 }
@@ -208,7 +208,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 			if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(
-						"/list/subscriptions/paginate",
+						"/subscriptions/paginate",
 						&response.Filters,
 						element.WithHXSwapOOB("true"),
 					),

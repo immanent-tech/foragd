@@ -258,13 +258,12 @@ func Start() error {
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListSubscriptions())
-			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
-			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
+			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
 			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
 			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleListSubscriptionsUpdates())

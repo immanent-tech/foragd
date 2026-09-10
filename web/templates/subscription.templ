@@ -339,7 +339,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									}
 								}
 							}
-							@ListPaginationControl("/list/subscriptions/paginate", &response.Filters)
+							@ListPaginationControl("/subscriptions/paginate", &response.Filters)
 							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
 								<div class="hidden text-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-xl loading-bars"></span>
