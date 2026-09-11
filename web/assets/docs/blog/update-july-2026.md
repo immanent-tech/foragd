@@ -1,7 +1,7 @@
 +++
-title = "Foragd RSS/Atom/JSON Feed Reader - July 2026 Update"
+title = "Foragd July 2026 Update"
 page_title = "Foragd RSS/Atom/JSON Feed Reader - July 2026 Update"
-description = "A quick summary of updates to the Foragd RSS/Atom/JSON in July 2026"
+description = "A quick summary of updates to Foragd for July 2026"
 created_at = "2026-07-18"
 updated_at = "2026-07-18"
 image = "/content/logo-vertical-light.webp"
