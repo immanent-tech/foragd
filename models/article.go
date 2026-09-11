@@ -323,17 +323,6 @@ func ArticleFromCtx(ctx context.Context) *Article {
 	return nil
 }
 
-func (r *FavoriteArticleRequest) Validate() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("validate favorite article request: %w", err)
-	}
-	return nil
-}
-
-func (r *FavoriteArticleRequest) Sanitise() error {
-	return nil
-}
-
 func (r *ShareArticleRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate share article request: %w", err)

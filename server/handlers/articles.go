@@ -646,12 +646,13 @@ func markArticles(
 	return nil
 }
 
-// FavoriteArticle handles adding an article favorite.
-func FavoriteArticle() http.HandlerFunc {
+// HandleFavoriteArticle handles toggling an article favorite.
+func HandleFavoriteArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseForm[*models.FavoriteArticleRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+		// Retrieve the article details.
+		article := models.ArticleFromCtx(req.Context())
+		if article == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -664,16 +665,24 @@ func FavoriteArticle() http.HandlerFunc {
 		}
 
 		var favorite bool
-		if slices.Contains(user.ItemFavorites, request.ItemID) {
+		if slices.Contains(user.ItemFavorites, article.GetID()) {
 			favorite = false
 		} else {
 			favorite = true
 		}
 
-		if err := updateFavoriteArticle(req.Context(), user, request.ItemID, favorite); err != nil {
+		if err := updateFavoriteArticle(req.Context(), user, article.GetID(), favorite); err != nil {
 			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
+
+		// Update toggle.
+		article.Favorite = favorite
+		RenderPartial(&PartialTemplate{
+			template: templates.ArticleFavoriteToggle(article,
+				element.WithHXSwapOOB("true"),
+			),
+		}).ServeHTTP(res, req)
 
 		res.WriteHeader(http.StatusOK)
 	}

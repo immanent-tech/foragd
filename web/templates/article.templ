@@ -22,39 +22,38 @@ import (
 	"time"
 )
 
-// favoriteToggle renders a button toggle for toggling the favorite status of an article.
-templ articleFavoriteToggle(article *models.Article) {
+// ArticleFavoriteToggle renders an icon-only button for toggling the favorite status of an article.
+templ ArticleFavoriteToggle(article *models.Article, options ...element.PropertiesOption) {
 	{{
-		attrs := htmx.NewAttributes(
-			htmx.WithHXMethod(http.MethodPost, "/favorite/article/"+article.GetID()),
-			htmx.WithHXSwap("none"),
-			htmx.WithHXTrigger("click consume"),
-			htmx.WithHXVals(map[string]any{
-				"subscription_id": article.GetSubscriptionID(),
-				"item_id":         article.GetID(),
-			}),
-		).GetAttributes()
+		props := element.NewProperties(options...)
+		var label string
+		if article.IsFavorite() {
+			label = "Remove favorite"
+		} else {
+			label = "Add favorite"
+		}
 	}}
-	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
-		<label
-			class="btn swap btn-square btn-ghost btn-sm"
-			{ attrs... }
-			_="
-		on htmx:afterRequest(successful) halt the event's bubbling end
-    	on htmx:afterRequest(failed) toggle @checked on <input /> in me end
-		"
+	<div
+		id={ article.GetID() + "-toggle-favorite" }
+		class="tooltip tooltip-top tooltip-end"
+		data-tip={ label }
+		hx-inherit="*"
+		{ props.Attributes()... }
+	>
+		<button
+			aria-label={ label }
+			class="btn btn-square btn-ghost btn-sm"
+			hx-post={ "/articles/" + article.GetID() + "/favorite" }
+			hx-swap="none"
+			hx-trigger="click consume"
 		>
-			<input
-				type="checkbox"
-				if article.IsFavorite() {
-					checked
-				}
-				_="on click halt the event's bubbling"
-				aria-label={ "Toggle favorite status for " + article.GetTitle() }
-			/>
-			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 fill-primary"})
-			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
-		</label>
+			switch article.IsFavorite() {
+				case true:
+					@tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary"})
+				case false:
+					@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
+			}
+		</button>
 	</div>
 }
 
@@ -510,7 +509,7 @@ templ ArticleCard(idx int, article *models.Article, view models.View) {
 				</div>
 				<div class="flex shrink-0 items-center">
 					// Toggle favorite action.
-					@articleFavoriteToggle(article)
+					@ArticleFavoriteToggle(article)
 					// Toggle mark action.
 					@articleMarkToggle(article, view)
 					// Separator.
@@ -594,7 +593,7 @@ templ ArticleMapPopup(article *models.Article) {
 	// Show some buttons for useful actions.
 	<div class="flex justify-around pb-2">
 		// Toggle favorite status.
-		@articleFavoriteToggle(article)
+		@ArticleFavoriteToggle(article)
 		// View article content.
 		@articleViewToggle(article)
 		// Go to article URL.
@@ -719,7 +718,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						// Actions.
 						<div class="ml-auto content-end items-center">
 							// Toggle favorite action.
-							@articleFavoriteToggle(article)
+							@ArticleFavoriteToggle(article)
 							// Toggle mark action.
 							@articleMarkToggle(article, models.ViewAll)
 							// Actions menu.

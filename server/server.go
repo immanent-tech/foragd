@@ -316,7 +316,6 @@ func Start() error {
 			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
-		r.With(htmx.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.With(htmx.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
@@ -333,6 +332,7 @@ func Start() error {
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
 				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkArticle(models.MarkRead))
 				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkArticle(models.MarkUnread))
+				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteArticle())
 			})
 		})
 
