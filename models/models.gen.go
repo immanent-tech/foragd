@@ -1065,18 +1065,6 @@ type SearchSubscriptionRequest struct {
 	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
-// ShareArticleRequest contains parameters for sharing an article.
-type ShareArticleRequest struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// Link is the link to the article.
-	Link string `form:"link" json:"link" validate:"required,url"`
-
-	// Title is the article title.
-	Title string `form:"title" json:"title" validate:"required"`
-}
-
 // Sort is how a list of objects is sorted.
 type Sort string
 

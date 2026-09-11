@@ -1530,31 +1530,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: nickname
             validate: required
-    ShareArticleRequest:
-      description: >
-        contains parameters for sharing an article.
-      type: object
-      required:
-        - item_id
-        - title
-        - link
-      properties:
-        item_id:
-          $ref: "#/components/schemas/ItemID"
-        title:
-          description: >
-            is the article title.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: "title"
-            validate: "required"
-        link:
-          description: >
-            is the link to the article.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: "link"
-            validate: "required,url"
     CategoryFilters:
       description: >
         contains categories that can be used for filtering.

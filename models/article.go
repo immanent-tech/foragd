@@ -323,17 +323,6 @@ func ArticleFromCtx(ctx context.Context) *Article {
 	return nil
 }
 
-func (r *ShareArticleRequest) Validate() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("validate share article request: %w", err)
-	}
-	return nil
-}
-
-func (r *ShareArticleRequest) Sanitise() error {
-	return nil
-}
-
 // MarkRead will set the article state to read.
 func (s *ArticleState) MarkRead(markedAt time.Time) {
 	s.Read = true

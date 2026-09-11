@@ -201,10 +201,9 @@ templ articleShareButton(article *models.Article) {
 		role="button"
 		class="hidden btn btn-outline border-neutral/15"
 		_="init if not navigator.share remove .hidden from me"
-		hx-post={ "/share/article/" + article.GetID() }
+		hx-post={ "/articles/" + article.GetID() + "/share" }
 		hx-target={ ModalContainerID.Target() }
 		hx-trigger="click consume"
-		hx-vals={ templ.JSONString(map[string]string{"item_id": article.GetID(), "title": article.GetTitle(), "link": article.GetLink()}) }
 	>
 		<div class="inline-flex items-center gap-1">
 			@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -331,10 +330,9 @@ templ articleActionsMenu(article *models.Article) {
 				// Desktop share action with modal and options.
 				@partials.MenuItem(element.WithAttribute("_", "init if navigator.share then hide me")) {
 					<a
-						hx-post={ "/share/article/" + article.GetID() }
+						hx-post={ "/articles/" + article.GetID() + "/share" }
 						hx-target={ ModalContainerID.Target() }
 						hx-trigger="click consume"
-						hx-vals={ templ.JSONString(map[string]string{"item_id": article.GetID(), "title": article.GetTitle(), "link": article.GetLink()}) }
 					>
 						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
@@ -1103,8 +1101,8 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 	}
 }
 
-templ ShareArticleModal(request *models.ShareArticleRequest) {
-	{{ id := string(request.ItemID) + "-share" }}
+templ ShareArticleModal(article *models.Article) {
+	{{ id := string(article.GetID()) + "-share" }}
 	// _={ "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling" }
 	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
@@ -1114,13 +1112,13 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 				<h3 id="dialog-title" class="text-base font-semibold">Share</h3>
 				<div class="mt-2">
-					<p class="text-sm">{ request.Title }</p>
+					<p class="text-sm">{ article.GetTitle() }</p>
 				</div>
 			</div>
 		</div>
 		<div class="mt-5 grid grid-flow-row grid-cols-3 items-center justify-center gap-x-2 gap-y-2 sm:mt-4">
 			<a
-				href={ fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(request.Title), request.Link) }
+				href={ fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(article.GetTitle()), article.GetLink()) }
 				class="btn col-span-1 col-start-2"
 			>
 				@tableroutline.Send(templ.Attributes{"class": "size-5 text-primary", "aria-hidden": "true"})
@@ -1129,11 +1127,11 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 			<div class="join col-span-3 flex space-x-2">
 				<div class="flex-1">
 					<label class="input join-item w-full">
-						<input type="text" value={ request.Link } readonly/>
+						<input type="text" value={ article.GetLink() } readonly/>
 					</label>
 				</div>
 				<button
-					_={ "on click set currentValue to (my innerHTML) then writeText('" + request.Link + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
+					_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 					class="btn join-item flex items-center"
 				>
 					@tableroutline.Copy(templ.Attributes{"class": "size-4", "aria-hidden": "true"})

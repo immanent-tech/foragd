@@ -688,16 +688,18 @@ func HandleFavoriteArticle() http.HandlerFunc {
 	}
 }
 
-// ShareArticle handles sharing an article.
-func ShareArticle() http.HandlerFunc {
+// HandleShareArticle handles sharing an article.
+func HandleShareArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseForm[*models.ShareArticleRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+		// Retrieve the article details.
+		article := models.ArticleFromCtx(req.Context())
+		if article == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
+		// Render share modal.
 		RenderPartial(&Modal{
-			template: templates.ShareArticleModal(request),
+			template: templates.ShareArticleModal(article),
 		}).ServeHTTP(res, req)
 	}
 }
