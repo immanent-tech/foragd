@@ -610,12 +610,6 @@ type FavoriteArticleRequest struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
-// FavoriteSubscriptionRequest contains parameters for favoriting a subscription.
-type FavoriteSubscriptionRequest struct {
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
-
 // Feed represents a feed object.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.

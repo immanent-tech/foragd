@@ -1515,15 +1515,6 @@ components:
             form: "selected_subscriptions"
             validate: "omitempty,dive,startswith=sub_"
           x-go-type-skip-optional-pointer: true
-    FavoriteSubscriptionRequest:
-      description: >
-        contains parameters for favoriting a subscription.
-      type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
     FavoriteArticleRequest:
       description: >
         contains parameters for favoriting an article.

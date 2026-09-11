@@ -659,19 +659,6 @@ func (r *ListRequest) Validate() error {
 	return nil
 }
 
-// Valid checks that the FavoriteSubscriptionsRequest contains valid data.
-func (s *FavoriteSubscriptionRequest) Validate() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("favorite subscriptions request is invalid: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the FavoriteSubscriptionsRequest, ensuring it contains valid field values.
-func (s *FavoriteSubscriptionRequest) Sanitise() error {
-	return nil
-}
-
 // Valid checks that the RemoveSubscriptionRequest contains valid data.
 func (r *RemoveSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
