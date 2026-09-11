@@ -50,9 +50,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
-	"github.com/immanent-tech/foragd/providers/google/language"
 	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
+	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
@@ -254,15 +254,16 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 	// Add any new or update existing items.
 	lastFetched, err := UpdateFeedItems(ctx, oldData, newData)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to add new or update existing items.",
+		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))
 	}
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
 		slogctx.FromCtx(ctx).Debug("Feed needs classifying")
-		// newData.Categories = service.ClassifyFeed(ctx, newData)
-	} else {
-		newData.Categories = oldData.Categories
+		if err := ClassifyFeed(ctx, newData); err != nil {
+			slogctx.Warn(ctx, "Could not classify feed",
+				slog.Any("error", err))
+		}
 	}
 	// Compare new/old feed data and update as appropriate.
 	var r diffReporter
@@ -826,67 +827,61 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 }
 
 // ClassifyFeed will add appropriate categories to a feed by classifying the item content.
-func ClassifyFeed(ctx context.Context, feed *models.Feed) models.Categories {
+func ClassifyFeed(ctx context.Context, feed *models.Feed) error {
 	if len(feed.GetItems()) == 0 {
+		slogctx.Warn(ctx, "Cannot classify feed, no items.")
 		return nil
 	}
 
 	ctx = slogctx.With(ctx, "feed_id", feed.GetID())
 
-	var (
-		itemText strings.Builder
-	)
-	// Append together all item content for classification.
+	var classificationText strings.Builder
+
+	// Append together all content for classification.
+	if feed.GetDescription() != "" {
+		classificationText.WriteString(feed.GetDescription())
+		classificationText.WriteRune('\n')
+	}
 	for item := range slices.Values(feed.GetItems()) {
 		switch {
 		case item.GetContent() != "":
-			itemText.WriteString(item.GetContent())
-			itemText.WriteRune('\n')
+			classificationText.WriteString(item.GetContent())
+			classificationText.WriteRune('\n')
 		case item.GetDescription() != "":
-			itemText.WriteString(item.GetDescription())
-			itemText.WriteRune('\n')
+			classificationText.WriteString(item.GetDescription())
+			classificationText.WriteRune('\n')
 		}
 	}
 
-	// Don't classify when there is too little content for good processing.
-	if textx.CountWords(itemText.String()) < 20 {
-		slogctx.FromCtx(ctx).Warn("Not enough content to classify feed. Assigning 'Uncategorized'.")
-		return models.Categories{"Uncategorized"}
-	}
+	if textx.CountWords(classificationText.String()) < 20 {
+		// Ignore feed when there is too little content for good processing.
+		slogctx.Warn(ctx, "Not enough content to classify feed. Assigning 'Uncategorized'.")
+		feed.Categories = []models.Category{"Uncategorized"}
+	} else {
+		// Classify from IAB Tier 1 Categories.
+		slogctx.Info(ctx, "Assigning categories to feed based on current item content.")
 
-	slogctx.FromCtx(ctx).Debug("Assigning categories to feed based on current item content.",
-		slog.String("feed_id", feed.GetID()))
-
-	// Run classification.
-	classifications, err := language.Classify(ctx, itemText.String())
-	if err != nil {
-		slogctx.Error(ctx, "Could not classify feed.",
-			slog.Any("error", err))
-		return nil
-	}
-
-	// Only use categories with a confidence level of at least 0.5.
-	categories := make(models.Categories, 0, len(classifications))
-	rejected := make(models.Categories, 0, len(classifications))
-	for classification := range slices.Values(classifications) {
-		if c := strings.Split(
-			strings.TrimPrefix(classification.GetName(), "/"),
-			"/",
-		); classification.GetConfidence() > 0.5 {
-			categories = append(categories, c...)
+		categories, err := ollama.Classify(classificationText.String(), feed.GetLink(), nil, nil, 0.8)
+		if err != nil {
+			slogctx.Error(ctx, "Could not classify feed. Leaving uncategorized.",
+				slog.Any("error", err))
+			feed.Categories = []models.Category{"Uncategorized"}
+		}
+		if len(categories) == 0 {
+			slogctx.Warn(ctx, "No classified categories. Leaving uncategorized.")
+			feed.Categories = []models.Category{"Uncategorized"}
 		} else {
-			rejected = append(rejected, c...)
+			feed.Categories = make([]models.Category, 0, len(categories))
+			for category := range slices.Values(categories) {
+				feed.Categories = append(feed.Categories, category.Label)
+			}
 		}
 	}
 
-	// When we can't produce any good categories, just assign to "Uncategorized".
-	if len(categories) == 0 {
-		slogctx.FromCtx(ctx).Warn("No classified categories with high enough confidence. Assigning 'Uncategorized'.",
-			slog.String("rejected_categories", strings.Join(rejected, ",")))
-		categories = append(categories, "Uncategorized")
-	}
+	slogctx.Info(ctx, "Feed classified.",
+		slog.String("categories", strings.Join(feed.Categories, ",")))
 
-	return categories
+	return nil
 }
 
 // DiscoverFeedURL attempts to find a feed URL within a HTML page.
