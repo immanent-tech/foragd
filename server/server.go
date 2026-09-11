@@ -272,10 +272,9 @@ func Start() error {
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
 				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkSubscription(models.MarkRead))
 				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkSubscription(models.MarkUnread))
+				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteSubscription())
 			})
 		})
-		r.With(htmx.RequireHTMX).
-			Post("/favorite/subscription/{subscription_id}", handlers.HandleFavoriteSubscription())
 		r.With(htmx.RequireHTMX).
 			Post("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.With(htmx.RequireHTMX).

@@ -17,32 +17,41 @@ import (
 	"strings"
 )
 
-templ (s *Subscription) subscriptionFavoriteToggle() {
-	<div class="tooltip tooltip-top tooltip-end" data-tip="Toggle favorite">
-		<label
-			id={ s.GetID() + "-toggle-favorite" }
-			aria-label={ "Toggle favorite status for " + s.GetTitle() }
-			class="btn swap btn-square btn-ghost btn-md"
-			_="
-		on htmx:afterRequest(successful) halt the event's bubbling end
-    	on htmx:afterRequest(failed) toggle @checked on <input[type='checkbox'] in me/>
-		"
-			{ s.favoriteAttributes()... }
+// SubscriptionFavoriteToggle renders an icon-only button to toggle the subscription favorite status.
+templ SubscriptionFavoriteToggle(subscription *models.Subscription, options ...element.PropertiesOption) {
+	{{
+		props := element.NewProperties(options...)
+		var label string
+		if subscription.IsFavorite() {
+			label = "Remove favorite"
+		} else {
+			label = "Add favorite"
+		}
+	}}
+	<div
+		id={ subscription.GetID() + "-toggle-favorite" }
+		data-tip={ label }
+		class="tooltip tooltip-top tooltip-end"
+		hx-inherit="*"
+		{ props.Attributes()... }
+	>
+		<button
+			aria-label={ label }
+			class="btn btn-square btn-ghost btn-md"
+			hx-post={ "/subscriptions/" + subscription.GetID() + "/favorite" }
+			hx-swap="none"
 		>
-			<input
-				type="checkbox"
-				_="on click halt the event's bubbling"
-				if s.IsFavorite() {
-					checked
-				}
-				aria-label={ "Toggle favorite status for " + s.GetTitle() }
-			/>
-			@tablerfilled.Heart(templ.Attributes{"class": "swap-on size-5 fill-primary"})
-			@tableroutline.Heart(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
-		</label>
+			switch subscription.IsFavorite() {
+				case true:
+					@tablerfilled.Heart(templ.Attributes{"class": "size-5 fill-primary"})
+				case false:
+					@tableroutline.Heart(templ.Attributes{"class": "size-5 stroke-primary"})
+			}
+		</button>
 	</div>
 }
 
+// SubscriptionMarkToggle renders an icon-only button to toggle the subscription mark status.
 templ SubscriptionMarkToggle(subscription *models.Subscription, options ...element.PropertiesOption) {
 	{{
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeSearch {
@@ -73,7 +82,7 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 				case models.MarkRead:
 					@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-primary"})
 				case models.MarkUnread:
-					@tableroutline.Mail(templ.Attributes{"class": "swap-off size-5 stroke-primary"})
+					@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-primary"})
 			}
 		</button>
 	</div>
@@ -165,7 +174,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 				</div>
 				<div class="flex shrink-0 items-center">
 					// Favorite action.
-					@s.subscriptionFavoriteToggle()
+					@SubscriptionFavoriteToggle(s.Subscription)
 					// Mark action.
 					@SubscriptionMarkToggle(s.Subscription)
 					// Separator.

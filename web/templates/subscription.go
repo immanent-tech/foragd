@@ -60,16 +60,6 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 	).GetAttributes()
 }
 
-func (s *Subscription) favoriteAttributes() templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodPost, "/favorite/subscription/"+s.GetID()),
-		htmx.WithHXSwap("none"),
-		htmx.WithHXVals(map[string]string{
-			"subscription_id": s.GetID(),
-		}),
-	).GetAttributes()
-}
-
 func (s *Subscription) editAttributes(path string) templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/subscription/edit/"+s.GetID()),

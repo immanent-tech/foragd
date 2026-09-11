@@ -443,39 +443,34 @@ func HandleBulkMarkSubscriptions(mark models.Mark) http.HandlerFunc {
 // HandleFavoriteSubscription handles managing a favorite subscription for a user.
 func HandleFavoriteSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request, err := parseForm[*models.FavoriteSubscriptionRequest](req)
-		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+		res.Header().Set(models.ActionHeader, "favorite-subscription")
+
+		// Retrieve the subscription details.
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
-		subscription, err := service.GetSubscription(req.Context(), request.SubscriptionID)
-		if err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get subscription: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-
-		var favorite bool
-		if subscription.IsFavorite() {
-			favorite = false
-		} else {
-			favorite = true
-		}
-
-		// Get the subscription state.
+		// Toggle the subscription state.
 		if err := service.UpdateFavoriteSubscription(
 			req.Context(),
-			request.SubscriptionID,
-			favorite,
+			subscription.GetID(),
+			!subscription.IsFavorite(),
 		); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update favorite subscription: %w", err),
 			).ServeHTTP(res, req)
 		}
+		subscription.Favorite = !subscription.IsFavorite()
+
+		// Update toggle.
+		RenderPartial(&PartialTemplate{
+			template: templates.SubscriptionFavoriteToggle(subscription,
+				element.WithHXSwapOOB("true"),
+			),
+		}).ServeHTTP(res, req)
 
 		res.WriteHeader(http.StatusOK)
 	}

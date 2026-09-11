@@ -1183,10 +1183,9 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										// Subscription actions buttons.
 										<div class="flex shrink-0 items-center gap-1">
 											// Favorite action.
-											@s.subscriptionFavoriteToggle()
+											@SubscriptionFavoriteToggle(s.Subscription)
 											// Mark action.
 											@SubscriptionMarkToggle(s.Subscription)
-											// @s.subscriptionMarkToggle(models.ViewAll)
 											// Edit action.
 											<div class="tooltip" data-tip="Edit subscription">
 												<button
