@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.226.0](https://github.com/immanent-tech/foragd/compare/v0.225.4...v0.226.0) (2026-09-11)
+
+
+### Features
+
+* ✨ add a linter tool ([3aeca6b](https://github.com/immanent-tech/foragd/commit/3aeca6bba207793e3612644b66f271ce17478626))
+* ✨ add a map page showing georss feeds ([52edffb](https://github.com/immanent-tech/foragd/commit/52edffbe9cf12b2dd635e64bffd32dc7513b4fef))
+* **blog:** ✨ add a blog introducing the go-syndication linter tool ([c0c3069](https://github.com/immanent-tech/foragd/commit/c0c306930f29a3f51b5d5471bcba79f476b0c7d8))
+* **features:** ➕ add feature demo for explore ([3983d4a](https://github.com/immanent-tech/foragd/commit/3983d4aad861915fc12a545193b4ccad91443c34))
+* **features:** ➕ add feature demo for geo/map view ([b5b6809](https://github.com/immanent-tech/foragd/commit/b5b68097c2f48d187c8fd40e7935bc0f6b808866))
+
+
+### Bug Fixes
+
+* 🔧 initial effort to fix scroll restore when marking subscriptions and redirecting ([b81a6e9](https://github.com/immanent-tech/foragd/commit/b81a6e9f01bde6e38e126a947d76b14ec1f17760))
+* **models:** 🔧 add additional article request objects and fields ([27538a6](https://github.com/immanent-tech/foragd/commit/27538a6ad4e6deb60e8bb04f5eaf899f60f060bf))
+* **models:** 🔧 extra validation of add feed subscription request ([1b411df](https://github.com/immanent-tech/foragd/commit/1b411dfe3e036e9afee851dbd3da3c0f53c843ce))
+* **posts:** 🔧 posts feed image title should match channel title as per RSS best practices ([d387a17](https://github.com/immanent-tech/foragd/commit/d387a175e325b525ada0e87cb641c067b9c686fd))
+* **server:** ♻️ improved CSRF middleware setup ([5a1614f](https://github.com/immanent-tech/foragd/commit/5a1614fb375b9bd79748b619735af1f09d5b36fe))
+
 ## [0.225.4](https://github.com/immanent-tech/foragd/compare/v0.225.3...v0.225.4) (2026-09-06)
 
 
