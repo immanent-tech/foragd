@@ -316,7 +316,6 @@ func Start() error {
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
-		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			// r.Get("/", handlers.HandleListSubscriptions())
@@ -333,6 +332,7 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkArticle(models.MarkUnread))
 				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteArticle())
 				r.With(htmx.RequireHTMX).Post("/share", handlers.HandleShareArticle())
+				r.Get("/similar", handlers.HandleFindSimilarArticles())
 			})
 		})
 

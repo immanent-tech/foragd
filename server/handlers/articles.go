@@ -351,18 +351,16 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
 func HandleFindSimilarArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// TODO: wrap id and count in a request object.
-		const similarArticlesCount = 15
-		// Extract request parameters.
-		itemID := chi.URLParam(req, "item_id")
-		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("decode request: %w", err),
-			).ServeHTTP(res, req)
+		// Retrieve the article details.
+		article := models.ArticleFromCtx(req.Context())
+		if article == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
-		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
+
+		const similarArticlesCount = 15
+
+		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, article.GetID())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
 				http.StatusInternalServerError,

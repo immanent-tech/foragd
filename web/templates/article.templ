@@ -297,16 +297,13 @@ templ articleActionsMenu(article *models.Article) {
 				}
 				// Find similar action.
 				@partials.MenuItem() {
-					{{
-						findSimilarAttrs := htmx.NewAttributes(
-							htmx.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
-							htmx.WithHXTarget(ContentID.Target()),
-							htmx.WithHXSwap("morph:innerHTML transition:true"),
-							htmx.WithHXTrigger("click consume"),
-							htmx.WithHXVals(map[string]any{"from": "/list/articles"}),
-						).GetAttributes()
-					}}
-					<a { findSimilarAttrs... }>
+					<a
+						hx-get={ "/articles/" + article.GetID() + "/similar" }
+						hx-target={ ContentID.Target() }
+						hx-swap="morph:innerHTML transition:true"
+						hx-trigger="click consume"
+						hx-vals={ templ.JSONString(map[string]string{"from": "/list/articles"}) }
+					>
 						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Find Similar...</span>
 					</a>
