@@ -79,7 +79,7 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	case "/list/articles/paginate":
+	case "/articles/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
 }
@@ -215,7 +215,7 @@ func HandleListArticles() http.HandlerFunc {
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
 					template: templates.ListPaginationControl(
-						"/list/articles/paginate",
+						"/articles/paginate",
 						&response.Filters,
 						element.WithHXSwapOOB("true"),
 					),

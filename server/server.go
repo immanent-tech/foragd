@@ -312,7 +312,6 @@ func Start() error {
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleListArticles())
-			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
@@ -322,6 +321,7 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			// r.Get("/", handlers.HandleListSubscriptions())
 			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
+			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkArticles(models.MarkRead))
 			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkArticles(models.MarkRead))
 			r.Route("/{articleID}", func(r chi.Router) {
