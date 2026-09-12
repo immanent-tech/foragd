@@ -133,6 +133,12 @@ func Flush(ctx context.Context) error {
 	if err := indexer.Flush(ctx); err != nil {
 		return fmt.Errorf("flush indexer: %w", err)
 	}
+	stats := indexer.Stats()
+	slogctx.Debug(ctx, "Flushed bulk indexer",
+		slog.Uint64("flushed_count", stats.NumFlushed),
+		slog.Uint64("flushed_bytes", stats.FlushedBytes),
+		slog.Duration("flushed_duration", time.Duration(stats.FlushedMs)),
+	)
 	return nil
 }
 
