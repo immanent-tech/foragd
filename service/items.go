@@ -40,8 +40,30 @@ import (
 )
 
 var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
-	MaximumSize: 10_000,
+	MaximumSize:      10_000,
+	ExpiryCalculator: &itemCacheexpiryCalculator{},
 })
+
+// itemCacheExpiryCalculator is a custom expiry calculator for the feed cache.
+type itemCacheexpiryCalculator struct{}
+
+// ExpireAfterCreate sets expiration time for new entries.
+func (ec *itemCacheexpiryCalculator) ExpireAfterCreate(_ otter.Entry[models.ItemID, *models.Item]) time.Duration {
+	return 24 * time.Hour
+}
+
+// ExpireAfterUpdate sets expiration time after updates.
+func (ec *itemCacheexpiryCalculator) ExpireAfterUpdate(
+	_ otter.Entry[models.ItemID, *models.Item],
+	_ *models.Item,
+) time.Duration {
+	return 24 * time.Hour
+}
+
+// ExpireAfterRead returns remaining expiration time for reads.
+func (ec *itemCacheexpiryCalculator) ExpireAfterRead(entry otter.Entry[models.ItemID, *models.Item]) time.Duration {
+	return 24 * time.Hour // Extend by 24 hours.
+}
 
 // GetItems retrieves the Items matching the given ItemIDs.
 func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
@@ -85,15 +107,20 @@ func CountItems(ctx context.Context, query query.Option) (int64, error) {
 // AddItems will add the given items to the database. It returns a map divided into "updated" and "new" items, to
 // indicate items that existed and were updated vs. items that were added as new.
 func AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
-	// Get any existing versions of the items.
 	existingItems, err := GetItems(ctx, items.GetIDs()...)
 	if err != nil {
+		// Cannot determine if there are any existing items. Fallback to bulk update of all items for safety.
 		slogctx.FromCtx(ctx).
 			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
 				slog.Any("error", err),
 			)
 		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
 			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
+		}
+		// Update cache.
+		for item := range slices.Values(items) {
+			itemsCache.Invalidate(item.GetID())
+			itemsCache.Set(item.GetID(), item)
 		}
 		return map[string]models.Items{"updated": items}, nil
 	}
@@ -133,10 +160,25 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
 	}
 
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Flush bulk request failed.",
-			slog.Any("error", err))
-	}
+	var wg sync.WaitGroup
+	// Update cache.
+	wg.Go(func() {
+		for _, items := range results {
+			for item := range slices.Values(items) {
+				itemsCache.Invalidate(item.GetID())
+				itemsCache.Set(item.GetID(), item)
+			}
+		}
+	})
+	// Flush bulk indexer to apply updates.
+	wg.Go(func() {
+		if err := bulk.Flush(ctx); err != nil {
+			slogctx.Warn(ctx, "Flush bulk request failed.",
+				slog.Any("error", err))
+		}
+	})
+
+	wg.Wait()
 
 	return results, nil
 }
@@ -170,6 +212,11 @@ func SearchItems(
 	if err != nil {
 		return nil, "", models.ErrInvalidParams
 	}
+	// Update cache.
+	for item := range slices.Values(resp.Results) {
+		itemsCache.Invalidate(item.GetID())
+		itemsCache.Set(item.GetID(), item)
+	}
 	return resp.Results, newPagination, nil
 }
 
@@ -196,6 +243,11 @@ func RetrieveItems(
 	)
 	if err != nil {
 		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
+	}
+	// Update cache.
+	for item := range slices.Values(resp.Results) {
+		itemsCache.Invalidate(item.GetID())
+		itemsCache.Set(item.GetID(), item)
 	}
 	// Parse last search after value into pagination.
 	return resp.Results, models.Pagination{From: new(from + count)}, nil
