@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"dario.cat/mergo"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
@@ -57,8 +58,30 @@ import (
 )
 
 var feedCache = otter.Must(&otter.Options[models.FeedID, *models.Feed]{
-	MaximumSize: 10_000,
+	MaximumSize:      10_000,
+	ExpiryCalculator: &feedCacheExpiryCalculator{},
 })
+
+// feedCacheExpiryCalculator is a custom expiry calculator for the feed cache.
+type feedCacheExpiryCalculator struct{}
+
+// ExpireAfterCreate sets expiration time for new entries.
+func (ec *feedCacheExpiryCalculator) ExpireAfterCreate(entry otter.Entry[models.FeedID, *models.Feed]) time.Duration {
+	return entry.Value.GetUpdateInterval()
+}
+
+// ExpireAfterUpdate sets expiration time after updates.
+func (ec *feedCacheExpiryCalculator) ExpireAfterUpdate(
+	entry otter.Entry[models.FeedID, *models.Feed],
+	_ *models.Feed,
+) time.Duration {
+	return entry.Value.GetUpdateInterval()
+}
+
+// ExpireAfterRead returns remaining expiration time for reads.
+func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.FeedID, *models.Feed]) time.Duration {
+	return entry.ExpiresAfter()
+}
 
 // loadFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
 func loadFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
@@ -111,7 +134,13 @@ func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 
 // AddFeed adds a new feed to Elasticsearch and the cache.
 func AddFeed(ctx context.Context, feed *models.Feed) error {
-	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW(), feed.GetID(), feed); err != nil {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			feed,
+			bulk.AsOperation[models.FeedID](bulk.OpCreate),
+			bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+		),
+	); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
 	if _, ok := feedCache.Set(feed.GetID(), feed); !ok {
@@ -119,6 +148,25 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 			slog.String("feed_id", feed.GetID()),
 		)
 	}
+	return nil
+}
+
+// UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
+func UpdateFeed(ctx context.Context, feed *models.Feed) error {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			feed,
+			bulk.AsOperation[models.FeedID](bulk.OpIndex),
+			bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+		),
+	); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+	if _, invalidated := feedCache.Invalidate(feed.GetID()); !invalidated {
+		slogctx.Warn(ctx, "Cached feed not invalidated")
+	}
+	feedCache.Set(feed.GetID(), feed)
+
 	return nil
 }
 
@@ -151,6 +199,11 @@ func (r *diffReporter) Report(rs cmp.Result) {
 		if !ok {
 			continue
 		}
+		if i == 0 {
+			// No parent step to pull the type from; shouldn't normally
+			// happen, but don't panic if it does.
+			continue
+		}
 		parentType := r.path[i-1].Type()
 		if parentType.Kind() == reflect.Ptr {
 			parentType = parentType.Elem()
@@ -163,14 +216,26 @@ func (r *diffReporter) Report(rs cmp.Result) {
 		break
 	}
 	if tag == "" {
-		return // not inside a struct field, skip
+		// Not inside a struct field (e.g. diffing a bare slice/map at the top level). Fall back to the path string so
+		// the diff isn't silently dropped.
+		tag = r.path.String()
+		if tag == "" {
+			return
+		}
 	}
 
 	// Grab the actual differing values from the current (leaf) step.
 	last := r.path[len(r.path)-1]
 	vx, vy := last.Values()
 
-	r.Changes[tag] = Change{Old: vx.Interface(), New: vy.Interface()}
+	change := Change{}
+	if vx.IsValid() {
+		change.Old = vx.Interface()
+	}
+	if vy.IsValid() {
+		change.New = vy.Interface()
+	}
+	r.Changes[tag] = change
 }
 
 func (r *diffReporter) PopStep() {
@@ -264,12 +329,13 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 			slogctx.Warn(ctx, "Could not classify feed",
 				slog.Any("error", err))
 		}
+		oldData.Categories = newData.Categories
 	}
 	// Compare new/old feed data and update as appropriate.
 	var r diffReporter
 	if diff := cmp.Diff(
-		*oldData,
 		*newData,
+		*oldData,
 		cmpopts.IgnoreFields(
 			models.Feed{},
 			"Updated",
@@ -282,39 +348,21 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 			"UpdateInterval",
 			"Quirks",
 			"Customisation",
+			"Categories",
 		),
 		cmpopts.EquateEmpty(),
 		cmpopts.IgnoreUnexported(),
 		cmp.Reporter(&r),
 	); diff != "" {
 		// Update feed data.
-		if oldData.LastFetched.Compare(lastFetched) < 0 {
-			newData.LastFetched = lastFetched
+		if err := mergo.Merge(oldData, newData); err != nil {
+			return fmt.Errorf("merge feed updates: %w", err)
 		}
-		newData.Updated = new(time.Now().UTC())
-		// Re-add excluded fields that exist in the original.
-		if oldData.FetchOptions != nil {
-			newData.FetchOptions = oldData.FetchOptions
-		}
-		if oldData.SourceData != nil {
-			newData.SourceData = oldData.SourceData
-		}
-		if oldData.Quirks != nil {
-			newData.Quirks = oldData.Quirks
-		}
-		if oldData.Customisation != nil {
-			newData.Customisation = oldData.Customisation
-		}
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(
-				newData,
-				bulk.AsOperation[models.FeedID](bulk.OpIndex),
-				bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
-			),
-		); err != nil {
+		oldData.LastFetched = lastFetched
+		oldData.Updated = new(time.Now().UTC())
+		if err := UpdateFeed(ctx, oldData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
-
 		var slogAttrs []slog.Attr
 		for key, value := range r.Changes {
 			slogAttrs = append(slogAttrs,
@@ -327,37 +375,13 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 		slogctx.LogAttrs(ctx, slog.LevelInfo, "Feed data updated.", slogAttrs...)
 	} else {
 		// No changes. Just update last_fetched.
-		if oldData.LastFetched.Compare(lastFetched) < 0 {
-			if err := bulk.AddAction(ctx,
-				bulk.NewAction(&bulk.PartialDocument{
-					Parts: map[string]any{
-						"last_fetched": lastFetched,
-					},
-					ID: newData.GetID(),
-				},
-					bulk.AsOperation[string](bulk.OpUpdate),
-					bulk.ToIndex[string](schema.FeedsIndexRW()),
-				),
-			); err != nil {
-				return fmt.Errorf("update feed last_fetched: %w", err)
-			}
+		oldData.LastFetched = lastFetched
+		oldData.Updated = new(time.Now().UTC())
+		if err := UpdateFeed(ctx, oldData); err != nil {
+			return fmt.Errorf("update feed: %w", err)
 		}
 	}
 
-	return nil
-}
-
-// UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
-func UpdateFeed(ctx context.Context, id models.FeedID, updates map[string]any) error {
-	if err := elastic.UpdateDoc(
-		ctx,
-		schema.FeedsIndexRW(),
-		id,
-		updates,
-	); err != nil {
-		return fmt.Errorf("update feed: %w", err)
-	}
-	feedCache.Invalidate(id)
 	return nil
 }
 

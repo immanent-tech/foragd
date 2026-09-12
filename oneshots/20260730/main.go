@@ -95,9 +95,7 @@ func main() {
 		slogctx.FromCtx(ctx).Info("Feed classified.",
 			slog.String("categories", strings.Join(feed.Categories, ",")))
 
-		if err := service.UpdateFeed(ctx, feed.GetID(), map[string]any{
-			"categories": feed.Categories,
-		}); err != nil {
+		if err := service.UpdateFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}

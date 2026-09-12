@@ -51,16 +51,13 @@ func main() {
 			continue
 		}
 
-		sourceData := &models.Feed_SourceData{}
-		sourceData.FromYoutubeFeedData(models.YoutubeFeedData{
+		feed.SourceData = &models.Feed_SourceData{}
+		feed.SourceData.FromYoutubeFeedData(models.YoutubeFeedData{
 			ID:   channelID[0],
 			Type: youtube.TypeChannel,
 		})
 
-		if err := service.UpdateFeed(ctx, feed.GetID(), map[string]any{
-			"source_data": sourceData,
-			"source_type": models.SourceTypeYoutube,
-		}); err != nil {
+		if err := service.UpdateFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}
