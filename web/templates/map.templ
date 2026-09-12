@@ -17,7 +17,6 @@ import (
 templ MapArticles(response *models.ListArticlesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@components.LeafletAssets()
 			@buttonBackToTop()
 			@container(element.WithClasses("pt-4")) {
 				// Show a page header.

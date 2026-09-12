@@ -191,6 +191,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
+			// Leaflet.
+			@components.LeafletAssets()
 			// Load style bundles from embedded FS.
 			<link rel="stylesheet" href={ "/assets/" + assets.GetAssetPath(ctx, "styles.css") }/>
 			// Load script bundles from embedded FS.
