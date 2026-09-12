@@ -4,11 +4,14 @@
 package ollama
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 
 	"github.com/immanent-tech/go-base/client"
+	"github.com/immanent-tech/go-base/config"
+	"google.golang.org/api/idtoken"
 
 	"github.com/immanent-tech/foragd/providers/elastic/vector"
 )
@@ -45,6 +48,19 @@ func EmbedBatch(texts ...string) ([][]float32, error) {
 	client, err := client.Load()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
+	}
+
+	if config.IsProduction() {
+		tokenSource, err := idtoken.NewTokenSource(context.Background(), cfg.URL)
+		if err != nil {
+			return nil, fmt.Errorf("new authorization: %w", err)
+		}
+
+		token, err := tokenSource.Token()
+		if err != nil {
+			return nil, fmt.Errorf("get authorization token: %w", err)
+		}
+		client = client.SetAuthToken(token.AccessToken)
 	}
 
 	var res ollamaEmbedResponse
