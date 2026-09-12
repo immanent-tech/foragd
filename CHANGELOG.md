@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.227.1](https://github.com/immanent-tech/foragd/compare/v0.227.0...v0.227.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* ⬆️ update go-syndication ([0b1947a](https://github.com/immanent-tech/foragd/commit/0b1947abc00505f239bf35876a4a35d9cf2ec3be))
+* **providers/ollama:** 🔧 get an auth token to access ollama server ([cb7c526](https://github.com/immanent-tech/foragd/commit/cb7c5262505f8b974e0813526738df895e45d7fd))
+
 ## [0.227.0](https://github.com/immanent-tech/foragd/compare/v0.226.0...v0.227.0) (2026-09-12)
 
 
