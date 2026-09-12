@@ -335,6 +335,10 @@ func Start() error {
 				r.Get("/similar", handlers.HandleFindSimilarArticles())
 			})
 		})
+		// Favorites.
+		r.Route("/favorites", func(r chi.Router) {
+			r.Get("/", handlers.HandleListFavorites())
+		})
 
 		// Map
 		r.Route("/map", func(r chi.Router) {
@@ -346,10 +350,6 @@ func Start() error {
 		r.Get("/issue", handlers.HandleReportIssue())
 		r.With(htmx.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())
 		r.Get("/docs", handlers.DocumentationHandler())
-		// Favorite specific.
-		r.Route("/list/favorites", func(r chi.Router) {
-			r.Get("/", handlers.HandleListFavorites())
-		})
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
@@ -376,6 +376,9 @@ func Start() error {
 			})
 			r.With(htmx.RequireHTMX).Post("/deactivate", handlers.HandleDeactivateAccount())
 		})
+
+		// Moved routes.
+		r.Get("/list/favorites", handlers.RedirectTo("/favorites", http.StatusMovedPermanently))
 	})
 
 	svr := &http.Server{

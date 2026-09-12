@@ -226,7 +226,7 @@
         }
       ],
       "name": "Go to Favorites",
-      "url": "/list/favorites"
+      "url": "/favorites"
     }
   ],
   "start_url": "/home?utm_source=pwa&utm_medium=homescreen",

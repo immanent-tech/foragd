@@ -40,7 +40,7 @@
 
 ### Reporting Issues and Bugs
 
-Find a bug, issue or something not quite working? You can report issues by selecting *Report an Issue* from the user
+Find a bug, issue, or something not quite working? You can report issues by selecting *Report an Issue* from the user
 settings menu at the top-right. Alternatively, you can [go directly to the report an issue page](/issue). If you find an
 issue with a particular feed or item, you can select the *Report an issue* option in the item's action menu.
 
@@ -64,7 +64,7 @@ Watch the quickstart video showing how to sign-up and add the curated feed sets 
 ### Navigating Around the Interface
 
 Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the [Home](/home),
-[Subscriptions](/list/subscriptions), [Articles](/list/articles), or [Favorites](/list/favorites) pages.
+[Subscriptions](/list/subscriptions), [Articles](/list/articles), or [Favorites](/favorites) pages.
 
 ### Adding Sources
 
@@ -75,8 +75,9 @@ Foragd supports adding subscriptions from a number of sources:
 - YouTube Channels.
 - Google News searches.
 
-To add a subscription, click the *Add* button in the sidebar (desktop, tablets) or bottom nav bar (mobile), or go to
-[/subscription/add](/subscription/add).
+To add a subscription, click the *Add a subscription* button at the top of the [subscriptions list
+page](/list/subscriptions) (or in the actions section of the Options popover on mobile), or at the bottom of the latest
+subscriptions on the home page, or go to [/subscription/add](/subscription/add).
 
 By default, you can enter any website or feed URL and Foragd will either find or parse and present potential
 subscriptions you can subscribe to. Alternatively, use the **Source** drop-down to add a YouTube channel or Google New
@@ -213,7 +214,7 @@ Content* button.
 
 ## Saving and Viewing Your Favorite Subscriptions and Articles
 
-You can mark any subscription or article as a favorite. All favorites can be found on the [favorites](/list/favorites)
+You can mark any subscription or article as a favorite. All favorites can be found on the [favorites](/favorites)
 page. On the subscriptions list page, you can filter to show only favorites.
 
 While Foragd does not retain all feed articles forever, marking an article as a favorite **will** ensure it is
@@ -275,7 +276,7 @@ The following shortcut keys are available on desktop:
 | `Alt+h`   | Navigates to [Home](/home)                        |
 | `Alt+s`   | Navigates to [Subscriptions](/list/subscriptions) |
 | `Alt+a`   | Navigates to [Articles](/list/articles)           |
-| `Alt+f`   | Navigates to [Favorites](/list/favorites)         |
+| `Alt+f`   | Navigates to [Favorites](/favorites)              |
 
 ## Policies and Terms of Service
 
@@ -285,4 +286,4 @@ The following shortcut keys are available on desktop:
 
 ## Last Updated
 
-Sept 1, 2026
+Sept 12, 2026

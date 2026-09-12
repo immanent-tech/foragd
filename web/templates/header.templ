@@ -175,6 +175,18 @@ templ HeaderInternal(props *InternalLayoutProps) {
 							})
 						</button>
 						@partials.Menu(element.WithAttribute("id", "header-menu")) {
+							// Open favorites.
+							@partials.MenuItem() {
+								<a
+									hx-get="/favorites"
+									hx-target={ ContentID.Target() }
+								>
+									<div class="flex flex-1 items-center gap-x-2">
+										@tableroutline.Heart(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
+										Favorites
+									</div>
+								</a>
+							}
 							// Open settings menu.
 							@partials.MenuItem() {
 								<a

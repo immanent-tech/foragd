@@ -84,11 +84,11 @@ templ Dock(options ...element.PropertiesOption) {
 			<span class="dock-label not-sr-only">Articles</span>
 		</a>
 		<a
-			hx-get="/list/favorites"
+			hx-get="/favorites"
 			hx-target={ ContentID.Target() }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/favorites")) }
+			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/favorites")) }
 		>
 			<span class="sr-only">Go to Favorites</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -118,24 +118,6 @@ templ Dock(options ...element.PropertiesOption) {
 					"aria-hidden": "true"})
 			</span>
 			<span class="dock-label not-sr-only">Discover</span>
-		</a>
-		<a
-			hx-get="/subscription/add"
-			hx-target={ ContentID.Target() }
-			hx-swap="morph:innerHTML show:top transition:true"
-			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/subscription/add")) }
-		>
-			<span class="sr-only">Add a Subscription</span>
-			<span class="hidden items-center group-[.htmx-request]:inline-flex">
-				<span class="loading loading-md loading-spinner text-base-content"></span>
-			</span>
-			<span class="inline-flex items-center group-[.htmx-request]:hidden">
-				@tableroutline.Plus(templ.Attributes{
-					"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
-					"aria-hidden": "true"})
-			</span>
-			<span class="dock-label not-sr-only">Add</span>
 		</a>
 	</footer>
 }

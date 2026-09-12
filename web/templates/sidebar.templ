@@ -92,10 +92,10 @@ templ SideBar(options ...element.PropertiesOption) {
 							<span class="not-sr-only text-base font-semibold text-base-content">Articles</span>
 						</a>
 					</li>
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/favorites") }>
+					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/favorites") }>
 						<a
 							hx-trigger="click,globalShortcutFavorites"
-							hx-get="/list/favorites"
+							hx-get="/favorites"
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML show:top transition:true"
 							hx-sync="#page-sidebar:drop"
@@ -134,28 +134,6 @@ templ SideBar(options ...element.PropertiesOption) {
 									"aria-hidden": "true"})
 							</span>
 							<span class="not-sr-only text-base font-semibold text-base-content">Discover</span>
-						</a>
-					</li>
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/subscription/add") }>
-						<a
-							hx-trigger="click,globalShortcutAdd"
-							hx-get="/subscription/add"
-							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
-							hx-sync="#page-sidebar:drop"
-							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
-							_="on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end"
-						>
-							<span class="sr-only">Add Subscription</span>
-							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading loading-xl loading-spinner text-base-content"></span>
-							</span>
-							<span class="inline-flex items-center group-[.htmx-request]:hidden">
-								@tableroutline.Plus(templ.Attributes{
-									"class":       "size-8 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
-									"aria-hidden": "true"})
-							</span>
-							<span class="not-sr-only text-base font-semibold text-base-content">Add</span>
 						</a>
 					</li>
 				</ul>

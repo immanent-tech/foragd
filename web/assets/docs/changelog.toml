@@ -15,6 +15,11 @@ type = "improved"
 description = """
 More backend caching to hopefully speed up page loading.
 """
+[[releases.changes]]
+type = "removed"
+description = """
+The add subscription action has been removed from the sidebar (desktop) and dock (mobile). You can now find an "Add a subscription" button on the <a href="/list/subscriptions" class="link">subscriptions list page</a>, or on the home page.
+"""
 
 [[releases]]
 version = "v0.226"

@@ -24,6 +24,17 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
+// RedirectTo performs route redirection for routes that have moved.
+func RedirectTo(target string, code int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		dest := target
+		if r.URL.RawQuery != "" {
+			dest += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, dest, code)
+	}
+}
+
 func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 	request, err := forms.DecodeForm[T](req)
 	if err != nil {

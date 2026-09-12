@@ -13,7 +13,7 @@ templ NoContent() {
 			<p class="mt-6 text-lg font-medium text-pretty">Congratulations, you've read everything!</p>
 			<div class="mt-10 flex items-center justify-center gap-x-6">
 				<a
-					hx-get="/list/favorites"
+					hx-get="/favorites"
 					hx-target="#content"
 					hx-swap="morph:innerHTML show:top transition:true"
 					class="btn btn-accent"

@@ -136,6 +136,17 @@ templ UserHome(data *HomeData) {
 										@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
 										<span>Add a feed</span>
 									</button>
+									<button
+										class="btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm"
+										aria-label="Discover new feeds"
+										hx-get="/discover"
+										hx-target={ ContentID.Target() }
+										hx-push-url="true"
+										hx-indicator="this"
+									>
+										@tableroutline.WorldSearch(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
+										<span>Discover new feeds</span>
+									</button>
 								</div>
 							</div>
 							// List: Top Categories.

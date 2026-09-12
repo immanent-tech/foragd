@@ -295,6 +295,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				@NewListControls("/list/subscriptions", response.Filters,
 					WithListCategories(response.Subscriptions.GetCategories()),
 					WithListButtons(listSubscriptionsButtons(response)),
+					WithListActions(listSubscriptionsActions(response)),
 				)
 				<section id="subscriptions-list" class="ptr-content pt-4">
 					<div id="refreshing" class="group mx-auto flex w-full justify-center">
@@ -427,6 +428,41 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 			Mark shown as Unread
 		}
 	</button>
+	<button
+		hx-get="/subscription/add"
+		hx-target={ ContentID.Target() }
+		hx-swap="morph:innerHTML show:top transition:true"
+		class="btn border-neutral/15 btn-outline btn-sm hidden sm:flex"
+	>
+		@tableroutline.Plus(templ.Attributes{"class": "size-5  stroke-base-content/80", "aria-hidden": "true"})
+		Add a subscription
+	</button>
+}
+
+templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
+	<li class="menu-title">Actions</li>
+	<ul>
+		<li>
+			<a
+				hx-get="/subscription/add"
+				hx-target={ ContentID.Target() }
+				class="flex items-center gap-1"
+			>
+				@tableroutline.Plus(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
+				Add a subscription
+			</a>
+		</li>
+		<li>
+			<a
+				hx-get="/discover"
+				hx-target={ ContentID.Target() }
+				class="flex items-center gap-1"
+			>
+				@tableroutline.WorldSearch(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
+				Discover feeds
+			</a>
+		</li>
+	</ul>
 }
 
 templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
