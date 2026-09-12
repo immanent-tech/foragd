@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.227.2](https://github.com/immanent-tech/foragd/compare/v0.227.1...v0.227.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix loading of map page on firefox ([83faced](https://github.com/immanent-tech/foragd/commit/83faced5b794b33089708909527eefc448eaa4ef))
+
 ## [0.227.1](https://github.com/immanent-tech/foragd/compare/v0.227.0...v0.227.1) (2026-09-12)
 
 
