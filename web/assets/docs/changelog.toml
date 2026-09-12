@@ -1,10 +1,25 @@
 #:schema https://json.schemastore.org/any.json
 
 [[releases]]
+version = "v0.227"
+date = "Sept 12, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Feeds without their own categories will now get categories added based on the content published. The classification can sometimes be wonky; if you see weird categorization or have suggestions, report them!
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+More backend caching to hopefully speed up page loading.
+"""
+
+[[releases]]
 version = "v0.226"
 date = "Sept 9, 2026"
 type = "major"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
