@@ -10,7 +10,6 @@ import (
 
 	"google.golang.org/api/googleapi"
 
-	"github.com/goforj/godump"
 	"github.com/googleapis/gax-go/v2/apierror"
 
 	"github.com/immanent-tech/foragd/models"
@@ -19,7 +18,6 @@ import (
 // APIError wraps the error returned by a GCP API endpoint in a models.APIError.
 func APIError(desc string, err error) error {
 	if apiErr, ok := errors.AsType[*apierror.APIError](err); ok {
-		godump.Dump(apiErr)
 		// ae.HTTPCode() is the HTTP status code.
 		// ae.GRPCStatus().Code() is the gRPC status code
 		return models.NewAPIError(
@@ -34,7 +32,6 @@ func APIError(desc string, err error) error {
 		)
 	}
 	if googErr, ok := errors.AsType[*googleapi.Error](err); ok {
-		godump.Dump(googErr)
 		// e.Code is the HTTP status code.
 		// e.Message is the error message.
 		// e.Body is the raw response body.
