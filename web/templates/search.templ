@@ -206,7 +206,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			_="on htmx:beforeRequest set #global-search.value to #suggestion-text.value"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 		>
-			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
+			// Search for text suggestion.
 			<input type="hidden" id="suggestion-text" name="suggestion_text" value={ suggestions.Search.Text }/>
 			@tableroutline.Search(templ.Attributes{
 				"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
@@ -215,137 +215,180 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Search...</span>
 		</li>
+		// Subscription suggestions.
 		if len(suggestions.Subscriptions) > 0 {
-			// Subscription suggestions.
 			<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
 			for subscription := range slices.Values(suggestions.Subscriptions) {
-				<li
-					role="option"
-					tabindex="-1"
-					{ subscriptionViewArticlesAttributes(subscription)... }
-					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-					hx-sync="#global-search:drop"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-				>
-					<div class="group flex items-center">
-						if subscription.GetImage() != "" {
-							@partials.Thumbnail(
-								&models.RemoteImage{
-									URL:   subscription.GetImage(),
-									Title: new(subscription.GetTitle()),
-								},
-								subscription.GetTitle(),
-								"size-6",
-							)
-						} else {
-							@tableroutline.Rss(templ.Attributes{
-								"class":       "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-								"aria-hidden": "true"})
-						}
-						<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-						<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Jump to...</span>
-					</div>
-				</li>
+				@suggestSubscription(subscription)
 			}
 		}
+		// Article suggestions.
 		if len(suggestions.Articles)> 0 {
-			// Article suggestions.
 			<li id="article-suggestions" class="menu-title" role="none" tabindex="-1">
 				Articles
 			</li>
 			for article := range slices.Values(suggestions.Articles) {
-				<li
-					role="option"
-					tabindex="-1"
-					hx-get={ "/view/article/" + article.GetID() }
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-					hx-sync="#global-search:drop"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-				>
-					if article.GetImage() != nil {
-						@partials.Thumbnail(
-							&models.RemoteImage{
-								URL:   article.GetImage().GetURL(),
-								Title: new(article.GetTitle()),
-							},
-							article.GetTitle(),
-							"size-6",
-						)
-					} else {
-						@tableroutline.FileRss(templ.Attributes{
-							"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-							"aria-hidden": "true"})
-					}
-					<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-					<span aria-hidden="true" class="ml-3 hidden text-neutral group-hover:inline">Jump to...</span>
-				</li>
+				@suggestArticle(article)
 			}
 		}
-		// If search text contains add or one of the add action keywords, suggest actions.
+		// Various action suggestions. Triggered by certain substrings in the search text.
 		{{ substr := strings.ToLower(suggestions.Search.Text) }}
 		{{ subStrParts := strings.Split(substr, " ") }}
 		if slices.ContainsFunc(subStrParts,func(s string) bool {
-			return slices.Contains([]string{"add","feed","search","group"},s)
+			return slices.Contains([]string{"add","feed","search","group","discover","explore"},s)
 		}) {
 			<li id="action-suggestions" class="menu-title" tabindex="-1" role="none">Actions</li>
-			// Add feed subscription action.
+			// Add feed subscription suggestion.
 			if (strings.Contains(substr,"add") || strings.Contains(substr,"feed"))  && (!strings.Contains(substr,"group") && !strings.Contains(substr,"search")) {
-				<li
-					role="option"
-					tabindex="-1"
-					hx-get="/subscription/add"
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-				>
-					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-						"aria-hidden": "true"})
-					<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
-				</li>
+				@suggestAddFeedSubscription()
 			}
-			// Add group subscription action
+			// Add group subscription suggestion.
 			if (strings.Contains(substr,"add") || strings.Contains(substr,"group")) && (!strings.Contains(substr,"feed") && !strings.Contains(substr,"search")) {
-				<li
-					role="option"
-					tabindex="-1"
-					hx-get="/subscription/add/group"
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-				>
-					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-						"aria-hidden": "true"})
-					<span class="ml-3 flex-auto truncate">Add a group subscription</span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
-				</li>
+				@suggestAddGroupSubscription()
 			}
-			// Add search subscription action
+			// Add search subscription suggestion.
 			if (strings.Contains(substr,"add") || strings.Contains(substr,"search")) && (!strings.Contains(substr,"feed") && !strings.Contains(substr,"group")) {
-				<li
-					role="option"
-					tabindex="-1"
-					hx-get="/subscription/add/search"
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-				>
-					@tableroutline.CirclePlus(templ.Attributes{
-						"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
-						"aria-hidden": "true"})
-					<span class="ml-3 flex-auto truncate">Add a search subscription</span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
-				</li>
+				@suggestAddSearchSubscription()
+			}
+			// Discover feeds suggestion.
+			if strings.Contains(substr,"discover") || strings.Contains(substr,"explore") {
+				@suggestDiscover()
 			}
 		}
 	</ul>
+}
+
+templ suggestSubscription(subscription *models.Subscription) {
+	<li
+		role="option"
+		tabindex="-1"
+		{ subscriptionViewArticlesAttributes(subscription)... }
+		hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-sync="#global-search:drop"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		<div class="group flex items-center">
+			if subscription.GetImage() != "" {
+				@partials.Thumbnail(
+					&models.RemoteImage{
+						URL:   subscription.GetImage(),
+						Title: new(subscription.GetTitle()),
+					},
+					subscription.GetTitle(),
+					"size-6",
+				)
+			} else {
+				@tableroutline.Rss(templ.Attributes{
+					"class":       "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+					"aria-hidden": "true"})
+			}
+			<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+			<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Jump to...</span>
+		</div>
+	</li>
+}
+
+templ suggestArticle(article *models.Article) {
+	<li
+		role="option"
+		tabindex="-1"
+		hx-get={ "/view/article/" + article.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-sync="#global-search:drop"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		if article.GetImage() != nil {
+			@partials.Thumbnail(
+				&models.RemoteImage{
+					URL:   article.GetImage().GetURL(),
+					Title: new(article.GetTitle()),
+				},
+				article.GetTitle(),
+				"size-6",
+			)
+		} else {
+			@tableroutline.FileRss(templ.Attributes{
+				"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+				"aria-hidden": "true"})
+		}
+		<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+		<span aria-hidden="true" class="ml-3 hidden text-neutral group-hover:inline">Jump to...</span>
+	</li>
+}
+
+templ suggestAddFeedSubscription() {
+	// Add feed subscription action.
+	<li
+		role="option"
+		tabindex="-1"
+		hx-get="/subscription/add"
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		@tableroutline.CirclePlus(templ.Attributes{
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"aria-hidden": "true"})
+		<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
+		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+	</li>
+}
+
+templ suggestAddGroupSubscription() {
+	<li
+		role="option"
+		tabindex="-1"
+		hx-get="/subscription/add/group"
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		@tableroutline.CirclePlus(templ.Attributes{
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"aria-hidden": "true"})
+		<span class="ml-3 flex-auto truncate">Add a group subscription</span>
+		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+	</li>
+}
+
+templ suggestAddSearchSubscription() {
+	<li
+		role="option"
+		tabindex="-1"
+		hx-get="/subscription/add/search"
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		@tableroutline.CirclePlus(templ.Attributes{
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"aria-hidden": "true"})
+		<span class="ml-3 flex-auto truncate">Add a search subscription</span>
+		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Create...</span>
+	</li>
+}
+
+templ suggestDiscover() {
+	<li
+		role="option"
+		tabindex="-1"
+		hx-get="/discover"
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+	>
+		@tableroutline.WorldSearch(templ.Attributes{
+			"class":       " size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]",
+			"aria-hidden": "true"})
+		<span class="ml-3 flex-auto truncate">Discover feeds</span>
+		<span aria-hidden="true" class="ml-3 hidden flex-none text-neutral group-hover:inline">Explore...</span>
+	</li>
 }
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
