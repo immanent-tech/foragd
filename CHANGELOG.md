@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.227.0](https://github.com/immanent-tech/foragd/compare/v0.226.0...v0.227.0) (2026-09-12)
+
+
+### Features
+
+* **blog:** ➕ backfill update posts from reddit to blog ([1319e3f](https://github.com/immanent-tech/foragd/commit/1319e3f914ad921f17354a531eebdec7a85877a9))
+* **service/feeds:** ✨ start classifying feeds without categories with qwen3-embedding:0.6b via ollama ([7299bee](https://github.com/immanent-tech/foragd/commit/7299bee662138f1edfdf3d882679bdb709a32457))
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 fix feed update checks ([b1e0b16](https://github.com/immanent-tech/foragd/commit/b1e0b16946112507ff8deb4fbd10f4ec5421c600))
+
+
+### Performance Improvements
+
+* **service/items:** ⚡ improved item caching ([2443a23](https://github.com/immanent-tech/foragd/commit/2443a23ee8d25538bdeed0fff0dcac62709db5c7))
+
 ## [0.226.0](https://github.com/immanent-tech/foragd/compare/v0.225.4...v0.226.0) (2026-09-11)
 
 
