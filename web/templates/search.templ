@@ -17,10 +17,9 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 	<div id="subscriptions-group-label" class="px-3 py-4 font-semibold text-base-content/80">Subscriptions</div>
 	for subscription := range slices.Values(subscriptions) {
 		<a
-			href={ subscriptionViewArticlesLink(subscription) }
-			{ subscriptionViewArticlesAttributes(subscription)... }
 			hx-on::after-request="document.getElementById('commands').close()"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+			{ generateSubscriptionViewAttributes(subscription)... }
 		>
 			<div class="flex-none">
 				if subscription.GetImage() == "" {
@@ -262,10 +261,10 @@ templ suggestSubscription(subscription *models.Subscription) {
 	<li
 		role="option"
 		tabindex="-1"
-		{ subscriptionViewArticlesAttributes(subscription)... }
 		hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
 		hx-sync="#global-search:drop"
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
+		{ generateSubscriptionViewAttributes(subscription)... }
 	>
 		<div class="group flex items-center">
 			if subscription.GetImage() != "" {
@@ -483,8 +482,7 @@ templ SearchControls(results *models.SearchResults) {
 	{{ mobilePanelID := "mobile-options" }}
 	<div class="p-2">
 		// Search Options: Mobile.
-		if results.Subscription != nil {
-			{{ s := Subscription{Subscription: results.Subscription} }}
+		if subscription := results.Subscription; subscription != nil {
 			<el-dialog>
 				<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
 					<el-dialog-backdrop></el-dialog-backdrop>
@@ -529,7 +527,7 @@ templ SearchControls(results *models.SearchResults) {
 								// Edit action.
 								<li>
 									<a
-										hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+										hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 										hx-target={ ContentID.Target() }
 										hx-swap="morph:innerHTML show:top transition:true"
 										hx-trigger="click consume"
@@ -546,8 +544,7 @@ templ SearchControls(results *models.SearchResults) {
 			</el-dialog>
 		}
 		<div class="flex items-center justify-between">
-			if results.Subscription != nil {
-				{{ s := Subscription{Subscription: results.Subscription} }}
+			if subscription := results.Subscription; subscription != nil {
 				// Show options button on mobile.
 				<button
 					type="button"
@@ -585,7 +582,7 @@ templ SearchControls(results *models.SearchResults) {
 					}
 					// Edit action.
 					<button
-						hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+						hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 						hx-target={ ContentID.Target() }
 						hx-swap="morph:innerHTML show:top transition:true"
 						hx-trigger="click consume"

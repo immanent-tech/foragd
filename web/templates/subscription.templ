@@ -11,6 +11,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/pkg/htmx"
 	"net/http"
 	"slices"
 	"strconv"
@@ -92,8 +93,7 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, path string, subscription *models.Subscription, view models.View) {
-	{{ s := &Subscription{Subscription: subscription} }}
-	@partials.Card(element.WithAttribute("id", s.GetID()),
+	@partials.Card(element.WithAttribute("id", subscription.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
 		element.WithHXIndicator("this"),
@@ -102,30 +102,33 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 			<div class="absolute top-0 right-0">
 				<span class="mt-2 mr-2 badge badge-sm badge-primary">
-					if s.GetStats().UnreadTotal() >= 100 {
+					if subscription.GetStats().UnreadTotal() >= 100 {
 						99+
 					} else {
-						{ s.GetStats().UnreadTotal() }
+						{ subscription.GetStats().UnreadTotal() }
 					}
 				</span>
 			</div>
 		}
-		<input type="hidden" name="selected_subscriptions" value={ s.GetID() }/>
+		<input type="hidden" name="selected_subscriptions" value={ subscription.GetID() }/>
 		// Card header.
 		@partials.CardHeader() {
-			<div class="group flex cursor-pointer touch-manipulation items-center" { s.viewAttributes()... }>
+			<div
+				class="group flex cursor-pointer touch-manipulation items-center"
+				{ generateSubscriptionViewAttributes(subscription)... }
+			>
 				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
-					if s.GetImage() == "" {
-						@subscriptionThumbnail(nil, s.GetTitle())
+					if subscription.GetImage() == "" {
+						@subscriptionThumbnail(nil, subscription.GetTitle())
 					} else {
-						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
+						@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 					}
 				</div>
 				<h2 class="card-title font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-					{ s.GetTitle() }
+					{ subscription.GetTitle() }
 				</h2>
 				// Add an icon to indicate whether article filtering is being applied.
-				if articleFilters := s.GetArticleFilters(); !articleFilters.IsEmpty() {
+				if articleFilters := subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
 					<div class="tooltip" data-tip="Article filtering applied">
 						<span class="sr-only">Article filtering applied</span>
 						@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-4 fill-accent", "aria-hidden": "true"})
@@ -150,51 +153,51 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						<span class="badge justify-start badge-sm tabular-nums">
 							<relative-time
-								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+								datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
 							>
-								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
+								{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
 						</span>
-						if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
+						if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 							<span class="badge justify-start badge-sm tabular-nums">
-								{ s.GetStats().UpdateFrequency() }
+								{ subscription.GetStats().UpdateFrequency() }
 							</span>
 						}
 					} else {
 						<span class="badge badge-sm tabular-nums">
 							<relative-time
-								datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+								datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 								format="relative"
 							>
-								{ s.GetUpdatedDate().Format("Jan _2, 2006") }
+								{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
 							</relative-time>
 						</span>
 					}
 				</div>
 				<div class="flex shrink-0 items-center">
 					// Favorite action.
-					@SubscriptionFavoriteToggle(s.Subscription)
+					@SubscriptionFavoriteToggle(subscription)
 					// Mark action.
-					@SubscriptionMarkToggle(s.Subscription)
+					@SubscriptionMarkToggle(subscription)
 					// Separator.
 					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 					// Context menu actions.
 					<div class="tooltip tooltip-top tooltip-end" data-tip="Subscription actions">
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
 							<button
-								id={ "btn-" + s.GetID() + "-actions" }
+								id={ "btn-" + subscription.GetID() + "-actions" }
 								class="btn btn-ghost btn-sm"
 							>
-								<span class="sr-only">{ s.GetTitle() + " Actions" }</span>
+								<span class="sr-only">{ subscription.GetTitle() + " Actions" }</span>
 								@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 							</button>
-							@partials.Menu(element.WithAttribute("id", "menu-"+s.GetID()+"-actions")) {
+							@partials.Menu(element.WithAttribute("id", "menu-"+subscription.GetID()+"-actions")) {
 								// View action.
-								if s.GetSubscriptionType() == models.SubscriptionTypeFeed && s.GetLink() != "" {
+								if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed && subscription.GetLink() != "" {
 									@partials.MenuItem() {
 										<a
-											href={ s.GetLink() }
+											href={ subscription.GetLink() }
 											rel="noopener"
 											target="_blank"
 											_="on click halt the event's bubbling"
@@ -207,7 +210,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 								// Edit action.
 								@partials.MenuItem() {
 									<a
-										hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+										hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 										hx-target={ ContentID.Target() }
 										hx-swap="morph:innerHTML show:top transition:true"
 										hx-trigger="click consume"
@@ -219,7 +222,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 								// Unsubscribe action.
 								@partials.MenuItem() {
 									<a
-										hx-get={ "/subscriptions/" + s.GetID() + "/remove" }
+										hx-get={ "/subscriptions/" + subscription.GetID() + "/remove" }
 										hx-target={ ModalContainerID.Target() }
 										hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
 										hx-trigger="click consume"
@@ -234,7 +237,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 										hx-get="/issue"
 										hx-target={ ContentID.Target() }
 										hx-replace-url="true"
-										hx-vals={ templ.JSONString(map[string]string{"object_id": s.GetID()}) }
+										hx-vals={ templ.JSONString(map[string]string{"object_id": subscription.GetID()}) }
 										hx-trigger="click consume"
 									>
 										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
@@ -1613,71 +1616,6 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 	}
 }
 
-func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
-	props := element.NewProperties(
-		element.WithHXTarget(ContentID.Target()),
-		element.WithHXSwap("morph:innerHTML show:top transition:true"),
-		element.WithHXTrigger("click consume"),
-		element.WithHXPushURL(true),
-	)
-	switch s.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListFilters()
-		filters.Subscriptions = []string{s.GetID()}
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
-		element.WithHXValues(filters)(props)
-		element.WithHXMethod(http.MethodGet, "/list/articles")(props)
-	case models.SubscriptionTypeGroup:
-		filters := models.NewListFilters()
-		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
-		element.WithHXValues(filters)(props)
-		element.WithHXMethod(http.MethodGet, "/list/articles")(props)
-	case models.SubscriptionTypeSearch:
-		s.SearchData.Search.SubscriptionID = new(s.GetID())
-		element.WithHXValues(s.SearchData.Search)(props)
-		element.WithHXMethod(http.MethodGet, "/search")(props)
-	}
-	return props.Attributes()
-}
-
-func subscriptionViewArticlesLink(s *models.Subscription) string {
-	switch s.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.NewListFilters()
-		filters.Subscriptions = []string{s.GetID()}
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		return "/list/articles?" + filters.Encode()
-	case models.SubscriptionTypeGroup:
-		filters := models.NewListFilters()
-		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
-		if s.GetStats().IsUnread() {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		return "/list/articles?" + filters.Encode()
-	case models.SubscriptionTypeSearch:
-		s.SearchData.Search.SubscriptionID = new(s.GetID())
-		return "/search?" + s.SearchData.Search.Encode()
-	}
-	return "/list/articles"
-}
-
 // BulkMarkSubscriptionsModal renders a modal for the user to confirm marking multiple subscriptions.
 templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.PropertiesOption) {
 	{{
@@ -1719,4 +1657,49 @@ templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.Properties
 			>No</button>
 		</div>
 	}
+}
+
+// generateSubscriptionViewAttributes generates a templ.Attributes map containing the appropriate hx-* attributes for
+// viewing the subscription, depending on its type.
+func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes {
+	var (
+		path string
+		vals any
+	)
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
+		filters := models.NewListFilters()
+		filters.Subscriptions = []string{s.GetID()}
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		vals = filters
+		path = "/list/articles"
+	case models.SubscriptionTypeGroup:
+		filters := models.NewListFilters()
+		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
+		vals = filters
+		path = "/list/articles"
+	case models.SubscriptionTypeSearch:
+		s.SearchData.Search.SubscriptionID = new(s.GetID())
+		vals = s.SearchData.Search
+		path = "/search"
+	}
+	return htmx.NewAttributes(
+		htmx.WithHXMethod(http.MethodGet, path),
+		htmx.WithHXTarget(ContentID.Target()),
+		htmx.WithHXSwap("morph:innerHTML show:top transition:true"),
+		htmx.WithHXPushURL(path),
+		htmx.WithHXTrigger("click consume"),
+		htmx.WithHXVals(vals),
+	).GetAttributes()
 }

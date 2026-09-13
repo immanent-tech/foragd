@@ -1139,7 +1139,6 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 						</thead>
 						<tbody id="all-subscriptions">
 							for subscription := range slices.Values(data.Subscriptions) {
-								{{ s := &Subscription{Subscription: subscription} }}
 								<tr
 									class="subscription-row"
 									id={ subscription.GetID() }
@@ -1162,7 +1161,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 													@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 												}
 											</div>
-											<a class="link link-hover" { s.viewAttributes()... }>
+											<a class="link link-hover" { generateSubscriptionViewAttributes(subscription)... }>
 												<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>
 											</a>
 										</div>
@@ -1183,19 +1182,19 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										// Subscription actions buttons.
 										<div class="flex shrink-0 items-center gap-1">
 											// Favorite action.
-											@SubscriptionFavoriteToggle(s.Subscription)
+											@SubscriptionFavoriteToggle(subscription)
 											// Mark action.
-											@SubscriptionMarkToggle(s.Subscription)
+											@SubscriptionMarkToggle(subscription)
 											// Edit action.
 											<div class="tooltip" data-tip="Edit subscription">
 												<button
-													hx-get={ "/subscriptions/" + s.Subscription.GetID() + "/edit" }
+													hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 													hx-target={ ContentID.Target() }
 													hx-swap="morph:innerHTML show:top transition:true"
 													hx-trigger="click consume"
 													class="btn btn-square btn-ghost btn-md"
 												>
-													<span class="sr-only">{ "Edit "+s.GetTitle() }</span>
+													<span class="sr-only">{ "Edit "+subscription.GetTitle() }</span>
 													@tableroutline.Edit(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 												</button>
 											</div>
@@ -1203,12 +1202,12 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 											<div class="tooltip" data-tip="Unsubscribe">
 												<button
 													class="btn btn-square btn-ghost btn-md"
-													hx-get={ "/subscriptions/" + s.Subscription.GetID() + "/remove" }
+													hx-get={ "/subscriptions/" + subscription.GetID() + "/remove" }
 													hx-target={ ModalContainerID.Target() }
 													hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
 													hx-trigger="click consume"
 												>
-													<span class="sr-only">{ "Unsubscribe from "+s.GetTitle() }</span>
+													<span class="sr-only">{ "Unsubscribe from "+subscription.GetTitle() }</span>
 													@tableroutline.Trash(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
 												</button>
 											</div>
@@ -1217,16 +1216,6 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 								</tr>
 							}
 						</tbody>
-						// <!-- foot -->
-						// <tfoot>
-						// 	<tr>
-						// 		<th></th>
-						// 		<th>Name</th>
-						// 		<th>Job</th>
-						// 		<th>Favorite Color</th>
-						// 		<th></th>
-						// 	</tr>
-						// </tfoot>
 					</table>
 				}
 			</div>
