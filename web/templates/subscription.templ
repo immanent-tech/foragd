@@ -206,7 +206,12 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 								}
 								// Edit action.
 								@partials.MenuItem() {
-									<a { s.editAttributes(path)... }>
+									<a
+										hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+										hx-target={ ContentID.Target() }
+										hx-swap="morph:innerHTML show:top transition:true"
+										hx-trigger="click consume"
+									>
 										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
@@ -761,7 +766,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			if action == "add" {
 				hx-post="/subscription/add"
 			} else {
-				hx-post={ "/subscription/save/" + request.SubscriptionID }
+				hx-post={ "/subscriptions/" + request.SubscriptionID + "/edit" }
 			}
 			hx-swap="none"
 			hx-encoding="multipart/form-data"
@@ -1034,7 +1039,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						if action == "add" {
 							hx-post="/subscription/add/search"
 						} else {
-							hx-post={ "/subscription/save/" + string(*request.Search.SubscriptionID) }
+							hx-post={ "/subscriptions/" + string(*request.Search.SubscriptionID) + "/edit" }
 						}
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
@@ -1264,7 +1269,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						if action == "add" {
 							hx-post="/subscription/add/group"
 						} else {
-							hx-post={ "/subscription/save/" + string(*request.SubscriptionID) }
+							hx-post={ "/subscriptions/" + string(*request.SubscriptionID) + "/edit" }
 						}
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
@@ -1442,7 +1447,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 				}
 				<form
 					id="add-subscription"
-					hx-post={ "/subscription/save/" + string(request.SubscriptionID) }
+					hx-post={ "/subscriptions/" + string(request.SubscriptionID) + "/edit" }
 					hx-swap="none"
 					hx-encoding="multipart/form-data"
 					hx-disabled-elt="find button[type='submit']"

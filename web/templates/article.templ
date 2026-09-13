@@ -1021,8 +1021,13 @@ templ listArticlesActions(response *models.ListArticlesResponse) {
 		<li class="menu-title">Actions</li>
 		<ul>
 			<li>
-				{{ s := Subscription{Subscription: response.Subscription} }}
-				<a { s.editAttributes("/list/articles")... } class="flex items-center gap-1">
+				<a
+					hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit" }
+					hx-target={ ContentID.Target() }
+					hx-swap="morph:innerHTML show:top transition:true"
+					hx-trigger="click consume"
+					class="flex items-center gap-1"
+				>
 					@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
 					Edit Subscription
 				</a>
@@ -1069,8 +1074,13 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		</button>
 	} else {
 		// Edit subscription button. Only shown on desktop screens (in mobile dialog on smaller screens).
-		{{ s := Subscription{Subscription: response.Subscription} }}
-		<button { s.editAttributes("/list/articles")... } class="btn hidden items-center gap-1 border-neutral/15 btn-outline btn-sm sm:flex">
+		<button
+			hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit" }
+			hx-target={ ContentID.Target() }
+			hx-swap="morph:innerHTML show:top transition:true"
+			hx-trigger="click consume"
+			class="btn hidden items-center gap-1 border-neutral/15 btn-outline btn-sm sm:flex"
+		>
 			@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
 			Edit Subscription
 		</button>

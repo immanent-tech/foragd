@@ -529,7 +529,10 @@ templ SearchControls(results *models.SearchResults) {
 								// Edit action.
 								<li>
 									<a
-										{ s.editAttributes("/search?"+results.Search.Encode())... }
+										hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+										hx-target={ ContentID.Target() }
+										hx-swap="morph:innerHTML show:top transition:true"
+										hx-trigger="click consume"
 										class="group/item flex items-center gap-x-2"
 									>
 										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -582,7 +585,10 @@ templ SearchControls(results *models.SearchResults) {
 					}
 					// Edit action.
 					<button
-						{ s.editAttributes("/search?"+results.Search.Encode())... }
+						hx-get={ "/subscriptions/" + s.GetID() + "/edit" }
+						hx-target={ ContentID.Target() }
+						hx-swap="morph:innerHTML show:top transition:true"
+						hx-trigger="click consume"
 						class="btn border-neutral/15 btn-outline btn-sm"
 					>
 						@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})

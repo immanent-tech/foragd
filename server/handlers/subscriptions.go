@@ -555,57 +555,46 @@ func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Re
 // HandleEditSubscription handles presenting the user with a form for editing a subscription.
 func HandleEditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve the subscription ID from the URL parameter.
-		id := chi.URLParam(req, "subscription_id")
-		if id == "" {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
-			).ServeHTTP(res, req)
-			return
+		res.Header().Set(models.ActionHeader, "edit-subscription")
 
-		}
-
-		// Get the existingSubscription.
-		existingSubscription, err := service.GetSubscription(req.Context(), id)
-		if err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get subscription: %w", err),
-			).ServeHTTP(res, req)
+		// Retrieve the subscription details.
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
+
 		var template templ.Component
 		var pageTitle templates.PageTitle
 		ctx := req.Context()
-		switch existingSubscription.GetSubscriptionType() {
+		switch subscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
 			request := &models.FeedSubscriptionRequest{
-				SubscriptionID: id,
-				Customisation:  existingSubscription.Customisation,
-				Settings:       &existingSubscription.Settings,
-				ArticleFilters: existingSubscription.FeedData.ArticleFilters,
+				SubscriptionID: subscription.GetID(),
+				Customisation:  subscription.Customisation,
+				Settings:       &subscription.Settings,
+				ArticleFilters: subscription.FeedData.ArticleFilters,
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
 			request.SuggestedCategories = getSubscriptionCategorySuggestions(
 				req.Context(),
-				[]models.FeedID{existingSubscription.FeedData.GetFeedID()},
-				existingSubscription.Customisation.Categories,
+				[]models.FeedID{subscription.FeedData.GetFeedID()},
+				subscription.Customisation.Categories,
 			)
 			// Generate page template.
 			template = templates.EditFeedSubscription(request)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
-				Description: existingSubscription.GetTitle(),
+				Description: subscription.GetTitle(),
 			}
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
-				Customisation: existingSubscription.Customisation,
-				Settings:      &existingSubscription.Settings,
-				Search:        existingSubscription.SearchData.Search,
+				Customisation: subscription.Customisation,
+				Settings:      &subscription.Settings,
+				Search:        subscription.SearchData.Search,
 			}
 			// Get suggested categories from existing subscriptions.
 			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
@@ -616,7 +605,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
 
-			request.Search.SubscriptionID = new(existingSubscription.GetID())
+			request.Search.SubscriptionID = new(subscription.GetID())
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := service.GetSubscriptionsByID(ctx, request.Search.Subscriptions...)
@@ -638,7 +627,7 @@ func HandleEditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			childSubscriptions, err := service.GetSubscriptionsByID(
 				ctx,
-				existingSubscription.GroupData.GetGroupedSubscriptionIDs()...)
+				subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			if err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
@@ -649,11 +638,11 @@ func HandleEditSubscription() http.HandlerFunc {
 
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
-				Customisation:  existingSubscription.Customisation,
-				Settings:       new(existingSubscription.Settings),
+				Customisation:  subscription.Customisation,
+				Settings:       new(subscription.Settings),
 				Subscriptions:  make(map[models.SubscriptionID]string),
-				SubscriptionID: new(existingSubscription.GetID()),
-				ArticleFilters: existingSubscription.GroupData.ArticleFilters,
+				SubscriptionID: new(subscription.GetID()),
+				ArticleFilters: subscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
 			for childSubscription := range slices.Values(childSubscriptions) {
@@ -678,7 +667,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			request.SuggestedSubscriptions = suggestedSubscriptions.
 				FilterByType(models.SubscriptionTypeFeed).
-				ExcludeIDs(existingSubscription.GroupData.GetGroupedSubscriptionIDs()...)
+				ExcludeIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
 
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
@@ -689,9 +678,9 @@ func HandleEditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
-				Customisation:  existingSubscription.Customisation,
-				Settings:       new(existingSubscription.Settings),
-				SubscriptionID: existingSubscription.GetID(),
+				Customisation:  subscription.Customisation,
+				Settings:       new(subscription.Settings),
+				SubscriptionID: subscription.GetID(),
 			}
 			// Get suggested categories from existing subscriptions.
 			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
@@ -721,22 +710,12 @@ func HandleEditSubscription() http.HandlerFunc {
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
 func HandleSaveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		id := chi.URLParam(req, "subscription_id")
-		if id == "" {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("parse query values: %w", models.ErrInvalidParams),
-			).ServeHTTP(res, req)
-			return
-		}
+		res.Header().Set(models.ActionHeader, "save-subscription")
 
-		// Get the subscription.
-		subscription, err := service.GetSubscription(req.Context(), id)
-		if err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get subscription: %w", err),
-			).ServeHTTP(res, req)
+		// Retrieve the subscription details.
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 

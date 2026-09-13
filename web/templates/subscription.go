@@ -60,16 +60,6 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 	).GetAttributes()
 }
 
-func (s *Subscription) editAttributes(path string) templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodGet, "/subscription/edit/"+s.GetID()),
-		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("morph:innerHTML show:top transition:true"),
-		htmx.WithHXTrigger("click consume"),
-		htmx.WithHXVals(map[string]string{"from": path}),
-	).GetAttributes()
-}
-
 func (s *Subscription) unsubscribeAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),

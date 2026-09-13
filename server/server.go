@@ -273,6 +273,11 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkSubscription(models.MarkRead))
 				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkSubscription(models.MarkUnread))
 				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteSubscription())
+				r.Route("/edit", func(r chi.Router) {
+					r.Use(htmx.RequireHTMX)
+					r.Get("/", handlers.HandleEditSubscription())
+					r.Post("/", handlers.HandleSaveSubscription())
+				})
 			})
 		})
 		r.With(htmx.RequireHTMX).
@@ -291,8 +296,6 @@ func Start() error {
 				r.Get("/group", handlers.HandleAddGroupSubscription())
 				r.With(htmx.RequireHTMX).Post("/group", handlers.HandleAddGroupSubscription())
 			})
-			r.Get("/edit/{subscription_id}", handlers.HandleEditSubscription())
-			r.With(htmx.RequireHTMX).Post("/save/{subscription_id}", handlers.HandleSaveSubscription())
 			// Group subscription management.
 			r.Route("/group", func(r chi.Router) {
 				r.With(htmx.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToGroup())
