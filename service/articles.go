@@ -344,26 +344,28 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
 
-	// Parse the item URL.
-	articleURL, err := url.Parse(article.GetLink())
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse article URL: %w", err))
-	}
+	if itemPageBuf.Len() != 0 {
+		// Parse the item URL.
+		articleURL, err := url.Parse(article.GetLink())
+		if err != nil {
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse article URL: %w", err))
+		}
 
-	// Extract opengraph and readability data from item HTML source.
-	_, readabilityData, err := extractMetadataFromHTML(articleURL, itemPageBuf.Bytes())
-	if err != nil {
-		logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
-	}
+		// Extract opengraph and readability data from item HTML source.
+		_, readabilityData, err := extractMetadataFromHTML(articleURL, itemPageBuf.Bytes())
+		if err != nil {
+			logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
+		}
 
-	// Extract article content using readability.
-	var articleBuf bytes.Buffer
-	if err := readabilityData.RenderHTML(&articleBuf); err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("render article HTML: %w", err))
-	}
+		// Extract article content using readability.
+		var articleBuf bytes.Buffer
+		if err := readabilityData.RenderHTML(&articleBuf); err != nil {
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("render article HTML: %w", err))
+		}
 
-	// Set the article content to the extracted content.
-	article.Content = new(articleBuf.String())
+		// Set the article content to the extracted content.
+		article.Content = new(articleBuf.String())
+	}
 
 	return nil
 }
