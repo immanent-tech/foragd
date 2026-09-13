@@ -16,46 +16,45 @@ import (
 	"github.com/immanent-tech/go-base/config"
 )
 
-//nolint:mnd // thes are individual page priorities.
 var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
-	links := make([]schemaorg.SiteNavigationElement, 0)
-	links = append(
-		links,
-		schemaorg.NewSimpleSiteNavigationElement(1, "Home", config.GetBaseURL()),
-		schemaorg.NewSimpleSiteNavigationElement(2, "About", config.GetBaseURL()+"/about"),
-		schemaorg.NewSimpleSiteNavigationElement(3, "Features", config.GetBaseURL()+"/features"),
-		schemaorg.NewSimpleSiteNavigationElement(4, "Features | Collect", config.GetBaseURL()+"/features/collect"),
-		schemaorg.NewSimpleSiteNavigationElement(5, "Features | Curate", config.GetBaseURL()+"/features/curate"),
-		schemaorg.NewSimpleSiteNavigationElement(6, "Features | Consume", config.GetBaseURL()+"/features/consume"),
-		schemaorg.NewSimpleSiteNavigationElement(7, "Blog", config.GetBaseURL()+"/blog"),
-		schemaorg.NewSimpleSiteNavigationElement(8, "Changelog", config.GetBaseURL()+"/changelog"),
-		schemaorg.NewSimpleSiteNavigationElement(10, "Viewer", config.GetBaseURL()+"/viewer"),
-		schemaorg.NewSimpleSiteNavigationElement(11, "Help", config.GetBaseURL()+"/help"),
-		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with Feedly", config.GetBaseURL()+"/compare/feedly"),
-		schemaorg.NewSimpleSiteNavigationElement(
-			13,
-			"Compare with Inoreader",
-			config.GetBaseURL()+"/compare/inoreader",
-		),
-		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with Newsblur", config.GetBaseURL()+"/compare/newsblur"),
-		schemaorg.NewSimpleSiteNavigationElement(12, "Compare with FreshRSS", config.GetBaseURL()+"/compare/freshrss"),
-	)
+	var linkMap = map[string]string{
+		"Foragd Home":                   config.GetBaseURL(),
+		"About Foragd":                  config.GetBaseURL() + "/about",
+		"Foragd Features":               config.GetBaseURL() + "/features",
+		"Foragd Features | Collect":     config.GetBaseURL() + "/features/collect",
+		"Foragd Features | Curate":      config.GetBaseURL() + "/features/curate",
+		"Foragd Features | Consume":     config.GetBaseURL() + "/features/consume",
+		"Foragd Blog":                   config.GetBaseURL() + "/blog",
+		"Foragd Changelog":              config.GetBaseURL() + "/changelog",
+		"Feed Viewer":                   config.GetBaseURL() + "/viewer",
+		"Feed Linter":                   config.GetBaseURL() + "/linter",
+		"Foragd Help":                   config.GetBaseURL() + "/help",
+		"Compare Foragd with Feedly":    config.GetBaseURL() + "/compare/feedly",
+		"Compare Foragd with Inoreader": config.GetBaseURL() + "/compare/inoreader",
+		"Compare Foragd with Newsblur":  config.GetBaseURL() + "/compare/newsblur",
+		"Compare Foragd with FreshRSS":  config.GetBaseURL() + "/compare/freshrss",
+	}
+	links := make([]schemaorg.SiteNavigationElement, 0, len(linkMap))
+	var idx = 0
+	for text, link := range linkMap {
+		links = append(links, schemaorg.NewSimpleSiteNavigationElement(idx, text, link))
+		idx++
+	}
 	// Add all posts.
 	posts, err := getPosts()
 	if err != nil {
 		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
-	i := 13
 	for post := range slices.Values(posts) {
 		links = append(
 			links,
 			schemaorg.NewSimpleSiteNavigationElement(
-				i,
+				idx,
 				post.Frontmatter.Title,
 				config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug,
 			),
 		)
-		i++
+		idx++
 
 	}
 
