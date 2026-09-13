@@ -214,8 +214,10 @@ func Start() error {
 			})
 		})
 		// User routes that don't required authentication.
-		r.Get("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
-		r.Post("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
+		r.Route("/unsubscribe/{token}", func(r chi.Router) {
+			r.Get("/", handlers.HandleUserUnsubscribe())
+			r.Post("/", handlers.HandleUserUnsubscribe())
+		})
 	})
 
 	// Authenticated routes.
@@ -232,7 +234,7 @@ func Start() error {
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
-		r.Get(handlers.RouteHome, handlers.HandleHome())
+		r.Get("/home", handlers.HandleHome())
 		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
@@ -252,7 +254,7 @@ func Start() error {
 		r.Route("/discover", func(r chi.Router) {
 			r.Use(middlewares.CheckUserLimits)
 			r.Get("/", handlers.HandleDiscover())
-			r.Post("/suggest", handlers.HandleDiscoverSuggestions())
+			r.With(htmx.RequireHTMX).Post("/suggest", handlers.HandleDiscoverSuggestions())
 		})
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
@@ -263,22 +265,27 @@ func Start() error {
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
-			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
-			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
-			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleListSubscriptionsUpdates())
+			r.Group(func(r chi.Router) {
+				r.Use(htmx.RequireHTMX)
+				r.Post("/paginate", handlers.HandleListSubscriptions())
+				r.Post("/read", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
+				r.Post("/unread", handlers.HandleBulkMarkSubscriptions(models.MarkRead))
+				r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
+			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlers.SubscriptionCtx)
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
-				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkSubscription(models.MarkRead))
-				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkSubscription(models.MarkUnread))
-				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteSubscription())
-				r.Route("/edit", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
-					r.Get("/", handlers.HandleEditSubscription())
-					r.Post("/", handlers.HandleSaveSubscription())
+					r.Post("/read", handlers.HandleMarkSubscription(models.MarkRead))
+					r.Post("/unread", handlers.HandleMarkSubscription(models.MarkUnread))
+					r.Post("/favorite", handlers.HandleFavoriteSubscription())
+					r.Route("/edit", func(r chi.Router) {
+						r.Get("/", handlers.HandleEditSubscription())
+						r.Post("/", handlers.HandleSaveSubscription())
+					})
+					r.Get("/remove", handlers.HandleRemoveSubscription())
 				})
-				r.With(htmx.RequireHTMX).Get("/remove", handlers.HandleRemoveSubscription())
 			})
 		})
 		r.Route("/subscription", func(r chi.Router) {
@@ -318,21 +325,24 @@ func Start() error {
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
-			// r.Get("/", handlers.HandleListSubscriptions())
-			// r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			r.With(htmx.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
-			r.With(htmx.RequireHTMX).Post("/read", handlers.HandleBulkMarkArticles(models.MarkRead))
-			r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleBulkMarkArticles(models.MarkRead))
+			r.Group(func(r chi.Router) {
+				r.Use(htmx.RequireHTMX)
+				r.Post("/paginate", handlers.HandleListArticles())
+				r.Post("/read", handlers.HandleBulkMarkArticles(models.MarkRead))
+				r.Post("/unread", handlers.HandleBulkMarkArticles(models.MarkRead))
+			})
 			r.Route("/{articleID}", func(r chi.Router) {
 				r.Use(handlers.ArticleCtx)
-				r.With(htmx.RequireHTMX).Get("/next", handlers.HandleBrowseArticles("next"))
-				r.With(htmx.RequireHTMX).Get("/prev", handlers.HandleBrowseArticles("prev"))
-				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
-				r.With(htmx.RequireHTMX).Post("/read", handlers.HandleMarkArticle(models.MarkRead))
-				r.With(htmx.RequireHTMX).Post("/unread", handlers.HandleMarkArticle(models.MarkUnread))
-				r.With(htmx.RequireHTMX).Post("/favorite", handlers.HandleFavoriteArticle())
-				r.With(htmx.RequireHTMX).Post("/share", handlers.HandleShareArticle())
 				r.Get("/similar", handlers.HandleFindSimilarArticles())
+				r.Group(func(r chi.Router) {
+					r.Use(htmx.RequireHTMX)
+					r.Get("/next", handlers.HandleBrowseArticles("next"))
+					r.Get("/prev", handlers.HandleBrowseArticles("prev"))
+					r.Post("/read", handlers.HandleMarkArticle(models.MarkRead))
+					r.Post("/unread", handlers.HandleMarkArticle(models.MarkUnread))
+					r.Post("/favorite", handlers.HandleFavoriteArticle())
+					r.Post("/share", handlers.HandleShareArticle())
+				})
 			})
 		})
 		// Favorites.
@@ -343,7 +353,7 @@ func Start() error {
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleMap())
-			r.Post("/updates", handlers.HandleMapUpdates())
+			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleMapUpdates())
 		})
 		// Issues.
 		r.Route("/issue", func(r chi.Router) {
