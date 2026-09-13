@@ -6,7 +6,9 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-syndication/linter"
+	"html"
 	"slices"
+	"strings"
 )
 
 templ Linter() {
@@ -105,7 +107,9 @@ templ LinterResults(linterResults map[string][]linter.Result) {
 						if result.Message != nil {
 							<div class="flex-auto pt-6 pl-6">
 								<dt class="text-sm/6 font-semibold">Reason:</dt>
-								<dd class="mt-1 text-sm/6 font-semibold">{ *result.Message } </dd>
+								<dd class="mt-1 text-sm/6 font-semibold">
+									@templ.Raw(toHTMLList(*result.Message))
+								</dd>
 							</div>
 						}
 					</dl>
@@ -157,4 +161,23 @@ templ LinterError(msg *models.UserMessage) {
 			</p>
 		}
 	</div>
+}
+
+func toHTMLList(input string) string {
+	lines := strings.Split(input, "\n")
+
+	var sb strings.Builder
+	sb.WriteString("<ul>\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		sb.WriteString("  <li>")
+		sb.WriteString(html.EscapeString(line))
+		sb.WriteString("</li>\n")
+	}
+	sb.WriteString("</ul>")
+
+	return sb.String()
 }
