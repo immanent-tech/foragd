@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.228.0](https://github.com/immanent-tech/foragd/compare/v0.227.2...v0.228.0) (2026-09-13)
+
+
+### Features
+
+* **templates/header:** ➕ add linter to external header, join with viewer in tools menu ([2a49ad4](https://github.com/immanent-tech/foragd/commit/2a49ad4a54f5ba1ade29ec2dcb42edfab4fee411))
+
 ## [0.227.2](https://github.com/immanent-tech/foragd/compare/v0.227.1...v0.227.2) (2026-09-12)
 
 
