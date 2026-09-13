@@ -26,6 +26,15 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 		case strings.HasPrefix(req.URL.Path, "/list/articles") || strings.HasPrefix(req.URL.Path, "/articles"):
 			path = "/list/articles"
 		}
+
+		// When not on list pages, just load the filters from the session into the context.
+		if !strings.HasSuffix(req.URL.Path, "/articles") && !strings.HasSuffix(req.URL.Path, "/subscriptions") {
+			filters := models.ListFiltersFromSession(req.Context(), path)
+			ctx := models.ListFiltersToCtx(req.Context(), filters)
+			next.ServeHTTP(res, req.WithContext(ctx))
+			return
+		}
+
 		switch req.Method {
 		case http.MethodGet:
 			var filters *models.ListFilters
@@ -47,16 +56,13 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 			} else {
 				// For regular requests, parse the filters from the query.
 				filters = models.ParseListFilters(req.URL.Query())
-				// For list pages, if the parsed filters differ from the request, redirect.
-				if strings.HasSuffix(req.URL.Path, "/articles") || strings.HasSuffix(req.URL.Path, "/subscriptions") {
-					if canonical := filters.Encode(); req.URL.RawQuery != canonical {
-						slogctx.Debug(req.Context(), "Redirect after filters canonicalization.",
-							slog.String("query", req.URL.RawQuery),
-							slog.String("canonical", canonical))
-						req.URL.RawQuery = canonical
-						http.Redirect(res, req, req.URL.String(), http.StatusFound)
-						return
-					}
+				if canonical := filters.Encode(); req.URL.RawQuery != canonical {
+					slogctx.Debug(req.Context(), "Redirect after filters canonicalization.",
+						slog.String("query", req.URL.RawQuery),
+						slog.String("canonical", canonical))
+					req.URL.RawQuery = canonical
+					http.Redirect(res, req, req.URL.String(), http.StatusFound)
+					return
 				}
 			}
 			// Save values.
