@@ -278,12 +278,9 @@ func Start() error {
 					r.Get("/", handlers.HandleEditSubscription())
 					r.Post("/", handlers.HandleSaveSubscription())
 				})
+				r.With(htmx.RequireHTMX).Get("/remove", handlers.HandleRemoveSubscription())
 			})
 		})
-		r.With(htmx.RequireHTMX).
-			Post("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
-		r.With(htmx.RequireHTMX).
-			Delete("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.Route("/subscription", func(r chi.Router) {
 			r.Route("/add", func(r chi.Router) {
 				r.Get("/", handlers.HandleAddSubscription())

@@ -60,18 +60,6 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 	).GetAttributes()
 }
 
-func (s *Subscription) unsubscribeAttributes() templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
-		htmx.WithHXTarget(ModalContainerID.Target()),
-		htmx.WithHXVals(map[string]string{
-			"nickname":  s.GetTitle(),
-			"confirmed": "false",
-		}),
-		htmx.WithHXTrigger("click consume"),
-	).GetAttributes()
-}
-
 func (s *Subscription) reportIssueAttributes() templ.Attributes {
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, "/issue"),

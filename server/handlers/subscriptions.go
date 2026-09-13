@@ -479,35 +479,40 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 // HandleRemoveSubscription handles removing (unsubscribing) from a subscription.
 func HandleRemoveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		request := &models.RemoveSubscriptionRequest{
-			SubscriptionID: chi.URLParam(req, "subscription_id"),
-			Nickname:       req.FormValue("nickname"),
-		}
-		if err := request.Validate(); err != nil {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("validate remove subscription request: %w", err),
-			).ServeHTTP(res, req)
+		res.Header().Set(models.ActionHeader, "remove-subscription")
+
+		// Retrieve the subscription details.
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
-		switch req.FormValue("confirmed") {
-		case "false":
+
+		// Decode request parameters.
+		request, err := parseForm[*models.ConfirmRequest](req)
+		if err != nil {
+			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			return
+		}
+
+		switch request.Confirmed {
+		case false:
 			if strings.Contains(req.Referer(), "/list/subscriptions") {
 				// On "/list/subscriptions", remove the subscription card.
 				RenderPartial(&Modal{
-					template: templates.RemoveSubscriptionModal(request,
-						element.WithHXTarget("#"+request.SubscriptionID),
+					template: templates.RemoveSubscriptionModal(subscription,
+						element.WithHXTarget("#"+subscription.GetID()),
 						element.WithHXSwap("delete transition:true"),
 					)}).ServeHTTP(res, req)
 			} else {
 				// On "/list/articles", don't do anything to the page (a redirect will be triggered).
 				RenderPartial(&Modal{
-					template: templates.RemoveSubscriptionModal(request,
+					template: templates.RemoveSubscriptionModal(subscription,
 						element.WithHXSwap("none"),
 					)}).ServeHTTP(res, req)
 			}
-		case "true":
-			if err := service.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
+		case true:
+			if err := service.RemoveSubscriptions(req.Context(), subscription.GetID()); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("remove subscriptions: %w", err),
@@ -521,12 +526,12 @@ func HandleRemoveSubscription() http.HandlerFunc {
 			case strings.Contains(req.Referer(), "/user/settings"):
 				// When on the subscriptions settings page, remove the subscription from the table.
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
-				res.Header().Set(htmx.HeaderRetarget, "#"+request.SubscriptionID)
+				res.Header().Set(htmx.HeaderRetarget, "#"+subscription.GetID())
 			}
 			// Show success notification.
 			RenderPartial(
 				&Notification{
-					msg: models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
+					msg: models.NewSuccessMessage("Unsubscribed from "+subscription.GetTitle(), ""),
 				},
 			).ServeHTTP(res, req)
 		}

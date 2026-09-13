@@ -1203,7 +1203,10 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 											<div class="tooltip" data-tip="Unsubscribe">
 												<button
 													class="btn btn-square btn-ghost btn-md"
-													{ s.unsubscribeAttributes()... }
+													hx-get={ "/subscriptions/" + s.Subscription.GetID() + "/remove" }
+													hx-target={ ModalContainerID.Target() }
+													hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
+													hx-trigger="click consume"
 												>
 													<span class="sr-only">{ "Unsubscribe from "+s.GetTitle() }</span>
 													@tableroutline.Trash(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})

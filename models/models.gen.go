@@ -1036,14 +1036,6 @@ type Pagination struct {
 // RemoteImage represents a remote image.
 type RemoteImage = externalRef2.Image
 
-// RemoveSubscriptionRequest contains the parameters for removing a subscription.
-type RemoveSubscriptionRequest struct {
-	Nickname string `form:"nickname" json:"nickname" validate:"required"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
-
 // SearchSubscription is a custom subscription created from a search request.
 type SearchSubscription struct {
 	// Search represents a search request by the user.

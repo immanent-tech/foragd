@@ -1515,21 +1515,6 @@ components:
             form: "selected_subscriptions"
             validate: "omitempty,dive,startswith=sub_"
           x-go-type-skip-optional-pointer: true
-    RemoveSubscriptionRequest:
-      description: >
-        contains the parameters for removing a subscription.
-      type: object
-      required:
-        - subscription_id
-        - nickname
-      properties:
-        subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
-        nickname:
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: nickname
-            validate: required
     CategoryFilters:
       description: >
         contains categories that can be used for filtering.

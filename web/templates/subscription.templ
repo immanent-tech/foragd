@@ -199,7 +199,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 											target="_blank"
 											_="on click halt the event's bubbling"
 										>
-											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base--content", "aria-hidden": "true"})
+											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
 											Feed Website
 										</a>
 									}
@@ -212,21 +212,26 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 										hx-swap="morph:innerHTML show:top transition:true"
 										hx-trigger="click consume"
 									>
-										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
+										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 										Edit Subscription
 									</a>
 								}
 								// Unsubscribe action.
 								@partials.MenuItem() {
-									<a { s.unsubscribeAttributes()... }>
-										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
+									<a
+										hx-get={ "/subscriptions/" + s.GetID() + "/remove" }
+										hx-target={ ModalContainerID.Target() }
+										hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
+										hx-trigger="click consume"
+									>
+										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 										Remove Subscription
 									</a>
 								}
 								// Report issue action.
 								@partials.MenuItem() {
 									<a { s.reportIssueAttributes()... }>
-										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base--content", "aria-hidden": "true"})
+										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 										Report an Issue
 									</a>
 								}
@@ -1531,9 +1536,9 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options ...element.PropertiesOption) {
+templ RemoveSubscriptionModal(subscription *models.Subscription, options ...element.PropertiesOption) {
 	{{
-		id := request.SubscriptionID + "-unsubscribe-modal"
+		id := subscription.GetID() + "-unsubscribe-modal"
 		props := element.NewProperties(options...)
 	}}
 	@partials.Modal(id, true) {
@@ -1544,20 +1549,19 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest, options
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 				<h3 id="dialog-title" class="text-lg font-medium">Unsubscribe confirmation</h3>
 				<div class="mt-2">
-					<p class="text-sm">Are you sure you want to unsubscribe from { request.Nickname }?</p>
+					<p class="text-sm">Are you sure you want to unsubscribe from { subscription.GetTitle() }?</p>
 				</div>
 			</div>
 		</div>
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
-				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
+				hx-get={ "/subscriptions/" + string(subscription.GetID()) + "/remove" }
+				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-disabled-elt="find button[type='submit']"
 				{ props.Attributes()... }
 				class="flex"
 				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
 			>
-				<input type="hidden" name="nickname" value={ request.Nickname }/>
-				<input type="hidden" name="confirmed" value="true"/>
 				<button
 					type="submit"
 					class="btn btn-primary"
