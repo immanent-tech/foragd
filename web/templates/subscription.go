@@ -59,15 +59,3 @@ func (s *Subscription) viewAttributes() templ.Attributes {
 		htmx.WithHXVals(vals),
 	).GetAttributes()
 }
-
-func (s *Subscription) reportIssueAttributes() templ.Attributes {
-	return htmx.NewAttributes(
-		htmx.WithHXMethod(http.MethodGet, "/issue"),
-		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXReplaceURL(true),
-		htmx.WithHXVals(map[string]any{
-			"object_id": s.GetID(),
-		}),
-		htmx.WithHXTrigger("click consume"),
-	).GetAttributes()
-}

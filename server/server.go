@@ -339,16 +339,18 @@ func Start() error {
 		r.Route("/favorites", func(r chi.Router) {
 			r.Get("/", handlers.HandleListFavorites())
 		})
-
 		// Map
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleMap())
 			r.Post("/updates", handlers.HandleMapUpdates())
 		})
-		// General.
-		r.Get("/issue", handlers.HandleReportIssue())
-		r.With(htmx.RequireHTMX).Post("/issue", handlers.HandleSubmitIssue())
+		// Issues.
+		r.Route("/issue", func(r chi.Router) {
+			r.Get("/", handlers.HandleReportIssue())
+			r.With(htmx.RequireHTMX).Post("/", handlers.HandleSubmitIssue())
+		})
+		// Help/Documentation.
 		r.Get("/docs", handlers.DocumentationHandler())
 
 		// User routes.

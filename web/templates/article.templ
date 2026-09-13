@@ -337,18 +337,13 @@ templ articleActionsMenu(article *models.Article) {
 				}
 				// Report issue action.
 				@partials.MenuItem() {
-					{{
-						reportIssueAttrs := htmx.NewAttributes(
-							htmx.WithHXMethod(http.MethodGet, "/issue"),
-							htmx.WithHXTarget(ContentID.Target()),
-							htmx.WithHXReplaceURL(true),
-							htmx.WithHXVals(map[string]any{
-								"object_id": article.GetID(),
-							}),
-							htmx.WithHXTrigger("click consume"),
-						).GetAttributes()
-					}}
-					<a { reportIssueAttrs... }>
+					<a
+						hx-get="/issue"
+						hx-target={ ContentID.Target() }
+						hx-replace-url="true"
+						hx-vals={ templ.JSONString(map[string]string{"object_id": article.GetID()}) }
+						hx-trigger="click consume"
+					>
 						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Report an Issue</span>
 					</a>

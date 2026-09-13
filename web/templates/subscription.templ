@@ -230,7 +230,13 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 								}
 								// Report issue action.
 								@partials.MenuItem() {
-									<a { s.reportIssueAttributes()... }>
+									<a
+										hx-get="/issue"
+										hx-target={ ContentID.Target() }
+										hx-replace-url="true"
+										hx-vals={ templ.JSONString(map[string]string{"object_id": s.GetID()}) }
+										hx-trigger="click consume"
+									>
 										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 										Report an Issue
 									</a>
