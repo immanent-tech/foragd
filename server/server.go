@@ -344,7 +344,7 @@ func Start() error {
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Get("/", handlers.HandleMap())
-			r.Get("/updates", handlers.HandleMapUpdates())
+			r.Post("/updates", handlers.HandleMapUpdates())
 		})
 		// General.
 		r.Get("/issue", handlers.HandleReportIssue())
