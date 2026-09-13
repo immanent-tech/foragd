@@ -145,48 +145,53 @@ func Start() error {
 	router.Group(func(r chi.Router) {
 		// Landing and features.
 		r.Get("/", handlers.HandleLanding())
-		r.Get("/features", handlers.HandleFeatures())
-		r.Get("/features/collect", handlers.HandleFeaturesCollect())
-		r.Get("/features/curate", handlers.HandleFeaturesCurate())
-		r.Get("/features/consume", handlers.HandleFeaturesConsume())
-		// About.
-		r.Get("/about", handlers.HandleAbout())
-		// Contact.
-		r.Get("/contact", handlers.HandleContact())
-		r.With(htmx.RequireHTMX).Post("/contact", handlers.HandleSubmitContact())
-		r.Get("/forget-me", handlers.HandleForgetMe())
-		r.With(htmx.RequireHTMX).Post("/forget-me", handlers.HandleSubmitContact())
-		// Feed Viewer.
-		r.Get("/viewer", handlers.HandleViewer())
-		r.Get("/viewer/url/*", handlers.HandleViewer())
-		r.With(htmx.RequireHTMX).Post("/viewer", handlers.HandleViewer())
-		// Feed Linter.
-		r.Get("/linter", handlers.HandleLinter())
-		r.With(htmx.RequireHTMX).Post("/linter", handlers.HandleLinter())
-		// Help documentation.
-		r.Get("/docs", handlers.DocumentationHandler())
-		// Policy documentation (i.e., terms of service, privacy).
-		r.Get("/policies/*", handlers.PolicyDocsHandler())
-		// Posts index.
-		r.Get("/blog", handlers.HandlePosts())
-		r.Get("/posts", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			http.Redirect(res, req, "/blog", http.StatusMovedPermanently)
-		}))
-		// Individual posts.
-		r.Get("/blog/*", handlers.HandlePosts())
-		r.Get("/posts/*", func(w http.ResponseWriter, r *http.Request) {
-			wildcardPath := chi.URLParam(r, "*")
-			http.Redirect(w, r, "/blog/"+wildcardPath, http.StatusMovedPermanently)
+		r.Route("/features", func(r chi.Router) {
+			r.Get("/", handlers.HandleFeatures())
+			r.Get("/collect", handlers.HandleFeaturesCollect())
+			r.Get("/curate", handlers.HandleFeaturesCurate())
+			r.Get("/consume", handlers.HandleFeaturesConsume())
 		})
 		// Comparison pages.
 		r.Get("/compare/{service}", handlers.HandleComparison())
+		// About.
+		r.Get("/about", handlers.HandleAbout())
+		// Contact.
+		r.Route("/contact", func(r chi.Router) {
+			r.Get("/", handlers.HandleContact())
+			r.With(htmx.RequireHTMX).Post("/", handlers.HandleSubmitContact())
+		})
+		r.Route("/forget-me", func(r chi.Router) {
+			r.Get("/", handlers.HandleForgetMe())
+			r.With(htmx.RequireHTMX).Post("/", handlers.HandleSubmitContact())
+		})
+		// Feed Viewer.
+		r.Route("/viewer", func(r chi.Router) {
+			r.Get("/", handlers.HandleViewer())
+			r.Get("/url/*", handlers.HandleViewer())
+			r.With(htmx.RequireHTMX).Post("/", handlers.HandleViewer())
+		})
+		// Feed Linter.
+		r.Route("/linter", func(r chi.Router) {
+			r.Get("/", handlers.HandleLinter())
+			r.With(htmx.RequireHTMX).Post("/", handlers.HandleLinter())
+		})
+		// Help documentation.
+		r.Get("/docs", handlers.DocumentationHandler())
+		r.Get("/help", handlers.DocumentationHandler())
+		// Policy documentation (i.e., terms of service, privacy).
+		r.Get("/policies/*", handlers.PolicyDocsHandler())
+		// Blog.
+		r.Route("/blog", func(r chi.Router) {
+			r.Get("/", handlers.HandlePosts())
+			r.Get("/*", handlers.HandlePosts())
+		})
 		// Changelog.
-		r.Get("/changelog", handlers.HandleChangelog())
-		r.Get("/changelog/feed", handlers.HandleChangelogFeed())
+		r.Route("/changelog", func(r chi.Router) {
+			r.Get("/", handlers.HandleChangelog())
+			r.Get("/feed", handlers.HandleChangelogFeed())
+		})
 		// Posts RSS feed.
 		r.Get("/feed", handlers.HandlePostsFeed())
-		// Help.
-		r.Get("/help", handlers.DocumentationHandler())
 		// Sign-up/Login routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
@@ -391,6 +396,8 @@ func Start() error {
 
 		// Moved routes.
 		r.Get("/list/favorites", handlers.RedirectTo("/favorites", http.StatusMovedPermanently))
+		r.Get("/posts", handlers.RedirectTo("/blog", http.StatusMovedPermanently))
+		r.Get("/posts/*", handlers.RedirectParam("*", "blog/%s", http.StatusMovedPermanently))
 	})
 
 	svr := &http.Server{
@@ -467,5 +474,3 @@ func Start() error {
 
 	return nil
 }
-
-// UserAgent = config.GetAppName() + "/" + config.GetVersion() + " (+https://foragd.app/policies/bot)"

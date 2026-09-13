@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
@@ -28,6 +29,18 @@ var (
 func RedirectTo(target string, code int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		dest := target
+		if r.URL.RawQuery != "" {
+			dest += "?" + r.URL.RawQuery
+		}
+		http.Redirect(w, r, dest, code)
+	}
+}
+
+// RedirectParam performs route redirection for routes with parameters that have moved.
+func RedirectParam(paramName, targetTmpl string, code int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		val := chi.URLParam(r, paramName)
+		dest := fmt.Sprintf(targetTmpl, val)
 		if r.URL.RawQuery != "" {
 			dest += "?" + r.URL.RawQuery
 		}
