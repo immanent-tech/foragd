@@ -124,14 +124,22 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 						@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 					}
 				</div>
-				<h2 class="card-title font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
+				<h2 class="card-title flex-1 font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ subscription.GetTitle() }
 				</h2>
 				// Add an icon to indicate whether article filtering is being applied.
 				if articleFilters := subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
-					<div class="tooltip" data-tip="Article filtering applied">
-						<span class="sr-only">Article filtering applied</span>
-						@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-4 fill-accent", "aria-hidden": "true"})
+					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
+						<button
+							hx-get={ "/subscriptions/" + subscription.GetID() + "/edit#article-filtering" }
+							hx-target={ ContentID.Target() }
+							hx-swap="morph:innerHTML show:top transition:true"
+							hx-trigger="click consume"
+							class="btn btn-sm btn-ghost btn-square"
+						>
+							<span class="sr-only">Article filtering applied</span>
+							@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
+						</button>
 					</div>
 				}
 			</div>
@@ -486,7 +494,7 @@ templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
 
 templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
 	<fieldset class="fieldset min-w-0 py-8">
-		<legend class="flex items-center gap-2 text-lg font-medium">
+		<legend id="article-filtering" class="flex items-center gap-2 text-lg font-medium">
 			Article Filtering
 			<button popovertarget="article-filtering-help" type="button">
 				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
