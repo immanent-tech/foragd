@@ -25,13 +25,7 @@ type Bucket struct {
 
 func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 	r, err := b.object(key).NewReader(ctx)
-	if err != nil {
-		if !errors.Is(err, storage.ErrObjectNotExist) {
-			slogctx.FromCtx(ctx).Warn("Could not get object.",
-				slog.String("bucket", b.storage.BucketName()),
-				slog.Any("error", err),
-			)
-		}
+	if err != nil && !errors.Is(err, storage.ErrObjectNotExist) {
 		return nil, false
 	}
 	defer r.Close()
@@ -50,7 +44,7 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 
 func (b *Bucket) Copy(ctx context.Context, key string, buf io.Writer) error {
 	r, err := b.object(key).NewReader(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, storage.ErrObjectNotExist) {
 		return gcp.APIError("copy object", err) //nolint:wrapcheck // unnecessary.
 	}
 	defer r.Close()
