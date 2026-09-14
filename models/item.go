@@ -135,7 +135,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Categories:   source.GetCategories(),
 		FeedTitle:    feed.GetTitle(),
 	}
-	if geo := source.GetGeoInfo(); !geo.IsZero() {
+	if geo := source.GetGeoInfo(); geo != nil && !geo.IsZero() {
 		item.Geo = geo
 	}
 	if content := source.GetContent(); content != nil {
