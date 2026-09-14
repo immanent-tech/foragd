@@ -10,11 +10,13 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"net/http"
 	"path"
 
 	"cloud.google.com/go/storage"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
@@ -44,7 +46,10 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 
 func (b *Bucket) Copy(ctx context.Context, key string, buf io.Writer) error {
 	r, err := b.object(key).NewReader(ctx)
-	if err != nil && !errors.Is(err, storage.ErrObjectNotExist) {
+	if err != nil {
+		if errors.Is(err, storage.ErrObjectNotExist) {
+			return models.NewAPIError(http.StatusNotFound, err)
+		}
 		return gcp.APIError("copy object", err) //nolint:wrapcheck // unnecessary.
 	}
 	defer r.Close()
