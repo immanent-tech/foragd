@@ -25,11 +25,13 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 			path = "/list/subscriptions"
 		case strings.HasPrefix(req.URL.Path, "/list/articles") || strings.HasPrefix(req.URL.Path, "/articles"):
 			path = "/list/articles"
+		case strings.HasPrefix(req.URL.Path, "/map"):
+			path = "/map"
 		}
 
 		// When not on list pages, just load the filters from the session into the context.
 		if req.Method == http.MethodGet && !strings.HasSuffix(req.URL.Path, "/articles") &&
-			!strings.HasSuffix(req.URL.Path, "/subscriptions") {
+			!strings.HasSuffix(req.URL.Path, "/subscriptions") && !strings.HasPrefix(req.URL.Path, "/map") {
 			filters := models.ListFiltersFromSession(req.Context(), path)
 			ctx := models.ListFiltersToCtx(req.Context(), filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
