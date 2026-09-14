@@ -127,21 +127,39 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 				<h2 class="card-title flex-1 font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
 					{ subscription.GetTitle() }
 				</h2>
-				// Add an icon to indicate whether article filtering is being applied.
-				if articleFilters := subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
-					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
-						<button
-							hx-get={ "/subscriptions/" + subscription.GetID() + "/edit#article-filtering" }
-							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
-							hx-trigger="click consume"
-							class="btn btn-sm btn-ghost btn-square"
-						>
-							<span class="sr-only">Article filtering applied</span>
-							@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
-						</button>
-					</div>
-				}
+				<div class="gap-1">
+					// Add an icon to indicate whether article filtering is being applied.
+					if articleFilters := subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
+						<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
+							<button
+								hx-get={ "/subscriptions/" + subscription.GetID() + "/edit#article-filtering" }
+								hx-target={ ContentID.Target() }
+								hx-swap="morph:innerHTML show:top transition:true"
+								hx-trigger="click consume"
+								class="btn btn-sm btn-ghost btn-square"
+							>
+								<span class="sr-only">Article filtering applied</span>
+								@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
+							</button>
+						</div>
+					}
+					// Add an icon to map articles if the subscription has articles with geo info.
+					if subscription.HasGeoInfo() {
+						<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
+							<button
+								hx-get="/map"
+								hx-target={ ContentID.Target() }
+								hx-swap="morph:innerHTML show:top transition:true"
+								hx-trigger="click consume"
+								hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
+								class="btn btn-sm btn-ghost btn-square"
+							>
+								<span class="sr-only">Show articles on map</span>
+								@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
+							</button>
+						</div>
+					}
+				</div>
 			</div>
 		}
 		// Card body.
@@ -212,6 +230,20 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 										>
 											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
 											Feed Website
+										</a>
+									}
+								}
+								if subscription.HasGeoInfo() {
+									@partials.MenuItem() {
+										<a
+											hx-get="/map"
+											hx-target={ ContentID.Target() }
+											hx-swap="morph:innerHTML show:top transition:true"
+											hx-trigger="click consume"
+											hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
+										>
+											@tableroutline.Map2(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
+											Map articles
 										</a>
 									}
 								}

@@ -406,6 +406,18 @@ func (s *Subscription) MarkItems(mark Mark, itemIDs ...ItemID) {
 	}
 }
 
+// HasGeoInfo returns a boolean if this subscription has articles with geo coordinates, allowing them to be mapped.
+func (s Subscription) HasGeoInfo() bool {
+	var hasGeo bool
+	for article := range slices.Values(s.Articles) {
+		if article.Item.Geo != nil && !article.Item.Geo.IsZero() {
+			hasGeo = true
+			break
+		}
+	}
+	return hasGeo
+}
+
 const subscriptionCtxKey contextKey = "subscription"
 
 func SubscriptionToCtx(ctx context.Context, subscription *Subscription) context.Context {

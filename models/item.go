@@ -134,7 +134,9 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 		FeedTitle:    feed.GetTitle(),
-		Geo:          source.GetGeoInfo(),
+	}
+	if geo := source.GetGeoInfo(); !geo.IsZero() {
+		item.Geo = geo
 	}
 	if content := source.GetContent(); content != nil {
 		item.Content = new(validation.SanitizeString(*content))

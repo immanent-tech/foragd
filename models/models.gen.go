@@ -415,7 +415,7 @@ type ArticleArchive struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Geo contains geographic information related to an item.
-	Geo *ItemGeo `json:"geo,omitempty"`
+	Geo *ItemGeo `json:"geo,omitempty,omitzero"`
 
 	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
@@ -830,7 +830,7 @@ type Item struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Geo contains geographic information related to an item.
-	Geo *ItemGeo `json:"geo,omitempty"`
+	Geo *ItemGeo `json:"geo,omitempty,omitzero"`
 
 	// Image represents a remote image.
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
