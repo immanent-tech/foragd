@@ -41,5 +41,8 @@
   "git.autofetch": true,
   "git.followTagsWhenSync": true,
   "git.enableSmartCommit": true,
-  "markdown.validate.enabled": true
+  "markdown.validate.enabled": true,
+  "harper-ls": {
+    "excludePatterns": ["**/*.go", "**/*_templ.go"]
+  }
 }
