@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.229.0](https://github.com/immanent-tech/foragd/compare/v0.228.0...v0.229.0) (2026-09-14)
+
+
+### Features
+
+* ✨ add buttons to map subscription articles when they have geo coordinates available ([42f175a](https://github.com/immanent-tech/foragd/commit/42f175afbcc7b48c7887758a3fd721b95c592f8a))
+* **templates/subscriptions:** ✨ make article filtering indicator on subscription card clickable ([398ad71](https://github.com/immanent-tech/foragd/commit/398ad718cf4e30b264f9af1ea01a8841b3dbcc34))
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 don't canoncalize filters when not on list page, just load into context from session ([76e402e](https://github.com/immanent-tech/foragd/commit/76e402ec3d3ca8f068b30d3cdd58501a7535ce81))
+* **server:** 🔧 fix method for map updates route ([82ceb61](https://github.com/immanent-tech/foragd/commit/82ceb612303689212e90c4dae02d18e42bcd29ce))
+* **service/articles:** 🔧 guard against no remote content without an error status ([9a90dab](https://github.com/immanent-tech/foragd/commit/9a90dab137a72c1ecaa49548c510a35f365a80de))
+* **templates/linter:** 🔧 fix validation output formatting ([b0fb17e](https://github.com/immanent-tech/foragd/commit/b0fb17e6ebdb8783fd6ed22b713c8e6d2b55bacc))
+* **templates/linter:** 🔧 simplify generating failed check reasons list ([ab6079d](https://github.com/immanent-tech/foragd/commit/ab6079d171c6b89832378508bfe9ea2a1c6b674b))
+
+
+### Performance Improvements
+
+* ⚡ imporoved subscription article generation ([50f13f6](https://github.com/immanent-tech/foragd/commit/50f13f6158294fe145e59f6c0cc101ccec794b4d))
+
 ## [0.228.0](https://github.com/immanent-tech/foragd/compare/v0.227.2...v0.228.0) (2026-09-13)
 
 
