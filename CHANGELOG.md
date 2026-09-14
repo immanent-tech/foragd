@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.229.4](https://github.com/immanent-tech/foragd/compare/v0.229.3...v0.229.4) (2026-09-14)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 push url for discover page ([01281dd](https://github.com/immanent-tech/foragd/commit/01281ddfe19aae0ce42fa347699eac23d3423182))
+* **providers/google:** 🔧 always return some kind of error ([1f7572f](https://github.com/immanent-tech/foragd/commit/1f7572f6cc0315547f6faa70ba0371aac109ab04))
+
 ## [0.229.3](https://github.com/immanent-tech/foragd/compare/v0.229.2...v0.229.3) (2026-09-14)
 
 
