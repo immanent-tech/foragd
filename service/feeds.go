@@ -1543,6 +1543,10 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 // URL used to fetch the updates (for disambiguation of feeds with multiple source URLs). A non-nil error is returned
 // where there is a critical error fetching the feed details.
 func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
+	}
+
 	// Set fetch options.
 	var (
 		proxyRequest bool
@@ -1554,8 +1558,11 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
+		fetchCtx, fetchCancel := context.WithTimeout(ctx, time.Minute)
+		defer fetchCancel()
+
 		feed, err := FetchFeed(
-			ctx,
+			fetchCtx,
 			feedURL,
 			FetchWithFeedID(details.GetID()),
 			FetchWithProxy(proxyRequest),
@@ -1582,6 +1589,10 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 // of feeds with multiple source URLs). A non-nil error is returned where there is a critical error fetching the feed
 // details.
 func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
+	}
+
 	// Get any extraction options from the feed.
 	var extractOptions zyte.ExtractOptions
 	if details.FetchOptions != nil {
@@ -1601,9 +1612,12 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
+		fetchCtx, fetchCancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer fetchCancel()
+
 		// Fetch the feed details using Zyte as an article list.
 		resp, err := zyte.Proxy(
-			ctx,
+			fetchCtx,
 			feedURL,
 			zyte.WithExtractFrom(extractFrom),
 			zyte.AsArticleList(&extractOptions),
@@ -1616,7 +1630,7 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 			continue
 		}
 		// Generate feed details from Zyte response.
-		feed, err := NewFeedFromZyteResponse(ctx, resp)
+		feed, err := NewFeedFromZyteResponse(fetchCtx, resp)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
 			logGeneralError(ctx, err, feedURL, details.GetID())
@@ -1624,7 +1638,7 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 		}
 
 		// Extract and enrich articles from Zyte response.
-		items, err := NewItemsFromZyteArticles(ctx, feed, resp.ArticleList)
+		items, err := NewItemsFromZyteArticles(fetchCtx, feed, resp.ArticleList)
 		if err != nil {
 			logGeneralError(ctx, err, feedURL, details.GetID())
 			return nil, feedURL, fmt.Errorf("%s: %w", feedURL, err)

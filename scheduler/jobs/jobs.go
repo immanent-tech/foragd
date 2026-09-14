@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
@@ -26,10 +25,6 @@ var (
 	ErrMarshalJobFailed = errors.New("could not marshal job")
 	ErrInvalidJob       = errors.New("invalid job")
 	ErrNoJob            = errors.New("no job found")
-)
-
-const (
-	defaultJobTimeout = 5 * time.Minute
 )
 
 var _ quartz.ScheduledJob = (*SerializedJob)(nil)

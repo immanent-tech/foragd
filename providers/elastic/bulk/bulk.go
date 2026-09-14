@@ -25,6 +25,7 @@ import (
 
 const (
 	defaultRetryCount = 3
+	operationTimeout  = 1000 * time.Millisecond
 )
 
 const (
@@ -170,14 +171,19 @@ func IndexDocuments[T ~string, O Document[T]](
 	}
 
 	for action := range slices.Values(actions) {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("index documents: %w", err)
+		}
 		item, err := action.marshalItem()
 		if err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to marshal document to item.",
+			slogctx.Error(ctx, "Unable to marshal document to item.",
 				slog.Any("error", err))
 		}
+		indexCtx, indexCancel := context.WithTimeout(ctx, operationTimeout)
+		defer indexCancel()
 
-		if err := indexer.Add(ctx, item); err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to add document.",
+		if err := indexer.Add(indexCtx, item); err != nil {
+			slogctx.Error(ctx, "Unable to add document.",
 				slog.Any("error", err))
 		}
 	}
@@ -199,14 +205,19 @@ func AddAction[T ~string](
 	}
 
 	for action := range slices.Values(actions) {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("add documents: %w", err)
+		}
 		item, err := action.marshalItem()
 		if err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to marshal document to item.",
+			slogctx.Error(ctx, "Unable to marshal document to item.",
 				slog.Any("error", err))
 		}
+		addCtx, addCancel := context.WithTimeout(ctx, operationTimeout)
+		defer addCancel()
 
-		if err := indexer.Add(ctx, item); err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to add document.",
+		if err := indexer.Add(addCtx, item); err != nil {
+			slogctx.Error(ctx, "Unable to add document.",
 				slog.Any("error", err))
 		}
 	}

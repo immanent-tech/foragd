@@ -837,7 +837,14 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 }
 
 func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
-	rawHTML, err := htmlx.GetHTML(ctx, link)
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("cannot fetch item: %w", err)
+	}
+
+	fetchCtx, fetchCancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer fetchCancel()
+
+	rawHTML, err := htmlx.GetHTML(fetchCtx, link)
 	if err != nil {
 		if respErr, isHtmlxErr := errors.AsType[*htmlx.Response](err); isHtmlxErr {
 			// Check if response status is forbidden. If so, try through Zyte.
@@ -856,7 +863,13 @@ func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
 }
 
 func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
-	switch extracted, err := zyte.Proxy(ctx,
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("cannot fetch item: %w", err)
+	}
+
+	fetchCtx, fetchCancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer fetchCancel()
+	switch extracted, err := zyte.Proxy(fetchCtx,
 		link,
 		zyte.WithResponseBody(true),
 		zyte.WithFollowRedirects(true),

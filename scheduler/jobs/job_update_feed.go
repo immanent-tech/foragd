@@ -20,6 +20,8 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
+const updateFeedJobTimeout = 10 * time.Minute
+
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
 // NewUpdateFeedJob creates a job for updating a feed.
@@ -60,7 +62,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	start := time.Now()
 
-	ctx, cancel := context.WithTimeout(ctx, defaultJobTimeout)
+	ctx, cancel := context.WithTimeout(ctx, updateFeedJobTimeout)
 	defer cancel()
 
 	// Add feed id as slog attribute for log tracking.
@@ -87,7 +89,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		if flushErr := bulk.Flush(ctx); flushErr != nil {
 			return fmt.Errorf("update feed job: %w", flushErr)
 		}
-		slogctx.FromCtx(ctx).Warn("No feed found with that ID. Marking update feed job for deletion.")
+		slogctx.Warn(ctx, "No feed found with that ID. Marking update feed job for deletion.")
 		return nil
 	case err != nil:
 		return fmt.Errorf("get feed doc: %w", err)
@@ -124,7 +126,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			slog.Any("error", err))
 	}
 
-	slogctx.FromCtx(ctx).Debug("Finished update feed job.",
+	slogctx.Debug(ctx, "Finished update feed job.",
 		slog.Duration("took", time.Since(start)))
 
 	return nil

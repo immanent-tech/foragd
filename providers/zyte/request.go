@@ -128,7 +128,7 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 	result := &Response{}
 	errResult := &ResponseError{}
 
-	slogctx.FromCtx(ctx).Debug("proxying request", slog.String("url", rawURL))
+	slogctx.Debug(ctx, "proxying request", slog.String("url", rawURL))
 
 	client, err := client.Load()
 	if err != nil {
