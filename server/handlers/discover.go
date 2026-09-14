@@ -8,6 +8,8 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/immanent-tech/go-base/pkg/htmx"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -35,6 +37,7 @@ func (h *Discover) PartialResponse(res http.ResponseWriter, req *http.Request) {
 
 func HandleDiscover() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
