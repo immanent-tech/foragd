@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.229.1](https://github.com/immanent-tech/foragd/compare/v0.229.0...v0.229.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 fix canoncalize filters for maps view ([5874679](https://github.com/immanent-tech/foragd/commit/5874679fd563b1221875ae46f37eca8b55ab3e00))
+* **middlewares:** 🔧 fix pagination request filter loading ([55d5e6f](https://github.com/immanent-tech/foragd/commit/55d5e6f559e5ccb5397d20d02893e617c7ef0155))
+* **models:** 🔧 fix nil pointer dereference ([08bb41a](https://github.com/immanent-tech/foragd/commit/08bb41a847bca57db98185b88044d09b1d950d0b))
+
 ## [0.229.0](https://github.com/immanent-tech/foragd/compare/v0.228.0...v0.229.0) (2026-09-14)
 
 
