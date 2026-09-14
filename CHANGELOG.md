@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.229.3](https://github.com/immanent-tech/foragd/compare/v0.229.2...v0.229.3) (2026-09-14)
+
+
+### Bug Fixes
+
+* **cli:** 🔧 ignore if deleting a non-existent job fails ([e740456](https://github.com/immanent-tech/foragd/commit/e740456d3e1370ab961c26537a739b009fe8e28d))
+* **providers/google:** 🔧 ignore not found errors when fetching objects from gcs ([47735c2](https://github.com/immanent-tech/foragd/commit/47735c265a0631093ea4cba2fdc54e3d7cf79330))
+
 ## [0.229.2](https://github.com/immanent-tech/foragd/compare/v0.229.1...v0.229.2) (2026-09-14)
 
 
