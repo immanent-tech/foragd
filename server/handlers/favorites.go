@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"sync"
 
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
@@ -51,7 +50,6 @@ func HandleListFavorites() http.HandlerFunc {
 		var (
 			articles      models.Articles
 			subscriptions models.Subscriptions
-			latestItems   *sync.Map
 		)
 
 		user := models.UserFromCtx(req.Context())
@@ -89,7 +87,7 @@ func HandleListFavorites() http.HandlerFunc {
 			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 				return fmt.Errorf("update subscription dynamic info: %w", err)
 			}
-			latestItems = service.GetLatestItems(req.Context(), models.ViewAll, subscriptions)
+			service.GetLatestArticles(req.Context(), models.ViewAll, subscriptions)
 			return nil
 		})
 
@@ -103,9 +101,8 @@ func HandleListFavorites() http.HandlerFunc {
 
 		// Render appropriate content.
 		response := &models.ListFavoritesResponse{
-			Subscriptions:  subscriptions,
-			Articles:       articles,
-			LatestArticles: latestItems,
+			Subscriptions: subscriptions,
+			Articles:      articles,
 		}
 		page := &Favorites{
 			title: templates.PageTitle{

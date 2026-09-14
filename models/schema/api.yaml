@@ -230,10 +230,6 @@ components:
           description: >
             is the list of subscriptions.
           x-go-type: Subscriptions
-        latest_articles:
-          description: >
-            is a map of the latest articles for each subscription in the result.
-          x-go-type: sync.Map
         filters:
           $ref: "models.yaml#/components/schemas/ListFilters"
     ListArticlesRequest:
@@ -248,9 +244,7 @@ components:
       type: object
       required:
         - articles
-        - category_counts
         - filters
-        - pagination
       properties:
         subscription:
           allOf:
@@ -271,10 +265,6 @@ components:
         articles:
           x-go-type: "Articles"
           x-go-type-skip-optional-pointer: true
-        latest_articles:
-          description: >
-            is a map of the latest articles for each subscription in the result.
-          x-go-type: sync.Map
     ViewArticleRequest:
       description: contains additional request data for viewing an article.
       type: object

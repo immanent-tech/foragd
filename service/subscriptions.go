@@ -640,11 +640,16 @@ func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, f
 	return nil
 }
 
-func GetLatestItems(ctx context.Context, view models.View, subscriptions models.Subscriptions) *sync.Map {
-	var (
-		latestItems sync.Map
-		wg          sync.WaitGroup
-	)
+// GetLatestArticles will fetch and add the latest articles to the given subscriptions.
+func GetLatestArticles(
+	ctx context.Context,
+	view models.View,
+	subscriptions models.Subscriptions,
+) {
+	// NOTE: there is concurrent access to the subscriptions slice, but each element is sequentially accessed within the
+	// goroutines. So this is safe access.
+
+	var wg sync.WaitGroup
 	if otel.IsEnabled() {
 		_, span := otel.TracerProvider.Tracer("").
 			Start(ctx, "get-latest-items")
@@ -666,19 +671,33 @@ func GetLatestItems(ctx context.Context, view models.View, subscriptions models.
 			slices.Concat(feedSubscriptions, emailSubscriptions),
 			view,
 		)
-		// feedsLatestItems, err := getFeedSubscriptionLatestItems(
-		// 	req.Context(),
-		// 	subscriptions.FilterByType(models.SubscriptionTypeFeed, models.SubscriptionTypeEmail),
-		// 	filters,
-		// )
 		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for feed subscriptions.",
+			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for feed/email subscriptions.",
 				slog.Any("error", err),
 			)
 		}
-		for subscription := range slices.Values(slices.Concat(feedSubscriptions, emailSubscriptions)) {
-			if items, found := feedsLatestItems[subscription.GetFeedID()]; found {
-				latestItems.Store(subscription.GetID(), items)
+		for s := range slices.Values(feedSubscriptions) {
+			if items, found := feedsLatestItems[s.GetFeedID()]; found {
+				articles, err := GenerateArticles(ctx, items)
+				if err != nil {
+					slogctx.Warn(ctx, "Could not generate articles for feed subscription.",
+						slog.String("subscription_id", s.GetID()),
+						slog.Any("error", err))
+					continue
+				}
+				s.Articles = articles
+			}
+		}
+		for s := range slices.Values(emailSubscriptions) {
+			if items, found := feedsLatestItems[s.GetFeedID()]; found {
+				articles, err := GenerateArticles(ctx, items)
+				if err != nil {
+					slogctx.Warn(ctx, "Could not generate articles for email subscription.",
+						slog.String("subscription_id", s.GetID()),
+						slog.Any("error", err))
+					continue
+				}
+				s.Articles = articles
 			}
 		}
 	})
@@ -697,8 +716,18 @@ func GetLatestItems(ctx context.Context, view models.View, subscriptions models.
 			subscriptions.FilterByType(models.SubscriptionTypeGroup),
 			view,
 		)
-		for key, value := range groupsLatestItems {
-			latestItems.Store(key, value)
+		groupSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeGroup)
+		for s := range slices.Values(groupSubscriptions) {
+			if items, found := groupsLatestItems[s.GetID()]; found {
+				articles, err := GenerateArticles(ctx, items)
+				if err != nil {
+					slogctx.Warn(ctx, "Could not generate articles for group subscription.",
+						slog.String("subscription_id", s.GetID()),
+						slog.Any("error", err))
+					continue
+				}
+				s.Articles = articles
+			}
 		}
 	})
 
@@ -720,14 +749,22 @@ func GetLatestItems(ctx context.Context, view models.View, subscriptions models.
 				slog.Any("error", err),
 			)
 		}
-		for key, value := range searchLatestItems {
-			latestItems.Store(key, value)
+		searchSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeSearch)
+		for s := range slices.Values(searchSubscriptions) {
+			if items, found := searchLatestItems[s.GetID()]; found {
+				articles, err := GenerateArticles(ctx, items)
+				if err != nil {
+					slogctx.Warn(ctx, "Could not generate articles for search subscription.",
+						slog.String("subscription_id", s.GetID()),
+						slog.Any("error", err))
+					continue
+				}
+				s.Articles = articles
+			}
 		}
 	})
 
 	wg.Wait()
-
-	return &latestItems
 }
 
 // getFeedSubscriptionLatestItems fetches the latest items for subscriptions. This is a wrapper around GetFeedLatestItems
@@ -1422,4 +1459,16 @@ func newSubscriptionSortOptions(sort *models.Sort) []estypes.SortCombinationsVar
 		})
 	}
 	return opts
+}
+
+func mergeMaps[K comparable, V any](sources ...map[K]V) map[K]V {
+	size := 0
+	for src := range slices.Values(sources) {
+		size += len(src)
+	}
+	result := make(map[K]V, size)
+	for src := range slices.Values(sources) {
+		maps.Copy(result, src)
+	}
+	return result
 }

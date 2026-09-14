@@ -1068,6 +1068,9 @@ type State string
 
 // Subscription represents any kind of subscription.
 type Subscription struct {
+	// Articles is a slice of latest articles for the subscription.
+	Articles []*Article `form:"-" json:"-"`
+
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 

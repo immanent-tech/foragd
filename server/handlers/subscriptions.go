@@ -15,7 +15,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -158,16 +157,14 @@ func HandleListSubscriptions() http.HandlerFunc {
 			Paginate(&request.Filters)
 
 		// Get latest articles for subscriptions.
-		var latestItems *sync.Map
 		if len(subscriptions) > 0 {
-			latestItems = service.GetLatestItems(req.Context(), request.Filters.GetView(), subscriptions)
+			service.GetLatestArticles(req.Context(), request.Filters.GetView(), subscriptions)
 		}
 
 		// Create response object
 		response := &models.ListSubscriptionsResponse{
-			Filters:        request.Filters,
-			Subscriptions:  subscriptions,
-			LatestArticles: latestItems,
+			Filters:       request.Filters,
+			Subscriptions: subscriptions,
 		}
 		// Update filters in response.
 		response.Filters.From = pagination.From

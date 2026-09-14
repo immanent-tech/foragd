@@ -1220,6 +1220,15 @@ components:
               $ref: "#/components/schemas/EmailSubscription"
             stats:
               $ref: "#/components/schemas/SubscriptionStats"
+            articles:
+              description: is a slice of latest articles for the subscription.
+              type: array
+              items:
+                x-go-type: "*Article"
+              x-go-type-skip-optional-pointer: true
+              x-oapi-codegen-extra-tags:
+                form: "-"
+                json: "-"
     SearchSubscriptionRequest:
       description: >
         represents a request to create a search subscription.

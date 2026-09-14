@@ -6,7 +6,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -209,11 +208,8 @@ type ListArticlesResponse struct {
 
 // ListFavoritesResponse contains the data for displaying the favorites page.
 type ListFavoritesResponse struct {
-	Articles Articles `json:"articles,omitempty"`
-
-	// LatestArticles is a map of the latest articles for each subscription in the result.
-	LatestArticles *sync.Map     `json:"latest_articles,omitempty"`
-	Subscriptions  Subscriptions `json:"subscriptions,omitempty"`
+	Articles      Articles      `json:"articles,omitempty"`
+	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 
 // ListRequest contains the parameters needed for listing subscriptions or articles.
@@ -229,9 +225,6 @@ type ListRequest struct {
 type ListSubscriptionsResponse struct {
 	// Filters contains filters for altering the display of a list of subscriptions or articles.
 	Filters ListFilters `json:"filters" validate:"required"`
-
-	// LatestArticles is a map of the latest articles for each subscription in the result.
-	LatestArticles *sync.Map `json:"latest_articles,omitempty"`
 
 	// Subscriptions is the list of subscriptions.
 	Subscriptions Subscriptions `json:"subscriptions"`

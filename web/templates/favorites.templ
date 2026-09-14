@@ -111,33 +111,27 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@grid(element.WithClasses("relative", "mt-4")) {
 									for idx, subscription := range response.Subscriptions {
 										@SubscriptionCard(idx, "/favorites", subscription, models.ViewAll) {
-											if response.LatestArticles != nil {
-												{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
-												if ok {
-													{{ items, ok := itemsData.(models.Items) }}
-													if ok {
-														<div class="mt-auto h-full">
-															<ul class="latest-items menu font-serif">
-																for item := range slices.Values(items) {
-																	<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-																		<a
-																			hx-get={ "/view/article/" + item.GetID() }
-																			hx-target={ ContentID.Target() }
-																			hx-swap="morph:innerHTML show:top transition:true"
-																			hx-trigger="click"
-																			hx-push-url="true"
-																			_="on click halt the event's bubbling"
-																			class="line-clamp-3 text-base"
-																			title={ item.GetTitle() }
-																		>
-																			{ item.GetTitle() }
-																		</a>
-																	</li>
-																}
-															</ul>
-														</div>
-													}
-												}
+											if len(subscription.Articles) > 0 {
+												<div class="mt-auto h-full">
+													<ul class="latest-items menu font-serif">
+														for item := range slices.Values(subscription.Articles) {
+															<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+																<a
+																	hx-get={ "/view/article/" + item.GetID() }
+																	hx-target={ ContentID.Target() }
+																	hx-swap="morph:innerHTML show:top transition:true"
+																	hx-trigger="click"
+																	hx-push-url="true"
+																	_="on click halt the event's bubbling"
+																	class="line-clamp-3 text-base"
+																	title={ item.GetTitle() }
+																>
+																	{ item.GetTitle() }
+																</a>
+															</li>
+														}
+													</ul>
+												</div>
 											}
 										}
 									}

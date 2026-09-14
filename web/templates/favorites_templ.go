@@ -185,78 +185,72 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 										}()
 									}
 									ctx = templ.InitializeContext(ctx)
-									if response.LatestArticles != nil {
-										itemsData, ok := response.LatestArticles.Load(subscription.GetID())
-										if ok {
-											items, ok := itemsData.(models.Items)
-											if ok {
-												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"mt-auto h-full\"><ul class=\"latest-items menu font-serif\">")
-												if templ_7745c5c3_Err != nil {
-													return templ_7745c5c3_Err
-												}
-												for item := range slices.Values(items) {
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<li class=\"my-1 border-l-2 border-accent/40 pl-3 text-base\"><a hx-get=\"")
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													var templ_7745c5c3_Var10 string
-													templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
-													if templ_7745c5c3_Err != nil {
-														return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 124, Col: 59}
-													}
-													_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"")
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													var templ_7745c5c3_Var11 string
-													templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
-													if templ_7745c5c3_Err != nil {
-														return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 125, Col: 49}
-													}
-													_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-3 text-base\" title=\"")
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													var templ_7745c5c3_Var12 string
-													templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTitle())
-													if templ_7745c5c3_Err != nil {
-														return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 131, Col: 42}
-													}
-													_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\">")
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													var templ_7745c5c3_Var13 string
-													templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
-													if templ_7745c5c3_Err != nil {
-														return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 133, Col: 36}
-													}
-													_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</a></li>")
-													if templ_7745c5c3_Err != nil {
-														return templ_7745c5c3_Err
-													}
-												}
-												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</ul></div>")
-												if templ_7745c5c3_Err != nil {
-													return templ_7745c5c3_Err
-												}
+									if len(subscription.Articles) > 0 {
+										templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"mt-auto h-full\"><ul class=\"latest-items menu font-serif\">")
+										if templ_7745c5c3_Err != nil {
+											return templ_7745c5c3_Err
+										}
+										for item := range slices.Values(subscription.Articles) {
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<li class=\"my-1 border-l-2 border-accent/40 pl-3 text-base\"><a hx-get=\"")
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
 											}
+											var templ_7745c5c3_Var10 string
+											templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
+											if templ_7745c5c3_Err != nil {
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 120, Col: 57}
+											}
+											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"")
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											var templ_7745c5c3_Var11 string
+											templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+											if templ_7745c5c3_Err != nil {
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 121, Col: 47}
+											}
+											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-3 text-base\" title=\"")
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											var templ_7745c5c3_Var12 string
+											templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTitle())
+											if templ_7745c5c3_Err != nil {
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 127, Col: 40}
+											}
+											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\">")
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											var templ_7745c5c3_Var13 string
+											templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
+											if templ_7745c5c3_Err != nil {
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 129, Col: 34}
+											}
+											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</a></li>")
+											if templ_7745c5c3_Err != nil {
+												return templ_7745c5c3_Err
+											}
+										}
+										templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</ul></div>")
+										if templ_7745c5c3_Err != nil {
+											return templ_7745c5c3_Err
 										}
 									}
 									return nil
@@ -288,7 +282,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						var templ_7745c5c3_Var14 string
 						templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 155, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 149, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 						if templ_7745c5c3_Err != nil {
@@ -366,7 +360,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						var templ_7745c5c3_Var17 string
 						templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 184, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 178, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 						if templ_7745c5c3_Err != nil {
