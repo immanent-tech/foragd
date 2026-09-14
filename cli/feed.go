@@ -164,7 +164,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	}
 	if err := scheduler.Manager.DeleteJob(
 		quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
-	); err != nil {
+	); err != nil && !errors.Is(err, quartz.ErrJobNotFound) {
 		return fmt.Errorf("delete feed job: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Deleted existing feed job.")
