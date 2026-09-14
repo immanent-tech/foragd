@@ -49,8 +49,7 @@ func (b *Bucket) Copy(ctx context.Context, key string, buf io.Writer) error {
 	}
 	defer r.Close()
 
-	_, err = io.Copy(buf, r)
-	if err != nil {
+	if _, err = io.Copy(buf, r); err != nil {
 		return gcp.APIError("copy object", err) //nolint:wrapcheck // unnecessary.
 	}
 
