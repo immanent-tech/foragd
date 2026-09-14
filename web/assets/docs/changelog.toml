@@ -1,10 +1,26 @@
 #:schema https://json.schemastore.org/any.json
 
+
 [[releases]]
-version = "v0.227"
-date = "Sept 12, 2026"
+version = "v0.228"
+date = "Sep 14, 2026"
 type = "minor"
 is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+If a susbscription has articles with geo information, you'll see a map icon on the card you can use to display those articles on the map page.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+In addition to the icon indicating that article filtering is applied to a susbcription, clicking it will take you to the edit subscription page so you can edit/adjust them.
+"""
+
+[[releases]]
+version = "v0.227"
+date = "Sep 12, 2026"
+type = "minor"
 [[releases.changes]]
 type = "new"
 description = """
@@ -23,7 +39,7 @@ The add subscription action has been removed from the sidebar (desktop) and dock
 
 [[releases]]
 version = "v0.226"
-date = "Sept 9, 2026"
+date = "Sep 9, 2026"
 type = "major"
 [[releases.changes]]
 type = "new"
