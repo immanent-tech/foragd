@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.229.2](https://github.com/immanent-tech/foragd/compare/v0.229.1...v0.229.2) (2026-09-14)
+
+
+### Performance Improvements
+
+* ⚡ adjust timeouts for various network and other background requests ([f53968d](https://github.com/immanent-tech/foragd/commit/f53968d4d6438b58f05a242722c418807064c1e5))
+
 ## [0.229.1](https://github.com/immanent-tech/foragd/compare/v0.229.0...v0.229.1) (2026-09-14)
 
 
