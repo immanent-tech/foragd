@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.231.0](https://github.com/immanent-tech/foragd/compare/v0.230.0...v0.231.0) (2026-09-15)
+
+
+### Features
+
+* **providers/elastic:** ➕ add ability to retrieve sequence number and primary term of hits on search requests ([9fc3f31](https://github.com/immanent-tech/foragd/commit/9fc3f311af3c9fbbb800d9c37a0ef92e639985c7))
+* **providers/elastic:** ➕ add support for setting options on delete doc requests ([43a6fc9](https://github.com/immanent-tech/foragd/commit/43a6fc96a34a2520fa4aa5a6a5990379a842bffa))
+* **templates/discover:** 🎨 improved discover layout ([c99cd64](https://github.com/immanent-tech/foragd/commit/c99cd64b04d12880233014e9791e072f5b29d730))
+
+
+### Performance Improvements
+
+* ⚡ improved request handling ([0098bbe](https://github.com/immanent-tech/foragd/commit/0098bbe7f27984fa779a6b00cfab10ead3695f86))
+* **scheduler:** ⚡ better optimistic concurrency control ([48b61c9](https://github.com/immanent-tech/foragd/commit/48b61c9f7a5781ad645dd1e970b9cebf3cfa00e7))
+
 ## [0.230.0](https://github.com/immanent-tech/foragd/compare/v0.229.4...v0.230.0) (2026-09-15)
 
 
