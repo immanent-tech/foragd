@@ -686,6 +686,13 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 // SuggestFeeds returns a feeds and their latest articles that match the given text. It will search first for existing
 // feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
 func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
+	// Ignore if text is empty and no categories specified.
+	if request.Text == "" && len(request.Categories) == 0 {
+		return &models.SuggestFeedsResults{
+			Text: request.Text,
+		}, nil
+	}
+
 	// Get user subscriptions.
 	subscriptions, err := GetAllSubscriptions(ctx)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
@@ -747,13 +754,15 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 				// Title or description contains text, with boost for title.
 				query.MultiMatch(
 					request.Text,
-					[]string{"title^5", "description"},
+					[]string{"title^5", "customisation.title^4", "description", "customisation.description"},
 					query.WithFuzziness[*query.MultiMatchQuery]("AUTO"),
 				),
 				// Match phrase in description.
 				query.Match("description", request.Text),
+				query.Match("customisation.description", request.Text),
 				// Match an existing subscription category.
 				query.Match("categories", request.Text),
+				query.Term("categories.raw", "Uncategorized"),
 				// Try to match the domain.
 				query.Match("domain", request.Text),
 				query.Term("domain.raw", request.Text, query.WithQueryBoost[*query.TermQuery](15.0)),
