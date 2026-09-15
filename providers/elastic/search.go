@@ -196,3 +196,9 @@ func (r *SearchRequest) SetTrackTotalHits(value bool) {
 func (r *SearchRequest) SetCollapseOn(collapse *types.FieldCollapse) {
 	r.Search = r.Collapse(collapse)
 }
+
+func WithSeqNoPrimaryTerm() func(*SearchRequest) {
+	return func(r *SearchRequest) {
+		r.Search = r.Search.SeqNoPrimaryTerm(true)
+	}
+}
