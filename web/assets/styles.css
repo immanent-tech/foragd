@@ -377,6 +377,10 @@
     @apply hidden;
   }
 
+  iframe {
+    @apply w-full!;
+  }
+
   /* Remove empty elements. */
   td:empty,
   li:empty,
