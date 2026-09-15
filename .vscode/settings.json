@@ -9,6 +9,9 @@
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
   },
+  "gopls": {
+    "ui.diagnostic.staticcheck": true
+  },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

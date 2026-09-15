@@ -7,10 +7,7 @@
   "containerEnv": {
     "HOME": "/home/vscode"
   },
-  "forwardPorts": [
-    6060,
-    6061
-  ],
+  "forwardPorts": [6060, 6061],
   "remoteEnv": {
     "PODMAN_COMPOSE_WARNING_LOGS": "false",
     "DOCKER_SOCK": "/run/user/1000/podman/podman.sock",
@@ -43,7 +40,9 @@
         "oderwat.indent-rainbow",
         "adam-bender.commit-message-editor",
         "kamikillerto.vscode-colorize",
-        "elijah-potter.harper"
+        "elijah-potter.harper",
+        "psioniq.psi-header",
+        "usernamehw.errorlens"
       ]
     }
   }
