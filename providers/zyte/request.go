@@ -122,6 +122,9 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
 	}
+	if !sourceURL.IsAbs() {
+		return nil, fmt.Errorf("not an absolute URL: %w", sourceURL.String())
+	}
 
 	req := NewRequest(sourceURL.String(), options...)
 

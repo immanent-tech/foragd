@@ -12,6 +12,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -151,7 +152,15 @@ func HandleImage() http.HandlerFunc {
 }
 
 // directFetchRemoteImage fetches the image at the given url writes it into the image buffer.
-func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
+func directFetchRemoteImage(ctx context.Context, urlStr string, buf *bytes.Buffer) error {
+	remoteURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("parse URL: %w", err)
+	}
+	if !remoteURL.IsAbs() {
+		return fmt.Errorf("not an absolute URL: %w", err)
+	}
+
 	// Load the http client used for making requests to the image proxy.
 	client, err := client.Load()
 	if err != nil {
@@ -163,7 +172,7 @@ func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Bu
 		SetContext(ctx).
 		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetDoNotParseResponse(true).
-		Get(remoteURL)
+		Get(urlStr)
 	if err != nil {
 		return &models.APIError{
 			InternalError: err,
@@ -173,7 +182,7 @@ func directFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Bu
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusForbidden {
 			// If we get a forbidden response, try proxying the request.
-			return proxyFetchRemoteImage(ctx, remoteURL, buf)
+			return proxyFetchRemoteImage(ctx, urlStr, buf)
 		}
 		return &models.APIError{
 			InternalError: errors.New(resp.Status()),

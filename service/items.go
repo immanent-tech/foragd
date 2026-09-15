@@ -903,7 +903,7 @@ func NewItemsFromZyteArticles(
 	items := make(models.Items, 0, len(articles.Articles))
 	for article := range slices.Values(articles.Articles) {
 		sourceURL, err := url.Parse(article.URL)
-		if err != nil {
+		if err != nil || !sourceURL.IsAbs() {
 			slogctx.Warn(ctx, "Unable to parse article URL, skipping.",
 				slog.String("url", article.URL),
 			)

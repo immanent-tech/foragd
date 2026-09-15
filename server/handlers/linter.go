@@ -135,6 +135,9 @@ func fetchFeedData(feedURL string) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not parse URL: %w", err)
 	}
+	if !sourceURL.IsAbs() {
+		return nil, fmt.Errorf("not an absolute URL: %s", sourceURL.String())
+	}
 
 	// Fetch feed.
 	client, err := client.Load()

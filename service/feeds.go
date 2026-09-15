@@ -1316,6 +1316,9 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	if err != nil {
 		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
 	}
+	if !sourceURL.IsAbs() {
+		return nil, models.NewAPIError(http.StatusBadRequest, fmt.Errorf("not an absolute URL: %w", err))
+	}
 
 	// Create a buffer for the feed data.
 	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
