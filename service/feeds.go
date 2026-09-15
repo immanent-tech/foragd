@@ -162,9 +162,7 @@ func UpdateFeed(ctx context.Context, feed *models.Feed) error {
 	); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
-	if _, invalidated := feedCache.Invalidate(feed.GetID()); !invalidated {
-		slogctx.Warn(ctx, "Cached feed not invalidated")
-	}
+	feedCache.Invalidate(feed.GetID())
 	feedCache.Set(feed.GetID(), feed)
 
 	return nil
