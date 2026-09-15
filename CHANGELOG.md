@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.231.2](https://github.com/immanent-tech/foragd/compare/v0.231.1...v0.231.2) (2026-09-15)
+
+
+### Performance Improvements
+
+* ⚡ improve background job performance ([720d8dd](https://github.com/immanent-tech/foragd/commit/720d8dddbdd1bc04a8fc8bed8432918ac5a8f736))
+
 ## [0.231.1](https://github.com/immanent-tech/foragd/compare/v0.231.0...v0.231.1) (2026-09-15)
 
 
