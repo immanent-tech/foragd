@@ -982,7 +982,7 @@ func roundDownTo5Min(t time.Time) time.Time {
 	return t.UTC().Truncate(5 * time.Minute)
 }
 
-// mostRecetn returns the most recent of the two timestamps.
+// mostRecent returns the most recent of the two timestamps.
 func mostRecent(a, b time.Time) time.Time {
 	if a.After(b) {
 		return a
