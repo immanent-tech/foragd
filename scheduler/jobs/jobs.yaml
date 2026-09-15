@@ -15,13 +15,13 @@ components:
       description: is the last time the job ran.
       x-go-type: time.Time
       x-oapi-codegen-extra-tags:
-        validate: 'required,gt=0s'
+        validate: "required,gt=0s"
     Trigger:
       description: is a trigger for a job.
       oneOf:
         # - $ref: '#/components/schemas/CronTrigger'
-        - $ref: '#/components/schemas/PollTrigger'
-        - $ref: '#/components/schemas/OneShotTrigger'
+        - $ref: "#/components/schemas/PollTrigger"
+        - $ref: "#/components/schemas/OneShotTrigger"
     # CronTrigger:
     #   description: is a cron-based job trigger.
     #   type: object
@@ -36,9 +36,9 @@ components:
     TriggerType:
       description: contains a string id for a trigger.
       type: string
-      enum: ['poll','oneshot']
+      enum: ["poll", "oneshot"]
       x-oapi-codegen-extra-tags:
-        validate: 'oneof=poll oneshot'
+        validate: "oneof=poll oneshot"
     PollTrigger:
       description: is a trigger based on an interval with a small amount of jitter.
       type: object
@@ -50,12 +50,12 @@ components:
           description: is the interval on which the job is run.
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            validate: 'gt=1m'
+            validate: "gt=1m"
         jitter:
           description: is a jitter to apply to the interval.
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            validate: 'gt=0s,ltfield=Interval'
+            validate: "gt=0s,ltfield=Interval"
     OneShotTrigger:
       description: is a trigger that runs one time only.
       type: object
@@ -67,12 +67,12 @@ components:
           description: is the duration into the future on which to run the job.
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            validate: 'required,gt=0s'
+            validate: "required,gt=0s"
         expired:
           description: is true if the job has been run.
           type: boolean
           x-oapi-codegen-extra-tags:
-            validate: 'required'
+            validate: "required"
     SerializedJob:
       description: >
         represents a scheduled job stored in the queue.
@@ -88,9 +88,9 @@ components:
         - job_data
       properties:
         created_at:
-          $ref: '../../models/schema/models.yaml#/components/schemas/CreatedAt'
+          $ref: "../../models/schema/models.yaml#/components/schemas/CreatedAt"
         updated_at:
-          $ref: '../../models/schema/models.yaml#/components/schemas/UpdatedAt'
+          $ref: "../../models/schema/models.yaml#/components/schemas/UpdatedAt"
         job_description:
           description: is a summary of what the job does.
           type: string
@@ -98,7 +98,7 @@ components:
           description: is a unique identifier for the job.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required'
+            validate: "required"
         job_options:
           description: are additional options for the job.
           x-go-type: quartz.JobDetailOptions
@@ -108,21 +108,41 @@ components:
           description: is the next run time of the job.
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
-            validate: 'required'
+            validate: "required"
         job_trigger:
-          $ref: '#/components/schemas/Trigger'
+          $ref: "#/components/schemas/Trigger"
         job_trigger_type:
-          $ref: '#/components/schemas/TriggerType'
+          $ref: "#/components/schemas/TriggerType"
         job_type:
-          $ref: '#/components/schemas/JobType'
+          $ref: "#/components/schemas/JobType"
         job_data:
-          $ref: '#/components/schemas/JobData'
+          $ref: "#/components/schemas/JobData"
+        seq_no:
+          description: internal sequence number for optimistic concurrency control.
+          type: integer
+          format: int64
+          x-oapi-codegen-extra-tags:
+            json: "-"
+        primary_term:
+          description: internal primary term for optimistic concurrency control.
+          type: integer
+          format: int64
+          x-oapi-codegen-extra-tags:
+            json: "-"
     JobType:
       description: is the type of job
       type: string
-      enum: ['get_new_feeds','update_feed','delete_expired_sessions','clear_deleted_feeds','user_email_job','test']
+      enum:
+        [
+          "get_new_feeds",
+          "update_feed",
+          "delete_expired_sessions",
+          "clear_deleted_feeds",
+          "user_email_job",
+          "test",
+        ]
       x-oapi-codegen-extra-tags:
-        validate: 'required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job'
+        validate: "required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job"
     GetNewFeedsJob:
       description: represents the data needed for a get new feeds job.
       type: object
@@ -130,7 +150,7 @@ components:
         - checkpoint
       properties:
         checkpoint:
-          $ref: '#/components/schemas/Checkpoint'
+          $ref: "#/components/schemas/Checkpoint"
     UpdateFeedJob:
       description: represents the data needed for a feed update job.
       type: object
@@ -139,7 +159,7 @@ components:
         - deleted
       properties:
         feed_id:
-          $ref: '../../models/schema/models.yaml#/components/schemas/FeedID'
+          $ref: "../../models/schema/models.yaml#/components/schemas/FeedID"
         deleted:
           description: indicates that the feed associated with this job has been deleted since the last run.
           type: boolean
@@ -150,7 +170,7 @@ components:
         - checkpoint
       properties:
         checkpoint:
-          $ref: '#/components/schemas/Checkpoint'
+          $ref: "#/components/schemas/Checkpoint"
     ClearDeletedFeedsJob:
       description: represents the data needed for a clear deleted feeds job.
       type: object
@@ -158,7 +178,7 @@ components:
         - checkpoint
       properties:
         checkpoint:
-          $ref: '#/components/schemas/Checkpoint'
+          $ref: "#/components/schemas/Checkpoint"
     UserEmailJob:
       description: represents the data needed for a user email job.
       type: object
@@ -167,9 +187,9 @@ components:
         - email_id
       properties:
         user_id:
-          $ref: '../../models/schema/models.yaml#/components/schemas/UserID'
+          $ref: "../../models/schema/models.yaml#/components/schemas/UserID"
         email_id:
-          $ref: '../../models/schema/models.yaml#/components/schemas/EmailTemplateID'
+          $ref: "../../models/schema/models.yaml#/components/schemas/EmailTemplateID"
     TestJob:
       description: represents the data for a test job.
       type: object
@@ -177,9 +197,9 @@ components:
     JobData:
       description: contains job specific data.
       oneOf:
-        - $ref: '#/components/schemas/TestJob'
-        - $ref: '#/components/schemas/GetNewFeedsJob'
-        - $ref: '#/components/schemas/UpdateFeedJob'
-        - $ref: '#/components/schemas/DeleteExpiredSessionsJob'
-        - $ref: '#/components/schemas/ClearDeletedFeedsJob'
-        - $ref: '#/components/schemas/UserEmailJob'
+        - $ref: "#/components/schemas/TestJob"
+        - $ref: "#/components/schemas/GetNewFeedsJob"
+        - $ref: "#/components/schemas/UpdateFeedJob"
+        - $ref: "#/components/schemas/DeleteExpiredSessionsJob"
+        - $ref: "#/components/schemas/ClearDeletedFeedsJob"
+        - $ref: "#/components/schemas/UserEmailJob"

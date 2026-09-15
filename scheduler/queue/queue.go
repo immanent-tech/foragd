@@ -98,7 +98,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 	}
 
 	// Delete the job from the queue and invalidate its cache entry.
-	if err := jq.deleteJob(ctx, job.JobDetail().JobKey().String()); err != nil {
+	if err := jq.deleteJob(ctx, job.(*jobs.SerializedJob)); err != nil {
 		return nil, fmt.Errorf("remove job: %w", err)
 	}
 
@@ -115,13 +115,18 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 		elastic.WithSize(1),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
+		elastic.WithSeqNoPrimaryTerm(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
 	}
 
+	job := resp.Results[0]
+	job.SeqNo = resp.Hits.Hits[0].SeqNo_
+	job.PrimaryTerm = resp.Hits.Hits[0].PrimaryTerm_
+
 	// Return the job that should run next.
-	return resp.Results[0], nil
+	return job, nil
 }
 
 // Get returns the scheduled job with the specified key without removing it
@@ -157,7 +162,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	}
 
 	// Delete the job from the queue and invalidate its cache entry.
-	if err := jq.deleteJob(ctx, jobKey.String()); err != nil {
+	if err := jq.deleteJob(ctx, job.(*jobs.SerializedJob)); err != nil {
 		return nil, fmt.Errorf("remove job: %w", err)
 	}
 
@@ -221,8 +226,14 @@ func (jq *JobQueue) Clear() error {
 	return nil
 }
 
-func (jq *JobQueue) deleteJob(ctx context.Context, jobID string) error {
-	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW(), jobID); err != nil {
+func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) error {
+	if err := elastic.DeleteDoc(
+		ctx,
+		schema.SchedulerIndexRW(),
+		job.GetID(),
+		elastic.WithDeleteSeqNo(*job.SeqNo),
+		elastic.WithDeletePrimaryTerm(*job.PrimaryTerm),
+	); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
 
