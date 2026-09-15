@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.231.1](https://github.com/immanent-tech/foragd/compare/v0.231.0...v0.231.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* 🔧 do not fetch remote data if not an absolute URL ([1c40945](https://github.com/immanent-tech/foragd/commit/1c4094546013282cec75ce484e72008ce688f2f5))
+* **service/items:** 🔧 if the URL cannot be parsed, skip creating an item ([793f902](https://github.com/immanent-tech/foragd/commit/793f902c2343c2b5fe17297723f99ca88affffef))
+
 ## [0.231.0](https://github.com/immanent-tech/foragd/compare/v0.230.0...v0.231.0) (2026-09-15)
 
 
