@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.230.0](https://github.com/immanent-tech/foragd/compare/v0.229.4...v0.230.0) (2026-09-15)
+
+
+### Features
+
+* **cli:** ➕ add classification command ([0470413](https://github.com/immanent-tech/foragd/commit/04704136e1a1c93d341afb131e92a47187068481))
+* **service/feeds:** ♻️ feed suggestions improvements ([2619106](https://github.com/immanent-tech/foragd/commit/26191066e701bd0098907b9892e943cb136ec5d4))
+
+
+### Bug Fixes
+
+* **styles:** 🎨 constrain width of iframes in content ([ddc707d](https://github.com/immanent-tech/foragd/commit/ddc707d022f6e49b45666153370efe6a154c37e1))
+
+
+### Performance Improvements
+
+* **service:** ⚡ tune timeouts ([fca4019](https://github.com/immanent-tech/foragd/commit/fca40196ac0c59687552ea53124ea7732961c794))
+
 ## [0.229.4](https://github.com/immanent-tech/foragd/compare/v0.229.3...v0.229.4) (2026-09-14)
 
 
