@@ -23,6 +23,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
@@ -33,9 +34,10 @@ type FeedArgs struct {
 	DirectFetchArgs `embed:""`
 	ZyteFetchArgs   `embed:""`
 
-	Name           *string `help:"Optional name of the feed"        optional:""`
-	Description    *string `help:"Optional description of the feed" optional:""`
-	UpdateInterval *string `help:"update interval for feed"         optional:""`
+	Name           *string `help:"Optional name of the feed"                   optional:""`
+	Description    *string `help:"Optional description of the feed"            optional:""`
+	Categories     *string `help:"Optional comma-separated list of categories" optional:""`
+	UpdateInterval *string `help:"update interval for feed"                    optional:""`
 }
 
 type DirectFetchArgs struct {
@@ -52,6 +54,7 @@ type FeedCmd struct {
 	ResetUpdates ResetFeedUpdatesCmd `cmd:"" help:"reset the feed updates job"`
 	Update       UpdateFeedCmd       `cmd:"" help:"update the feed"`
 	Add          AddFeedCmd          `cmd:"" help:"add a feed"`
+	Classify     ClassifyFeedCmd     `cmd:"" help:"classify a feed"`
 }
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
@@ -241,6 +244,10 @@ func (c *UpdateFeedCmd) Run() error {
 		}
 		feed.Customisation.Description = c.Description
 	}
+	if c.Categories != nil {
+		categories := strings.Split(*c.Categories, ",")
+		feed.Categories = categories
+	}
 
 	switch feed.FetchMethod {
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
@@ -293,8 +300,52 @@ func (c *UpdateFeedCmd) Run() error {
 		return fmt.Errorf("update feed: %w", err)
 	}
 
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Unable to flush updates.",
+			slog.Any("error", err))
+	}
+
 	slogctx.FromCtx(ctx).Info("Feed updated.",
 		slog.String("feed_id", c.FeedID))
+
+	return nil
+}
+
+// ClassifyFeedCmd is a command that will classify a feed.
+type ClassifyFeedCmd struct {
+	FeedID models.FeedID `help:"ID of feed" validate:"omitempty,required_without=FeedURL,startswith=feed_"`
+}
+
+func (c *ClassifyFeedCmd) Run() error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := validation.Validate.Struct(c); err != nil {
+		return fmt.Errorf("validate options: %w", err)
+	}
+
+	details, err := service.GetFeed(ctx, c.FeedID)
+	if err != nil {
+		return fmt.Errorf("get feed: %w", err)
+	}
+
+	var feed *models.Feed
+	switch details.FetchMethod {
+	case models.FeedFetchMethodZyteArticles:
+		feed, _, err = service.FetchFeedUpdatesAsArticles(ctx, details)
+	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
+		fallthrough
+	default:
+		feed, _, err = service.FetchFeedUpdates(ctx, details)
+	}
+	if err != nil {
+		return fmt.Errorf("fetch feed updates: %w", err)
+	}
+
+	if err := service.ClassifyFeed(ctx, feed); err != nil {
+		return fmt.Errorf("classify feed failed: %w", err)
+	}
 
 	return nil
 }
