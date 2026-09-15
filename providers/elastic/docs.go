@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
@@ -129,16 +131,20 @@ func UpdateDoc[T ~string](
 }
 
 // DeleteDoc deletes the document with the given id from the given index.
-func DeleteDoc[T ~string](ctx context.Context, index string, id T) error {
-	// Connect to elasticsearch (if not already connected).
+func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...DeleteOption) error {
 	if err := Connect(); err != nil {
 		return fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	resp, err := api.Delete(index, string(id)).
+	req := api.Delete(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
-		Refresh(refresh.Waitfor).
-		Do(ctx)
+		Refresh(refresh.Waitfor)
+
+	for option := range slices.Values(options) {
+		req = option(req)
+	}
+
+	resp, err := req.Do(ctx)
 	if err != nil {
 		return fmt.Errorf("delete doc: %w", err)
 	}
@@ -149,6 +155,26 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T) error {
 		)
 	}
 	return nil
+}
+
+type DeleteOption func(*delete.Delete) *delete.Delete
+
+func WithDeleteSeqNo(seqno int64) DeleteOption {
+	return func(d *delete.Delete) *delete.Delete {
+		if seqno != 0 {
+			return d.IfSeqNo(strconv.FormatInt(seqno, 10))
+		}
+		return d
+	}
+}
+
+func WithDeletePrimaryTerm(term int64) DeleteOption {
+	return func(d *delete.Delete) *delete.Delete {
+		if term != 0 {
+			return d.IfPrimaryTerm(strconv.FormatInt(term, 10))
+		}
+		return d
+	}
 }
 
 type GetRequest struct {
