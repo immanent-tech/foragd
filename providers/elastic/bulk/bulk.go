@@ -172,6 +172,7 @@ func IndexDocuments[T ~string, O Document[T]](
 
 	for action := range slices.Values(actions) {
 		if err := ctx.Err(); err != nil {
+			slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 			return fmt.Errorf("index documents: %w", err)
 		}
 		item, err := action.marshalItem()
@@ -179,7 +180,7 @@ func IndexDocuments[T ~string, O Document[T]](
 			slogctx.Error(ctx, "Unable to marshal document to item.",
 				slog.Any("error", err))
 		}
-		indexCtx, indexCancel := context.WithTimeout(ctx, operationTimeout)
+		indexCtx, indexCancel := context.WithTimeoutCause(ctx, operationTimeout, errors.New("bulk operation timeout"))
 		defer indexCancel()
 
 		if err := indexer.Add(indexCtx, item); err != nil {
@@ -206,6 +207,7 @@ func AddAction[T ~string](
 
 	for action := range slices.Values(actions) {
 		if err := ctx.Err(); err != nil {
+			slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 			return fmt.Errorf("add documents: %w", err)
 		}
 		item, err := action.marshalItem()
@@ -213,7 +215,7 @@ func AddAction[T ~string](
 			slogctx.Error(ctx, "Unable to marshal document to item.",
 				slog.Any("error", err))
 		}
-		addCtx, addCancel := context.WithTimeout(ctx, operationTimeout)
+		addCtx, addCancel := context.WithTimeoutCause(ctx, operationTimeout, errors.New("bulk operation timeout"))
 		defer addCancel()
 
 		if err := indexer.Add(addCtx, item); err != nil {

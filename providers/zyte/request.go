@@ -14,6 +14,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 type RequestOption func(*Request)
@@ -113,6 +114,7 @@ func AsArticleList(opts *ExtractOptions) RequestOption {
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
 	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 		return nil, fmt.Errorf("proxy request: %w", err)
 	}
 

@@ -62,7 +62,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	start := time.Now()
 
-	ctx, cancel := context.WithTimeout(ctx, updateFeedJobTimeout)
+	ctx, cancel := context.WithTimeoutCause(ctx, updateFeedJobTimeout, errors.New("update feed timeout"))
 	defer cancel()
 
 	// Add feed id as slog attribute for log tracking.

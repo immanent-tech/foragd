@@ -445,7 +445,11 @@ func Start() error {
 	<-ctx.Done()
 
 	// Create shutdown context with 30-second timeout
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		gracefulShutdownTimeout,
+		errors.New("graceful shutdown timeout"),
+	)
 	shutdownCtx = slogctx.NewCtx(shutdownCtx, logger)
 	defer cancel()
 

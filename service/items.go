@@ -761,7 +761,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	// Get the item content, either from the cache or fetch fresh.
-	itemContentBuf, err := getItemContent(ctx, item)
+	itemContentBuf, err := getItemContent(ctx, item.GetID(), itemURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
@@ -804,7 +804,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	return nil
 }
 
-func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, error) {
+func getItemContent(ctx context.Context, id models.ItemID, itemURL *url.URL) (*bytes.Buffer, error) {
 	// Create a buffer for the feed data.
 	itemContentBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
@@ -819,7 +819,7 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 			slog.Any("error", err),
 		)
 	} else {
-		if err := itemPageCache.Copy(ctx, item.GetID(), itemContentBuf); err != nil {
+		if err := itemPageCache.Copy(ctx, id, itemContentBuf); err != nil {
 			if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
 				if apiErr.StatusCode != http.StatusNotFound {
 					slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
@@ -832,7 +832,7 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 	// If no item content cached, fetch from remote.
 	if itemContentBuf.Len() == 0 {
 		// Fetch the item's HTML source, used for enrichment.
-		source, err := fetchItemDirect(ctx, item.GetLink())
+		source, err := fetchItemContentDirect(ctx, itemURL)
 		if err != nil {
 			return nil, fmt.Errorf("fetch item: %w", err)
 		}
@@ -843,36 +843,38 @@ func getItemContent(ctx context.Context, item *models.Item) (*bytes.Buffer, erro
 	return itemContentBuf, nil
 }
 
-func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
+func fetchItemContentDirect(ctx context.Context, sourceURL *url.URL) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("cannot fetch item: %w", err)
+		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
-	rawHTML, err := htmlx.GetHTML(ctx, link)
+	rawHTML, err := htmlx.GetHTML(ctx, sourceURL.String())
 	if err != nil {
 		if respErr, isHtmlxErr := errors.AsType[*htmlx.Response](err); isHtmlxErr {
 			// Check if response status is forbidden. If so, try through Zyte.
 			if respErr.Status == http.StatusForbidden {
-				if source, err := fetchItemThroughZyte(ctx, link); err != nil {
-					return nil, fmt.Errorf("fetch item: %w", err)
+				if source, err := fetchItemContentThroughZyte(ctx, sourceURL); err != nil {
+					return nil, fmt.Errorf("zyte fetch: %w", err)
 				} else {
 					return source, nil
 				}
 			}
-			return nil, models.NewAPIError(respErr.Status, fmt.Errorf("fetch item: %w", respErr))
+			return nil, models.NewAPIError(respErr.Status, fmt.Errorf("direct fetch: %w", respErr))
 		}
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("fetch item: %w", err))
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("direct fetch: %w", err))
 	}
 	return rawHTML.Bytes(), nil
 }
 
-func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
+func fetchItemContentThroughZyte(ctx context.Context, sourceURL *url.URL) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 		return nil, fmt.Errorf("cannot fetch item: %w", err)
 	}
 
 	switch extracted, err := zyte.Proxy(ctx,
-		link,
+		sourceURL.String(),
 		zyte.WithResponseBody(true),
 		zyte.WithFollowRedirects(true),
 		zyte.WithTag("action", "enrich_item"),

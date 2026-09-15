@@ -339,20 +339,19 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 // GetArticleRemoteContent populates the article content with the item source.
 func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
 	// Get the complete item HTML source, either from the cache or fetch fresh.
-	itemPageBuf, err := getItemContent(ctx, &article.Item)
+	sourceURL, err := url.Parse(article.GetLink())
+	if err != nil {
+		return models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse article URL: %w", err))
+	}
+
+	itemPageBuf, err := getItemContent(ctx, article.GetID(), sourceURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
 
 	if itemPageBuf.Len() != 0 {
-		// Parse the item URL.
-		articleURL, err := url.Parse(article.GetLink())
-		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse article URL: %w", err))
-		}
-
 		// Extract opengraph and readability data from item HTML source.
-		_, readabilityData, err := extractMetadataFromHTML(articleURL, itemPageBuf.Bytes())
+		_, readabilityData, err := extractMetadataFromHTML(sourceURL, itemPageBuf.Bytes())
 		if err != nil {
 			logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
 		}

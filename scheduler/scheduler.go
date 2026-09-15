@@ -41,8 +41,7 @@ const (
 type manager struct {
 	quartz.Scheduler
 
-	queue          quartz.JobQueue
-	misfiredJobsCh chan quartz.ScheduledJob
+	queue quartz.JobQueue
 }
 
 var Manager *manager
@@ -71,27 +70,6 @@ func Run(ctx context.Context) error {
 	// Store the scheduler in the context for access by jobs.
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
-	// Start a goroutine to process misfired jobs.
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case job := <-Manager.misfiredJobsCh:
-				slogctx.FromCtx(ctx).Warn("Running misfired job.",
-					slog.String("job_key", job.JobDetail().JobKey().String()),
-				)
-				// Immediately run misfired job.
-				if err := job.JobDetail().Job().Execute(ctx); err != nil {
-					slogctx.FromCtx(ctx).Error("Misfired job failed.",
-						slog.String("job_key", job.JobDetail().JobKey().String()),
-						slog.Any("error", err),
-					)
-				}
-			}
-		}
-	}()
-
 	// Load all admin jobs as needed.
 	if err := LoadAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
@@ -109,7 +87,11 @@ func Run(ctx context.Context) error {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 	// Create shutdown context with 30-second timeout
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeoutCause(
+		context.Background(),
+		gracefulShutdownTimeout,
+		errors.New("graceful shutdown timeout"),
+	)
 	defer cancel()
 
 	if err := bulk.Shutdown(shutdownCtx); err != nil {
@@ -138,24 +120,20 @@ func NewManager(ctx context.Context) error {
 		return fmt.Errorf("new job queue: %w", err)
 	}
 
-	misfiredJobsCh := make(chan quartz.ScheduledJob)
-
 	// Create scheduler instance.
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithRetryInterval(500*time.Millisecond),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
 		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
-		quartz.WithMisfiredChan(misfiredJobsCh),
 	)
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
 
 	Manager = &manager{
-		Scheduler:      scheduler,
-		queue:          jobQueue,
-		misfiredJobsCh: misfiredJobsCh,
+		Scheduler: scheduler,
+		queue:     jobQueue,
 	}
 
 	return nil

@@ -1551,6 +1551,7 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 // where there is a critical error fetching the feed details.
 func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
 	}
 
@@ -1594,6 +1595,7 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 // details.
 func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
 		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
 	}
 
