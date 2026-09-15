@@ -30,13 +30,13 @@
     }
   },
   "scripts": {
-    "server:run": "air -c server.air.toml",
-    "scheduler:run": "air -c scheduler.air.toml",
+    "server:run": "go tool air -c server.air.toml",
+    "scheduler:run": "go tool air -c scheduler.air.toml",
     "dev:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css",
     "prod:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify",
     "dev:js": "esbuild ./web/assets/scripts.js --bundle --outfile=./web/content/scripts.js",
     "prod:js": "esbuild ./web/assets/scripts.js --bundle --minify --outfile=./web/content/scripts.js",
-    "templ:generate": "go run github.com/a-h/templ/cmd/templ@latest generate -path web"
+    "templ:generate": "go tool templ generate -path web"
   },
   "dependencies": {
     "@fontsource-variable/alegreya": "^5.3.0",
