@@ -714,9 +714,12 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 // EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
 // missing data from the item source.
 func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error {
+	took := time.Now().UTC()
+
 	ctx = slogctx.With(ctx,
-		slog.String("item_id", item.GetID()),
 		slog.String("feed_id", item.GetFeedID()),
+		slog.String("item_id", item.GetID()),
+		slog.String("url", item.GetLink()),
 	)
 
 	itemURL, err := url.Parse(item.GetLink())
@@ -794,6 +797,10 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 		}
 	}
 
+	slogctx.FromCtx(ctx).Debug("Item enriched.",
+		slog.Duration("took", time.Now().UTC().Sub(took)),
+	)
+
 	return nil
 }
 
@@ -841,10 +848,7 @@ func fetchItemDirect(ctx context.Context, link string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot fetch item: %w", err)
 	}
 
-	fetchCtx, fetchCancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer fetchCancel()
-
-	rawHTML, err := htmlx.GetHTML(fetchCtx, link)
+	rawHTML, err := htmlx.GetHTML(ctx, link)
 	if err != nil {
 		if respErr, isHtmlxErr := errors.AsType[*htmlx.Response](err); isHtmlxErr {
 			// Check if response status is forbidden. If so, try through Zyte.
@@ -867,9 +871,7 @@ func fetchItemThroughZyte(ctx context.Context, link string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot fetch item: %w", err)
 	}
 
-	fetchCtx, fetchCancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer fetchCancel()
-	switch extracted, err := zyte.Proxy(fetchCtx,
+	switch extracted, err := zyte.Proxy(ctx,
 		link,
 		zyte.WithResponseBody(true),
 		zyte.WithFollowRedirects(true),

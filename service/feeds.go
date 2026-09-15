@@ -1558,11 +1558,8 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
-		fetchCtx, fetchCancel := context.WithTimeout(ctx, time.Minute)
-		defer fetchCancel()
-
 		feed, err := FetchFeed(
-			fetchCtx,
+			ctx,
 			feedURL,
 			FetchWithFeedID(details.GetID()),
 			FetchWithProxy(proxyRequest),
@@ -1612,12 +1609,9 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
-		fetchCtx, fetchCancel := context.WithTimeout(ctx, 5*time.Minute)
-		defer fetchCancel()
-
 		// Fetch the feed details using Zyte as an article list.
 		resp, err := zyte.Proxy(
-			fetchCtx,
+			ctx,
 			feedURL,
 			zyte.WithExtractFrom(extractFrom),
 			zyte.AsArticleList(&extractOptions),
@@ -1630,7 +1624,7 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 			continue
 		}
 		// Generate feed details from Zyte response.
-		feed, err := NewFeedFromZyteResponse(fetchCtx, resp)
+		feed, err := NewFeedFromZyteResponse(ctx, resp)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))
 			logGeneralError(ctx, err, feedURL, details.GetID())
@@ -1638,7 +1632,7 @@ func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*mod
 		}
 
 		// Extract and enrich articles from Zyte response.
-		items, err := NewItemsFromZyteArticles(fetchCtx, feed, resp.ArticleList)
+		items, err := NewItemsFromZyteArticles(ctx, feed, resp.ArticleList)
 		if err != nil {
 			logGeneralError(ctx, err, feedURL, details.GetID())
 			return nil, feedURL, fmt.Errorf("%s: %w", feedURL, err)

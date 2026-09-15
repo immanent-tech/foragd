@@ -6,7 +6,6 @@ package zyte
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
@@ -15,7 +14,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 type RequestOption func(*Request)
@@ -114,6 +112,10 @@ func AsArticleList(opts *ExtractOptions) RequestOption {
 
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("proxy request: %w", err)
+	}
+
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -127,8 +129,6 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 
 	result := &Response{}
 	errResult := &ResponseError{}
-
-	slogctx.Debug(ctx, "proxying request", slog.String("url", rawURL))
 
 	client, err := client.Load()
 	if err != nil {
