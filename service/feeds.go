@@ -255,7 +255,7 @@ func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.T
 		return oldData.LastFetched, nil
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		const maxConcurrentEnrichment = 25
+		const maxConcurrentEnrichment = 50
 		enrichJobCh := make(chan *models.Item, 100)
 		var wg sync.WaitGroup
 		for range maxConcurrentEnrichment {
@@ -1554,7 +1554,10 @@ func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, 
 // where there is a critical error fetching the feed details.
 func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
 		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
 	}
 
@@ -1598,7 +1601,10 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 // details.
 func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
 		return nil, "", fmt.Errorf("cannot fetch feed updates: %w", err)
 	}
 

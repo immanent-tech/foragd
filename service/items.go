@@ -845,7 +845,10 @@ func getItemContent(ctx context.Context, id models.ItemID, itemURL *url.URL) (*b
 
 func fetchItemContentDirect(ctx context.Context, sourceURL *url.URL) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		slogctx.Warn(ctx, "Cannot fetch directly, context done.",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
@@ -869,7 +872,10 @@ func fetchItemContentDirect(ctx context.Context, sourceURL *url.URL) ([]byte, er
 
 func fetchItemContentThroughZyte(ctx context.Context, sourceURL *url.URL) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		slogctx.Warn(ctx, "Cannot fetch item with Zyte, context done.",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("cannot fetch item: %w", err)
 	}
 

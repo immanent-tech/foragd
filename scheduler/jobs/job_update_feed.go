@@ -20,7 +20,7 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
-const updateFeedJobTimeout = 10 * time.Minute
+const updateFeedJobTimeout = 15 * time.Minute
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
 

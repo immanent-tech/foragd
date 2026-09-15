@@ -6,6 +6,7 @@ package zyte
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
@@ -114,7 +115,10 @@ func AsArticleList(opts *ExtractOptions) RequestOption {
 // Proxy will reverse proxy the given URL through Zyte.
 func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Response, error) {
 	if err := ctx.Err(); err != nil {
-		slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("proxy request: %w", err)
 	}
 

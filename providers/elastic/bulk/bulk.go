@@ -172,7 +172,10 @@ func IndexDocuments[T ~string, O Document[T]](
 
 	for action := range slices.Values(actions) {
 		if err := ctx.Err(); err != nil {
-			slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+			slogctx.Warn(ctx, "context done",
+				slog.Any("cause", context.Cause(ctx)),
+				slog.Any("error", err),
+			)
 			return fmt.Errorf("index documents: %w", err)
 		}
 		item, err := action.marshalItem()
@@ -207,7 +210,10 @@ func AddAction[T ~string](
 
 	for action := range slices.Values(actions) {
 		if err := ctx.Err(); err != nil {
-			slogctx.Warn(ctx, "context done: %v, cause: %v", err, context.Cause(ctx))
+			slogctx.Warn(ctx, "context done",
+				slog.Any("cause", context.Cause(ctx)),
+				slog.Any("error", err),
+			)
 			return fmt.Errorf("add documents: %w", err)
 		}
 		item, err := action.marshalItem()
