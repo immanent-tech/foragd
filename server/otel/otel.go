@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package otel
 
@@ -11,14 +13,23 @@ import (
 	"sync/atomic"
 
 	otelchimetric "github.com/riandyrn/otelchi/metric"
+	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	_ "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	_ "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/oauth"
 
 	"github.com/immanent-tech/go-base/config"
 )
@@ -39,27 +50,11 @@ func IsEnabled() bool {
 // Setup bootstraps the OpenTelemetry pipeline. If it does not return an error, make sure to call shutdown for proper
 // cleanup.
 func Setup(ctx context.Context) (func(context.Context) error, error) {
-
 	var shutdownFuncs []func(context.Context) error
 	var err error
 
-	if config.IsProduction() {
-		tokenSource, err := idtoken.NewTokenSource(ctx, os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
-		if err != nil {
-			return nil, fmt.Errorf("new authorization: %w", err)
-		}
-		token, err := tokenSource.Token()
-		if err != nil {
-			return nil, fmt.Errorf("get authorization token: %w", err)
-		}
-		if err := os.Setenv("OTEL_EXPORTER_OTLP_HEADERS", "Authorization="+token.AccessToken); err != nil {
-			return nil, fmt.Errorf("set OTEL_EXPORTER_OTLP_HEADERS: %w", err)
-		}
-	}
-
-	// shutdown calls cleanup functions registered via shutdownFuncs.
-	// The errors from the calls are joined.
-	// Each registered cleanup will be invoked once.
+	// shutdown calls cleanup functions registered via shutdownFuncs. The errors from the calls are joined. Each
+	// registered cleanup will be invoked once.
 	shutdown := func(ctx context.Context) error {
 		var err error
 		for _, fn := range shutdownFuncs {
@@ -69,33 +64,108 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 		return err
 	}
 
-	// Configure Context Propagation to use the default W3C traceparent format
+	// fail is a helper for the setup-failed path: it runs whatever cleanup has been registered so far and returns a nil
+	// shutdown func, since the caller has nothing left to clean up themselves.
+	fail := func(err error) (func(context.Context) error, error) {
+		return nil, errors.Join(err, shutdown(ctx))
+	}
+
+	res, err := newResource(ctx)
+	if err != nil {
+		return fail(fmt.Errorf("build resource: %w", err))
+	}
+
+	// Configure Context Propagation to use the default W3C traceparent format.
 	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
-	// Configure Trace Export to send spans as OTLP
-	texporter, err := autoexport.NewSpanExporter(ctx)
+	texporter, mreader, err := newExporters(ctx)
 	if err != nil {
-		err = errors.Join(err, shutdown(ctx))
-		return shutdown, err
+		return fail(err)
 	}
-	TracerProvider = trace.NewTracerProvider(trace.WithBatcher(texporter))
+
+	// Configure Trace Export.
+	TracerProvider = trace.NewTracerProvider(
+		trace.WithBatcher(texporter),
+		trace.WithResource(res),
+	)
 	shutdownFuncs = append(shutdownFuncs, TracerProvider.Shutdown)
 	otel.SetTracerProvider(TracerProvider)
 
-	// Configure Metric Export to send metrics as OTLP
-	mreader, err := autoexport.NewMetricReader(ctx)
-	if err != nil {
-		err = errors.Join(err, shutdown(ctx))
-		return shutdown, err
-	}
+	// Configure Metric Export.
 	MeterProvider = metric.NewMeterProvider(
 		metric.WithReader(mreader),
+		metric.WithResource(res),
 	)
 	MeterConfig = otelchimetric.NewBaseConfig(config.GetAppName(), otelchimetric.WithMeterProvider(MeterProvider))
 	shutdownFuncs = append(shutdownFuncs, MeterProvider.Shutdown)
 	otel.SetMeterProvider(MeterProvider)
 
 	enabled.Store(true)
+	slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is enabled.")
 
 	return shutdown, nil
+}
+
+// newResource builds the OTel resource describing this service, so that spans/metrics show up correctly labeled
+// (service.name, host, process, SDK info, etc.) in whatever backend receives them.
+func newResource(ctx context.Context) (*resource.Resource, error) {
+	return resource.New(ctx,
+		resource.WithAttributes(
+			semconv.ServiceName(config.GetAppName()),
+		),
+		resource.WithProcess(),
+		resource.WithHost(),
+		resource.WithOS(),
+		resource.WithTelemetrySDK(),
+	)
+}
+
+// newExporters builds the span exporter and metric reader for the current environment.
+func newExporters(ctx context.Context) (trace.SpanExporter, metric.Reader, error) {
+	if !config.IsProduction() {
+		texporter, err := autoexport.NewSpanExporter(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("new span exporter: %w", err)
+		}
+		mreader, err := autoexport.NewMetricReader(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("new metric reader: %w", err)
+		}
+		return texporter, mreader, nil
+	}
+
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		return nil, nil, errors.New("OTEL_EXPORTER_OTLP_ENDPOINT must be set in production")
+	}
+
+	tokenSource, err := idtoken.NewTokenSource(ctx, endpoint)
+	if err != nil {
+		return nil, nil, fmt.Errorf("new token source: %w", err)
+	}
+	// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
+	// than minting a new one on every single call.
+	tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
+
+	conn, err := grpc.NewClient(
+		endpoint,
+		grpc.WithTransportCredentials(credentials.NewTLS(nil)),
+		grpc.WithPerRPCCredentials(oauth.TokenSource{TokenSource: tokenSource}),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("dial otlp endpoint: %w", err)
+	}
+
+	texporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	if err != nil {
+		return nil, nil, fmt.Errorf("new otlp trace exporter: %w", err)
+	}
+
+	mexporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(conn))
+	if err != nil {
+		return nil, nil, fmt.Errorf("new otlp metric exporter: %w", err)
+	}
+	mreader := metric.NewPeriodicReader(mexporter)
+
+	return texporter, mreader, nil
 }

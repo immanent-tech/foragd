@@ -1,5 +1,7 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package server
 
@@ -69,20 +71,14 @@ func Start() error {
 	// Load the session manager.
 	sessionManager := session.Load()
 
-	// Set up OpenTelemetry if specified in the config.
-	if cfg.EnableOTEL {
-		otelShutdown, err := otel.Setup(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to set up open telemetry: %w", err)
-		}
-		// Handle shutdown properly so nothing leaks.
-		defer func() {
-			err = errors.Join(err, otelShutdown(context.Background()))
-		}()
-		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is enabled.")
-	} else {
-		slogctx.FromCtx(ctx).Debug("Open Telemetry instrumentation is disabled.")
+	// Set up OpenTelemetry.
+	otelShutdown, err := otel.Setup(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to set up open telemetry: %w", err)
 	}
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
 	// Set up a new chi router.
 	router := chi.NewRouter()
