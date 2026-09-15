@@ -70,7 +70,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -378,7 +378,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = grid(element.WithClasses("masonry-grid", "relative", "my-12"),
+				templ_7745c5c3_Err = partials.Grid(element.WithClasses("masonry-grid", "relative", "my-12"),
 					element.WithAttribute("_", "install MasonryGrid")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -465,7 +465,7 @@ func Post(post *markdownx.File) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

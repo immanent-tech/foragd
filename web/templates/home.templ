@@ -26,7 +26,7 @@ type HomeData struct {
 templ UserHome(data *HomeData) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"),
 				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {

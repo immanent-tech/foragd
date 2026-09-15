@@ -1810,7 +1810,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2500,7 +2500,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2669,7 +2669,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid(element.WithClasses("masonry-grid", "relative"),
+						templ_7745c5c3_Err = partials.Grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid"),
 							element.WithHXMethod(http.MethodGet, "/list/articles"),
 							element.WithHXTarget(ContentID.Target()),

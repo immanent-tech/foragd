@@ -1140,7 +1140,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1335,7 +1335,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid(element.WithClasses("masonry-grid", "relative"),
+						templ_7745c5c3_Err = partials.Grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid"),
 							element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 							element.WithHXTarget(ContentID.Target()),

@@ -237,7 +237,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 
 templ ViewerResults(feed *models.Feed) {
 	<div aria-live="polite">
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
 		<div class="p-6">
 			<div class="sm:flex sm:items-center sm:justify-between">
@@ -340,7 +340,7 @@ templ ViewerResults(feed *models.Feed) {
 		</div>
 	</div>
 	if len(feed.GetItems()) > 0 {
-		@grid(element.WithClasses("items-stretch")) {
+		@partials.Grid(element.WithClasses("items-stretch")) {
 			for item := range slices.Values(feed.GetItems().SortByTimestamp()) {
 				@viewerItemCard(item)
 			}

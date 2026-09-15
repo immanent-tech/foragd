@@ -4,7 +4,6 @@
 package templates
 
 import "github.com/immanent-tech/foragd/web/templates/element"
-import "github.com/dimmerz92/go-icons/tabler-outline"
 
 // pageHeading renders a section appropriate for displaying a page title and actions.
 templ pageHeading(options ...element.PropertiesOption) {
@@ -64,36 +63,4 @@ templ sectionActions() {
 	<div class="mt-3 flex sm:mt-0 sm:ml-4">
 		{ children... }
 	</div>
-}
-
-// buttonBackToTop adds a "back to top" button that is only shown when the user has scrolled down the page.
-templ buttonBackToTop() {
-	<div
-		id="scroll-sentinel"
-		style="height:1px;"
-		_="
-		on intersection(intersecting)
-			if intersecting
-				send scrollSentinelVisible
-			else
-				send scrollSentinelHidden
-			end
-		end
-		"
-	></div>
-	<button
-		class="btn pointer-events-none fixed right-5 bottom-20 z-50 btn-circle translate-y-4 opacity-0 transition-[opacity,transform] duration-200 ease-out btn-secondary hover:animate-bounce sm:right-10 lg:bottom-10"
-		_="
-  		on scrollSentinelHidden from #scroll-sentinel
-  		  remove .opacity-0 .translate-y-4 .pointer-events-none from me
-  		end
-  		on scrollSentinelVisible from #scroll-sentinel
-  		  add .opacity-0 .translate-y-4 .pointer-events-none to me
-  		end
-  		on click scroll to top of #content smoothly
-  		"
-	>
-		<span class="sr-only">Back to top</span>
-		@tableroutline.ArrowUp(templ.Attributes{"class": "text-secondary-content", "aria-hidden": "true"})
-	</button>
 }

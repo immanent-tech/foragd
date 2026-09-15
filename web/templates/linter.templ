@@ -4,6 +4,7 @@ import (
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-syndication/linter"
 	"slices"
@@ -85,7 +86,7 @@ templ Linter() {
 
 templ LinterResults(linterResults map[string][]linter.Result) {
 	<div aria-live="polite">
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		for ruleset, results := range linterResults {
 			<div class="mb-4">
 				<div class="px-4 sm:px-0">

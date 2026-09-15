@@ -12,8 +12,11 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/immanent-tech/go-base/pkg/markdownx"
-import "github.com/immanent-tech/foragd/web/templates/element"
+import (
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
+)
 
 func Comparison(text *markdownx.File) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -48,7 +51,7 @@ func Comparison(text *markdownx.File) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

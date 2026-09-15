@@ -19,7 +19,7 @@ import (
 templ PostsIndex(posts []*markdownx.File) {
 	@LayoutExternal() {
 		@container(element.WithClasses("pt-4")) {
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@pageHeading() {
 				@pageTitle("The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons")
 			}
@@ -30,7 +30,7 @@ templ PostsIndex(posts []*markdownx.File) {
 				guides and opinions here to help you get the most out of independent web reading.
 			</p>
 			{{ postsJSONLD := make([]map[string]any, 0, len(posts)) }}
-			@grid(element.WithClasses("masonry-grid", "relative", "my-12"),
+			@partials.Grid(element.WithClasses("masonry-grid", "relative", "my-12"),
 				element.WithAttribute("_", "install MasonryGrid")) {
 				for idx, post := range posts {
 					// Create a post JSON-LD document.
@@ -155,7 +155,7 @@ templ Post(post *markdownx.File) {
           trigger scroll on the window
         end"
 		></div>
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		@narrowContainer() {
 			// <div class="breadcrumbs text-sm">
 			// 	<ul>

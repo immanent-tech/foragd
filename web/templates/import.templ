@@ -8,6 +8,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"strconv"
 )
@@ -96,7 +97,7 @@ templ ImportSubscriptions() {
 
 // ImportSubscriptionsResults renders the results of importing the users subscriptions.
 templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
-	@buttonBackToTop()
+	@partials.BackToTopButton()
 	// Generate seperate lists of successful/failed/warning imports.
 	{{
 		successfulResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {

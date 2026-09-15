@@ -343,7 +343,7 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
@@ -365,7 +365,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					</div>
 					if len(response.Subscriptions) > 0 {
 						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
-							@grid(element.WithClasses("masonry-grid", "relative"),
+							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
 								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 								element.WithHXTarget(ContentID.Target()),

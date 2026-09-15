@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
@@ -70,47 +71,17 @@ templ Discover(request *models.SuggestFeedsRequest) {
 				// Loading skeleton.
 				<div id="discover-loading" class="group">
 					<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
-						<ul class="divide-y divide-neutral/15">
-							<li>
-								<div class="mt-8 h-12 w-lg skeleton"></div>
-								<div class="mt-8 flex flex-col gap-y-4">
-									<div class="flex">
-										<div class="mr-4 shrink-0 self-center">
-											<div class="size-16 skeleton"></div>
-										</div>
-										<div>
-											<div class="h-6 w-48 skeleton"></div>
-											<div class="mt-2 h-12 w-96 skeleton"></div>
-										</div>
-									</div>
-									<div class="flex">
-										<div class="mr-4 shrink-0 self-center">
-											<div class="size-16 skeleton"></div>
-										</div>
-										<div>
-											<div class="h-6 w-48 skeleton"></div>
-											<div class="mt-2 h-12 w-96 skeleton"></div>
-										</div>
-									</div>
-									<div class="flex">
-										<div class="mr-4 shrink-0 self-center">
-											<div class="size-16 skeleton"></div>
-										</div>
-										<div>
-											<div class="h-6 w-48 skeleton"></div>
-											<div class="mt-2 h-12 w-96 skeleton"></div>
-										</div>
-									</div>
-								</div>
-							</li>
-						</ul>
+						@partials.Grid() {
+							@feedSuggestionSkeleton()
+							@feedSuggestionSkeleton()
+							@feedSuggestionSkeleton()
+						}
 					</div>
 				</div>
 				// Suggestions.
-				@narrowContainer() {
-					<div id="discover-suggestions" class="mt-8"></div>
-				}
+				<div id="discover-suggestions" class="mt-8"></div>
 			}
+			@partials.BackToTopButton()
 		}
 	}
 }
@@ -138,17 +109,18 @@ templ DiscoverSuggestions(suggestions models.SuggestFeedsResults) {
 			</div>
 		</div>
 	} else {
-		<ul role="list" class="divide-y divide-neutral/15">
+		@partials.Grid() {
 			for feed := range slices.Values(suggestions.Feeds) {
 				@feedSuggestion(feed, suggestions.LatestItems[feed.GetID()])
 			}
-		</ul>
+		}
 	}
 }
 
 templ feedSuggestion(feed *models.Feed, items models.Items) {
-	<li class="py-5">
-		<div class="flex items-center justify-between gap-x-6">
+	@partials.Card() {
+		// Header: feed title, thumbnail and description (if any).
+		@partials.CardHeader() {
 			<div class="flex min-w-0">
 				<div class="mr-4 shrink-0">
 					@feedThumbnail(feed)
@@ -156,55 +128,92 @@ templ feedSuggestion(feed *models.Feed, items models.Items) {
 				<div>
 					<h4 class="text-lg font-bold">{ feed.GetTitle() }</h4>
 					if feed.GetDescription() != "" {
-						<p class="mt-1 text-sm text-neutral line-clamp-3">{ feed.GetDescription() } </p>
+						<div class="tooltip tooltip-bottom" data-tip={ feed.GetDescription() }>
+							<p class="mt-1 text-sm/6 text-neutral text-pretty line-clamp-2">{ feed.GetDescription() } </p>
+						</div>
 					}
 				</div>
 			</div>
-			<div class="flex flex-none items-center gap-x-4">
-				<form>
-					<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
-					<input type="hidden" name="feed_id" value={ feed.GetID() }/>
-					<button
-						type="submit"
-						class="group btn btn-primary"
-						hx-post="/subscription/add/feed"
-						hx-swap="none"
-						hx-disabled-elt="this"
-						hx-encoding="multipart/form-data"
-						data-suggestionid={ "#suggestion-" + feed.GetID() }
-						_="on htmx:afterRequest(successful) remove me"
-					>
-						<span class="hidden items-center group-[.htmx-request]:inline-flex">
-							<span class="loading mr-3 loading-spinner text-primary"></span>
-							Subscribing
-						</span>
-						<span class="inline-flex items-center group-[.htmx-request]:hidden">
-							Subscribe
-						</span>
-					</button>
-				</form>
-			</div>
-		</div>
-		if len(items) > 0 {
-			<div>
-				<div class="flex mx-auto justify-center">
-					<button command="--toggle" commandfor={ feed.GetID() + "_latest_items" } type="button">
-						<span class="sr-only">Show latest items</span>
-						@tableroutline.ChevronDown(templ.Attributes{
-							"class":       "size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-							"aria-hidden": "true"})
-					</button>
-				</div>
-				<el-disclosure hidden id={ feed.GetID() + "_latest_items" }>
-					<ul role="list" class="latest-items">
+		}
+		// Body: item previews.
+		@partials.CardBody() {
+			if len(items) > 0 {
+				<div class="mt-auto h-full">
+					<ul class="latest-items">
 						for item := range slices.Values(items) {
 							<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-								{ item.GetTitle() }
+								<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
+									<a class="line-clamp-2 font-serif text-base">
+										{ item.GetTitle() }
+									</a>
+								</div>
 							</li>
 						}
 					</ul>
-				</el-disclosure>
-			</div>
+				</div>
+			}
 		}
-	</li>
+		// Footer: subscribe button.
+		@partials.CardFooter(element.WithClasses("flex justify-end")) {
+			<form>
+				<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
+				<input type="hidden" name="feed_id" value={ feed.GetID() }/>
+				<button
+					type="submit"
+					class="group btn btn-primary"
+					hx-post="/subscription/add/feed"
+					hx-swap="none"
+					hx-disabled-elt="this"
+					hx-encoding="multipart/form-data"
+					data-suggestionid={ "#suggestion-" + feed.GetID() }
+					_="on htmx:afterRequest(successful) remove me"
+				>
+					<span class="hidden items-center group-[.htmx-request]:inline-flex">
+						<span class="loading mr-3 loading-spinner text-primary"></span>
+						Subscribing
+					</span>
+					<span class="inline-flex items-center group-[.htmx-request]:hidden">
+						Subscribe
+					</span>
+				</button>
+			</form>
+		}
+	}
+}
+
+templ feedSuggestionSkeleton() {
+	<div class="card bg-base-200 border border-neutral/20 w-80">
+		<div class="card-header px-4 pt-5 pb-2 sm:px-6">
+			<div class="flex min-w-0">
+				<div class="mr-4 shrink-0">
+					<div class="skeleton w-12 h-12 rounded-full shrink-0"></div>
+				</div>
+				<div class="flex-1 min-w-0">
+					<div class="skeleton h-5 w-3/4 max-w-56"></div>
+					<div class="mt-2 space-y-2">
+						<div class="skeleton h-3 w-full"></div>
+						<div class="skeleton h-3 w-5/6"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="px-4 py-5 sm:p-6">
+			<div class="mt-auto h-full">
+				<ul class="latest-items">
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-11/12"></div>
+					</li>
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-2/3"></div>
+					</li>
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-4/5"></div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="card-footer mt-auto px-4 pb-4 pt-2 sm:px-6 flex justify-end">
+			<div class="skeleton h-10 w-28 rounded-field"></div>
+		</div>
+	</div>
 }

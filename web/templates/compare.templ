@@ -3,12 +3,15 @@
 
 package templates
 
-import "github.com/immanent-tech/go-base/pkg/markdownx"
-import "github.com/immanent-tech/foragd/web/templates/element"
+import (
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-base/pkg/markdownx"
+)
 
 templ Comparison(text *markdownx.File) {
 	@LayoutExternal() {
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		@narrowContainer() {
 			@pageHeading(element.WithClasses("mt-12")) {
 				@pageTitle(text.Frontmatter.PageTitle)

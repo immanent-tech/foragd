@@ -3,11 +3,13 @@
 
 package templates
 
+import "github.com/immanent-tech/foragd/web/templates/partials"
+
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
 	@templ.Fragment(ContentFragment) {
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		<article class="mt-12 mx-auto p-4 prose-document">
 			@templ.Raw(string(data))
 		</article>

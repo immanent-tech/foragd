@@ -619,7 +619,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
           			trigger scroll on the window
         		end"
 			></div>
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name="subscriptions" value={ article.GetSubscriptionID() }/>
@@ -853,7 +853,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 templ ListArticles(response *models.ListArticlesResponse) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"),
 				element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
@@ -903,7 +903,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					</div>
 					if len(response.Articles) > 0 {
 						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/articles', storageKey: 'articlesList')">
-							@grid(element.WithClasses("masonry-grid", "relative"),
+							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
 								element.WithHXMethod(http.MethodGet, "/list/articles"),
 								element.WithHXTarget(ContentID.Target()),

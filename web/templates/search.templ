@@ -394,7 +394,7 @@ templ suggestDiscover() {
 templ SearchResults(results *models.SearchResults) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@buttonBackToTop()
+			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
 			@container(element.WithClasses("pt-4 ptr-scroll"), element.WithAttribute("_", "install PullToRefresh(threshold: 70)")) {
 				// Show a page header.
@@ -448,7 +448,7 @@ templ SearchResults(results *models.SearchResults) {
 							</div>
 						</div>
 						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/search', storageKey: 'search')">
-							@grid(element.WithClasses("masonry-grid", "relative"),
+							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
 								element.WithHXMethod(http.MethodGet, "/search"),
 								element.WithHXTarget(ContentID.Target()),
@@ -864,7 +864,7 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
-		@buttonBackToTop()
+		@partials.BackToTopButton()
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Show a page header.
@@ -890,7 +890,7 @@ templ SimilarArticles(articles models.Articles) {
 				} else {
 					// Show results.
 					<section class="mt-4">
-						@grid() {
+						@partials.Grid() {
 							for idx, article := range articles {
 								@ArticleCard(idx, article, models.ViewAll)
 							}

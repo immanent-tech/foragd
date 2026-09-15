@@ -16,6 +16,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
@@ -198,7 +199,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 											var templ_7745c5c3_Var10 string
 											templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 120, Col: 57}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 121, Col: 57}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 											if templ_7745c5c3_Err != nil {
@@ -211,7 +212,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 											var templ_7745c5c3_Var11 string
 											templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 121, Col: 47}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 122, Col: 47}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 											if templ_7745c5c3_Err != nil {
@@ -224,7 +225,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 											var templ_7745c5c3_Var12 string
 											templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTitle())
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 127, Col: 40}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 128, Col: 40}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 											if templ_7745c5c3_Err != nil {
@@ -237,7 +238,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 											var templ_7745c5c3_Var13 string
 											templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 129, Col: 34}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 130, Col: 34}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 											if templ_7745c5c3_Err != nil {
@@ -262,7 +263,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid(element.WithClasses("relative", "mt-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.Grid(element.WithClasses("relative", "mt-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -282,7 +283,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						var templ_7745c5c3_Var14 string
 						templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 149, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 150, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 						if templ_7745c5c3_Err != nil {
@@ -340,7 +341,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid(element.WithClasses("relative", "mt-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.Grid(element.WithClasses("relative", "mt-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -360,7 +361,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 						var templ_7745c5c3_Var17 string
 						templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 178, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 179, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 						if templ_7745c5c3_Err != nil {

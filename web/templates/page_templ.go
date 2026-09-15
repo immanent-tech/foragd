@@ -13,7 +13,6 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/immanent-tech/foragd/web/templates/element"
-import "github.com/dimmerz92/go-icons/tabler-outline"
 
 // pageHeading renders a section appropriate for displaying a page title and actions.
 func pageHeading(options ...element.PropertiesOption) templ.Component {
@@ -109,7 +108,7 @@ func pageTitle(title string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 24, Col: 93}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 23, Col: 93}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -291,7 +290,7 @@ func sectionTitle(title string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 56, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 55, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -345,44 +344,6 @@ func sectionActions() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-// buttonBackToTop adds a "back to top" button that is only shown when the user has scrolled down the page.
-func buttonBackToTop() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var15 == nil {
-			templ_7745c5c3_Var15 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"scroll-sentinel\" style=\"height:1px;\" _=\"\n\t\ton intersection(intersecting)\n\t\t\tif intersecting\n\t\t\t\tsend scrollSentinelVisible\n\t\t\telse\n\t\t\t\tsend scrollSentinelHidden\n\t\t\tend\n\t\tend\n\t\t\"></div><button class=\"btn pointer-events-none fixed right-5 bottom-20 z-50 btn-circle translate-y-4 opacity-0 transition-[opacity,transform] duration-200 ease-out btn-secondary hover:animate-bounce sm:right-10 lg:bottom-10\" _=\"\n  \t\ton scrollSentinelHidden from #scroll-sentinel\n  \t\t  remove .opacity-0 .translate-y-4 .pointer-events-none from me\n  \t\tend\n  \t\ton scrollSentinelVisible from #scroll-sentinel\n  \t\t  add .opacity-0 .translate-y-4 .pointer-events-none to me\n  \t\tend\n  \t\ton click scroll to top of #content smoothly\n  \t\t\"><span class=\"sr-only\">Back to top</span>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tableroutline.ArrowUp(templ.Attributes{"class": "text-secondary-content", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

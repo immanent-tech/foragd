@@ -762,7 +762,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -960,7 +960,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid(element.WithClasses("masonry-grid", "relative"),
+						templ_7745c5c3_Err = partials.Grid(element.WithClasses("masonry-grid", "relative"),
 							element.WithAttribute("_", "install MasonryGrid"),
 							element.WithHXMethod(http.MethodGet, "/search"),
 							element.WithHXTarget(ContentID.Target()),
@@ -1871,7 +1871,7 @@ func SimilarArticles(articles models.Articles) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = buttonBackToTop().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.BackToTopButton().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1945,7 +1945,7 @@ func SimilarArticles(articles models.Articles) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var76), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.Grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var76), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
