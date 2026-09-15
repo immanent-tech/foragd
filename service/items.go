@@ -902,13 +902,20 @@ func NewItemsFromZyteArticles(
 ) (models.Items, error) {
 	items := make(models.Items, 0, len(articles.Articles))
 	for article := range slices.Values(articles.Articles) {
+		sourceURL, err := url.Parse(article.URL)
+		if err != nil {
+			slogctx.Warn(ctx, "Unable to parse article URL, skipping.",
+				slog.String("url", article.URL),
+			)
+			continue
+		}
 		item := &models.Item{
-			ItemID:      "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+article.URL)), 10),
+			ItemID:      "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+sourceURL.String())), 10),
 			FeedID:      feed.GetID(),
 			Timestamp:   time.Now().UTC(),
 			Description: article.Description,
 			SourceType:  feed.SourceType,
-			URL:         article.URL,
+			URL:         sourceURL.String(),
 			Language:    article.InLanguage,
 			FeedTitle:   feed.GetTitle(),
 		}
@@ -935,7 +942,6 @@ func NewItemsFromZyteArticles(
 		if updDate, _ := article.GetUpdatedDate(); !updDate.IsZero() {
 			updDateUTC := updDate.UTC()
 			item.Updated = &updDateUTC
-
 		}
 
 		if article.MainImage != nil {
