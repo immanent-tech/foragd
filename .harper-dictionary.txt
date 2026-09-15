@@ -5,6 +5,8 @@ JSONFeed
 OPML
 IMHO
 GCP
-Youtube
 FreshRSS
 Newsblur
+Hyperscript
+HTMX
+AGPL-3.0-or-later

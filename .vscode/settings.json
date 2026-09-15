@@ -9,6 +9,9 @@
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
   },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "emmet.includeLanguages": {
     "templ": "html"
   },
@@ -22,7 +25,19 @@
     "**/.svn": true,
     "**/*_templ.go": true,
     "**/CVS": true,
-    "**/Thumbs.db": true
+    "**/Thumbs.db": true,
+    "**/dist": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/*_templ.go": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/package-lock.json": true,
+    "**/*_templ.go": true
   },
   "html.format.wrapAttributes": "force-expand-multiline",
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
@@ -44,5 +59,32 @@
   "markdown.validate.enabled": true,
   "harper-ls": {
     "excludePatterns": ["**/*.go", "**/*_templ.go"]
-  }
+  },
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.preferences.importModuleSpecifier": "relative",
+  "js/ts.suggest.autoImports": true,
+  "js/ts.suggest.completeFunctionCalls": true,
+  "js/ts.format.semicolons": "insert",
+  "psi-header.config": {
+    "forceToTop": true,
+    "creation": "new",
+    "blankLinesAfter": 1,
+    "license": "AGPLv3"
+  },
+  "psi-header.templates": [
+    {
+      "language": "*",
+      "template": [
+        "Copyright (c) <<year>> <<company>>",
+        "SPDX-License-Identifier: AGPL-3.0-or-later"
+      ]
+    }
+  ],
+  "psi-header.changes-tracking": {
+    "isActive": true,
+    "modAuthor": "Modified By:",
+    "modDate": "Last Modified:",
+    "modDateFormat": "date"
+  },
+  "psi-header.variables": [["company", "Immanent Tech"]]
 }

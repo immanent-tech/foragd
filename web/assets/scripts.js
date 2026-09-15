@@ -1,19 +1,21 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
-// htmx
-import htmx from 'htmx.org/dist/htmx.esm'
-window.htmx = htmx
-import 'idiomorph/htmx'
+// HTMX
 import 'htmx-ext-head-support'
+import htmx from 'htmx.org/dist/htmx.esm'
+import 'idiomorph/htmx'
+window.htmx = htmx
 
-// hyperscript
+// Hyperscript
 import 'hyperscript.org'
 
 // Relative time custom element.
 import '@github/relative-time-element'
 
-// Custom element for youtube player.
+// Custom element for YouTube player.
 import './embed-youtube'
 
 // Android billing.
