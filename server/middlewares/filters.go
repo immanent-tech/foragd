@@ -37,6 +37,10 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 		if req.Method == http.MethodGet && !strings.HasSuffix(req.URL.Path, "/articles") &&
 			!strings.HasSuffix(req.URL.Path, "/subscriptions") && !strings.HasPrefix(req.URL.Path, "/map") {
 			filters := models.ListFiltersFromSession(spanCtx, path)
+			// Reset pagination.
+			filters.From = nil
+			filters.UpTo = nil
+			// Store in context.
 			ctx := models.ListFiltersToCtx(req.Context(), filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 			return

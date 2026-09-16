@@ -86,17 +86,17 @@ func ParseListFilters(query url.Values) *ListFilters {
 	if c := query.Get("category"); c != "" {
 		filters.Category = &c
 	}
-	if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
-		filters.From = &v
-	}
-	if v, err := strconv.Atoi(query.Get("upto")); err == nil && v > 0 {
-		filters.UpTo = &v
-	}
-	if a := query.Get("search_after"); a != "" {
-		if pagination, err := url.QueryUnescape(a); err != nil {
-			filters.SearchAfter = &pagination
-		}
-	}
+	// if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
+	// 	filters.From = &v
+	// }
+	// if v, err := strconv.Atoi(query.Get("upto")); err == nil && v > 0 {
+	// 	filters.UpTo = &v
+	// }
+	// if a := query.Get("search_after"); a != "" {
+	// 	if pagination, err := url.QueryUnescape(a); err != nil {
+	// 		filters.SearchAfter = &pagination
+	// 	}
+	// }
 	if s := query.Get("subscriptions"); s != "" {
 		filters.Subscriptions = strings.Split(s, ",")
 	}
