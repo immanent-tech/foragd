@@ -1,16 +1,13 @@
 {
-  "go.lintTool": "golangci-lint",
+  "go.lintTool": "golangci-lint-v2",
   "go.lintFlags": ["--path-mode=abs", "--fast-only"],
   "go.formatTool": "custom",
   "go.alternateTools": {
-    "customFormatter": "golangci-lint"
+    "customFormatter": "golangci-lint-v2"
   },
   "go.formatFlags": ["fmt", "--stdin"],
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
-  },
-  "gopls": {
-    "ui.diagnostic.staticcheck": true
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -43,9 +40,6 @@
     "**/*_templ.go": true
   },
   "html.format.wrapAttributes": "force-expand-multiline",
-  "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
-  "licenser.license": "AGPLv3",
-  "licenser.useSPDXLicenseFormat": true,
   "prettier.bracketSameLine": true,
   "rewrap.wrappingColumn": 120,
   "tailwindCSS.emmetCompletions": true,
@@ -56,9 +50,6 @@
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
   "xmlTools.splitAttributesOnFormat": true,
-  "git.autofetch": true,
-  "git.followTagsWhenSync": true,
-  "git.enableSmartCommit": true,
   "markdown.validate.enabled": true,
   "harper-ls": {
     "excludePatterns": ["**/*.go", "**/*_templ.go"]
