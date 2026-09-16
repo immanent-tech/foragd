@@ -4,6 +4,7 @@
 package ollama
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/idtoken"
 )
 
 const (
@@ -32,7 +35,8 @@ type Config struct {
 	// BatchSize is the number of input texts to process at once.
 	BatchSize int `koanf:"batchsize" validate:"omitempty,gt=0"`
 	// KeepAlive is how long to keep a request alive.
-	KeepAlive config.Duration `koanf:"keepalive"`
+	KeepAlive   config.Duration `koanf:"keepalive"`
+	tokenSource oauth2.TokenSource
 }
 
 // LoadConfig loads the auth0 configuration and ensures this is only done
@@ -45,6 +49,18 @@ var LoadConfig = sync.OnceValue(func() error {
 	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("google: unable to validate config: %w", err)
 	}
+
+	var tokenSource oauth2.TokenSource
+	if config.IsProduction() {
+		var err error
+		tokenSource, err = idtoken.NewTokenSource(context.Background(), cfg.URL)
+		if err != nil {
+			return fmt.Errorf("generate token source: %w", err)
+		}
+	}
+	// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
+	// than minting a new one on every single call.
+	cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
 
 	slog.Debug("Ollama config loaded.") //nolint:sloglint // we don't pass a context.
 	return nil
