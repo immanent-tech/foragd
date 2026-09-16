@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.231.3](https://github.com/immanent-tech/foragd/compare/v0.231.2...v0.231.3) (2026-09-16)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix filter values for updates toast ([6c53c77](https://github.com/immanent-tech/foragd/commit/6c53c776c50ccf1fbd3e5328e16e4499130f3132))
+* **providers/ollama:** 🔧 fix potential idtoken expiry issues in production ([cdcd6d2](https://github.com/immanent-tech/foragd/commit/cdcd6d2b9acabf3f28bbb9208892af5588c07f85))
+
+
+### Performance Improvements
+
+* **handlers,middlewares:** ♻️ improved otel integration ([3cc942c](https://github.com/immanent-tech/foragd/commit/3cc942c74ce0061c02a988e3a82d196616cd0003))
+* **otel:** ♻️ improved otel integration ([f4df33c](https://github.com/immanent-tech/foragd/commit/f4df33c9efff4a6616e9756096574620def22e19))
+* **templates:** ⚡ trace list/home page template rendering ([9f77a85](https://github.com/immanent-tech/foragd/commit/9f77a85703c9329dede055e8d55d746ad2281e91))
+
 ## [0.231.2](https://github.com/immanent-tech/foragd/compare/v0.231.1...v0.231.2) (2026-09-15)
 
 
