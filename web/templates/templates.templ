@@ -9,10 +9,13 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/templx"
 	"github.com/immanent-tech/go-base/server/handlers/assets"
+	"go.opentelemetry.io/otel"
 	"net/url"
 	"slices"
 	"strings"
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/web/templates")
 
 var (
 	ContentID        = htmx.ID("content")

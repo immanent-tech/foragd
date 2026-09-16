@@ -14,6 +14,7 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/textx"
+	"go.opentelemetry.io/otel/trace"
 	"html"
 	"net/http"
 	"slices"
@@ -851,6 +852,11 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
+	{{
+		var span trace.Span
+		ctx, span = tracer.Start(ctx, "render")
+		defer span.End()
+	}}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()

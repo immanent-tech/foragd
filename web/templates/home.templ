@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"slices"
 	"strconv"
@@ -24,6 +25,11 @@ type HomeData struct {
 
 // UserHome is the default user home page.
 templ UserHome(data *HomeData) {
+	{{
+		var span trace.Span
+		ctx, span = tracer.Start(ctx, "render")
+		defer span.End()
+	}}
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
