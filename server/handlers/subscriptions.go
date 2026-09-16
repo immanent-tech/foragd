@@ -295,11 +295,14 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
+			// Reset from count.
+			if filters.From != nil {
+				filters.From = nil
+			}
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
-				element.WithHXPushURL(true),
 				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {

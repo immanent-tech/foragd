@@ -312,11 +312,14 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 			default:
 				route = "/list/articles"
 			}
+			// Reset from count.
+			if filters.From != nil {
+				filters.From = nil
+			}
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, route),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
-				element.WithHXPushURL(true),
 				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {

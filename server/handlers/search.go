@@ -429,7 +429,6 @@ func HandleSearchUpdates() http.HandlerFunc {
 				element.WithHXMethod(http.MethodGet, "/search"),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
-				element.WithHXPushURL(true),
 				element.WithHXValues(search),
 			)}).ServeHTTP(res, req)
 		} else {
