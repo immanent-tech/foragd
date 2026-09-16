@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.231.5](https://github.com/immanent-tech/foragd/compare/v0.231.4...v0.231.5) (2026-09-16)
+
+
+### Bug Fixes
+
+* **zyte:** 🔧 fix sprintf message ([5edf55d](https://github.com/immanent-tech/foragd/commit/5edf55dbc7758976ae4101779f14fc09d86f58ac))
+
 ## [0.231.4](https://github.com/immanent-tech/foragd/compare/v0.231.3...v0.231.4) (2026-09-16)
 
 
