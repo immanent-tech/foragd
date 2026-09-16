@@ -48,9 +48,14 @@
   },
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
-  "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true,
   "markdown.validate.enabled": true,
+  "xml.validation.enabled": true,
+  "xml.validation.schema.enabled": "always",
+  "xml.validation.namespaces.enabled": "always",
+  "xml.symbols.enabled": true,
+  "xml.symbols.showReferencedGrammars": true,
+  "xml.codeLens.enabled": true,
+  "xml.completion.autoCloseTags": true,
   "harper-ls": {
     "excludePatterns": ["**/*.go", "**/*_templ.go"]
   },
