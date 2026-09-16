@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.231.4](https://github.com/immanent-tech/foragd/compare/v0.231.3...v0.231.4) (2026-09-16)
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 reset from/upto/pagination for requests that shouldn't have them set ([ed2dd42](https://github.com/immanent-tech/foragd/commit/ed2dd42a6e764b3b003ca621b3569f45c807be4c))
+
 ## [0.231.3](https://github.com/immanent-tech/foragd/compare/v0.231.2...v0.231.3) (2026-09-16)
 
 
