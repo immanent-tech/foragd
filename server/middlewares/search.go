@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package middlewares
 
@@ -18,12 +20,15 @@ import (
 // CanonicalizeSearchParams processes and stores the search params requested by a user.
 func CanonicalizeSearchParams(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		spanCtx, span := tracer.Start(req.Context(), "canonicalize-search-filters")
+		defer span.End()
+
 		switch req.Method {
 		case http.MethodGet:
 			var search *models.SearchRequest
 			if htmx.IsHistoryRestoreRequest(req) {
 				// For a history restore request, fetch the params from the session.
-				search = models.SearchParamsFromSession(req.Context())
+				search = models.SearchParamsFromSession(spanCtx)
 				switch {
 				case search.From != nil:
 					// Set upto as the value of from and reset from.
@@ -32,7 +37,7 @@ func CanonicalizeSearchParams(next http.Handler) http.Handler {
 					search.From = nil
 				case search.SearchAfter != nil:
 					// Set upto from value stored in session.
-					count := models.SearchCountFromSession(req.Context())
+					count := models.SearchCountFromSession(spanCtx)
 					search.UpTo = &count
 					search.SearchAfter = nil
 				}
@@ -40,7 +45,7 @@ func CanonicalizeSearchParams(next http.Handler) http.Handler {
 				// For regular requests, parse the params from the query. If they differ, redirect the user.
 				search = models.ParseSearchParams(req.URL.Query())
 				if canonical := search.Encode(); req.URL.RawQuery != canonical {
-					slogctx.Debug(req.Context(), "Redirect after params canonicalization.",
+					slogctx.Debug(spanCtx, "Redirect after params canonicalization.",
 						slog.String("query", req.URL.RawQuery),
 						slog.String("canonical", canonical))
 					req.URL.RawQuery = canonical
@@ -57,17 +62,17 @@ func CanonicalizeSearchParams(next http.Handler) http.Handler {
 			search, err := forms.DecodeForm[*models.SearchRequest](req)
 			if err != nil {
 				// Try to restore params from session.
-				search = models.SearchParamsFromSession(req.Context())
-				slogctx.FromCtx(req.Context()).Warn("Unable to decode search params. Using search params from session.",
+				search = models.SearchParamsFromSession(spanCtx)
+				slogctx.FromCtx(spanCtx).Warn("Unable to decode search params. Using search params from session.",
 					slog.Any("error", err),
 					slog.Any("search", search),
 				)
 			}
 			// For pagination requests, update search count in session.
 			if strings.HasSuffix(req.URL.Path, "paginate") {
-				count := models.SearchCountFromSession(req.Context())
+				count := models.SearchCountFromSession(spanCtx)
 				count += search.Count
-				models.SearchCountToSession(req.Context(), count)
+				models.SearchCountToSession(spanCtx, count)
 			}
 			// Save values.
 			ctx := models.SearchParamsToCtx(req.Context(), search)

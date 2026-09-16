@@ -16,7 +16,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
-	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -53,12 +52,6 @@ func HandleInternalError(status int, err error, options ...ErrorOption) http.Han
 	}
 
 	return func(res http.ResponseWriter, req *http.Request) {
-		if otel.IsEnabled() {
-			_, span := otel.TracerProvider.Tracer("").
-				Start(req.Context(), "handle-internal-error")
-			defer span.End()
-		}
-
 		// Don't cache errors.
 		res.Header().Set("Cache-Control", "no-store")
 
@@ -128,12 +121,6 @@ type ExternalError struct {
 // HandleExternalError handles display errors on external pages.
 func HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		if otel.IsEnabled() {
-			_, span := otel.TracerProvider.Tracer("").
-				Start(req.Context(), "handle-external-error")
-			defer span.End()
-		}
-
 		// Don't cache errors.
 		res.Header().Set("Cache-Control", "no-store")
 

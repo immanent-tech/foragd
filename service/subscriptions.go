@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package service
 
@@ -21,6 +23,7 @@ import (
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
+	"go.opentelemetry.io/otel/codes"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-base/validation"
@@ -31,7 +34,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
-	"github.com/immanent-tech/foragd/server/otel"
 )
 
 var userSubscriptionsCache = otter.Must(
@@ -121,14 +123,13 @@ var cacheSubscription = otter.LoaderFunc[models.SubscriptionID, *models.Subscrip
 func GetAllSubscriptions(
 	ctx context.Context,
 ) (models.Subscriptions, error) {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "get-all-subscriptions")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "GetAllSubscriptions")
+	defer span.End()
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
@@ -139,8 +140,12 @@ func GetAllSubscriptions(
 	)
 	switch {
 	case err != nil && errors.Is(err, otter.ErrNotFound):
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
 	case err != nil:
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get all subscriptions: %w", err)
 	}
 
@@ -157,14 +162,13 @@ func GetSubscription(
 	ctx context.Context,
 	id models.SubscriptionID,
 ) (*models.Subscription, error) {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "get-subscription")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "GetSubscription")
+	defer span.End()
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
@@ -175,8 +179,12 @@ func GetSubscription(
 	)
 	switch {
 	case err != nil && errors.Is(err, otter.ErrNotFound):
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
 	case err != nil:
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get all subscriptions: %w", err)
 	}
 
@@ -188,19 +196,18 @@ func GetSubscription(
 	return subscription, nil
 }
 
-// GetSubscriptionsByID returns all subscriptions that match the given SubscriptionIDs.
+// GetSubscriptionsByID returns all subscriptions that match the given [models.SubscriptionID].
 func GetSubscriptionsByID(
 	ctx context.Context,
 	ids ...models.SubscriptionID,
 ) (models.Subscriptions, error) {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "get-subscription-by-id")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "GetSubscriptionsByID")
+	defer span.End()
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
@@ -211,13 +218,19 @@ func GetSubscriptionsByID(
 	)
 	switch {
 	case err != nil && errors.Is(err, otter.ErrNotFound):
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get user subscription cache: %w", models.ErrNotFound)
 	case err != nil:
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get user subscription cache: %w", err)
 	}
 
 	results, err := subscriptionsCache.BulkGet(ctx, ids, cacheSubscriptionsByID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("bulk get subscriptions: %w", err)
 	}
 
@@ -547,11 +560,8 @@ func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
 ) error {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "update-subscriptions")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
+	defer span.End()
 
 	if err := bulk.IndexDocuments(ctx, schema.SubscriptionsIndexRW(), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
@@ -559,11 +569,15 @@ func UpdateSubscriptions(
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
 	// Update the subscription dynamic info
 	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
 			slog.Any("errro", err),
 		)
@@ -587,30 +601,35 @@ func MarkSubscriptions(
 	mark models.Mark,
 	subscriptionIDs ...models.SubscriptionID,
 ) error {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "mark-subscriptions")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "MarkSubscriptions")
+	defer span.End()
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
 	subscriptions, err := GetSubscriptionsByID(ctx, subscriptionIDs...)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("get subscription details: %w", err)
 	}
 
 	for subscription := range slices.Values(subscriptions) {
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
 			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.GetGroupedSubscriptionIDs()...); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				return fmt.Errorf("mark group subscription: %w", err)
 			}
 		} else {
 			subscription.Mark(user, mark)
 			if err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				return fmt.Errorf("update subscription data: %w", err)
 			}
 			slogctx.Debug(ctx, "Marked subscription.",
@@ -646,22 +665,18 @@ func GetLatestArticles(
 	view models.View,
 	subscriptions models.Subscriptions,
 ) {
+	ctx, span := tracer.Start(ctx, "GetLatestArticles")
+	defer span.End()
+
 	// NOTE: there is concurrent access to the subscriptions slice, but each element is sequentially accessed within the
 	// goroutines. So this is safe access.
 
 	var wg sync.WaitGroup
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "get-latest-items")
-		defer span.End()
-	}
 
 	wg.Go(func() {
-		if otel.IsEnabled() {
-			_, span := otel.TracerProvider.Tracer("").
-				Start(ctx, "get-feed-subscription-latest-items")
-			defer span.End()
-		}
+		ctx, span := tracer.Start(ctx, "get-feed-subscription-latest-items")
+		defer span.End()
+
 		// For feed/email subscriptions, get the latest 3 items from each.
 		feedSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed)
 		emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeEmail)
@@ -672,6 +687,8 @@ func GetLatestArticles(
 			view,
 		)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			slogctx.FromCtx(ctx).Warn("Unable to retrieve latest items for feed/email subscriptions.",
 				slog.Any("error", err),
 			)
@@ -703,11 +720,8 @@ func GetLatestArticles(
 	})
 
 	wg.Go(func() {
-		if otel.IsEnabled() {
-			_, span := otel.TracerProvider.Tracer("").
-				Start(ctx, "get-group-subscriptions-latest-items")
-			defer span.End()
-		}
+		ctx, span := tracer.Start(ctx, "get-group-subscription-latest-items")
+		defer span.End()
 
 		// For group subscriptions, get the latest 3 items across each group's members.
 		groupsLatestItems := getGroupSubscriptionLatestItems(
@@ -732,11 +746,8 @@ func GetLatestArticles(
 	})
 
 	wg.Go(func() {
-		if otel.IsEnabled() {
-			_, span := otel.TracerProvider.Tracer("").
-				Start(ctx, "get-search-subscription-latest-items")
-			defer span.End()
-		}
+		ctx, span := tracer.Start(ctx, "get-search-subscription-latest-items")
+		defer span.End()
 
 		// For search subscription, run each search and get the top 3 results.
 		searchLatestItems, err := getSearchSubscriptionLatestItems(
@@ -745,6 +756,8 @@ func GetLatestArticles(
 			subscriptions.FilterByType(models.SubscriptionTypeSearch),
 		)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			slogctx.FromCtx(ctx).Warn("Unable to retrieve top items for search subscriptions.",
 				slog.Any("error", err),
 			)
@@ -1160,11 +1173,9 @@ func GetCategoriesForSubscriptions(
 //
 //nolint:gocognit,funlen
 func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
-	if otel.IsEnabled() {
-		_, span := otel.TracerProvider.Tracer("").
-			Start(ctx, "update-subscription-dynamic-info")
-		defer span.End()
-	}
+	ctx, span := tracer.Start(ctx, "UpdateSubscriptionDynamicInfo")
+	defer span.End()
+
 	// Bail early if given an empty list.
 	if len(subscriptions) == 0 {
 		return nil
@@ -1172,6 +1183,8 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 
 	user := models.UserFromCtx(ctx)
 	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
@@ -1261,6 +1274,8 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 	}
 
 	if err := fetchJobs.Wait(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
 	}
 

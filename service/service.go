@@ -11,7 +11,10 @@ import (
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/service")
 
 var bufPool = sync.Pool{
 	New: func() any {

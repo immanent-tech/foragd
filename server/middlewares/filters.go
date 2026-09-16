@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package middlewares
 
@@ -18,6 +20,8 @@ import (
 // CanonicalizeListFilters handles processing and storing the fully-specified, whitelisted list filters for the user.
 func CanonicalizeListFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		spanCtx, span := tracer.Start(req.Context(), "canonicalize-filters")
+		defer span.End()
 		// Set a canonical path, used for context/session key suffixes.
 		var path string
 		switch {
@@ -32,7 +36,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 		// When not on list pages, just load the filters from the session into the context.
 		if req.Method == http.MethodGet && !strings.HasSuffix(req.URL.Path, "/articles") &&
 			!strings.HasSuffix(req.URL.Path, "/subscriptions") && !strings.HasPrefix(req.URL.Path, "/map") {
-			filters := models.ListFiltersFromSession(req.Context(), path)
+			filters := models.ListFiltersFromSession(spanCtx, path)
 			ctx := models.ListFiltersToCtx(req.Context(), filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 			return
@@ -43,7 +47,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 			var filters *models.ListFilters
 			if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
 				// For a history restore request, fetch the filters from the session.
-				filters = models.ListFiltersFromSession(req.Context(), path)
+				filters = models.ListFiltersFromSession(spanCtx, path)
 				switch {
 				case filters.From != nil:
 					// Set upto as the value of from and reset from.
@@ -52,7 +56,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 					filters.From = nil
 				case filters.SearchAfter != nil:
 					// Set upto from value stored in session.
-					count := models.ListCountFromSession(req.Context(), path)
+					count := models.ListCountFromSession(spanCtx, path)
 					filters.UpTo = &count
 					filters.SearchAfter = nil
 				}
@@ -60,7 +64,7 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 				// For regular requests, parse the filters from the query.
 				filters = models.ParseListFilters(req.URL.Query())
 				if canonical := filters.Encode(); req.URL.RawQuery != canonical {
-					slogctx.Debug(req.Context(), "Redirect after filters canonicalization.",
+					slogctx.Debug(spanCtx, "Redirect after filters canonicalization.",
 						slog.String("query", req.URL.RawQuery),
 						slog.String("canonical", canonical))
 					req.URL.RawQuery = canonical
@@ -77,17 +81,17 @@ func CanonicalizeListFilters(next http.Handler) http.Handler {
 			filters, err := forms.DecodeForm[*models.ListFilters](req)
 			if err != nil || filters == nil {
 				// Try to restore filters from session.
-				filters = models.ListFiltersFromSession(req.Context(), path)
-				slogctx.FromCtx(req.Context()).Warn("Unable to decode list filters. Using filters from session.",
+				filters = models.ListFiltersFromSession(spanCtx, path)
+				slogctx.FromCtx(spanCtx).Warn("Unable to decode list filters. Using filters from session.",
 					slog.Any("error", err),
 					slog.Any("filters", filters),
 				)
 			}
 			// For pagination requests, update count in session.
 			if strings.HasSuffix(req.URL.Path, "paginate") {
-				count := models.ListCountFromSession(req.Context(), path)
+				count := models.ListCountFromSession(spanCtx, path)
 				count += filters.Count
-				models.ListCountToSession(req.Context(), path, count)
+				models.ListCountToSession(spanCtx, path, count)
 			}
 			// Save values.
 			ctx := models.ListFiltersToCtx(req.Context(), filters)

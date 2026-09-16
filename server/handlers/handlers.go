@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 // Package handlers contains chainable handlers/middleware for routing.
 package handlers
@@ -12,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-base/server/forms"
+	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
 )
@@ -24,6 +27,8 @@ var (
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/server/handlers")
 
 // RedirectTo performs route redirection for routes that have moved.
 func RedirectTo(target string, code int) http.HandlerFunc {
