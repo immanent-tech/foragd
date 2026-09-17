@@ -494,6 +494,27 @@ func HandleBrowseArticles(direction string) http.HandlerFunc {
 			return
 		}
 
+		// Mark the current article as read if the user prefers.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+		if user.GetSettings().MarkArticleReadOnView {
+			if err := markArticles(
+				req.Context(),
+				models.MarkRead,
+				article.GetSubscriptionID(),
+				article.GetID(),
+			); err != nil {
+				slogctx.Warn(req.Context(), "Unable to mark article read.",
+					slog.String("item_id", article.GetID()),
+					slog.Any("error", err))
+			}
+		}
+
 		article, err := service.GetNextArticle(
 			req.Context(),
 			article.GetID(),

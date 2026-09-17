@@ -566,12 +566,9 @@ func UpdateSubscriptions(
 	if err := bulk.IndexDocuments(ctx, schema.SubscriptionsIndexRW(), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
 	}
-
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		span.RecordError(models.ErrCtxValueNotFound)
-		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Failed to flush subscription updates.",
+			slog.Any("error", err))
 	}
 
 	// Update the subscription dynamic info
@@ -584,6 +581,12 @@ func UpdateSubscriptions(
 	}
 
 	// Update the cached subscriptions.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
 	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
 		for subscription := range slices.Values(subscriptions) {
 			subscriptionsCache.Invalidate(subscription.GetID())
