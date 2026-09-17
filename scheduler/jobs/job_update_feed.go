@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package jobs
 
@@ -12,6 +14,8 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -58,6 +62,18 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	data, err := job.JobData.AsUpdateFeedJob()
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
+	}
+
+	if err := validation.Validate.Struct(data); err != nil {
+		return fmt.Errorf("validate job data: %w", err)
+	}
+
+	if data.Blocked {
+		slogctx.Warn(ctx, "Not running blocked update feed job.",
+			slog.String("feed_id", data.FeedID),
+			slog.String("reason", *data.BlockedReason),
+		)
+		return nil
 	}
 
 	start := time.Now()

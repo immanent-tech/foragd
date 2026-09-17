@@ -1,7 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
-//go:generate go tool oapi-codegen -config jobs-cfg.yaml jobs.yaml
 package jobs
 
 import (
@@ -83,7 +84,7 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 	}
 
 	// Run the appropriate execution method for the job.
-	slogctx.FromCtx(ctx).Debug("Running execution method for job.",
+	slogctx.Debug(ctx, "Running execution method for job.",
 		slog.String("job_key", j.JobKey),
 		slog.String("job_description", *j.JobDescription),
 		slog.String("job_trigger", string(j.JobTriggerType)),
@@ -102,15 +103,15 @@ func (j *SerializedJob) Execute(ctx context.Context) error {
 	}
 
 	// Fail if we can't find an execution method (i.e., not implemented).
-	slogctx.FromCtx(ctx).Warn("Could not determine execution method for job.",
+	slogctx.Warn(ctx, "Could not determine execution method for job.",
 		slog.String("job_key", j.JobKey),
 		slog.String("job_description", *j.JobDescription),
 	)
 	return nil
 }
 
-// shouldExecute will perform some additional logic on jobs for some triggers like oneshot which can expire. It returns
-// a bool indicating whether the job should run and a non-nil error if one occurred.
+// shouldExecute will perform some additional logic on jobs for some triggers like [OneShotTrigger] which can expire. It
+// returns a bool indicating whether the job should run and a non-nil error if one occurred.
 func (j *SerializedJob) shouldExecute(ctx context.Context) (bool, error) {
 	switch j.JobTriggerType { //nolint:gocritic // leave for future switch expansion.
 	case TriggerTypeOneshot:

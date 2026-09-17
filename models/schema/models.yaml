@@ -1595,3 +1595,24 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         validate: "required"
+    DocMetadata:
+      description: contains internal and metadata fields from the store related to the document.
+      type: object
+      properties:
+        seq_no:
+          description: >
+            is The sequence number assigned to the document for the indexing operation. Sequence numbers are used to
+            ensure an older version of a document doesn't overwrite a newer version.
+          type: integer
+          format: int64
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gt=0"
+            json: "-"
+        primary_term:
+          description: >
+            is the primary term assigned to the document for the indexing operation.
+          type: integer
+          format: int64
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,gt=0"
+            json: "-"

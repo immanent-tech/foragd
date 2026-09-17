@@ -1,14 +1,15 @@
 openapi: 3.0.3
 info:
   version: 1.0.0
-  title: Request Objects
+  title: Jobs schema for Foragd App
   description: >
-    Request objects used within the service.
+    Objects and types used to define background jobs for the Foragd app.
   license:
-    name: AGPL 3.0
-    idenfiier: AGPL-3.0-or-later
+    name: GNU Affero General Public License v3.0 or later
+    identifier: AGPL-3.0-or-later
   contact:
     name: Immanent Tech
+paths: {}
 components:
   schemas:
     Checkpoint:
@@ -74,61 +75,50 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "required"
     SerializedJob:
-      description: >
-        represents a scheduled job stored in the queue.
-      type: object
-      required:
-        - created_at
-        - updated_at
-        - job_key
-        - job_next_run
-        - job_trigger
-        - job_trigger_type
-        - job_type
-        - job_data
-      properties:
-        created_at:
-          $ref: "../../models/schema/models.yaml#/components/schemas/CreatedAt"
-        updated_at:
-          $ref: "../../models/schema/models.yaml#/components/schemas/UpdatedAt"
-        job_description:
-          description: is a summary of what the job does.
-          type: string
-        job_key:
-          description: is a unique identifier for the job.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: "required"
-        job_options:
-          description: are additional options for the job.
-          x-go-type: quartz.JobDetailOptions
-          x-go-type-import:
-            path: github.com/reugn/go-quartz/quartz
-        job_next_run:
-          description: is the next run time of the job.
-          x-go-type: time.Time
-          x-oapi-codegen-extra-tags:
-            validate: "required"
-        job_trigger:
-          $ref: "#/components/schemas/Trigger"
-        job_trigger_type:
-          $ref: "#/components/schemas/TriggerType"
-        job_type:
-          $ref: "#/components/schemas/JobType"
-        job_data:
-          $ref: "#/components/schemas/JobData"
-        seq_no:
-          description: internal sequence number for optimistic concurrency control.
-          type: integer
-          format: int64
-          x-oapi-codegen-extra-tags:
-            json: "-"
-        primary_term:
-          description: internal primary term for optimistic concurrency control.
-          type: integer
-          format: int64
-          x-oapi-codegen-extra-tags:
-            json: "-"
+      description: represents a scheduled job stored in the queue.
+      allOf:
+        - $ref: "../../models/schema/models.yaml#/components/schemas/DocMetadata"
+        - type: object
+          required:
+            - created_at
+            - updated_at
+            - job_key
+            - job_next_run
+            - job_trigger
+            - job_trigger_type
+            - job_type
+            - job_data
+          properties:
+            created_at:
+              $ref: "../../models/schema/models.yaml#/components/schemas/CreatedAt"
+            updated_at:
+              $ref: "../../models/schema/models.yaml#/components/schemas/UpdatedAt"
+            job_description:
+              description: is a summary of what the job does.
+              type: string
+            job_key:
+              description: is a unique identifier for the job.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: "required"
+            job_options:
+              description: are additional options for the job.
+              x-go-type: quartz.JobDetailOptions
+              x-go-type-import:
+                path: github.com/reugn/go-quartz/quartz
+            job_next_run:
+              description: is the next run time of the job.
+              x-go-type: time.Time
+              x-oapi-codegen-extra-tags:
+                validate: "required"
+            job_trigger:
+              $ref: "#/components/schemas/Trigger"
+            job_trigger_type:
+              $ref: "#/components/schemas/TriggerType"
+            job_type:
+              $ref: "#/components/schemas/JobType"
+            job_data:
+              $ref: "#/components/schemas/JobData"
     JobType:
       description: is the type of job
       type: string
@@ -139,10 +129,11 @@ components:
           "delete_expired_sessions",
           "clear_deleted_feeds",
           "user_email_job",
+          "restart_feed_updates",
           "test",
         ]
       x-oapi-codegen-extra-tags:
-        validate: "required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job"
+        validate: "required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job restart_feed_updates"
     GetNewFeedsJob:
       description: represents the data needed for a get new feeds job.
       type: object
@@ -157,12 +148,21 @@ components:
       required:
         - feed_id
         - deleted
+        - blocked
       properties:
         feed_id:
           $ref: "../../models/schema/models.yaml#/components/schemas/FeedID"
         deleted:
           description: indicates that the feed associated with this job has been deleted since the last run.
           type: boolean
+        blocked:
+          description: indicates the feed has been manually blocked from being updated.
+          type: boolean
+        blocked_reason:
+          description: is the reason why the job is blocked.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required_if=Blocked true"
     DeleteExpiredSessionsJob:
       description: represents the data needed for a delete expired sessions job.
       type: object
