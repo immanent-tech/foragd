@@ -377,6 +377,9 @@ func (r *ViewArticleRequest) Sanitise() error {
 }
 
 func (r *ViewArticleRequest) Validate() error {
+	if r == nil {
+		return nil
+	}
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("validate view article: %w", err)
 	}
