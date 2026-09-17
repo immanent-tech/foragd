@@ -60,6 +60,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.46.0
 	go.opentelemetry.io/otel/sdk v1.46.0
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
+	go.opentelemetry.io/otel/trace v1.46.0
 	golang.org/x/net v0.59.0
 	golang.org/x/oauth2 v0.37.0
 	golang.org/x/sync v0.23.0
@@ -109,7 +110,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v1.0.0 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.1.0 // indirect
-	github.com/go-playground/form/v4 v4.3.0 // indirect
+	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.4 // indirect
@@ -131,7 +132,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/itlightning/dateparse v0.2.1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/jub0bs/cors v1.1.0 // indirect
+	github.com/jub0bs/cors v1.1.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/knadh/koanf/providers/env/v2 v2.0.1 // indirect
@@ -176,7 +177,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
-	github.com/yuin/goldmark v1.8.5 // indirect
+	github.com/yuin/goldmark v1.8.6 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.3.0 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
@@ -201,7 +202,6 @@ require (
 	go.opentelemetry.io/otel/log v0.22.0 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.22.0 // indirect
-	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
