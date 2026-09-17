@@ -195,9 +195,11 @@ func Start() error {
 				htmx.SetupHTMX,
 			)
 			r.Get("/signup", handlers.HandleLogin)
-			r.Get("/login", handlers.HandleLogin)
-			r.Get("/login/callback", handlers.HandleLoginCallback)
-			r.Get("/login/error", handlers.HandleLoginError)
+			r.Route("/login", func(r chi.Router) {
+				r.Get("/", handlers.HandleLogin)
+				r.Get("/callback", handlers.HandleLoginCallback)
+				r.Get("/error", handlers.HandleLoginError)
+			})
 			r.Get("/logout", handlers.Logout)
 			r.Get("/account-issue", handlers.HandleAccountIssue())
 		})
@@ -228,7 +230,6 @@ func Start() error {
 			sessionManager.LoadAndSave,
 			middlewares.ExtractUserFromSession,
 			middlewares.RequireValidUser,
-			// middlewares.PushCriticalAssets,
 			handlers.ValidateSubscriptionLimits,
 			middlewares.StorePaths,
 			middlewares.NoCache,
@@ -236,7 +237,6 @@ func Start() error {
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
 		r.Get("/home", handlers.HandleHome())
-		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeSearchParams)

@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -247,10 +246,7 @@ func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 		slog.String("tracking", req.URL.Query().Get("tracking")),
 	)
-	HandleExternalError(&models.APIError{
-		InternalError: errors.New("login failed"),
-		StatusCode:    http.StatusForbidden,
-	}).ServeHTTP(res, req)
+	RenderExternalPage(&AccountIssue{}).ServeHTTP(res, req)
 }
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.
