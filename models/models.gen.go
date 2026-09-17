@@ -565,6 +565,15 @@ type CreatedAt = time.Time
 // Deprecated: this type has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 type DeletedAt = time.Time
 
+// DocMetadata contains internal and metadata fields from the store related to the document.
+type DocMetadata struct {
+	// PrimaryTerm is the primary term assigned to the document for the indexing operation.
+	PrimaryTerm *int64 `json:"-" validate:"omitempty,gt=0"`
+
+	// SeqNo is The sequence number assigned to the document for the indexing operation. Sequence numbers are used to ensure an older version of a document doesn't overwrite a newer version.
+	SeqNo *int64 `json:"-" validate:"omitempty,gt=0"`
+}
+
 // EditEmailSubscriptionRequest represents a request to create an email subscription.
 type EditEmailSubscriptionRequest struct {
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`

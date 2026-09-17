@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 // Package scheduler contains code for the scheduler backend that handles managing background jobs for the application.
 package scheduler
@@ -13,10 +15,12 @@ import (
 	"os"
 	"os/signal"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/reugn/go-quartz/logger"
+	"github.com/reugn/go-quartz/matcher"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
@@ -71,13 +75,13 @@ func Run(ctx context.Context) error {
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
 	// Load all admin jobs as needed.
-	if err := LoadAdminJobs(ctx); err != nil {
+	if err := InitAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
 
 	// Start scheduling jobs.
 	Manager.Start(ctx)
-	slogctx.FromCtx(ctx).Info("Scheduler started.",
+	slogctx.Info(ctx, "Scheduler started.",
 		slog.String("version", config.GetVersion()),
 		slog.Time("start_time", time.Now()),
 	)
@@ -148,75 +152,44 @@ func LoadManager(ctx context.Context) error {
 	})()
 }
 
-// LoadAdminJobs will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
-// seeds the job queue with some required jobs for scheduler functionality and maintenance.
-func LoadAdminJobs(ctx context.Context) error {
+// InitAdminJobs loads the listed jobs into the scheduler. These are administrative jobs that should always be
+// scheduled.
+func InitAdminJobs(ctx context.Context) error {
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+
+	// List of jobs to activate at startup.
+	var startupJobs = []func() (*jobs.SerializedJob, error){
+		jobs.NewGetNewFeedsJob,
+		jobs.NewClearDeletedFeedsJob,
+		jobs.NewDeleteExpiredSessionsJob,
+		jobs.NewRestartFeedUpdatesJob,
+	}
 
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
 	defer tasksCtx.Done()
 
-	startupTasks.Go(func() error {
-		// Setup get new feeds getNewFeedsJob.
-		getNewFeedsJob, err := jobs.NewGetNewFeedsJob()
-		if err != nil {
-			return fmt.Errorf("create new find new feeds job: %w", err)
-		}
-		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
-			ctx,
-			schema.SchedulerIndexRO(),
-			getNewFeedsJob.JobDetail().JobKey().String(),
-		)
-		if err != nil || errors.Is(err, elastic.ErrNotFound) {
-			slogctx.FromCtx(ctx).Info("Adding job to find new feeds.")
-			if err = Manager.ScheduleJob(getNewFeedsJob.JobDetail(), getNewFeedsJob.Trigger()); err != nil {
-				return fmt.Errorf("schedule get new feeds job: %w", err)
+	for job := range slices.Values(startupJobs) {
+		startupTasks.Go(func() error {
+			serialized, err := job()
+			if err != nil {
+				return fmt.Errorf("serialize job: %w", err)
 			}
-		}
-		return nil
-	})
-
-	startupTasks.Go(func() error {
-		// Setup clear deleted feeds job.
-		clearDeletedFeedsJob, err := jobs.NewClearDeletedFeedsJob()
-		if err != nil {
-			return fmt.Errorf("create clear deleted feeds job: %w", err)
-		}
-		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
-			ctx,
-			schema.SchedulerIndexRO(),
-			clearDeletedFeedsJob.JobDetail().JobKey().String(),
-		)
-		if err != nil || errors.Is(err, elastic.ErrNotFound) {
-			if err = Manager.ScheduleJob(clearDeletedFeedsJob.JobDetail(), clearDeletedFeedsJob.Trigger()); err != nil {
-				return fmt.Errorf("schedule clear deleted feeds job: %w", err)
+			_, err = elastic.GetDoc[string, *jobs.SerializedJob](
+				ctx,
+				schema.SchedulerIndexRO(),
+				serialized.JobDetail().JobKey().String(),
+			)
+			if err != nil || errors.Is(err, elastic.ErrNotFound) {
+				slogctx.Info(ctx, "Adding job.",
+					slog.String("job_id", serialized.JobDetail().JobKey().String()),
+				)
+				if err = Manager.ScheduleJob(serialized.JobDetail(), serialized.Trigger()); err != nil {
+					return fmt.Errorf("schedule get new feeds job: %w", err)
+				}
 			}
-		}
-		return nil
-	})
-
-	startupTasks.Go(func() error {
-		// Setup clear expired sessions job.
-		clearExpiredSessionsJob, err := jobs.NewDeleteExpiredSessionsJob()
-		if err != nil {
-			return fmt.Errorf("create delete expired sessions job: %w", err)
-		}
-		_, err = elastic.GetDoc[string, *jobs.SerializedJob](
-			ctx,
-			schema.SchedulerIndexRO(),
-			clearExpiredSessionsJob.JobDetail().JobKey().String(),
-		)
-		if err != nil || errors.Is(err, elastic.ErrNotFound) {
-			slogctx.FromCtx(ctx).Info("Adding job to delete expired sessions.")
-			if err = Manager.ScheduleJob(
-				clearExpiredSessionsJob.JobDetail(),
-				clearExpiredSessionsJob.Trigger(),
-			); err != nil {
-				return fmt.Errorf("schedule delete expired sessions job: %w", err)
-			}
-		}
-		return nil
-	})
+			return nil
+		})
+	}
 
 	if err := startupTasks.Wait(); err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
@@ -226,13 +199,39 @@ func LoadAdminJobs(ctx context.Context) error {
 }
 
 func LoadUpdateFeedJobs(ctx context.Context) error {
-	// Get all feeds.
-	feeds, err := elastic.SearchAll[*models.Feed](ctx, schema.FeedsIndexRO(), query.MatchAll(), 5000)
+	// Gather all current feed jobs.
+	jobKeys, err := Manager.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
 	if err != nil {
-		return fmt.Errorf("get feeds: %w", err)
+		panic(fmt.Errorf("get existing jobs: %w", err))
 	}
 
-	for feed := range slices.Values(feeds) {
+	// Extract [models.FeedID].
+	feedIDs := make([]models.FeedID, 0, len(jobKeys))
+	for key := range slices.Values(jobKeys) {
+		feedIDs = append(feedIDs, strings.TrimPrefix(key.String(), "update_feed::"))
+	}
+
+	// Find all feeds that don't have an existing job.
+	joblessFeeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		schema.FeedsIndexRO(),
+		query.Bool(
+			query.MustNot(
+				query.Terms("feed_id", feedIDs),
+			),
+		),
+		5000,
+	)
+	if err != nil {
+		panic(fmt.Errorf("search feeds: %w", err))
+	}
+	if len(joblessFeeds) > 0 {
+		slogctx.Info(ctx, "Found feeds without jobs.",
+			slog.Int("count", len(joblessFeeds)),
+		)
+	}
+
+	for feed := range slices.Values(joblessFeeds) {
 		// Add additional feed details to logs.
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())

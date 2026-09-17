@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 // Package queue implements a quartz.JobQueue using Elasticsearch as the storage backend.
 package queue
@@ -15,6 +17,7 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -250,6 +253,20 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 
 	return true
 }
+
+type scheduledJob struct {
+	*models.DocMetadata
+
+	jobDetail   *quartz.JobDetail
+	trigger     quartz.Trigger
+	nextRunTime int64
+}
+
+var _ quartz.ScheduledJob = (*scheduledJob)(nil)
+
+func (job *scheduledJob) JobDetail() *quartz.JobDetail { return job.jobDetail }
+func (job *scheduledJob) Trigger() quartz.Trigger      { return job.trigger }
+func (job *scheduledJob) NextRunTime() int64           { return job.nextRunTime }
 
 type jobSorting struct {
 	JobNextRun string `json:"job_next_run"`

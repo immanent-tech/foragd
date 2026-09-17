@@ -17,6 +17,7 @@ const (
 	JobTypeClearDeletedFeeds     JobType = "clear_deleted_feeds"
 	JobTypeDeleteExpiredSessions JobType = "delete_expired_sessions"
 	JobTypeGetNewFeeds           JobType = "get_new_feeds"
+	JobTypeRestartFeedUpdates    JobType = "restart_feed_updates"
 	JobTypeTest                  JobType = "test"
 	JobTypeUpdateFeed            JobType = "update_feed"
 	JobTypeUserEmailJob          JobType = "user_email_job"
@@ -30,6 +31,8 @@ func (e JobType) Valid() bool {
 	case JobTypeDeleteExpiredSessions:
 		return true
 	case JobTypeGetNewFeeds:
+		return true
+	case JobTypeRestartFeedUpdates:
 		return true
 	case JobTypeTest:
 		return true
@@ -134,13 +137,13 @@ type SerializedJob struct {
 	JobTriggerType TriggerType `json:"job_trigger_type" validate:"oneof=poll oneshot"`
 
 	// JobType is the type of job
-	JobType JobType `json:"job_type" validate:"required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job"`
+	JobType JobType `json:"job_type" validate:"required,oneof=get_new_feeds update_feed delete_expired_sessions clear_deleted_feeds user_email_job restart_feed_updates"`
 
-	// PrimaryTerm internal primary term for optimistic concurrency control.
-	PrimaryTerm *int64 `json:"-"`
+	// PrimaryTerm is the primary term assigned to the document for the indexing operation.
+	PrimaryTerm *int64 `json:"-" validate:"omitempty,gt=0"`
 
-	// SeqNo internal sequence number for optimistic concurrency control.
-	SeqNo *int64 `json:"-"`
+	// SeqNo is The sequence number assigned to the document for the indexing operation. Sequence numbers are used to ensure an older version of a document doesn't overwrite a newer version.
+	SeqNo *int64 `json:"-" validate:"omitempty,gt=0"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt externalRef0.UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -159,6 +162,12 @@ type TriggerType string
 
 // UpdateFeedJob represents the data needed for a feed update job.
 type UpdateFeedJob struct {
+	// Blocked indicates the feed has been manually blocked from being updated.
+	Blocked bool `json:"blocked"`
+
+	// BlockedReason is the reason why the job is blocked.
+	BlockedReason *string `json:"blocked_reason,omitempty" validate:"required_if=Blocked true"`
+
 	// Deleted indicates that the feed associated with this job has been deleted since the last run.
 	Deleted bool `json:"deleted"`
 

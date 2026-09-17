@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package jobs
 
@@ -39,7 +41,7 @@ func (t *PollTrigger) NextFireTime(prev int64) (int64, error) {
 
 var _ quartz.Trigger = (*OneShotTrigger)(nil)
 
-// NewOneShotTrigger returns a new RunOnceTrigger with the given delay time.
+// NewOneShotTrigger returns a new [OneShotTrigger] with the given delay time.
 func NewOneShotTrigger(delay time.Duration) *OneShotTrigger {
 	return &OneShotTrigger{
 		Delay: delay,

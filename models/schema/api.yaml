@@ -110,9 +110,9 @@ components:
       type: object
       properties:
         request:
-          $ref: "models.yaml#/components/schemas/FeedSubscriptionRequest"
+          $ref: "#/components/schemas/FeedSubscriptionRequest"
         error:
-          $ref: "models.yaml#/components/schemas/APIError"
+          $ref: "#/components/schemas/APIError"
         subscription:
           $ref: "models.yaml#/components/schemas/Subscription"
     GroupSubscriptionRequest:

@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package jobs
 
@@ -55,7 +57,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 
 	start := time.Now()
 
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
+	slogctx.Debug(ctx, "Looking for new feeds.",
 		slog.Time("since", data.Checkpoint),
 	)
 
@@ -86,7 +88,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 	if len(newFeeds) > 0 {
-		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
+		slogctx.Debug(ctx, "Found new feeds.",
 			slog.Int("count", len(newFeeds)),
 			slog.Any("feed_ids", newFeeds.GetIDs()),
 		)
@@ -121,11 +123,11 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 
 	// Flush all pending index operations from this job run to Elasticsearch.
 	if err := bulk.Flush(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to flush bulk request.",
+		slogctx.Warn(ctx, "Unable to flush bulk request.",
 			slog.Any("error", err))
 	}
 
-	slogctx.FromCtx(ctx).Debug("Finished get new feeds job.",
+	slogctx.Debug(ctx, "Finished get new feeds job.",
 		slog.Duration("took", time.Since(start)))
 
 	return nil
@@ -134,14 +136,14 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 func addFeedJob(ctx context.Context, feed *models.Feed) {
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {
-		slogctx.FromCtx(ctx).Error("Unable to get scheduler API from context.")
+		slogctx.Error(ctx, "Unable to get scheduler API from context.")
 	}
 
 	jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
 	switch existingJob, err := schedulerAPI.GetScheduledJob(jobKey); {
 	case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
 		// If we cannot ascertain if there is an existing scheduled job, skip this feed.
-		slogctx.FromCtx(ctx).Warn("Unable to check for existing scheduled job.",
+		slogctx.Warn(ctx, "Unable to check for existing scheduled job.",
 			slog.String("feed_id", feed.GetID()),
 			slog.Any("error", err),
 		)
@@ -149,33 +151,33 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 		// If there is no existing scheduled newJob, create one.
 		newJob, err := NewUpdateFeedJob(ctx, feed.GetID())
 		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to create new update feed job for feed.",
+			slogctx.Warn(ctx, "Unable to create new update feed job for feed.",
 				slog.Any("error", err),
 			)
 			return
 		}
 		// Schedule the new job.
 		if err = schedulerAPI.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
-			slogctx.FromCtx(ctx).Error("Failed to schedule new job for feed.",
+			slogctx.Error(ctx, "Failed to schedule new job for feed.",
 				slog.String("job_id", newJob.JobDetail().JobKey().String()),
 				slog.String("job_schedule", newJob.Trigger().Description()),
 				slog.Any("error", err),
 			)
 			return
 		}
-		slogctx.FromCtx(ctx).Debug("Added new job for feed.",
+		slogctx.Debug(ctx, "Added new job for feed.",
 			slog.String("job_id", newJob.JobDetail().JobKey().String()),
 			slog.String("job_schedule", newJob.Trigger().Description()),
 		)
 		// Do an initial run of the job.
 		if err = newJob.JobDetail().Job().Execute(ctx); err != nil {
-			slogctx.FromCtx(ctx).Warn("Failed initial run of update feed job. Pausing.",
+			slogctx.Warn(ctx, "Failed initial run of update feed job. Pausing.",
 				slog.String("job_id", newJob.JobDetail().JobKey().String()),
 				slog.String("job_schedule", newJob.Trigger().Description()),
 				slog.Any("error", err),
 			)
 			if err := schedulerAPI.PauseJob(newJob.getJobKey()); err != nil {
-				slogctx.FromCtx(ctx).Error("Unable to pause failing job.",
+				slogctx.Error(ctx, "Unable to pause failing job.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
 					slog.Any("error", err),
@@ -192,7 +194,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 					bulk.ToIndex[string](schema.FeedsIndexRW()),
 				),
 			); err != nil {
-				slogctx.FromCtx(ctx).Error("Unable to update last fetched.",
+				slogctx.Error(ctx, "Unable to update last fetched.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
 					slog.Any("error", err),
@@ -201,7 +203,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 		}
 	case existingJob != nil:
 		// Existing job found, ignore.
-		slogctx.FromCtx(ctx).Debug("Existing job found, ignoring.",
+		slogctx.Debug(ctx, "Existing job found, ignoring.",
 			slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 			slog.String("feed_id", feed.GetID()),
 		)
@@ -216,7 +218,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 				bulk.ToIndex[string](schema.FeedsIndexRW()),
 			),
 		); err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to update last fetched.",
+			slogctx.Error(ctx, "Unable to update last fetched.",
 				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 				slog.String("feed_id", feed.GetID()),
 				slog.Any("error", err),
@@ -224,7 +226,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 		}
 	default:
 		// Unhandled result.
-		slogctx.FromCtx(ctx).Debug("Unhandled result.",
+		slogctx.Debug(ctx, "Unhandled result.",
 			slog.String("feed_id", feed.GetID()),
 		)
 	}

@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package cli
 
@@ -77,7 +79,7 @@ func (c *InitSchedulerCmd) Run() error {
 		return fmt.Errorf("setup scheduler: %w", err)
 	}
 	// Load admin jobs.
-	if err := scheduler.LoadAdminJobs(ctx); err != nil {
+	if err := scheduler.InitAdminJobs(ctx); err != nil {
 		return fmt.Errorf("load admin jobs: %w", err)
 	}
 
