@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.233.0](https://github.com/immanent-tech/foragd/compare/v0.232.0...v0.233.0) (2026-09-17)
+
+
+### Features
+
+* **blog:** ➕ add september update post ([b2e5446](https://github.com/immanent-tech/foragd/commit/b2e5446d22e210dbbe293ab861bfed31cbfe9ed0))
+
 ## [0.232.0](https://github.com/immanent-tech/foragd/compare/v0.231.5...v0.232.0) (2026-09-17)
 
 
