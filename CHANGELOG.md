@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.232.0](https://github.com/immanent-tech/foragd/compare/v0.231.5...v0.232.0) (2026-09-17)
+
+
+### Features
+
+* **scheduler:** ✨ add ability to manually block a feed from running its update job ([62f4632](https://github.com/immanent-tech/foragd/commit/62f46329f6da39ca089eae30f0fa937c5a92ae7b))
+* **scheduler:** ✨ add job to restart feed updates ([0d70ddc](https://github.com/immanent-tech/foragd/commit/0d70ddca423d9e5aae974d51fed81183b632fe8b))
+
+
+### Bug Fixes
+
+* **models:** 🔧 allow nil view article request ([c6611df](https://github.com/immanent-tech/foragd/commit/c6611df805ff9e4536f9e88ab65cae740b833e67))
+
 ## [0.231.5](https://github.com/immanent-tech/foragd/compare/v0.231.4...v0.231.5) (2026-09-16)
 
 
