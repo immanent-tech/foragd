@@ -39,6 +39,15 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
+type SubscriptionsService interface {
+	GetAllSubscriptions(ctx context.Context) (models.Subscriptions, error)
+	GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error)
+	BulkGetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error)
+	UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error
+	UpdateSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
+	RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error
+}
+
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
 func AllSubscriptionsCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
