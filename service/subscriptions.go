@@ -20,6 +20,7 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -36,88 +37,163 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
-var userSubscriptionsCache = otter.Must(
-	&otter.Options[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]]{
-		MaximumSize: 100,
-	},
-)
+type UserSubscriptions struct {
+	*otter.Cache[models.UserID, *Subscriptions]
 
-var cacheAllSubscriptions = otter.LoaderFunc[models.UserID, *otter.Cache[models.SubscriptionID, *models.Subscription]](
-	func(
-		ctx context.Context,
-		userID models.UserID,
-	) (*otter.Cache[models.SubscriptionID, *models.Subscription], error) {
-		userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
-			InitialCapacity: 3000,
-			MaximumSize:     3000,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("create subscriptions cache: %w", err)
-		}
-		start := time.Now()
-		// Execute query.
-		subscriptions, err := elastic.SearchAll[*models.Subscription](
-			ctx,
-			schema.SubscriptionsIndexRO(),
-			query.Term("user_id", userID),
-			3000,
-		)
-		if err != nil {
-			return nil, ElasticsearchToAPIError(err)
-		}
+	userLoader otter.LoaderFunc[models.UserID, *Subscriptions]
+}
 
-		if len(subscriptions) == 0 {
-			return nil, otter.ErrNotFound
-		}
+func (s *UserSubscriptions) get(
+	ctx context.Context,
+	userID models.UserID,
+) (*Subscriptions, error) {
+	subscriptionsCache, err := s.Get(ctx, userID, s.userLoader)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
+	case err != nil:
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get all subscriptions: %w", err)
+	}
+	return subscriptionsCache, nil
+}
 
-		for subscription := range slices.Values(subscriptions) {
-			userSubscriptionsCache.Set(subscription.GetID(), subscription)
-		}
+type Subscriptions struct {
+	*otter.Cache[models.SubscriptionID, *models.Subscription]
 
-		slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
-			slog.Duration("took", time.Since(start)))
+	userID     models.UserID
+	loader     otter.LoaderFunc[models.SubscriptionID, *models.Subscription]
+	bulkLoader otter.BulkLoaderFunc[models.SubscriptionID, *models.Subscription]
+}
 
-		return userSubscriptionsCache, nil
-	})
+func (s *Subscriptions) get(
+	ctx context.Context,
+	subscriptionID models.SubscriptionID,
+) (*models.Subscription, error) {
+	subscription, err := s.Get(ctx, subscriptionID, s.loader)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get user subscription cache: %w", models.ErrNotFound)
+	case err != nil:
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get user subscription cache: %w", err)
+	}
+	return subscription, nil
+}
 
-var cacheSubscriptionsByID = otter.BulkLoaderFunc[models.SubscriptionID, *models.Subscription](
-	func(
-		ctx context.Context,
-		ids []models.SubscriptionID,
-	) (map[models.SubscriptionID]*models.Subscription, error) {
-		subscriptions, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
-			ctx,
-			schema.SubscriptionsIndexRO(),
-			ids...,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
-		}
+func (s *Subscriptions) bulkGet(
+	ctx context.Context,
+	subscriptionIDs ...models.SubscriptionID,
+) (models.Subscriptions, error) {
+	results, err := s.BulkGet(ctx, subscriptionIDs, s.bulkLoader)
+	switch {
+	case err != nil && errors.Is(err, otter.ErrNotFound):
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get subscription cache: %w", models.ErrNotFound)
+	case err != nil:
+		// span.RecordError(err)
+		// span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get subscription cache: %w", err)
+	}
+	return slices.Collect(maps.Values(results)), nil
+}
 
-		results := make(map[models.SubscriptionID]*models.Subscription, len(subscriptions))
+var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
+	return &UserSubscriptions{
+		Cache: otter.Must(
+			&otter.Options[models.UserID, *Subscriptions]{
+				MaximumSize: 100,
+			},
+		),
+		userLoader: otter.LoaderFunc[models.UserID, *Subscriptions](
+			func(
+				ctx context.Context,
+				userID models.UserID,
+			) (*Subscriptions, error) {
+				userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
+					InitialCapacity: 3000,
+					MaximumSize:     3000,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("create subscriptions cache: %w", err)
+				}
+				start := time.Now()
+				// Execute query.
+				subscriptions, err := elastic.SearchAll[*models.Subscription](
+					ctx,
+					schema.SubscriptionsIndexRO(),
+					query.Term("user_id", userID),
+					3000,
+				)
+				if err != nil {
+					return nil, ElasticsearchToAPIError(err)
+				}
 
-		for subscription := range slices.Values(subscriptions) {
-			results[subscription.GetID()] = subscription
-		}
+				if len(subscriptions) == 0 {
+					return nil, otter.ErrNotFound
+				}
 
-		return results, nil
-	})
+				for subscription := range slices.Values(subscriptions) {
+					userSubscriptionsCache.Set(subscription.GetID(), subscription)
+				}
 
-var cacheSubscription = otter.LoaderFunc[models.SubscriptionID, *models.Subscription](
-	func(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
-		subscription, err := elastic.GetDoc[models.SubscriptionID, *models.Subscription](
-			ctx,
-			schema.SubscriptionsIndexRO(),
-			id,
-		)
-		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-			return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
-		}
-		if errors.Is(err, elastic.ErrNotFound) {
-			return nil, otter.ErrNotFound
-		}
-		return subscription, nil
-	})
+				slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
+					slog.Duration("took", time.Since(start)))
+
+				return &Subscriptions{
+					Cache:  userSubscriptionsCache,
+					userID: userID,
+					loader: otter.LoaderFunc[models.SubscriptionID, *models.Subscription](
+						func(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
+							subscription, err := elastic.GetDoc[models.SubscriptionID, *models.Subscription](
+								ctx,
+								schema.SubscriptionsIndexRO(),
+								id,
+							)
+							godump.Dump(id, subscription, err)
+							if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
+							}
+							if errors.Is(err, elastic.ErrNotFound) {
+								return nil, otter.ErrNotFound
+							}
+							return subscription, nil
+						}),
+					bulkLoader: otter.BulkLoaderFunc[models.SubscriptionID, *models.Subscription](
+						func(
+							ctx context.Context,
+							ids []models.SubscriptionID,
+						) (map[models.SubscriptionID]*models.Subscription, error) {
+							subscriptions, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+								ctx,
+								schema.SubscriptionsIndexRO(),
+								ids...,
+							)
+							if err != nil {
+								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
+							}
+
+							results := make(map[models.SubscriptionID]*models.Subscription, len(subscriptions))
+
+							for subscription := range slices.Values(subscriptions) {
+								results[subscription.GetID()] = subscription
+							}
+
+							return results, nil
+						}),
+				}, nil
+			}),
+	}
+})
+
+var userSubscriptionsCache = NewSubscriptionService()
 
 // GetAllSubscriptions returns all subscriptions for the given user.
 func GetAllSubscriptions(
@@ -133,20 +209,11 @@ func GetAllSubscriptions(
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.Get(
-		ctx,
-		user.GetID(),
-		cacheAllSubscriptions,
-	)
-	switch {
-	case err != nil && errors.Is(err, otter.ErrNotFound):
+	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
-	case err != nil:
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", err)
+		return nil, fmt.Errorf("get subscription cache for user: %w", err)
 	}
 
 	var subscriptions models.Subscriptions
@@ -172,23 +239,14 @@ func GetSubscription(
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.Get(
-		ctx,
-		user.GetID(),
-		cacheAllSubscriptions,
-	)
-	switch {
-	case err != nil && errors.Is(err, otter.ErrNotFound):
+	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
-	case err != nil:
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", err)
+		return nil, fmt.Errorf("get subscription cache for user: %w", err)
 	}
 
-	subscription, err := subscriptionsCache.Get(ctx, id, cacheSubscription)
+	subscription, err := subscriptionsCache.get(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get subscription by id: %w", err)
 	}
@@ -211,30 +269,21 @@ func GetSubscriptionsByID(
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.Get(
-		ctx,
-		user.GetID(),
-		cacheAllSubscriptions,
-	)
-	switch {
-	case err != nil && errors.Is(err, otter.ErrNotFound):
+	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get user subscription cache: %w", models.ErrNotFound)
-	case err != nil:
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get user subscription cache: %w", err)
+		return nil, fmt.Errorf("get subscription cache for user: %w", err)
 	}
 
-	results, err := subscriptionsCache.BulkGet(ctx, ids, cacheSubscriptionsByID)
+	subscriptions, err := subscriptionsCache.bulkGet(ctx, ids...)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("bulk get subscriptions: %w", err)
 	}
 
-	return slices.Collect(maps.Values(results)), nil
+	return subscriptions, nil
 }
 
 // NewFeedSubscription creates a new subscription for a feed with any user customisations given.
