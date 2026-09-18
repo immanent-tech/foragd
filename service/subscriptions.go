@@ -20,7 +20,6 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
-	"github.com/goforj/godump"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -127,7 +126,10 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 				}
 				start := time.Now()
 				// Execute query.
-				subscriptions, err := elastic.SearchAll[*models.Subscription](
+				var (
+					subscriptions models.Subscriptions
+				)
+				subscriptions, err = elastic.SearchAll[*models.Subscription](
 					ctx,
 					schema.SubscriptionsIndexRO(),
 					query.Term("user_id", userID),
@@ -145,6 +147,22 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 					userSubscriptionsCache.Set(subscription.GetID(), subscription)
 				}
 
+				// Load grouped subscriptions into parent.
+				for groupSubscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+					groupSubscription.GroupData.Subscriptions = make(
+						[]*models.Subscription,
+						0,
+						len(groupSubscription.GroupData.Metadata),
+					)
+					for m := range slices.Values(groupSubscription.GroupData.Metadata) {
+						grouped := subscriptions.GetByID(m.SubscriptionID)
+						groupSubscription.GroupData.Subscriptions = append(
+							groupSubscription.GroupData.Subscriptions,
+							grouped,
+						)
+					}
+				}
+
 				slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
 					slog.Duration("took", time.Since(start)))
 
@@ -158,12 +176,23 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 								schema.SubscriptionsIndexRO(),
 								id,
 							)
-							godump.Dump(id, subscription, err)
 							if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
 							}
 							if errors.Is(err, elastic.ErrNotFound) {
 								return nil, otter.ErrNotFound
+							}
+							// For group subscriptions, load the grouped subscriptions.
+							if subscription.Type == models.SubscriptionTypeGroup {
+								grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+									ctx,
+									schema.SubscriptionsIndexRO(),
+									subscription.GroupData.GetGroupedSubscriptionIDs()...,
+								)
+								if err != nil {
+									return nil, fmt.Errorf("get grouped subscriptions: %w", err)
+								}
+								subscription.GroupData.Subscriptions = grouped
 							}
 							return subscription, nil
 						}),
@@ -184,6 +213,18 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 							results := make(map[models.SubscriptionID]*models.Subscription, len(subscriptions))
 
 							for subscription := range slices.Values(subscriptions) {
+								// For group subscriptions, load the grouped subscriptions.
+								if subscription.Type == models.SubscriptionTypeGroup {
+									grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+										ctx,
+										schema.SubscriptionsIndexRO(),
+										subscription.GroupData.GetGroupedSubscriptionIDs()...,
+									)
+									if err != nil {
+										return nil, fmt.Errorf("get grouped subscriptions: %w", err)
+									}
+									subscription.GroupData.Subscriptions = grouped
+								}
 								results[subscription.GetID()] = subscription
 							}
 
@@ -285,6 +326,74 @@ func GetSubscriptionsByID(
 	}
 
 	return subscriptions, nil
+}
+
+// RemoveSubscriptions removes subscriptions with the given ID from a user.
+func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(),
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("subscription_id", ids),
+			),
+		),
+	); err != nil {
+		return ElasticsearchToAPIError(err)
+	}
+	// Remove the subscriptions from the cache.
+	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+		for id := range slices.Values(ids) {
+			subscriptionsCache.Invalidate(id)
+		}
+	}
+
+	return nil
+}
+
+// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+func UpdateSubscriptions(
+	ctx context.Context,
+	subscriptions ...*models.Subscription,
+) error {
+	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
+	defer span.End()
+
+	if err := bulk.IndexDocuments(ctx, schema.SubscriptionsIndexRW(), subscriptions...); err != nil {
+		return ElasticsearchToAPIError(err)
+	}
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Failed to flush subscription updates.",
+			slog.Any("error", err))
+	}
+
+	// Update the subscription dynamic info
+	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
+			slog.Any("errro", err),
+		)
+	}
+
+	// Update the cached subscriptions.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+		for subscription := range slices.Values(subscriptions) {
+			subscriptionsCache.Invalidate(subscription.GetID())
+			subscriptionsCache.Set(subscription.GetID(), subscription)
+		}
+	}
+
+	return nil
 }
 
 // NewFeedSubscription creates a new subscription for a feed with any user customisations given.
@@ -399,6 +508,7 @@ func EditGroupSubscription(
 	if err != nil {
 		return fmt.Errorf("get grouped subscription details: %w", err)
 	}
+	subscription.GroupData.Subscriptions = grouped
 	subscription.GroupData.Metadata = make([]models.GroupedSubscriptionMetadata, 0, len(grouped))
 	for groupedSubscription := range slices.Values(grouped) {
 		subscription.GroupData.Metadata = append(subscription.GroupData.Metadata, models.GroupedSubscriptionMetadata{
@@ -576,74 +686,6 @@ func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription
 			return fmt.Errorf("update user: %w", err)
 		}
 	}
-	return nil
-}
-
-// RemoveSubscriptions removes subscriptions with the given ID from a user.
-func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(),
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("subscription_id", ids),
-			),
-		),
-	); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-	// Remove the subscriptions from the cache.
-	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
-		for id := range slices.Values(ids) {
-			subscriptionsCache.Invalidate(id)
-		}
-	}
-
-	return nil
-}
-
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func UpdateSubscriptions(
-	ctx context.Context,
-	subscriptions ...*models.Subscription,
-) error {
-	ctx, span := tracer.Start(ctx, "UpdateSubscriptions")
-	defer span.End()
-
-	if err := bulk.IndexDocuments(ctx, schema.SubscriptionsIndexRW(), subscriptions...); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Failed to flush subscription updates.",
-			slog.Any("error", err))
-	}
-
-	// Update the subscription dynamic info
-	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
-			slog.Any("errro", err),
-		)
-	}
-
-	// Update the cached subscriptions.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		span.RecordError(models.ErrCtxValueNotFound)
-		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
-		for subscription := range slices.Values(subscriptions) {
-			subscriptionsCache.Invalidate(subscription.GetID())
-			subscriptionsCache.Set(subscription.GetID(), subscription)
-		}
-	}
-
 	return nil
 }
 

@@ -40,6 +40,22 @@ import (
 )
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
+func AllSubscriptionsCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		subscriptions, err := service.GetAllSubscriptions(req.Context())
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get all user subscriptions: %w", err),
+			).ServeHTTP(res, req)
+			return
+		}
+		ctx := models.SubscriptionsToCtx(req.Context(), subscriptions)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
 func SubscriptionCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscriptionID")
@@ -103,6 +119,15 @@ func HandleListSubscriptions() http.HandlerFunc {
 			return
 		}
 
+		subscriptions := models.SubscriptionsFromCtx(req.Context())
+		if subscriptions == nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
+			return
+		}
+
 		// Generate request object.
 		request := &models.ListRequest{
 			Filters: *models.ListFiltersFromCtx(req.Context()),
@@ -111,21 +136,6 @@ func HandleListSubscriptions() http.HandlerFunc {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("validate request: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-
-		var (
-			subscriptions models.Subscriptions
-			err           error
-		)
-
-		// Get subscriptions matching filters.
-		subscriptions, err = service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get all subscriptions: %w", err),
 			).ServeHTTP(res, req)
 			return
 		}
@@ -140,7 +150,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
 
 		// Update subscription dynamic info.
-		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription dynamic info: %w", err),
@@ -237,16 +247,17 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 			return
 		}
 
-		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
+		subscriptions := models.SubscriptionsFromCtx(req.Context())
+		if subscriptions == nil {
 			slogctx.FromCtx(req.Context()).Error("Get all subscriptions failed.",
-				slog.Any("error", err),
+				slog.Any("error", models.ErrCtxValueNotFound),
 			)
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
+
 		// Update subscription dynamic info.
-		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Update subscription dynamic info failed.",
 				slog.Any("error", err),
 			)
@@ -612,18 +623,18 @@ func HandleEditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
 
 			request.Search.SubscriptionID = new(subscription.GetID())
-			// Get any extra subscription info for subscription filters.
-			if len(request.Search.Subscriptions) > 0 {
-				subscriptions, err := service.GetSubscriptionsByID(ctx, request.Search.Subscriptions...)
-				if err != nil {
-					HandleInternalError(
-						http.StatusInternalServerError,
-						fmt.Errorf("get subscriptions by ID: %w", err),
-					).ServeHTTP(res, req)
-					return
-				}
-				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-			}
+			// // Get any extra subscription info for subscription filters.
+			// if len(request.Search.Subscriptions) > 0 {
+			// 	subscriptions, err := service.GetSubscriptionsByID(ctx, request.Search.Subscriptions...)
+			// 	if err != nil {
+			// 		HandleInternalError(
+			// 			http.StatusInternalServerError,
+			// 			fmt.Errorf("get subscriptions by ID: %w", err),
+			// 		).ServeHTTP(res, req)
+			// 		return
+			// 	}
+			// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+			// }
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
 			pageTitle = templates.PageTitle{
@@ -631,17 +642,25 @@ func HandleEditSubscription() http.HandlerFunc {
 				Description: request.Customisation.GetNickname(),
 			}
 		case models.SubscriptionTypeGroup:
-			childSubscriptions, err := service.GetSubscriptionsByID(
-				ctx,
-				subscription.GroupData.GetGroupedSubscriptionIDs()...)
-			if err != nil {
+			// Get all subscriptions.
+			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if allSubscriptions == nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
-					fmt.Errorf("get subscription: %w", err),
+					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
 				return
 			}
-
+			// Get the grouped subscriptions.
+			groupedSubscriptions := allSubscriptions.FilterByIDs(
+				subscription.GroupData.GetGroupedSubscriptionIDs()...)
+			if len(groupedSubscriptions) == 0 {
+				HandleInternalError(
+					http.StatusInternalServerError,
+					errors.New("no grouped subscriptions!"),
+				).ServeHTTP(res, req)
+				return
+			}
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
 				Customisation:  subscription.Customisation,
@@ -651,27 +670,17 @@ func HandleEditSubscription() http.HandlerFunc {
 				ArticleFilters: subscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
-			for childSubscription := range slices.Values(childSubscriptions) {
-				request.Subscriptions[childSubscription.GetID()] = childSubscription.GetTitle()
+			for subscription := range slices.Values(groupedSubscriptions) {
+				request.Subscriptions[subscription.GetID()] = subscription.GetTitle()
 			}
-			ctx = models.SubscriptionsToCtx(ctx, childSubscriptions)
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
 			request.SuggestedCategories = getSubscriptionCategorySuggestions(
 				req.Context(),
-				childSubscriptions.GetFeedIDs(),
-				childSubscriptions.GetCategories(),
+				groupedSubscriptions.GetFeedIDs(),
+				groupedSubscriptions.GetCategories(),
 			)
-			// Get all subscriptions that are not already in the group as suggestions.
-			suggestedSubscriptions, err := service.GetAllSubscriptions(ctx)
-			if err != nil {
-				HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("get subscriptions: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			request.SuggestedSubscriptions = suggestedSubscriptions.
+			request.SuggestedSubscriptions = allSubscriptions.
 				FilterByType(models.SubscriptionTypeFeed).
 				ExcludeIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
 
@@ -1063,17 +1072,17 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			}
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
-			if len(request.Subscriptions) > 0 {
-				subscriptions, err := service.GetSubscriptionsByID(req.Context(), request.Subscriptions...)
-				if err != nil {
-					HandleInternalError(
-						http.StatusInternalServerError,
-						fmt.Errorf("get subscription: %w", err),
-					).ServeHTTP(res, req)
-					return
-				}
-				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-			}
+			// if len(request.Subscriptions) > 0 {
+			// 	subscriptions, err := service.GetSubscriptionsByID(req.Context(), request.Subscriptions...)
+			// 	if err != nil {
+			// 		HandleInternalError(
+			// 			http.StatusInternalServerError,
+			// 			fmt.Errorf("get subscription: %w", err),
+			// 		).ServeHTTP(res, req)
+			// 		return
+			// 	}
+			// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+			// }
 			// Get suggested categories from existing subscriptions.
 			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
 			if err != nil {
@@ -1204,15 +1213,15 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			suggestedCategories := categoryCounts.Limit(10).GetCategories()
 
 			// Get suggested suggested subscriptions.
-			suggestedSubscriptions, err := service.GetAllSubscriptions(req.Context())
-			if err != nil {
+			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if allSubscriptions == nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
-					fmt.Errorf("get subscriptions: %w", err),
+					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
 				return
 			}
-			suggestedSubscriptions = suggestedSubscriptions.FilterByType(models.SubscriptionTypeFeed)
+			suggestedSubscriptions := allSubscriptions.FilterByType(models.SubscriptionTypeFeed)
 
 			RenderInternalPage(
 				&AddSubscription{
@@ -1375,11 +1384,11 @@ func HandleImportSubscriptions() http.HandlerFunc {
 				return
 			}
 			// Get user's existing subscriptions.
-			currentSubscriptions, err := service.GetAllSubscriptions(req.Context())
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
+			currentSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if currentSubscriptions == nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
-					fmt.Errorf("generate subscription requests: %w", err),
+					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
 				return
 			}
@@ -1457,15 +1466,14 @@ func HandleExportSubscriptions() http.HandlerFunc {
 			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get all user subscriptions.
-			subscriptions, err := service.GetAllSubscriptions(req.Context())
-			if err != nil {
+			subscriptions := models.SubscriptionsFromCtx(req.Context())
+			if subscriptions == nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
-					fmt.Errorf("get all subscriptions: %w", err),
+					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
 				return
 			}
-
 			// Generate opml file.
 			opmlFile, err := service.GenerateOPML(
 				req.Context(),

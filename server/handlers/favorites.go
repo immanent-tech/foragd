@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -48,8 +47,8 @@ func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) 
 func HandleListFavorites() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
-			articles      models.Articles
-			subscriptions models.Subscriptions
+			articles              models.Articles
+			favoriteSubscriptions models.Subscriptions
 		)
 
 		user := models.UserFromCtx(req.Context())
@@ -78,16 +77,16 @@ func HandleListFavorites() http.HandlerFunc {
 		// Get favorite subscriptions.
 		wg.Go(func() error {
 			var err error
-			subscriptions, err = service.GetAllSubscriptions(jobCtx)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
+			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if allSubscriptions == nil {
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
-			subscriptions = subscriptions.FilterByView(models.ViewFavorites)
+			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites)
 			// Update subscription dynamic info.
-			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), favoriteSubscriptions); err != nil {
 				return fmt.Errorf("update subscription dynamic info: %w", err)
 			}
-			service.GetLatestArticles(req.Context(), models.ViewAll, subscriptions)
+			service.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
 			return nil
 		})
 
@@ -101,7 +100,7 @@ func HandleListFavorites() http.HandlerFunc {
 
 		// Render appropriate content.
 		response := &models.ListFavoritesResponse{
-			Subscriptions: subscriptions,
+			Subscriptions: favoriteSubscriptions,
 			Articles:      articles,
 		}
 		page := &Favorites{

@@ -1154,6 +1154,15 @@ components:
             validate: "required,dive"
         article_filters:
           $ref: "#/components/schemas/ArticleFilters"
+        subscriptions:
+          description: >
+            is the grouped subscriptions. It is populated dynamically when the subscription is fetched from the store.
+          type: array
+          items:
+            x-go-type: "*Subscription"
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: "-"
       x-oapi-codegen-extra-tags:
         validate: "omitempty"
       x-go-type-skip-optional-pointer: false

@@ -209,26 +209,26 @@ func HandleSearchResults() http.HandlerFunc {
 
 		ctx := req.Context()
 
-		// If the search request has subscription filters, get subscription details.
-		if len(search.Subscriptions) > 0 {
-			subscriptions, err := service.GetSubscriptionsByID(ctx, search.Subscriptions...)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("get subscriptions: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			// Update subscription dynamic info.
-			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-				HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("update subscription dynamic info: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-		}
+		// // If the search request has subscription filters, get subscription details.
+		// if len(search.Subscriptions) > 0 {
+		// 	subscriptions, err := service.GetSubscriptionsByID(ctx, search.Subscriptions...)
+		// 	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		// 		HandleInternalError(
+		// 			http.StatusInternalServerError,
+		// 			fmt.Errorf("get subscriptions: %w", err),
+		// 		).ServeHTTP(res, req)
+		// 		return
+		// 	}
+		// 	// Update subscription dynamic info.
+		// 	if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		// 		HandleInternalError(
+		// 			http.StatusInternalServerError,
+		// 			fmt.Errorf("update subscription dynamic info: %w", err),
+		// 		).ServeHTTP(res, req)
+		// 		return
+		// 	}
+		// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+		// }
 
 		var (
 			articles   models.Articles
@@ -355,10 +355,12 @@ func HandleSearchResults() http.HandlerFunc {
 		// If this search is a search subscription, get the subscription details to add to the results.
 		var subscription *models.Subscription
 		if search.SubscriptionID != nil {
-			subscription, err = service.GetSubscription(req.Context(), *search.SubscriptionID)
-			if err != nil {
+			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if allSubscriptions == nil {
 				slogctx.Warn(req.Context(), "Unable to retrieve search subscription details.",
-					slog.Any("error", err))
+					slog.Any("error", models.ErrCtxValueNotFound))
+			} else {
+				subscription = allSubscriptions.GetByID(*search.SubscriptionID)
 			}
 		}
 

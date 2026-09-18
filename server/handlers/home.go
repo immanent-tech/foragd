@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -109,11 +108,11 @@ func HandleHome() http.HandlerFunc {
 
 		start := time.Now()
 		// Get subscriptions.
-		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
+		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+		if allSubscriptions == nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
-				fmt.Errorf("get all subscriptions: %w", err),
+				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
 			return
 		}
@@ -121,14 +120,14 @@ func HandleHome() http.HandlerFunc {
 		// If the user has requested to hide grouped subscriptions, filter those out.
 		hiddenSubscriptions := make([]models.SubscriptionID, 0)
 		if user.GetSettings().HideGrouped {
-			for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+			for subscription := range slices.Values(allSubscriptions.FilterByType(models.SubscriptionTypeGroup)) {
 				hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			}
 		}
-		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
+		subscriptions := allSubscriptions.ExcludeIDs(hiddenSubscriptions...)
 
 		// Update subscription dynamic info.
-		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription dynamic info: %w", err),

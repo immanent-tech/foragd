@@ -10,10 +10,9 @@ import (
 )
 
 const (
-	userCtxKey          contextKey = "user"
-	subscriptionsCtxKey contextKey = "subscriptions"
-	clientTypeCtxKey    contextKey = "client_type"
-	returnToCtxKey      contextKey = "return_to"
+	userCtxKey       contextKey = "user"
+	clientTypeCtxKey contextKey = "client_type"
+	returnToCtxKey   contextKey = "return_to"
 )
 
 type contextKey string
@@ -35,22 +34,6 @@ func UserFromCtx(ctx context.Context) *User {
 		return nil
 	}
 	return user
-}
-
-// SubscriptionsToCtx stores the slice of Subscriptions in the context. Useful for pre-fetching/generating subscriptions
-// for later usage.
-func SubscriptionsToCtx(ctx context.Context, subscriptions Subscriptions) context.Context {
-	return context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
-}
-
-// SubscriptionsFromCtx retrieves the slice of Subscriptions from the context. If no Subscriptions slice is in the
-// context, it returns an empty slice.
-func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
-	subscriptions, found := ctx.Value(subscriptionsCtxKey).(Subscriptions)
-	if !found {
-		return make(Subscriptions, 0)
-	}
-	return subscriptions
 }
 
 // ClientTypeToCtx stores a ClientType in the context.

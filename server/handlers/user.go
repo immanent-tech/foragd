@@ -117,27 +117,27 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 			return
 		}
 		// Get all subscriptions.
-		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
+		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+		if allSubscriptions == nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
-				fmt.Errorf("get subscriptions: %w", err),
+				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
 			return
 		}
 		// Add dynamic info to subscriptions.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), allSubscriptions); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Unable to add subscription dynamic info.",
 				slog.Any("error", err),
 			)
 		}
 		// Sort by newest first.
-		subscriptions = subscriptions.Sort(models.SortNewestFirst)
+		allSubscriptions = allSubscriptions.Sort(models.SortNewestFirst)
 		// Render the subscription list.
 		RenderPartial(&PartialTemplate{
 			template: templates.SubscriptionSettings(&templates.SubscriptionSettingsData{
 				User:          user,
-				Subscriptions: subscriptions,
+				Subscriptions: allSubscriptions,
 			}),
 		}).ServeHTTP(res, req)
 	}

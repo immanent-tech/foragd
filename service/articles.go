@@ -151,21 +151,12 @@ func FilterArticles(
 		return nil, models.Pagination{}, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	var (
-		subscriptions models.Subscriptions
-		err           error
-	)
-	// Get subscriptions.
-	if len(request.Filters.GetSubscriptions()) > 0 {
-		subscriptions, err = GetSubscriptionsByID(ctx, request.Filters.GetSubscriptions()...)
-	} else {
-		subscriptions, err = GetAllSubscriptions(ctx)
-	}
-	switch {
-	case err != nil:
-		return nil, models.Pagination{}, fmt.Errorf("get subscriptions: %w", err)
-	case len(subscriptions) == 0:
+	subscriptions := models.SubscriptionsFromCtx(ctx)
+	if len(subscriptions) == 0 {
 		return nil, models.Pagination{}, models.ErrNotFound
+	}
+	if len(request.Filters.GetSubscriptions()) > 0 {
+		subscriptions = subscriptions.FilterByIDs(request.Filters.GetSubscriptions()...)
 	}
 
 	// Build article query.

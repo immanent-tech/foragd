@@ -783,6 +783,9 @@ type GroupSubscription struct {
 
 	// Metadata is the list of metadata of grouped subscriptions.
 	Metadata []GroupedSubscriptionMetadata `json:"metadata" validate:"required,dive"`
+
+	// Subscriptions is the grouped subscriptions. It is populated dynamically when the subscription is fetched from the store.
+	Subscriptions []*Subscription `json:"-"`
 }
 
 // GroupSubscriptionSuggestionRequest contains details for suggesting a subscription to add to a group.

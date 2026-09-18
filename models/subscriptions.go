@@ -643,6 +643,24 @@ func (s Subscriptions) Paginate(filters *ListFilters) (Subscriptions, Pagination
 	}
 }
 
+const subscriptionsCtxKey contextKey = "subscriptions"
+
+// SubscriptionsToCtx stores the slice of Subscriptions in the context. Useful for pre-fetching/generating subscriptions
+// for later usage.
+func SubscriptionsToCtx(ctx context.Context, subscriptions Subscriptions) context.Context {
+	return context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
+}
+
+// SubscriptionsFromCtx retrieves the slice of Subscriptions from the context. If no Subscriptions slice is in the
+// context, it returns an empty slice.
+func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
+	subscriptions, found := ctx.Value(subscriptionsCtxKey).(Subscriptions)
+	if !found {
+		return make(Subscriptions, 0)
+	}
+	return subscriptions
+}
+
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Subscriptions.
 func GetCategoryCounts(subscriptions ...*Subscription) CategoryCounts {

@@ -236,7 +236,7 @@ func Start() error {
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
-		r.Get("/home", handlers.HandleHome())
+		r.With(handlers.AllSubscriptionsCtx).Get("/home", handlers.HandleHome())
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeSearchParams)
@@ -260,11 +260,13 @@ func Start() error {
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
+			r.Use(handlers.AllSubscriptionsCtx)
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
@@ -290,6 +292,7 @@ func Start() error {
 			})
 		})
 		r.Route("/subscription", func(r chi.Router) {
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Route("/add", func(r chi.Router) {
 				r.Get("/", handlers.HandleAddSubscription())
 				r.With(htmx.RequireHTMX).Post("/suggestions", handlers.HandleSuggestFeeds())
@@ -319,6 +322,7 @@ func Start() error {
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Get("/", handlers.HandleListArticles())
 			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories())
@@ -326,6 +330,7 @@ func Start() error {
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
 				r.Post("/paginate", handlers.HandleListArticles())
@@ -348,11 +353,13 @@ func Start() error {
 		})
 		// Favorites.
 		r.Route("/favorites", func(r chi.Router) {
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Get("/", handlers.HandleListFavorites())
 		})
 		// Map
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
+			r.Use(handlers.AllSubscriptionsCtx)
 			r.Get("/", handlers.HandleMap())
 			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleMapUpdates())
 		})
@@ -368,10 +375,13 @@ func Start() error {
 		r.Route("/user", func(r chi.Router) {
 			r.Post("/feedset", handlers.HandleAddFeedset(web.StaticContentFS))
 			// Import/export.
-			r.Get("/import", handlers.HandleImportSubscriptions())
-			r.With(htmx.RequireHTMX).Post("/import", handlers.HandleImportSubscriptions())
-			r.Get("/export", handlers.HandleExportSubscriptions())
-			r.Post("/export", handlers.HandleExportSubscriptions())
+			r.Group(func(r chi.Router) {
+				r.Use(handlers.AllSubscriptionsCtx)
+				r.Get("/import", handlers.HandleImportSubscriptions())
+				r.With(htmx.RequireHTMX).Post("/import", handlers.HandleImportSubscriptions())
+				r.Get("/export", handlers.HandleExportSubscriptions())
+				r.Post("/export", handlers.HandleExportSubscriptions())
+			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.ShowSettings())
@@ -379,8 +389,12 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/display", handlers.HandleSaveDisplaySettings())
 				r.With(htmx.RequireHTMX).Get("/account", handlers.HandleShowAccountSettings())
 				r.With(htmx.RequireHTMX).Post("/account", handlers.HandleSaveAccountSettings())
-				r.With(htmx.RequireHTMX).Get("/subscriptions", handlers.HandleShowSubscriptionsSettings())
-				r.With(htmx.RequireHTMX).Post("/subscriptions", handlers.HandleSaveSubscriptionsSettings())
+				r.Group(func(r chi.Router) {
+					r.Use(htmx.RequireHTMX)
+					r.Use(handlers.AllSubscriptionsCtx)
+					r.Get("/subscriptions", handlers.HandleShowSubscriptionsSettings())
+					r.Post("/subscriptions", handlers.HandleSaveSubscriptionsSettings())
+				})
 				r.Get("/subscription", handlers.HandleManageAccountSubscription())
 				r.With(htmx.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())

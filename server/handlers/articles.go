@@ -130,13 +130,20 @@ func HandleListArticles() http.HandlerFunc {
 		}
 
 		if subscriptionID != "" {
-			subscription, err = service.GetSubscription(
-				req.Context(),
-				subscriptionID,
-			)
-			if err != nil {
+			// Get user subscriptions.
+			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+			if allSubscriptions == nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
+					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
+				).ServeHTTP(res, req)
+				return
+			}
+			// Filter by ID.
+			subscription = allSubscriptions.GetByID(subscriptionID)
+			if subscription == nil {
+				HandleInternalError(
+					http.StatusNotFound,
 					fmt.Errorf("get subscription details: %w", err),
 				).ServeHTTP(res, req)
 				return
@@ -246,16 +253,16 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		}
 
 		// Retreive subscription details.
-		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusNoContent)
+		subscriptions := models.SubscriptionsFromCtx(req.Context())
+		if subscriptions == nil {
+			HandleInternalError(
+				http.StatusInternalServerError,
+				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Update subscription dynamic info.
-		if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
+		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
 				slog.Any("error", err),
 			)
