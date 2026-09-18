@@ -287,21 +287,53 @@ func SetDirectFetchWithItemSummaries(value bool) DirectFetchOption {
 	}
 }
 
-// NormaliseFeedURL strips protocol handler schemes and cleans the URL.
-func NormaliseFeedURL(raw string) string {
-	// Strip protocol handler prefixes: web+feed://, web+rss://
+// NormalizeFeedURL parses the given URL string into a [*url.URL] object, applying some additional rules for known
+// domains on where to find their feeds.
+func NormalizeFeedURL(urlStr string) (*url.URL, error) {
+	// Strip protocol handler prefixes: web+feed://, web+rss://.
 	for _, prefix := range []string{"web+feed://", "web+rss://", "web+feed:", "web+rss:"} {
-		if after, ok := strings.CutPrefix(raw, prefix); ok {
-			raw = after
-			if !strings.HasPrefix(raw, "http") {
-				raw = "https://" + raw
-			}
-			return raw
+		if after, ok := strings.CutPrefix(urlStr, prefix); ok {
+			urlStr = after
 		}
 	}
-	// Decode in case the share target URL-encoded it
-	if decoded, err := url.QueryUnescape(raw); err == nil {
-		raw = decoded
+	// Decode in case it is URL-encoded.
+	if decoded, err := url.QueryUnescape(urlStr); err == nil {
+		urlStr = decoded
 	}
-	return raw
+	// Parse the URL.
+	feedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	// For some popular sites that have an API or special URL for feeds, handle those.
+	switch {
+	case strings.Contains(feedURL.Host, "reddit.com"):
+		switch {
+		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
+			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+				return nil, fmt.Errorf("generate RSS feed for reddit.com URL: %w", err)
+			}
+		}
+	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		// Tumblr's canonical feed path is /rss.
+		if feedURL.Path != "/rss" {
+			feedURL.Path = "/rss"
+		}
+	case strings.HasSuffix(feedURL.Host, "substack.com"):
+		// Substack's canonical feed path is /feed.
+		if feedURL.Path != "/feed" {
+			feedURL.Path = "/feed"
+		}
+	case strings.Contains(feedURL.Host, "medium.com") && !strings.Contains(feedURL.Path, "feed"):
+		// https://help.medium.com/hc/en-us/articles/214874118-Using-RSS-feeds-of-profiles-publications-and-topics.
+		var err error
+		if feedURL.Path, err = url.JoinPath("/feed", feedURL.Path); err != nil {
+			return nil, fmt.Errorf("generate RSS feed for medium.com URL: %w", err)
+		}
+	}
+
+	return feedURL, nil
 }

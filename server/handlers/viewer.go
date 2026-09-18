@@ -100,7 +100,7 @@ func HandleViewer() http.HandlerFunc {
 				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
 				return
 			}
-			feedURL, err := service.NormalizeFeedURL(chi.URLParam(req, "*"))
+			feedURL, err := models.NormalizeFeedURL(chi.URLParam(req, "*"))
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -129,7 +129,7 @@ func HandleViewer() http.HandlerFunc {
 
 		case http.MethodPost:
 			// Parse the URL and find feed content.
-			feedURL, err := service.NormalizeFeedURL(req.FormValue("url"))
+			feedURL, err := models.NormalizeFeedURL(req.FormValue("url"))
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

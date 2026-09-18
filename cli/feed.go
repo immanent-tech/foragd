@@ -96,7 +96,7 @@ func (c *FetchFeedCmd) Run() error {
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL
-		feedURL, err = service.NormalizeFeedURL(*c.FeedURL)
+		feedURL, err = models.NormalizeFeedURL(*c.FeedURL)
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
@@ -368,7 +368,7 @@ func (c *AddFeedCmd) Run() error {
 	}
 
 	// Parse the given URL.
-	feedURL, err := service.NormalizeFeedURL(c.URL)
+	feedURL, err := models.NormalizeFeedURL(c.URL)
 	if err != nil {
 		return fmt.Errorf("parse url: %w", err)
 	}

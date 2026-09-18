@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -840,13 +841,26 @@ func HandleAddSubscription() http.HandlerFunc {
 		}
 
 		// Get any pre-entered URL (i.e., incoming share links/protocol handlers).
-		url := req.FormValue("url")
-		if v := req.FormValue("text"); v != "" && url == "" {
-			// If url is empty and text is not empty, use text.
-			url = v
+		var (
+			givenURL *url.URL
+			err      error
+		)
+		if v := req.FormValue("text"); v != "" && req.FormValue("url") == "" {
+			// If URL param is empty and text param is not empty, use text.
+			givenURL, err = url.Parse(v)
 		}
-		if url != "" {
-			url = models.NormaliseFeedURL(url)
+		if v := req.FormValue("url"); v != "" {
+			givenURL, err = models.NormalizeFeedURL(v)
+		}
+		if err != nil {
+			HandleInternalError(
+				http.StatusUnprocessableEntity,
+				err,
+				WithUserMessage(
+					models.NewWarningMessage("Unable to parse given URL", "Please check your input and try again"),
+				),
+			).ServeHTTP(res, req)
+			return
 		}
 
 		// Get suggested categories from existing subscriptions.
@@ -856,7 +870,12 @@ func HandleAddSubscription() http.HandlerFunc {
 				slog.Any("error", err),
 			)
 		}
-		suggestedCategories := categoryCounts.Limit(10).GetCategories()
+		request := &models.FeedSubscriptionRequest{
+			SuggestedCategories: categoryCounts.Limit(10).GetCategories(),
+		}
+		if givenURL != nil {
+			request.URL = givenURL.String()
+		}
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		RenderInternalPage(
 			&AddSubscription{
@@ -864,11 +883,7 @@ func HandleAddSubscription() http.HandlerFunc {
 					Summary:     "Add Subscription",
 					Description: "New Feed Subscription",
 				},
-				template: templates.AddFeedSubscription(
-					&models.FeedSubscriptionRequest{
-						URL:                 url,
-						SuggestedCategories: suggestedCategories},
-				),
+				template: templates.AddFeedSubscription(request),
 			},
 		).ServeHTTP(res, req)
 	}
