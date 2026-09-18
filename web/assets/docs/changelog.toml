@@ -1,10 +1,23 @@
-#:schema https://json.schemastore.org/any.json
+[[releases]]
+version = "v0.234"
+date = "Sep 18, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Feeds generated from YouTube channels/playlists should have better thumbnails now.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+If you have "Mark Article Read on View" enabled in the display settings, then browsing through articles with the next/previous buttons will automatically mark the articles as read.
+"""
 
 [[releases]]
 version = "v0.231"
 date = "Sep 17, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "fixed"
 description = """
