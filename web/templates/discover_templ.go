@@ -194,7 +194,7 @@ func Discover(request *models.SuggestFeedsRequest) templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = feedSuggestionSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.CardSkeleton().Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -202,7 +202,7 @@ func Discover(request *models.SuggestFeedsRequest) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = feedSuggestionSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.CardSkeleton().Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -210,7 +210,7 @@ func Discover(request *models.SuggestFeedsRequest) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = feedSuggestionSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = partials.CardSkeleton().Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -415,7 +415,7 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if feed.GetDescription() != "" {
+				if feed.GetDescription() != "" && feed.SourceType != models.SourceTypeYoutube {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"tooltip tooltip-bottom\" data-tip=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -429,20 +429,20 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><p class=\"mt-1 text-sm/6 text-neutral text-pretty line-clamp-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><div class=\"mt-1 text-sm/6 text-neutral text-pretty wrap-break-word line-clamp-2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var18 string
 					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/discover.templ`, Line: 132, Col: 94}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/discover.templ`, Line: 132, Col: 112}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</p></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -453,7 +453,7 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = partials.CardHeader().Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.CardHeader(element.WithClasses("min-w-0")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -589,35 +589,6 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = partials.Card().Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func feedSuggestionSkeleton() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var26 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var26 == nil {
-			templ_7745c5c3_Var26 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"card bg-base-200 border border-neutral/20 w-80\"><div class=\"card-header px-4 pt-5 pb-2 sm:px-6\"><div class=\"flex min-w-0\"><div class=\"mr-4 shrink-0\"><div class=\"skeleton w-12 h-12 rounded-full shrink-0\"></div></div><div class=\"flex-1 min-w-0\"><div class=\"skeleton h-5 w-3/4 max-w-56\"></div><div class=\"mt-2 space-y-2\"><div class=\"skeleton h-3 w-full\"></div><div class=\"skeleton h-3 w-5/6\"></div></div></div></div></div><div class=\"px-4 py-5 sm:p-6\"><div class=\"mt-auto h-full\"><ul class=\"latest-items\"><li class=\"my-1 border-l-2 border-accent/40 pl-3 text-base\"><div class=\"skeleton h-4 w-11/12\"></div></li><li class=\"my-1 border-l-2 border-accent/40 pl-3 text-base\"><div class=\"skeleton h-4 w-2/3\"></div></li><li class=\"my-1 border-l-2 border-accent/40 pl-3 text-base\"><div class=\"skeleton h-4 w-4/5\"></div></li></ul></div></div><div class=\"card-footer mt-auto px-4 pb-4 pt-2 sm:px-6 flex justify-end\"><div class=\"skeleton h-10 w-28 rounded-field\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

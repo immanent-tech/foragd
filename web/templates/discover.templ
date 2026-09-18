@@ -72,9 +72,9 @@ templ Discover(request *models.SuggestFeedsRequest) {
 				<div id="discover-loading" class="group">
 					<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
 						@partials.Grid() {
-							@feedSuggestionSkeleton()
-							@feedSuggestionSkeleton()
-							@feedSuggestionSkeleton()
+							@partials.CardSkeleton()
+							@partials.CardSkeleton()
+							@partials.CardSkeleton()
 						}
 					</div>
 				</div>
@@ -120,16 +120,16 @@ templ DiscoverSuggestions(suggestions models.SuggestFeedsResults) {
 templ feedSuggestion(feed *models.Feed, items models.Items) {
 	@partials.Card() {
 		// Header: feed title, thumbnail and description (if any).
-		@partials.CardHeader() {
+		@partials.CardHeader(element.WithClasses("min-w-0")) {
 			<div class="flex min-w-0">
 				<div class="mr-4 shrink-0">
 					@feedThumbnail(feed)
 				</div>
 				<div>
 					<h4 class="text-lg font-bold">{ feed.GetTitle() }</h4>
-					if feed.GetDescription() != "" {
+					if feed.GetDescription() != "" && feed.SourceType != models.SourceTypeYoutube {
 						<div class="tooltip tooltip-bottom" data-tip={ feed.GetDescription() }>
-							<p class="mt-1 text-sm/6 text-neutral text-pretty line-clamp-2">{ feed.GetDescription() } </p>
+							<div class="mt-1 text-sm/6 text-neutral text-pretty wrap-break-word line-clamp-2">{ feed.GetDescription() } </div>
 						</div>
 					}
 				</div>
@@ -179,41 +179,4 @@ templ feedSuggestion(feed *models.Feed, items models.Items) {
 			</form>
 		}
 	}
-}
-
-templ feedSuggestionSkeleton() {
-	<div class="card bg-base-200 border border-neutral/20 w-80">
-		<div class="card-header px-4 pt-5 pb-2 sm:px-6">
-			<div class="flex min-w-0">
-				<div class="mr-4 shrink-0">
-					<div class="skeleton w-12 h-12 rounded-full shrink-0"></div>
-				</div>
-				<div class="flex-1 min-w-0">
-					<div class="skeleton h-5 w-3/4 max-w-56"></div>
-					<div class="mt-2 space-y-2">
-						<div class="skeleton h-3 w-full"></div>
-						<div class="skeleton h-3 w-5/6"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="px-4 py-5 sm:p-6">
-			<div class="mt-auto h-full">
-				<ul class="latest-items">
-					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-						<div class="skeleton h-4 w-11/12"></div>
-					</li>
-					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-						<div class="skeleton h-4 w-2/3"></div>
-					</li>
-					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-						<div class="skeleton h-4 w-4/5"></div>
-					</li>
-				</ul>
-			</div>
-		</div>
-		<div class="card-footer mt-auto px-4 pb-4 pt-2 sm:px-6 flex justify-end">
-			<div class="skeleton h-10 w-28 rounded-field"></div>
-		</div>
-	</div>
 }

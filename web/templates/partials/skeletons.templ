@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package partials
+
+// CardSkeleton renders a skeleton for a card, as shown on the list/home pages.
+templ CardSkeleton() {
+	<div class="card bg-base-200 border border-neutral/20 w-80">
+		<div class="card-header px-4 pt-5 pb-2 sm:px-6">
+			<div class="flex min-w-0">
+				<div class="mr-4 shrink-0">
+					<div class="skeleton w-12 h-12 rounded-full shrink-0"></div>
+				</div>
+				<div class="flex-1 min-w-0">
+					<div class="skeleton h-5 w-3/4 max-w-56"></div>
+					<div class="mt-2 space-y-2">
+						<div class="skeleton h-3 w-full"></div>
+						<div class="skeleton h-3 w-5/6"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="px-4 py-5 sm:p-6">
+			<div class="mt-auto h-full">
+				<ul class="latest-items">
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-11/12"></div>
+					</li>
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-2/3"></div>
+					</li>
+					<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+						<div class="skeleton h-4 w-4/5"></div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="card-footer mt-auto px-4 pb-4 pt-2 sm:px-6 flex justify-end">
+			<div class="skeleton h-10 w-28 rounded-field"></div>
+		</div>
+	</div>
+}

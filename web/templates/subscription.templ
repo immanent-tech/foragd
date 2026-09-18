@@ -598,7 +598,7 @@ templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@narrowContainer(element.WithClasses("pt-4")) {
+			@container(element.WithClasses("pt-4")) {
 				@pageHeading() {
 					@pageTitle("Add a subscription")
 				}
@@ -680,50 +680,14 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						</ul>
 						// Loading skeleton.
 						<div id="suggestions-loading" class="group">
-							<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
-								<ul class="divide-y divide-neutral/15">
-									<li>
-										<div class="flex">
-											<div class="mr-4 shrink-0">
-												<div class="size-12 skeleton"></div>
-											</div>
-											<div class="flex flex-1 justify-between">
-												<div class="h-6 w-64 skeleton"></div>
-												<div class="ml-4 h-12 w-32 shrink-0 skeleton"></div>
-											</div>
-										</div>
-										<div class="mt-8 h-12 w-lg skeleton"></div>
-										<div class="mt-8 flex flex-col gap-y-4">
-											<div class="flex">
-												<div class="mr-4 shrink-0 self-center">
-													<div class="size-16 skeleton"></div>
-												</div>
-												<div>
-													<div class="h-6 w-48 skeleton"></div>
-													<div class="mt-2 h-12 w-96 skeleton"></div>
-												</div>
-											</div>
-											<div class="flex">
-												<div class="mr-4 shrink-0 self-center">
-													<div class="size-16 skeleton"></div>
-												</div>
-												<div>
-													<div class="h-6 w-48 skeleton"></div>
-													<div class="mt-2 h-12 w-96 skeleton"></div>
-												</div>
-											</div>
-											<div class="flex">
-												<div class="mr-4 shrink-0 self-center">
-													<div class="size-16 skeleton"></div>
-												</div>
-												<div>
-													<div class="h-6 w-48 skeleton"></div>
-													<div class="mt-2 h-12 w-96 skeleton"></div>
-												</div>
-											</div>
-										</div>
-									</li>
-								</ul>
+							<div id="discover-loading" class="group">
+								<div class="mt-8 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
+									@partials.Grid() {
+										@partials.CardSkeleton()
+										@partials.CardSkeleton()
+										@partials.CardSkeleton()
+									}
+								</div>
 							</div>
 						</div>
 						// Suggestions.
@@ -939,104 +903,11 @@ templ ShowFeedSuggestions(request *models.SuggestFeedsResults) {
 	if len(request.Feeds) == 0 {
 		@ShowNoSuggestions(request.Text)
 	} else {
-		<ul id="feed-suggestions" class="divide-y divide-neutral/15">
+		@partials.Grid() {
 			for feed := range slices.Values(request.Feeds) {
-				<li
-					id={ "suggestion-" + feed.GetID() }
-					class="group/item py-4"
-				>
-					<div class="flex">
-						<div class="mr-4 shrink-0">
-							if img := feed.GetImage(); img == nil {
-								@subscriptionThumbnail(nil, feed.GetTitle())
-							} else {
-								{{
-									var imgTitle string
-									if feed.Image.Title == nil {
-										imgTitle = feed.GetTitle()
-									} else {
-										imgTitle = *feed.Image.Title
-									}
-								}}
-								@subscriptionThumbnail(models.NewRemoteImage(feed.Image.URL, imgTitle), feed.GetTitle())
-							}
-						</div>
-						<div class="flex flex-1">
-							<h2 class="card-title line-clamp-2 flex-1 tracking-tight text-pretty">
-								{ feed.GetTitle() }
-							</h2>
-							<div class="ml-4 shrink-0">
-								<form>
-									<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
-									<input type="hidden" name="feed_id" value={ feed.GetID() }/>
-									<button
-										type="submit"
-										class="group btn btn-primary"
-										hx-post="/subscription/add/feed"
-										hx-swap="none"
-										hx-disabled-elt="this"
-										hx-encoding="multipart/form-data"
-										data-suggestionid={ "#suggestion-" + feed.GetID() }
-										_="on htmx:afterRequest(successful) remove me"
-									>
-										<span class="hidden items-center group-[.htmx-request]:inline-flex">
-											<span class="loading mr-3 loading-spinner text-primary"></span>
-											Subscribing
-										</span>
-										<span class="inline-flex items-center group-[.htmx-request]:hidden">
-											Subscribe
-										</span>
-									</button>
-								</form>
-							</div>
-						</div>
-					</div>
-					if feed.GetDescription() != "" {
-						<p class="pt-8 text-sm/6 text-neutral">{ feed.GetDescription() }</p>
-					}
-					if items, ok := request.LatestItems[feed.GetID()]; ok {
-						<div class="flex flex-col gap-y-4 pt-8">
-							for item := range slices.Values(items) {
-								<div class="flex">
-									<div class="mr-4 shrink-0 self-center">
-										if img := item.GetImage(); img != nil {
-											{{ img := item.GetImage() }}
-											if img.GetTitle() == "" {
-												{{ img.Title = new(item.GetTitle()) }}
-											}
-											<figure class="mask mask-squircle">
-												@partials.NewProxiedImage(img, "rs:auto:64:64/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
-													element.WithAttribute("width", "64"),
-													element.WithAttribute("height", "64"),
-													element.WithClasses("aspect-square", "object-cover"),
-												)
-											</figure>
-										}
-									</div>
-									<div>
-										<h3 class="text-base font-semibold">
-											if item.GetTitle() != "" {
-												{ item.GetTitle() }
-											} else {
-												(no title)
-											}
-										</h3>
-										<div class="prose-summary mb-3 line-clamp-2">
-											switch  {
-												case item.GetDescription() != "":
-													@templ.Raw(item.GetDescription())
-												case item.GetContent() != "":
-													@templ.Raw(item.GetContent())
-											}
-										</div>
-									</div>
-								</div>
-							}
-						</div>
-					}
-				</li>
+				@feedSuggestion(feed, request.LatestItems[feed.GetID()])
 			}
-		</ul>
+		}
 	}
 }
 
