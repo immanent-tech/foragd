@@ -1239,29 +1239,6 @@ func GetSubscriptionSuggestions(
 	return subscriptions, nil
 }
 
-func GetCategoriesForSubscriptions(
-	ctx context.Context,
-	subscriptionIDs ...models.SubscriptionID,
-) (models.CategoryCounts, error) {
-	subscriptions, err := GetSubscriptionsByID(ctx, subscriptionIDs...)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
-	}
-
-	countsMap := make(map[models.Category]int)
-	for subscription := range slices.Values(subscriptions) {
-		for category := range slices.Values(subscription.GetCategories(0)) {
-			countsMap[category]++
-		}
-	}
-	var counts models.CategoryCounts
-	for category, count := range maps.All(countsMap) {
-		counts = append(counts, models.CategoryCount{Category: category, Count: count})
-	}
-
-	return counts, nil
-}
-
 // UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.

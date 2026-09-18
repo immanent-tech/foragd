@@ -614,13 +614,7 @@ func HandleEditSubscription() http.HandlerFunc {
 				Search:        subscription.SearchData.Search,
 			}
 			// Get suggested categories from existing subscriptions.
-			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
+			request.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
 
 			request.Search.SubscriptionID = new(subscription.GetID())
 			// // Get any extra subscription info for subscription filters.
@@ -698,14 +692,8 @@ func HandleEditSubscription() http.HandlerFunc {
 				SubscriptionID: subscription.GetID(),
 			}
 			// Get suggested categories from existing subscriptions.
-			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
-
+			request.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
+			// Create template.
 			template = templates.EditEmailSubscription(request)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
@@ -720,6 +708,15 @@ func HandleEditSubscription() http.HandlerFunc {
 			},
 		).ServeHTTP(res, req.WithContext(ctx))
 	}
+}
+
+func getCategorySuggestions(ctx context.Context, ids ...models.SubscriptionID) models.CategoryCounts {
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil
+	}
+	subscriptions := allSubscriptions.FilterByIDs(ids...)
+	return subscriptions.GetCategoryCounts()
 }
 
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
@@ -872,15 +869,9 @@ func HandleAddSubscription() http.HandlerFunc {
 			return
 		}
 
-		// Get suggested categories from existing subscriptions.
-		categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-				slog.Any("error", err),
-			)
-		}
 		request := &models.FeedSubscriptionRequest{
-			SuggestedCategories: categoryCounts.Limit(10).GetCategories(),
+			// Get suggested categories from existing subscriptions.
+			SuggestedCategories: getCategorySuggestions(req.Context()).Limit(10).GetCategories(),
 		}
 		if givenURL != nil {
 			request.URL = givenURL.String()
@@ -1070,27 +1061,6 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			if err != nil {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			}
-			// If the search request has subscription filters, get subscription details.
-			ctx := req.Context()
-			// if len(request.Subscriptions) > 0 {
-			// 	subscriptions, err := service.GetSubscriptionsByID(req.Context(), request.Subscriptions...)
-			// 	if err != nil {
-			// 		HandleInternalError(
-			// 			http.StatusInternalServerError,
-			// 			fmt.Errorf("get subscription: %w", err),
-			// 		).ServeHTTP(res, req)
-			// 		return
-			// 	}
-			// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-			// }
-			// Get suggested categories from existing subscriptions.
-			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			suggestedCategories := categoryCounts.Limit(10).GetCategories()
 			// Render form.
 			RenderInternalPage(
 				&AddSubscription{
@@ -1100,13 +1070,16 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 					},
 					template: templates.AddSearchSubscription(
 						&models.SearchSubscriptionRequest{
-							Search:              *request,
-							Customisation:       &models.SubscriptionCustomisation{},
-							SuggestedCategories: suggestedCategories,
+							Search:        *request,
+							Customisation: &models.SubscriptionCustomisation{},
+							SuggestedCategories: getCategorySuggestions(
+								req.Context(),
+							).Limit(10).
+								GetCategories(),
 						},
 					),
 				},
-			).ServeHTTP(res, req.WithContext(ctx))
+			).ServeHTTP(res, req.WithContext(req.Context()))
 		case http.MethodPost:
 			request, err := parseMultipartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil {
@@ -1204,14 +1177,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			// Get suggested categories from existing subscriptions.
-			categoryCounts, err := service.GetCategoriesForSubscriptions(req.Context())
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
-					slog.Any("error", err),
-				)
-			}
-			suggestedCategories := categoryCounts.Limit(10).GetCategories()
-
+			suggestedCategories := getCategorySuggestions(req.Context()).Limit(10).GetCategories()
 			// Get suggested suggested subscriptions.
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {

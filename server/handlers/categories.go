@@ -38,16 +38,7 @@ func ListCategories() http.HandlerFunc {
 			}
 
 			// Get the categories for the subscriptions.
-			counts, err := service.GetCategoriesForSubscriptions(req.Context(), request.Subscriptions...)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
-					slog.Any("error", err),
-				)
-				RenderPartial(&PartialTemplate{
-					template: templates.CategoryFilters(&models.CategoryFilters{}),
-				}).ServeHTTP(res, req)
-				return
-			}
+			counts := getCategorySuggestions(req.Context(), request.Subscriptions...)
 
 			// Generate the categories list template.
 			RenderPartial(&PartialTemplate{

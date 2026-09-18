@@ -452,6 +452,20 @@ func (s Subscriptions) GetCategories() Categories {
 	return slices.Compact(categories)
 }
 
+func (s Subscriptions) GetCategoryCounts() CategoryCounts {
+	countsMap := make(map[Category]int)
+	for subscription := range slices.Values(s) {
+		for category := range slices.Values(subscription.GetCategories(0)) {
+			countsMap[category]++
+		}
+	}
+	counts := make(CategoryCounts, 0, len(countsMap))
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, CategoryCount{Category: category, Count: count})
+	}
+	return counts
+}
+
 // GetByID will return the subscription that matches the given ID, if any.
 func (s Subscriptions) GetByID(id SubscriptionID) *Subscription {
 	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
