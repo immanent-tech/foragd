@@ -109,7 +109,8 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 	return &UserSubscriptions{
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *Subscriptions]{
-				MaximumSize: 100,
+				MaximumSize:      100,
+				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *Subscriptions](60 * time.Second),
 			},
 		),
 		userLoader: otter.LoaderFunc[models.UserID, *Subscriptions](
