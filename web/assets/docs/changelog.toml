@@ -9,6 +9,11 @@ description = """
 Feeds generated from YouTube channels/playlists should have better thumbnails now.
 """
 [[releases.changes]]
+type = "fixed"
+description = """
+OPML imports might fail due to strict date parsing. This has been made more lenient and more OPML files should be able to be imported.
+"""
+[[releases.changes]]
 type = "improved"
 description = """
 If you have "Mark Article Read on View" enabled in the display settings, then browsing through articles with the next/previous buttons will automatically mark the articles as read.
