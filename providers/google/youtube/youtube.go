@@ -223,12 +223,29 @@ func newChannelFeed(channel *youtube.Channel) *models.Feed {
 		feed.Published = models.UnixEpoch
 	}
 
-	// Add any image found.
-	if channel.BrandingSettings != nil && channel.BrandingSettings.Image != nil &&
-		channel.BrandingSettings.Image.WatchIconImageUrl != "" {
-		feed.Image = &models.RemoteImage{
-			URL:   channel.BrandingSettings.Image.WatchIconImageUrl,
-			Title: new(channel.Snippet.Title),
+	// Pick an appropriate thumbnail to represent the feed.
+	if channel.Snippet.Thumbnails != nil {
+		switch {
+		case channel.Snippet.Thumbnails.Default != nil:
+			feed.Image = &models.RemoteImage{
+				URL:   channel.Snippet.Thumbnails.Default.Url,
+				Title: new(channel.Snippet.Title),
+			}
+		case channel.Snippet.Thumbnails.High != nil:
+			feed.Image = &models.RemoteImage{
+				URL:   channel.Snippet.Thumbnails.High.Url,
+				Title: new(channel.Snippet.Title),
+			}
+		case channel.Snippet.Thumbnails.Medium != nil:
+			feed.Image = &models.RemoteImage{
+				URL:   channel.Snippet.Thumbnails.Medium.Url,
+				Title: new(channel.Snippet.Title),
+			}
+		case channel.Snippet.Thumbnails.Standard != nil:
+			feed.Image = &models.RemoteImage{
+				URL:   channel.Snippet.Thumbnails.Standard.Url,
+				Title: new(channel.Snippet.Title),
+			}
 		}
 	}
 
