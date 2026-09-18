@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.234.0](https://github.com/immanent-tech/foragd/compare/v0.233.0...v0.234.0) (2026-09-18)
+
+
+### Features
+
+* **handlers:** ✨ automatically mark article as read when navigating back/forward if user prefers ([4ce3645](https://github.com/immanent-tech/foragd/commit/4ce3645678df739e86152813ef2a5f850a624583))
+* **models:** ➕ add functional options to set direct fetch options for a feed ([9a2328d](https://github.com/immanent-tech/foragd/commit/9a2328dfd4cde366d1ede79e06dbbc48c3bba652))
+
+
+### Bug Fixes
+
+* **providers/google:** 🔧 pick better thumbnails to represent YouTube channels/playlists as feeds ([21d40a9](https://github.com/immanent-tech/foragd/commit/21d40a955068be2b564e129676e6ede8792e23c9))
+
 ## [0.233.0](https://github.com/immanent-tech/foragd/compare/v0.232.0...v0.233.0) (2026-09-17)
 
 
