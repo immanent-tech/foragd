@@ -253,6 +253,40 @@ func (f *Feed) GetUpdateInterval() time.Duration {
 	return interval
 }
 
+// SetDirectFetchOptions will set the given options for direct fetching on the feed.
+func (f *Feed) SetDirectFetchOptions(options ...DirectFetchOption) {
+	for option := range slices.Values(options) {
+		option(f)
+	}
+}
+
+// DirectFetchOption is a functional option for applying direct fetch options to a feed.
+type DirectFetchOption func(*Feed)
+
+// SetDirectFetchWithItemSummaries option will ensure the feed fetches item summaries separately instead of relying on
+// the summaries within the feed.
+func SetDirectFetchWithItemSummaries(value bool) DirectFetchOption {
+	var fetchOptions FetchDirectOptions
+	return func(f *Feed) {
+		// Ignore if feed is not configured for direct fetching.
+		if f.FetchMethod != FeedFetchMethodDirect {
+			return
+		}
+		// Extract current fetch options.
+		if f.FetchOptions == nil {
+			fetchOptions = FetchDirectOptions{}
+		} else {
+			var err error
+			fetchOptions, err = f.FetchOptions.AsFetchDirectOptions()
+			if err != nil {
+				return
+			}
+		}
+		fetchOptions.FetchItemSummaries = value
+		f.FetchOptions.FromFetchDirectOptions(fetchOptions)
+	}
+}
+
 // NormaliseFeedURL strips protocol handler schemes and cleans the URL.
 func NormaliseFeedURL(raw string) string {
 	// Strip protocol handler prefixes: web+feed://, web+rss://

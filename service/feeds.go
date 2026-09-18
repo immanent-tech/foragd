@@ -617,6 +617,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 					query.Terms("feed_id", subscriptions.GetFeedIDs()),
 				),
 				query.Should(
+					query.Term("domain.raw", "news.google.com", query.WithQueryBoost[*query.TermQuery](20.0)),
 					// Match source_urls (preferred) or url.
 					query.Term(
 						"source_urls",
@@ -656,7 +657,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 		}, nil
 	}
 
-	// Try to create new feeds for the urls.
+	// Try to create new feeds for the URLs.
 	latestItems := make(map[models.FeedID]models.Items)
 	slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 		slog.String("url", newsURL.String()),
@@ -673,6 +674,8 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 		}
 		latestItems[newFeed.GetID()] = items
 	}
+	// Always fetch item summaries for Google News feeds.
+	newFeed.SetDirectFetchOptions(models.SetDirectFetchWithItemSummaries(true))
 	feeds = append(feeds, newFeed)
 	return &models.SuggestFeedsResults{
 		Text:        text,
