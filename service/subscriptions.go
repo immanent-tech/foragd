@@ -296,8 +296,8 @@ func GetSubscription(
 	return subscription, nil
 }
 
-// GetSubscriptionsByID returns all subscriptions that match the given [models.SubscriptionID].
-func GetSubscriptionsByID(
+// BulkGetSubscriptions returns all subscriptions that match the given [models.SubscriptionID].
+func BulkGetSubscriptions(
 	ctx context.Context,
 	ids ...models.SubscriptionID,
 ) (models.Subscriptions, error) {
@@ -396,6 +396,181 @@ func UpdateSubscriptions(
 	return nil
 }
 
+// UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
+// generated if the user has set the display option ShowSubscriptionStats in their account settings.
+//
+//nolint:gocognit,funlen
+func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+	ctx, span := tracer.Start(ctx, "UpdateSubscriptionDynamicInfo")
+	defer span.End()
+
+	// Bail early if given an empty list.
+	if len(subscriptions) == 0 {
+		return nil
+	}
+
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	fetchJobs, jobCtx := errgroup.WithContext(ctx)
+	defer jobCtx.Done()
+
+	// Get unread count per feed.
+	var unreadCounts map[models.FeedID]int64
+	fetchJobs.Go(func() error {
+		var err error
+		unreadCounts, err = getSubscriptionUnreadCounts(jobCtx, subscriptions)
+		if err != nil {
+			return fmt.Errorf("get unread counts: %w", err)
+		}
+		return nil
+	})
+
+	// For search subscriptions, run queries directly to add unread count and last update.
+	fetchJobs.Go(func() error {
+		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
+			request := subscription.SearchData.Search
+			// Build query to get unread count.
+			query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
+			if err != nil {
+				return fmt.Errorf(
+					"add subscription dynamic info: build search subscription %s query: %w",
+					subscription.GetID(),
+					err,
+				)
+			}
+			count, err := CountItems(jobCtx, query)
+			if err == nil {
+				subscription.GetStats().UnreadCount = int(count)
+			} else {
+				slogctx.FromCtx(jobCtx).
+					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+						slog.String("subscription_id", subscription.GetID()),
+						slog.Any("error", err),
+					)
+			}
+			// Update query for getting last updated item (view: all, sort: newest first).
+			request.View = models.ViewAll
+			sort := models.SortNewestFirst
+			query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
+			if err != nil {
+				return fmt.Errorf(
+					"add subscription dynamic info: build search subscription %s query: %w",
+					subscription.GetID(),
+					err,
+				)
+			}
+			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
+			} else {
+				slogctx.FromCtx(jobCtx).
+					Warn("Add subscription dynamic info, could not get last update for search subscription.",
+						slog.String("subscription_id", subscription.GetID()),
+						slog.Any("error", err),
+					)
+			}
+		}
+		return nil
+	})
+
+	// Get last update (latest item timestamp) per feed.
+	var lastUpdate map[models.FeedID]time.Time
+	fetchJobs.Go(func() error {
+		var err error
+		lastUpdate, err = getFeedLastUpdates(jobCtx, subscriptions.GetFeedIDs()...)
+		if err != nil {
+			return fmt.Errorf("get last update: %w", err)
+		}
+		return nil
+	})
+
+	var avgDailyUpdates map[models.FeedID]float64
+	if user.GetSettings().ShowSubscriptionStats {
+		// Get average daily updates per feed
+		fetchJobs.Go(func() error {
+			var err error
+			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, subscriptions.GetFeedIDs()...)
+			if err != nil {
+				return fmt.Errorf("get average daily updates: %w", err)
+			}
+			return nil
+		})
+	}
+
+	if err := fetchJobs.Wait(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
+	}
+
+	// For feed subscriptions, add stats.
+	if feedSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed); len(feedSubscriptions) > 0 {
+		for subscription := range slices.Values(feedSubscriptions) {
+			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			}
+		}
+	}
+
+	// For email subscriptions, add stats.
+	if emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeEmail); len(emailSubscriptions) > 0 {
+		for subscription := range slices.Values(emailSubscriptions) {
+			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			}
+		}
+	}
+
+	// For group subscriptions, calculate stats from other subscriptions.
+	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+		var avgDailyUpdates []float64
+		var unreadCount int
+		var lastUpdates []time.Time
+		// Get the avg daily updates and last update for each subscription in the group.
+		for id := range slices.Values(subscription.GroupData.GetGroupedSubscriptionIDs()) {
+			childSubscription, err := GetSubscription(ctx, id)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to fetch child subscription details.",
+					slog.String("group_subscription_id", subscription.GetID()),
+					slog.String("child_subscription_id", id),
+					slog.Any("error", err))
+				continue
+			}
+			// Collate statistics from child subscription.
+			if user.GetSettings().ShowSubscriptionStats {
+				avgDailyUpdates = append(avgDailyUpdates, childSubscription.GetStats().AvgDailyUpdates)
+			}
+			unreadCount += childSubscription.GetStats().UnreadCount
+			lastUpdates = append(lastUpdates, childSubscription.GetStats().LastUpdate)
+		}
+		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
+			// Use the highest avg daily updates as the avg daily updates of the group.
+			slices.Sort(avgDailyUpdates)
+			slices.Reverse(avgDailyUpdates)
+			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
+		}
+		// Unread count is total unread count from all subscriptions in the group.
+		subscription.GetStats().UnreadCount = unreadCount
+		// LastUpdate is the timestamp of the most recent update across all subscriptions in the group.
+		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
+			return timeA.Compare(timeB)
+		})
+		slices.Reverse(lastUpdates)
+		subscription.GetStats().LastUpdate = lastUpdates[0]
+	}
+
+	return nil
+}
+
 // NewFeedSubscription creates a new subscription for a feed with any user customisations given.
 func NewFeedSubscription(
 	ctx context.Context,
@@ -469,7 +644,7 @@ func EditFeedSubscription(
 // all articles from multiple individual subscriptions into a single custom subscription.
 func NewGroupSubscription(ctx context.Context, request *models.GroupSubscriptionRequest) (*models.Subscription, error) {
 	// Get details of the grouped subscriptions.
-	grouped, err := GetSubscriptionsByID(ctx, slices.Collect(maps.Keys(request.Subscriptions))...)
+	grouped, err := BulkGetSubscriptions(ctx, slices.Collect(maps.Keys(request.Subscriptions))...)
 	if err != nil {
 		return nil, fmt.Errorf("get grouped subscription details: %w", err)
 	}
@@ -504,7 +679,7 @@ func EditGroupSubscription(
 		subscription.Settings = *edits.Settings
 	}
 	// Update grouped subscriptions.
-	grouped, err := GetSubscriptionsByID(ctx, slices.Collect(maps.Keys(edits.Subscriptions))...)
+	grouped, err := BulkGetSubscriptions(ctx, slices.Collect(maps.Keys(edits.Subscriptions))...)
 	if err != nil {
 		return fmt.Errorf("get grouped subscription details: %w", err)
 	}
@@ -706,7 +881,7 @@ func MarkSubscriptions(
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptions, err := GetSubscriptionsByID(ctx, subscriptionIDs...)
+	subscriptions, err := BulkGetSubscriptions(ctx, subscriptionIDs...)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -1029,7 +1204,7 @@ func getGroupSubscriptionLatestItems(
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
 			// Get details of all subscriptions that comprise the group.
-			childSubscriptions, err := GetSubscriptionsByID(ctx, subscription.GroupData.GetGroupedSubscriptionIDs()...)
+			childSubscriptions, err := BulkGetSubscriptions(ctx, subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
 					slog.Any("error", err),
@@ -1237,181 +1412,6 @@ func GetSubscriptionSuggestions(
 	}
 
 	return subscriptions, nil
-}
-
-// UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
-// At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
-// generated if the user has set the display option ShowSubscriptionStats in their account settings.
-//
-//nolint:gocognit,funlen
-func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
-	ctx, span := tracer.Start(ctx, "UpdateSubscriptionDynamicInfo")
-	defer span.End()
-
-	// Bail early if given an empty list.
-	if len(subscriptions) == 0 {
-		return nil
-	}
-
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		span.RecordError(models.ErrCtxValueNotFound)
-		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	fetchJobs, jobCtx := errgroup.WithContext(ctx)
-	defer jobCtx.Done()
-
-	// Get unread count per feed.
-	var unreadCounts map[models.FeedID]int64
-	fetchJobs.Go(func() error {
-		var err error
-		unreadCounts, err = getSubscriptionUnreadCounts(jobCtx, subscriptions)
-		if err != nil {
-			return fmt.Errorf("get unread counts: %w", err)
-		}
-		return nil
-	})
-
-	// For search subscriptions, run queries directly to add unread count and last update.
-	fetchJobs.Go(func() error {
-		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
-			request := subscription.SearchData.Search
-			// Build query to get unread count.
-			query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			count, err := CountItems(jobCtx, query)
-			if err == nil {
-				subscription.GetStats().UnreadCount = int(count)
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
-					)
-			}
-			// Update query for getting last updated item (view: all, sort: newest first).
-			request.View = models.ViewAll
-			sort := models.SortNewestFirst
-			query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
-				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get last update for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
-					)
-			}
-		}
-		return nil
-	})
-
-	// Get last update (latest item timestamp) per feed.
-	var lastUpdate map[models.FeedID]time.Time
-	fetchJobs.Go(func() error {
-		var err error
-		lastUpdate, err = getFeedLastUpdates(jobCtx, subscriptions.GetFeedIDs()...)
-		if err != nil {
-			return fmt.Errorf("get last update: %w", err)
-		}
-		return nil
-	})
-
-	var avgDailyUpdates map[models.FeedID]float64
-	if user.GetSettings().ShowSubscriptionStats {
-		// Get average daily updates per feed
-		fetchJobs.Go(func() error {
-			var err error
-			avgDailyUpdates, err = getFeedAverageDailyUpdates(jobCtx, subscriptions.GetFeedIDs()...)
-			if err != nil {
-				return fmt.Errorf("get average daily updates: %w", err)
-			}
-			return nil
-		})
-	}
-
-	if err := fetchJobs.Wait(); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
-	}
-
-	// For feed subscriptions, add stats.
-	if feedSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed); len(feedSubscriptions) > 0 {
-		for subscription := range slices.Values(feedSubscriptions) {
-			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-			if user.GetSettings().ShowSubscriptionStats {
-				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
-			}
-		}
-	}
-
-	// For email subscriptions, add stats.
-	if emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeEmail); len(emailSubscriptions) > 0 {
-		for subscription := range slices.Values(emailSubscriptions) {
-			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
-			if user.GetSettings().ShowSubscriptionStats {
-				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
-			}
-		}
-	}
-
-	// For group subscriptions, calculate stats from other subscriptions.
-	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
-		var avgDailyUpdates []float64
-		var unreadCount int
-		var lastUpdates []time.Time
-		// Get the avg daily updates and last update for each subscription in the group.
-		for id := range slices.Values(subscription.GroupData.GetGroupedSubscriptionIDs()) {
-			childSubscription, err := GetSubscription(ctx, id)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to fetch child subscription details.",
-					slog.String("group_subscription_id", subscription.GetID()),
-					slog.String("child_subscription_id", id),
-					slog.Any("error", err))
-				continue
-			}
-			// Collate statistics from child subscription.
-			if user.GetSettings().ShowSubscriptionStats {
-				avgDailyUpdates = append(avgDailyUpdates, childSubscription.GetStats().AvgDailyUpdates)
-			}
-			unreadCount += childSubscription.GetStats().UnreadCount
-			lastUpdates = append(lastUpdates, childSubscription.GetStats().LastUpdate)
-		}
-		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
-			// Use the highest avg daily updates as the avg daily updates of the group.
-			slices.Sort(avgDailyUpdates)
-			slices.Reverse(avgDailyUpdates)
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
-		}
-		// Unread count is total unread count from all subscriptions in the group.
-		subscription.GetStats().UnreadCount = unreadCount
-		// LastUpdate is the timestamp of the most recent update across all subscriptions in the group.
-		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
-			return timeA.Compare(timeB)
-		})
-		slices.Reverse(lastUpdates)
-		subscription.GetStats().LastUpdate = lastUpdates[0]
-	}
-
-	return nil
 }
 
 func getSubscriptionUnreadCounts(

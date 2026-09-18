@@ -64,7 +64,7 @@ func BuildSearchResultsQuery(
 	// Get subscriptions.
 	var subscriptions models.Subscriptions
 	if len(request.Subscriptions) > 0 {
-		subscriptions, err = GetSubscriptionsByID(ctx, request.Subscriptions...)
+		subscriptions, err = BulkGetSubscriptions(ctx, request.Subscriptions...)
 	} else {
 		subscriptions, err = GetAllSubscriptions(ctx)
 	}
