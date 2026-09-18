@@ -237,7 +237,7 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 
 var userSubscriptionsCache = NewSubscriptionService()
 
-// GetAllSubscriptions returns all subscriptions for the given user.
+// GetAllSubscriptions returns a [models.Subscriptions] slice of all subscriptions for a user.
 func GetAllSubscriptions(
 	ctx context.Context,
 ) (models.Subscriptions, error) {
@@ -266,7 +266,7 @@ func GetAllSubscriptions(
 	return subscriptions, nil
 }
 
-// GetSubscription returns the subscription that matches the given ID for the given user.
+// GetSubscription returns a [*models.Subscription] that matches the given [models.SubscriptionID] for the given user.
 func GetSubscription(
 	ctx context.Context,
 	id models.SubscriptionID,
@@ -296,7 +296,8 @@ func GetSubscription(
 	return subscription, nil
 }
 
-// BulkGetSubscriptions returns all subscriptions that match the given [models.SubscriptionID].
+// BulkGetSubscriptions returns a [models.Subscriptions] slice of subscriptions that match the given
+// [models.SubscriptionID].
 func BulkGetSubscriptions(
 	ctx context.Context,
 	ids ...models.SubscriptionID,
@@ -328,7 +329,7 @@ func BulkGetSubscriptions(
 	return subscriptions, nil
 }
 
-// RemoveSubscriptions removes subscriptions with the given ID from a user.
+// RemoveSubscriptions removes subscriptions with the given [models.SubscriptionID] from a user.
 func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
@@ -354,7 +355,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 	return nil
 }
 
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+// UpdateSubscriptions will bulk update each given [*models.Subscription].
 func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
@@ -396,7 +397,7 @@ func UpdateSubscriptions(
 	return nil
 }
 
-// UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) of the subscriptions in the [models.Subscriptions] slice.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
