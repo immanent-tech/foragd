@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.234.1](https://github.com/immanent-tech/foragd/compare/v0.234.0...v0.234.1) (2026-09-19)
+
+
+### Performance Improvements
+
+* **service/subscriptions:** ⚡ define cache expiry ([e991aec](https://github.com/immanent-tech/foragd/commit/e991aec899806a1f0a1a1b9a2b8f3f3490fa80d3))
+
 ## [0.234.0](https://github.com/immanent-tech/foragd/compare/v0.233.0...v0.234.0) (2026-09-18)
 
 
