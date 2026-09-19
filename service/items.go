@@ -34,7 +34,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/providers/zyte"
 )
@@ -183,75 +182,6 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	return results, nil
 }
 
-// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
-// optional.
-func SearchItems(
-	ctx context.Context,
-	query query.Option,
-	count int,
-	sort *models.Sort,
-	pagination *string,
-) (models.Items, string, error) {
-	searchAfter, err := elastic.DecodePagination(pagination)
-	if err != nil {
-		return nil, "", models.ErrInvalidParams
-	}
-	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query),
-		elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter(searchAfter...),
-		elastic.WithSize(count),
-	)
-	if err != nil {
-		return nil, "", fmt.Errorf("search items: %w", err)
-	}
-	// Parse last search after value into pagination.
-	newPagination, err := elastic.EncodePagination[string](resp.Pagination)
-	if err != nil {
-		return nil, "", models.ErrInvalidParams
-	}
-	// Update cache.
-	for item := range slices.Values(resp.Results) {
-		itemsCache.Invalidate(item.GetID())
-		itemsCache.Set(item.GetID(), item)
-	}
-	return resp.Results, newPagination, nil
-}
-
-func RetrieveItems(
-	ctx context.Context,
-	retriever retriever.Option,
-	count int,
-	pagination *models.Pagination,
-) (models.Items, models.Pagination, error) {
-	var from int
-	if pagination.From == nil {
-		from = 0
-	} else {
-		from = *pagination.From
-	}
-
-	// Perform search.
-	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
-		elastic.WithRetriever(retriever),
-		// elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithFrom(from),
-		elastic.WithSize(count),
-	)
-	if err != nil {
-		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
-	}
-	// Update cache.
-	for item := range slices.Values(resp.Results) {
-		itemsCache.Invalidate(item.GetID())
-		itemsCache.Set(item.GetID(), item)
-	}
-	// Parse last search after value into pagination.
-	return resp.Results, models.Pagination{From: new(from + count)}, nil
-}
 
 func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error) {
 	// Build elastic.

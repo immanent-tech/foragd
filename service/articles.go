@@ -118,7 +118,7 @@ func GetNextArticle(
 	}
 
 	// Find the next item and generate an article.
-	items, _, err := SearchItems(
+	items, _, err := QueryItems(
 		ctx,
 		query.Bool(
 			query.Filter(filters...),
@@ -191,7 +191,7 @@ func FilterArticles(
 	}
 
 	// Find items matching filters.
-	items, pagination, err := SearchItems(
+	items, pagination, err := QueryItems(
 		ctx,
 		articleQuery,
 		count,
@@ -251,7 +251,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 	)
 	// Query for similar articles.
 	sort := models.SortMostRelevant
-	items, _, err := SearchItems(ctx, similarQuery, count, &sort, nil)
+	items, _, err := QueryItems(ctx, similarQuery, count, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}

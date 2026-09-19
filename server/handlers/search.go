@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 
 	"github.com/a-h/templ"
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -19,10 +17,6 @@ import (
 	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -74,7 +68,6 @@ func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
 
 		var subscriptions models.Subscriptions
 		var articles models.Articles
-		sort := models.SortMostRelevant
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
@@ -93,41 +86,20 @@ func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
 
 		// Generate article suggestions.
 		searchJobs.Go(func() error {
-			searchOption, err := service.BuildSearchResultsQuery(
-				req.Context(),
-				user,
-				search,
-				service.SearchSuggestionsClause(search),
-			)
+			items, err := service.SuggestItems(jobCtx, search)
 			if err != nil {
-				slogctx.FromCtx(jobCtx).Debug("Unable to build search results query.",
-					slog.Any("error", err))
-				return nil
+				return fmt.Errorf("search articles: %w", err)
 			}
-			var itemResults models.Items
-			itemResults, _, err = service.SearchItems(
-				jobCtx,
-				searchOption,
-				defaultArticleSuggestionsCount,
-				&sort,
-				nil,
-			)
-			if err != nil {
-				slogctx.FromCtx(jobCtx).Debug("Unable to search articles.",
-					slog.Any("error", err))
-			}
-			if len(itemResults) > 0 {
-				articles, err = service.GenerateArticles(jobCtx, itemResults)
+			if len(items) > 0 {
+				articles, err = service.GenerateArticles(jobCtx, items)
 				if err != nil {
-					slogctx.FromCtx(jobCtx).Debug("Unable to generate articles.",
-						slog.Any("error", err))
+					return fmt.Errorf("generate articles: %w", err)
 				}
 			}
 			return nil
 		})
 
-		err = searchJobs.Wait()
-		if err != nil {
+		if err := searchJobs.Wait(); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Get search suggestions: run background jobs failed.",
 				slog.Any("error", err),
 			)
@@ -207,23 +179,11 @@ func HandleSearchResults() http.HandlerFunc {
 			return
 		}
 
-		ctx := req.Context()
-
 		var (
 			articles   models.Articles
 			categories []models.Category
 			pagination models.Pagination
 		)
-
-		// Generate the filter query for finding results.
-		filterQuery, err := service.BuildSearchResultsQuery(ctx, user, search, nil)
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("build articles search query: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
 
 		// Set up background search jobs.
 		searchJobs, jobCtx := errgroup.WithContext(req.Context())
@@ -231,31 +191,16 @@ func HandleSearchResults() http.HandlerFunc {
 
 		// Search for results.
 		searchJobs.Go(func() error {
-			var items models.Items
-			items, pagination, err = service.RetrieveItems(
-				ctx,
-				retriever.WithReciprocalRankFusionRetriever(
-					retriever.WithRankWindowSize(150),
-					retriever.WithQueryFilters(filterQuery),
-					retriever.WithChildRetrievers(
-						retriever.WithStandardRetriever(
-							"retriever-regular",
-							service.StandardSearchResultsClause(search),
-						),
-						retriever.WithStandardRetriever(
-							"retriver-semantic",
-							service.SemanticSearchResultsClause(search),
-						),
-					),
-				),
-				search.Count,
-				&models.Pagination{From: search.From},
+			var (
+				items models.Items
+				err   error
 			)
+			items, pagination, err = service.RetrieveItems(jobCtx, search)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
 			}
 			if len(items) > 0 {
-				articles, err = service.GenerateArticles(ctx, items)
+				articles, err = service.GenerateArticles(jobCtx, items)
 				if err != nil {
 					return fmt.Errorf("generate articles: %w", err)
 				}
@@ -265,68 +210,17 @@ func HandleSearchResults() http.HandlerFunc {
 
 		// Generate top categories for articles.
 		searchJobs.Go(func() error {
-			regularSearchQuery, err := service.BuildSearchResultsQuery(
-				ctx,
-				user,
-				search,
-				service.StandardSearchResultsClause(search),
-			)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				return fmt.Errorf("generate top categories: %w", err)
-			}
-			// Perform aggregation.
-			resp, err := elastic.Search[*models.Item](ctx,
-				schema.ItemsIndexRO(),
-				elastic.WithQueryOptions[*elastic.SearchRequest](
-					// Use the original search query but filter out common categories.
-					query.Bool(
-						query.Must(regularSearchQuery),
-						query.MustNot(
-							query.Terms(
-								"categories.raw",
-								slices.Concat(models.CommonCategoryFilters, []string{""}),
-							),
-						),
-					),
-				),
-				elastic.WithAggregations(
-					elastic.Aggs{
-						"TopCategories": estypes.Aggregations{
-							Terms: &estypes.TermsAggregation{
-								Field: new("categories.raw"),
-								Size:  new(10),
-							},
-						},
-					},
-				),
-				elastic.WithSize(0),
-				elastic.WithDocSorting(),
-			)
+			var err error
+			categories, err = service.GetTopItemCategories(jobCtx, search)
 			if err != nil {
-				return fmt.Errorf("aggregate articles: %w", err)
-			}
-
-			topCategoriesAgg, isTopCategoriesAgg := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
-			if !isTopCategoriesAgg {
-				return fmt.Errorf("extract aggregation: %w", models.ErrInvalidAPIResult)
-			}
-			topCategoriesBuckets, isTopCategoriesBuckets := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
-			if !isTopCategoriesBuckets {
-				return fmt.Errorf("extract buckets: %w", models.ErrInvalidAPIResult)
-			}
-
-			for bucket := range slices.Values(topCategoriesBuckets) {
-				if category, isCategoryBucket := bucket.Key.(models.Category); isCategoryBucket {
-					categories = append(categories, category)
-				}
+				return fmt.Errorf("get top categories: %w", err)
 			}
 
 			return nil
 		})
 
 		// Run background requests in parallel and wait for results.
-		err = searchJobs.Wait()
-		if err != nil {
+		if err := searchJobs.Wait(); err != nil {
 			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).ServeHTTP(res, req)
 			return
 		}
@@ -378,24 +272,9 @@ func HandleSearchUpdates() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		// Override the published within on the search request to last 5 minutes for updates.
-		search.PublishedWithin = models.SearchRequestPublishedWithinLast5mins
-		updatesQuery, err := service.BuildSearchResultsQuery(
-			req.Context(),
-			user,
-			search,
-			service.StandardSearchResultsClause(search),
-		)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot build search query.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
 
 		// Count items matching.
-		updateCount, err := service.CountItems(req.Context(), updatesQuery)
+		updateCount, err := service.CountSearchResults(req.Context(), search)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

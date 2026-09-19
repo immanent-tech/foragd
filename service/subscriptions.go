@@ -599,41 +599,19 @@ func UpdateSubscriptionDynamicInfo(
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
 			searchJobs.Go(func() error {
 				request := subscription.SearchData.Search
-				// Build query to get unread count.
-				query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
+				request.Sort = models.SortNewestFirst
+				request.Count = 1
+				items, _, err := RetrieveItems(ctx, &request)
 				if err != nil {
-					return fmt.Errorf(
-						"add subscription dynamic info: build search subscription %s query: %w",
-						subscription.GetID(),
-						err,
-					)
+					return fmt.Errorf("retrieve items: %w", err)
 				}
-				count, err := CountItems(jobCtx, query)
+				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
+				count, err := CountSearchResults(jobCtx, &request)
 				if err == nil {
 					subscription.GetStats().UnreadCount = int(count)
 				} else {
 					slogctx.FromCtx(jobCtx).
 						Warn("Add subscription dynamic info, could not get unread count for search subscription.",
-							slog.String("subscription_id", subscription.GetID()),
-							slog.Any("error", err),
-						)
-				}
-				// Update query for getting last updated item (view: all, sort: newest first).
-				request.View = models.ViewAll
-				sort := models.SortNewestFirst
-				query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
-				if err != nil {
-					return fmt.Errorf(
-						"add subscription dynamic info: build search subscription %s query: %w",
-						subscription.GetID(),
-						err,
-					)
-				}
-				if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
-					subscription.GetStats().LastUpdate = items[0].GetTimestamp()
-				} else {
-					slogctx.FromCtx(jobCtx).
-						Warn("Add subscription dynamic info, could not get last update for search subscription.",
 							slog.String("subscription_id", subscription.GetID()),
 							slog.Any("error", err),
 						)
@@ -1459,29 +1437,10 @@ func getSearchSubscriptionLatestItems(
 
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
-			// Generate a search query from the subscription search data.
-			searchQuery, err := BuildSearchResultsQuery(
-				ctx,
-				user,
-				&subscription.SearchData.Search,
-				StandardSearchResultsClause(&subscription.SearchData.Search),
-			)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				slogctx.FromCtx(ctx).Warn("Could not build search query for search subscription.",
-					slog.String("subscription_id", subscription.GetID()),
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Search for items matching.
-			var items models.Items
-			items, _, err = SearchItems(
-				ctx,
-				searchQuery,
-				count,
-				&subscription.SearchData.Search.Sort,
-				nil,
-			)
+			request := subscription.SearchData.Search
+			request.Count = count
+			request.Sort = models.SortNewestFirst
+			items, _, err := RetrieveItems(ctx, &request)
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				slogctx.FromCtx(ctx).Warn("Get search results for search subscription failed.",
 					slog.String("subscription_id", subscription.GetID()),

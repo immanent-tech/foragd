@@ -83,6 +83,11 @@ func NewSearchRequest() *SearchRequest {
 	}
 }
 
+// GetPagination generates a [Pagination] value from the request.
+func (r SearchRequest) GetPagination() *Pagination {
+	return &Pagination{From: r.From}
+}
+
 // Location generates the appropriate [*time.Location] value based on the request's timezone value. If the request has
 // no timezone, it is assumed to be "UTC".
 func (r SearchRequest) Location() *time.Location {
