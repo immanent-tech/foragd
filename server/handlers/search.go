@@ -43,7 +43,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func HandleSearchSuggestions() http.HandlerFunc {
+func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -208,27 +208,6 @@ func HandleSearchResults() http.HandlerFunc {
 		}
 
 		ctx := req.Context()
-
-		// // If the search request has subscription filters, get subscription details.
-		// if len(search.Subscriptions) > 0 {
-		// 	subscriptions, err := service.GetSubscriptionsByID(ctx, search.Subscriptions...)
-		// 	if err != nil && !errors.Is(err, models.ErrNotFound) {
-		// 		HandleInternalError(
-		// 			http.StatusInternalServerError,
-		// 			fmt.Errorf("get subscriptions: %w", err),
-		// 		).ServeHTTP(res, req)
-		// 		return
-		// 	}
-		// 	// Update subscription dynamic info.
-		// 	if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-		// 		HandleInternalError(
-		// 			http.StatusInternalServerError,
-		// 			fmt.Errorf("update subscription dynamic info: %w", err),
-		// 		).ServeHTTP(res, req)
-		// 		return
-		// 	}
-		// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
-		// }
 
 		var (
 			articles   models.Articles
@@ -455,7 +434,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 }
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
-func GetSubscriptionFilterSuggestions() http.HandlerFunc {
+func GetSubscriptionFilterSuggestions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
 		suggestion, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)

@@ -92,7 +92,7 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 }
 
 // HandleHome handles displaying the user's home page.
-func HandleHome() http.HandlerFunc {
+func HandleHome(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		title := templates.PageTitle{
 			Summary:     "Your Home",

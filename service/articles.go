@@ -84,10 +84,11 @@ func GetNextArticle(
 	exclusions = append(exclusions, query.Term("item_id", currentID))
 
 	// Define filters/exclusions based on subscription(s).
-	subscription, err := GetSubscription(ctx, subscriptionID)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription: %w", err)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
+	subscription := allSubscriptions.GetByID(subscriptionID)
 	filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
 	filters = append(filters,
 		query.Bool(
@@ -215,15 +216,13 @@ func FilterArticles(
 func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
 	}
-	subscriptions, err := GetAllSubscriptions(ctx)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
+
 	// Build the More Like This query.
 	// TODO: tweak values and fields for optimum results matching...
 	var (
@@ -243,7 +242,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 	similarQuery := query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildItemQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(BuildItemQueries(user, models.ViewUnread, allSubscriptions)...),
 			),
 		),
 		query.Must(
@@ -269,15 +268,15 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 func GenerateArticles(ctx context.Context, items models.Items) (models.Articles, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
 	}
 
 	// Get the subscriptions associated with the items.
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions for items: %w", err)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
-	subscriptions = subscriptions.FilterByFeedIDs(items.GetFeedIDs()...)
+	subscriptions := allSubscriptions.FilterByFeedIDs(items.GetFeedIDs()...)
 	if len(subscriptions) == 0 {
 		return nil, fmt.Errorf("get subscriptions for items: %w", models.ErrNotFound)
 	}
@@ -288,7 +287,6 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 		subscription := subscriptions.GetByFeedID(item.GetFeedID())
 		if subscription == nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not match item to subscription.",
-				slog.Any("error", err),
 				slog.String("item_id", item.GetID()),
 				slog.String("feed_id", item.GetFeedID()),
 			)

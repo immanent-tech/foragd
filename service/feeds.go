@@ -383,135 +383,12 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 	return nil
 }
 
-// BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
-func BulkImportFeeds(ctx context.Context, requests ...models.FeedSubscriptionRequest) []models.FeedSubscriptionResult {
-	// Process requests.
-	resultsCh := make(chan models.FeedSubscriptionResult)
-	var wg sync.WaitGroup
-
-	for request := range slices.Values(requests) {
-		wg.Go(func() {
-			// Find an existing or create a new feed from the requested URL.
-			feed, isNew, err := FindOrCreateFeed(ctx, request.URL)
-			if err != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to create subscription",
-							fmt.Sprintf("Could not find feed data for URL: %q", request.URL),
-						),
-					},
-				}
-				return
-			}
-			if isNew {
-				// Add the feed if it is new.
-				if err := AddFeed(ctx, feed); err != nil {
-					resultsCh <- models.FeedSubscriptionResult{
-						Request: &request,
-						Error: &models.APIError{
-							InternalError: fmt.Errorf("create subscription: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to add feed subscription",
-								fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
-							),
-						},
-					}
-					return
-				}
-			}
-
-			existingSubscriptions, err := GetAllSubscriptions(ctx)
-			if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to create subscription",
-							fmt.Sprintf("Could not determine existing subscription status for %s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
-				}
-				return
-			}
-			existingSubscriptions = existingSubscriptions.FilterByFeedIDs(feed.GetID())
-			if existingSubscriptions != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: errors.New("create subscription: already subscribed"),
-						StatusCode:    http.StatusConflict,
-						UserMessage: models.NewWarningMessage(
-							"Already subscribed to feed",
-							fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
-				}
-				return
-			}
-
-			// Create feed newSubscription.
-			newSubscription, err := NewFeedSubscription(ctx, feed, nil)
-			if err != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
-				}
-				return
-			}
-			if err := AddSubscriptions(ctx, newSubscription); err != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("add subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
-				}
-				return
-			}
-			resultsCh <- models.FeedSubscriptionResult{
-				Request:      &request,
-				Subscription: newSubscription,
-			}
-		})
-	}
-	// Wait for all request processing to complete.
-	go func() {
-		defer close(resultsCh)
-		wg.Wait()
-	}()
-	results := make([]models.FeedSubscriptionResult, 0, len(requests))
-	// Gather results.
-	for result := range resultsCh {
-		results = append(results, result)
-	}
-
-	return results
-}
-
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
 func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 	// Get user subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil && !errors.Is(err, models.ErrNotFound) {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 
 	// Perform a search on youtube to find a channel that matches the user's query.
@@ -533,7 +410,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeeds
 			query.Bool(
 				query.MustNot(
 					// User must not already be subscribed.
-					query.Terms("feed_id", subscriptions.GetFeedIDs()),
+					query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
 				),
 				query.Should(
 					// Match source_urls (preferred) or url.
@@ -600,9 +477,9 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 	}
 
 	// Get user subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil && !errors.Is(err, models.ErrNotFound) {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 
 	var feeds models.Feeds
@@ -614,7 +491,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 			query.Bool(
 				query.MustNot(
 					// User must not already be subscribed.
-					query.Terms("feed_id", subscriptions.GetFeedIDs()),
+					query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
 				),
 				query.Should(
 					query.Term("domain.raw", "news.google.com", query.WithQueryBoost[*query.TermQuery](20.0)),
@@ -695,9 +572,9 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 	}
 
 	// Get user subscriptions.
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil && !errors.Is(err, models.ErrNotFound) {
-		return nil, fmt.Errorf("get subscriptions: %w", err)
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if allSubscriptions == nil {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 
 	// Find the top 5 feeds that match the user's query and which they are not already subscribed to.
@@ -711,7 +588,7 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 		feedSearchQuery = query.Bool(
 			query.MustNot(
 				// User must not already be subscribed.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+				query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
 				// Exclude google news custom feeds.
 				query.Term("domain.raw", "news.google.com"),
 			),
@@ -737,7 +614,7 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 		feedSearchQuery = query.Bool(
 			query.MustNot(
 				// User must not already be subscribed.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
+				query.Terms("feed_id", allSubscriptions.GetFeedIDs()),
 				// Exclude google news custom feeds.
 				query.Term("domain.raw", "news.google.com"),
 			),

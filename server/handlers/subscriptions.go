@@ -43,49 +43,64 @@ type SubscriptionsService interface {
 	GetAllSubscriptions(ctx context.Context) (models.Subscriptions, error)
 	GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error)
 	BulkGetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error)
-	UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error
 	UpdateSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
+	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
+	MarkArticles(
+		ctx context.Context,
+		mark models.Mark,
+		subscriptionID models.SubscriptionID,
+		itemIDs ...models.ItemID,
+	) error
+	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
 	RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error
+	BulkImportFeeds(
+		ctx context.Context,
+		requests ...models.FeedSubscriptionRequest,
+	) []models.FeedSubscriptionResult
 }
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
-func AllSubscriptionsCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, err := service.GetAllSubscriptions(req.Context())
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get all user subscriptions: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-		ctx := models.SubscriptionsToCtx(req.Context(), subscriptions)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
+func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			subscriptions, err := svc.GetAllSubscriptions(req.Context())
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("get all user subscriptions: %w", err),
+				).ServeHTTP(res, req)
+				return
+			}
+			ctx := models.SubscriptionsToCtx(req.Context(), subscriptions)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
-func SubscriptionCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		id := chi.URLParam(req, "subscriptionID")
-		subscription, err := service.GetSubscription(req.Context(), id)
-		if err != nil {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("fetch subscription %s details: %w", id, err),
-			).ServeHTTP(res, req)
-			return
-		}
-		if subscription == nil {
-			HandleInternalError(
-				http.StatusNotFound,
-				fmt.Errorf("fetch subscription %s: not found", id),
-			).ServeHTTP(res, req)
-			return
-		}
-		ctx := models.SubscriptionToCtx(req.Context(), subscription)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
+func SubscriptionCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			id := chi.URLParam(req, "subscriptionID")
+			subscription, err := svc.GetSubscription(req.Context(), id)
+			if err != nil {
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("fetch subscription %s details: %w", id, err),
+				).ServeHTTP(res, req)
+				return
+			}
+			if subscription == nil {
+				HandleInternalError(
+					http.StatusNotFound,
+					fmt.Errorf("fetch subscription %s: not found", id),
+				).ServeHTTP(res, req)
+				return
+			}
+			ctx := models.SubscriptionToCtx(req.Context(), subscription)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // ListSubscriptions holds data for generating the subscriptions list page.
@@ -118,7 +133,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
-func HandleListSubscriptions() http.HandlerFunc {
+func HandleListSubscriptions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -236,7 +251,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 }
 
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
-func HandleListSubscriptionsUpdates() http.HandlerFunc {
+func HandleListSubscriptionsUpdates(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -333,7 +348,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func HandleMarkSubscription(mark models.Mark) http.HandlerFunc {
+func HandleMarkSubscription(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "mark-subscription")
 
@@ -345,7 +360,7 @@ func HandleMarkSubscription(mark models.Mark) http.HandlerFunc {
 		}
 
 		// Mark subscription.
-		if err := service.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
+		if err := svc.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("mark subscriptions: %w", err),
@@ -419,7 +434,7 @@ func postMarkSubscriptionArticles(res http.ResponseWriter, req *http.Request) er
 }
 
 // HandleBulkMarkSubscriptions handles bulk marking subscriptions as read/unread.
-func HandleBulkMarkSubscriptions(mark models.Mark) http.HandlerFunc {
+func HandleBulkMarkSubscriptions(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "bulk-mark-subscriptions")
 
@@ -448,7 +463,7 @@ func HandleBulkMarkSubscriptions(mark models.Mark) http.HandlerFunc {
 				res.Header().Set(htmx.HeaderRefresh, "true")
 			}
 			// Mark selected subscriptions.
-			if err = service.MarkSubscriptions(ctx, mark, request.Subscriptions...); err != nil {
+			if err = svc.MarkSubscriptions(ctx, mark, request.Subscriptions...); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("mark subscriptions: %w", err),
@@ -462,7 +477,7 @@ func HandleBulkMarkSubscriptions(mark models.Mark) http.HandlerFunc {
 }
 
 // HandleFavoriteSubscription handles managing a favorite subscription for a user.
-func HandleFavoriteSubscription() http.HandlerFunc {
+func HandleFavoriteSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "favorite-subscription")
 
@@ -474,17 +489,15 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 		}
 
 		// Toggle the subscription state.
-		if err := service.UpdateFavoriteSubscription(
-			req.Context(),
-			subscription.GetID(),
-			!subscription.IsFavorite(),
-		); err != nil {
+		subscription.Favorite = !subscription.IsFavorite()
+		// Update subscription
+		if err := svc.UpdateSubscriptions(req.Context(), subscription); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
-				fmt.Errorf("update favorite subscription: %w", err),
+				fmt.Errorf("update subscription: %w", err),
 			).ServeHTTP(res, req)
+			return
 		}
-		subscription.Favorite = !subscription.IsFavorite()
 
 		// Update toggle.
 		RenderPartial(&PartialTemplate{
@@ -498,7 +511,7 @@ func HandleFavoriteSubscription() http.HandlerFunc {
 }
 
 // HandleRemoveSubscription handles removing (unsubscribing) from a subscription.
-func HandleRemoveSubscription() http.HandlerFunc {
+func HandleRemoveSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "remove-subscription")
 
@@ -533,7 +546,7 @@ func HandleRemoveSubscription() http.HandlerFunc {
 					)}).ServeHTTP(res, req)
 			}
 		case true:
-			if err := service.RemoveSubscriptions(req.Context(), subscription.GetID()); err != nil {
+			if err := svc.RemoveSubscriptions(req.Context(), subscription.GetID()); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("remove subscriptions: %w", err),
@@ -729,7 +742,7 @@ func getCategorySuggestions(ctx context.Context, ids ...models.SubscriptionID) m
 }
 
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
-func HandleSaveSubscription() http.HandlerFunc {
+func HandleSaveSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "save-subscription")
 
@@ -799,7 +812,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 
 		// Update the subscription object.
 		subscription.UpdatedAt = new(time.Now().UTC())
-		if err = service.UpdateSubscriptions(req.Context(), subscription); err != nil {
+		if err = svc.UpdateSubscriptions(req.Context(), subscription); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription: %w", err),
@@ -899,7 +912,7 @@ func HandleAddSubscription() http.HandlerFunc {
 }
 
 // HandleAddNewFeedSubscription handles adding a new feed subscription for a user.
-func HandleAddNewFeedSubscription() http.HandlerFunc {
+func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
 		if err != nil {
@@ -959,7 +972,7 @@ func HandleAddNewFeedSubscription() http.HandlerFunc {
 		}
 
 		// Add subscription to user.
-		if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
+		if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("add subscription: %w", err),
@@ -1045,7 +1058,7 @@ func HandleSuggestFeeds() http.HandlerFunc {
 }
 
 // HandleAddSearchSubscription handles adding a new search subscription.
-func HandleAddSearchSubscription() http.HandlerFunc {
+func HandleAddSearchSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1094,12 +1107,26 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			if err != nil {
 				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			}
-			if err = service.CreateSearchSubscriptions(req.Context(), request); err != nil {
+			subscription, err := service.NewSearchSubscription(req.Context(), request)
+			if err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
+			if err := subscription.Validate(); err != nil {
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("create search subscription: %w", err),
+				).ServeHTTP(res, req)
+			}
+			if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
+				HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("add search subscription: %w", err),
+				).ServeHTTP(res, req)
+			}
+
 			RenderPartial(
 				&Notification{
 					msg: models.NewSuccessMessage("Search Subscription Created!", ""),
@@ -1109,7 +1136,7 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 	}
 }
 
-func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
+func HandleSuggestSubscriptionForSearch(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil {
@@ -1165,7 +1192,7 @@ func HandleAddSubscriptionToSearch() http.HandlerFunc {
 }
 
 // HandleAddGroupSubscription handles adding a new group subscription.
-func HandleAddGroupSubscription() http.HandlerFunc {
+func HandleAddGroupSubscription(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1235,7 +1262,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 				return
 			}
 			// Add subscriptions
-			if err := service.AddSubscriptions(req.Context(), subscription); err != nil {
+			if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add subscriptions: %w", err),
@@ -1309,7 +1336,7 @@ func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, re
 }
 
 // HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
-func HandleImportSubscriptions() http.HandlerFunc {
+func HandleImportSubscriptions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1380,7 +1407,7 @@ func HandleImportSubscriptions() http.HandlerFunc {
 			}
 
 			// Perform bulk import.
-			results := service.BulkImportFeeds(req.Context(), requests...)
+			results := svc.BulkImportFeeds(req.Context(), requests...)
 
 			// Display all results.
 			RenderPartial(&ImportSubscriptionsResults{

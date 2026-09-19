@@ -233,7 +233,7 @@ func HandleListArticles() http.HandlerFunc {
 }
 
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
-func HandleListArticlesUpdates() http.HandlerFunc {
+func HandleListArticlesUpdates(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -490,7 +490,7 @@ func HandleViewArticle() http.HandlerFunc {
 	}
 }
 
-func HandleBrowseArticles(direction string) http.HandlerFunc {
+func HandleBrowseArticles(svc SubscriptionsService, direction string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
@@ -510,7 +510,7 @@ func HandleBrowseArticles(direction string) http.HandlerFunc {
 			return
 		}
 		if user.GetSettings().MarkArticleReadOnView {
-			if err := markArticles(
+			if err := svc.MarkArticles(
 				req.Context(),
 				models.MarkRead,
 				article.GetSubscriptionID(),
@@ -562,7 +562,7 @@ func HandleBrowseArticles(direction string) http.HandlerFunc {
 }
 
 // HandleMarkArticle handles marking an article as read or unread.
-func HandleMarkArticle(mark models.Mark) http.HandlerFunc {
+func HandleMarkArticle(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -571,7 +571,7 @@ func HandleMarkArticle(mark models.Mark) http.HandlerFunc {
 			return
 		}
 		// Mark the article.
-		if err := markArticles(
+		if err := svc.MarkArticles(
 			req.Context(),
 			mark,
 			article.GetSubscriptionID(),
@@ -595,7 +595,7 @@ func HandleMarkArticle(mark models.Mark) http.HandlerFunc {
 }
 
 // HandleBulkMarkArticles handles marking multiple articles.
-func HandleBulkMarkArticles(mark models.Mark) http.HandlerFunc {
+func HandleBulkMarkArticles(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Parse confirmation.
 		request, err := parseForm[*models.BulkMarkArticlesRequest](req)
@@ -614,7 +614,7 @@ func HandleBulkMarkArticles(mark models.Mark) http.HandlerFunc {
 		case true:
 			// For each subscription's articles shown, mark.
 			for subscriptionID, itemIDs := range request.DisplayedArticles {
-				if err = markArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
+				if err = svc.MarkArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
 					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 					return
 				}
@@ -646,33 +646,6 @@ func HandleBulkMarkArticles(mark models.Mark) http.HandlerFunc {
 
 		res.WriteHeader(http.StatusOK)
 	}
-}
-
-func markArticles(
-	ctx context.Context,
-	mark models.Mark,
-	subscriptionID models.SubscriptionID,
-	itemIDs ...models.ItemID,
-) error {
-	subscription, err := service.GetSubscription(ctx, subscriptionID)
-	if err != nil {
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("get subscriptions: %w", err),
-			models.WithUserErrorSummary("Backend request failed!"),
-			models.WithUserErrorDescription("This might be a temporary error, please try again."),
-		)
-	}
-	subscription.MarkItems(mark, itemIDs...)
-	if err = service.UpdateSubscriptions(ctx, subscription); err != nil {
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("update subscription: %w", err),
-			models.WithUserErrorSummary("Backend request failed!"),
-			models.WithUserErrorDescription("This might be a temporary error, please try again."),
-		)
-	}
-	return nil
 }
 
 // HandleFavoriteArticle handles toggling an article favorite.

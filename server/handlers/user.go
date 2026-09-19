@@ -106,7 +106,7 @@ func HandleShowAccountSettings() http.HandlerFunc {
 }
 
 // HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
-func HandleShowSubscriptionsSettings() http.HandlerFunc {
+func HandleShowSubscriptionsSettings(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -587,7 +587,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 }
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
-func HandleAddFeedset(static embed.FS) http.HandlerFunc {
+func HandleAddFeedset(svc SubscriptionsService, static embed.FS) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
@@ -670,7 +670,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 		}
 
 		// Process requests.
-		results := service.BulkImportFeeds(req.Context(), subscriptionRequests...)
+		results := svc.BulkImportFeeds(req.Context(), subscriptionRequests...)
 
 		// Process results
 		for result := range slices.Values(results) {
@@ -904,20 +904,153 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 	}
 }
 
-func ValidateSubscriptionLimits(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx, span := tracer.Start(req.Context(), "ValidateSubscriptionLimits")
-		defer span.End()
+func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx, span := tracer.Start(req.Context(), "ValidateSubscriptionLimits")
+			defer span.End()
 
-		switch err := service.CheckUserLimits(ctx); {
-		case errors.Is(err, models.ErrForbidden):
-			HandleInternalError(http.StatusForbidden, err).ServeHTTP(res, req.WithContext(ctx))
-			return
-		case errors.Is(err, models.ErrSubscriptionLimitExceeded),
-			errors.Is(err, models.ErrEmailNewsletterLimitExceeded):
-			slogctx.Warn(ctx, "User has exceeded account limits.")
-		}
+			user := models.UserFromCtx(ctx)
+			if user == nil {
+				HandleInternalError(
+					http.StatusForbidden,
+					models.ErrCtxValueNotFound,
+				).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
 
-		next.ServeHTTP(res, req)
-	})
+			allSubscriptions, err := svc.GetAllSubscriptions(ctx)
+			if err != nil {
+				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+
+			// Check current limits.
+			switch {
+			case user.Metadata.SubscriptionLimit != nil:
+				if user.Metadata.SubscriptionLimit.Exceeded &&
+					time.Now().
+						UTC().
+						After(user.Metadata.SubscriptionLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
+					// User has exceeded subscription limit for over 7 days, deny access.
+					HandleInternalError(http.StatusForbidden, models.ErrForbidden).ServeHTTP(res, req.WithContext(ctx))
+					return
+				}
+				if user.Metadata.SubscriptionLimit.Exceeded && len(
+					allSubscriptions,
+				)-len(
+					allSubscriptions.FilterByType(models.SubscriptionTypeEmail),
+				) <= models.MaxSubscriptions {
+					// User has corrected limit overage.
+					user.Metadata.SubscriptionLimit = &models.UserLimit{
+						Exceeded:  false,
+						Timestamp: time.Now().UTC(),
+					}
+					if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+						return
+					}
+					slogctx.FromCtx(ctx).Info("User has corrected subscription limit overage.")
+				}
+			case user.Metadata.NewsletterLimit != nil:
+				if user.Metadata.NewsletterLimit.Exceeded &&
+					time.Now().
+						UTC().
+						After(user.Metadata.NewsletterLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
+					// User has exceeded newsletter limit for over 7 days, deny access.
+					HandleInternalError(http.StatusForbidden, models.ErrForbidden).ServeHTTP(res, req.WithContext(ctx))
+					return
+				}
+				if user.Metadata.NewsletterLimit.Exceeded &&
+					len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) <= models.MaxEmailNewsletters {
+					// User has corrected limit overage.
+					user.Metadata.NewsletterLimit = &models.UserLimit{
+						Exceeded:  false,
+						Timestamp: time.Now().UTC(),
+					}
+					if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+					}
+					slogctx.FromCtx(ctx).Info("User has corrected newsletter limit overage.")
+				}
+			}
+
+			switch {
+			case len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxSubscriptions:
+				// Mark user as exceeding subscription limit.
+				user.Metadata.SubscriptionLimit = &models.UserLimit{
+					Exceeded:  true,
+					Timestamp: time.Now().UTC(),
+				}
+				if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+					return
+				}
+				// Create and send email to notify them about exceeding their limit.
+				email, err := resend.NewTemplatedEmail(
+					"account-limit-exceeded",
+					resend.WithTo(user.GetEmail()),
+					resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
+					resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+					resend.WithVariable("LIMIT_NAME", "subscriptions"),
+					resend.WithVariable(
+						"TOTAL",
+						len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)),
+					),
+					resend.WithVariable("ALLOWED", models.MaxSubscriptions),
+				)
+				if err != nil {
+					slogctx.Error(ctx, "Unable to send account limit email.",
+						slog.Any("error", err))
+				}
+				if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+					slogctx.Error(ctx, "Unable to send account limit email.",
+						slog.Any("error", err))
+				}
+				HandleInternalError(
+					http.StatusForbidden,
+					models.ErrSubscriptionLimitExceeded,
+				).ServeHTTP(res, req.WithContext(ctx))
+				return
+			case len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)) > models.MaxEmailNewsletters:
+				// Mark user as exceeding newsletter limit.
+				user.Metadata.NewsletterLimit = &models.UserLimit{
+					Exceeded:  true,
+					Timestamp: time.Now().UTC(),
+				}
+				if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+					return
+				}
+				// Create and send email to notify them about exceeding their limit.
+				email, err := resend.NewTemplatedEmail(
+					"account-limit-exceeded",
+					resend.WithTo(user.GetEmail()),
+					resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
+					resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+					resend.WithVariable("LIMIT_NAME", "email newsletters"),
+					resend.WithVariable(
+						"TOTAL",
+						len(allSubscriptions)-len(allSubscriptions.FilterByType(models.SubscriptionTypeEmail)),
+					),
+					resend.WithVariable("ALLOWED", models.MaxSubscriptions),
+				)
+				if err != nil {
+					slogctx.Error(ctx, "Unable to send account limit email.",
+						slog.Any("error", err))
+				}
+				if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+					slogctx.Error(ctx, "Unable to send account limit email.",
+						slog.Any("error", err))
+				}
+				HandleInternalError(
+					http.StatusForbidden,
+					models.ErrEmailNewsletterLimitExceeded,
+				).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+
+			next.ServeHTTP(res, req)
+		})
+	}
 }

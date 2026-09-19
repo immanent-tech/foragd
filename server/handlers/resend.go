@@ -23,75 +23,77 @@ import (
 )
 
 // HandleResendWebhook will handle incoming webhook requests from Resend.
-func HandleResendWebhook(res http.ResponseWriter, req *http.Request) {
-	const maxBodyBytes = int64(65536)
-	bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
-	body, err := io.ReadAll(bodyReader)
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Error reading webhook request body.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusServiceUnavailable)
-		return
-	}
+func HandleResendWebhook(svc SubscriptionsService) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		const maxBodyBytes = int64(65536)
+		bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
+		body, err := io.ReadAll(bodyReader)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error reading webhook request body.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
 
-	verified, err := resend.VerifyWebhook(req, body)
-	if !verified {
-		slogctx.FromCtx(req.Context()).Error("Webhook verification failed.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// Parse the verified payload
-	var payload map[string]any
-	if err := json.Unmarshal(body, &payload); err != nil {
-		slogctx.FromCtx(req.Context()).Error("Unable to parse received webhook body.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	switch payload["type"] {
-	case "email.received":
-		slogctx.FromCtx(req.Context()).Debug("Email received",
-			slog.String("type", payload["type"].(string)),
-			slog.Any("payload", payload),
-		)
-		var email resend.WebhookEmailReceieved
-		if err := json.Unmarshal(body, &email); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to parse email.recieved webhook body.",
+		verified, err := resend.VerifyWebhook(req, body)
+		if !verified {
+			slogctx.FromCtx(req.Context()).Error("Webhook verification failed.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		if err := handleRecievedEmail(req.Context(), email.Data); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
+		// Parse the verified payload
+		var payload map[string]any
+		if err := json.Unmarshal(body, &payload); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to parse received webhook body.",
 				slog.Any("error", err),
 			)
-			res.WriteHeader(http.StatusInternalServerError)
+			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-	default:
-		slogctx.FromCtx(req.Context()).Warn("Recieved unhandled webhook",
-			slog.String("type", payload["type"].(string)),
-			slog.Any("payload", payload),
-		)
-	}
 
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-	json.NewEncoder(res).Encode(map[string]bool{"success": true})
+		switch payload["type"] {
+		case "email.received":
+			slogctx.FromCtx(req.Context()).Debug("Email received",
+				slog.String("type", payload["type"].(string)),
+				slog.Any("payload", payload),
+			)
+			var email resend.WebhookEmailReceieved
+			if err := json.Unmarshal(body, &email); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Unable to parse email.recieved webhook body.",
+					slog.Any("error", err),
+				)
+				res.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+			if err := handleRecievedEmail(req.Context(), svc, email.Data); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
+					slog.Any("error", err),
+				)
+				res.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		default:
+			slogctx.FromCtx(req.Context()).Warn("Recieved unhandled webhook",
+				slog.String("type", payload["type"].(string)),
+				slog.Any("payload", payload),
+			)
+		}
+
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusOK)
+		json.NewEncoder(res).Encode(map[string]bool{"success": true})
+	}
 }
 
 // handleRecievedEmail processes an incoming email. If it is addressed to a user address, the email is extracted and
 // indexed as a new email subscritpion article. Otherwise, if it is addressed to our catch-all/admin address, it is
 // forwarded. All other emails are ignored.
-func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) error {
+func handleRecievedEmail(ctx context.Context, svc SubscriptionsService, details resend.EmailRecieved) error {
 	// Match the email to address to a user subscription email
 	user, err := service.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
@@ -106,9 +108,6 @@ func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) erro
 		return models.ErrEmailNewsletterLimitExceeded
 	}
 
-	// Load user data into context for later methods.
-	ctx = models.UserToCtx(ctx, user)
-
 	from, err := mail.ParseAddress(details.From)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to parse from address. Deriving manually.",
@@ -119,10 +118,26 @@ func handleRecievedEmail(ctx context.Context, details resend.EmailRecieved) erro
 		}
 	}
 
-	// Retrieve (and/or create) an EmailSubscription for this user and sender.
-	subscription, err := service.GetEmailSubscription(ctx, user, from)
+	// Try to find an existing subscription for this email newsletter.
+	var subscription *models.Subscription
+	allSubscriptions, err := svc.GetAllSubscriptions(ctx)
 	if err != nil {
-		return fmt.Errorf("get email subscription: %w", err)
+		return fmt.Errorf("get user subscriptions: %w", err)
+	}
+	emailSubscriptions := allSubscriptions.FilterEmailIDs(from.Address)
+	if len(emailSubscriptions) == 0 {
+		// Create a new email subscription for this newsletter.
+		var err error
+		subscription, err = service.NewEmailSubscription(ctx, user.GetID(), from)
+		if err != nil {
+			return fmt.Errorf("create email subscription: %w", err)
+		}
+		// Add the new subscription.
+		if err := svc.AddSubscriptions(ctx, subscription); err != nil {
+			return fmt.Errorf("add email subscription: %w", err)
+		}
+	} else {
+		subscription = emailSubscriptions[0]
 	}
 
 	// Retrieve the full email content and details.

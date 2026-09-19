@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"net/http"
 	"net/mail"
 	"slices"
 	"strconv"
@@ -238,7 +239,7 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 var userSubscriptionsCache = NewSubscriptionService()
 
 // GetAllSubscriptions returns a [models.Subscriptions] slice of all subscriptions for a user.
-func GetAllSubscriptions(
+func (s *UserSubscriptions) GetAllSubscriptions(
 	ctx context.Context,
 ) (models.Subscriptions, error) {
 	ctx, span := tracer.Start(ctx, "GetAllSubscriptions")
@@ -251,7 +252,7 @@ func GetAllSubscriptions(
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	subscriptionsCache, err := s.get(ctx, user.GetID())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -267,7 +268,7 @@ func GetAllSubscriptions(
 }
 
 // GetSubscription returns a [*models.Subscription] that matches the given [models.SubscriptionID] for the given user.
-func GetSubscription(
+func (s *UserSubscriptions) GetSubscription(
 	ctx context.Context,
 	id models.SubscriptionID,
 ) (*models.Subscription, error) {
@@ -281,7 +282,7 @@ func GetSubscription(
 		return nil, fmt.Errorf("get user: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	subscriptionsCache, err := s.get(ctx, user.GetID())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -298,7 +299,7 @@ func GetSubscription(
 
 // BulkGetSubscriptions returns a [models.Subscriptions] slice of subscriptions that match the given
 // [models.SubscriptionID].
-func BulkGetSubscriptions(
+func (s *UserSubscriptions) BulkGetSubscriptions(
 	ctx context.Context,
 	ids ...models.SubscriptionID,
 ) (models.Subscriptions, error) {
@@ -312,7 +313,7 @@ func BulkGetSubscriptions(
 		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 
-	subscriptionsCache, err := userSubscriptionsCache.get(ctx, user.GetID())
+	subscriptionsCache, err := s.get(ctx, user.GetID())
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -330,7 +331,7 @@ func BulkGetSubscriptions(
 }
 
 // RemoveSubscriptions removes subscriptions with the given [models.SubscriptionID] from a user.
-func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
+func (s *UserSubscriptions) RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -346,7 +347,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 		return ElasticsearchToAPIError(err)
 	}
 	// Remove the subscriptions from the cache.
-	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+	if subscriptionsCache, ok := s.GetIfPresent(user.GetID()); ok {
 		for id := range slices.Values(ids) {
 			subscriptionsCache.Invalidate(id)
 		}
@@ -356,7 +357,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) erro
 }
 
 // UpdateSubscriptions will bulk update each given [*models.Subscription].
-func UpdateSubscriptions(
+func (s *UserSubscriptions) UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
 ) error {
@@ -387,7 +388,7 @@ func UpdateSubscriptions(
 		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	if subscriptionsCache, ok := userSubscriptionsCache.GetIfPresent(user.GetID()); ok {
+	if subscriptionsCache, ok := s.GetIfPresent(user.GetID()); ok {
 		for subscription := range slices.Values(subscriptions) {
 			subscriptionsCache.Invalidate(subscription.GetID())
 			subscriptionsCache.Set(subscription.GetID(), subscription)
@@ -397,12 +398,171 @@ func UpdateSubscriptions(
 	return nil
 }
 
+// AddSubscriptions adds the given subscriptions to a user.
+func (s *UserSubscriptions) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	if err := s.UpdateSubscriptions(ctx, subscriptions...); err != nil {
+		return fmt.Errorf("update subscriptions: %w", err)
+	}
+	// Disable onboarding once a subscription has been added.
+	if settings := user.GetSettings(); settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+		// Update the user object.
+		if err := UpdateUser(ctx, user, map[string]any{
+			"settings": settings,
+		}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+	}
+	return nil
+}
+
+// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
+// subscription data in the user object and clearing any individual item states for a subscription.
+func (s *UserSubscriptions) MarkSubscriptions(
+	ctx context.Context,
+	mark models.Mark,
+	subscriptionIDs ...models.SubscriptionID,
+) error {
+	ctx, span := tracer.Start(ctx, "MarkSubscriptions")
+	defer span.End()
+
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		span.RecordError(models.ErrCtxValueNotFound)
+		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	subscriptions, err := s.BulkGetSubscriptions(ctx, subscriptionIDs...)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return fmt.Errorf("get subscription details: %w", err)
+	}
+
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			if err = s.MarkSubscriptions(ctx, mark, subscription.GroupData.GetGroupedSubscriptionIDs()...); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				return fmt.Errorf("mark group subscription: %w", err)
+			}
+		} else {
+			subscription.Mark(user, mark)
+			if err = s.UpdateSubscriptions(ctx, subscriptions...); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				return fmt.Errorf("update subscription data: %w", err)
+			}
+			slogctx.Debug(ctx, "Marked subscription.",
+				slog.String("subscription_id", subscription.GetID()),
+				slog.String("mark", string(mark)),
+			)
+		}
+	}
+
+	return nil
+}
+
+func (s *UserSubscriptions) MarkArticles(
+	ctx context.Context,
+	mark models.Mark,
+	subscriptionID models.SubscriptionID,
+	itemIDs ...models.ItemID,
+) error {
+	subscription, err := s.GetSubscription(ctx, subscriptionID)
+	if err != nil {
+		return models.NewAPIError(
+			http.StatusInternalServerError,
+			fmt.Errorf("get subscriptions: %w", err),
+			models.WithUserErrorSummary("Backend request failed!"),
+			models.WithUserErrorDescription("This might be a temporary error, please try again."),
+		)
+	}
+	subscription.MarkItems(mark, itemIDs...)
+	if err = s.UpdateSubscriptions(ctx, subscription); err != nil {
+		return models.NewAPIError(
+			http.StatusInternalServerError,
+			fmt.Errorf("update subscription: %w", err),
+			models.WithUserErrorSummary("Backend request failed!"),
+			models.WithUserErrorDescription("This might be a temporary error, please try again."),
+		)
+	}
+	return nil
+}
+
+// GetSubscriptionSuggestions returns subscriptions that match the given text. A set of ids can be optionally passed to
+// ignore those subscriptions.
+func GetSubscriptionSuggestions(
+	ctx context.Context,
+	text string,
+	count int,
+	ignoredSubscriptions []models.SubscriptionID,
+) (models.Subscriptions, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
+	// Perform search.
+	resp, err := elastic.Search[*models.Subscription](
+		ctx,
+		schema.SubscriptionsIndexRO(),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Term("user_id", user.GetID()),
+					// query.Bool(
+					// 	query.Should(
+					// 		query.Term("type", models.SubscriptionTypeEmail),
+					// 		query.Term("type", models.SubscriptionTypeFeed),
+					// 	),
+					// ),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(text, "customisation.nickname"),
+						),
+					),
+				),
+				query.MustNot(
+					query.Terms("subscription_id", ignoredSubscriptions),
+				),
+			),
+		),
+		elastic.WithSort(newSubscriptionSortOptions(new(models.SortMostRelevant))...),
+		elastic.WithSize(count),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search subscriptions: %w", err)
+	}
+	if len(resp.Results) == 0 {
+		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
+	}
+
+	subscriptions := resp.Results
+	if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		return nil, fmt.Errorf("add dynamic info: %w", err)
+	}
+
+	return subscriptions, nil
+}
+
 // UpdateSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) of the subscriptions in the [models.Subscriptions] slice.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
 //nolint:gocognit,funlen
-func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+func UpdateSubscriptionDynamicInfo(
+	ctx context.Context,
+	subscriptions models.Subscriptions,
+) error {
 	ctx, span := tracer.Start(ctx, "UpdateSubscriptionDynamicInfo")
 	defer span.End()
 
@@ -434,48 +594,54 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 
 	// For search subscriptions, run queries directly to add unread count and last update.
 	fetchJobs.Go(func() error {
+		searchJobs, jobCtx := errgroup.WithContext(ctx)
+		defer jobCtx.Done()
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
-			request := subscription.SearchData.Search
-			// Build query to get unread count.
-			query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			count, err := CountItems(jobCtx, query)
-			if err == nil {
-				subscription.GetStats().UnreadCount = int(count)
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
+			searchJobs.Go(func() error {
+				request := subscription.SearchData.Search
+				// Build query to get unread count.
+				query, err := BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
+				if err != nil {
+					return fmt.Errorf(
+						"add subscription dynamic info: build search subscription %s query: %w",
+						subscription.GetID(),
+						err,
 					)
-			}
-			// Update query for getting last updated item (view: all, sort: newest first).
-			request.View = models.ViewAll
-			sort := models.SortNewestFirst
-			query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
-			if err != nil {
-				return fmt.Errorf(
-					"add subscription dynamic info: build search subscription %s query: %w",
-					subscription.GetID(),
-					err,
-				)
-			}
-			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
-				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
-			} else {
-				slogctx.FromCtx(jobCtx).
-					Warn("Add subscription dynamic info, could not get last update for search subscription.",
-						slog.String("subscription_id", subscription.GetID()),
-						slog.Any("error", err),
+				}
+				count, err := CountItems(jobCtx, query)
+				if err == nil {
+					subscription.GetStats().UnreadCount = int(count)
+				} else {
+					slogctx.FromCtx(jobCtx).
+						Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+							slog.String("subscription_id", subscription.GetID()),
+							slog.Any("error", err),
+						)
+				}
+				// Update query for getting last updated item (view: all, sort: newest first).
+				request.View = models.ViewAll
+				sort := models.SortNewestFirst
+				query, err = BuildSearchResultsQuery(jobCtx, user, &request, StandardSearchResultsClause(&request))
+				if err != nil {
+					return fmt.Errorf(
+						"add subscription dynamic info: build search subscription %s query: %w",
+						subscription.GetID(),
+						err,
 					)
-			}
+				}
+				if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+					subscription.GetStats().LastUpdate = items[0].GetTimestamp()
+				} else {
+					slogctx.FromCtx(jobCtx).
+						Warn("Add subscription dynamic info, could not get last update for search subscription.",
+							slog.String("subscription_id", subscription.GetID()),
+							slog.Any("error", err),
+						)
+				}
+				return nil
+			})
 		}
+		searchJobs.Wait()
 		return nil
 	})
 
@@ -537,21 +703,18 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 		var unreadCount int
 		var lastUpdates []time.Time
 		// Get the avg daily updates and last update for each subscription in the group.
-		for id := range slices.Values(subscription.GroupData.GetGroupedSubscriptionIDs()) {
-			childSubscription, err := GetSubscription(ctx, id)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to fetch child subscription details.",
-					slog.String("group_subscription_id", subscription.GetID()),
-					slog.String("child_subscription_id", id),
-					slog.Any("error", err))
-				continue
-			}
+		allSubscriptions := models.SubscriptionsFromCtx(ctx)
+		if len(allSubscriptions) == 0 {
+			return fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
+		}
+		groupedSubscriptions := allSubscriptions.FilterByIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
+		for groupedSubscription := range slices.Values(groupedSubscriptions) {
 			// Collate statistics from child subscription.
 			if user.GetSettings().ShowSubscriptionStats {
-				avgDailyUpdates = append(avgDailyUpdates, childSubscription.GetStats().AvgDailyUpdates)
+				avgDailyUpdates = append(avgDailyUpdates, groupedSubscription.GetStats().AvgDailyUpdates)
 			}
-			unreadCount += childSubscription.GetStats().UnreadCount
-			lastUpdates = append(lastUpdates, childSubscription.GetStats().LastUpdate)
+			unreadCount += groupedSubscription.GetStats().UnreadCount
+			lastUpdates = append(lastUpdates, groupedSubscription.GetStats().LastUpdate)
 		}
 		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
 			// Use the highest avg daily updates as the avg daily updates of the group.
@@ -570,6 +733,118 @@ func UpdateSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Sub
 	}
 
 	return nil
+}
+
+// BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
+func (s *UserSubscriptions) BulkImportFeeds(
+	ctx context.Context,
+	requests ...models.FeedSubscriptionRequest,
+) []models.FeedSubscriptionResult {
+	// Process requests.
+	resultsCh := make(chan models.FeedSubscriptionResult)
+	var wg sync.WaitGroup
+
+	for request := range slices.Values(requests) {
+		wg.Go(func() {
+			// Find an existing or create a new feed from the requested URL.
+			feed, isNew, err := FindOrCreateFeed(ctx, request.URL)
+			if err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("create subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to create subscription",
+							fmt.Sprintf("Could not find feed data for URL: %q", request.URL),
+						),
+					},
+				}
+				return
+			}
+			if isNew {
+				// Add the feed if it is new.
+				if err := AddFeed(ctx, feed); err != nil {
+					resultsCh <- models.FeedSubscriptionResult{
+						Request: &request,
+						Error: &models.APIError{
+							InternalError: fmt.Errorf("create subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to add feed subscription",
+								fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
+							),
+						},
+					}
+					return
+				}
+			}
+
+			allSubscriptions := models.SubscriptionsFromCtx(ctx)
+			existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
+			if existingSubscriptions != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: errors.New("create subscription: already subscribed"),
+						StatusCode:    http.StatusConflict,
+						UserMessage: models.NewWarningMessage(
+							"Already subscribed to feed",
+							fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+
+			// Create feed newSubscription.
+			newSubscription, err := NewFeedSubscription(ctx, feed, nil)
+			if err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("create subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+			if err := s.AddSubscriptions(ctx, newSubscription); err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("add subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+			resultsCh <- models.FeedSubscriptionResult{
+				Request:      &request,
+				Subscription: newSubscription,
+			}
+		})
+	}
+	// Wait for all request processing to complete.
+	go func() {
+		defer close(resultsCh)
+		wg.Wait()
+	}()
+	results := make([]models.FeedSubscriptionResult, 0, len(requests))
+	// Gather results.
+	for result := range resultsCh {
+		results = append(results, result)
+	}
+
+	return results
 }
 
 // NewFeedSubscription creates a new subscription for a feed with any user customisations given.
@@ -644,12 +919,15 @@ func EditFeedSubscription(
 // NewGroupSubscription creates a GroupSubscription. A GroupSubscription is a kind of meta-subscription that aggregates
 // all articles from multiple individual subscriptions into a single custom subscription.
 func NewGroupSubscription(ctx context.Context, request *models.GroupSubscriptionRequest) (*models.Subscription, error) {
-	// Get details of the grouped subscriptions.
-	grouped, err := BulkGetSubscriptions(ctx, slices.Collect(maps.Keys(request.Subscriptions))...)
-	if err != nil {
-		return nil, fmt.Errorf("get grouped subscription details: %w", err)
+	// Get user subscriptions. This should always return at least one subscription, otherwise this request is invalid.
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if len(allSubscriptions) == 0 {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
-	//
+	grouped := allSubscriptions.FilterByIDs(slices.Collect(maps.Keys(request.Subscriptions))...)
+	if len(grouped) == 0 {
+		return nil, fmt.Errorf("get grouped subscriptions: %w", models.ErrCtxValueNotFound)
+	}
 	groupSubscription := &models.GroupSubscription{
 		Metadata: make([]models.GroupedSubscriptionMetadata, 0, len(grouped)),
 	}
@@ -679,11 +957,17 @@ func EditGroupSubscription(
 	if edits.Settings != nil {
 		subscription.Settings = *edits.Settings
 	}
-	// Update grouped subscriptions.
-	grouped, err := BulkGetSubscriptions(ctx, slices.Collect(maps.Keys(edits.Subscriptions))...)
-	if err != nil {
-		return fmt.Errorf("get grouped subscription details: %w", err)
+
+	// Get user subscriptions. This should always return at least one subscription, otherwise this request is invalid.
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if len(allSubscriptions) == 0 {
+		return fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
+	grouped := allSubscriptions.FilterByIDs(slices.Collect(maps.Keys(edits.Subscriptions))...)
+	if len(grouped) == 0 {
+		return fmt.Errorf("get grouped subscriptions: %w", models.ErrCtxValueNotFound)
+	}
+
 	subscription.GroupData.Subscriptions = grouped
 	subscription.GroupData.Metadata = make([]models.GroupedSubscriptionMetadata, 0, len(grouped))
 	for groupedSubscription := range slices.Values(grouped) {
@@ -841,93 +1125,6 @@ func newBaseSubscription(
 	}
 
 	return subscription, nil
-}
-
-// AddSubscriptions adds the given subscriptions to a user.
-func AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-	if err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("update subscriptions: %w", err)
-	}
-	// Disable onboarding once a subscription has been added.
-	if settings := user.GetSettings(); settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-		// Update the user object.
-		if err := UpdateUser(ctx, user, map[string]any{
-			"settings": settings,
-		}); err != nil {
-			return fmt.Errorf("update user: %w", err)
-		}
-	}
-	return nil
-}
-
-// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
-// subscription data in the user object and clearing any individual item states for a subscription.
-func MarkSubscriptions(
-	ctx context.Context,
-	mark models.Mark,
-	subscriptionIDs ...models.SubscriptionID,
-) error {
-	ctx, span := tracer.Start(ctx, "MarkSubscriptions")
-	defer span.End()
-
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		span.RecordError(models.ErrCtxValueNotFound)
-		span.SetStatus(codes.Error, models.ErrCtxValueNotFound.Error())
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	subscriptions, err := BulkGetSubscriptions(ctx, subscriptionIDs...)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return fmt.Errorf("get subscription details: %w", err)
-	}
-
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
-			if err = MarkSubscriptions(ctx, mark, subscription.GroupData.GetGroupedSubscriptionIDs()...); err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				return fmt.Errorf("mark group subscription: %w", err)
-			}
-		} else {
-			subscription.Mark(user, mark)
-			if err = UpdateSubscriptions(ctx, subscriptions...); err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				return fmt.Errorf("update subscription data: %w", err)
-			}
-			slogctx.Debug(ctx, "Marked subscription.",
-				slog.String("subscription_id", subscription.GetID()),
-				slog.String("mark", string(mark)),
-			)
-		}
-	}
-
-	return nil
-}
-
-// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
-// subscription as appropriate.
-func UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, favorite bool) error {
-	subscription, err := GetSubscription(ctx, id)
-	if err != nil {
-		return fmt.Errorf("get subscription: %w", err)
-	}
-
-	subscription.Favorite = favorite
-
-	if err := UpdateSubscriptions(ctx, subscription); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-
-	return nil
 }
 
 // GetLatestArticles will fetch and add the latest articles to the given subscriptions.
@@ -1205,11 +1402,14 @@ func getGroupSubscriptionLatestItems(
 	for subscription := range slices.Values(subscriptions) {
 		wg.Go(func() {
 			// Get details of all subscriptions that comprise the group.
-			childSubscriptions, err := BulkGetSubscriptions(ctx, subscription.GroupData.GetGroupedSubscriptionIDs()...)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Unable to get subscription details for group subscription.",
-					slog.Any("error", err),
-				)
+			allSubscriptions := models.SubscriptionsFromCtx(ctx)
+			if len(allSubscriptions) == 0 {
+				slogctx.Warn(ctx, "Could not retrieve user subscriptions from context.")
+				return
+			}
+			childSubscriptions := allSubscriptions.FilterByIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
+			if len(childSubscriptions) == 0 {
+				slogctx.Warn(ctx, "Could not retrieve grouped subscriptions.")
 				return
 			}
 			// Get latest items for these subscriptions.
@@ -1297,122 +1497,6 @@ func getSearchSubscriptionLatestItems(
 	}
 	wg.Wait()
 	return searchTopItems, nil
-}
-
-// CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
-func CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSubscriptionRequest) error {
-	subscriptions := make(models.Subscriptions, 0, len(requests))
-	for request := range slices.Values(requests) {
-		slogctx.FromCtx(ctx).Debug("Creating new search subscription.",
-			slog.String("feed", request.Customisation.GetNickname()),
-		)
-		// Generate metadata.
-		subscription, err := NewSearchSubscription(ctx, request)
-		if err != nil {
-			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
-		}
-		err = subscription.Validate()
-		if err != nil {
-			return fmt.Errorf("create search subscription: invalid data: %w", err)
-		}
-		subscriptions = append(subscriptions, subscription)
-	}
-	// Add subscriptions
-	if err := AddSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("create search subscription: add subscriptions failed: %w", err)
-	}
-	return nil
-}
-
-// GetEmailSubscription retrieves an EmailSubscription for the given user ID and email sender.
-func GetEmailSubscription(ctx context.Context, user *models.User, from *mail.Address) (*models.Subscription, error) {
-	// Check for an existing email subscription for the user.
-	subscriptions, err := GetAllSubscriptions(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	}
-
-	subscriptions = subscriptions.FilterEmailIDs(from.Address)
-
-	var subscription *models.Subscription
-	switch {
-	case len(subscriptions) > 1:
-		// Ambiguous subscription match for sender.
-		return nil, fmt.Errorf("%w: ambiguous subscription match for sender", models.ErrInvalidAPIResult)
-	case len(subscriptions) == 0:
-		// Create a new email subscription for this sender.
-		subscription, err = NewEmailSubscription(ctx, user.GetID(), from)
-		if err != nil {
-			return nil, fmt.Errorf("create email subscription: %w", err)
-		}
-		if err := AddSubscriptions(ctx, subscription); err != nil {
-			return nil, fmt.Errorf("add email subscription: %w", err)
-		}
-	default:
-		// Use the existing email subscription.
-		subscription = subscriptions[0]
-	}
-
-	return subscription, nil
-}
-
-// GetSubscriptionSuggestions returns subscriptions that match the given text. A set of ids can be optionally passed to
-// ignore those subscriptions.
-func GetSubscriptionSuggestions(
-	ctx context.Context,
-	text string,
-	count int,
-	ignoredSubscriptions []models.SubscriptionID,
-) (models.Subscriptions, error) {
-	// Get subscriptions by ID.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-
-	// Perform search.
-	resp, err := elastic.Search[*models.Subscription](
-		ctx,
-		schema.SubscriptionsIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
-			query.Bool(
-				query.Filter(
-					query.Term("user_id", user.GetID()),
-					// query.Bool(
-					// 	query.Should(
-					// 		query.Term("type", models.SubscriptionTypeEmail),
-					// 		query.Term("type", models.SubscriptionTypeFeed),
-					// 	),
-					// ),
-				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(text, "customisation.nickname"),
-						),
-					),
-				),
-				query.MustNot(
-					query.Terms("subscription_id", ignoredSubscriptions),
-				),
-			),
-		),
-		elastic.WithSort(newSubscriptionSortOptions(new(models.SortMostRelevant))...),
-		elastic.WithSize(count),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("search subscriptions: %w", err)
-	}
-	if len(resp.Results) == 0 {
-		return nil, fmt.Errorf("search subscriptions: %w", models.ErrNotFound)
-	}
-
-	subscriptions := resp.Results
-	if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
-		return nil, fmt.Errorf("add dynamic info: %w", err)
-	}
-
-	return subscriptions, nil
 }
 
 func getSubscriptionUnreadCounts(

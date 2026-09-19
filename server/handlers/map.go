@@ -49,7 +49,7 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleMap() http.HandlerFunc {
+func HandleMap(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -95,7 +95,7 @@ func HandleMap() http.HandlerFunc {
 				return
 			}
 			// Filter by ID.
-			subscription := allSubscriptions.GetByID(subscriptionID)
+			subscription = allSubscriptions.GetByID(subscriptionID)
 			if subscription == nil {
 				HandleInternalError(
 					http.StatusNotFound,
@@ -191,7 +191,7 @@ func HandleMap() http.HandlerFunc {
 	}
 }
 
-func HandleMapUpdates() http.HandlerFunc {
+func HandleMapUpdates(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
