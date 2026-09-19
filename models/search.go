@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/immanent-tech/go-base/validation"
 	slogctx "github.com/veqryn/slog-context"
@@ -79,6 +80,87 @@ func NewSearchRequest() *SearchRequest {
 		Sort:            DefaultSearchSort,
 		Timezone:        defaultSearchTimezone,
 		Count:           DefaultSearchCount,
+	}
+}
+
+// Location generates the appropriate [*time.Location] value based on the request's timezone value. If the request has
+// no timezone, it is assumed to be "UTC".
+func (r SearchRequest) Location() *time.Location {
+	if tz := r.Timezone; tz != "" {
+		loc, err := time.LoadLocation(tz)
+		if err != nil {
+			loc, _ := time.LoadLocation("UTC")
+			return loc
+		}
+		return loc
+	}
+	loc, _ := time.LoadLocation("UTC")
+	return loc
+}
+
+// Since generates the [time.Time] timestamp in the past from which results should be filtered. If it cannot generate a
+// value, a default of the last 7 days is used.
+func (r SearchRequest) Since() time.Time {
+	defaultSince := time.Now().UTC().Add(-1 * 7 * 24 * time.Hour)
+	switch r.PublishedWithin {
+	case SearchRequestPublishedWithinLastHour:
+		since, err := time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), r.Location())
+		if err != nil {
+			return defaultSince
+		}
+		return since
+	case SearchRequestPublishedWithinLast12hours:
+		since, err := time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), r.Location())
+		if err != nil {
+			return defaultSince
+		}
+		return since
+	case SearchRequestPublishedWithinLastDay:
+		since, err := time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), r.Location())
+		if err != nil {
+			return defaultSince
+		}
+		return since
+	case SearchRequestPublishedWithinLastWeek:
+		since, err := time.ParseInLocation(
+			time.Layout,
+			time.Now().Add(-7*24*time.Hour).Format(time.Layout),
+			r.Location(),
+		)
+		if err != nil {
+			return defaultSince
+		}
+		return since
+	case SearchRequestPublishedWithinLastMonth:
+		since, err := time.ParseInLocation(
+			time.Layout,
+			time.Now().Add(-30*24*time.Hour).Format(time.Layout),
+			r.Location(),
+		)
+		if err != nil {
+			return defaultSince
+		}
+		return since
+	default:
+		return defaultSince
+	}
+}
+
+// Pivot generates a pivot value, which is a duration window which boosts results within this window around the current time.
+func (r SearchRequest) Pivot() string {
+	switch r.PublishedWithin {
+	case SearchRequestPublishedWithinLastHour:
+		return "30m"
+	case SearchRequestPublishedWithinLast12hours:
+		return "6h"
+	case SearchRequestPublishedWithinLastDay:
+		return "12h"
+	case SearchRequestPublishedWithinLastWeek:
+		return "3d"
+	case SearchRequestPublishedWithinLastMonth:
+		return "14d"
+	default:
+		return "3d"
 	}
 }
 

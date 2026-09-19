@@ -6,7 +6,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 
@@ -22,58 +21,12 @@ func BuildSearchResultsQuery(
 	request *models.SearchRequest,
 	clause query.Option,
 ) (query.Option, error) {
-	var (
-		loc *time.Location
-		err error
-	)
-	if request.Timezone != "" {
-		loc, err = time.LoadLocation(request.Timezone)
-		if err != nil {
-			return nil, fmt.Errorf("build search query: load timezone: %w", err)
-		}
-	} else {
-		loc, err = time.LoadLocation("UTC")
-		if err != nil {
-			return nil, fmt.Errorf("build search query: load timezone: %w", err)
-		}
+	// Get user subscriptions.
+	allSubscriptions := models.SubscriptionsFromCtx(ctx)
+	if len(allSubscriptions) == 0 {
+		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
-	var (
-		since time.Time
-		pivot string
-	)
-	switch request.PublishedWithin {
-	case models.SearchRequestPublishedWithinLastHour:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
-		pivot = "30m"
-	case models.SearchRequestPublishedWithinLast12hours:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
-		pivot = "6h"
-	case models.SearchRequestPublishedWithinLastDay:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
-		pivot = "12h"
-	case models.SearchRequestPublishedWithinLastWeek:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
-		pivot = "3d"
-	case models.SearchRequestPublishedWithinLastMonth:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
-		pivot = "14d"
-	default:
-		pivot = "3d"
-	}
-
-	// Get subscriptions.
-	var subscriptions models.Subscriptions
-	if len(request.Subscriptions) > 0 {
-		subscriptions, err = BulkGetSubscriptions(ctx, request.Subscriptions...)
-	} else {
-		subscriptions, err = GetAllSubscriptions(ctx)
-	}
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("get subscriptions: %w", models.ErrNotFound)
-	}
+	subscriptions := allSubscriptions.FilterByIDs(request.Subscriptions...)
 
 	return query.Bool(
 		query.Must(
@@ -89,8 +42,8 @@ func BuildSearchResultsQuery(
 					// Must be published/updated since the given time.
 					query.Bool(
 						query.Should(
-							query.Since("published", since),
-							query.Since("updated", since),
+							query.Since("published", request.Since()),
+							query.Since("updated", request.Since()),
 						),
 					),
 				),
@@ -103,8 +56,8 @@ func BuildSearchResultsQuery(
 						query.WithQueryBoost[*query.TermsQuery](2.0),
 					),
 					// Boost documents closer to the current time.
-					query.Distance("published", pivot, "now"),
-					query.Distance("updated", pivot, "now"),
+					query.Distance("published", request.Pivot(), "now"),
+					query.Distance("updated", request.Pivot(), "now"),
 				),
 			),
 			clause,
