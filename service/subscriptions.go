@@ -37,31 +37,31 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
-type UserSubscriptions struct {
-	*otter.Cache[models.UserID, *Subscriptions]
+type Subscriptions struct {
+	*otter.Cache[models.UserID, *UserSubscriptions]
 
-	userLoader otter.LoaderFunc[models.UserID, *Subscriptions]
+	userLoader otter.LoaderFunc[models.UserID, *UserSubscriptions]
 }
 
-func (s *UserSubscriptions) get(
+func (s *Subscriptions) get(
 	ctx context.Context,
 	userID models.UserID,
-) (*Subscriptions, error) {
+) (*UserSubscriptions, error) {
 	subscriptionsCache, err := s.Get(ctx, userID, s.userLoader)
 	switch {
 	case err != nil && errors.Is(err, otter.ErrNotFound):
 		// span.RecordError(err)
 		// span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", models.ErrNotFound)
+		return nil, fmt.Errorf("get user subscription cache: %w", models.ErrNotFound)
 	case err != nil:
 		// span.RecordError(err)
 		// span.SetStatus(codes.Error, err.Error())
-		return nil, fmt.Errorf("get all subscriptions: %w", err)
+		return nil, fmt.Errorf("get user subscription cache: %w", err)
 	}
 	return subscriptionsCache, nil
 }
 
-type Subscriptions struct {
+type UserSubscriptions struct {
 	*otter.Cache[models.SubscriptionID, *models.Subscription]
 
 	userID     models.UserID
@@ -69,7 +69,7 @@ type Subscriptions struct {
 	bulkLoader otter.BulkLoaderFunc[models.SubscriptionID, *models.Subscription]
 }
 
-func (s *Subscriptions) get(
+func (s *UserSubscriptions) get(
 	ctx context.Context,
 	subscriptionID models.SubscriptionID,
 ) (*models.Subscription, error) {
@@ -87,7 +87,7 @@ func (s *Subscriptions) get(
 	return subscription, nil
 }
 
-func (s *Subscriptions) bulkGet(
+func (s *UserSubscriptions) bulkGet(
 	ctx context.Context,
 	subscriptionIDs ...models.SubscriptionID,
 ) (models.Subscriptions, error) {
@@ -105,19 +105,19 @@ func (s *Subscriptions) bulkGet(
 	return slices.Collect(maps.Values(results)), nil
 }
 
-var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
-	return &UserSubscriptions{
+var NewSubscriptionService = sync.OnceValue(func() *Subscriptions {
+	return &Subscriptions{
 		Cache: otter.Must(
-			&otter.Options[models.UserID, *Subscriptions]{
+			&otter.Options[models.UserID, *UserSubscriptions]{
 				MaximumSize:      100,
-				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *Subscriptions](60 * time.Second),
+				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *UserSubscriptions](60 * time.Second),
 			},
 		),
-		userLoader: otter.LoaderFunc[models.UserID, *Subscriptions](
+		userLoader: otter.LoaderFunc[models.UserID, *UserSubscriptions](
 			func(
 				ctx context.Context,
 				userID models.UserID,
-			) (*Subscriptions, error) {
+			) (*UserSubscriptions, error) {
 				userSubscriptionsCache, err := otter.New(&otter.Options[models.SubscriptionID, *models.Subscription]{
 					InitialCapacity: 3000,
 					MaximumSize:     3000,
@@ -167,7 +167,7 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 				slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
 					slog.Duration("took", time.Since(start)))
 
-				return &Subscriptions{
+				return &UserSubscriptions{
 					Cache:  userSubscriptionsCache,
 					userID: userID,
 					loader: otter.LoaderFunc[models.SubscriptionID, *models.Subscription](
@@ -239,7 +239,7 @@ var NewSubscriptionService = sync.OnceValue(func() *UserSubscriptions {
 var userSubscriptionsCache = NewSubscriptionService()
 
 // GetAllSubscriptions returns a [models.Subscriptions] slice of all subscriptions for a user.
-func (s *UserSubscriptions) GetAllSubscriptions(
+func (s *Subscriptions) GetAllSubscriptions(
 	ctx context.Context,
 ) (models.Subscriptions, error) {
 	ctx, span := tracer.Start(ctx, "GetAllSubscriptions")
@@ -253,22 +253,21 @@ func (s *UserSubscriptions) GetAllSubscriptions(
 	}
 
 	subscriptionsCache, err := s.get(ctx, user.GetID())
-	if err != nil {
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get subscription cache for user: %w", err)
 	}
 
-	var subscriptions models.Subscriptions
-	for subscription := range subscriptionsCache.Values() {
-		subscriptions = append(subscriptions, subscription)
+	if subscriptionsCache == nil {
+		return make(models.Subscriptions, 0), nil
 	}
 
-	return subscriptions, nil
+	return slices.Collect(subscriptionsCache.Values()), nil
 }
 
 // GetSubscription returns a [*models.Subscription] that matches the given [models.SubscriptionID] for the given user.
-func (s *UserSubscriptions) GetSubscription(
+func (s *Subscriptions) GetSubscription(
 	ctx context.Context,
 	id models.SubscriptionID,
 ) (*models.Subscription, error) {
@@ -290,7 +289,7 @@ func (s *UserSubscriptions) GetSubscription(
 	}
 
 	subscription, err := subscriptionsCache.get(ctx, id)
-	if err != nil {
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return nil, fmt.Errorf("get subscription by id: %w", err)
 	}
 
@@ -299,7 +298,7 @@ func (s *UserSubscriptions) GetSubscription(
 
 // BulkGetSubscriptions returns a [models.Subscriptions] slice of subscriptions that match the given
 // [models.SubscriptionID].
-func (s *UserSubscriptions) BulkGetSubscriptions(
+func (s *Subscriptions) BulkGetSubscriptions(
 	ctx context.Context,
 	ids ...models.SubscriptionID,
 ) (models.Subscriptions, error) {
@@ -321,7 +320,7 @@ func (s *UserSubscriptions) BulkGetSubscriptions(
 	}
 
 	subscriptions, err := subscriptionsCache.bulkGet(ctx, ids...)
-	if err != nil {
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("bulk get subscriptions: %w", err)
@@ -331,7 +330,7 @@ func (s *UserSubscriptions) BulkGetSubscriptions(
 }
 
 // RemoveSubscriptions removes subscriptions with the given [models.SubscriptionID] from a user.
-func (s *UserSubscriptions) RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
+func (s *Subscriptions) RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -357,7 +356,7 @@ func (s *UserSubscriptions) RemoveSubscriptions(ctx context.Context, ids ...mode
 }
 
 // UpdateSubscriptions will bulk update each given [*models.Subscription].
-func (s *UserSubscriptions) UpdateSubscriptions(
+func (s *Subscriptions) UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
 ) error {
@@ -373,7 +372,7 @@ func (s *UserSubscriptions) UpdateSubscriptions(
 	}
 
 	// Update the subscription dynamic info
-	if err := UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+	if err := s.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
@@ -399,7 +398,7 @@ func (s *UserSubscriptions) UpdateSubscriptions(
 }
 
 // AddSubscriptions adds the given subscriptions to a user.
-func (s *UserSubscriptions) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
+func (s *Subscriptions) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -422,7 +421,7 @@ func (s *UserSubscriptions) AddSubscriptions(ctx context.Context, subscriptions 
 
 // MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
 // subscription data in the user object and clearing any individual item states for a subscription.
-func (s *UserSubscriptions) MarkSubscriptions(
+func (s *Subscriptions) MarkSubscriptions(
 	ctx context.Context,
 	mark models.Mark,
 	subscriptionIDs ...models.SubscriptionID,
@@ -468,7 +467,7 @@ func (s *UserSubscriptions) MarkSubscriptions(
 	return nil
 }
 
-func (s *UserSubscriptions) MarkArticles(
+func (s *Subscriptions) MarkArticles(
 	ctx context.Context,
 	mark models.Mark,
 	subscriptionID models.SubscriptionID,
@@ -497,7 +496,7 @@ func (s *UserSubscriptions) MarkArticles(
 
 // GetSubscriptionSuggestions returns subscriptions that match the given text. A set of ids can be optionally passed to
 // ignore those subscriptions.
-func GetSubscriptionSuggestions(
+func (s *Subscriptions) GetSubscriptionSuggestions(
 	ctx context.Context,
 	text string,
 	count int,
@@ -547,7 +546,7 @@ func GetSubscriptionSuggestions(
 	}
 
 	subscriptions := resp.Results
-	if err = UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+	if err = s.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		return nil, fmt.Errorf("add dynamic info: %w", err)
 	}
 
@@ -559,7 +558,7 @@ func GetSubscriptionSuggestions(
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
 //nolint:gocognit,funlen
-func UpdateSubscriptionDynamicInfo(
+func (s *Subscriptions) UpdateSubscriptionDynamicInfo(
 	ctx context.Context,
 	subscriptions models.Subscriptions,
 ) error {
@@ -714,7 +713,7 @@ func UpdateSubscriptionDynamicInfo(
 }
 
 // BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
-func (s *UserSubscriptions) BulkImportFeeds(
+func (s *Subscriptions) BulkImportFeeds(
 	ctx context.Context,
 	requests ...models.FeedSubscriptionRequest,
 ) []models.FeedSubscriptionResult {
