@@ -13,16 +13,15 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // GetSubscriptionActionSuggestions handles showing a list of subscriptions as suggestions when building a search query.
-func GetSubscriptionActionSuggestions() http.HandlerFunc {
+func GetSubscriptionActionSuggestions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
 		text := validation.SanitizeString(req.FormValue("command-text"))
-		subscriptions, err := service.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
+		subscriptions, err := svc.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
 				slog.Any("error", err),

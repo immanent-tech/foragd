@@ -71,14 +71,6 @@ func ListCategories(svc SubscriptionsService) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			// Update subscription dynamic info.
-			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusNoContent)
-				return
-			}
 			// Filter subscriptions.
 			subscriptions = subscriptions.
 				FilterByView(filters.GetView()).

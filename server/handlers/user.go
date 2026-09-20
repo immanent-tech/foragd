@@ -106,7 +106,7 @@ func HandleShowAccountSettings() http.HandlerFunc {
 }
 
 // HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
-func HandleShowSubscriptionsSettings(svc SubscriptionsService) http.HandlerFunc {
+func HandleShowSubscriptionsSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -124,12 +124,6 @@ func HandleShowSubscriptionsSettings(svc SubscriptionsService) http.HandlerFunc 
 				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
 			return
-		}
-		// Add dynamic info to subscriptions.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), allSubscriptions); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to add subscription dynamic info.",
-				slog.Any("error", err),
-			)
 		}
 		// Sort by newest first.
 		allSubscriptions = allSubscriptions.Sort(models.SortNewestFirst)

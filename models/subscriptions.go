@@ -531,6 +531,19 @@ func (s Subscriptions) ExcludeIDs(ids ...SubscriptionID) Subscriptions {
 	}))
 }
 
+// HideGrouped will exclude subscriptions that are part of a group subscription.
+func (s Subscriptions) ExcludeGrouped(exclude bool) Subscriptions {
+	if !exclude {
+		return s
+	}
+	// If the user has requested to hide grouped subscriptions, filter those out.
+	hiddenSubscriptions := make([]SubscriptionID, 0)
+	for subscription := range slices.Values(s.FilterByType(SubscriptionTypeGroup)) {
+		hiddenSubscriptions = append(hiddenSubscriptions, subscription.GroupData.GetGroupedSubscriptionIDs()...)
+	}
+	return s.ExcludeIDs(hiddenSubscriptions...)
+}
+
 // FilterByCategories returns a new slice containing the subscriptions which have a category matching the given
 // categories.
 func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions {

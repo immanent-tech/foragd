@@ -49,7 +49,7 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleMap(svc SubscriptionsService) http.HandlerFunc {
+func HandleMap() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -102,15 +102,6 @@ func HandleMap(svc SubscriptionsService) http.HandlerFunc {
 					fmt.Errorf("get subscription details: %w", err),
 				).ServeHTTP(res, req)
 				return
-			}
-			if user.GetSettings().ShowSubscriptionStats {
-				if err := service.UpdateSubscriptionDynamicInfo(
-					req.Context(),
-					models.Subscriptions{subscription},
-				); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not generate subscription dynamic info.",
-						slog.Any("error", err))
-				}
 			}
 			request.Query = query.Bool(
 				// Filter to items with geo data.
@@ -191,7 +182,7 @@ func HandleMap(svc SubscriptionsService) http.HandlerFunc {
 	}
 }
 
-func HandleMapUpdates(svc SubscriptionsService) http.HandlerFunc {
+func HandleMapUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -215,14 +206,6 @@ func HandleMapUpdates(svc SubscriptionsService) http.HandlerFunc {
 		if allSubscriptions == nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
 				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-		// Update subscription dynamic info.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), allSubscriptions); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
-				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusNoContent)
 			return

@@ -238,7 +238,7 @@ func Start() error {
 		// Manual login refresh.
 		r.Get("/login/refresh", handlers.HandleRefreshToken)
 		r.With(handlers.AllSubscriptionsCtx(service.NewSubscriptionService())).
-			Get("/home", handlers.HandleHome(service.NewSubscriptionService()))
+			Get("/home", handlers.HandleHome(&service.Home{}))
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeSearchParams)
@@ -254,7 +254,7 @@ func Start() error {
 		})
 		r.Route("/action", func(r chi.Router) {
 			r.With(htmx.RequireHTMX).
-				Post("/subscription/suggestions", handlers.GetSubscriptionActionSuggestions())
+				Post("/subscription/suggestions", handlers.GetSubscriptionActionSuggestions(service.NewSubscriptionService()))
 		})
 		r.Route("/discover", func(r chi.Router) {
 			r.Use(middlewares.CheckUserLimits)
@@ -265,7 +265,7 @@ func Start() error {
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Use(handlers.AllSubscriptionsCtx(service.NewSubscriptionService()))
-			r.Get("/", handlers.HandleListSubscriptions(service.NewSubscriptionService()))
+			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories(service.NewSubscriptionService()))
 		})
 		r.Route("/subscriptions", func(r chi.Router) {
@@ -274,13 +274,13 @@ func Start() error {
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
-				r.Post("/paginate", handlers.HandleListSubscriptions(service.NewSubscriptionService()))
+				r.Post("/paginate", handlers.HandleListSubscriptions())
 				r.Post("/read", handlers.HandleBulkMarkSubscriptions(service.NewSubscriptionService(), models.MarkRead))
 				r.Post(
 					"/unread",
 					handlers.HandleBulkMarkSubscriptions(service.NewSubscriptionService(), models.MarkRead),
 				)
-				r.Post("/updates", handlers.HandleListSubscriptionsUpdates(service.NewSubscriptionService()))
+				r.Post("/updates", handlers.HandleListSubscriptionsUpdates())
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlers.SubscriptionCtx(service.NewSubscriptionService()))
@@ -338,7 +338,7 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Use(handlers.AllSubscriptionsCtx(service.NewSubscriptionService()))
 			r.Get("/", handlers.HandleListArticles())
-			r.Post("/updates", handlers.HandleListArticlesUpdates(service.NewSubscriptionService()))
+			r.Post("/updates", handlers.HandleListArticlesUpdates())
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories(service.NewSubscriptionService()))
 		})
 		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
@@ -368,14 +368,14 @@ func Start() error {
 		// Favorites.
 		r.Route("/favorites", func(r chi.Router) {
 			r.Use(handlers.AllSubscriptionsCtx(service.NewSubscriptionService()))
-			r.Get("/", handlers.HandleListFavorites(service.NewSubscriptionService()))
+			r.Get("/", handlers.HandleListFavorites())
 		})
 		// Map
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters)
 			r.Use(handlers.AllSubscriptionsCtx(service.NewSubscriptionService()))
-			r.Get("/", handlers.HandleMap(service.NewSubscriptionService()))
-			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleMapUpdates(service.NewSubscriptionService()))
+			r.Get("/", handlers.HandleMap())
+			r.With(htmx.RequireHTMX).Post("/updates", handlers.HandleMapUpdates())
 		})
 		// Issues.
 		r.Route("/issue", func(r chi.Router) {
@@ -407,7 +407,7 @@ func Start() error {
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
 					r.Use(handlers.AllSubscriptionsCtx(service.NewSubscriptionService()))
-					r.Get("/subscriptions", handlers.HandleShowSubscriptionsSettings(service.NewSubscriptionService()))
+					r.Get("/subscriptions", handlers.HandleShowSubscriptionsSettings())
 					r.Post("/subscriptions", handlers.HandleSaveSubscriptionsSettings())
 				})
 				r.Get("/subscription", handlers.HandleManageAccountSubscription())

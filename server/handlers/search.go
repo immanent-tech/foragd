@@ -71,7 +71,7 @@ func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
-			subscriptions, err = service.GetSubscriptionSuggestions(
+			subscriptions, err = svc.GetSubscriptionSuggestions(
 				jobCtx,
 				search.Text,
 				defaultSubscriptionSuggestionsCount,
@@ -324,7 +324,7 @@ func GetSubscriptionFilterSuggestions(svc SubscriptionsService) http.HandlerFunc
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := service.GetSubscriptionSuggestions(
+		subscriptions, err := svc.GetSubscriptionSuggestions(
 			req.Context(),
 			suggestion.Text,
 			defaultSuggestionCount,

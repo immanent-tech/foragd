@@ -44,7 +44,7 @@ func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) 
 }
 
 // HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
-func HandleListFavorites(svc SubscriptionsService) http.HandlerFunc {
+func HandleListFavorites() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
 			articles              models.Articles
@@ -82,10 +82,6 @@ func HandleListFavorites(svc SubscriptionsService) http.HandlerFunc {
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
 			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites)
-			// Update subscription dynamic info.
-			if err = service.UpdateSubscriptionDynamicInfo(req.Context(), favoriteSubscriptions); err != nil {
-				return fmt.Errorf("update subscription dynamic info: %w", err)
-			}
 			service.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
 			return nil
 		})

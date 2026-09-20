@@ -148,15 +148,6 @@ func HandleListArticles() http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return
 			}
-			if user.GetSettings().ShowSubscriptionStats {
-				if err := service.UpdateSubscriptionDynamicInfo(
-					req.Context(),
-					models.Subscriptions{subscription},
-				); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not generate subscription dynamic info.",
-						slog.Any("error", err))
-				}
-			}
 			request.Query = query.Bool(
 				service.ArticleFiltersQueryClause(subscription.GetArticleFilters()),
 			)
@@ -233,7 +224,7 @@ func HandleListArticles() http.HandlerFunc {
 }
 
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
-func HandleListArticlesUpdates(svc SubscriptionsService) http.HandlerFunc {
+func HandleListArticlesUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -259,14 +250,6 @@ func HandleListArticlesUpdates(svc SubscriptionsService) http.HandlerFunc {
 				http.StatusInternalServerError,
 				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
-			return
-		}
-		// Update subscription dynamic info.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to update subscription dynamic info.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 		// Filter subscriptions.

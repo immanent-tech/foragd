@@ -20,6 +20,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -53,10 +54,20 @@ type SubscriptionsService interface {
 	) error
 	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
 	RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error
+	UpdateSubscriptionDynamicInfo(
+		ctx context.Context,
+		subscriptions models.Subscriptions,
+	) error
 	BulkImportFeeds(
 		ctx context.Context,
 		requests ...models.FeedSubscriptionRequest,
 	) []models.FeedSubscriptionResult
+	GetSubscriptionSuggestions(
+		ctx context.Context,
+		text string,
+		count int,
+		ignoredSubscriptions []models.SubscriptionID,
+	) (models.Subscriptions, error)
 }
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
@@ -65,13 +76,19 @@ func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			subscriptions, err := svc.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
+				godump.Dump(err)
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get all user subscriptions: %w", err),
 				).ServeHTTP(res, req)
 				return
 			}
+			slogctx.Info(req.Context(), "got subscriptions ctx")
 			ctx := models.SubscriptionsToCtx(req.Context(), subscriptions)
+			if err := svc.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+				slogctx.Warn(req.Context(), "Could not update subscription dynamic info.",
+					slog.Any("error", err))
+			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -133,7 +150,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
-func HandleListSubscriptions(svc SubscriptionsService) http.HandlerFunc {
+func HandleListSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -172,15 +189,6 @@ func HandleListSubscriptions(svc SubscriptionsService) http.HandlerFunc {
 			}
 		}
 		subscriptions = subscriptions.ExcludeIDs(hiddenSubscriptions...)
-
-		// Update subscription dynamic info.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-			HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("update subscription dynamic info: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
 
 		// Get subscriptions with filters applied.
 		var pagination models.Pagination
@@ -251,7 +259,7 @@ func HandleListSubscriptions(svc SubscriptionsService) http.HandlerFunc {
 }
 
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
-func HandleListSubscriptionsUpdates(svc SubscriptionsService) http.HandlerFunc {
+func HandleListSubscriptionsUpdates() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -271,8 +279,8 @@ func HandleListSubscriptionsUpdates(svc SubscriptionsService) http.HandlerFunc {
 			return
 		}
 
-		subscriptions := models.SubscriptionsFromCtx(req.Context())
-		if subscriptions == nil {
+		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
+		if allSubscriptions == nil {
 			slogctx.FromCtx(req.Context()).Error("Get all subscriptions failed.",
 				slog.Any("error", models.ErrCtxValueNotFound),
 			)
@@ -280,16 +288,8 @@ func HandleListSubscriptionsUpdates(svc SubscriptionsService) http.HandlerFunc {
 			return
 		}
 
-		// Update subscription dynamic info.
-		if err := service.UpdateSubscriptionDynamicInfo(req.Context(), subscriptions); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Update subscription dynamic info failed.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
 		// Apply all base filtering and sorting.
-		subscriptions = subscriptions.
+		subscriptions := allSubscriptions.
 			FilterByView(filters.GetView()).
 			FilterByCategories(filters.GetCategories()...).
 			FilterByIDs(filters.GetSubscriptions()...)
@@ -1146,7 +1146,7 @@ func HandleSuggestSubscriptionForSearch(svc SubscriptionsService) http.HandlerFu
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := service.GetSubscriptionSuggestions(
+		subscriptions, err := svc.GetSubscriptionSuggestions(
 			req.Context(),
 			request.Text,
 			10,
