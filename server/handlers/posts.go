@@ -48,40 +48,24 @@ type PostsIndex struct {
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := templates.PageTitle{
-		Summary:     "Blog",
-		Description: "RSS Reader Tips, Guides and Comparisons",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "Blog",
+			Description: "RSS Reader Tips, Guides and Comparisons",
+		},
+		Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
+		Path:        "/blog",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	description := "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms."
-	indexOG := opengraph.NewWebSite(
-		title.String(),
-		config.GetBaseURL()+"/blog",
-		description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	indexJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+"/blog",
-		title.Summary,
-		title.String(),
-		description,
-		"",
-		"RSS,Atom,JSONFeed,IndieWeb",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
 	templ.Handler(templates.CreatePage(
 		templates.PostsIndex(p.posts),
-		templates.WithPageTitle(title),
-		templates.WithPageDescription(description),
-		templates.WithCanonicalLink(config.GetBaseURL()+"/blog"),
-		templates.WithOpenGraphMetadata(indexOG),
+		templates.WithPageTitle(metadata.Title),
+		templates.WithPageDescription(metadata.Description),
+		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
+		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
 		templates.WithJSONLDSchema(
-			websiteJsonLd,
-			indexJsonLd,
+			generateSiteJSONLD(req),
+			metadata.JSONLD(req),
 		),
 	),
 	).ServeHTTP(res, req)
@@ -112,11 +96,13 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Blog",
 		Date:        p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 	}
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
 	postOG := opengraph.NewArticle(
 		title.String(),
-		config.GetBaseURL()+"/blog/"+p.Frontmatter.Slug,
+		baseURL.JoinPath("blog", p.Frontmatter.Slug).String(),
 		p.Frontmatter.Description,
-		config.GetBaseURL()+*p.Frontmatter.Image,
+		baseURL.JoinPath(*p.Frontmatter.Image).String(),
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
 		"",
@@ -126,7 +112,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)
 	postJsonLd := schemaorg.NewArticle(
 		title.String(),
-		[]string{config.GetBaseURL() + *p.Frontmatter.Image},
+		[]string{baseURL.JoinPath(*p.Frontmatter.Image).String()},
 		nil,
 		nil,
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
@@ -137,10 +123,10 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.Post(p.File),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(config.GetBaseURL()+"/blog/"+p.Frontmatter.Slug),
+		templates.WithCanonicalLink(baseURL.JoinPath("blog", p.Frontmatter.Slug).String()),
 		templates.WithOpenGraphMetadata(postOG),
 		templates.WithJSONLDSchema(
-			websiteJsonLd,
+			generateSiteJSONLD(req),
 			postJsonLd,
 		),
 	)).ServeHTTP(res, req.WithContext(ctx))

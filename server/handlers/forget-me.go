@@ -10,10 +10,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/indaco/teseo/opengraph"
-	"github.com/indaco/teseo/schemaorg"
-
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
@@ -23,38 +19,23 @@ import (
 type ForgetMe struct{}
 
 func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := templates.PageTitle{
-		Summary:     "Forget Me Request",
-		Description: "Request removal of your account and personal data",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "Forget Me Request",
+			Description: "Request removal of your account and personal data",
+		},
+		Description: "Request deletion of your account and personal data.",
+		Path:        "/forget-me",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	description := "Request deletion of your account and personal data."
-	forgetMeOG := opengraph.NewWebSite(
-		title.String(),
-		config.GetBaseURL()+"/forget-me",
-		description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	forgetMeJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+"/forget-me",
-		title.Summary,
-		title.String(),
-		title.Description,
-		"",
-		"",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
 	templ.Handler(templates.CreatePage(templates.ForgetMe(),
-		templates.WithPageTitle(title),
-		templates.WithPageDescription(description),
-		templates.WithOpenGraphMetadata(forgetMeOG),
+		templates.WithPageTitle(metadata.Title),
+		templates.WithPageDescription(metadata.Description),
+		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
+		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
 		templates.WithJSONLDSchema(
-			websiteJsonLd,
-			forgetMeJsonLd,
+			generateSiteJSONLD(req),
+			metadata.JSONLD(req),
 		),
 	)).ServeHTTP(res, req)
 }

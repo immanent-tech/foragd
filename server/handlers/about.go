@@ -7,10 +7,6 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/indaco/teseo/opengraph"
-	"github.com/indaco/teseo/schemaorg"
-
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -24,40 +20,26 @@ func (p *About) FullResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleAbout() http.HandlerFunc {
-	title := templates.PageTitle{
-		Summary:     "About",
-		Description: "Why I built Foragd",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "About",
+			Description: "Why I built Foragd",
+		},
+		Description: "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd.",
+		Path:        "/about",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	description := "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd."
-	aboutOG := opengraph.NewWebSite(
-		title.String(),
-		config.GetBaseURL()+"/about",
-		description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	aboutJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+"/about",
-		title.Summary,
-		title.Description,
-		description,
-		"",
-		"",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
-	return RenderExternalPage(&About{
-		template: templates.CreatePage(templates.About(),
-			templates.WithPageTitle(title),
-			templates.WithPageDescription(description),
-			templates.WithOpenGraphMetadata(aboutOG),
-			templates.WithJSONLDSchema(
-				websiteJsonLd,
-				aboutJsonLd,
+	return func(res http.ResponseWriter, req *http.Request) {
+		RenderExternalPage(&About{
+			template: templates.CreatePage(templates.About(),
+				templates.WithPageTitle(metadata.Title),
+				templates.WithPageDescription(metadata.Description),
+				templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+				templates.WithJSONLDSchema(
+					generateSiteJSONLD(req),
+					metadata.JSONLD(req),
+				),
 			),
-		),
-	})
+		}).ServeHTTP(res, req)
+	}
 }

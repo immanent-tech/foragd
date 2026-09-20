@@ -11,13 +11,10 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/indaco/teseo/opengraph"
-	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 
 	"github.com/immanent-tech/foragd/web"
@@ -37,45 +34,29 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 	caser := cases.Title(language.English)
 
 	// Generate a page title and description.
-	title := templates.PageTitle{
-		Summary:     p.text.Frontmatter.Description,
-		Description: p.text.Frontmatter.Description,
-		Date:        p.text.Frontmatter.CreatedAt,
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     p.text.Frontmatter.Description,
+			Description: p.text.Frontmatter.Description,
+			Date:        p.text.Frontmatter.CreatedAt,
+		},
+		Description: "A detailed comparison of Foragd and " + caser.String(
+			p.text.Frontmatter.Slug,
+		) + " covering pricing, features, and which is best for different use cases.",
+		Path:      req.URL.Path,
+		ImagePath: "/content/logo-vertical-light.webp",
 	}
-	description := "A detailed comparison of Foragd and " + caser.String(
-		p.text.Frontmatter.Slug,
-	) + " covering pricing, features, and which is best for different use cases."
-	compareOG := opengraph.NewWebSite(
-		title.String(),
-		config.GetBaseURL()+req.URL.String(),
-		description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	compareJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+req.URL.String(),
-		title.Summary,
-		title.Description,
-		description,
-		"",
-		"",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
 
 	// Render appropriate content.
 	templ.Handler(
 		templates.CreatePage(templates.Comparison(p.text),
-			templates.WithPageTitle(title),
-			templates.WithPageDescription(description),
-			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
-			templates.WithOpenGraphMetadata(compareOG),
+			templates.WithPageTitle(metadata.Title),
+			templates.WithPageDescription(metadata.Description),
+			templates.WithCanonicalLink(metadata.CanonicalLink(req)),
+			templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
 			templates.WithJSONLDSchema(
-				websiteJsonLd,
-				compareJsonLd,
+				generateSiteJSONLD(req),
+				metadata.JSONLD(req),
 			),
 		),
 	).ServeHTTP(res, req)

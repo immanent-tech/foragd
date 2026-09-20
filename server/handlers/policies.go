@@ -51,6 +51,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 		policyFile := polices[idx]
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+
 		title := templates.PageTitle{
 			Summary:     policyFile.Frontmatter.Title,
 			Description: "Service Policy",
@@ -84,7 +85,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 			templates.WithPageDescription(policyFile.Frontmatter.Description),
 			templates.WithOpenGraphMetadata(policyOG),
 			templates.WithJSONLDSchema(
-				websiteJsonLd,
+				generateSiteJSONLD(req),
 				policyJsonLd,
 			),
 		)

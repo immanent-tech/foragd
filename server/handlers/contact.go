@@ -9,10 +9,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/indaco/teseo/opengraph"
-	"github.com/indaco/teseo/schemaorg"
-
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
@@ -22,37 +18,23 @@ import (
 type Contact struct{}
 
 func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
-	title := templates.PageTitle{
-		Summary:     "Contact",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "Contact",
+			Description: "Contact the developers of Foragd.",
+		},
 		Description: "Contact the developers of Foragd.",
+		Path:        "/contact",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	contactOG := opengraph.NewWebSite(
-		title.String(),
-		config.GetBaseURL()+"/contact",
-		title.Description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	contactJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+"/contact",
-		title.Summary,
-		title.Description,
-		title.Description,
-		"",
-		"",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
 	templ.Handler(templates.CreatePage(templates.Contact(),
-		templates.WithPageTitle(title),
-		templates.WithPageDescription(title.Description),
-		templates.WithOpenGraphMetadata(contactOG),
+		templates.WithPageTitle(metadata.Title),
+		templates.WithPageDescription(metadata.Description),
+		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
+		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
 		templates.WithJSONLDSchema(
-			websiteJsonLd,
-			contactJsonLd,
+			generateSiteJSONLD(req),
+			metadata.JSONLD(req),
 			orgJsonLd,
 		),
 	)).ServeHTTP(res, req)

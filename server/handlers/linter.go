@@ -17,12 +17,9 @@ import (
 	"syscall"
 
 	"github.com/a-h/templ"
-	"github.com/indaco/teseo/opengraph"
-	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-syndication/linter"
 
 	"github.com/immanent-tech/foragd/models"
@@ -34,41 +31,25 @@ type Linter struct {
 }
 
 func (p *Linter) FullResponse(res http.ResponseWriter, req *http.Request) {
-	p.title = templates.PageTitle{
-		Summary:     "Free RSS Feed Linter",
-		Description: "Lint Any Website's Feed to check for validation errors and recommendations",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "Free RSS Feed Linter",
+			Description: "Lint Any Website's Feed to check for validation errors and recommendations",
+		},
+		Description: "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
+		Path:        "/linter",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	description := "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility"
-	viewerOG := opengraph.NewWebSite(
-		p.title.String(),
-		config.GetBaseURL()+"/linter",
-		description,
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-	)
-	viewerJsonLd := schemaorg.NewWebPage(
-		config.GetBaseURL()+"/linter",
-		p.title.Summary,
-		p.title.Description,
-		description,
-		"",
-		"RSS,Atom,JSONFeed,Feed",
-		"en",
-		config.GetBaseURL(),
-		"",
-		config.GetBaseURL()+"/content/logo-vertical-light.webp",
-		"",
-		"",
-	)
-
 	templ.Handler(
 		templates.CreatePage(
 			templates.Linter(),
-			templates.WithPageTitle(p.title),
-			templates.WithPageDescription(description),
-			templates.WithOpenGraphMetadata(viewerOG),
+			templates.WithPageTitle(metadata.Title),
+			templates.WithPageDescription(metadata.Description),
+			templates.WithCanonicalLink(metadata.CanonicalLink(req)),
+			templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
 			templates.WithJSONLDSchema(
-				websiteJsonLd,
-				viewerJsonLd,
+				generateSiteJSONLD(req),
+				metadata.JSONLD(req),
 			),
 		),
 	).ServeHTTP(res, req)

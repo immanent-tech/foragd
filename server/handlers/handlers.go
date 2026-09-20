@@ -14,9 +14,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-base/server/forms"
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
 	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 type Route = string
@@ -120,3 +123,69 @@ func decodeMultipartFile(req *http.Request, field string) (*models.FileUpload, e
 // PostHandlerHook is a function that can be run after a handler has done its main processing. Used mainly to perform
 // route-specific or other conditional logic without complicating the handler code.
 type PostHandlerHook func(res http.ResponseWriter, req *http.Request) error
+
+type pageMetadata struct {
+	Title       templates.PageTitle
+	Description string
+	Path        string
+	ImagePath   string
+}
+
+func (m pageMetadata) CanonicalLink(req *http.Request) string {
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
+	return baseURL.JoinPath(m.Path).String()
+}
+
+func (m pageMetadata) OpengraphData(req *http.Request) *opengraph.WebSite {
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
+	return opengraph.NewWebSite(
+		m.Title.String(),
+		baseURL.JoinPath(m.Path).String(),
+		m.Description,
+		baseURL.JoinPath(m.ImagePath).String(),
+	)
+}
+
+func (m pageMetadata) JSONLD(req *http.Request) *schemaorg.WebPage {
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
+	return schemaorg.NewWebPage(
+		baseURL.JoinPath(m.Path).String(),
+		m.Title.Summary,
+		m.Title.Description,
+		m.Description,
+		"",
+		"",
+		"en",
+		baseURL.String(),
+		"",
+		baseURL.JoinPath(m.ImagePath).String(),
+		"",
+		"",
+	)
+}
+
+func generateSiteJSONLD(req *http.Request) *schemaorg.WebSite {
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
+	return schemaorg.NewWebSite(
+		baseURL.String(),
+		"Foragd",
+		"Foragd RSS and Atom Feed Reader",
+		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
+		nil,
+	)
+}
+
+func generateSiteOG(req *http.Request) *opengraph.WebSite {
+	baseURL := req.URL.Clone()
+	baseURL.Path = "/"
+	return opengraph.NewWebSite(
+		"Foragd",
+		baseURL.String(),
+		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
+		baseURL.JoinPath("/content/logo-vertical-light.webp").String(),
+	)
+}

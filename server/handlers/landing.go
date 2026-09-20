@@ -7,10 +7,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/indaco/teseo/opengraph"
 	"github.com/indaco/teseo/schemaorg"
-
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -27,42 +24,32 @@ var orgJsonLd = schemaorg.NewOrganization(
 	sameAs,
 )
 
-// JSON-LD schema for the landing page.
-var websiteJsonLd = schemaorg.NewWebSite(
-	config.GetBaseURL(),
-	config.GetAppName(),
-	config.GetAppName()+" RSS and Atom Feed Reader",
-	"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
-	nil,
-)
-
-// Opengraph schema for the landing page.
-var websiteOg = opengraph.NewWebSite(
-	config.GetAppName(),
-	config.GetBaseURL(),
-	"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
-	config.GetBaseURL()+"/content/logo-vertical-light.webp",
-)
-
 type Landing struct {
 	template templ.Component
 }
 
 func HandleLanding() http.HandlerFunc {
-	title := templates.PageTitle{
-		Summary:     "RSS and Atom Feed Reader",
-		Description: "View RSS, Atom and other syndicated content in your browser",
+	metadata := &pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "RSS and Atom Feed Reader",
+			Description: "View RSS, Atom and other syndicated content in your browser",
+		},
+		Description: "Foragd is a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place.",
+		Path:        "/",
+		ImagePath:   "/content/logo-vertical-light.webp",
 	}
-	return RenderExternalPage(&Landing{
-		template: templates.CreatePage(templates.Landing(),
-			templates.WithPageTitle(title),
-			templates.WithOpenGraphMetadata(websiteOg),
-			templates.WithJSONLDSchema(
-				websiteJsonLd,
-				orgJsonLd,
+	return func(res http.ResponseWriter, req *http.Request) {
+		RenderExternalPage(&Landing{
+			template: templates.CreatePage(templates.Landing(),
+				templates.WithPageTitle(metadata.Title),
+				templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+				templates.WithJSONLDSchema(
+					generateSiteJSONLD(req),
+					orgJsonLd,
+				),
 			),
-		),
-	})
+		}).ServeHTTP(res, req)
+	}
 }
 
 func (p *Landing) FullResponse(res http.ResponseWriter, req *http.Request) {
