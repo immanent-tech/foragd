@@ -23,50 +23,6 @@ import (
 	"time"
 )
 
-var featureGroups = []partials.ListItemJSONLD{
-	partials.ListItemJSONLD{
-		Name: "Collect",
-		Description: `Collect everything from one place. Add any website, blog, YouTube channel, Reddit
-	subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
-	of tabs or missing posts because an algorithm buried them.`,
-		URL: config.GetBaseURL() + "/features/collect",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-collect-feature.webp",
-			"Image representing the grouped collect features of Foragd",
-			1200,
-			680,
-		),
-	},
-	partials.ListItemJSONLD{
-		Name: "Curate",
-		Description: `Organise your feeds your way. Group subscriptions into a single unified feed.
-	Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
-	in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
-	algorithm, no sponsored suggestions.`,
-		URL: config.GetBaseURL() + "/features/curate",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-curate-feature.webp",
-			"Image representing the grouped curate features of Foragd",
-			1200,
-			680,
-		),
-	},
-	partials.ListItemJSONLD{
-		Name: "Consume",
-		Description: `Read without distractions. Foragd can fetch the full
-	article text directly from the source, so you get clean, readable content even when a site
-	only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
-	mean the content always comes first. Save articles to read later, or share them with a link.`,
-		URL: config.GetBaseURL() + "/features/consume",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-consume-feature.webp",
-			"Image representing the grouped consume features of Foragd",
-			1200,
-			680,
-		),
-	},
-}
-
 func collectFeaturesList() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -394,7 +350,7 @@ func FeaturesPageCollect() templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(`@TED`)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 304, Col: 16}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 260, Col: 16}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -1451,7 +1407,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var43 string
 						templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.ResolveAttributeValue(time.Now().Format("2006-01-02T15:04:05-0700"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1137, Col: 65}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1093, Col: 65}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var43)
 						if templ_7745c5c3_Err != nil {
@@ -1464,7 +1420,7 @@ func FeaturesPageConsume() templ.Component {
 						var templ_7745c5c3_Var44 string
 						templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Jan _2, 2006"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1141, Col: 44}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1097, Col: 44}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 						if templ_7745c5c3_Err != nil {
@@ -1804,7 +1760,7 @@ func featurePanel(id string) templ.Component {
 		var templ_7745c5c3_Var53 string
 		templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.ResolveAttributeValue(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1279, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1235, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var53)
 		if templ_7745c5c3_Err != nil {
@@ -1854,7 +1810,7 @@ func featureTitle(title string) templ.Component {
 		var templ_7745c5c3_Var55 string
 		templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1285, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/features.templ`, Line: 1241, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 		if templ_7745c5c3_Err != nil {

@@ -14,50 +14,6 @@ import (
 	"time"
 )
 
-var featureGroups = []partials.ListItemJSONLD{
-	partials.ListItemJSONLD{
-		Name: "Collect",
-		Description: `Collect everything from one place. Add any website, blog, YouTube channel, Reddit
-	subreddit, or email newsletter easily. Foragd does the heavy lifting of find feeds for you. No more checking dozens
-	of tabs or missing posts because an algorithm buried them.`,
-		URL: config.GetBaseURL() + "/features/collect",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-collect-feature.webp",
-			"Image representing the grouped collect features of Foragd",
-			1200,
-			680,
-		),
-	},
-	partials.ListItemJSONLD{
-		Name: "Curate",
-		Description: `Organise your feeds your way. Group subscriptions into a single unified feed.
-	Search across every article you've ever received. Then save it as a subscription to follow new articles as they come
-	in. Filter out articles you aren't interested in with easy text-based options. You're in control, no
-	algorithm, no sponsored suggestions.`,
-		URL: config.GetBaseURL() + "/features/curate",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-curate-feature.webp",
-			"Image representing the grouped curate features of Foragd",
-			1200,
-			680,
-		),
-	},
-	partials.ListItemJSONLD{
-		Name: "Consume",
-		Description: `Read without distractions. Foragd can fetch the full
-	article text directly from the source, so you get clean, readable content even when a site
-	only publishes a summary in its feed. It has beautiful typography, theme support, and no ads
-	mean the content always comes first. Save articles to read later, or share them with a link.`,
-		URL: config.GetBaseURL() + "/features/consume",
-		Image: element.NewImg(
-			config.GetBaseURL()+"/content/images/foragd-consume-feature.webp",
-			"Image representing the grouped consume features of Foragd",
-			1200,
-			680,
-		),
-	},
-}
-
 templ collectFeaturesList() {
 	<div class="card-body">
 		<div class="text-xs font-semibold tracking-widest text-primary/80 uppercase">
