@@ -4,9 +4,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -91,11 +94,19 @@ type Post struct {
 
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := templx.WithSlot(
-		req.Context(),
-		templates.HeaderSlot,
-		partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), *p.JsonLD),
-	)
+	ctx := req.Context()
+	if jsonLD, err := generatePostJSONLD(req.URL, &p.Frontmatter); err != nil {
+		slogctx.Warn(ctx, "Could not generate JSON-LD for post.",
+			slog.String("post", p.Frontmatter.Title),
+			slog.Any("error", err),
+		)
+	} else {
+		ctx = templx.WithSlot(
+			req.Context(),
+			templates.HeaderSlot,
+			partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), jsonLD),
+		)
+	}
 	title := templates.PageTitle{
 		Summary:     p.Frontmatter.PageTitle,
 		Description: "Blog",
@@ -263,4 +274,41 @@ func HandlePostsFeed() http.HandlerFunc {
 		}
 		res.Write(data)
 	}
+}
+
+func generatePostJSONLD(postURL *url.URL, frontmatter *markdownx.FrontMatter) (json.RawMessage, error) {
+	baseURL := postURL.Clone()
+	baseURL.Path = "/"
+	data := map[string]any{
+		"@context":      "https://schema.org",
+		"@type":         "Article",
+		"headline":      frontmatter.Title,
+		"description":   frontmatter.Description,
+		"datePublished": frontmatter.GetCreatedDate(),
+		"dateModified":  frontmatter.GetUpdatedDate(),
+		"author": map[string]any{
+			"@type": "Person",
+			"name":  frontmatter.Author,
+		},
+		"publisher": map[string]any{
+			"@type": "Organization",
+			"name":  "Foragd",
+			"url":   baseURL.String(),
+		},
+		"mainEntityOfPage": map[string]any{
+			"@type": "WebPage",
+			"@id":   postURL.String(),
+		},
+	}
+	if frontmatter.Image != nil {
+		imgURL := postURL.Clone()
+		imgURL.Path = *frontmatter.Image
+		data["image"] = imgURL.String()
+	}
+
+	jsonLD, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("marshal frontmatter: %w", err)
+	}
+	return jsonLD, nil
 }
