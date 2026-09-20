@@ -10,8 +10,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 	"github.com/immanent-tech/foragd/providers/elastic/templates"
 )
@@ -615,7 +613,6 @@ var (
 
 	// defaultMetadata defines default metadata.
 	defaultMetadata = types.Metadata{
-		"version":    json.RawMessage(fmt.Sprintf("%q", config.GetVersion())),
-		"created_at": json.RawMessage(fmt.Sprintf("%q", time.Now().UTC().String())),
+		"updated_at": json.RawMessage(fmt.Sprintf("%q", time.Now().UTC().String())),
 	}
 )
