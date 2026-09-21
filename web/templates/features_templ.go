@@ -386,7 +386,7 @@ func FeaturesPageCollect() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -559,7 +559,7 @@ func FeaturesPageCollect() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -585,7 +585,7 @@ func FeaturesPageCollect() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -810,7 +810,7 @@ func FeaturesPageCurate() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var23), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var23), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -873,7 +873,7 @@ func FeaturesPageCurate() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -899,7 +899,7 @@ func FeaturesPageCurate() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1064,7 +1064,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1116,7 +1116,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1142,7 +1142,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1202,7 +1202,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1228,7 +1228,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1678,7 +1678,7 @@ func FeaturesPageConsume() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.BrowserWindow(config.GetBaseURL()).Render(templ.WithChildren(ctx, templ_7745c5c3_Var51), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.BrowserWindow("https://foragd.app").Render(templ.WithChildren(ctx, templ_7745c5c3_Var51), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

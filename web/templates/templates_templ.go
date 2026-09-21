@@ -81,7 +81,7 @@ func (t PageTitle) String() string {
 		title.WriteString(")")
 	}
 	title.WriteString(" | ")
-	title.WriteString(config.GetAppName())
+	title.WriteString("Foragd")
 	return title.String()
 }
 
@@ -155,7 +155,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		ctx = templ.ClearChildren(ctx)
 		p := &Page{
 			Component: template,
-			Title:     config.GetAppName(),
+			Title:     "Foragd",
 		}
 
 		for option := range slices.Values(options) {
