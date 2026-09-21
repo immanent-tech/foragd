@@ -17,6 +17,8 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/auth0/go-auth0/v2/authentication"
+	"github.com/go-resty/resty/v2"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
@@ -87,13 +89,15 @@ var initAuthenticator = sync.OnceValue(func() error {
 })
 
 // postToken sends a POST request to the Auth0 token endpoint and decodes the response.
-func (a *Authenticator) postToken(ctx context.Context, form url.Values) (*TokenResponse, error) {
-	client := loadHTTPClient()
-
+func (a *Authenticator) postToken(
+	ctx context.Context,
+	httpClient *resty.Client,
+	form url.Values,
+) (*TokenResponse, error) {
 	var token TokenResponse
 	var errResult authentication.Error
 
-	switch resp, err := client.R().
+	switch resp, err := httpClient.R().
 		SetContext(ctx).
 		SetFormDataFromValues(form).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
@@ -145,7 +149,7 @@ func Exchange(ctx context.Context, code, verifier string) (*TokenResponse, *User
 }
 
 // RefreshTokens exchanges a refresh token for a new set of tokens.
-func RefreshTokens(ctx context.Context, refreshToken string) (*TokenResponse, error) {
+func RefreshTokens(ctx context.Context, httpClient *resty.Client, refreshToken string) (*TokenResponse, error) {
 	if err := initAuthenticator(); err != nil {
 		return nil, fmt.Errorf("init authenticator: %w", err)
 	}
@@ -155,7 +159,7 @@ func RefreshTokens(ctx context.Context, refreshToken string) (*TokenResponse, er
 	form.Set("client_secret", authClient.Config.ClientSecret)
 	form.Set("refresh_token", refreshToken)
 
-	return authClient.postToken(ctx, form)
+	return authClient.postToken(ctx, httpClient, form)
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.

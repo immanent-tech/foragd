@@ -10,17 +10,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"sync"
 	"time"
-
-	"github.com/go-resty/resty/v2"
-
-	"github.com/immanent-tech/go-base/config"
 )
-
-var loadHTTPClient = sync.OnceValue(func() *resty.Client {
-	return resty.New().SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion())
-})
 
 func init() {
 	gob.Register(UserProfile{})
