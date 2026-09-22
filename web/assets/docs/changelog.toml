@@ -1,4 +1,30 @@
 [[releases]]
+version = "v0.235"
+date = "Sep 23, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+In some rare cases, an OPML import will fail because of misbehaving servers when fetching feed details. This has been fixed.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+When importing via OPML, the results page will show more specific reasons for feeds failing to import.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Subscription dynamic info, like unread counts and last updated is now calculated just in time, and results are cached. This should result in less chance of seeing stale subscription info.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Behind the scenes, the app keeps track of the pages you browse, which should make actions like back buttons work more smoothly.
+"""
+
+[[releases]]
 version = "v0.234"
 date = "Sep 18, 2026"
 type = "minor"
