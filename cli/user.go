@@ -58,7 +58,7 @@ func (c *DeleteUserCmd) Run() error {
 	}
 
 	if err := userSvc.DeleteUser(ctx, user); err != nil {
-		fmt.Errorf("delete user: %w", err)
+		return fmt.Errorf("delete user: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Info("Deleted user.",
