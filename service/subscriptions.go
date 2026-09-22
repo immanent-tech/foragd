@@ -117,7 +117,7 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *UserSubscriptions]{
 				MaximumSize:      100,
-				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *UserSubscriptions](60 * time.Second),
+				ExpiryCalculator: otter.ExpiryAccessing[models.UserID, *UserSubscriptions](time.Hour),
 			},
 		),
 		store: svc,
@@ -172,7 +172,7 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 					}
 				}
 
-				slogctx.FromCtx(ctx).Debug("Created subscriptions cache for user.",
+				slogctx.Debug(ctx, "Created subscriptions cache for user.",
 					slog.Duration("took", time.Since(start)))
 
 				return &UserSubscriptions{
