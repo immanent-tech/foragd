@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.235.0](https://github.com/immanent-tech/foragd/compare/v0.234.0...v0.235.0) (2026-09-22)
+
+
+### Features
+
+* ✨ use breadcrumbs middleware for managing back navigation ([a36252a](https://github.com/immanent-tech/foragd/commit/a36252a4d2fc383b1882385f0579075a07e02dce))
+
+
+### Bug Fixes
+
+* 🔧 fix view articles ([4ebbb45](https://github.com/immanent-tech/foragd/commit/4ebbb45a6cb63236d2814b3f803998fba2a87f14))
+* **cli:** 🔧 fix missing return ([fe5cc89](https://github.com/immanent-tech/foragd/commit/fe5cc895f874a2619583b3730f1d9d6a1bc2ef76))
+* **handlers/sitemap:** 🔧 remove redundant return ([69d358d](https://github.com/immanent-tech/foragd/commit/69d358db451972291efa0b8a0e9379c8bcc937c9))
+* **scheduler:** ♻️ fix job management ([ee90516](https://github.com/immanent-tech/foragd/commit/ee90516f2f95a0108c471181c6c63f307bedcde0))
+* **service/feeds:** 🔧 better error handling when fetching feeds ([d46c11b](https://github.com/immanent-tech/foragd/commit/d46c11bb3fcdee4ca432ae3b2d8b26330e3520aa))
+* **service/subscriptions:** 🔧 fix cache logic when user has no subscriptions ([84b7394](https://github.com/immanent-tech/foragd/commit/84b7394ea34f5111559a44af98b6506f54159c22))
+
+
+### Performance Improvements
+
+* **handlers:** ⚡ always update subscription dynamic information ([cb9a515](https://github.com/immanent-tech/foragd/commit/cb9a51552fa2932462bc0bddee4a2fb094a6cd4a))
+* **service/subscriptions:** ⚡ adjust user subscription cache access expiry ([49642c7](https://github.com/immanent-tech/foragd/commit/49642c7e6b52b356cebf34f2fab0f806ced8da37))
+* **service/subscriptions:** ⚡ define cache expiry ([e991aec](https://github.com/immanent-tech/foragd/commit/e991aec899806a1f0a1a1b9a2b8f3f3490fa80d3))
+
 ## [0.234.0](https://github.com/immanent-tech/foragd/compare/v0.233.0...v0.234.0) (2026-09-18)
 
 
