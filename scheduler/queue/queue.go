@@ -18,10 +18,10 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -44,10 +44,10 @@ var (
 	ErrClearJobs            = errors.New("clearing jobs failed")
 )
 
-// JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the
-// persistence layer.
+// JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the persistence layer.
 type JobQueue struct {
-	logger *slog.Logger
+	logger  *slog.Logger
+	backend *service.ElasticService
 }
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
@@ -55,8 +55,13 @@ var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
+	store, err := service.LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
 	return &JobQueue{
-		logger: slogctx.FromCtx(ctx),
+		logger:  slogctx.FromCtx(ctx),
+		backend: store,
 	}, nil
 }
 
@@ -78,7 +83,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	if err := elastic.UpdateDoc(
 		ctx,
-		schema.SchedulerIndexRW(),
+		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		serialized,
 		elastic.WithDocAsUpsert(true),
@@ -114,7 +119,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	defer cancel()
 
 	resp, err := elastic.Search[*jobs.SerializedJob](ctx,
-		schema.SchedulerIndexRO(),
+		jq.backend.GetIndexRO(service.ScheduleIndex),
 		elastic.WithSize(1),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
@@ -141,7 +146,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	// Fetch the job from the cache, loading from the backend if needed.
 	job, err := elastic.GetDoc[string, *jobs.SerializedJob](
 		ctx,
-		schema.SchedulerIndexRO(),
+		jq.backend.GetIndexRO(service.ScheduleIndex),
 		jobKey.String(),
 	)
 	if err != nil {
@@ -182,7 +187,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 	allJobs, err := elastic.SearchAll[*jobs.SerializedJob](
 		ctx,
-		schema.SchedulerIndexRO(),
+		jq.backend.GetIndexRO(service.ScheduleIndex),
 		query.MatchAll(),
 		5000,
 	)
@@ -208,7 +213,7 @@ func (jq *JobQueue) Size() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	count, err := elastic.Count(ctx, schema.SchedulerIndexRO(), query.MatchAll())
+	count, err := elastic.Count(ctx, jq.backend.GetIndexRO(service.ScheduleIndex), query.MatchAll())
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -221,7 +226,7 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW(), query.MatchAll()); err != nil {
+	if err := elastic.DeleteDocs(ctx, jq.backend.GetIndexRW(service.ScheduleIndex), query.MatchAll()); err != nil {
 		return fmt.Errorf("%w: delete docs: %w", ErrClearJobs, err)
 	}
 
@@ -232,7 +237,7 @@ func (jq *JobQueue) Clear() error {
 func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) error {
 	if err := elastic.DeleteDoc(
 		ctx,
-		schema.SchedulerIndexRW(),
+		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.GetID(),
 		elastic.WithDeleteSeqNo(*job.SeqNo),
 		elastic.WithDeletePrimaryTerm(*job.PrimaryTerm),

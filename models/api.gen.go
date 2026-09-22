@@ -6,8 +6,11 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/go-base/config"
+	"github.com/oapi-codegen/runtime"
 )
 
 // Defines values for SearchRequestPublishedWithin.
@@ -95,6 +98,12 @@ type AddSubscriptionToSearchRequest struct {
 	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
 }
 
+// AndroidCheckout contains data for checking out a Android subscription.
+type AndroidCheckout struct {
+	// SKU is the plan SKU.
+	SKU string `json:"sku" validate:"required"`
+}
+
 // BulkMarkArticlesRequest contains data for bulk marking articles.
 type BulkMarkArticlesRequest struct {
 	// Confirmed indicates the user confirmation.
@@ -111,6 +120,21 @@ type BulkMarkSubscriptionsRequest struct {
 
 	// Subscriptions is the list of subscription IDs
 	Subscriptions []SubscriptionID `form:"selected_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
+}
+
+// CheckoutRequest contains data for a subscription checkout.
+type CheckoutRequest struct {
+	BaseURL          *url.URL                         `json:"base_url"`
+	Environment      config.Environment               `json:"environment"`
+	SubscriptionData CheckoutRequest_SubscriptionData `json:"subscription_data"`
+
+	// UserSubscriptionType is the type of subscription the user has purchased.
+	UserSubscriptionType UserSubscriptionType `json:"subscription_type" validate:"omitempty,oneof=paddle android"`
+}
+
+// CheckoutRequest_SubscriptionData defines model for CheckoutRequest.SubscriptionData.
+type CheckoutRequest_SubscriptionData struct {
+	union json.RawMessage
 }
 
 // ConfirmRequest contains a value indicating whether a user has confirmed a destructive request.
@@ -230,6 +254,15 @@ type ListSubscriptionsResponse struct {
 	Subscriptions Subscriptions `json:"subscriptions"`
 }
 
+// PaddleCheckout contains data for checking out a Paddle subscription.
+type PaddleCheckout struct {
+	// PlanID is the plan ID.
+	PlanID string `json:"plan_id" validate:"required"`
+
+	// TransactionID is the transaction ID for this checkout session.
+	TransactionID *string `json:"transaction_id,omitempty"`
+}
+
 // ReportIssueRequest contains details about an issue with the service.
 type ReportIssueRequest struct {
 	// Details is the user-submitted text about the issue.
@@ -311,7 +344,11 @@ type SearchResults struct {
 // ShowArticleResponse contains the data for showing an article.
 type ShowArticleResponse struct {
 	// Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
-	Article Article `json:"article"`
+	Article Article  `json:"article"`
+	BaseURL *url.URL `json:"base_url"`
+
+	// Filters contains filters for altering the display of a list of subscriptions or articles.
+	Filters ListFilters `json:"filters" validate:"required"`
 }
 
 // SuggestFeedsRequest contains data for discovering new feeds.
@@ -436,4 +473,66 @@ func (a APIError) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// AsPaddleCheckout returns the union data inside the CheckoutRequest_SubscriptionData as a PaddleCheckout
+func (t CheckoutRequest_SubscriptionData) AsPaddleCheckout() (PaddleCheckout, error) {
+	var body PaddleCheckout
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPaddleCheckout overwrites any union data inside the CheckoutRequest_SubscriptionData as the provided PaddleCheckout
+func (t *CheckoutRequest_SubscriptionData) FromPaddleCheckout(v PaddleCheckout) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePaddleCheckout performs a merge with any union data inside the CheckoutRequest_SubscriptionData, using the provided PaddleCheckout
+func (t *CheckoutRequest_SubscriptionData) MergePaddleCheckout(v PaddleCheckout) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAndroidCheckout returns the union data inside the CheckoutRequest_SubscriptionData as a AndroidCheckout
+func (t CheckoutRequest_SubscriptionData) AsAndroidCheckout() (AndroidCheckout, error) {
+	var body AndroidCheckout
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAndroidCheckout overwrites any union data inside the CheckoutRequest_SubscriptionData as the provided AndroidCheckout
+func (t *CheckoutRequest_SubscriptionData) FromAndroidCheckout(v AndroidCheckout) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAndroidCheckout performs a merge with any union data inside the CheckoutRequest_SubscriptionData, using the provided AndroidCheckout
+func (t *CheckoutRequest_SubscriptionData) MergeAndroidCheckout(v AndroidCheckout) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CheckoutRequest_SubscriptionData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CheckoutRequest_SubscriptionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }

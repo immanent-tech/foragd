@@ -14,9 +14,11 @@ import (
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 )
+
+type UserService interface {
+	AddUser(ctx context.Context, user *models.User) error
+}
 
 // UserProfile represents the data returned from the auth0 backend that represents an authorised user.
 //
@@ -106,7 +108,7 @@ func DeleteUser(ctx context.Context, id string) error {
 }
 
 // CreateUserFromProfileData creates a new user from the external provider details.
-func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*models.User, error) {
+func CreateUserFromProfileData(ctx context.Context, userSvc UserService, profile *UserProfile) (*models.User, error) {
 	auth0User, err := GetUser(ctx, profile.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("get user details: %w", err)
@@ -142,8 +144,8 @@ func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*mode
 		user.Metadata.PoliciesAccepted = accepted
 	}
 
-	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW(), user.GetID(), user); err != nil {
-		return nil, fmt.Errorf("create user: %w", err)
+	if err := userSvc.AddUser(ctx, user); err != nil {
+		return nil, fmt.Errorf("add user: %w", err)
 	}
 
 	return user, nil

@@ -15,10 +15,26 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type Contact struct{}
+type Contact struct {
+	pageMetadata
+}
 
 func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
+	templ.Handler(templates.CreatePage(templates.Contact(),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
+		templates.WithJSONLDSchema(
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
+			orgJsonLd,
+		),
+	)).ServeHTTP(res, req)
+}
+
+func HandleContact(appCfg AppConfig) http.HandlerFunc {
+	return RenderExternalPage(&Contact{
 		Title: templates.PageTitle{
 			Summary:     "Contact",
 			Description: "Contact the developers of Foragd.",
@@ -26,22 +42,8 @@ func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Contact the developers of Foragd.",
 		Path:        "/contact",
 		ImagePath:   "/content/logo-vertical-light.webp",
-	}
-	templ.Handler(templates.CreatePage(templates.Contact(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
-			orgJsonLd,
-		),
-	)).ServeHTTP(res, req)
-}
-
-func HandleContact() http.HandlerFunc {
-	return RenderExternalPage(&Contact{})
+		baseURL:     appCfg.GetBaseURL(),
+	})
 }
 
 func HandleSubmitContact() http.HandlerFunc {

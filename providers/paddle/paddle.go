@@ -4,6 +4,7 @@
 package paddle
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
+
+	"github.com/immanent-tech/foragd/models"
 )
 
 const (
@@ -66,8 +69,12 @@ var loadClient = sync.OnceValue(func() error {
 	if err := loadConfig(); err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
 
-	switch config.GetEnvironment() {
+	switch appCfg.Environment {
 	case config.EnvDevelopment:
 		var err error
 		client.SDK, err = paddle.NewSandbox(cfg.APIKey)
@@ -113,4 +120,10 @@ func GetCustomerPortalURL() (string, error) {
 	}
 
 	return cfg.CustomerPortalURL, nil
+}
+
+type UserService interface {
+	GetUserByCustomerID(ctx context.Context, id string) (*models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error
 }

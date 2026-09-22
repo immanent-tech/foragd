@@ -15,6 +15,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -22,9 +23,9 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -32,27 +33,29 @@ import (
 )
 
 // ArticleCtx retrieves the article matching the URL param and stores it in the context.
-func ArticleCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		id := chi.URLParam(req, "articleID")
-		articles, err := service.GetArticles(req.Context(), id)
-		if err != nil {
-			HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("fetch article %s details: %w", id, err),
-			).ServeHTTP(res, req)
-			return
-		}
-		if len(articles) == 0 {
-			HandleInternalError(
-				http.StatusNotFound,
-				fmt.Errorf("fetch article %s: not found", id),
-			).ServeHTTP(res, req)
-			return
-		}
-		ctx := models.ArticleToCtx(req.Context(), articles[0])
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
+func ArticleCtx(itemSvc ItemService) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			id := chi.URLParam(req, "articleID")
+			articles, err := itemSvc.GetArticles(req.Context(), id)
+			if err != nil {
+				HandleInternalError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("fetch article %s details: %w", id, err),
+				).ServeHTTP(res, req)
+				return
+			}
+			if len(articles) == 0 {
+				HandleInternalError(
+					http.StatusNotFound,
+					fmt.Errorf("fetch article %s: not found", id),
+				).ServeHTTP(res, req)
+				return
+			}
+			ctx := models.ArticleToCtx(req.Context(), articles[0])
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // ListArticles holds data for generating the articles list page.
@@ -85,7 +88,7 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 }
 
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
-func HandleListArticles() http.HandlerFunc {
+func HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -155,7 +158,7 @@ func HandleListArticles() http.HandlerFunc {
 
 		// Get articles matching filters.
 		var next models.Pagination
-		articles, next, err = service.FilterArticles(req.Context(), request)
+		articles, next, err = itemSvc.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -224,7 +227,7 @@ func HandleListArticles() http.HandlerFunc {
 }
 
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
-func HandleListArticlesUpdates() http.HandlerFunc {
+func HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -284,7 +287,7 @@ func HandleListArticlesUpdates() http.HandlerFunc {
 		)
 
 		// Count items matching.
-		updateCount, err := service.CountItems(req.Context(), updatesQuery)
+		updateCount, err := itemSvc.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),
@@ -342,7 +345,7 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 }
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
-func HandleFindSimilarArticles() http.HandlerFunc {
+func HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -353,7 +356,7 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 
 		const similarArticlesCount = 15
 
-		articles, err := service.FindSimilarArticles(req.Context(), similarArticlesCount, article.GetID())
+		articles, err := itemSvc.FindSimilarArticles(req.Context(), similarArticlesCount, article.GetID())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -394,7 +397,13 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 }
 
 // HandleViewArticle handles showing an article's content.
-func HandleViewArticle() http.HandlerFunc {
+func HandleViewArticle(
+	appCfg AppConfig,
+	itemSvc ItemService,
+	session SessionManager,
+	httpClient *resty.Client,
+	itemsCache cache.ObjectCache,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, "item_id")
@@ -407,7 +416,7 @@ func HandleViewArticle() http.HandlerFunc {
 		}
 
 		// Fetch article.
-		articles, err := service.GetArticles(req.Context(), itemID)
+		articles, err := itemSvc.GetArticles(req.Context(), itemID)
 		if err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -437,7 +446,7 @@ func HandleViewArticle() http.HandlerFunc {
 
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			if err := service.GetArticleRemoteContent(req.Context(), article); err != nil {
+			if err := service.GetArticleRemoteContent(req.Context(), httpClient, itemsCache, article); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to get remote content for article.",
 					slog.String("item_id", article.GetID()),
 					slog.String("item_url", article.GetLink()),
@@ -467,13 +476,19 @@ func HandleViewArticle() http.HandlerFunc {
 			},
 			template: templates.ArticleContent(&models.ShowArticleResponse{
 				Article: *article,
+				Filters: *ListFiltersFromSession(req.Context(), session, "/list/articles"),
+				BaseURL: appCfg.GetBaseURL(),
 				// Filters: filters,
 			}),
 		}).ServeHTTP(res, req)
 	}
 }
 
-func HandleBrowseArticles(svc SubscriptionsService, direction string) http.HandlerFunc {
+func HandleBrowseArticles(
+	subSvc SubscriptionsService,
+	itemSvc ItemService,
+	direction string,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
@@ -493,7 +508,7 @@ func HandleBrowseArticles(svc SubscriptionsService, direction string) http.Handl
 			return
 		}
 		if user.GetSettings().MarkArticleReadOnView {
-			if err := svc.MarkArticles(
+			if err := subSvc.MarkArticles(
 				req.Context(),
 				models.MarkRead,
 				article.GetSubscriptionID(),
@@ -505,7 +520,7 @@ func HandleBrowseArticles(svc SubscriptionsService, direction string) http.Handl
 			}
 		}
 
-		article, err := service.GetNextArticle(
+		article, err := itemSvc.GetNextArticle(
 			req.Context(),
 			article.GetID(),
 			article.GetSubscriptionID(),
@@ -545,7 +560,10 @@ func HandleBrowseArticles(svc SubscriptionsService, direction string) http.Handl
 }
 
 // HandleMarkArticle handles marking an article as read or unread.
-func HandleMarkArticle(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
+func HandleMarkArticle(
+	subsSvc SubscriptionsService,
+	mark models.Mark,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -554,7 +572,7 @@ func HandleMarkArticle(svc SubscriptionsService, mark models.Mark) http.HandlerF
 			return
 		}
 		// Mark the article.
-		if err := svc.MarkArticles(
+		if err := subsSvc.MarkArticles(
 			req.Context(),
 			mark,
 			article.GetSubscriptionID(),
@@ -578,7 +596,10 @@ func HandleMarkArticle(svc SubscriptionsService, mark models.Mark) http.HandlerF
 }
 
 // HandleBulkMarkArticles handles marking multiple articles.
-func HandleBulkMarkArticles(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
+func HandleBulkMarkArticles(
+	subsSvc SubscriptionsService,
+	mark models.Mark,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Parse confirmation.
 		request, err := parseForm[*models.BulkMarkArticlesRequest](req)
@@ -597,7 +618,7 @@ func HandleBulkMarkArticles(svc SubscriptionsService, mark models.Mark) http.Han
 		case true:
 			// For each subscription's articles shown, mark.
 			for subscriptionID, itemIDs := range request.DisplayedArticles {
-				if err = svc.MarkArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
+				if err = subsSvc.MarkArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
 					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 					return
 				}
@@ -632,7 +653,7 @@ func HandleBulkMarkArticles(svc SubscriptionsService, mark models.Mark) http.Han
 }
 
 // HandleFavoriteArticle handles toggling an article favorite.
-func HandleFavoriteArticle() http.HandlerFunc {
+func HandleFavoriteArticle(itemSvc ItemService, userSvc UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -656,7 +677,7 @@ func HandleFavoriteArticle() http.HandlerFunc {
 			favorite = true
 		}
 
-		if err := updateFavoriteArticle(req.Context(), user, article.GetID(), favorite); err != nil {
+		if err := updateFavoriteArticle(req.Context(), itemSvc, userSvc, user, article.GetID(), favorite); err != nil {
 			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
@@ -689,34 +710,13 @@ func HandleShareArticle() http.HandlerFunc {
 	}
 }
 
-// archiveArticle will index the given article content to the article archive for permanent storage.
-func archiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	if err := elastic.CreateDoc(ctx, schema.FavoritesIndexRW(), article.ItemID, article); err != nil {
-		return fmt.Errorf("archive article: %w", err)
-	}
-	return nil
-}
-
-// unarchiveArticle will delete an article from the archive.
-func unarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
-	// Set up the query to match the user's favorited article.
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", userID),
-			query.Term("item_id", itemID),
-		),
-	)
-	if err := elastic.DeleteDocs(ctx, schema.FavoritesIndexRW(), query); err != nil {
-		return fmt.Errorf("unarchive article: %w", err)
-	}
-	return nil
-}
-
 // updateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
 // in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
 // is removed and user object updated appropriately.
 func updateFavoriteArticle(
 	ctx context.Context,
+	itemSvc ItemService,
+	userSvc UserService,
 	user *models.User,
 	id models.ItemID,
 	favorite bool,
@@ -728,7 +728,7 @@ func updateFavoriteArticle(
 			return models.ErrUserAlreadyFavorited
 		}
 		// Get the article details.
-		articles, err := service.GetArticles(ctx, id)
+		articles, err := itemSvc.GetArticles(ctx, id)
 		if err != nil {
 			return models.NewAPIError(http.StatusInternalServerError,
 				fmt.Errorf("get favorite articles: %w", err),
@@ -753,7 +753,7 @@ func updateFavoriteArticle(
 				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
 			)
 		}
-		err = archiveArticle(ctx, archive)
+		err = itemSvc.ArchiveArticle(ctx, archive)
 		if err != nil {
 			return models.NewAPIError(http.StatusInternalServerError,
 				fmt.Errorf("archive article: %w", err),
@@ -763,7 +763,7 @@ func updateFavoriteArticle(
 		}
 		// Update the list of favorites items in the user object
 		user.ItemFavorites = append(user.ItemFavorites, id)
-		err = service.UpdateUser(ctx, user, map[string]any{
+		err = userSvc.UpdateUser(ctx, user, map[string]any{
 			"item_favorites": user.ItemFavorites,
 		})
 		if err != nil {
@@ -774,7 +774,7 @@ func updateFavoriteArticle(
 			)
 		}
 	case false:
-		err := unarchiveArticle(ctx, user.GetID(), id)
+		err := itemSvc.UnarchiveArticle(ctx, user.GetID(), id)
 		if err != nil {
 			return models.NewAPIError(http.StatusInternalServerError,
 				fmt.Errorf("unarchive article: %w", err),
@@ -785,7 +785,7 @@ func updateFavoriteArticle(
 		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
 			return e == id
 		})
-		err = service.UpdateUser(ctx, user, map[string]any{
+		err = userSvc.UpdateUser(ctx, user, map[string]any{
 			"item_favorites": newFavorites,
 		})
 		if err != nil {

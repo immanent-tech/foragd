@@ -6,7 +6,6 @@ package models
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"strconv"
 	"strings"
@@ -14,8 +13,6 @@ import (
 
 	"github.com/immanent-tech/go-base/validation"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/server/session"
 )
 
 const (
@@ -257,40 +254,6 @@ func SearchParamsFromCtx(ctx context.Context) *SearchRequest {
 	}
 	slogctx.Warn(ctx, "No search params in context. Returning new search params.")
 	return NewSearchRequest()
-}
-
-// SearchParamsToSession stores the given search params in the session.
-func SearchParamsToSession(ctx context.Context, search *SearchRequest) {
-	if err := session.Save(ctx, string(searchParamsCtxKey), *search); err != nil {
-		slogctx.Warn(ctx, "Unable to save search params to session.", slog.Any("error", err))
-	}
-}
-
-// SearchParamsFromSession retrieves the given search params in the session.
-func SearchParamsFromSession(ctx context.Context) *SearchRequest {
-	search, err := session.Restore[SearchRequest](ctx, string(searchParamsCtxKey))
-	if err != nil {
-		slogctx.Warn(ctx, "Unable to restore search params from session. Using defaults.", slog.Any("error", err))
-		return NewSearchRequest()
-	}
-	return &search
-}
-
-// SearchCountToSession stores the current count of objects displayed in the search in the session.
-func SearchCountToSession(ctx context.Context, count int) {
-	if err := session.Save(ctx, string(searchCountCtxKey), count); err != nil {
-		slogctx.Warn(ctx, "Unable to save search count to session.", slog.Any("error", err))
-	}
-}
-
-// SearchCountFromSession stores the current count of objects displayed in the search in the session.
-func SearchCountFromSession(ctx context.Context) int {
-	count, err := session.Restore[int](ctx, string(searchCountCtxKey))
-	if err != nil {
-		slogctx.Warn(ctx, "Unable to restore list search count from session. Using defaults.", slog.Any("error", err))
-		return defaultCount
-	}
-	return count
 }
 
 // Valid returns a boolean indicating whether the add subscription search filter data is valid.

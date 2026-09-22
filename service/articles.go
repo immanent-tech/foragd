@@ -14,16 +14,21 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/server/cache"
 )
 
 // GetArticles generates Article objects from the Items with the given IDs.
-func GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	items, err := GetItems(ctx, itemIDs...)
+func (s *ItemService) GetArticles(
+	ctx context.Context,
+	itemIDs ...models.ItemID,
+) (models.Articles, error) {
+	items, err := s.GetItems(ctx, itemIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("get items: %w", err)
 	}
@@ -35,36 +40,10 @@ func GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles
 	return articles, nil
 }
 
-func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption {
-	if filters == nil {
-		return nil
-	}
-	if filters.IsEmpty() {
-		return nil
-	}
-	return query.Must(
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Text),
-			query.WithSimpleQueryStringFields("title", "description", "content"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Authors),
-			query.WithSimpleQueryStringFields("authors", "contributors"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-		query.SimpleQueryString(
-			query.WithSimpleQueryStringText(filters.Categories),
-			query.WithSimpleQueryStringFields("categories"),
-			query.WithSimpleQueryStringOperator(&operator.And),
-		),
-	)
-}
-
 // GetNextArticle returns the "next" article from the given article, based on the given article timestamp. The direction
 // defines what the next article will be (previous or next). If a subscription is given, it will filter to that
 // subscription only. Otherwise, the results are also filtered to the given view.
-func GetNextArticle(
+func (s *ItemService) GetNextArticle(
 	ctx context.Context,
 	currentID models.ItemID,
 	subscriptionID models.SubscriptionID,
@@ -118,7 +97,7 @@ func GetNextArticle(
 	}
 
 	// Find the next item and generate an article.
-	items, _, err := QueryItems(
+	items, _, err := s.QueryItems(
 		ctx,
 		query.Bool(
 			query.Filter(filters...),
@@ -143,7 +122,7 @@ func GetNextArticle(
 }
 
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
-func FilterArticles(
+func (s *ItemService) FilterArticles(
 	ctx context.Context,
 	request *models.ListRequest,
 ) (models.Articles, models.Pagination, error) {
@@ -191,7 +170,7 @@ func FilterArticles(
 	}
 
 	// Find items matching filters.
-	items, pagination, err := QueryItems(
+	items, pagination, err := s.QueryItems(
 		ctx,
 		articleQuery,
 		count,
@@ -213,7 +192,11 @@ func FilterArticles(
 
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
 // given IDs.
-func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error) {
+func (s *ItemService) FindSimilarArticles(
+	ctx context.Context,
+	count int,
+	itemIDs ...models.ItemID,
+) (models.Articles, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
@@ -251,7 +234,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 	)
 	// Query for similar articles.
 	sort := models.SortMostRelevant
-	items, _, err := QueryItems(ctx, similarQuery, count, &sort, nil)
+	items, _, err := s.QueryItems(ctx, similarQuery, count, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
@@ -261,6 +244,38 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemI
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
 	return articles, nil
+}
+
+// archiveArticle will index the given article content to the article archive for permanent storage.
+func (s *ItemService) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
+	if err := elastic.CreateDoc(
+		ctx,
+		s.store.GetIndexRW(FavoritesIndex),
+		article.ItemID,
+		article,
+	); err != nil {
+		return fmt.Errorf("archive article: %w", err)
+	}
+	return nil
+}
+
+// unarchiveArticle will delete an article from the archive.
+func (s *ItemService) UnarchiveArticle(
+	ctx context.Context,
+	userID models.UserID,
+	itemID models.ItemID,
+) error {
+	// Set up the query to match the user's favorited article.
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", userID),
+			query.Term("item_id", itemID),
+		),
+	)
+	if err := elastic.DeleteDocs(ctx, s.store.GetIndexRW(FavoritesIndex), query); err != nil {
+		return fmt.Errorf("unarchive article: %w", err)
+	}
+	return nil
 }
 
 // GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
@@ -326,14 +341,19 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 }
 
 // GetArticleRemoteContent populates the article content with the item source.
-func GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
+func GetArticleRemoteContent(
+	ctx context.Context,
+	httpClient *resty.Client,
+	itemPageCache cache.ObjectCache,
+	article *models.Article,
+) error {
 	// Get the complete item HTML source, either from the cache or fetch fresh.
 	sourceURL, err := url.Parse(article.GetLink())
 	if err != nil {
 		return models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse article URL: %w", err))
 	}
 
-	itemPageBuf, err := getItemContent(ctx, article.GetID(), sourceURL)
+	itemPageBuf, err := getItemContent(ctx, httpClient, itemPageCache, article.GetID(), sourceURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
@@ -356,4 +376,30 @@ func GetArticleRemoteContent(ctx context.Context, article *models.Article) error
 	}
 
 	return nil
+}
+
+func ArticleFiltersQueryClause(filters *models.ArticleFilters) query.BoolOption {
+	if filters == nil {
+		return nil
+	}
+	if filters.IsEmpty() {
+		return nil
+	}
+	return query.Must(
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Text),
+			query.WithSimpleQueryStringFields("title", "description", "content"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Authors),
+			query.WithSimpleQueryStringFields("authors", "contributors"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(filters.Categories),
+			query.WithSimpleQueryStringFields("categories"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+	)
 }

@@ -68,9 +68,6 @@ func Classify(
 	if domainPriors == nil {
 		domainPriors, _ = buildBasePriors()
 	}
-	if err := LoadConfig(); err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
 
 	signals, err := ExtractURLSignals(contentURL)
 	if err != nil {

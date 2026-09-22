@@ -15,61 +15,9 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/validation"
-
-	"github.com/immanent-tech/foragd/models/schema"
-
-	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
-
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 var ErrInvalidArticleContent = errors.New("invalid article content")
-
-// GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
-func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]Category, error) {
-	// Build elastic.
-	termsField := "categories.raw"
-	termsCount := 10
-	aggs := elastic.Aggs{
-		"TopCategories": estypes.Aggregations{
-			Terms: &estypes.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-	// Perform aggregation.
-	resp, err := elastic.Search[*Item](ctx,
-		schema.ItemsIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](searchQuery),
-		elastic.WithAggregations(aggs),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get top categories: %w", err)
-	}
-
-	topCategoriesAgg, ok := resp.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
-	}
-	topCategoriesBuckets, ok := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
-	}
-
-	topCategories := make([]Category, 0)
-
-	for bucket := range slices.Values(topCategoriesBuckets) {
-		if category, okBucket := bucket.Key.(Category); okBucket {
-			topCategories = append(topCategories, category)
-		}
-	}
-
-	return topCategories, nil
-}
 
 // Articles is a slices of Article objects.
 type Articles []*Article

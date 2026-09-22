@@ -16,7 +16,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-type objectCache interface {
+type ObjectCache interface {
 	Get(ctx context.Context, key string) ([]byte, bool)
 	Set(ctx context.Context, key string, value []byte)
 	Delete(ctx context.Context, key string)

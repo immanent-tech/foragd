@@ -11,7 +11,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/ollama"
@@ -25,8 +24,28 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		panic(err)
+	}
+
+	itemSvc, err := service.LoadItemService()
+	if err != nil {
+		panic(err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Get all feeds.")
-	feeds, err := elastic.SearchAll[*models.Feed](ctx, schema.FeedsIndexRO(), query.MatchAll(), 5000)
+	feeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		elasticSvc.GetIndexRO(service.FeedsIndex),
+		query.MatchAll(),
+		5000,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +55,7 @@ func main() {
 		ctx = slogctx.With(ctx, "feed_title", feed.GetTitle())
 
 		slogctx.FromCtx(ctx).Info("Classifying feed.")
-		items, _, err := service.SearchItems(ctx,
+		items, _, err := itemSvc.QueryItems(ctx,
 			query.Term("feed_id", feed.GetID()),
 			10,
 			nil,
@@ -95,7 +114,7 @@ func main() {
 		slogctx.FromCtx(ctx).Info("Feed classified.",
 			slog.String("categories", strings.Join(feed.Categories, ",")))
 
-		if err := service.UpdateFeed(ctx, feed); err != nil {
+		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}

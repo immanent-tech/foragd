@@ -17,9 +17,9 @@ import (
 	"syscall"
 
 	"github.com/a-h/templ"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-syndication/linter"
 
 	"github.com/immanent-tech/foragd/models"
@@ -27,29 +27,20 @@ import (
 )
 
 type Linter struct {
-	title templates.PageTitle
+	pageMetadata
 }
 
 func (p *Linter) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     "Free RSS Feed Linter",
-			Description: "Lint Any Website's Feed to check for validation errors and recommendations",
-		},
-		Description: "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
-		Path:        "/linter",
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
 	templ.Handler(
 		templates.CreatePage(
 			templates.Linter(),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
-			templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-			templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+			templates.WithPageTitle(p.Title),
+			templates.WithPageDescription(p.Description),
+			templates.WithCanonicalLink(p.CanonicalLink()),
+			templates.WithOpenGraphMetadata(p.OpengraphData()),
 			templates.WithJSONLDSchema(
-				generateSiteJSONLD(req),
-				metadata.JSONLD(req),
+				generateSiteJSONLD(p.baseURL),
+				p.JSONLD(),
 			),
 		),
 	).ServeHTTP(res, req)
@@ -71,16 +62,25 @@ func (p *LinterError) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.LinterError(p.msg)).ServeHTTP(res, req)
 }
 
-func HandleLinter() http.HandlerFunc {
+func HandleLinter(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch fetchErr := models.NewErrorMessage(
 			"Unable to find feed at provided URL",
 			"No feed details could be fetched from the given URL. This could be a temporary error.",
 		); req.Method {
 		case http.MethodGet:
-			RenderExternalPage(&Linter{}).ServeHTTP(res, req)
+			RenderExternalPage(&Linter{
+				Title: templates.PageTitle{
+					Summary:     "Free RSS Feed Linter",
+					Description: "Lint Any Website's Feed to check for validation errors and recommendations",
+				},
+				Description: "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
+				Path:        "/linter",
+				ImagePath:   "/content/logo-vertical-light.webp",
+				baseURL:     appCfg.GetBaseURL(),
+			}).ServeHTTP(res, req)
 		case http.MethodPost:
-			feedData, err := fetchFeedData(req.FormValue("url"))
+			feedData, err := fetchFeedData(httpClient, req.FormValue("url"))
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",
 					slog.Any("error", err),
@@ -106,7 +106,7 @@ func HandleLinter() http.HandlerFunc {
 	}
 }
 
-func fetchFeedData(feedURL string) (*bytes.Buffer, error) {
+func fetchFeedData(httpClient *resty.Client, feedURL string) (*bytes.Buffer, error) {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -120,13 +120,7 @@ func fetchFeedData(feedURL string) (*bytes.Buffer, error) {
 		return nil, fmt.Errorf("not an absolute URL: %s", sourceURL.String())
 	}
 
-	// Fetch feed.
-	client, err := client.Load()
-	if err != nil {
-		return nil, fmt.Errorf("load http client: %w", err)
-	}
-
-	resp, err := client.R().
+	resp, err := httpClient.R().
 		SetContext(ctx).
 		SetDoNotParseResponse(true).
 		Get(sourceURL.String())

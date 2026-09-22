@@ -27,42 +27,27 @@ var getComparisons = sync.OnceValues(func() ([]*markdownx.File, error) {
 })
 
 type ComparisonPage struct {
-	text *markdownx.File
+	text     *markdownx.File
+	metadata pageMetadata
 }
 
 func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request) {
-	caser := cases.Title(language.English)
-
-	// Generate a page title and description.
-	metadata := &pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     p.text.Frontmatter.Description,
-			Description: p.text.Frontmatter.Description,
-			Date:        p.text.Frontmatter.CreatedAt,
-		},
-		Description: "A detailed comparison of Foragd and " + caser.String(
-			p.text.Frontmatter.Slug,
-		) + " covering pricing, features, and which is best for different use cases.",
-		Path:      req.URL.Path,
-		ImagePath: "/content/logo-vertical-light.webp",
-	}
-
 	// Render appropriate content.
 	templ.Handler(
 		templates.CreatePage(templates.Comparison(p.text),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
-			templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-			templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+			templates.WithPageTitle(p.metadata.Title),
+			templates.WithPageDescription(p.metadata.Description),
+			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
+			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
 			templates.WithJSONLDSchema(
-				generateSiteJSONLD(req),
-				metadata.JSONLD(req),
+				generateSiteJSONLD(p.metadata.baseURL),
+				p.metadata.JSONLD(),
 			),
 		),
 	).ServeHTTP(res, req)
 }
 
-func HandleComparison() http.HandlerFunc {
+func HandleComparison(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		comparisons, err := getComparisons()
@@ -88,8 +73,25 @@ func HandleComparison() http.HandlerFunc {
 		res.Header().
 			Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
 
+		caser := cases.Title(language.English)
+		text := comparisons[idx]
+
 		RenderExternalPage(&ComparisonPage{
-			text: comparisons[idx],
+			text: text,
+			// Generate a page title and description.
+			metadata: pageMetadata{
+				Title: templates.PageTitle{
+					Summary:     text.Frontmatter.Description,
+					Description: text.Frontmatter.Description,
+					Date:        text.Frontmatter.CreatedAt,
+				},
+				Description: "A detailed comparison of Foragd and " + caser.String(
+					text.Frontmatter.Slug,
+				) + " covering pricing, features, and which is best for different use cases.",
+				Path:      text.Frontmatter.Slug,
+				ImagePath: "/content/logo-vertical-light.webp",
+				baseURL:   appCfg.GetBaseURL(),
+			},
 		}).ServeHTTP(res, req)
 	}
 }

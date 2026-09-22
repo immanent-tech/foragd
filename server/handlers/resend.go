@@ -16,14 +16,12 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 )
 
 // HandleResendWebhook will handle incoming webhook requests from Resend.
-func HandleResendWebhook(svc SubscriptionsService) http.HandlerFunc {
+func HandleResendWebhook(subSvc SubscriptionsService, userSvc UserService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		const maxBodyBytes = int64(65536)
 		bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
@@ -70,7 +68,7 @@ func HandleResendWebhook(svc SubscriptionsService) http.HandlerFunc {
 				return
 			}
 
-			if err := handleRecievedEmail(req.Context(), svc, email.Data); err != nil {
+			if err := handleRecievedEmail(req.Context(), subSvc, userSvc, itemSvc, email.Data); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
 					slog.Any("error", err),
 				)
@@ -93,9 +91,15 @@ func HandleResendWebhook(svc SubscriptionsService) http.HandlerFunc {
 // handleRecievedEmail processes an incoming email. If it is addressed to a user address, the email is extracted and
 // indexed as a new email subscritpion article. Otherwise, if it is addressed to our catch-all/admin address, it is
 // forwarded. All other emails are ignored.
-func handleRecievedEmail(ctx context.Context, svc SubscriptionsService, details resend.EmailRecieved) error {
+func handleRecievedEmail(
+	ctx context.Context,
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	itemSvc ItemService,
+	details resend.EmailRecieved,
+) error {
 	// Match the email to address to a user subscription email
-	user, err := service.GetUserBySubscriptionEmail(ctx, details.To...)
+	user, err := userSvc.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		// If this does not match a user email, process as a non-user email
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
@@ -120,7 +124,7 @@ func handleRecievedEmail(ctx context.Context, svc SubscriptionsService, details 
 
 	// Try to find an existing subscription for this email newsletter.
 	var subscription *models.Subscription
-	allSubscriptions, err := svc.GetAllSubscriptions(ctx)
+	allSubscriptions, err := subSvc.GetAllSubscriptions(ctx)
 	if err != nil {
 		return fmt.Errorf("get user subscriptions: %w", err)
 	}
@@ -133,7 +137,7 @@ func handleRecievedEmail(ctx context.Context, svc SubscriptionsService, details 
 			return fmt.Errorf("create email subscription: %w", err)
 		}
 		// Add the new subscription.
-		if err := svc.AddSubscriptions(ctx, subscription); err != nil {
+		if err := addSubscriptions(ctx, userSvc, subSvc, subscription); err != nil {
 			return fmt.Errorf("add email subscription: %w", err)
 		}
 	} else {
@@ -151,7 +155,7 @@ func handleRecievedEmail(ctx context.Context, svc SubscriptionsService, details 
 
 	// Create an Item from the email and index it.
 	item := models.NewEmailItem(email, subscription)
-	if err := elastic.CreateDoc(ctx, schema.ItemsIndexRW(), item.GetID(), item); err != nil {
+	if _, err := itemSvc.AddItems(ctx, models.Items{item}); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
 	return nil

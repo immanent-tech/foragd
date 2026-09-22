@@ -49,7 +49,7 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleMap() http.HandlerFunc {
+func HandleMap(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -124,7 +124,7 @@ func HandleMap() http.HandlerFunc {
 		var next models.Pagination
 		// TODO: Currently hard-coded last 50 articles with geo coords. Decide how to expose as user control.
 		request.Filters.Count = 50
-		articles, next, err = service.FilterArticles(req.Context(), request)
+		articles, next, err = itemSvc.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -182,7 +182,7 @@ func HandleMap() http.HandlerFunc {
 	}
 }
 
-func HandleMapUpdates() http.HandlerFunc {
+func HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -242,7 +242,7 @@ func HandleMapUpdates() http.HandlerFunc {
 		)
 
 		// Count items matching.
-		updateCount, err := service.CountItems(req.Context(), updatesQuery)
+		updateCount, err := itemSvc.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

@@ -17,10 +17,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/auth0"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -50,34 +46,18 @@ func (c *DeleteUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	user, err := service.GetUser(ctx, c.UserID)
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	user, err := userSvc.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}
 
-	// Delete the user.
-	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW(), user.GetID()); err != nil {
-		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
-	}
-	// Delete the user's subscriptions.
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW(), query.Term("user_id", user.GetID())); err != nil {
-		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
-	}
-	// Delete any scheduled jobs for the user.
-	if err := elastic.DeleteDocs(
-		ctx,
-		schema.SchedulerIndexRW(),
-		query.Term("job_data.user_id", user.GetID()),
-	); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not delete scheduled jobs for user.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-	}
-
-	// Delete from Auth0 backend
-	if err := auth0.DeleteUser(ctx, user.GetExternalID()); err != nil {
-		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
+	if err := userSvc.DeleteUser(ctx, user); err != nil {
+		fmt.Errorf("delete user: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Info("Deleted user.",
@@ -92,7 +72,12 @@ func (c *BlockUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	user, err := service.GetUser(ctx, c.UserID)
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	user, err := userSvc.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
 	}
@@ -100,7 +85,7 @@ func (c *BlockUserCmd) Run() error {
 	metadata := user.Metadata
 	metadata.Blocked = c.Value
 
-	if err := service.UpdateUser(ctx, user, map[string]any{
+	if err := userSvc.UpdateUser(ctx, user, map[string]any{
 		"metadata": metadata,
 	}); err != nil {
 		return fmt.Errorf("unable to set blocked status of user %s: %w", user.GetID(), err)
@@ -123,7 +108,12 @@ func (c *ListUserCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	user, err := service.GetUser(ctx, c.UserID)
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	user, err := userSvc.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}

@@ -16,10 +16,25 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type ForgetMe struct{}
+type ForgetMe struct {
+	pageMetadata
+}
 
 func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
+	templ.Handler(templates.CreatePage(templates.ForgetMe(),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
+		templates.WithJSONLDSchema(
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
+		),
+	)).ServeHTTP(res, req)
+}
+
+func HandleForgetMe() http.HandlerFunc {
+	return RenderExternalPage(&ForgetMe{
 		Title: templates.PageTitle{
 			Summary:     "Forget Me Request",
 			Description: "Request removal of your account and personal data",
@@ -27,21 +42,7 @@ func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Request deletion of your account and personal data.",
 		Path:        "/forget-me",
 		ImagePath:   "/content/logo-vertical-light.webp",
-	}
-	templ.Handler(templates.CreatePage(templates.ForgetMe(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
-		),
-	)).ServeHTTP(res, req)
-}
-
-func HandleForgetMe() http.HandlerFunc {
-	return RenderExternalPage(&ForgetMe{})
+	})
 }
 
 func HandleSubmitForgetMe() http.HandlerFunc {

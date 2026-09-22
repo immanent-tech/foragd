@@ -49,7 +49,10 @@ func IsEnabled() bool {
 
 // Setup bootstraps the OpenTelemetry pipeline. If it does not return an error, make sure to call shutdown for proper
 // cleanup.
-func Setup(ctx context.Context) (func(context.Context) error, error) {
+func Setup(
+	ctx context.Context,
+	appCfg *config.AppConfig,
+) (func(context.Context) error, error) {
 	var shutdownFuncs []func(context.Context) error
 	var err error
 
@@ -70,7 +73,7 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 		return nil, errors.Join(err, shutdown(ctx))
 	}
 
-	res, err := newResource(ctx)
+	res, err := newResource(ctx, appCfg)
 	if err != nil {
 		return fail(fmt.Errorf("build resource: %w", err))
 	}
@@ -78,7 +81,7 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 	// Configure Context Propagation to use the default W3C traceparent format.
 	otel.SetTextMapPropagator(autoprop.NewTextMapPropagator())
 
-	texporter, mreader, err := newExporters(ctx)
+	texporter, mreader, err := newExporters(ctx, appCfg.GetAppEnvironment())
 	if err != nil {
 		return fail(err)
 	}
@@ -96,7 +99,7 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 		metric.WithReader(mreader),
 		metric.WithResource(res),
 	)
-	MeterConfig = otelchimetric.NewBaseConfig(config.GetAppName(), otelchimetric.WithMeterProvider(MeterProvider))
+	MeterConfig = otelchimetric.NewBaseConfig("foragd", otelchimetric.WithMeterProvider(MeterProvider))
 	shutdownFuncs = append(shutdownFuncs, MeterProvider.Shutdown)
 	otel.SetMeterProvider(MeterProvider)
 
@@ -108,10 +111,12 @@ func Setup(ctx context.Context) (func(context.Context) error, error) {
 
 // newResource builds the OTel resource describing this service, so that spans/metrics show up correctly labeled
 // (service.name, host, process, SDK info, etc.) in whatever backend receives them.
-func newResource(ctx context.Context) (*resource.Resource, error) {
+func newResource(ctx context.Context, appCfg *config.AppConfig) (*resource.Resource, error) {
 	return resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName(config.GetAppName()),
+			semconv.ServiceName("foragd"),
+			semconv.ServiceVersion(appCfg.GetAppVersion()),
+			semconv.DeploymentEnvironment(appCfg.GetAppEnvironment().String()),
 		),
 		resource.WithProcess(),
 		resource.WithHost(),
@@ -121,8 +126,8 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 }
 
 // newExporters builds the span exporter and metric reader for the current environment.
-func newExporters(ctx context.Context) (trace.SpanExporter, metric.Reader, error) {
-	if !config.IsProduction() {
+func newExporters(ctx context.Context, environment config.Environment) (trace.SpanExporter, metric.Reader, error) {
+	if environment == config.EnvProduction {
 		texporter, err := autoexport.NewSpanExporter(ctx)
 		if err != nil {
 			return nil, nil, fmt.Errorf("new span exporter: %w", err)

@@ -20,7 +20,7 @@ import (
 )
 
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
-func ListCategories(svc SubscriptionsService) http.HandlerFunc {
+func ListCategories(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 		switch {
@@ -61,7 +61,7 @@ func ListCategories(svc SubscriptionsService) http.HandlerFunc {
 			}
 
 			// Get subscription details.
-			subscriptions, err := svc.GetAllSubscriptions(req.Context())
+			subscriptions, err := subSvc.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 					slog.Any("error", err),
@@ -82,7 +82,7 @@ func ListCategories(svc SubscriptionsService) http.HandlerFunc {
 			}
 
 			// Get categories for items.
-			counts, err := service.GetTopCategoriesForItems(
+			counts, err := itemSvc.GetTopCategoriesForItems(
 				req.Context(),
 				query.Bool(
 					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),

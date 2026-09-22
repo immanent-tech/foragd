@@ -19,10 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
@@ -52,7 +49,17 @@ func NewGetNewFeedsJob() (*SerializedJob, error) {
 func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	data, err := job.JobData.AsGetNewFeedsJob()
 	if err != nil {
-		return fmt.Errorf("unable to unmarshal job data: %w", err)
+		return fmt.Errorf("unmarshal job data: %w", err)
+	}
+
+	schedulerAPI := SchedulerAPIFromCtx(ctx)
+	if schedulerAPI == nil {
+		return errors.New("cannot execute: no scheduler API in context")
+	}
+
+	feedSvc := FeedSvcFromCtx(ctx)
+	if feedSvc == nil {
+		return errors.New("cannot execute: no feed service in context")
 	}
 
 	start := time.Now()
@@ -61,32 +68,8 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		slog.Time("since", data.Checkpoint),
 	)
 
-	// Find new feeds created since last checkpoint of job.
-	var (
-		newFeeds models.Feeds
-	)
-	newFeeds, err = elastic.SearchAll[*models.Feed](
-		ctx,
-		schema.FeedsIndexRO(),
-		// query.Since("created_at", state.Checkpoint),
-		// Consider a feed new if it has either:
-		// - last_fetched value of the unix epoch
-		// - missing last_fetched field
-		query.Bool(
-			query.Should(
-				query.Before("last_fetched", models.UnixEpoch),
-				query.Bool(
-					query.MustNot(
-						query.Exists("last_fetched"),
-					),
-				),
-			),
-		),
-		5000,
-	)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
-	}
+	// Find new feeds.
+	newFeeds, err := feedSvc.GetNewFeedsSince(ctx, models.UnixEpoch)
 	if len(newFeeds) > 0 {
 		slogctx.Debug(ctx, "Found new feeds.",
 			slog.Int("count", len(newFeeds)),
@@ -101,7 +84,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 		wg.Go(func() {
-			addFeedJob(feedCtx, feed)
+			addFeedJob(feedCtx, feedSvc, feed)
 		})
 	}
 
@@ -111,20 +94,8 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	if err := job.JobData.MergeGetNewFeedsJob(GetNewFeedsJob{Checkpoint: time.Now().UTC()}); err != nil {
 		return fmt.Errorf("update job data: %w", err)
 	}
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			job,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string](schema.SchedulerIndexRW()),
-		),
-	); err != nil {
-		return fmt.Errorf("update feed: %w", err)
-	}
-
-	// Flush all pending index operations from this job run to Elasticsearch.
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Unable to flush bulk request.",
-			slog.Any("error", err))
+	if err := schedulerAPI.UpdateSerializedJob(ctx, job); err != nil {
+		return fmt.Errorf("update serialized job: %w", err)
 	}
 
 	slogctx.Debug(ctx, "Finished get new feeds job.",
@@ -133,7 +104,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	return nil
 }
 
-func addFeedJob(ctx context.Context, feed *models.Feed) {
+func addFeedJob(ctx context.Context, feedSvc *service.FeedService, feed *models.Feed) {
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {
 		slogctx.Error(ctx, "Unable to get scheduler API from context.")
@@ -149,7 +120,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 		)
 	case errors.Is(err, quartz.ErrJobNotFound):
 		// If there is no existing scheduled newJob, create one.
-		newJob, err := NewUpdateFeedJob(ctx, feed.GetID())
+		newJob, err := NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
 		if err != nil {
 			slogctx.Warn(ctx, "Unable to create new update feed job for feed.",
 				slog.Any("error", err),
@@ -165,7 +136,7 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 			)
 			return
 		}
-		slogctx.Debug(ctx, "Added new job for feed.",
+		slogctx.Info(ctx, "Added new job for feed.",
 			slog.String("job_id", newJob.JobDetail().JobKey().String()),
 			slog.String("job_schedule", newJob.Trigger().Description()),
 		)
@@ -183,17 +154,8 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 					slog.Any("error", err),
 				)
 			}
-			if err := bulk.AddAction(ctx,
-				bulk.NewAction(&bulk.PartialDocument{
-					Parts: map[string]any{
-						"last_fetched": time.Now().UTC(),
-					},
-					ID: feed.GetID(),
-				},
-					bulk.AsOperation[string](bulk.OpUpdate),
-					bulk.ToIndex[string](schema.FeedsIndexRW()),
-				),
-			); err != nil {
+			feed.LastFetched = time.Now().UTC()
+			if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 				slogctx.Error(ctx, "Unable to update last fetched.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
@@ -207,20 +169,11 @@ func addFeedJob(ctx context.Context, feed *models.Feed) {
 			slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 			slog.String("feed_id", feed.GetID()),
 		)
-		if err := bulk.AddAction(ctx,
-			bulk.NewAction(&bulk.PartialDocument{
-				Parts: map[string]any{
-					"last_fetched": time.Now().UTC(),
-				},
-				ID: feed.GetID(),
-			},
-				bulk.AsOperation[string](bulk.OpUpdate),
-				bulk.ToIndex[string](schema.FeedsIndexRW()),
-			),
-		); err != nil {
+		feed.LastFetched = time.Now().UTC()
+		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.Error(ctx, "Unable to update last fetched.",
 				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-				slog.String("feed_id", feed.GetID()),
+				slog.String("job_schedule", existingJob.Trigger().Description()),
 				slog.Any("error", err),
 			)
 		}

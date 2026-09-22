@@ -120,6 +120,7 @@ func IsValidSKU(sku string) bool {
 // VerifyAndAcknowledgeSubscription verifies a subscription purchase.
 func VerifyAndAcknowledgeSubscription(
 	ctx context.Context,
+	userSvc UserService,
 	user *models.User, sku, token string,
 ) (*Entitlement, error) {
 	if err := initClient(); err != nil {
@@ -171,7 +172,7 @@ func VerifyAndAcknowledgeSubscription(
 	}
 
 	// Create subscription and associated with user.
-	ent, err := createSubscription(ctx, user, sku, token, time.Now().UTC(), expiry)
+	ent, err := createSubscription(ctx, userSvc, user, sku, token, time.Now().UTC(), expiry)
 	if err != nil {
 		return nil, fmt.Errorf("create subscription %w", err)
 	}

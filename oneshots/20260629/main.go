@@ -11,9 +11,9 @@ import (
 	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -23,8 +23,18 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Get all feeds.")
-	feeds, err := elastic.SearchAll[*models.Feed](ctx, schema.FeedsIndexRO(), query.MatchAll(), 5000)
+	feeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		elasticSvc.GetIndexRO(service.FeedsIndex),
+		query.MatchAll(),
+		5000,
+	)
 	if err != nil {
 		panic(err)
 	}

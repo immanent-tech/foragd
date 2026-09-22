@@ -58,7 +58,7 @@ templ paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) {
 		</div>
 		{{ checksFailed = true }}
 	} else {
-		if !config.IsProduction() {
+		if request.Environment != config.EnvProduction {
 			@templ.JSFuncCall("__initPaddle", "sandbox", token)
 		} else {
 			@templ.JSFuncCall("__initPaddle", "production", token)

@@ -60,10 +60,6 @@ var IABTier1Categories = []CategoryEmbedding{
 
 // BuildCategories embeds each category description using an instruction tuned for classification.
 func BuildCategories(categories []CategoryEmbedding) error {
-	if err := LoadConfig(); err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
 	instruction := "Instruct: Classify the given text into one of the predefined categories\nQuery:"
 	texts := make([]string, len(categories))
 	for i, c := range categories {

@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/service"
 )
 
 // NewUserEmailJob create a one-shot job to email the user an app tip after a delay as part of onboarding/retention.
@@ -50,10 +50,15 @@ func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
 
+	userSvc := UserSvcFromCtx(ctx)
+	if userSvc == nil {
+		return errors.New("missing user service in context")
+	}
+
 	start := time.Now()
 
 	// Get user details.
-	user, err := service.GetUser(ctx, data.UserID)
+	user, err := userSvc.GetUser(ctx, data.UserID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}

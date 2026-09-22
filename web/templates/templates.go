@@ -13,6 +13,7 @@ const (
 	fragmentsCtxKey contextKey = "fragments"
 	fontStyleCtxKey contextKey = "fontStyle"
 	themeCtxKey     contextKey = "theme"
+	baseURLCtxKey   contextKey = "baseURL"
 )
 
 type contextKey string
@@ -84,3 +85,14 @@ func ThemeFromCtx(ctx context.Context) string {
 	}
 	return theme
 }
+
+// func BaseURLToCtx(ctx context.Context, baseURL *url.URL) context.Context {
+// 	return context.WithValue(ctx, baseURLCtxKey, *baseURL)
+// }
+
+// func BaseURLFromCtx(ctx context.Context) *url.URL {
+// 	if baseURL, ok := ctx.Value(baseURLCtxKey).(url.URL); ok {
+// 		return &baseURL
+// 	}
+// 	return nil
+// }

@@ -20,9 +20,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 func NewRestartFeedUpdatesJob() (*SerializedJob, error) {
@@ -50,6 +47,11 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 		return errors.New("unable to get scheduler api from context")
 	}
 
+	feedSvc := FeedSvcFromCtx(ctx)
+	if feedSvc == nil {
+		return errors.New("cannot execute: no feed service in context")
+	}
+
 	// Gather all current feed jobs. Match against the job group "update_feed".
 	jobKeys, err := schedulerAPI.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
 	if err != nil {
@@ -62,19 +64,10 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 		feedIDs = append(feedIDs, strings.TrimPrefix(key.String(), "update_feed::"))
 	}
 
-	// Find all feeds that don't have an existing job.
-	joblessFeeds, err := elastic.SearchAll[*models.Feed](
-		ctx,
-		schema.FeedsIndexRO(),
-		query.Bool(
-			query.MustNot(
-				query.Terms("feed_id", feedIDs),
-			),
-		),
-		5000,
-	)
+	// Get all feeds except those with jobs (i.e. "jobless" feeds).
+	joblessFeeds, err := feedSvc.GetAllFeedsExcept(ctx, feedIDs...)
 	if err != nil {
-		return fmt.Errorf("search feeds: %w", err)
+		return fmt.Errorf("get jobless feeds: %w", err)
 	}
 	if len(joblessFeeds) > 0 {
 		slogctx.Info(ctx, "Found feeds without jobs.",
@@ -96,7 +89,7 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 			)
 		case errors.Is(err, quartz.ErrJobNotFound):
 			// If there is no existing scheduled newJob, create one.
-			newJob, err := NewUpdateFeedJob(ctx, feed.GetID())
+			newJob, err := NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
 			if err != nil {
 				slogctx.Warn(ctx, "Unable to create new update feed job for feed.",
 					slog.Any("error", err),
@@ -113,19 +106,19 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 				)
 				continue
 			}
-			slogctx.Debug(ctx, "Added new job for feed.",
+			slogctx.Info(ctx, "Added new job for feed.",
 				slog.String("job_id", newJob.JobDetail().JobKey().String()),
 				slog.String("job_schedule", newJob.Trigger().Description()),
 			)
 		case existingJob != nil:
 			// Existing job found, ignore.
-			slogctx.Debug(ctx, "Existing job found, ignoring.",
+			slogctx.Warn(ctx, "Existing job found, ignoring.",
 				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 				slog.String("feed_id", feed.GetID()),
 			)
 		default:
 			// Unhandled result.
-			slogctx.Debug(ctx, "Unhandled result.",
+			slogctx.Warn(ctx, "Unhandled result.",
 				slog.String("feed_id", feed.GetID()),
 			)
 		}

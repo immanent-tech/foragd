@@ -122,6 +122,11 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 		return nil, fmt.Errorf("proxy request: %w", err)
 	}
 
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load app config: %w", err)
+	}
+
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -153,7 +158,7 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 		).
 		R().
 		SetContext(ctx).
-		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
+		SetHeader("User-Agent", appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
 		SetHeader("Content-Type", "application/json").
 		SetBody(req).

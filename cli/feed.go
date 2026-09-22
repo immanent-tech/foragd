@@ -20,6 +20,8 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/client"
+	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
@@ -27,6 +29,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
+	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -74,15 +77,40 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
+	// Load the app config.
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
+	httpClient, err := client.Load()
+	if err != nil {
+		return fmt.Errorf("load http client: %w", err)
+	}
+	httpClient = httpClient.SetHeader(
+		"User-Agent",
+		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+	)
+
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	// Load the articles cache.
+	itemsCache, err := cache.NewItemsCache()
+	if err != nil {
+		return fmt.Errorf("load articles cache: %w", err)
+	}
+
 	var (
 		details *models.Feed
 		feed    *models.Feed
-		err     error
 	)
 
 	switch {
 	case c.FeedID != nil:
-		details, err = service.GetFeed(ctx, *c.FeedID)
+		details, err = feedSvc.GetFeed(ctx, *c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get existing feed details: %w", err)
 		}
@@ -92,7 +120,7 @@ func (c *FetchFeedCmd) Run() error {
 		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 			fallthrough
 		default:
-			feed, _, err = service.FetchFeedUpdates(ctx, details)
+			feed, _, err = service.FetchFeedUpdates(ctx, httpClient, details)
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL
@@ -100,7 +128,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
-		feed, err = service.FetchFeed(ctx, feedURL.String())
+		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String())
 	default:
 		return errors.New("no fetch method specified")
 	}
@@ -117,7 +145,7 @@ func (c *FetchFeedCmd) Run() error {
 			var wg sync.WaitGroup
 			for item := range slices.Values(newItems) {
 				wg.Go(func() {
-					if err := service.EnrichItem(ctx, details, item); err != nil {
+					if err := service.EnrichItem(ctx, httpClient, itemsCache, details, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
@@ -149,14 +177,19 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feed, err := service.GetFeed(ctx, c.FeedID)
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	feed, err := feedSvc.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed %s: %w", c.FeedID, err)
 	}
 
 	// Reset the last_fetched timestamp on the feed.
 	feed.LastFetched = models.UnixEpoch
-	if err := service.UpdateFeed(ctx, feed); err != nil {
+	if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 		return fmt.Errorf("reset feed last_fetched: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
@@ -192,7 +225,12 @@ func (c *UpdateFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	feed, err := service.GetFeed(ctx, c.FeedID)
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	feed, err := feedSvc.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed: %w", err)
 	}
@@ -205,7 +243,7 @@ func (c *UpdateFeedCmd) Run() error {
 		}
 		feed.UpdateInterval = int64(interval)
 		// Update the feed.
-		if err := service.UpdateFeed(ctx, feed); err != nil {
+		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Delete scheduled job for feed.
@@ -218,7 +256,7 @@ func (c *UpdateFeedCmd) Run() error {
 			return fmt.Errorf("delete feed job: %w", err)
 		}
 		// Create a new job for the feed.
-		newJob, err := jobs.NewUpdateFeedJob(ctx, c.FeedID)
+		newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("create new feed job: %w", err)
 		}
@@ -226,7 +264,7 @@ func (c *UpdateFeedCmd) Run() error {
 		if err = scheduler.Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
 			return fmt.Errorf("schedule feed job: %w", err)
 		}
-		slogctx.FromCtx(ctx).Debug("Added new job for feed.",
+		slogctx.Info(ctx, "Added new job for feed.",
 			slog.String("job_id", newJob.JobDetail().JobKey().String()),
 			slog.String("job_schedule", newJob.Trigger().Description()),
 		)
@@ -296,7 +334,7 @@ func (c *UpdateFeedCmd) Run() error {
 		}
 	}
 
-	if err := service.UpdateFeed(ctx, feed); err != nil {
+	if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 
@@ -325,7 +363,27 @@ func (c *ClassifyFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	details, err := service.GetFeed(ctx, c.FeedID)
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	// Load the app config.
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
+	httpClient, err := client.Load()
+	if err != nil {
+		return fmt.Errorf("load http client: %w", err)
+	}
+	httpClient = httpClient.SetHeader(
+		"User-Agent",
+		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+	)
+
+	details, err := feedSvc.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed: %w", err)
 	}
@@ -337,7 +395,7 @@ func (c *ClassifyFeedCmd) Run() error {
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		fallthrough
 	default:
-		feed, _, err = service.FetchFeedUpdates(ctx, details)
+		feed, _, err = service.FetchFeedUpdates(ctx, httpClient, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed updates: %w", err)
@@ -367,6 +425,25 @@ func (c *AddFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
+	httpClient, err := client.Load()
+	if err != nil {
+		return fmt.Errorf("load http client: %w", err)
+	}
+	httpClient = httpClient.SetHeader(
+		"User-Agent",
+		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+	)
+
 	// Parse the given URL.
 	feedURL, err := models.NormalizeFeedURL(c.URL)
 	if err != nil {
@@ -379,12 +456,12 @@ func (c *AddFeedCmd) Run() error {
 
 	switch c.FetchMethod {
 	case models.FeedFetchMethodDirect:
-		feed, err = service.FetchFeed(ctx, feedURL.String())
+		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String())
 		if err != nil {
 			return fmt.Errorf("fetch feed directly: %w", err)
 		}
 	case models.FeedFetchMethodProxied:
-		feed, err = service.FetchFeed(ctx, feedURL.String(), service.FetchWithProxy(true))
+		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String(), service.FetchWithProxy(true))
 		if err != nil {
 			return fmt.Errorf("fetch feed with proxy: %w", err)
 		}
@@ -425,7 +502,7 @@ func (c *AddFeedCmd) Run() error {
 		feed.Title = *c.Name
 	}
 
-	switch existing, err := service.GetFeed(ctx, feed.GetID()); {
+	switch existing, err := feedSvc.GetFeed(ctx, feed.GetID()); {
 	case err != nil && !errors.Is(err, models.ErrNotFound):
 		return fmt.Errorf("check for existing feed: %w", err)
 	case existing != nil:
@@ -434,7 +511,7 @@ func (c *AddFeedCmd) Run() error {
 	}
 
 	// Add the new feed.
-	if err := service.AddFeed(ctx, feed); err != nil {
+	if err := feedSvc.AddFeed(ctx, feed); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
 

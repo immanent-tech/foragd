@@ -48,9 +48,9 @@ func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleChooseSubscription() http.HandlerFunc {
-	paddleChoice := HandleChoosePaddleSubscription()
-	androidChoice := HandleChooseAndroidSubscription()
+func HandleChooseSubscription(appCfg AppConfig) http.HandlerFunc {
+	paddleChoice := HandleChoosePaddleSubscription(appCfg)
+	androidChoice := HandleChooseAndroidSubscription(appCfg)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := req.ParseForm(); err != nil {
@@ -78,9 +78,9 @@ func HandleChooseSubscription() http.HandlerFunc {
 	}
 }
 
-func HandlePurchaseSubscription() http.HandlerFunc {
-	paddlePurchase := handlePaddlePurchase()
-	androidPurchase := HandleAndroidPurchase()
+func HandlePurchaseSubscription(appCfg AppConfig, userSvc UserService) http.HandlerFunc {
+	paddlePurchase := handlePaddlePurchase(appCfg)
+	androidPurchase := HandleAndroidPurchase(userSvc)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Pre-parse form data and fail early if there is no form submission.

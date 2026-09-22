@@ -16,9 +16,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // NewClearDeletedFeedsJob creates a job for clearing deleted feeds.
@@ -54,6 +54,11 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
 
+	elasticSvc := ElasticFromCtx(ctx)
+	if elasticSvc == nil {
+		return errors.New("cannot execute: no elastic service in context")
+	}
+
 	start := time.Now()
 
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Clearing deleted feeds.",
@@ -72,7 +77,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	)
 	jobs, err = elastic.SearchAll[*SerializedJob](
 		ctx,
-		schema.SchedulerIndexRO(),
+		elasticSvc.GetIndexRO(service.ScheduleIndex),
 		query.Term("job_data.deleted", true),
 		5000,
 	)
@@ -112,7 +117,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 	if err := elastic.UpdateDoc(
 		ctx,
-		schema.SchedulerIndexRW(),
+		elasticSvc.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		job,
 		elastic.WithDocAsUpsert(true),

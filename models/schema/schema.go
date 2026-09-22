@@ -61,14 +61,18 @@ func UpdateILMPolicies(ctx context.Context, api *elasticsearch.TypedClient, opts
 
 // CreateIndices creates indices and appropriate read/write aliases.
 func CreateIndices(ctx context.Context, opts *IndicesOptions) error {
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load base config: %w", err)
+	}
 	// If no indices are specified, create indices for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
 	}
 	for prefix := range slices.Values(opts.Indices) {
 		index := elastic.GenerateIndexName(prefix)
-		writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
-		readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
+		writeAlias := prefix + "_" + appCfg.Environment.String() + indexWriteSuffix
+		readAlias := prefix + "_" + appCfg.Environment.String() + indexReadSuffix
 		// Create a scheduler index if one doesn't exist.
 		if _, err := elastic.CreateIndexIfNotExists(ctx, prefix); err != nil {
 			return fmt.Errorf("create index: %w", err)
@@ -290,9 +294,14 @@ func migrateIndexData(
 	api *elasticsearch.TypedClient,
 	prefix string,
 ) error {
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load base config: %w", err)
+	}
+
 	index := elastic.GenerateIndexName(prefix)
-	writeAlias := prefix + "_" + config.GetEnvironment().String() + indexWriteSuffix
-	readAlias := prefix + "_" + config.GetEnvironment().String() + indexReadSuffix
+	writeAlias := prefix + "_" + appCfg.Environment.String() + indexWriteSuffix
+	readAlias := prefix + "_" + appCfg.Environment.String() + indexReadSuffix
 
 	// Create index.
 	if _, err := elastic.CreateIndexIfNotExists(ctx, prefix); err != nil {

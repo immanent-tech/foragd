@@ -25,6 +25,7 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/go-resty/resty/v2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
@@ -40,13 +41,10 @@ import (
 	"github.com/immanent-tech/go-syndication/rss"
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -55,12 +53,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/zyte"
+	"github.com/immanent-tech/foragd/server/cache"
 )
-
-var feedCache = otter.Must(&otter.Options[models.FeedID, *models.Feed]{
-	MaximumSize:      10_000,
-	ExpiryCalculator: &feedCacheExpiryCalculator{},
-})
 
 // feedCacheExpiryCalculator is a custom expiry calculator for the feed cache.
 type feedCacheExpiryCalculator struct{}
@@ -83,18 +77,43 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.Fe
 	return entry.ExpiresAfter()
 }
 
-// loadFeed will fetch the feed from Elasticsearch and cache it before returning the feed details.
-func loadFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), id)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
-	}
-	return feed, nil
+// FeedService holds a cache and backend connection for handling [models.Feed] objects.
+type FeedService struct {
+	*otter.Cache[models.FeedID, *models.Feed]
+
+	store  *ElasticService
+	loader otter.LoaderFunc[models.FeedID, *models.Feed]
 }
 
+// LoadFeedService loads a service that can manipulate feed objects in the backend store.
+var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
+	svc, err := LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
+	return &FeedService{
+		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
+			MaximumSize:      10_000,
+			ExpiryCalculator: &feedCacheExpiryCalculator{},
+		}),
+		store: svc,
+		loader: otter.LoaderFunc[models.FeedID, *models.Feed](
+			func(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+				index := ctx.Value("feeds_index").(string)
+				feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, index, id)
+				if err != nil {
+					return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
+				}
+				return feed, nil
+			},
+		),
+	}, nil
+})
+
 // GetFeed retrieves a feed with the given FeedID.
-func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	switch feed, err := feedCache.Get(ctx, id, otter.LoaderFunc[models.FeedID, *models.Feed](loadFeed)); {
+func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+	ctx = context.WithValue(ctx, "feeds_index", s.store.GetIndexRO(FeedsIndex))
+	switch feed, err := s.Get(ctx, id, s.loader); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		return nil, fmt.Errorf("get feed: %w", err)
 	case errors.Is(err, elastic.ErrNotFound):
@@ -106,13 +125,13 @@ func GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 
 // GetFeeds retrieves the Feeds matching the given FeedIDs. It will fetch any cached versions before fetching from
 // Elasticsearch (and then caching those).
-func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+func (s *FeedService) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	feeds := make(models.Feeds, 0, len(ids))
 	unCached := make([]models.FeedID, 0)
 
 	// Fetch feeds from cache.
 	for id := range slices.Values(ids) {
-		if feed, found := feedCache.GetIfPresent(id); found {
+		if feed, found := s.GetIfPresent(id); found {
 			feeds = append(feeds, feed)
 		} else {
 			unCached = append(unCached, id)
@@ -120,30 +139,76 @@ func GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	}
 	// If there are feeds missing from the cache, fetch and cache them.
 	if len(unCached) > 0 {
-		fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO(), unCached...)
+		fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](ctx, s.store.GetIndexRO(FeedsIndex), unCached...)
 		if err != nil {
 			return nil, fmt.Errorf("get items: %w", err)
 		}
 		for feed := range slices.Values(fetched) {
 			feeds = append(feeds, feed)
-			feedCache.Set(feed.GetID(), feed)
+			s.Set(feed.GetID(), feed)
 		}
 	}
 	return feeds, nil
 }
 
+// GetAllFeedsExcept retrieves a [models.Feeds] slice containing all feeds except those with the given [models.FeedID].
+func (s *FeedService) GetAllFeedsExcept(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	allFeeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		s.store.GetIndexRO(FeedsIndex),
+		query.Bool(
+			query.MustNot(
+				query.Terms("feed_id", ids),
+			),
+		),
+		5000,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search feeds: %w", err)
+	}
+	return allFeeds, nil
+}
+
+// GetNewFeedsSince retrieves a [models.Feeds] slice containing all feeds created since the given timestamp.
+func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (models.Feeds, error) {
+	feeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		s.store.GetIndexRO(FeedsIndex),
+		// query.Since("created_at", state.Checkpoint),
+		// Consider a feed new if it has either:
+		// - last_fetched value of the ts
+		// - missing last_fetched field
+		query.Bool(
+			query.Should(
+				query.Before("last_fetched", ts),
+				query.Bool(
+					query.MustNot(
+						query.Exists("last_fetched"),
+					),
+				),
+			),
+		),
+		5000,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search all: %w", err)
+	}
+
+	return feeds, nil
+}
+
 // AddFeed adds a new feed to Elasticsearch and the cache.
-func AddFeed(ctx context.Context, feed *models.Feed) error {
+func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
 	if err := bulk.AddAction(ctx,
 		bulk.NewAction(
 			feed,
 			bulk.AsOperation[models.FeedID](bulk.OpCreate),
-			bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+			bulk.ToIndex[models.FeedID](s.store.GetIndexRW(FeedsIndex)),
 		),
 	); err != nil {
 		return fmt.Errorf("add feed: %w", err)
 	}
-	if _, ok := feedCache.Set(feed.GetID(), feed); !ok {
+	if _, ok := s.Set(feed.GetID(), feed); !ok {
 		slogctx.FromCtx(ctx).Warn("Unable to cache new feed.",
 			slog.String("feed_id", feed.GetID()),
 		)
@@ -152,18 +217,18 @@ func AddFeed(ctx context.Context, feed *models.Feed) error {
 }
 
 // UpdateFeed applies the given updates to a Feed. Any cached version of the feed is invalidated.
-func UpdateFeed(ctx context.Context, feed *models.Feed) error {
+func (s *FeedService) UpdateFeed(ctx context.Context, feed *models.Feed) error {
 	if err := bulk.AddAction(ctx,
 		bulk.NewAction(
 			feed,
 			bulk.AsOperation[models.FeedID](bulk.OpIndex),
-			bulk.ToIndex[models.FeedID](schema.FeedsIndexRW()),
+			bulk.ToIndex[models.FeedID](s.store.GetIndexRW(FeedsIndex)),
 		),
 	); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
-	feedCache.Invalidate(feed.GetID())
-	feedCache.Set(feed.GetID(), feed)
+	s.Invalidate(feed.GetID())
+	s.Set(feed.GetID(), feed)
 
 	return nil
 }
@@ -243,7 +308,13 @@ func (r *diffReporter) PopStep() {
 // UpdateFeedItems determines if there are new items in the feed and then adds them to the database, performing item
 // enrichment as needed. It returns a timestamp indicating a new lastFetched value for the feed, based off the latest
 // new item's timestamp.
-func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.Time, error) {
+func (s *FeedService) UpdateFeedItems(
+	ctx context.Context,
+	items *ItemService,
+	httpClient *resty.Client,
+	itemPageCache cache.ObjectCache,
+	oldData, newData *models.Feed,
+) (time.Time, error) {
 	// Add any new items since the last feed update.
 	if len(newData.GetItems()) == 0 {
 		logMsg := newFeedStatusMsg(oldData.GetID())
@@ -262,7 +333,7 @@ func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.T
 			// Try to enrich item with additional data if possible.
 			wg.Go(func() {
 				for item := range enrichJobCh {
-					if err := EnrichItem(ctx, oldData, item); err != nil {
+					if err := EnrichItem(ctx, httpClient, itemPageCache, oldData, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
@@ -277,12 +348,12 @@ func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.T
 		wg.Wait()
 
 		// Add new items.
-		results, err := AddItems(ctx, newItems)
+		results, err := items.AddItems(ctx, newItems)
 		if err != nil {
 			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
 		}
 		if len(results["new"]) > 0 || len(results["updated"]) > 0 {
-			slogctx.FromCtx(ctx).Debug("Added new/updated items.",
+			slogctx.Info(ctx, "Added new/updated items.",
 				slog.Time("since", oldData.LastFetched),
 				slog.Int("new", len(results["new"])),
 				slog.Int("updated", len(results["updated"])),
@@ -313,9 +384,13 @@ func UpdateFeedItems(ctx context.Context, oldData, newData *models.Feed) (time.T
 // ApplyFeedUpdates takes an existing feed and new feed data, compares the two, updates any fields as appropriate and
 // writes the updated feed back to the database. It will add/update both any new/updated items and any updates to the
 // feed metadata.
-func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error {
+func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
+	items *ItemService,
+	httpClient *resty.Client,
+	itemPageCache cache.ObjectCache,
+	oldData, newData *models.Feed) error {
 	// Add any new or update existing items.
-	lastFetched, err := UpdateFeedItems(ctx, oldData, newData)
+	lastFetched, err := s.UpdateFeedItems(ctx, items, httpClient, itemPageCache, oldData, newData)
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))
@@ -358,7 +433,7 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 		}
 		oldData.LastFetched = lastFetched
 		oldData.Updated = new(time.Now().UTC())
-		if err := UpdateFeed(ctx, oldData); err != nil {
+		if err := s.UpdateFeed(ctx, oldData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		var slogAttrs []slog.Attr
@@ -375,7 +450,7 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 		// No changes. Just update last_fetched.
 		oldData.LastFetched = lastFetched
 		oldData.Updated = new(time.Now().UTC())
-		if err := UpdateFeed(ctx, oldData); err != nil {
+		if err := s.UpdateFeed(ctx, oldData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 	}
@@ -384,7 +459,7 @@ func ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error 
 }
 
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
-func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
+func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 	// Get user subscriptions.
 	allSubscriptions := models.SubscriptionsFromCtx(ctx)
 	if allSubscriptions == nil {
@@ -405,7 +480,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeeds
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO(),
+		s.store.GetIndexRO(FeedsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.MustNot(
@@ -439,7 +514,7 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeeds
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.store, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -470,7 +545,11 @@ func SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeeds
 }
 
 // SuggestGoogleNewsFeeds will return a google news RSS feed for the given search query.
-func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
+func (s *FeedService) SuggestGoogleNewsFeeds(
+	ctx context.Context,
+	httpClient *resty.Client,
+	text string,
+) (*models.SuggestFeedsResults, error) {
 	newsURL, err := news.GenerateRSSURL(text)
 	if err != nil {
 		return nil, fmt.Errorf("generate news RSS URL: %w", err)
@@ -486,7 +565,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO(),
+		s.store.GetIndexRO(FeedsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.MustNot(
@@ -521,7 +600,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 	if len(resp.Results) > 0 {
 		feeds = resp.Results
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, 3, feeds.GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.store, 3, feeds.GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -539,7 +618,7 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 	slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 		slog.String("url", newsURL.String()),
 	)
-	newFeed, err := FetchFeed(ctx, newsURL.String())
+	newFeed, err := FetchFeed(ctx, httpClient, newsURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to fetch google news RSS feed: %w", err)
 	}
@@ -563,7 +642,11 @@ func SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFe
 
 // SuggestFeeds returns a feeds and their latest articles that match the given text. It will search first for existing
 // feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
-func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
+func (s *FeedService) SuggestFeeds(
+	ctx context.Context,
+	httpClient *resty.Client,
+	request *models.SuggestFeedsRequest,
+) (*models.SuggestFeedsResults, error) {
 	// Ignore if text is empty and no categories specified.
 	if request.Text == "" && len(request.Categories) == 0 {
 		return &models.SuggestFeedsResults{
@@ -657,7 +740,7 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 	// Try to find existing feeds that match the query.
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO(),
+		s.store.GetIndexRO(FeedsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](feedSearchQuery),
 		elastic.WithSize(request.Count),
 		elastic.WithSort(NewFeedSortOptions(new(models.SortMostRelevant))...),
@@ -669,7 +752,7 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 	}
 	if len(resp.Results) > 0 {
 		// Retrieve the latest 3 articles for each feed.
-		latestItems, err := getFeedLatestItems(ctx, 3, models.Feeds(resp.Results).GetIDs())
+		latestItems, err := getFeedLatestItems(ctx, s.store, 3, models.Feeds(resp.Results).GetIDs())
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to get latest items for feeds.",
 				slog.Any("error", err),
@@ -685,7 +768,7 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
-			newFeed, err := FetchFeed(ctx, newFeedURL.String())
+			newFeed, err := FetchFeed(ctx, httpClient, newFeedURL.String())
 			if err != nil {
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
@@ -703,9 +786,61 @@ func SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*mo
 	return suggestions, nil
 }
 
+// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
+// the boolean return value will be true.
+func (s *FeedService) FindOrCreateFeed(
+	ctx context.Context,
+	httpClient *resty.Client,
+	feedURL string,
+) (*models.Feed, bool, error) {
+	// Fetch from URL as feed.
+	newFeed, err := FetchFeed(ctx, httpClient, feedURL)
+	if err != nil {
+		return nil, false, fmt.Errorf("fetch new feed: %w", err)
+	}
+
+	// Create terms queries to match the new feed to an existing feed.
+	var terms []query.Option
+	for url := range slices.Values(newFeed.SourceURLs) {
+		terms = append(terms, query.Term("source_urls", url))
+		// Also match url with trailing slash.
+		if !strings.HasSuffix(url, "/") {
+			terms = append(terms, query.Term("source_urls", url+"/"))
+		}
+	}
+	terms = append(terms, query.Term("url", newFeed.URL))
+	// Also match url with trailing slash.
+	if !strings.HasSuffix(newFeed.URL, "/") {
+		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
+	}
+	// Find any existing feed.
+	resp, err := elastic.Search[*models.Feed](ctx,
+		s.store.GetIndexRO(FeedsIndex),
+		elastic.WithQueryOptions[*elastic.SearchRequest](
+			query.Bool(
+				query.Filter(
+					query.Bool(
+						query.Should(terms...),
+					),
+				),
+			),
+		),
+		elastic.WithSize(1),
+	)
+	if err != nil {
+		return nil, false, fmt.Errorf("search existing feeds: %w", err)
+	}
+	if len(resp.Results) == 1 {
+		// If an existing feed is found, use that feed.
+		return resp.Results[0], false, nil
+	}
+	// Otherwise use the new feed.
+	return newFeed, true, nil
+}
+
 // GenerateOPML generates an OPML file of the feeds listed by the given IDs.
-func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error) {
-	feeds, err := GetFeeds(ctx, feedIDs...)
+func (s *FeedService) GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error) {
+	feeds, err := s.GetFeeds(ctx, feedIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("get feeds: %w", err)
 	}
@@ -722,7 +857,7 @@ func GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 		)
 	}
 	// Generate the opml file from the outlines.
-	title := config.GetAppName() + " Export (" + time.Now().Format(time.DateTime) + ")"
+	title := "Foragd Export (" + time.Now().Format(time.DateTime) + ")"
 	opmlExport := opml.NewOPML(
 		opml.WithTitle(title),
 		opml.WithOutlines(outlines...),
@@ -902,11 +1037,12 @@ func DiscoverFeedURL(sourceURL *url.URL, content []byte) (string, error) {
 // that will be added to the bool filter clause of the query to apply additional filtering to the items.
 func getFeedLatestItems(
 	ctx context.Context,
+	svc *ElasticService,
 	count int,
 	feedIDs []models.FeedID,
 ) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		svc.GetIndexRO(ItemsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.Filter(
@@ -1009,11 +1145,15 @@ func getFeedLatestItems(
 	return feedsLatestItems, nil
 }
 
-func getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]time.Time, error) {
+func getFeedLastUpdates(
+	ctx context.Context,
+	svc *ElasticService,
+	ids ...models.FeedID,
+) (map[models.FeedID]time.Time, error) {
 	sort := models.SortNewestFirst
 	resp, err := elastic.Search[*models.Item](
 		ctx,
-		schema.ItemsIndexRO(),
+		svc.GetIndexRO(ItemsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query.Terms("feed_id", ids)),
 		elastic.WithSize(len(ids)),
 		elastic.WithCollapseField("feed_id"),
@@ -1034,7 +1174,11 @@ func getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.F
 
 // GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
 // SubscriptionStats that can be used to lookup the stats pertaining to a particular subscription.
-func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]float64, error) {
+func getFeedAverageDailyUpdates(
+	ctx context.Context,
+	svc *ElasticService,
+	ids ...models.FeedID,
+) (map[models.FeedID]float64, error) {
 	// Build query.
 	query := query.Bool(
 		query.WithBoolQueryName("feed_stats_query"),
@@ -1079,7 +1223,7 @@ func getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[
 	}
 
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		svc.GetIndexRO(ItemsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query),
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(len(ids)),
@@ -1144,7 +1288,12 @@ func FetchWithFeedID(id models.FeedID) FetchOption {
 }
 
 // FetchFeed retrieves the feed found at the given URL.
-func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*models.Feed, error) {
+func FetchFeed(
+	ctx context.Context,
+	httpClient *resty.Client,
+	feedURL string,
+	options ...FetchOption,
+) (*models.Feed, error) {
 	opts := &FetchOptions{}
 	for option := range slices.Values(options) {
 		option(opts)
@@ -1174,14 +1323,9 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
 			slog.String("feed_url", sourceURL.String()),
 		)
-		client, err := client.Load()
-		if err != nil {
-			return nil, fmt.Errorf("load http client: %w", err)
-		}
 
-		resp, err := client.R().
+		resp, err := httpClient.R().
 			SetContext(ctx).
-			SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 			SetDoNotParseResponse(true).
 			// SetDebug(true).
 			Get(sourceURL.String())
@@ -1193,10 +1337,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
 					slog.String("feed_url", sourceURL.String()),
 				)
-				return FetchFeed(ctx, feedURL,
-					FetchWithProxy(true),
-					FetchWithFeedID(opts.FeedID),
-				)
+				return FetchFeed(ctx, httpClient, feedURL, FetchWithProxy(true), FetchWithFeedID(opts.FeedID))
 			}
 			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 		}
@@ -1296,7 +1437,7 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 		); err == nil && newURL != "" &&
 			newURL != sourceURL.String() {
 			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
-			return FetchFeed(ctx, newURL, options...)
+			return FetchFeed(ctx, httpClient, newURL, options...)
 		}
 		return nil, models.ErrNotFound
 	default:
@@ -1340,58 +1481,14 @@ func FetchFeed(ctx context.Context, feedURL string, options ...FetchOption) (*mo
 	return feed, nil
 }
 
-// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
-// the boolean return value will be true.
-func FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error) {
-	// Fetch from URL as feed.
-	newFeed, err := FetchFeed(ctx, feedURL)
-	if err != nil {
-		return nil, false, fmt.Errorf("fetch new feed: %w", err)
-	}
-
-	// Create terms queries to match the new feed to an existing feed.
-	var terms []query.Option
-	for url := range slices.Values(newFeed.SourceURLs) {
-		terms = append(terms, query.Term("source_urls", url))
-		// Also match url with trailing slash.
-		if !strings.HasSuffix(url, "/") {
-			terms = append(terms, query.Term("source_urls", url+"/"))
-		}
-	}
-	terms = append(terms, query.Term("url", newFeed.URL))
-	// Also match url with trailing slash.
-	if !strings.HasSuffix(newFeed.URL, "/") {
-		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
-	}
-	// Find any existing feed.
-	resp, err := elastic.Search[*models.Feed](ctx,
-		schema.FeedsIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
-			query.Bool(
-				query.Filter(
-					query.Bool(
-						query.Should(terms...),
-					),
-				),
-			),
-		),
-		elastic.WithSize(1),
-	)
-	if err != nil {
-		return nil, false, fmt.Errorf("search existing feeds: %w", err)
-	}
-	if len(resp.Results) == 1 {
-		// If an existing feed is found, use that feed.
-		return resp.Results[0], false, nil
-	}
-	// Otherwise use the new feed.
-	return newFeed, true, nil
-}
-
 // FetchFeedUpdates fetches an updated version of the feed, including items. It returns the updated feed, and the source
 // URL used to fetch the updates (for disambiguation of feeds with multiple source URLs). A non-nil error is returned
 // where there is a critical error fetching the feed details.
-func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+func FetchFeedUpdates(
+	ctx context.Context,
+	httpClient *resty.Client,
+	details *models.Feed,
+) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
 			slog.Any("cause", context.Cause(ctx)),
@@ -1413,6 +1510,7 @@ func FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, 
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
 		feed, err := FetchFeed(
 			ctx,
+			httpClient,
 			feedURL,
 			FetchWithFeedID(details.GetID()),
 			FetchWithProxy(proxyRequest),
@@ -1709,7 +1807,6 @@ func newFeedStatusMsg(id models.FeedID) *feedStatusLogMsg {
 			FeedID:    id,
 		},
 		Labels: map[string]string{
-			"env":  config.GetEnvironment().String(),
 			"type": "feed-status",
 		},
 	}

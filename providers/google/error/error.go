@@ -25,9 +25,15 @@ var initClient = sync.OnceValue(func() error {
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
 	errorClient, err = errorreporting.NewClient(context.Background(), cfg.ProjectID, errorreporting.Config{
 		ServiceName:    cfg.Service,
-		ServiceVersion: config.GetVersion(),
+		ServiceVersion: appCfg.Version,
 	})
 	if err != nil {
 		return fmt.Errorf("load error reporting client: %w", err)

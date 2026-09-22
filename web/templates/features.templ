@@ -9,8 +9,8 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/indaco/teseo/schemaorg"
+	"net/url"
 	"time"
 )
 
@@ -210,7 +210,7 @@ templ Features() {
 	}
 }
 
-templ FeaturesPageCollect() {
+templ FeaturesPageCollect(baseURL *url.URL) {
 	@LayoutExternal() {
 		<section class="hero h-dvh">
 			<div class="hero-content flex-col text-center sm:flex-row">
@@ -413,7 +413,7 @@ templ FeaturesPageCollect() {
 			<div class="order-1 md:order-2">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-cloud-sync" type="button" class="cursor-pointer">
-					@components.BrowserWindow("https://foragd.app") {
+						@components.BrowserWindow("https://foragd.app") {
 							<img
 								src="/content/screenshots/screenshot-controls-desktop.webp"
 								alt="View of a subscription showing read state and action buttons"
@@ -426,7 +426,7 @@ templ FeaturesPageCollect() {
 						<dialog id="show-screenshot-cloud-sync" class="mx-auto my-auto max-w-280">
 							<el-dialog-backdrop></el-dialog-backdrop>
 							<el-dialog-panel>
-					@components.BrowserWindow("https://foragd.app") {
+								@components.BrowserWindow("https://foragd.app") {
 									<img
 										src="/content/screenshots/screenshot-controls-desktop.webp"
 										alt="View of a subscription showing read state and action buttons"
@@ -467,8 +467,8 @@ templ FeaturesPageCollect() {
 		{{
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Collect", Item: config.GetBaseURL() + "/features/collect", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Collect", Item: baseURL.JoinPath("/features/collect").String(), Position: 2},
 				},
 			)
 		}}
@@ -477,7 +477,7 @@ templ FeaturesPageCollect() {
 	}
 }
 
-templ FeaturesPageCurate() {
+templ FeaturesPageCurate(baseURL *url.URL) {
 	@LayoutExternal() {
 		<section class="hero h-dvh">
 			<div class="hero-content flex-col text-center sm:flex-row">
@@ -619,7 +619,7 @@ templ FeaturesPageCurate() {
 			<div class="order-2 md:order-1">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-add-content" type="button" class="cursor-pointer">
-					@components.BrowserWindow("https://foragd.app") {
+						@components.BrowserWindow("https://foragd.app") {
 							<img
 								src="/content/screenshots/screenshot-subscription-customize.webp"
 								alt="Customising a subscription's nickname and image in Foragd"
@@ -632,7 +632,7 @@ templ FeaturesPageCurate() {
 						<dialog id="show-screenshot-add-content" class="mx-auto my-auto max-w-280">
 							<el-dialog-backdrop></el-dialog-backdrop>
 							<el-dialog-panel>
-					@components.BrowserWindow("https://foragd.app") {
+								@components.BrowserWindow("https://foragd.app") {
 									<img
 										src="/content/screenshots/screenshot-subscription-customize.webp"
 										alt="Customising a subscription's nickname and image in Foragd"
@@ -678,8 +678,8 @@ templ FeaturesPageCurate() {
 		{{
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Curate", Item: config.GetBaseURL() + "/features/curate", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Curate", Item: baseURL.JoinPath("/features/curate").String(), Position: 2},
 				},
 			)
 		}}
@@ -688,7 +688,7 @@ templ FeaturesPageCurate() {
 	}
 }
 
-templ FeaturesPageConsume() {
+templ FeaturesPageConsume(baseURL *url.URL) {
 	@LayoutExternal() {
 		<section class="hero h-dvh">
 			<div class="hero-content flex-col text-center sm:flex-row">
@@ -770,7 +770,7 @@ templ FeaturesPageConsume() {
 			<div class="order-2 md:order-1">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-full-text-search" type="button" class="cursor-pointer">
-					@components.BrowserWindow("https://foragd.app") {
+						@components.BrowserWindow("https://foragd.app") {
 							<img
 								src="/content/screenshots/screenshot-feature-map.webp"
 								alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
@@ -783,7 +783,7 @@ templ FeaturesPageConsume() {
 						<dialog id="show-screenshot-full-text-search" class="mx-auto my-auto max-w-280">
 							<el-dialog-backdrop></el-dialog-backdrop>
 							<el-dialog-panel>
-					@components.BrowserWindow("https://foragd.app") {
+								@components.BrowserWindow("https://foragd.app") {
 									<img
 										src="/content/screenshots/screenshot-feature-map.webp"
 										alt="Screenshot showing map view of Foragd, with data points on map and a popup open for a data point with the article details"
@@ -810,7 +810,7 @@ templ FeaturesPageConsume() {
 			<div class="order-1 md:order-2">
 				<div>
 					<button command="show-modal" commandfor="show-screenshot-full-text-search" type="button" class="cursor-pointer">
-					@components.BrowserWindow("https://foragd.app") {
+						@components.BrowserWindow("https://foragd.app") {
 							<img
 								src="/content/screenshots/screenshot-feature-search.webp"
 								alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
@@ -823,7 +823,7 @@ templ FeaturesPageConsume() {
 						<dialog id="show-screenshot-full-text-search" class="mx-auto my-auto max-w-280">
 							<el-dialog-backdrop></el-dialog-backdrop>
 							<el-dialog-panel>
-					@components.BrowserWindow("https://foragd.app") {
+								@components.BrowserWindow("https://foragd.app") {
 									<img
 										src="/content/screenshots/screenshot-feature-search.webp"
 										alt="Advanced full-text search filters in Foragd, filtering by keyword, category, author and time period"
@@ -1155,7 +1155,7 @@ templ FeaturesPageConsume() {
 			<div>
 				<div>
 					<button command="show-modal" commandfor="show-video-responsive-design" type="button" class="cursor-pointer">
-					@components.BrowserWindow("https://foragd.app") {
+						@components.BrowserWindow("https://foragd.app") {
 							<div class="relative">
 								<img
 									src="/content/screenshots/screenshot-responsive-design.webp"
@@ -1221,8 +1221,8 @@ templ FeaturesPageConsume() {
 		{{
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Consume", Item: config.GetBaseURL() + "/features/consume", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Consume", Item: baseURL.JoinPath("/features/consume").String(), Position: 2},
 				},
 			)
 		}}

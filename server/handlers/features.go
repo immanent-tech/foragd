@@ -12,129 +12,121 @@ import (
 )
 
 type Features struct {
-	title templates.PageTitle
+	pageMetadata
 }
 
-func HandleFeatures() http.HandlerFunc {
+func HandleFeatures(appCfg AppConfig) http.HandlerFunc {
 	return RenderExternalPage(&Features{
-		title: templates.PageTitle{
+		Title: templates.PageTitle{
 			Summary:     "Features",
 			Description: "RSS Reader, Newsletter Aggregator & Feed Organiser",
 		},
+		Description: "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms.",
+		Path:        "/features",
+		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
 	})
 }
 
 func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title:       p.title,
-		Description: "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms.",
-		Path:        req.URL.Path,
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
 	templ.Handler(templates.CreatePage(templates.Features(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
 		),
 	)).ServeHTTP(res, req)
 }
 
 type FeaturesCollect struct {
-	title templates.PageTitle
+	pageMetadata
 }
 
-func HandleFeaturesCollect() http.HandlerFunc {
+func HandleFeaturesCollect(appCfg AppConfig) http.HandlerFunc {
 	return RenderExternalPage(&FeaturesCollect{
-		title: templates.PageTitle{
+		Title: templates.PageTitle{
 			Summary:     "Collect",
 			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
 		},
+		Description: "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily.",
+		Path:        "/features/collect",
+		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
 	})
 }
 
 func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title:       p.title,
-		Description: "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily.",
-		Path:        req.URL.Path,
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
-	templ.Handler(templates.CreatePage(templates.FeaturesPageCollect(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+	templ.Handler(templates.CreatePage(templates.FeaturesPageCollect(p.baseURL),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
 		),
 	)).ServeHTTP(res, req)
 }
 
 type FeaturesCurate struct {
-	title templates.PageTitle
+	pageMetadata
 }
 
-func HandleFeaturesCurate() http.HandlerFunc {
+func HandleFeaturesCurate(appCfg AppConfig) http.HandlerFunc {
 	return RenderExternalPage(&FeaturesCurate{
-		title: templates.PageTitle{
+		Title: templates.PageTitle{
 			Summary:     "Curate",
 			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
 		},
+		Description: "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily.",
+		Path:        "/features/curate",
+		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
 	})
 }
 
 func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title:       p.title,
-		Description: "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily.",
-		Path:        req.URL.Path,
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
-	templ.Handler(templates.CreatePage(templates.FeaturesPageCurate(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+	templ.Handler(templates.CreatePage(templates.FeaturesPageCurate(p.baseURL),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
 		),
 	)).ServeHTTP(res, req)
 }
 
 type FeaturesConsume struct {
-	title templates.PageTitle
+	pageMetadata
 }
 
-func HandleFeaturesConsume() http.HandlerFunc {
+func HandleFeaturesConsume(appCfg AppConfig) http.HandlerFunc {
 	return RenderExternalPage(&FeaturesConsume{
-		title: templates.PageTitle{
+		Title: templates.PageTitle{
 			Summary:     "Consume",
 			Description: "Features | RSS Reader, Newsletter Aggregator & Feed Organiser",
 		},
+		Description: "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more.",
+		Path:        "features/consume",
+		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
 	})
 }
 
 func (p *FeaturesConsume) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title:       p.title,
-		Description: "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more.",
-		Path:        req.URL.Path,
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
-	templ.Handler(templates.CreatePage(templates.FeaturesPageConsume(),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+	templ.Handler(templates.CreatePage(templates.FeaturesPageConsume(p.baseURL),
+		templates.WithPageTitle(p.Title),
+		templates.WithPageDescription(p.Description),
+		templates.WithCanonicalLink(p.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.OpengraphData()),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
+			generateSiteJSONLD(p.baseURL),
+			p.JSONLD(),
 		),
 	)).ServeHTTP(res, req)
 }

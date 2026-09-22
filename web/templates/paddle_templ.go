@@ -144,7 +144,7 @@ func paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) templ
 			}
 			checksFailed = true
 		} else {
-			if !config.IsProduction() {
+			if request.Environment != config.EnvProduction {
 				templ_7745c5c3_Err = templ.JSFuncCall("__initPaddle", "sandbox", token).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

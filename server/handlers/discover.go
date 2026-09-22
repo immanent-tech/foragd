@@ -7,11 +7,11 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/go-resty/resty/v2"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -56,14 +56,14 @@ func HandleDiscover() http.HandlerFunc {
 	}
 }
 
-func HandleDiscoverSuggestions() http.HandlerFunc {
+func HandleDiscoverSuggestions(feedSvc FeedService, httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
-		results, err := service.SuggestFeeds(req.Context(), request)
+		results, err := feedSvc.SuggestFeeds(req.Context(), httpClient, request)
 		if err != nil {
 			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return

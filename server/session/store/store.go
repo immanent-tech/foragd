@@ -11,9 +11,9 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -40,16 +40,22 @@ type UserSession struct {
 }
 
 // Store satisfies the session store interface for storing sessions in a custom backend.
-type Store struct{}
+type Store struct {
+	backend *service.ElasticService
+}
 
-var New = sync.OnceValue(func() *Store {
-	return &Store{}
+var New = sync.OnceValues(func() (*Store, error) {
+	backend, err := service.LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
+	return &Store{backend: backend}, nil
 })
 
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
 // then Delete should be a no-op and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	if err := elastic.DeleteDoc(ctx, schema.SessionsIndexRW(), token); err != nil {
+	if err := elastic.DeleteDoc(ctx, s.backend.GetIndexRW(service.SessionsIndex), token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
 	return nil
@@ -66,7 +72,7 @@ func (s *Store) Delete(token string) error {
 // tokens should result in a found return value of false and a nil err value. The err return value should be used for
 // system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	session, err := elastic.GetDoc[string, UserSession](ctx, schema.SessionsIndexRO(), token)
+	session, err := elastic.GetDoc[string, UserSession](ctx, s.backend.GetIndexRO(service.SessionsIndex), token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
@@ -88,7 +94,7 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // CommitCtx should add the session token and data to the store, with the given expiry time. If the session token
 // already exists, then the data and expiry time should be overwritten.
 func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry time.Time) error {
-	if err := elastic.UpdateDoc(ctx, schema.SessionsIndexRW(),
+	if err := elastic.UpdateDoc(ctx, s.backend.GetIndexRW(service.SessionsIndex),
 		token,
 		map[string]any{
 			"token":      token,
@@ -117,7 +123,7 @@ func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 	const defaultPaginationSize = 5000
 	sessions, err := elastic.SearchAll[UserSession](
 		ctx,
-		schema.SessionsIndexRO(),
+		s.backend.GetIndexRO(service.SessionsIndex),
 		query.Since("expiry", time.Now().UTC()),
 		defaultPaginationSize,
 	)

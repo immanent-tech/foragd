@@ -10,9 +10,10 @@ import (
 	"github.com/immanent-tech/go-base/pkg/templx"
 	"github.com/immanent-tech/go-base/server/handlers/assets"
 	"go.opentelemetry.io/otel"
-	"net/url"
 	"slices"
 	"strings"
+	"github.com/veqryn/slog-context"
+	"log/slog"
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/web/templates")
@@ -126,6 +127,11 @@ func WithCanonicalLink(link string) PageOption {
 templ CreatePage(template templ.Component, options ...PageOption) {
 	// Build page with specified options.
 	{{
+appCfg, err := config.LoadAppConfig()
+if err != nil {
+    slogctx.Error(ctx,"Could not load app config.",slog.Any("error",err))
+    return
+}
 		p := &Page{
 			Component: template,
 			Title:     "Foragd",
@@ -174,8 +180,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			}
 			if p.CanonicalLink != "" {
 				<link rel="canonical" href={ templ.URL(p.CanonicalLink) }/>
-			} else {
-				<link rel="canonical" href={ templ.URL(config.GetBaseURL()) }/>
+			} else  {
+				<link rel="canonical" href={ templ.URL(appCfg.GetBaseURL().String()) }/>
 			}
 			//  iOS Safari Full screen.
 			<meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -190,8 +196,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 			// RSS feed.
-			{{ feedURL, _ := url.JoinPath(config.GetBaseURL(), "feed") }}
-			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href={ feedURL }/>
+			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href={ appCfg.GetBaseURL().JoinPath("/feed").String() }/>
 			// Performance.
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
@@ -202,10 +207,10 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<script src={ "/assets/" + assets.GetAssetPath(ctx, "scripts.js") } type="module"></script>
 			// Load Tailwind Elements.
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
+            if appCfg.IsProduction() {
 			// Load Umami.
-			if config.IsProduction() {
-				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
-			}
+			<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
+            }
 			<link rel="preconnect" href="https://challenges.cloudflare.com"/>
 			// Site-wide htmx config.
 			<meta

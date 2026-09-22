@@ -15,7 +15,6 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -44,7 +43,7 @@ func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) 
 }
 
 // HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
-func HandleListFavorites() http.HandlerFunc {
+func HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
 			articles              models.Articles
@@ -66,7 +65,7 @@ func HandleListFavorites() http.HandlerFunc {
 		wg.Go(func() error {
 			if len(user.ItemFavorites) > 0 {
 				var err error
-				articles, err = service.GetArticles(jobCtx, user.ItemFavorites...)
+				articles, err = itemSvc.GetArticles(jobCtx, user.ItemFavorites...)
 				if err != nil {
 					return fmt.Errorf("get articles: %w", err)
 				}
@@ -82,7 +81,7 @@ func HandleListFavorites() http.HandlerFunc {
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
 			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites)
-			service.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
+			subSvc.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
 			return nil
 		})
 

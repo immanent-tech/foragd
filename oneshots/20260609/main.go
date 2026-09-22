@@ -10,9 +10,9 @@ import (
 	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -22,8 +22,18 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Get all users.")
-	users, err := elastic.SearchAll[*models.User](ctx, schema.UsersIndexRO(), query.MatchAll(), 5000)
+	users, err := elastic.SearchAll[*models.User](
+		ctx,
+		elasticSvc.GetIndexRO(service.UsersIndex),
+		query.MatchAll(),
+		5000,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +58,7 @@ func main() {
 	if _, err := elastic.CreateIndexIfNotExists(ctx, "users"); err != nil {
 		panic(err)
 	}
-	if err := elastic.UpdateIndexAlias(ctx, schema.UsersIndexRW(), newIndexName); err != nil {
+	if err := elastic.UpdateIndexAlias(ctx, elasticSvc.GetIndexRW(service.UsersIndex), newIndexName); err != nil {
 		panic(err)
 	}
 	// results, err := elastic.BulkUpdate(ctx, schema.UsersIndexRW(), users...)
@@ -56,7 +66,7 @@ func main() {
 	// 	godump.Dump(results)
 	// 	panic(err)
 	// }
-	if err = elastic.UpdateIndexAlias(ctx, schema.UsersIndexRO(), newIndexName); err != nil {
+	if err = elastic.UpdateIndexAlias(ctx, elasticSvc.GetIndexRO(service.UsersIndex), newIndexName); err != nil {
 		panic(err)
 	}
 

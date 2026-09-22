@@ -15,8 +15,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
 )
 
@@ -126,16 +124,16 @@ func (j *SerializedJob) shouldExecute(ctx context.Context) (bool, error) {
 		if err = j.JobTrigger.FromOneShotTrigger(trigger); err != nil {
 			return false, fmt.Errorf("marshal trigger: %w", err)
 		}
-		// Update the job data (checkpoint).
-		if err := elastic.UpdateDoc(
-			ctx,
-			schema.SchedulerIndexRW(),
-			j.JobDetail().JobKey().String(),
-			j,
-			elastic.WithDocAsUpsert(true),
-			elastic.WithRefresh(elastic.RefreshTrue),
-		); err != nil {
-			return false, fmt.Errorf("update job: %w", err)
+		// Update the job (delete then reschedule).
+		schedulerAPI := SchedulerAPIFromCtx(ctx)
+		if schedulerAPI == nil {
+			return false, errors.New("cannot update: no scheduler api in context")
+		}
+		if err := schedulerAPI.DeleteJob(j.getJobKey()); err != nil {
+			return false, fmt.Errorf("delete job: %w", err)
+		}
+		if err := schedulerAPI.ScheduleJob(j.JobDetail(), j.Trigger()); err != nil {
+			return false, fmt.Errorf("reschedule job: %w", err)
 		}
 	}
 	return true, nil

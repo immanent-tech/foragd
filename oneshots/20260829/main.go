@@ -14,7 +14,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
@@ -29,11 +28,21 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
+	subSvc, err := service.LoadSubscriptionService()
+	if err != nil {
+		panic(err)
+	}
+
 	prefix := "subscriptions"
 
 	index := elastic.GenerateIndexName(prefix)
-	writeAlias := schema.SubscriptionsIndexRW()
-	readAlias := schema.SubscriptionsIndexRO()
+	writeAlias := elasticSvc.GetIndexRW(service.SubscriptionsIndex)
+	readAlias := elasticSvc.GetIndexRO(service.SubscriptionsIndex)
 
 	// Create index.
 	if _, err := elastic.CreateIndexIfNotExists(ctx, prefix); err != nil {
@@ -112,7 +121,7 @@ func main() {
 	// Update group subscriptions.
 	users, err := elastic.SearchAll[*models.User](
 		ctx,
-		schema.UsersIndexRO(),
+		elasticSvc.GetIndexRO(service.UsersIndex),
 		query.MatchAll(),
 		5000)
 	if err != nil {
@@ -120,7 +129,7 @@ func main() {
 	}
 	for user := range slices.Values(users) {
 		ctx := models.UserToCtx(ctx, user)
-		subscriptions, err := service.GetAllSubscriptions(ctx)
+		subscriptions, err := subSvc.GetAllSubscriptions(ctx)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			panic(err)
 		}
@@ -146,7 +155,7 @@ func main() {
 		// 		)
 		// 	}
 		// }
-		if err := service.UpdateSubscriptions(ctx, groupSubscriptions...); err != nil {
+		if err := subSvc.UpdateSubscriptions(ctx, groupSubscriptions...); err != nil {
 			panic(err)
 		}
 	}

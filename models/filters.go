@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"slices"
 	"strconv"
@@ -15,8 +14,6 @@ import (
 
 	"github.com/immanent-tech/go-base/validation"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/server/session"
 )
 
 const (
@@ -235,42 +232,4 @@ func ListFiltersFromCtx(ctx context.Context) *ListFilters {
 	}
 	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
 	return NewListFilters()
-}
-
-// ListFiltersToSession stores the given list filters in the session. The path is used as a suffix so that filters are
-// stored per-route.
-func ListFiltersToSession(ctx context.Context, path string, filters *ListFilters) {
-	if err := session.Save(ctx, string(listFiltersCtxKey)+path, *filters); err != nil {
-		slogctx.Warn(ctx, "Unable to save filters to session.", slog.Any("error", err))
-	}
-}
-
-// ListFiltersFromSession retrieves the given list filters in the session. The path is used as a suffix so that filters
-// are retrieved per-route.
-func ListFiltersFromSession(ctx context.Context, path string) *ListFilters {
-	filters, err := session.Restore[ListFilters](ctx, string(listFiltersCtxKey)+path)
-	if err != nil {
-		slogctx.Warn(ctx, "Unable to restore filters from session. Using defaults.", slog.Any("error", err))
-		return NewListFilters()
-	}
-	return &filters
-}
-
-// ListCountToSession stores the current count of objects displayed in the list in the session. The path is used as a
-// suffix so that the count is stored per-route.
-func ListCountToSession(ctx context.Context, path string, count int) {
-	if err := session.Save(ctx, string(listCountCtxKey)+path, count); err != nil {
-		slogctx.Warn(ctx, "Unable to save list count to session.", slog.Any("error", err))
-	}
-}
-
-// ListCountFromSession stores the current count of objects displayed in the list in the session. The path is used as a
-// suffix so that the count is retrieved per-route.
-func ListCountFromSession(ctx context.Context, path string) int {
-	count, err := session.Restore[int](ctx, string(listCountCtxKey)+path)
-	if err != nil {
-		slogctx.Warn(ctx, "Unable to restore list count from session. Using defaults.", slog.Any("error", err))
-		return defaultCount
-	}
-	return count
 }

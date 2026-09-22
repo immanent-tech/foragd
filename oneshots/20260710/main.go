@@ -19,9 +19,9 @@ import (
 
 	"github.com/immanent-tech/go-base/logging"
 
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -36,30 +36,35 @@ func main() {
 	}
 	api := client.TypedClient
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
 	for index := range slices.Values([]string{"feeds", "items", "favorites", "users", "subscriptions", "scheduler", "sessions"}) {
 		var src, dest string
 		switch index {
 		case "feeds":
-			src = schema.FeedsIndexRO()
-			dest = schema.FeedsIndexRW()
+			src = elasticSvc.GetIndexRO(service.FeedsIndex)
+			dest = elasticSvc.GetIndexRW(service.FeedsIndex)
 		case "items":
-			src = schema.ItemsIndexRO()
-			dest = schema.ItemsIndexRW()
+			src = elasticSvc.GetIndexRO(service.ItemsIndex)
+			dest = elasticSvc.GetIndexRW(service.ItemsIndex)
 		case "favorites":
-			src = schema.FavoritesIndexRO()
-			dest = schema.FavoritesIndexRW()
+			src = elasticSvc.GetIndexRO(service.FavoritesIndex)
+			dest = elasticSvc.GetIndexRW(service.FavoritesIndex)
 		case "users":
-			src = schema.UsersIndexRO()
-			dest = schema.UsersIndexRW()
+			src = elasticSvc.GetIndexRO(service.UsersIndex)
+			dest = elasticSvc.GetIndexRW(service.UsersIndex)
 		case "subscriptions":
-			src = schema.SubscriptionsIndexRO()
-			dest = schema.SubscriptionsIndexRW()
+			src = elasticSvc.GetIndexRO(service.SubscriptionsIndex)
+			dest = elasticSvc.GetIndexRW(service.SubscriptionsIndex)
 		case "scheduler":
-			src = schema.SchedulerIndexRO()
-			dest = schema.SchedulerIndexRW()
+			src = elasticSvc.GetIndexRO(service.ScheduleIndex)
+			dest = elasticSvc.GetIndexRW(service.ScheduleIndex)
 		case "sessions":
-			src = schema.SessionsIndexRO()
-			dest = schema.SessionsIndexRW()
+			src = elasticSvc.GetIndexRO(service.SessionsIndex)
+			dest = elasticSvc.GetIndexRW(service.SessionsIndex)
 		}
 		reindexResp, err := reindex.NewReindexOperation(
 			api,

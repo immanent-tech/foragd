@@ -14,14 +14,15 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/service"
 )
 
-func TokenAlreadyGranted(ctx context.Context, token string) (bool, error) {
-	existing, err := getUserByPurchaseToken(ctx, token)
+type UserService interface {
+	GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error)
+	UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error
+}
+
+func TokenAlreadyGranted(ctx context.Context, userSvc UserService, token string) (bool, error) {
+	existing, err := userSvc.GetUserByPurchaseToken(ctx, token)
 	if err != nil {
 		return false, fmt.Errorf("check existing token: %w", err)
 	}
@@ -31,29 +32,10 @@ func TokenAlreadyGranted(ctx context.Context, token string) (bool, error) {
 	return false, nil
 }
 
-// getUserByPurchaseToken retrieves the user associated with the given purchase token.
-func getUserByPurchaseToken(ctx context.Context, token string) (*models.User, error) {
-	// Retrieve the user associated with the customer ID.
-	resp, err := elastic.Search[*models.User](
-		ctx,
-		schema.UsersIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.purchase_token", token)),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("find user by purchase token: %w", err)
-	}
-	if len(resp.Results) == 0 {
-		return nil, fmt.Errorf("find user by purchase token: %w", ErrNotFound)
-	}
-	return resp.Results[0], nil
-}
-
 // createSubscription creates a new android subscription and associates it with the user.
 func createSubscription(
 	ctx context.Context,
+	userSvc UserService,
 	user *models.User,
 	sku, token string,
 	start time.Time,
@@ -68,7 +50,7 @@ func createSubscription(
 	}); err != nil {
 		return nil, fmt.Errorf("update user android subscription: %w", err)
 	}
-	if err := service.UpdateUser(ctx, user, map[string]any{
+	if err := userSvc.UpdateUser(ctx, user, map[string]any{
 		"subscription_type": models.UserSubscriptionTypeAndroid,
 		"subscription":      user.Subscription},
 	); err != nil {
@@ -87,6 +69,7 @@ func createSubscription(
 // updateSubscription updates the user's android subscription as appropriate.
 func updateSubscription(
 	ctx context.Context,
+	userSvc UserService,
 	user *models.User,
 	purchase *androidpublisher.SubscriptionPurchaseV2,
 	token string,
@@ -116,7 +99,7 @@ func updateSubscription(
 	}
 
 	// Update the subscription.
-	if err := service.UpdateUser(ctx, user, map[string]any{
+	if err := userSvc.UpdateUser(ctx, user, map[string]any{
 		"subscription": user.Subscription},
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)
@@ -126,10 +109,10 @@ func updateSubscription(
 }
 
 // revokeSubscription removes the user's android subscription entitlement.
-func revokeSubscription(ctx context.Context, user *models.User) error {
+func revokeSubscription(ctx context.Context, userSvc UserService, user *models.User) error {
 	user.Subscription = nil
 
-	if err := service.UpdateUser(ctx, user, map[string]any{
+	if err := userSvc.UpdateUser(ctx, user, map[string]any{
 		"subscription_type": "",
 		"subscription":      nil,
 	}); err != nil {

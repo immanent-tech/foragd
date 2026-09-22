@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/maypok86/otter/v2"
@@ -18,44 +19,63 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-var userCache = otter.Must(&otter.Options[string, models.User]{
-	MaximumSize: 100,
-	ExpiryCalculator: otter.ExpiryAccessing[string, models.User](
-		60 * time.Second,
-	),
-})
+// UserService holds a cache and backend connection for handling [models.User] objects.
+type UserService struct {
+	*otter.Cache[string, models.User]
 
-func loadUser(ctx context.Context, id string) (models.User, error) {
-	switch resp, err := elastic.Search[*models.User](ctx,
-		schema.UsersIndexRO(),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
-			query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
-		),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
-	); {
-	case err != nil:
-		return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
-	case len(resp.Results) == 0:
-		return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, elastic.ErrNotFound)
-	default:
-		return *resp.Results[0], nil
-	}
+	store  *ElasticService
+	loader otter.LoaderFunc[string, models.User]
 }
 
+// LoadUserService loads a service that can manipulate user objects in the backend store.
+var LoadUserService = sync.OnceValues(func() (*UserService, error) {
+	svc, err := LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
+	return &UserService{
+		Cache: otter.Must(&otter.Options[string, models.User]{
+			MaximumSize: 100,
+			ExpiryCalculator: otter.ExpiryAccessing[string, models.User](
+				60 * time.Second,
+			),
+		}),
+		store: svc,
+		loader: otter.LoaderFunc[string, models.User](
+			func(ctx context.Context, id string) (models.User, error) {
+				index := ctx.Value("users_index").(string)
+				switch resp, err := elastic.Search[*models.User](ctx,
+					index,
+					elastic.WithQueryOptions[*elastic.SearchRequest](
+						query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
+					),
+					elastic.WithDocSorting(),
+					elastic.WithTrackTotalHits(false),
+					elastic.WithSize(1),
+				); {
+				case err != nil:
+					return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
+				case len(resp.Results) == 0:
+					return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, elastic.ErrNotFound)
+				default:
+					return *resp.Results[0], nil
+				}
+			},
+		),
+	}, nil
+})
+
 // GetUser retrieves the user doc with the given id.
-func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
+func (s *UserService) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 	ctx, span := tracer.Start(ctx, "GetUser")
 	defer span.End()
 
-	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, schema.UsersIndexRO(), id)
+	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, s.store.GetIndexRO(UsersIndex), id)
 	if err != nil || user == nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -65,11 +85,13 @@ func GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 }
 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
-func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
+func (s *UserService) GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	ctx, span := tracer.Start(ctx, "GetUserByExternalID")
 	defer span.End()
 
-	switch user, err := userCache.Get(ctx, externalID, otter.LoaderFunc[string, models.User](loadUser)); {
+	ctx = context.WithValue(ctx, "users_index", s.store.GetIndexRO(UsersIndex))
+
+	switch user, err := s.Get(ctx, externalID, s.loader); {
 	case err != nil && !errors.Is(err, elastic.ErrNotFound):
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -84,10 +106,10 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*models.User, 
 }
 
 // GetUserByEmail will retrieve a user by their email.
-func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
-		schema.UsersIndexRO(),
+		s.store.GetIndexRO(UsersIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Term("email", email),
 		),
@@ -105,10 +127,10 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 }
 
 // GetUserBySubscriptionEmail will retrieve a user from their Foragd newsletter subscription email.
-func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
+func (s *UserService) GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
-		schema.UsersIndexRO(),
+		s.store.GetIndexRO(UsersIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Terms("settings.subscription_email", emails),
 		),
@@ -126,10 +148,10 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.
 }
 
 // GetUserBySubscriptionID will retrieve a user from their payment subscription ID.
-func GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, error) {
+func (s *UserService) GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, error) {
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
-		schema.UsersIndexRO(),
+		s.store.GetIndexRO(UsersIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Term("subscription.subscription_id", id),
 		),
@@ -146,13 +168,54 @@ func GetUserBySubscriptionID(ctx context.Context, id string) (*models.User, erro
 	}
 }
 
+// getUserByPurchaseToken retrieves the user associated with the given purchase token.
+func (s *UserService) GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error) {
+	// Retrieve the user associated with the customer ID.
+	switch resp, err := elastic.Search[*models.User](
+		ctx,
+		s.store.GetIndexRO(UsersIndex),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.purchase_token", token)),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	); {
+	case err != nil:
+		return nil, fmt.Errorf("search by subscription id: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("search by subscription id: %w", models.ErrNotFound)
+	default:
+		return resp.Results[0], nil
+	}
+}
+
+// GetUserByCustomerID retrieves the user associated with the given customer ID. It handles finding and adding customer
+// details to an existing user for a new customer.
+func (s *UserService) GetUserByCustomerID(ctx context.Context, id string) (*models.User, error) {
+	// Retrieve the user associated with the customer ID.
+	switch resp, err := elastic.Search[*models.User](
+		ctx,
+		s.store.GetIndexRO(UsersIndex),
+		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.customer_id", id)),
+		elastic.WithDocSorting(),
+		elastic.WithTrackTotalHits(false),
+		elastic.WithSize(1),
+	); {
+	case err != nil:
+		return nil, fmt.Errorf("find user by customer id: %w", err)
+	case len(resp.Results) == 0:
+		return nil, fmt.Errorf("find user by customer id: %w", models.ErrNotFound)
+	default:
+		return resp.Results[0], nil
+	}
+}
+
 // UpdateUser will apply the given updates to the user.
-func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error {
+func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error {
 	ctx, span := tracer.Start(ctx, "UpdateUser")
 	defer span.End()
 
 	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW(), user.GetID(), updates,
+	if err := elastic.UpdateDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID(), updates,
 		// elastic.WithRefresh(elastic.RefreshTrue),
 		elastic.WithRetryOnConflict(3),
 	); err != nil {
@@ -162,12 +225,13 @@ func UpdateUser(ctx context.Context, user *models.User, updates map[string]any) 
 	}
 	slogctx.FromCtx(ctx).Info("User object updated.")
 	// Invalidate any cached user data.
-	userCache.Invalidate(user.GetExternalID())
+	s.Invalidate(user.GetExternalID())
+	s.Set(user.GetID(), *user)
 	return nil
 }
 
 // SyncUser tries to sync relevant user data from the auth backend to the local data.
-func SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
+func (s *UserService) SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
 	ctx, span := tracer.Start(req.Context(), "SyncUser")
 	defer span.End()
 
@@ -241,7 +305,7 @@ func SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
 
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
-		if err := UpdateUser(ctx, user, updates); err != nil {
+		if err := s.UpdateUser(ctx, user, updates); err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
 			slogctx.Error(ctx, "Could not sync user data.",
@@ -252,18 +316,49 @@ func SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
 	}
 }
 
+// AddUser stores and caches the given [*models.User] in the backend.
+func (s UserService) AddUser(ctx context.Context, user *models.User) error {
+	if err := elastic.CreateDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID(), user); err != nil {
+		return fmt.Errorf("create user: %w", err)
+	}
+	if _, ok := s.Set(user.GetID(), *user); !ok {
+		slogctx.Warn(ctx, "Unable to cache new user.", slog.String("user_id", user.GetID()))
+	}
+	return nil
+}
+
 // DeleteUser deletes the user and the user's subscription objects from Elasticsearch.
-func DeleteUser(ctx context.Context, user *models.User) error {
-	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW(), user.GetID()); err != nil {
+func (s *UserService) DeleteUser(ctx context.Context, user *models.User) error {
+	// Delete user object.
+	if err := elastic.DeleteDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID()); err != nil {
 		return fmt.Errorf("delete user object: %w", err)
 	}
 	// Delete the user's subscriptions.
 	if err := elastic.DeleteDocs(
 		ctx,
-		schema.SubscriptionsIndexRW(),
+		s.store.GetIndexRW(SubscriptionsIndex),
 		query.Term("user_id", user.GetID()),
 	); err != nil {
 		return fmt.Errorf("delete user subscriptions: %w", err)
 	}
+
+	// Delete any scheduled jobs for the user.
+	if err := elastic.DeleteDocs(
+		ctx,
+		s.store.GetIndexRW(ScheduleIndex),
+		query.Term("job_data.user_id", user.GetID()),
+	); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not delete scheduled jobs for user.",
+			slog.String("user_id", user.GetID()),
+			slog.Any("error", err),
+		)
+	}
+
+	// Delete from Auth0 backend
+	if err := auth0.DeleteUser(ctx, user.GetExternalID()); err != nil {
+		return fmt.Errorf("delete auth0 user: %w", err)
+	}
+
+	s.Invalidate(user.GetID())
 	return nil
 }

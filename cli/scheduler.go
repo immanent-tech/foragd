@@ -19,6 +19,7 @@ import (
 	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/scheduler"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // SchedulerCmd defines the `scheduler` command, for performing job scheduler related actions.
@@ -74,6 +75,11 @@ func (c *InitSchedulerCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+
 	// Set up and create scheduler instance.
 	if err := setupScheduler(ctx); err != nil {
 		return fmt.Errorf("setup scheduler: %w", err)
@@ -84,7 +90,7 @@ func (c *InitSchedulerCmd) Run() error {
 	}
 
 	// Load feed update jobs.
-	if err := scheduler.LoadUpdateFeedJobs(ctx); err != nil {
+	if err := scheduler.LoadUpdateFeedJobs(ctx, feedSvc); err != nil {
 		return fmt.Errorf("load update feed jobs: %w", err)
 	}
 

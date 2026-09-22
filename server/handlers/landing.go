@@ -28,7 +28,7 @@ type Landing struct {
 	template templ.Component
 }
 
-func HandleLanding() http.HandlerFunc {
+func HandleLanding(appCfg AppConfig) http.HandlerFunc {
 	metadata := &pageMetadata{
 		Title: templates.PageTitle{
 			Summary:     "RSS and Atom Feed Reader",
@@ -37,14 +37,15 @@ func HandleLanding() http.HandlerFunc {
 		Description: "Foragd is a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place.",
 		Path:        "/",
 		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		RenderExternalPage(&Landing{
 			template: templates.CreatePage(templates.Landing(),
 				templates.WithPageTitle(metadata.Title),
-				templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+				templates.WithOpenGraphMetadata(metadata.OpengraphData()),
 				templates.WithJSONLDSchema(
-					generateSiteJSONLD(req),
+					generateSiteJSONLD(metadata.baseURL),
 					orgJsonLd,
 				),
 			),

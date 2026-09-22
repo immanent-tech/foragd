@@ -9,7 +9,6 @@ import (
 	"math"
 
 	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/providers/elastic/vector"
 )
@@ -28,7 +27,8 @@ type ollamaEmbedResponse struct {
 // EmbedBatch embeds up to BatchSize texts in one request against a local Ollama server. Ollama returns L2-normalized
 // vectors already, so no further normalization is needed for cosine similarity.
 func EmbedBatch(texts ...string) ([][]float32, error) {
-	if err := LoadConfig(); err != nil {
+	cfg, err := LoadConfig()
+	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 
@@ -48,7 +48,7 @@ func EmbedBatch(texts ...string) ([][]float32, error) {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
 
-	if config.IsProduction() {
+	if cfg.tokenSource != nil {
 		token, err := cfg.tokenSource.Token()
 		if err != nil {
 			return nil, fmt.Errorf("get authorization token: %w", err)
@@ -80,7 +80,8 @@ func EmbedBatch(texts ...string) ([][]float32, error) {
 
 // EmbedChunks embeds all chunks, batching requests according to c.BatchSize.
 func EmbedChunks(chunks ...vector.Chunk) ([][]float32, error) {
-	if err := LoadConfig(); err != nil {
+	cfg, err := LoadConfig()
+	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 

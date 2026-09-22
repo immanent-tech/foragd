@@ -37,7 +37,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
+func HandleSearchSuggestions(svc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -86,7 +86,7 @@ func HandleSearchSuggestions(svc SubscriptionsService) http.HandlerFunc {
 
 		// Generate article suggestions.
 		searchJobs.Go(func() error {
-			items, err := service.SuggestItems(jobCtx, search)
+			items, err := itemSvc.SuggestItems(jobCtx, search)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
 			}
@@ -162,7 +162,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 }
 
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
-func HandleSearchResults() http.HandlerFunc {
+func HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve search params.
 		search := models.SearchParamsFromCtx(req.Context())
@@ -195,7 +195,7 @@ func HandleSearchResults() http.HandlerFunc {
 				items models.Items
 				err   error
 			)
-			items, pagination, err = service.RetrieveItems(jobCtx, search)
+			items, pagination, err = itemSvc.RetrieveItems(jobCtx, search)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
 			}
@@ -211,7 +211,7 @@ func HandleSearchResults() http.HandlerFunc {
 		// Generate top categories for articles.
 		searchJobs.Go(func() error {
 			var err error
-			categories, err = service.GetTopItemCategories(jobCtx, search)
+			categories, err = itemSvc.GetTopItemCategoriesForSearchResults(jobCtx, search)
 			if err != nil {
 				return fmt.Errorf("get top categories: %w", err)
 			}
@@ -258,7 +258,7 @@ func HandleSearchResults() http.HandlerFunc {
 }
 
 // HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
-func HandleSearchUpdates() http.HandlerFunc {
+func HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
 		search := models.SearchParamsFromCtx(req.Context())
@@ -274,7 +274,7 @@ func HandleSearchUpdates() http.HandlerFunc {
 		}
 
 		// Count items matching.
-		updateCount, err := service.CountSearchResults(req.Context(), search)
+		updateCount, err := itemSvc.CountSearchResults(req.Context(), search)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

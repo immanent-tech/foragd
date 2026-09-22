@@ -412,47 +412,6 @@ components:
           $ref: "#/components/schemas/UserLimit"
         newsletter_limit:
           $ref: "#/components/schemas/UserLimit"
-    PaddleCheckout:
-      description: contains data for checking out a Paddle subscription.
-      type: object
-      required:
-        - plan_id
-      properties:
-        plan_id:
-          description: is the plan ID.
-          type: string
-          x-go-name: PlanID
-          x-oapi-codegen-extra-tags:
-            validate: "required"
-        transaction_id:
-          description: is the transaction ID for this checkout session.
-          type: string
-          x-go-name: TransactionID
-    AndroidCheckout:
-      description: contains data for checking out a Android subscription.
-      type: object
-      required:
-        - sku
-      properties:
-        sku:
-          description: is the plan SKU.
-          type: string
-          x-go-name: SKU
-          x-oapi-codegen-extra-tags:
-            validate: "required"
-    CheckoutRequest:
-      description: contains data for a subscription checkout.
-      type: object
-      required:
-        - subscription_type
-        - subscription_data
-      properties:
-        subscription_type:
-          $ref: "#/components/schemas/UserSubscriptionType"
-        subscription_data:
-          oneOf:
-            - $ref: "#/components/schemas/PaddleCheckout"
-            - $ref: "#/components/schemas/AndroidCheckout"
     PaddleSubscription:
       description: >
         contains details about the user's paid subscription.

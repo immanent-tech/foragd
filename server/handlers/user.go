@@ -19,12 +19,12 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-syndication/opml"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/go-base/validation"
@@ -33,8 +33,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -138,7 +136,7 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 }
 
 // HandleSaveSubscriptionsSettings handles saving any subscription settings the user has applied.
-func HandleSaveSubscriptionsSettings() http.HandlerFunc {
+func HandleSaveSubscriptionsSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -169,7 +167,7 @@ func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 		settings := user.GetSettings()
 		settings.GlobalFilters = request.GlobalFilters
 		// Update local user object.
-		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": settings})
+		err = users.UpdateUser(req.Context(), user, map[string]any{"settings": settings})
 		if err != nil {
 			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
 			return
@@ -182,7 +180,7 @@ func HandleSaveSubscriptionsSettings() http.HandlerFunc {
 }
 
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
-func HandleSaveDisplaySettings() http.HandlerFunc {
+func HandleSaveDisplaySettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -202,7 +200,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 		}
 
 		// Update local user object.
-		err = service.UpdateUser(req.Context(), user, map[string]any{"settings": request})
+		err = users.UpdateUser(req.Context(), user, map[string]any{"settings": request})
 		if err != nil {
 			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
 			return
@@ -217,7 +215,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 // HandleSaveAccountSettings handles processing and saving new account settings.
 //
 //nolint:funlen
-func HandleSaveAccountSettings() http.HandlerFunc {
+func HandleSaveAccountSettings(users UserService, appCfg AppConfig, cache ImageCache) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -271,7 +269,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 				return
 			}
 			// Construct a new full URL to the uploaded avatar on the local server.
-			request.AvatarURL = new(config.GetBaseURL() + "/img/avatar/" + avatarFileID)
+			request.AvatarURL = new(appCfg.GetBaseURL().JoinPath("/img/avatar/" + avatarFileID).String())
 		}
 
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
@@ -310,7 +308,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			return
 		}
 		// Update local user object.
-		err = service.UpdateUser(req.Context(), user, updates)
+		err = users.UpdateUser(req.Context(), user, updates)
 		if err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -329,7 +327,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 	}
 }
 
-func HandleSaveFontSettings() http.HandlerFunc {
+func HandleSaveFontSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -357,7 +355,7 @@ func HandleSaveFontSettings() http.HandlerFunc {
 		// Update the user settings.
 		settings := user.GetSettings()
 		settings.FontStyle = &fontStyle
-		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
+		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update font style: %w", err),
@@ -368,7 +366,7 @@ func HandleSaveFontSettings() http.HandlerFunc {
 	}
 }
 
-func HandleSaveThemeSettings() http.HandlerFunc {
+func HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -396,7 +394,7 @@ func HandleSaveThemeSettings() http.HandlerFunc {
 		// Update the user settings.
 		settings := user.GetSettings()
 		settings.Theme = &theme
-		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
+		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update font style: %w", err),
@@ -435,7 +433,11 @@ func HandleChangePassword() http.HandlerFunc {
 // HandleDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
-func HandleDeactivateAccount() http.HandlerFunc {
+func HandleDeactivateAccount(
+	users UserService,
+	auth *auth0.Authenticator,
+	sessionMgr SessionManager,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.DeactivationRequest](req)
 		if err != nil {
@@ -497,7 +499,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 			case user.InTrial():
 				// User in trial. Just delete from Elasticsearch and Auth0 then send confirmation email.
 				// Delete from Elasticsearch backend.
-				if err := service.DeleteUser(req.Context(), user); err != nil {
+				if err := users.DeleteUser(req.Context(), user); err != nil {
 					HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("delete user in elasticsearch: %w", err),
@@ -536,7 +538,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				}
 
 				// Pass to logout handler.
-				Logout(res, req)
+				HandleLogout(auth, sessionMgr)(res, req)
 			default:
 				// Paid user. Cancel their subscription appropriately and notify.
 				switch *user.UserSubscriptionType {
@@ -581,7 +583,13 @@ func HandleDeactivateAccount() http.HandlerFunc {
 }
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
-func HandleAddFeedset(svc SubscriptionsService, static embed.FS) http.HandlerFunc {
+func HandleAddFeedset(
+	feeds FeedService,
+	users UserService,
+	subscriptions SubscriptionsService,
+	httpClient *resty.Client,
+	static embed.FS,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
@@ -625,19 +633,19 @@ func HandleAddFeedset(svc SubscriptionsService, static embed.FS) http.HandlerFun
 				for _, id := range feedsetEnlightened {
 					ids = append(ids, id)
 				}
-				data, err = service.GenerateOPML(req.Context(), ids...)
+				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			case "informed":
 				ids := make([]models.FeedID, 0, len(feedsetInformed))
 				for _, id := range feedsetInformed {
 					ids = append(ids, id)
 				}
-				data, err = service.GenerateOPML(req.Context(), ids...)
+				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			case "inspired":
 				ids := make([]models.FeedID, 0, len(feedsetInspired))
 				for _, id := range feedsetInspired {
 					ids = append(ids, id)
 				}
-				data, err = service.GenerateOPML(req.Context(), ids...)
+				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Unknown feedset.",
 					slog.String("set", set))
@@ -664,7 +672,7 @@ func HandleAddFeedset(svc SubscriptionsService, static embed.FS) http.HandlerFun
 		}
 
 		// Process requests.
-		results := svc.BulkImportFeeds(req.Context(), subscriptionRequests...)
+		results := bulkImportFeeds(req.Context(), feeds, users, subscriptions, httpClient, subscriptionRequests...)
 
 		// Process results
 		for result := range slices.Values(results) {
@@ -703,8 +711,8 @@ func HandleAccountSuccess() http.HandlerFunc {
 	}
 }
 
-func HandleAccountCancel() http.HandlerFunc {
-	return HandleLanding()
+func HandleAccountCancel(appCfg AppConfig) http.HandlerFunc {
+	return HandleLanding(appCfg)
 }
 
 // AccountIssue contains data for rendering a page to present the user when there is an issue with their account.
@@ -745,7 +753,7 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 	}
 }
 
-func HandleGenerateSubscriptionEmail() http.HandlerFunc {
+func HandleGenerateSubscriptionEmail(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
@@ -763,7 +771,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 			10,
 		) + "@foragd.app")
 
-		if err := service.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
+		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
 			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err)).ServeHTTP(res, req)
 			return
 		}
@@ -818,7 +826,7 @@ func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
 // (user manually goes to page) and non-interactive (as per RFC 8058).
-func HandleUserUnsubscribe() http.HandlerFunc {
+func HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		token := chi.RouteContext(req.Context()).URLParam("token")
 		if token == "" {
@@ -877,7 +885,7 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 			}
 
 			// Retrieve the user details.
-			user, err := service.GetUserByEmail(req.Context(), email)
+			user, err := users.GetUserByEmail(req.Context(), email)
 			if err != nil {
 				displayResults(err)
 				return
@@ -886,7 +894,7 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 			// Mark in the user's metadata that they do not want to receive promotional emails.
 			user.Metadata.PromotionalEmail = false
 			// Update the user.
-			if err := service.UpdateUser(req.Context(), user, map[string]any{
+			if err := users.UpdateUser(req.Context(), user, map[string]any{
 				"metadata": user.Metadata,
 			}); err != nil {
 				displayResults(err)
@@ -898,7 +906,10 @@ func HandleUserUnsubscribe() http.HandlerFunc {
 	}
 }
 
-func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler) http.Handler {
+func ValidateSubscriptionLimits(
+	users UserService,
+	subscriptions SubscriptionsService,
+) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx, span := tracer.Start(req.Context(), "ValidateSubscriptionLimits")
@@ -913,7 +924,7 @@ func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler
 				return
 			}
 
-			allSubscriptions, err := svc.GetAllSubscriptions(ctx)
+			allSubscriptions, err := subscriptions.GetAllSubscriptions(ctx)
 			if err != nil {
 				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 				return
@@ -940,7 +951,7 @@ func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler
 						Exceeded:  false,
 						Timestamp: time.Now().UTC(),
 					}
-					if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+					if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 						return
 					}
@@ -962,7 +973,7 @@ func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler
 						Exceeded:  false,
 						Timestamp: time.Now().UTC(),
 					}
-					if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+					if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					}
 					slogctx.FromCtx(ctx).Info("User has corrected newsletter limit overage.")
@@ -976,7 +987,7 @@ func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler
 					Exceeded:  true,
 					Timestamp: time.Now().UTC(),
 				}
-				if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+				if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
@@ -1012,7 +1023,7 @@ func ValidateSubscriptionLimits(svc SubscriptionsService) func(next http.Handler
 					Exceeded:  true,
 					Timestamp: time.Now().UTC(),
 				}
-				if err := service.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
+				if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
 					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}

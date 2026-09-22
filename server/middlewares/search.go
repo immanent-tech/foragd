@@ -15,69 +15,72 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/handlers"
 )
 
 // CanonicalizeSearchParams processes and stores the search params requested by a user.
-func CanonicalizeSearchParams(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		spanCtx, span := tracer.Start(req.Context(), "canonicalize-search-filters")
-		defer span.End()
+func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			spanCtx, span := tracer.Start(req.Context(), "canonicalize-search-filters")
+			defer span.End()
 
-		switch req.Method {
-		case http.MethodGet:
-			var search *models.SearchRequest
-			if htmx.IsHistoryRestoreRequest(req) {
-				// For a history restore request, fetch the params from the session.
-				search = models.SearchParamsFromSession(spanCtx)
-				switch {
-				case search.From != nil:
-					// Set upto as the value of from and reset from.
-					upto := *search.From
-					search.UpTo = &upto
-					search.From = nil
-				case search.SearchAfter != nil:
-					// Set upto from value stored in session.
-					count := models.SearchCountFromSession(spanCtx)
-					search.UpTo = &count
-					search.SearchAfter = nil
+			switch req.Method {
+			case http.MethodGet:
+				var search *models.SearchRequest
+				if htmx.IsHistoryRestoreRequest(req) {
+					// For a history restore request, fetch the params from the session.
+					search = handlers.SearchParamsFromSession(spanCtx, session)
+					switch {
+					case search.From != nil:
+						// Set upto as the value of from and reset from.
+						upto := *search.From
+						search.UpTo = &upto
+						search.From = nil
+					case search.SearchAfter != nil:
+						// Set upto from value stored in session.
+						count := handlers.SearchCountFromSession(spanCtx, session)
+						search.UpTo = &count
+						search.SearchAfter = nil
+					}
+				} else {
+					// For regular requests, parse the params from the query. If they differ, redirect the user.
+					search = models.ParseSearchParams(req.URL.Query())
+					if canonical := search.Encode(); req.URL.RawQuery != canonical {
+						slogctx.Debug(spanCtx, "Redirect after params canonicalization.",
+							slog.String("query", req.URL.RawQuery),
+							slog.String("canonical", canonical))
+						req.URL.RawQuery = canonical
+						http.Redirect(res, req, req.URL.String(), http.StatusFound)
+						return
+					}
 				}
-			} else {
-				// For regular requests, parse the params from the query. If they differ, redirect the user.
-				search = models.ParseSearchParams(req.URL.Query())
-				if canonical := search.Encode(); req.URL.RawQuery != canonical {
-					slogctx.Debug(spanCtx, "Redirect after params canonicalization.",
-						slog.String("query", req.URL.RawQuery),
-						slog.String("canonical", canonical))
-					req.URL.RawQuery = canonical
-					http.Redirect(res, req, req.URL.String(), http.StatusFound)
-					return
+				// Save values.
+				ctx := models.SearchParamsToCtx(req.Context(), search)
+				handlers.SearchParamsToSession(ctx, session, search)
+				handlers.SearchCountToSession(ctx, session, search.Count)
+				next.ServeHTTP(res, req.WithContext(ctx))
+			case http.MethodPost:
+				search, err := forms.DecodeForm[*models.SearchRequest](req)
+				if err != nil {
+					// Try to restore params from session.
+					search = handlers.SearchParamsFromSession(spanCtx, session)
+					slogctx.FromCtx(spanCtx).Warn("Unable to decode search params. Using search params from session.",
+						slog.Any("error", err),
+						slog.Any("search", search),
+					)
 				}
+				// For pagination requests, update search count in session.
+				if strings.HasSuffix(req.URL.Path, "paginate") {
+					count := handlers.SearchCountFromSession(spanCtx, session)
+					count += search.Count
+					handlers.SearchCountToSession(spanCtx, session, count)
+				}
+				// Save values.
+				ctx := models.SearchParamsToCtx(req.Context(), search)
+				handlers.SearchParamsToSession(ctx, session, search)
+				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			// Save values.
-			ctx := models.SearchParamsToCtx(req.Context(), search)
-			models.SearchParamsToSession(ctx, search)
-			models.SearchCountToSession(ctx, search.Count)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		case http.MethodPost:
-			search, err := forms.DecodeForm[*models.SearchRequest](req)
-			if err != nil {
-				// Try to restore params from session.
-				search = models.SearchParamsFromSession(spanCtx)
-				slogctx.FromCtx(spanCtx).Warn("Unable to decode search params. Using search params from session.",
-					slog.Any("error", err),
-					slog.Any("search", search),
-				)
-			}
-			// For pagination requests, update search count in session.
-			if strings.HasSuffix(req.URL.Path, "paginate") {
-				count := models.SearchCountFromSession(spanCtx)
-				count += search.Count
-				models.SearchCountToSession(spanCtx, count)
-			}
-			// Save values.
-			ctx := models.SearchParamsToCtx(req.Context(), search)
-			models.SearchParamsToSession(ctx, search)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		}
-	})
+		})
+	}
 }

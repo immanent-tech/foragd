@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
@@ -33,6 +32,7 @@ type Changelog struct {
 	title       templates.PageTitle `toml:"-"`
 	description string              `toml:"-"`
 	Releases    []templates.Release `toml:"releases"`
+	link        string
 }
 
 func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -51,7 +51,7 @@ func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.CreatePage(template,
 			templates.WithPageTitle(p.title),
 			templates.WithPageDescription(p.description),
-			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
+			templates.WithCanonicalLink(p.link),
 		)).ServeHTTP(res, req)
 }
 
@@ -65,7 +65,7 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleChangelog() http.HandlerFunc {
+func HandleChangelog(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -74,6 +74,7 @@ func HandleChangelog() http.HandlerFunc {
 			},
 			description: "Latest release notes containing new features, updates and fixes for Foragd",
 			Releases:    make([]templates.Release, 0),
+			link:        appCfg.GetBaseURL().JoinPath("changelog").String(),
 		}
 
 		if _, err := toml.DecodeFS(
@@ -95,7 +96,7 @@ func HandleChangelog() http.HandlerFunc {
 	}
 }
 
-func HandleChangelogFeed() http.HandlerFunc {
+func HandleChangelogFeed(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -121,10 +122,10 @@ func HandleChangelogFeed() http.HandlerFunc {
 		rssFile := rss.NewRSS(
 			changelog.title.String(),
 			changelog.description,
-			config.GetBaseURL(),
+			appCfg.GetBaseURL().String(),
 			rss.WithAtomLink(&atom.Link{
 				Rel:  new(atom.LinkRelSelf),
-				Href: config.GetBaseURL() + "/changelog/feed",
+				Href: appCfg.GetBaseURL().JoinPath("/changelog/feed").String(),
 				Type: new("application/rss+xml"),
 			}),
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
@@ -132,8 +133,8 @@ func HandleChangelogFeed() http.HandlerFunc {
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  config.GetBaseURL(),
-				URL:   config.GetBaseURL() + "/content/logo-vertical-light.webp",
+				Link:  appCfg.GetBaseURL().String(),
+				URL:   appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("daily"),
@@ -158,7 +159,7 @@ func HandleChangelogFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(release.Version),
 				rss.WithItemDescription(string(release.Type), false),
-				rss.WithItemLink(config.GetBaseURL()+"/changelog#"+release.Version),
+				rss.WithItemLink(appCfg.GetBaseURL().JoinPath("/changelog#"+release.Version).String()),
 				rss.WithItemContent(content.String(), true),
 				rss.WithItemPublishedDate(timestamp),
 			)

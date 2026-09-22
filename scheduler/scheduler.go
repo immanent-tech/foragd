@@ -25,15 +25,17 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
+	"github.com/immanent-tech/foragd/server/cache"
+	"github.com/immanent-tech/foragd/service"
 )
 
 const (
@@ -46,6 +48,7 @@ type manager struct {
 	quartz.Scheduler
 
 	queue quartz.JobQueue
+	store *service.ElasticService
 }
 
 var Manager *manager
@@ -58,8 +61,30 @@ func (m *manager) Clear(ctx context.Context) error {
 	return nil
 }
 
+func (m *manager) UpdateSerializedJob(ctx context.Context, job *jobs.SerializedJob) error {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			job,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string](m.store.GetIndexRW(service.ScheduleIndex)),
+		),
+	); err != nil {
+		return fmt.Errorf("update serialized job: %w", err)
+	}
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Unable to flush bulk request.",
+			slog.Any("error", err))
+	}
+	return nil
+}
+
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
 	if err := NewManager(ctx); err != nil {
 		return fmt.Errorf("create scheduler: %w", err)
 	}
@@ -74,6 +99,44 @@ func Run(ctx context.Context) error {
 	// Store the scheduler in the context for access by jobs.
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
+	ctx = jobs.ElasticToCtx(ctx, Manager.store)
+
+	// Load the http client.
+	httpClient, err := client.Load()
+	if err != nil {
+		return fmt.Errorf("load http client: %w", err)
+	}
+	httpClient = httpClient.SetHeader(
+		"User-Agent",
+		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+	)
+	ctx = jobs.HTTPClientToCtx(ctx, httpClient)
+
+	// Load the articles cache.
+	itemsCache, err := cache.NewItemsCache()
+	if err != nil {
+		return fmt.Errorf("load items cache: %w", err)
+	}
+	ctx = jobs.ItemCacheToCtx(ctx, itemsCache)
+
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		return fmt.Errorf("load user service: %w", err)
+	}
+	ctx = jobs.UserSvcToCtx(ctx, userSvc)
+
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return fmt.Errorf("load feed service: %w", err)
+	}
+	ctx = jobs.FeedSvcToCtx(ctx, feedSvc)
+
+	itemSvc, err := service.LoadItemService()
+	if err != nil {
+		return fmt.Errorf("load item service: %w", err)
+	}
+	ctx = jobs.ItemSvcToCtx(ctx, itemSvc)
+
 	// Load all admin jobs as needed.
 	if err := InitAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
@@ -82,7 +145,7 @@ func Run(ctx context.Context) error {
 	// Start scheduling jobs.
 	Manager.Start(ctx)
 	slogctx.Info(ctx, "Scheduler started.",
-		slog.String("version", config.GetVersion()),
+		slog.String("version", appCfg.Version),
 		slog.Time("start_time", time.Now()),
 	)
 
@@ -135,9 +198,16 @@ func NewManager(ctx context.Context) error {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
 
+	// Load the elastic service.
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		return fmt.Errorf("load elastic service: %w", err)
+	}
+
 	Manager = &manager{
 		Scheduler: scheduler,
 		queue:     jobQueue,
+		store:     elasticSvc,
 	}
 
 	return nil
@@ -176,7 +246,7 @@ func InitAdminJobs(ctx context.Context) error {
 			}
 			_, err = elastic.GetDoc[string, *jobs.SerializedJob](
 				ctx,
-				schema.SchedulerIndexRO(),
+				Manager.store.GetIndexRO(service.ScheduleIndex),
 				serialized.JobDetail().JobKey().String(),
 			)
 			if err != nil || errors.Is(err, elastic.ErrNotFound) {
@@ -198,7 +268,7 @@ func InitAdminJobs(ctx context.Context) error {
 	return nil
 }
 
-func LoadUpdateFeedJobs(ctx context.Context) error {
+func LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error {
 	// Gather all current feed jobs.
 	jobKeys, err := Manager.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
 	if err != nil {
@@ -214,7 +284,7 @@ func LoadUpdateFeedJobs(ctx context.Context) error {
 	// Find all feeds that don't have an existing job.
 	joblessFeeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO(),
+		Manager.store.GetIndexRO(service.FeedsIndex),
 		query.Bool(
 			query.MustNot(
 				query.Terms("feed_id", feedIDs),
@@ -248,7 +318,7 @@ func LoadUpdateFeedJobs(ctx context.Context) error {
 			)
 		case errors.Is(err, quartz.ErrJobNotFound):
 			// If there is no existing scheduled newJob, create one.
-			newJob, err := jobs.NewUpdateFeedJob(ctx, feed.GetID())
+			newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
 			if err != nil {
 				slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
 					slog.Any("error", err),

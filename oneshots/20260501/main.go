@@ -9,7 +9,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/resend"
@@ -23,9 +22,19 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		panic(err)
+	}
+
 	resp, err := elastic.Search[*models.User](
 		ctx,
-		schema.UsersIndexRO(),
+		elasticSvc.GetIndexRO(service.UsersIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.Filter(
@@ -72,7 +81,7 @@ func main() {
 		}
 		metadata := user.Metadata
 		metadata.PendingDeletion = new(true)
-		if err := service.UpdateUser(ctx, user, map[string]any{
+		if err := userSvc.UpdateUser(ctx, user, map[string]any{
 			"metadata": metadata,
 		}); err != nil {
 			panic(err)

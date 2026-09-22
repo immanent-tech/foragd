@@ -29,8 +29,6 @@ import (
 
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -43,29 +41,21 @@ var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
 
 // PostsIndex is the index of all posts.
 type PostsIndex struct {
-	posts []*markdownx.File
+	data     templates.PostsData
+	metadata pageMetadata
 }
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     "Blog",
-			Description: "RSS Reader Tips, Guides and Comparisons",
-		},
-		Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
-		Path:        "/blog",
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
 	templ.Handler(templates.CreatePage(
-		templates.PostsIndex(p.posts),
-		templates.WithPageTitle(metadata.Title),
-		templates.WithPageDescription(metadata.Description),
-		templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-		templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+		templates.PostsIndex(p.data),
+		templates.WithPageTitle(p.metadata.Title),
+		templates.WithPageDescription(p.metadata.Description),
+		templates.WithCanonicalLink(p.metadata.CanonicalLink()),
+		templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
-			metadata.JSONLD(req),
+			generateSiteJSONLD(p.metadata.baseURL),
+			p.metadata.JSONLD(),
 		),
 	),
 	).ServeHTTP(res, req)
@@ -74,6 +64,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 // Post is an individual post.
 type Post struct {
 	*markdownx.File
+	baseURL *url.URL
 }
 
 // FullResponse renders an individual post.
@@ -96,13 +87,11 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		Description: "Blog",
 		Date:        p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 	}
-	baseURL := req.URL.Clone()
-	baseURL.Path = "/"
 	postOG := opengraph.NewArticle(
 		title.String(),
-		baseURL.JoinPath("blog", p.Frontmatter.Slug).String(),
+		p.baseURL.Clone().JoinPath("blog", p.Frontmatter.Slug).String(),
 		p.Frontmatter.Description,
-		baseURL.JoinPath(*p.Frontmatter.Image).String(),
+		p.baseURL.Clone().JoinPath(*p.Frontmatter.Image).String(),
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
 		"",
@@ -112,7 +101,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)
 	postJsonLd := schemaorg.NewArticle(
 		title.String(),
-		[]string{baseURL.JoinPath(*p.Frontmatter.Image).String()},
+		[]string{p.baseURL.Clone().JoinPath(*p.Frontmatter.Image).String()},
 		nil,
 		nil,
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
@@ -123,17 +112,17 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.Post(p.File),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(baseURL.JoinPath("blog", p.Frontmatter.Slug).String()),
+		templates.WithCanonicalLink(p.baseURL.Clone().JoinPath("blog", p.Frontmatter.Slug).String()),
 		templates.WithOpenGraphMetadata(postOG),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(req),
+			generateSiteJSONLD(p.baseURL),
 			postJsonLd,
 		),
 	)).ServeHTTP(res, req.WithContext(ctx))
 }
 
 // HandlePosts handles showing the posts index or individual posts.
-func HandlePosts() http.HandlerFunc {
+func HandlePosts(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		posts, err := getPosts()
@@ -156,7 +145,22 @@ func HandlePosts() http.HandlerFunc {
 		switch slug := chi.URLParam(req, "*"); slug {
 		case "":
 			// Posts index.
-			index := &PostsIndex{posts: posts}
+			index := &PostsIndex{
+				metadata: pageMetadata{
+					Title: templates.PageTitle{
+						Summary:     "Blog",
+						Description: "RSS Reader Tips, Guides and Comparisons",
+					},
+					Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
+					Path:        "/blog",
+					ImagePath:   "/content/logo-vertical-light.webp",
+					baseURL:     appCfg.GetBaseURL(),
+				},
+				data: templates.PostsData{
+					Files:   posts,
+					BaseURL: appCfg.GetBaseURL(),
+				},
+			}
 			RenderExternalPage(index).ServeHTTP(res, req)
 		default:
 			// Individual post.
@@ -170,13 +174,16 @@ func HandlePosts() http.HandlerFunc {
 
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
-			RenderExternalPage(&Post{File: posts[idx]}).ServeHTTP(res, req)
+			RenderExternalPage(&Post{
+				baseURL: appCfg.GetBaseURL(),
+				File:    posts[idx],
+			}).ServeHTTP(res, req)
 		}
 	}
 }
 
 // HandlePostsFeed handles showing an RSS file for posts.
-func HandlePostsFeed() http.HandlerFunc {
+func HandlePostsFeed(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Reject requests with any query parameters set.
 		if len(req.URL.Query()) > 0 {
@@ -198,19 +205,19 @@ func HandlePostsFeed() http.HandlerFunc {
 		rssFile := rss.NewRSS(
 			"Posts from the Foragd Team",
 			"Comparisons, opinions and other content from the Foragd team",
-			config.GetBaseURL(),
+			appCfg.GetBaseURL().String(),
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithAtomLink(&atom.Link{
 				Rel:  new(atom.LinkRelSelf),
-				Href: config.GetBaseURL() + "/rss",
+				Href: appCfg.GetBaseURL().JoinPath("/rss").String(),
 				Type: new("application/rss+xml"),
 			}),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  config.GetBaseURL(),
-				URL:   config.GetBaseURL() + "/content/logo-vertical-light.webp",
+				Link:  appCfg.GetBaseURL().String(),
+				URL:   appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 				Title: "Posts from the Foragd Team",
 			}),
 			rss.WithUpdatePeriod("monthly"),
@@ -226,11 +233,13 @@ func HandlePostsFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(post.Frontmatter.Title),
 				rss.WithItemDescription(post.Frontmatter.Description, false),
-				rss.WithItemLink(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug),
-				rss.WithItemGUID(rss.NewGUID(config.GetBaseURL()+"/blog/"+post.Frontmatter.Slug, true)),
+				rss.WithItemLink(appCfg.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String()),
+				rss.WithItemGUID(
+					rss.NewGUID(appCfg.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String(), true),
+				),
 				rss.WithItemImage(&types.Image{
 					Title: &post.Frontmatter.Title,
-					URL:   config.GetBaseURL() + *post.Frontmatter.Image,
+					URL:   appCfg.GetBaseURL().JoinPath(*post.Frontmatter.Image).String(),
 				}),
 				rss.WithItemContent(contentStr, true),
 				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),

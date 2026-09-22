@@ -14,7 +14,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 )
 
 func IsActive(s *models.PaddleSubscription) bool {
@@ -57,8 +56,13 @@ func CancelSubscription(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-// UpdateUserSubscription handles updating a user's subscription data.
-func UpdateUserSubscription[T subscriptionData](ctx context.Context, user *models.User, subscription T) error {
+// updateUserSubscription handles updating a user's subscription data.
+func updateUserSubscription[T subscriptionData](
+	ctx context.Context,
+	userSvc UserService,
+	user *models.User,
+	subscription T,
+) error {
 	subscriptionData, err := user.Subscription.AsPaddleSubscription()
 	if err != nil {
 		return fmt.Errorf("get user paddle subscription: %w", err)
@@ -115,7 +119,7 @@ func UpdateUserSubscription[T subscriptionData](ctx context.Context, user *model
 		return fmt.Errorf("update user paddle subscription: %w", err)
 	}
 
-	if err := service.UpdateUser(ctx, user, map[string]any{
+	if err := userSvc.UpdateUser(ctx, user, map[string]any{
 		"subscription_type": models.UserSubscriptionTypePaddle,
 		"subscription":      user.Subscription},
 	); err != nil {

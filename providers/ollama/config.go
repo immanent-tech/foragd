@@ -21,11 +21,6 @@ const (
 	ConfigEnvPrefix = "OLLAMA_"
 )
 
-var cfg = Config{
-	BatchSize: 50,
-	KeepAlive: config.NewDuration(5 * time.Minute),
-}
-
 // Config contains the pubsub configuration options.
 type Config struct {
 	// URL is the URL to the ollama server.
@@ -41,21 +36,31 @@ type Config struct {
 
 // LoadConfig loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfig = sync.OnceValue(func() error {
+var LoadConfig = sync.OnceValues(func() (*Config, error) {
+	cfg := Config{
+		BatchSize: 50,
+		KeepAlive: config.NewDuration(5 * time.Minute),
+	}
+
 	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
-		return fmt.Errorf("google: unable to load config: %w", err)
+		return nil, fmt.Errorf("google: unable to load config: %w", err)
 	}
 
 	if err := validation.Validate.Struct(cfg); err != nil {
-		return fmt.Errorf("google: unable to validate config: %w", err)
+		return nil, fmt.Errorf("google: unable to validate config: %w", err)
+	}
+
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load app config: %w", err)
 	}
 
 	var tokenSource oauth2.TokenSource
-	if config.IsProduction() {
+	if appCfg.IsProduction() {
 		var err error
 		tokenSource, err = idtoken.NewTokenSource(context.Background(), cfg.URL)
 		if err != nil {
-			return fmt.Errorf("generate token source: %w", err)
+			return nil, fmt.Errorf("generate token source: %w", err)
 		}
 	}
 	// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
@@ -63,5 +68,5 @@ var LoadConfig = sync.OnceValue(func() error {
 	cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
 
 	slog.Debug("Ollama config loaded.") //nolint:sloglint // we don't pass a context.
-	return nil
+	return &cfg, nil
 })

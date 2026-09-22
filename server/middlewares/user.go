@@ -6,10 +6,12 @@
 package middlewares
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -19,42 +21,34 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/server/handlers"
-	"github.com/immanent-tech/foragd/server/session"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+type UserService interface {
+	GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error)
+}
+
 // ExtractUserFromSession will extract the user data from the session, retrieve the user details from the backend and
 // then store the user object in the context for use by later handlers.
-func ExtractUserFromSession(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Ignore updates route.
-		if strings.HasPrefix(req.URL.Path, "/updates") {
-			next.ServeHTTP(res, req)
-			return
-		}
+func ExtractUserFromSession(
+	users UserService,
+	auth *auth0.Authenticator,
+	session handlers.SessionManager,
+	httpClient *resty.Client,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 
-		// If user isn't authenticated, redirect to authenticate.
-		if !auth0.IsAuthenticated(req) {
-			slogctx.Warn(req.Context(), "Unauthenticated; redirecting to login.")
-			auth0.PutReturnTo(req, req.URL.RequestURI())
-			if htmx.IsHTMX(req) {
-				res.Header().Add(htmx.HeaderRedirect, "/login")
-				res.WriteHeader(http.StatusUnauthorized)
+			// Ignore updates route.
+			if strings.HasPrefix(req.URL.Path, "/updates") {
+				next.ServeHTTP(res, req)
 				return
 			}
-			http.Redirect(res, req, "/login", http.StatusFound)
-			return
-		}
 
-		if auth0.IsAccessTokenExpired(req) {
-			refreshToken, err := auth0.GetRefreshToken(req)
-			if err != nil || refreshToken == "" {
-				slogctx.Warn(req.Context(), "Access token expired and no refresh token; redirecting to login.",
-					slog.Any("error", err),
-				)
-				auth0.ClearAuth(req)
-				auth0.PutReturnTo(req, req.URL.RequestURI())
+			// If user isn't authenticated, redirect to authenticate.
+			if !auth.IsAuthenticated(req.Context(), session) {
+				slogctx.Warn(req.Context(), "Unauthenticated; redirecting to login.")
+				auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
 				if htmx.IsHTMX(req) {
 					res.Header().Add(htmx.HeaderRedirect, "/login")
 					res.WriteHeader(http.StatusUnauthorized)
@@ -64,77 +58,93 @@ func ExtractUserFromSession(next http.Handler) http.Handler {
 				return
 			}
 
-			slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
-			token, err := auth0.RefreshTokens(req.Context(), refreshToken)
+			if auth.IsAccessTokenExpired(req.Context(), session) {
+				refreshToken, err := auth.GetRefreshToken(req.Context(), session)
+				if err != nil || refreshToken == "" {
+					slogctx.Warn(req.Context(), "Access token expired and no refresh token; redirecting to login.",
+						slog.Any("error", err),
+					)
+					auth.ClearAuth(req.Context(), session)
+					auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+					if htmx.IsHTMX(req) {
+						res.Header().Add(htmx.HeaderRedirect, "/login")
+						res.WriteHeader(http.StatusUnauthorized)
+						return
+					}
+					http.Redirect(res, req, "/login", http.StatusFound)
+					return
+				}
+
+				slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
+				token, err := auth.RefreshTokens(req.Context(), httpClient, refreshToken)
+				if err != nil {
+					slogctx.Warn(req.Context(), "Token refresh failed.",
+						slog.Any("error", err),
+					)
+					auth.ClearAuth(req.Context(), session)
+					auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+					if htmx.IsHTMX(req) {
+						res.Header().Add(htmx.HeaderRedirect, "/login")
+						res.WriteHeader(http.StatusUnauthorized)
+						return
+					}
+					http.Redirect(res, req, "/login", http.StatusFound)
+					return
+				}
+
+				// Rotate tokens in session.
+				auth.SaveTokens(req.Context(), session, token)
+				slogctx.Debug(req.Context(), "Token refresh successful.")
+			}
+
+			profile, ok := session.Get(req.Context(), "profile").(auth0.UserProfile)
+			if !ok {
+				slogctx.Warn(req.Context(), "Unable to retrieve profile from session.")
+				auth.ClearAuth(req.Context(), session)
+				auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+				if htmx.IsHTMX(req) {
+					res.Header().Add(htmx.HeaderRedirect, "/login")
+					res.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+				http.Redirect(res, req, "/login", http.StatusFound)
+				return
+			}
+
+			if profile.Blocked {
+				slogctx.Error(req.Context(), "Attempted access from blocked user. Redirecting to account issue page.",
+					slog.String("external_user_id", profile.GetID()),
+				)
+				if htmx.IsHTMX(req) {
+					res.Header().Set(htmx.HeaderRedirect, "/account-issue")
+				} else {
+					http.Redirect(res, req, "/account-issue", http.StatusTemporaryRedirect)
+				}
+				return
+			}
+
+			// Fetch the user from the user management API.
+			user, err := users.GetUserByExternalID(req.Context(), profile.GetID())
 			if err != nil {
-				slogctx.Warn(req.Context(), "Token refresh failed.",
-					slog.Any("error", err),
-				)
-				auth0.ClearAuth(req)
-				auth0.PutReturnTo(req, req.URL.RequestURI())
+				slogctx.Error(req.Context(), "Get local user data failed.",
+					slog.String("external_user_id", profile.GetID()),
+					slog.Any("error", err))
 				if htmx.IsHTMX(req) {
-					res.Header().Add(htmx.HeaderRedirect, "/login")
-					res.WriteHeader(http.StatusUnauthorized)
-					return
+					res.Header().Set(htmx.HeaderRedirect, "/")
+				} else {
+					http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
 				}
-				http.Redirect(res, req, "/login", http.StatusFound)
 				return
 			}
 
-			// Rotate tokens in session.
-			auth0.SaveTokens(req.Context(), token)
-			slogctx.Debug(req.Context(), "Token refresh successful.")
-		}
+			// Add context values.
+			ctx := models.UserToCtx(req.Context(), user)
+			ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
 
-		profile, err := session.Restore[auth0.UserProfile](req.Context(), "profile")
-		if err != nil {
-			slogctx.Warn(req.Context(), "Unable to retrieve profile from session.",
-				slog.Any("error", err),
-			)
-			auth0.ClearAuth(req)
-			auth0.PutReturnTo(req, req.URL.RequestURI())
-			if htmx.IsHTMX(req) {
-				res.Header().Add(htmx.HeaderRedirect, "/login")
-				res.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			http.Redirect(res, req, "/login", http.StatusFound)
-			return
-		}
-
-		if profile.Blocked {
-			slogctx.Error(req.Context(), "Attempted access from blocked user. Redirecting to account issue page.",
-				slog.String("external_user_id", profile.GetID()),
-			)
-			if htmx.IsHTMX(req) {
-				res.Header().Set(htmx.HeaderRedirect, "/account-issue")
-			} else {
-				http.Redirect(res, req, "/account-issue", http.StatusTemporaryRedirect)
-			}
-			return
-		}
-
-		// Fetch the user from the user management API.
-		user, err := service.GetUserByExternalID(req.Context(), profile.GetID())
-		if err != nil {
-			slogctx.Error(req.Context(), "Get local user data failed.",
-				slog.String("external_user_id", profile.GetID()),
-				slog.Any("error", err))
-			if htmx.IsHTMX(req) {
-				res.Header().Set(htmx.HeaderRedirect, "/")
-			} else {
-				http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
-			}
-			return
-		}
-
-		// Add context values.
-		ctx := models.UserToCtx(req.Context(), user)
-		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
-
-		// Pass to next request.
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
+			// Pass to next request.
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // RequireValidUser will ensure that protected routes have a valid user status before continuing.

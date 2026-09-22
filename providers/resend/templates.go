@@ -89,6 +89,11 @@ func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption
 		return fmt.Errorf("load client: %w", err)
 	}
 
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return fmt.Errorf("load app config: %w", err)
+	}
+
 	template := &Template{
 		alias: alias,
 		UpdateTemplateRequest: &resend.UpdateTemplateRequest{
@@ -97,7 +102,7 @@ func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption
 	}
 
 	// Generate an email address to use as default from/reply-to.
-	from := &mail.Address{Name: config.GetAppName(), Address: cfg.ReplyToEmail}
+	from := &mail.Address{Name: appCfg.AppName, Address: cfg.ReplyToEmail}
 	WithFrom[*Template](from)(template)
 	WithReplyTo[*Template](from)(template)
 

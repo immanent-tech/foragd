@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -13,9 +14,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // NewDeleteExpiredSessionsJob creates a job for deleting expired user sessions.
@@ -48,6 +49,11 @@ func ExecuteDeleteExpiredSessions(ctx context.Context, job *SerializedJob) error
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
 
+	elasticSvc := ElasticFromCtx(ctx)
+	if elasticSvc == nil {
+		return errors.New("cannot execute: no elastic service in context")
+	}
+
 	start := time.Now()
 
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Deleting expired sessions.",
@@ -57,7 +63,7 @@ func ExecuteDeleteExpiredSessions(ctx context.Context, job *SerializedJob) error
 	// Delete all sessions with an expiry older than now.
 	if err := elastic.DeleteDocs(
 		ctx,
-		schema.SessionsIndexRW(),
+		elasticSvc.GetIndexRW(service.SessionsIndex),
 		query.Before("expiry", time.Now().UTC()),
 	); err != nil {
 		return fmt.Errorf("delete docs: %w", err)
@@ -71,7 +77,7 @@ func ExecuteDeleteExpiredSessions(ctx context.Context, job *SerializedJob) error
 	}
 	if err := elastic.UpdateDoc(
 		ctx,
-		schema.SchedulerIndexRW(),
+		elasticSvc.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		job,
 		elastic.WithDocAsUpsert(true),

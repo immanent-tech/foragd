@@ -16,7 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-func HandleChooseAndroidSubscription() http.HandlerFunc {
+func HandleChooseAndroidSubscription(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -32,7 +32,11 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 			plan = "foragd_annual"
 		}
 
-		checkout := &models.CheckoutRequest{UserSubscriptionType: models.UserSubscriptionTypeAndroid}
+		checkout := &models.CheckoutRequest{
+			UserSubscriptionType: models.UserSubscriptionTypeAndroid,
+			BaseURL:              appCfg.GetBaseURL(),
+			Environment:          appCfg.GetAppEnvironment(),
+		}
 		if err := checkout.SubscriptionData.FromAndroidCheckout(models.AndroidCheckout{
 			SKU: plan,
 		}); err != nil {
@@ -55,7 +59,7 @@ func HandleChooseAndroidSubscription() http.HandlerFunc {
 }
 
 // HandleAndroidPurchase receives a purchaseToken from the client and verifies it server-side.
-func HandleAndroidPurchase() http.HandlerFunc {
+func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -105,7 +109,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 		}
 
 		// Check token hasn't already been granted.
-		granted, err := android.TokenAlreadyGranted(req.Context(), token)
+		granted, err := android.TokenAlreadyGranted(req.Context(), userSvc, token)
 		if err != nil && !errors.Is(err, android.ErrNotFound) {
 			HandleInternalError(
 				http.StatusBadRequest,
@@ -134,7 +138,7 @@ func HandleAndroidPurchase() http.HandlerFunc {
 			slog.String("sku", sku),
 		)
 
-		_, err = android.VerifyAndAcknowledgeSubscription(req.Context(), user, sku, token)
+		_, err = android.VerifyAndAcknowledgeSubscription(req.Context(), userSvc, user, sku, token)
 		if err != nil {
 			HandleInternalError(http.StatusBadRequest, fmt.Errorf("billing verification: %w", err)).ServeHTTP(res, req)
 			return

@@ -15,7 +15,6 @@ import (
 	"github.com/indaco/teseo/schemaorg"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 
 	"github.com/immanent-tech/foragd/web"
@@ -28,7 +27,7 @@ var getPolicyDocs = sync.OnceValues(func() ([]*markdownx.File, error) {
 })
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
-func PolicyDocsHandler() http.HandlerFunc {
+func PolicyDocsHandler(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		polices, err := getPolicyDocs()
@@ -58,9 +57,9 @@ func PolicyDocsHandler() http.HandlerFunc {
 		}
 		policyOG := opengraph.NewArticle(
 			title.String(),
-			config.GetBaseURL()+"/"+policyFile.Frontmatter.Slug,
+			appCfg.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String(),
 			policyFile.Frontmatter.Description,
-			config.GetBaseURL()+"/content/logo-vertical-light.webp",
+			appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 			policyFile.Frontmatter.GetCreatedDate().String(),
 			policyFile.Frontmatter.GetUpdatedDate().String(),
 			"",
@@ -85,7 +84,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 			templates.WithPageDescription(policyFile.Frontmatter.Description),
 			templates.WithOpenGraphMetadata(policyOG),
 			templates.WithJSONLDSchema(
-				generateSiteJSONLD(req),
+				generateSiteJSONLD(appCfg.GetBaseURL()),
 				policyJsonLd,
 			),
 		)

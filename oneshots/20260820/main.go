@@ -10,7 +10,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
@@ -24,10 +23,20 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		panic(err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Get all feeds.")
 	feeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO(),
+		elasticSvc.GetIndexRO(service.FeedsIndex),
 		query.Term("domain.raw", "www.youtube.com"),
 		5000)
 	if err != nil {
@@ -57,7 +66,7 @@ func main() {
 			Type: youtube.TypeChannel,
 		})
 
-		if err := service.UpdateFeed(ctx, feed); err != nil {
+		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}

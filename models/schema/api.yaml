@@ -279,9 +279,16 @@ components:
       type: object
       required:
         - article
+        - filters
+        - base_url
       properties:
         article:
           $ref: "models.yaml#/components/schemas/Article"
+        filters:
+          $ref: "models.yaml#/components/schemas/ListFilters"
+        base_url:
+          x-go-type: "*url.URL"
+          x-go-name: BaseURL
     SearchRequest:
       description: >
         represents a search request by the user.
@@ -385,7 +392,7 @@ components:
         - search
       properties:
         search:
-          $ref: "models.yaml#/components/schemas/SearchRequest"
+          $ref: "#/components/schemas/SearchRequest"
         subscription:
           $ref: "models.yaml#/components/schemas/Subscription"
         articles:
@@ -599,3 +606,51 @@ components:
               x-oapi-codegen-extra-tags:
                 form: "selected_subscriptions"
                 validate: "omitempty,dive,startswith=sub_"
+    PaddleCheckout:
+      description: contains data for checking out a Paddle subscription.
+      type: object
+      required:
+        - plan_id
+      properties:
+        plan_id:
+          description: is the plan ID.
+          type: string
+          x-go-name: PlanID
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        transaction_id:
+          description: is the transaction ID for this checkout session.
+          type: string
+          x-go-name: TransactionID
+    AndroidCheckout:
+      description: contains data for checking out a Android subscription.
+      type: object
+      required:
+        - sku
+      properties:
+        sku:
+          description: is the plan SKU.
+          type: string
+          x-go-name: SKU
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+    CheckoutRequest:
+      description: contains data for a subscription checkout.
+      type: object
+      required:
+        - subscription_type
+        - subscription_data
+        - base_url
+        - environment
+      properties:
+        subscription_type:
+          $ref: "models.yaml#/components/schemas/UserSubscriptionType"
+        subscription_data:
+          oneOf:
+            - $ref: "#/components/schemas/PaddleCheckout"
+            - $ref: "#/components/schemas/AndroidCheckout"
+        base_url:
+          x-go-type: "*url.URL"
+          x-go-name: "BaseURL"
+        environment:
+          x-go-type: "config.Environment"

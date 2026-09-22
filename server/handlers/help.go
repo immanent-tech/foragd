@@ -11,7 +11,6 @@ import (
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 
@@ -22,16 +21,22 @@ import (
 )
 
 type Help struct {
-	title    templates.PageTitle
 	template templ.Component
+	metadata pageMetadata
 }
 
 // FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
-			templates.WithPageTitle(p.title),
-			templates.WithCanonicalLink(config.GetBaseURL()+req.URL.String()),
+			templates.WithPageTitle(p.metadata.Title),
+			templates.WithPageDescription(p.metadata.Description),
+			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
+			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
+			templates.WithJSONLDSchema(
+				generateSiteJSONLD(p.metadata.baseURL),
+				p.metadata.JSONLD(),
+			),
 		)).ServeHTTP(res, req)
 }
 
@@ -40,13 +45,13 @@ func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.metadata.Title)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
-func DocumentationHandler() http.HandlerFunc {
+func DocumentationHandler(path string, appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", "index.md"))
@@ -69,14 +74,20 @@ func DocumentationHandler() http.HandlerFunc {
 			return
 		}
 
-		title := templates.PageTitle{
-			Summary:     "Help & Documentation",
-			Description: "RSS Reader Guides and Usage",
+		metadata := pageMetadata{
+			Title: templates.PageTitle{
+				Summary:     "Help & Documentation",
+				Description: "RSS Reader Guides and Usage",
+			},
+			Description: "Get help and review documentation for using Foragd.",
+			Path:        path,
+			ImagePath:   "/content/logo-vertical-light.webp",
+			baseURL:     appCfg.GetBaseURL(),
 		}
 
 		if user := models.UserFromCtx(req.Context()); user != nil {
 			RenderInternalPage(&Help{
-				title: title,
+				metadata: metadata,
 				template: templates.LayoutInternal(
 					&templates.InternalLayoutProps{User: user},
 					templates.Document(mdHTML),
@@ -84,7 +95,7 @@ func DocumentationHandler() http.HandlerFunc {
 			}).ServeHTTP(res, req.WithContext(req.Context()))
 		} else {
 			RenderExternalPage(&Help{
-				title: title,
+				metadata: metadata,
 				template: templates.LayoutExternal(
 					templates.Document(mdHTML),
 				),

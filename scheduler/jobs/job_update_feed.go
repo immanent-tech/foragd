@@ -18,9 +18,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -29,9 +27,9 @@ const updateFeedJobTimeout = 15 * time.Minute
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
 // NewUpdateFeedJob creates a job for updating a feed.
-func NewUpdateFeedJob(ctx context.Context, id models.FeedID) (*SerializedJob, error) {
+func NewUpdateFeedJob(ctx context.Context, feedSvc *service.FeedService, id models.FeedID) (*SerializedJob, error) {
 	// Get the feed details.
-	feed, err := service.GetFeed(ctx, id)
+	feed, err := feedSvc.GetFeed(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get feed: %w", err)
 	}
@@ -76,6 +74,19 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return nil
 	}
 
+	httpClient := HTTPClientFromCtx(ctx)
+	itemsCache := ItemCacheFromCtx(ctx)
+
+	feedSvc := FeedSvcFromCtx(ctx)
+	if feedSvc == nil {
+		return errors.New("cannot execute: no feed service in context")
+	}
+
+	itemSvc := ItemSvcFromCtx(ctx)
+	if itemSvc == nil {
+		return errors.New("cannot execute: no item service in context")
+	}
+
 	start := time.Now()
 
 	ctx, cancel := context.WithTimeoutCause(ctx, updateFeedJobTimeout, errors.New("update feed timeout"))
@@ -85,30 +96,12 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	ctx = slogctx.With(ctx, "feed_id", data.FeedID)
 
 	// Retrieve the feed details.
-	details, err := service.GetFeed(ctx, data.FeedID)
+	details, err := feedSvc.GetFeed(ctx, data.FeedID)
 	switch {
 	case err != nil && errors.Is(err, elastic.ErrNotFound):
-		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
-		data.Deleted = true
-		if marshalErr := job.JobData.FromUpdateFeedJob(data); marshalErr != nil {
-			return fmt.Errorf("update job data: %w", marshalErr)
-		}
-		if bulkErr := bulk.AddAction(ctx,
-			bulk.NewAction(
-				job,
-				bulk.AsOperation[string](bulk.OpIndex),
-				bulk.ToIndex[string](schema.SchedulerIndexRW()),
-			),
-		); bulkErr != nil {
-			return fmt.Errorf("update feed: %w", bulkErr)
-		}
-		if flushErr := bulk.Flush(ctx); flushErr != nil {
-			return fmt.Errorf("update feed job: %w", flushErr)
-		}
-		slogctx.Warn(ctx, "No feed found with that ID. Marking update feed job for deletion.")
-		return nil
+		return fmt.Errorf("cannot execute: %s: no feed found", data.FeedID)
 	case err != nil:
-		return fmt.Errorf("get feed doc: %w", err)
+		return fmt.Errorf("get feed doc: %s: %w", data.FeedID, err)
 	}
 
 	// Add additional feed details to logs.
@@ -128,7 +121,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		fallthrough
 	default:
 		// Assume a regular web-based feed. Fetch feed data directly.
-		feed, feedURL, err = service.FetchFeedUpdates(ctx, details)
+		feed, feedURL, err = service.FetchFeedUpdates(ctx, httpClient, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)
@@ -137,7 +130,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
-	if err := service.ApplyFeedUpdates(ctx, details, feed); err != nil {
+	if err := feedSvc.ApplyFeedUpdates(ctx, itemSvc, httpClient, itemsCache, details, feed); err != nil {
 		slogctx.Error(ctx, "Could not apply feed updates.",
 			slog.Any("error", err))
 	}

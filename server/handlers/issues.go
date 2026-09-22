@@ -17,38 +17,42 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type PageIssue struct {
-	title    templates.PageTitle
+	metadata pageMetadata
 	template templ.Component
 }
 
 // FullResponse renders a full page (headers, footers and content).
-func (t *PageIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
+func (p *PageIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(t.template,
-			templates.WithPageTitle(t.title),
+		templates.CreatePage(p.template,
+			templates.WithPageTitle(p.metadata.Title),
+			templates.WithPageDescription(p.metadata.Description),
+			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
+			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
+			templates.WithJSONLDSchema(
+				generateSiteJSONLD(p.metadata.baseURL),
+				p.metadata.JSONLD(),
+			),
 		)).ServeHTTP(res, req)
 }
 
 // PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
-func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+func (p *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.metadata.Title)).ServeHTTP(res, req)
 }
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
-func HandleReportIssue() http.HandlerFunc {
+func HandleReportIssue(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -63,9 +67,15 @@ func HandleReportIssue() http.HandlerFunc {
 
 		// Display the report issue form.
 		RenderInternalPage(&PageIssue{
-			title: templates.PageTitle{
-				Summary:     "Report Issue",
+			metadata: pageMetadata{
+				Title: templates.PageTitle{
+					Summary:     "Report Issue",
+					Description: "Report issues and problems with the site",
+				},
 				Description: "Report issues and problems with the site",
+				Path:        "/issue",
+				ImagePath:   "/content/logo-vertical-light.webp",
+				baseURL:     appCfg.GetBaseURL(),
 			},
 			template: templates.ReportIssue(
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
@@ -75,7 +85,7 @@ func HandleReportIssue() http.HandlerFunc {
 }
 
 // HandleSubmitIssue handles processing the user submitted subscription issues form.
-func HandleSubmitIssue() http.HandlerFunc {
+func HandleSubmitIssue(appCfg AppConfig, cache ImageCache) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
@@ -94,7 +104,7 @@ func HandleSubmitIssue() http.HandlerFunc {
 		}
 
 		// Process any uploaded screenshot.
-		screenshotURL, err := processScreenshots(req)
+		screenshotURL, err := processScreenshots(appCfg, cache, req)
 		if err != nil {
 			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
@@ -163,7 +173,7 @@ func HandleSubmitIssue() http.HandlerFunc {
 
 // processScreenshots handles processing an uploaded screenshot file, storing in the server cache and generating a
 // unique URL to reference the cached file.
-func processScreenshots(req *http.Request) (string, error) {
+func processScreenshots(appCfg AppConfig, cache ImageCache, req *http.Request) (string, error) {
 	const maxScreenshotSize = 10000000 // Max screenshot size is 10 MB.
 
 	// Get any uploaded screenshot.
@@ -187,7 +197,7 @@ func processScreenshots(req *http.Request) (string, error) {
 			return "", fmt.Errorf("save screenshot: %w", err)
 		}
 		// Construct a new full URL to the uploaded avatar on the local server.
-		return config.GetBaseURL() + "/img/screenshot/" + imageFileID, nil
+		return appCfg.GetBaseURL().JoinPath("/img/screenshot/" + imageFileID).String(), nil
 	}
 	return "", nil
 }

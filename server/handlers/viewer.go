@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -18,32 +19,23 @@ import (
 )
 
 type Viewer struct {
-	title  templates.PageTitle
-	feed   *models.Feed
-	errMsg *models.UserMessage
+	metadata pageMetadata
+	feed     *models.Feed
+	errMsg   *models.UserMessage
 }
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
-	metadata := &pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     "Free RSS Feed Viewer",
-			Description: "Preview Any Website's Feed",
-		},
-		Description: "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
-		Path:        "/viewer",
-		ImagePath:   "/content/logo-vertical-light.webp",
-	}
 	templ.Handler(
 		templates.CreatePage(
 			templates.Viewer(p.feed, p.errMsg),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
-			templates.WithCanonicalLink(metadata.CanonicalLink(req)),
-			templates.WithOpenGraphMetadata(metadata.OpengraphData(req)),
+			templates.WithPageTitle(p.metadata.Title),
+			templates.WithPageDescription(p.metadata.Description),
+			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
+			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
 			templates.WithJSONLDSchema(
-				generateSiteJSONLD(req),
-				metadata.JSONLD(req),
+				generateSiteJSONLD(p.metadata.baseURL),
+				p.metadata.JSONLD(),
 			),
 		),
 	).ServeHTTP(res, req)
@@ -69,7 +61,17 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 }
 
 // HandleViewer handles powering the feed viewer page.
-func HandleViewer() http.HandlerFunc {
+func HandleViewer(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
+	metadata := pageMetadata{
+		Title: templates.PageTitle{
+			Summary:     "Free RSS Feed Viewer",
+			Description: "Preview Any Website's Feed",
+		},
+		Description: "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
+		Path:        "/viewer",
+		ImagePath:   "/content/logo-vertical-light.webp",
+		baseURL:     appCfg.GetBaseURL(),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch fetchErr := models.NewErrorMessage(
 			"Unable to find feed at provided URL",
@@ -77,7 +79,7 @@ func HandleViewer() http.HandlerFunc {
 		); req.Method {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
-				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
+				RenderExternalPage(&Viewer{metadata: metadata}).ServeHTTP(res, req)
 				return
 			}
 			feedURL, err := models.NormalizeFeedURL(chi.URLParam(req, "*"))
@@ -86,25 +88,28 @@ func HandleViewer() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderExternalPage(&Viewer{
-					errMsg: fetchErr,
+					metadata: metadata,
+					errMsg:   fetchErr,
 				}).ServeHTTP(res, req)
 				return
 			}
 
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), feedURL.String())
+			feed, err := service.FetchFeed(req.Context(), httpClient, feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
 				)
 				RenderExternalPage(&Viewer{
-					errMsg: fetchErr,
+					metadata: metadata,
+					errMsg:   fetchErr,
 				}).ServeHTTP(res, req)
 				return
 			}
 
 			RenderExternalPage(&Viewer{
-				feed: feed,
+				metadata: metadata,
+				feed:     feed,
 			}).ServeHTTP(res, req)
 
 		case http.MethodPost:
@@ -120,7 +125,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 
-			feed, err := service.FetchFeed(req.Context(), feedURL.String())
+			feed, err := service.FetchFeed(req.Context(), httpClient, feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

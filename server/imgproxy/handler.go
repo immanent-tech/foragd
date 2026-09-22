@@ -18,16 +18,13 @@ import (
 	"sync"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/zyte"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/web"
 )
 
@@ -39,9 +36,19 @@ var bufPool = sync.Pool{
 	},
 }
 
+type AppConfig interface {
+	GetAppName() string
+	GetAppVersion() string
+}
+
+type ImageCache interface {
+	GetImage(ctx context.Context, key string, buf *bytes.Buffer) error
+	SaveImage(ctx context.Context, id string, data []byte) error
+}
+
 // HandleImage is handler that will attempt to proxy an image through the image proxy. It will fetch, store
 // and retrieve the image from the cache as needed.
-func HandleImage() http.HandlerFunc {
+func HandleImage(cache ImageCache, httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := loadConfig(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -104,7 +111,7 @@ func HandleImage() http.HandlerFunc {
 		}
 
 		// Fetch the remote image.
-		if err := directFetchRemoteImage(req.Context(), proxiedURL, imgBuf); err != nil {
+		if err := directFetchRemoteImage(req.Context(), httpClient, proxiedURL, imgBuf); err != nil {
 			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 				res.WriteHeader(apiErr.StatusCode)
 			} else {
@@ -123,7 +130,7 @@ func HandleImage() http.HandlerFunc {
 		wg.Go(func() error {
 			if _, err := res.Write(imgBuf.Bytes()); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				sendImagePlaceholder(req.Context(), res, imgBuf)
+				sendImagePlaceholder(jobCtx, res, imgBuf)
 				return fmt.Errorf("write image: %w", err)
 			}
 			res.WriteHeader(http.StatusOK)
@@ -152,7 +159,12 @@ func HandleImage() http.HandlerFunc {
 }
 
 // directFetchRemoteImage fetches the image at the given url writes it into the image buffer.
-func directFetchRemoteImage(ctx context.Context, urlStr string, buf *bytes.Buffer) error {
+func directFetchRemoteImage(
+	ctx context.Context,
+	httpClient *resty.Client,
+	urlStr string,
+	buf *bytes.Buffer,
+) error {
 	remoteURL, err := url.Parse(urlStr)
 	if err != nil {
 		return fmt.Errorf("parse URL: %w", err)
@@ -161,16 +173,9 @@ func directFetchRemoteImage(ctx context.Context, urlStr string, buf *bytes.Buffe
 		return fmt.Errorf("not an absolute URL: %w", err)
 	}
 
-	// Load the http client used for making requests to the image proxy.
-	client, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-
 	// Fetch the image (either from proxy or direct).
-	resp, err := client.R().
+	resp, err := httpClient.R().
 		SetContext(ctx).
-		SetHeader("User-Agent", config.GetAppName()+"/"+config.GetVersion()+" (+https://foragd.app/policies/bot)").
 		SetDoNotParseResponse(true).
 		Get(urlStr)
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 	"go.opentelemetry.io/otel/trace"
@@ -627,15 +626,14 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6 text-neutral">
-						{{ filters := models.ListFiltersFromSession(ctx, "/list/articles") }}
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML show:top transition:true"
 							hx-vals={ templ.JSONString(map[string]any{
-									"view": filters.GetView(),
-									"count": filters.GetCount(),
-									"sort": filters.GetSort(),
+									"view": a.Filters.GetView(),
+									"count": a.Filters.GetCount(),
+									"sort": a.Filters.GetSort(),
 									"subscriptions": article.GetSubscriptionID(),
 									"subscription_name": article.GetFeedTitle(),
 									"subscription_id": article.GetSubscriptionID(),
@@ -666,7 +664,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 								@CategoryBadge(category,
 									element.WithHXMethod(http.MethodGet, "/list/articles"),
 									element.WithHXTarget(ContentID.Target()),
-									element.WithHXValues(filters),
+									element.WithHXValues(a.Filters),
 									element.WithHXParams("not subscription_id"),
 									element.WithAttribute("_", "on click halt the event's bubbling"),
 								)
@@ -744,7 +742,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 										video-id={ youtubeData.VideoId }
 										width={ *youtubeData.Width }
 										height={ *youtubeData.Height }
-										origin={ config.GetBaseURL() }
+										origin={ a.BaseURL.String() }
 										credentialless
 									></embed-youtube>
 								</div>

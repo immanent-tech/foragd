@@ -17,10 +17,14 @@ import (
 )
 
 func GenerateIndexName(prefix string) string {
-	return strings.Join(
-		[]string{prefix, config.GetEnvironment().String(), time.Now().Format("20060102150405"), "000000"},
-		"-",
-	)
+	var env string
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		env = config.EnvDevelopment.String()
+	} else {
+		env = appCfg.Environment.String()
+	}
+	return strings.Join([]string{prefix, env, time.Now().Format("20060102150405"), "000000"}, "-")
 }
 
 func CreateIndexIfNotExists(ctx context.Context, prefix string) (bool, error) {

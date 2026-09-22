@@ -13,7 +13,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
@@ -127,7 +126,7 @@ func searchSuggestionsClause(search *models.SearchRequest) query.Option {
 
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
 // optional.
-func QueryItems(
+func (s *ItemService) QueryItems(
 	ctx context.Context,
 	query query.Option,
 	count int,
@@ -140,7 +139,7 @@ func QueryItems(
 	}
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		s.store.GetIndexRO(ItemsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query),
 		elastic.WithSort(NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter(searchAfter...),
@@ -156,13 +155,16 @@ func QueryItems(
 	}
 	// Update cache.
 	for item := range slices.Values(resp.Results) {
-		itemsCache.Invalidate(item.GetID())
-		itemsCache.Set(item.GetID(), item)
+		s.Invalidate(item.GetID())
+		s.Set(item.GetID(), item)
 	}
 	return resp.Results, newPagination, nil
 }
 
-func SuggestItems(ctx context.Context, request *models.SearchRequest) (models.Items, error) {
+func (s *ItemService) SuggestItems(
+	ctx context.Context,
+	request *models.SearchRequest,
+) (models.Items, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
@@ -170,7 +172,7 @@ func SuggestItems(ctx context.Context, request *models.SearchRequest) (models.It
 
 	clause := buildSearchResultsQuery(ctx, user, request, searchSuggestionsClause(request))
 
-	items, _, err := QueryItems(ctx, clause, request.Count, &request.Sort, nil)
+	items, _, err := s.QueryItems(ctx, clause, request.Count, &request.Sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("query items: %w", err)
 	}
@@ -180,7 +182,10 @@ func SuggestItems(ctx context.Context, request *models.SearchRequest) (models.It
 
 // RetrieveItems will retrieve a [models.Items] slice of items matching the given [*models.SearchRequest]. The request
 // supports pagination and will return the next set of results as appropriate.
-func RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.Items, models.Pagination, error) {
+func (s *ItemService) RetrieveItems(
+	ctx context.Context,
+	request *models.SearchRequest,
+) (models.Items, models.Pagination, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, models.Pagination{}, fmt.Errorf("retrieve items: get user: %w", models.ErrCtxValueNotFound)
@@ -197,7 +202,7 @@ func RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.I
 
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		s.store.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever(
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
@@ -223,8 +228,8 @@ func RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.I
 	}
 	// Update cache.
 	for item := range slices.Values(resp.Results) {
-		itemsCache.Invalidate(item.GetID())
-		itemsCache.Set(item.GetID(), item)
+		s.Invalidate(item.GetID())
+		s.Set(item.GetID(), item)
 	}
 	// Parse last search after value into pagination.
 	return resp.Results, models.Pagination{From: new(from + request.Count)}, nil
@@ -232,7 +237,7 @@ func RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.I
 
 // CountSearchResults will return an approximate count of the number of items that would match the given
 // [*models.SearchRequest], published within the last 5 minutes.
-func CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error) {
+func (s *ItemService) CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return 0, fmt.Errorf("get user details: %w", models.ErrCtxValueNotFound)
@@ -245,7 +250,7 @@ func CountSearchResults(ctx context.Context, request *models.SearchRequest) (int
 
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		s.store.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever(
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
@@ -272,9 +277,12 @@ func CountSearchResults(ctx context.Context, request *models.SearchRequest) (int
 	return resp.Hits.Total.Value, nil
 }
 
-// GetTopItemCategories returns a [models.Categories] slice containing the top categories from items that match the
-// given [*models.SearchRequest].
-func GetTopItemCategories(ctx context.Context, request *models.SearchRequest) (models.Categories, error) {
+// GetTopItemCategoriesForSearchResults returns a [models.Categories] slice containing the top categories from items
+// that match the given [*models.SearchRequest].
+func (s *ItemService) GetTopItemCategoriesForSearchResults(
+	ctx context.Context,
+	request *models.SearchRequest,
+) (models.Categories, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("retrieve items: get user: %w", models.ErrCtxValueNotFound)
@@ -284,7 +292,7 @@ func GetTopItemCategories(ctx context.Context, request *models.SearchRequest) (m
 
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		s.store.GetIndexRO(ItemsIndex),
 		elastic.WithRetriever(
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),

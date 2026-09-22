@@ -6,6 +6,7 @@ package paddle
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/service"
 )
 
 // WebhookClient is a client that handles decoding and verifying incoming Paddle webhooks.
@@ -40,7 +40,7 @@ type Webhook struct {
 	RawBody   []byte                           `json:"-"`
 }
 
-func HandleWebhook(ctx context.Context, webhook Webhook) {
+func HandleWebhook(ctx context.Context, userSvc UserService, webhook Webhook) {
 	ctx = slogctx.With(ctx, "event_id", webhook.EventID)
 	ctx = slogctx.With(ctx, "event_type", webhook.EventType)
 
@@ -56,7 +56,7 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "customer_id", customer.Data.ID)
 
 		// Retrieve the user associated with the customer email.
-		user, err := service.GetUserByEmail(ctx, customer.Data.Email)
+		user, err := userSvc.GetUserByEmail(ctx, customer.Data.Email)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to find existing user for new customer.",
 				slog.Any("error", err),
@@ -86,7 +86,7 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 			return
 		}
 
-		if err := service.UpdateUser(ctx, user, map[string]any{
+		if err := userSvc.UpdateUser(ctx, user, map[string]any{
 			"subscription_type": models.UserSubscriptionTypePaddle,
 			"subscription":      user.Subscription},
 		); err != nil {
@@ -109,16 +109,27 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "subscription_id", subscription.Data.ID)
 		ctx = slogctx.With(ctx, "customer_id", subscription.Data.CustomerID)
 
-		user, err := GetUserByCustomerID(ctx, subscription.Data.CustomerID)
-		if err != nil {
+		user, err := userSvc.GetUserByCustomerID(ctx, subscription.Data.CustomerID)
+		switch {
+		case err != nil && !errors.Is(err, models.ErrNotFound):
 			slogctx.FromCtx(ctx).Error("Unable get user for customer.",
 				slog.Any("error", err),
 			)
 			return
+		case err != nil && errors.Is(err, models.ErrNotFound):
+			var err error
+			user, err = addCustomerDetailsToUser(ctx, userSvc, subscription.Data.CustomerID)
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Unable to update customer details.",
+					slog.Any("error", err),
+				)
+				return
+			}
 		}
+
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
-		if err := UpdateUserSubscription(ctx, user, subscription.Data); err != nil {
+		if err := updateUserSubscription(ctx, userSvc, user, subscription.Data); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to create subscription for user.",
 				slog.Any("error", err),
 			)
@@ -140,16 +151,27 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "subscription_id", subscription.Data.ID)
 		ctx = slogctx.With(ctx, "customer_id", subscription.Data.CustomerID)
 
-		user, err := GetUserByCustomerID(ctx, subscription.Data.CustomerID)
-		if err != nil {
+		user, err := userSvc.GetUserByCustomerID(ctx, subscription.Data.CustomerID)
+		switch {
+		case err != nil && !errors.Is(err, models.ErrNotFound):
 			slogctx.FromCtx(ctx).Error("Unable get user for customer.",
 				slog.Any("error", err),
 			)
 			return
+		case err != nil && errors.Is(err, models.ErrNotFound):
+			var err error
+			user, err = addCustomerDetailsToUser(ctx, userSvc, subscription.Data.CustomerID)
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Unable to update customer details.",
+					slog.Any("error", err),
+				)
+				return
+			}
 		}
+
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
-		if err := UpdateUserSubscription(ctx, user, subscription.Data); err != nil {
+		if err := updateUserSubscription(ctx, userSvc, user, subscription.Data); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to update subscription for user.",
 				slog.Any("error", err),
 			)
@@ -167,16 +189,27 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 		ctx = slogctx.With(ctx, "subscription_id", subscription.Data.ID)
 		ctx = slogctx.With(ctx, "customer_id", subscription.Data.CustomerID)
 
-		user, err := GetUserByCustomerID(ctx, subscription.Data.CustomerID)
-		if err != nil {
+		user, err := userSvc.GetUserByCustomerID(ctx, subscription.Data.CustomerID)
+		switch {
+		case err != nil && !errors.Is(err, models.ErrNotFound):
 			slogctx.FromCtx(ctx).Error("Unable get user for customer.",
 				slog.Any("error", err),
 			)
 			return
+		case err != nil && errors.Is(err, models.ErrNotFound):
+			var err error
+			user, err = addCustomerDetailsToUser(ctx, userSvc, subscription.Data.CustomerID)
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Unable to update customer details.",
+					slog.Any("error", err),
+				)
+				return
+			}
 		}
+
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
-		if err := UpdateUserSubscription(ctx, user, subscription.Data); err != nil {
+		if err := updateUserSubscription(ctx, userSvc, user, subscription.Data); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to cancel subscription for user.",
 				slog.Any("error", err),
 			)
@@ -198,13 +231,24 @@ func HandleWebhook(ctx context.Context, webhook Webhook) {
 
 		ctx = slogctx.With(ctx, "customer_id", transaction.Data.CustomerID)
 
-		user, err := GetUserByCustomerID(ctx, *transaction.Data.CustomerID)
-		if err != nil {
+		user, err := userSvc.GetUserByCustomerID(ctx, *transaction.Data.CustomerID)
+		switch {
+		case err != nil && !errors.Is(err, models.ErrNotFound):
 			slogctx.FromCtx(ctx).Error("Unable get user for customer.",
 				slog.Any("error", err),
 			)
 			return
+		case err != nil && errors.Is(err, models.ErrNotFound):
+			var err error
+			user, err = addCustomerDetailsToUser(ctx, userSvc, *transaction.Data.CustomerID)
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Unable to update customer details.",
+					slog.Any("error", err),
+				)
+				return
+			}
 		}
+
 		ctx = slogctx.With(ctx, "user_id", user.GetID())
 
 		// Create and send thank you email to user.

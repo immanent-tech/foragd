@@ -12,8 +12,6 @@ import (
 
 	"github.com/immanent-tech/go-base/logging"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/cli"
 )
 
@@ -41,7 +39,7 @@ func main() {
 	cmd := kong.Parse(
 		&commands,
 		kong.Bind(),
-		kong.Name(config.GetAppName()),
+		kong.Name("Foragd"),
 		kong.Description(
 			"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
 		),

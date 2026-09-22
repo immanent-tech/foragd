@@ -18,8 +18,8 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/indaco/teseo/schemaorg"
+	"net/url"
 	"time"
 )
 
@@ -278,7 +278,7 @@ func Features() templ.Component {
 	})
 }
 
-func FeaturesPageCollect() templ.Component {
+func FeaturesPageCollect(baseURL *url.URL) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -621,8 +621,8 @@ func FeaturesPageCollect() templ.Component {
 			}
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Collect", Item: config.GetBaseURL() + "/features/collect", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Collect", Item: baseURL.JoinPath("/features/collect").String(), Position: 2},
 				},
 			)
 			templ_7745c5c3_Err = breadcrumb.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)
@@ -647,7 +647,7 @@ func FeaturesPageCollect() templ.Component {
 	})
 }
 
-func FeaturesPageCurate() templ.Component {
+func FeaturesPageCurate(baseURL *url.URL) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -943,8 +943,8 @@ func FeaturesPageCurate() templ.Component {
 			}
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Curate", Item: config.GetBaseURL() + "/features/curate", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Curate", Item: baseURL.JoinPath("/features/curate").String(), Position: 2},
 				},
 			)
 			templ_7745c5c3_Err = breadcrumb.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)
@@ -969,7 +969,7 @@ func FeaturesPageCurate() templ.Component {
 	})
 }
 
-func FeaturesPageConsume() templ.Component {
+func FeaturesPageConsume(baseURL *url.URL) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1706,8 +1706,8 @@ func FeaturesPageConsume() templ.Component {
 			}
 			breadcrumb := schemaorg.NewBreadcrumbList(
 				[]schemaorg.ListItem{
-					{Name: "Features", Item: config.GetBaseURL() + "/features", Position: 1},
-					{Name: "Consume", Item: config.GetBaseURL() + "/features/consume", Position: 2},
+					{Name: "Features", Item: baseURL.JoinPath("/features").String(), Position: 1},
+					{Name: "Consume", Item: baseURL.JoinPath("/features/consume").String(), Position: 2},
 				},
 			)
 			templ_7745c5c3_Err = breadcrumb.ToJsonLd().Render(ctx, templ_7745c5c3_Buffer)

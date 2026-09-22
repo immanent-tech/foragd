@@ -13,10 +13,10 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -26,8 +26,18 @@ func main() {
 		panic(err)
 	}
 
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
 	slogctx.FromCtx(ctx).Info("Get all items.")
-	items, err := elastic.SearchAll[*models.Item](ctx, schema.ItemsIndexRO(), query.Exists("content"), 5000)
+	items, err := elastic.SearchAll[*models.Item](
+		ctx,
+		elasticSvc.GetIndexRO(service.ItemsIndex),
+		query.Exists("content"),
+		5000,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +73,7 @@ func main() {
 			if err := bulk.AddAction(ctx,
 				bulk.NewAction(item,
 					bulk.AsOperation[models.ItemID](bulk.OpIndex),
-					bulk.ToIndex[models.ItemID](schema.ItemsIndexRW()),
+					bulk.ToIndex[models.ItemID](elasticSvc.GetIndexRW(service.ItemsIndex)),
 				),
 			); err != nil {
 				slogctx.FromCtx(ctx).Error("Unable to bulk update item.",

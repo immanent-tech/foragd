@@ -16,7 +16,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
@@ -29,6 +28,10 @@ func (s *Home) AggregateSubscriptions(
 	user *models.User,
 	subscriptions models.Subscriptions,
 ) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
+	svc, err := LoadElasticService()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("load elastic service: %w", err)
+	}
 	// Don't perform aggregations if there is no data to aggregate.
 	if len(subscriptions.GetFeedIDs()) == 0 {
 		return nil, nil, nil, nil
@@ -46,7 +49,7 @@ func (s *Home) AggregateSubscriptions(
 	// Perform the request.
 	resp, err := elastic.Search[*models.Item](
 		ctx,
-		schema.ItemsIndexRO(),
+		svc.GetIndexRO(ItemsIndex),
 		// Query is adapted from service.FilterArticles query to boost favorites and return unread only.
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(

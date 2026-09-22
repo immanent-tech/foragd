@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 	"net/url"
@@ -25,7 +24,12 @@ import (
 	"time"
 )
 
-func PostsIndex(posts []*markdownx.File) templ.Component {
+type PostsData struct {
+	Files   []*markdownx.File
+	BaseURL *url.URL
+}
+
+func PostsIndex(posts PostsData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -104,7 +108,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				postsJSONLD := make([]map[string]any, 0, len(posts))
+				postsJSONLD := make([]map[string]any, 0, len(posts.Files))
 				templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -117,7 +121,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					for idx, post := range posts {
+					for idx, post := range posts.Files {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -125,7 +129,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 						postJSONLD := map[string]any{
 							"@type":         "BlogPosting",
 							"headline":      post.Frontmatter.Title,
-							"url":           config.GetBaseURL() + "/blog/" + post.Frontmatter.Slug,
+							"url":           posts.BaseURL.JoinPath("/blog/" + post.Frontmatter.Slug).String(),
 							"datePublished": post.Frontmatter.GetCreatedDate(),
 							"author": map[string]any{
 								"@type": "Person",
@@ -152,7 +156,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 							var templ_7745c5c3_Var7 templ.SafeURL
 							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs("/blog/" + post.Frontmatter.Slug)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 54, Col: 48}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 58, Col: 48}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 							if templ_7745c5c3_Err != nil {
@@ -170,7 +174,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var8 string
 								templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(*post.Frontmatter.Image)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 59, Col: 40}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 63, Col: 40}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 								if templ_7745c5c3_Err != nil {
@@ -183,7 +187,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var9 string
 								templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(post.Frontmatter.Title)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 60, Col: 39}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 64, Col: 39}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 								if templ_7745c5c3_Err != nil {
@@ -236,7 +240,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var11 string
 								templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.Title)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 80, Col: 83}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 84, Col: 83}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 								if templ_7745c5c3_Err != nil {
@@ -254,7 +258,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 									var templ_7745c5c3_Var12 string
 									templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(*post.Frontmatter.Author)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 82, Col: 70}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 86, Col: 70}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 									if templ_7745c5c3_Err != nil {
@@ -272,7 +276,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var13 string
 								templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.Description)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 84, Col: 68}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 88, Col: 68}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 								if templ_7745c5c3_Err != nil {
@@ -320,7 +324,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var15 string
 								templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(tsPrefix)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 98, Col: 20}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 102, Col: 20}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 								if templ_7745c5c3_Err != nil {
@@ -333,7 +337,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var16 string
 								templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(ts.Format(time.DateOnly))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 100, Col: 46}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 104, Col: 46}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 								if templ_7745c5c3_Err != nil {
@@ -346,7 +350,7 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 								var templ_7745c5c3_Var17 string
 								templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(ts.Format("Jan _2, 2006"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 104, Col: 38}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 108, Col: 38}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 								if templ_7745c5c3_Err != nil {
@@ -387,18 +391,17 @@ func PostsIndex(posts []*markdownx.File) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				blogURL, _ := url.JoinPath(config.GetBaseURL(), "blog")
 				// Create an index JSON-LD document.
 				indexJSONLD := map[string]any{
 					"@context":    "https://schema.org",
 					"@type":       "Blog",
 					"name":        "The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons",
 					"description": "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
-					"url":         blogURL,
+					"url":         posts.BaseURL.JoinPath("blog").String(),
 					"publisher": map[string]any{
 						"@type": "Organization",
 						"name":  "Foragd",
-						"url":   config.GetBaseURL(),
+						"url":   posts.BaseURL,
 					},
 				}
 				indexJSONLD["blogPost"] = postsJSONLD
@@ -492,7 +495,7 @@ func Post(post *markdownx.File) templ.Component {
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(post.Frontmatter.GetCreatedDate().Format(time.DateOnly))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 171, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 174, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 				if templ_7745c5c3_Err != nil {
@@ -505,7 +508,7 @@ func Post(post *markdownx.File) templ.Component {
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.GetCreatedDate().Format("Jan _2, 2006"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 175, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 178, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -523,7 +526,7 @@ func Post(post *markdownx.File) templ.Component {
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue(post.Frontmatter.GetUpdatedDate().Format(time.DateOnly))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 182, Col: 74}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 185, Col: 74}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 					if templ_7745c5c3_Err != nil {
@@ -536,7 +539,7 @@ func Post(post *markdownx.File) templ.Component {
 					var templ_7745c5c3_Var24 string
 					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.GetUpdatedDate().Format("Jan _2, 2006"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 186, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 189, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 					if templ_7745c5c3_Err != nil {
@@ -554,7 +557,7 @@ func Post(post *markdownx.File) templ.Component {
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 196, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 199, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -567,7 +570,7 @@ func Post(post *markdownx.File) templ.Component {
 				var templ_7745c5c3_Var26 string
 				templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(post.Frontmatter.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 198, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 201, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 				if templ_7745c5c3_Err != nil {
@@ -585,7 +588,7 @@ func Post(post *markdownx.File) templ.Component {
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(*post.Frontmatter.Author)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 208, Col: 56}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 211, Col: 56}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -603,7 +606,7 @@ func Post(post *markdownx.File) templ.Component {
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ReplaceAll(textx.ReadingTime(string(post.Content)).Round(time.Minute).String(), "0s", ""))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 215, Col: 105}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/posts.templ`, Line: 218, Col: 105}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {

@@ -11,11 +11,11 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
+	"github.com/immanent-tech/foragd/service"
 )
 
 func main() {
@@ -29,7 +29,22 @@ func main() {
 		panic(err)
 	}
 
-	feeds, err := elastic.SearchAll[*models.Feed](ctx, schema.FeedsIndexRO(), query.MatchAll(), 5000)
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		panic(err)
+	}
+
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		panic(err)
+	}
+
+	feeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		elasticSvc.GetIndexRO(service.FeedsIndex),
+		query.MatchAll(),
+		5000,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +64,7 @@ func main() {
 			)
 		case errors.Is(err, quartz.ErrJobNotFound):
 			// If there is no existing scheduled newJob, create one.
-			newJob, err := jobs.NewUpdateFeedJob(ctx, feed.GetID())
+			newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
 			if err != nil {
 				slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
 					slog.Any("error", err),

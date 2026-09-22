@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,22 +20,24 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
-	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/server/session"
 )
 
 // Session key constants used to store values in the SCS session.
 const (
 	sessionKeyAccessToken  = "access_token"
 	sessionKeyRefreshToken = "refresh_token"
-	sessionKeyIDToken      = "id_token"
 	sessionKeyTokenExpiry  = "token_expiry"
 	sessionKeyUserProfile  = "user_profile"
 	sessionKeyState        = "oauth_state"
 	sessionKeyCodeVerifier = "pkce_code_verifier"
 	sessionKeyReturnTo     = "return_to"
 )
+
+type SessionManager interface {
+	Get(ctx context.Context, key string) any
+	Put(ctx context.Context, key string, value any)
+	Remove(ctx context.Context, key string)
+}
 
 var ErrNoIDToken = errors.New("no id_token field in oauth2 token")
 var ErrInvalidToken = errors.New("token is invalid")
@@ -56,14 +57,12 @@ type Authenticator struct {
 	oauth2.Config
 }
 
-var authClient Authenticator
-
 // initAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will
 // only perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
-var initAuthenticator = sync.OnceValue(func() error {
+var LoadAuthenticator = sync.OnceValues(func() (*Authenticator, error) {
 	err := loadConfigOnce()
 	if err != nil {
-		return fmt.Errorf("load config: %w", err)
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
 	provider, err := oidc.NewProvider(
@@ -71,7 +70,7 @@ var initAuthenticator = sync.OnceValue(func() error {
 		"https://"+cfg.Domain+"/",
 	)
 	if err != nil {
-		return fmt.Errorf("create provider: %w", err)
+		return nil, fmt.Errorf("create provider: %w", err)
 	}
 
 	conf := oauth2.Config{
@@ -81,11 +80,10 @@ var initAuthenticator = sync.OnceValue(func() error {
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
 	}
-	authClient = Authenticator{
+	return &Authenticator{
 		Provider: provider,
 		Config:   conf,
-	}
-	return nil
+	}, nil
 })
 
 // postToken sends a POST request to the Auth0 token endpoint and decodes the response.
@@ -115,18 +113,18 @@ func (a *Authenticator) postToken(
 
 // Exchange handles verifying and exchanging the authorization code for an access token. It also extracts the ID token
 // and user profile.
-func Exchange(ctx context.Context, code, verifier string) (*TokenResponse, *UserProfile, error) {
-	if err := initAuthenticator(); err != nil {
-		return nil, nil, fmt.Errorf("init authenticator: %w", err)
-	}
+func (a *Authenticator) PerformExchange(
+	ctx context.Context,
+	code, verifier string,
+) (*TokenResponse, *UserProfile, error) {
 	// token, err := AuthClient.Exchange(ctx, code, oauth2.VerifierOption(verifier))
-	token, err := authClient.Exchange(ctx, code)
+	token, err := a.Exchange(ctx, code)
 	if err != nil {
 		return nil, nil, fmt.Errorf("exchange code for token: %w", err)
 	}
 
 	// Verify token.
-	idToken, idTokenHash, err := VerifyIDToken(ctx, token)
+	idToken, idTokenHash, err := a.VerifyIDToken(ctx, token)
 	if err != nil {
 		return nil, nil, fmt.Errorf("verify id token: %w", err)
 	}
@@ -149,52 +147,58 @@ func Exchange(ctx context.Context, code, verifier string) (*TokenResponse, *User
 }
 
 // RefreshTokens exchanges a refresh token for a new set of tokens.
-func RefreshTokens(ctx context.Context, httpClient *resty.Client, refreshToken string) (*TokenResponse, error) {
-	if err := initAuthenticator(); err != nil {
-		return nil, fmt.Errorf("init authenticator: %w", err)
-	}
+func (a *Authenticator) RefreshTokens(
+	ctx context.Context,
+	httpClient *resty.Client,
+	refreshToken string,
+) (*TokenResponse, error) {
 	form := url.Values{}
 	form.Set("grant_type", "refresh_token")
-	form.Set("client_id", authClient.Config.ClientID)
-	form.Set("client_secret", authClient.Config.ClientSecret)
+	form.Set("client_id", a.Config.ClientID)
+	form.Set("client_secret", a.Config.ClientSecret)
 	form.Set("refresh_token", refreshToken)
 
-	return authClient.postToken(ctx, httpClient, form)
+	return a.postToken(ctx, httpClient, form)
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
-func VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, string, error) {
-	if err := initAuthenticator(); err != nil {
-		return nil, "", fmt.Errorf("init authenticator: %w", err)
-	}
+func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, string, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
 		return nil, "", ErrNoIDToken
 	}
 	oidcConfig := &oidc.Config{
-		ClientID: authClient.ClientID,
+		ClientID: a.ClientID,
 	}
-	id, err := authClient.Verifier(oidcConfig).Verify(ctx, rawIDToken)
+	id, err := a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, "", fmt.Errorf("unable to verify token: %w", err)
 	}
 	return id, rawIDToken, nil
 }
 
-// AuthURLResult holds the generated authorization URL along with the state
-// and PKCE code verifier that must be stored in the session before redirecting.
+// AuthURLResult holds the generated authorization URL along with the state and PKCE code verifier that must be stored
+// in the session before redirecting.
 type AuthURLResult struct {
 	URL          string
 	State        string
 	CodeVerifier string
 }
 
-// GenerateAuthURL constructs the Auth0 Universal Login redirect URL using PKCE.
-func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
-	if err := initAuthenticator(); err != nil {
-		return nil, fmt.Errorf("init authenticator: %w", err)
-	}
+func (a AuthURLResult) GetURL() string {
+	return a.URL
+}
 
+func (a AuthURLResult) GetState() string {
+	return a.State
+}
+
+func (a AuthURLResult) GetCodeVerifier() string {
+	return a.CodeVerifier
+}
+
+// GenerateAuthURL constructs the Auth0 Universal Login redirect URL using PKCE.
+func (a *Authenticator) GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
 	state, err := generateState()
 	if err != nil {
 		return nil, err
@@ -210,15 +214,13 @@ func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
 	switch chi.RouteContext(req.Context()).RoutePattern() {
 	case "/signup":
 		// Retrieve and save the selected plan id into the session for later use.
-		planID := req.URL.Query().Get("subscription_plan")
-		session.Save(req.Context(), "subscription_plan", planID)
-		authURL = authClient.AuthCodeURL(state,
+		authURL = a.AuthCodeURL(state,
 			oauth2.SetAuthURLParam("screen_hint", "signup"),
 			// oauth2.S256ChallengeOption(codeChallenge(verifier)),
 		)
 	case "/login":
 		// authURL = AuthClient.AuthCodeURL(state, oauth2.S256ChallengeOption(codeChallenge(verifier)))
-		authURL = authClient.AuthCodeURL(state)
+		authURL = a.AuthCodeURL(state)
 	}
 
 	return &AuthURLResult{
@@ -229,10 +231,7 @@ func GenerateAuthURL(req *http.Request) (*AuthURLResult, error) {
 }
 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
-func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
-	if err := initAuthenticator(); err != nil {
-		return nil, fmt.Errorf("init authenticator: %w", err)
-	}
+func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("generate logout url: %w", err)
@@ -251,19 +250,15 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	return logoutURL, nil
 }
 
-func PutState(req *http.Request, state string) {
-	if err := session.Save(req.Context(), sessionKeyState, state); err != nil {
-		slogctx.Warn(req.Context(), "Unable to save session state.", slog.Any("error", err))
-	}
+func (a *Authenticator) PutState(ctx context.Context, mgr SessionManager, state string) {
+	mgr.Put(ctx, sessionKeyState, state)
 }
 
-func PutCodeVerifier(req *http.Request, verifier string) {
-	if err := session.Save(req.Context(), sessionKeyCodeVerifier, verifier); err != nil {
-		slogctx.Warn(req.Context(), "Unable to verification code.", slog.Any("error", err))
-	}
+func (a *Authenticator) PutCodeVerifier(ctx context.Context, mgr SessionManager, verifier string) {
+	mgr.Put(ctx, sessionKeyCodeVerifier, verifier)
 }
 
-func PutReturnTo(req *http.Request, path string) {
+func (a *Authenticator) PutReturnTo(ctx context.Context, mgr SessionManager, path string) {
 	// When triggered from updates/paginate, return to the base page.
 	switch {
 	case strings.HasSuffix(path, "/updates"):
@@ -271,76 +266,66 @@ func PutReturnTo(req *http.Request, path string) {
 	case strings.HasSuffix(path, "/paginate"):
 		path = strings.TrimSuffix(path, "/paginate")
 	}
-	if err := session.Save(req.Context(), sessionKeyReturnTo, path); err != nil {
-		slogctx.Warn(req.Context(), "Unable to save return to path.", slog.Any("error", err))
-	}
+	mgr.Put(ctx, sessionKeyReturnTo, path)
 }
 
-func GetState(req *http.Request) (string, error) {
-	state, err := session.Restore[string](req.Context(), sessionKeyState)
-	if err != nil {
-		return "", fmt.Errorf("get state: %w", err)
+func (a *Authenticator) GetState(ctx context.Context, mgr SessionManager) (string, error) {
+	state, ok := mgr.Get(ctx, sessionKeyState).(string)
+	if !ok {
+		return "", errors.New("no state value in session")
 	}
 	return state, nil
 }
 
-func GetCodeVerifier(req *http.Request) (string, error) {
-	verifier, err := session.Restore[string](req.Context(), sessionKeyCodeVerifier)
-	if err != nil {
-		return "", fmt.Errorf("get verifier: %w", err)
+func (a *Authenticator) GetCodeVerifier(ctx context.Context, mgr SessionManager) (string, error) {
+	code, ok := mgr.Get(ctx, sessionKeyCodeVerifier).(string)
+	if !ok {
+		return "", errors.New("no code verifier value in session")
 	}
-	return verifier, nil
+	return code, nil
 }
 
-func GetAccessToken(req *http.Request) (string, error) {
-	tkn, err := session.Restore[string](req.Context(), sessionKeyAccessToken)
-	if err != nil {
-		return "", fmt.Errorf("get access token: %w", err)
+func (a *Authenticator) GetAccessToken(ctx context.Context, mgr SessionManager) (string, error) {
+	accessToken, ok := mgr.Get(ctx, sessionKeyAccessToken).(string)
+	if !ok {
+		return "", errors.New("no access token in session")
 	}
-	return tkn, nil
+	return accessToken, nil
 }
 
-func GetRefreshToken(req *http.Request) (string, error) {
-	tkn, err := session.Restore[string](req.Context(), sessionKeyRefreshToken)
-	if err != nil {
-		return "", fmt.Errorf("get refresh token: %w", err)
+func (a *Authenticator) GetRefreshToken(ctx context.Context, mgr SessionManager) (string, error) {
+	refreshToken, ok := mgr.Get(ctx, sessionKeyRefreshToken).(string)
+	if !ok {
+		return "", errors.New("no refresh token in session")
 	}
-	return tkn, nil
+	return refreshToken, nil
 }
 
-func GetIDToken(req *http.Request) (*oidc.IDToken, error) {
-	tkn, err := session.Restore[oidc.IDToken](req.Context(), sessionKeyIDToken)
-	if err != nil {
-		return nil, fmt.Errorf("get refresh token: %w", err)
-	}
-	return &tkn, nil
-}
-
-func GetTokenExpiry(req *http.Request) (time.Time, error) {
-	expiry, err := session.Restore[time.Time](req.Context(), sessionKeyTokenExpiry)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("get token expiry: %w", err)
+func (a *Authenticator) GetTokenExpiry(ctx context.Context, mgr SessionManager) (time.Time, error) {
+	expiry, ok := mgr.Get(ctx, sessionKeyTokenExpiry).(time.Time)
+	if !ok {
+		return time.Time{}, errors.New("no token expiry value in session")
 	}
 	return expiry, nil
 }
 
-func GetReturnTo(req *http.Request) (string, error) {
-	returnTo, err := session.Restore[string](req.Context(), sessionKeyReturnTo)
-	if err != nil {
-		return "", fmt.Errorf("get return to: %w", err)
+func (a *Authenticator) GetReturnTo(ctx context.Context, mgr SessionManager) (string, error) {
+	returnTo, ok := mgr.Get(ctx, sessionKeyReturnTo).(string)
+	if !ok {
+		return "", errors.New("no return to value in session")
 	}
 	return returnTo, nil
 }
 
 // IsAuthenticated returns true if the session contains an access token.
-func IsAuthenticated(req *http.Request) bool {
-	tkn, err := GetAccessToken(req)
+func (a *Authenticator) IsAuthenticated(ctx context.Context, mgr SessionManager) bool {
+	tkn, err := a.GetAccessToken(ctx, mgr)
 	return tkn != "" && err == nil
 }
 
 // IsAccessTokenExpired returns true if the access token has expired.
-func IsAccessTokenExpired(req *http.Request) bool {
-	expiry, err := GetTokenExpiry(req)
+func (a *Authenticator) IsAccessTokenExpired(ctx context.Context, mgr SessionManager) bool {
+	expiry, err := a.GetTokenExpiry(ctx, mgr)
 	if err != nil || expiry.IsZero() {
 		return true
 	}
@@ -348,50 +333,24 @@ func IsAccessTokenExpired(req *http.Request) bool {
 }
 
 // SaveTokens saves the access token and data in the session.
-func SaveTokens(ctx context.Context, token *TokenResponse) {
-	if err := session.Save(ctx, sessionKeyAccessToken, token.AccessToken); err != nil {
-		slogctx.Warn(ctx, "Unable to save access token.", slog.Any("error", err))
-	}
-	if err := session.Save(ctx, sessionKeyIDToken, token.IDToken); err != nil {
-		slogctx.Warn(ctx, "Unable to save ID token.", slog.Any("error", err))
-	}
-	if err := session.Save(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn)); err != nil {
-		slogctx.Warn(ctx, "Unable to save token expiry.", slog.Any("error", err))
-	}
-	if token.RefreshToken != "" {
-		if err := session.Save(ctx, sessionKeyRefreshToken, token.RefreshToken); err != nil {
-			slogctx.Warn(ctx, "Unable to save refresh token.", slog.Any("error", err))
-		}
-	}
+func (a *Authenticator) SaveTokens(ctx context.Context, mgr SessionManager, token *TokenResponse) {
+	mgr.Put(ctx, sessionKeyAccessToken, token.AccessToken)
+	mgr.Put(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn))
+	mgr.Put(ctx, sessionKeyRefreshToken, token.RefreshToken)
 }
 
 // ClearAuth removes all authentication-related keys from the session.
-func ClearAuth(req *http.Request) {
-	if err := session.Remove(req.Context(), sessionKeyAccessToken); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove access token.", slog.Any("error", err))
-	}
-	if err := session.Remove(req.Context(), sessionKeyRefreshToken); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove refresh token.", slog.Any("error", err))
-	}
-	if err := session.Remove(req.Context(), sessionKeyIDToken); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove ID token.", slog.Any("error", err))
-	}
-	if err := session.Remove(req.Context(), sessionKeyTokenExpiry); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove token expiry.", slog.Any("error", err))
-	}
-	if err := session.Remove(req.Context(), sessionKeyUserProfile); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove user profile.", slog.Any("error", err))
-	}
+func (a *Authenticator) ClearAuth(ctx context.Context, mgr SessionManager) {
+	mgr.Remove(ctx, sessionKeyAccessToken)
+	mgr.Remove(ctx, sessionKeyRefreshToken)
+	mgr.Remove(ctx, sessionKeyTokenExpiry)
+	mgr.Remove(ctx, sessionKeyUserProfile)
 }
 
 // ClearState removes all data related to an authorization exchange from the session.
-func ClearState(req *http.Request) {
-	if err := session.Remove(req.Context(), sessionKeyState); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove state.", slog.Any("error", err))
-	}
-	if err := session.Remove(req.Context(), sessionKeyCodeVerifier); err != nil {
-		slogctx.Warn(req.Context(), "Unable to remove verification code.", slog.Any("error", err))
-	}
+func (a *Authenticator) ClearState(ctx context.Context, mgr SessionManager) {
+	mgr.Remove(ctx, sessionKeyState)
+	mgr.Remove(ctx, sessionKeyCodeVerifier)
 }
 
 // tokenExpiry calculates the absolute expiry time from an ExpiresIn value.

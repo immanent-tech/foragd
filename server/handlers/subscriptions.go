@@ -16,10 +16,12 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -27,48 +29,15 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/server/forms"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
-
-type SubscriptionsService interface {
-	GetAllSubscriptions(ctx context.Context) (models.Subscriptions, error)
-	GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error)
-	BulkGetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error)
-	UpdateSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
-	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
-	MarkArticles(
-		ctx context.Context,
-		mark models.Mark,
-		subscriptionID models.SubscriptionID,
-		itemIDs ...models.ItemID,
-	) error
-	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
-	RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error
-	UpdateSubscriptionDynamicInfo(
-		ctx context.Context,
-		subscriptions models.Subscriptions,
-	) error
-	BulkImportFeeds(
-		ctx context.Context,
-		requests ...models.FeedSubscriptionRequest,
-	) []models.FeedSubscriptionResult
-	GetSubscriptionSuggestions(
-		ctx context.Context,
-		text string,
-		count int,
-		ignoredSubscriptions []models.SubscriptionID,
-	) (models.Subscriptions, error)
-}
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
 func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
@@ -83,7 +52,6 @@ func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.
 				).ServeHTTP(res, req)
 				return
 			}
-			slogctx.Info(req.Context(), "got subscriptions ctx")
 			ctx := models.SubscriptionsToCtx(req.Context(), subscriptions)
 			if err := svc.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 				slogctx.Warn(req.Context(), "Could not update subscription dynamic info.",
@@ -150,7 +118,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
-func HandleListSubscriptions() http.HandlerFunc {
+func HandleListSubscriptions(subscriptionSvc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -201,7 +169,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		// Get latest articles for subscriptions.
 		if len(subscriptions) > 0 {
-			service.GetLatestArticles(req.Context(), request.Filters.GetView(), subscriptions)
+			subscriptionSvc.GetLatestArticles(req.Context(), request.Filters.GetView(), subscriptions)
 		}
 
 		// Create response object
@@ -259,7 +227,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 }
 
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
-func HandleListSubscriptionsUpdates() http.HandlerFunc {
+func HandleListSubscriptionsUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := models.ListFiltersFromCtx(req.Context())
 
@@ -320,7 +288,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 		)
 
 		// Count items matching.
-		updateCount, err := service.CountItems(req.Context(), updatesQuery)
+		updateCount, err := itemSvc.CountItems(req.Context(), updatesQuery)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),
@@ -348,7 +316,7 @@ func HandleListSubscriptionsUpdates() http.HandlerFunc {
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func HandleMarkSubscription(svc SubscriptionsService, mark models.Mark) http.HandlerFunc {
+func HandleMarkSubscription(svc SubscriptionsService, session SessionManager, mark models.Mark) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "mark-subscription")
 
@@ -382,7 +350,7 @@ func HandleMarkSubscription(svc SubscriptionsService, mark models.Mark) http.Han
 		// Perform post handling hooks.
 		var postMarkHooks = map[string]PostHandlerHook{
 			"/list/subscriptions": postMarkSubscriptionList,
-			"/list/articles":      postMarkSubscriptionArticles,
+			"/list/articles":      postMarkSubscriptionArticles(session),
 		}
 		if hook, ok := postMarkHooks[from]; ok {
 			if err := hook(res, req); err != nil {
@@ -416,21 +384,23 @@ func postMarkSubscriptionList(res http.ResponseWriter, req *http.Request) error 
 }
 
 // postMarkSubscriptionArticles performs post-mark steps when the subscription was marked from the list articles page.
-func postMarkSubscriptionArticles(res http.ResponseWriter, req *http.Request) error {
-	subscription := models.SubscriptionFromCtx(req.Context())
-	if subscription == nil {
-		return fmt.Errorf("no subscription in context")
+func postMarkSubscriptionArticles(session SessionManager) PostHandlerHook {
+	return func(res http.ResponseWriter, req *http.Request) error {
+		subscription := models.SubscriptionFromCtx(req.Context())
+		if subscription == nil {
+			return fmt.Errorf("no subscription in context")
+		}
+		htmx.LocationResponse(
+			htmx.WithLocationPath("/list/subscriptions"),
+			htmx.WithLocationTarget(templates.ContentID.Target()),
+			htmx.WithLocationSwap("morph:innerHTML transition:true"),
+			htmx.WithLocationHeaders(map[string]string{
+				models.ActionHeader: "mark-subscription",
+			}),
+			htmx.WithLocationValues(ListFiltersFromSession(req.Context(), session, "/list/subscriptions")),
+		).ServeHTTP(res, req)
+		return nil
 	}
-	htmx.LocationResponse(
-		htmx.WithLocationPath("/list/subscriptions"),
-		htmx.WithLocationTarget(templates.ContentID.Target()),
-		htmx.WithLocationSwap("morph:innerHTML transition:true"),
-		htmx.WithLocationHeaders(map[string]string{
-			models.ActionHeader: "mark-subscription",
-		}),
-		htmx.WithLocationValues(models.ListFiltersFromSession(req.Context(), "/list/subscriptions")),
-	).ServeHTTP(res, req)
-	return nil
 }
 
 // HandleBulkMarkSubscriptions handles bulk marking subscriptions as read/unread.
@@ -592,7 +562,7 @@ func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Re
 }
 
 // HandleEditSubscription handles presenting the user with a form for editing a subscription.
-func HandleEditSubscription() http.HandlerFunc {
+func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "edit-subscription")
 
@@ -617,7 +587,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			request.SuggestedCategories = getSubscriptionCategorySuggestions(
+			request.SuggestedCategories = subscriptionSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				[]models.FeedID{subscription.FeedData.GetFeedID()},
 				subscription.Customisation.Categories,
@@ -691,7 +661,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
-			request.SuggestedCategories = getSubscriptionCategorySuggestions(
+			request.SuggestedCategories = subscriptionSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				groupedSubscriptions.GetFeedIDs(),
 				groupedSubscriptions.GetCategories(),
@@ -742,7 +712,7 @@ func getCategorySuggestions(ctx context.Context, ids ...models.SubscriptionID) m
 }
 
 // HandleSaveSubscription handles saving the edits made by a user to a subscription.
-func HandleSaveSubscription(svc SubscriptionsService) http.HandlerFunc {
+func HandleSaveSubscription(appCfg AppConfig, cache ImageCache, svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "save-subscription")
 
@@ -798,7 +768,7 @@ func HandleSaveSubscription(svc SubscriptionsService) http.HandlerFunc {
 		}
 
 		// Process any uploaded thumbnail image.
-		thumbnail, err := processThumbnail(req, subscription.GetID())
+		thumbnail, err := processThumbnail(appCfg, cache, req, subscription.GetID())
 		if err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
@@ -912,7 +882,12 @@ func HandleAddSubscription() http.HandlerFunc {
 }
 
 // HandleAddNewFeedSubscription handles adding a new feed subscription for a user.
-func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
+func HandleAddNewFeedSubscription(
+	subscriptions SubscriptionsService,
+	users UserService,
+	feeds FeedService,
+	httpClient *resty.Client,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
 		if err != nil {
@@ -932,13 +907,18 @@ func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
 		)
 
 		// Fetch the feed details from the database.
-		feed, err := service.GetFeed(req.Context(), request.FeedID)
+		feed, err := feeds.GetFeed(req.Context(), request.FeedID)
 		if err != nil || feed == nil {
 			// Fetch the feed details from the URL.
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
 				slog.String("feed_url", request.URL),
 			)
-			feed, err = service.FetchFeed(req.Context(), request.URL, service.FetchWithFeedID(request.FeedID))
+			feed, err = service.FetchFeed(
+				req.Context(),
+				httpClient,
+				request.URL,
+				service.FetchWithFeedID(request.FeedID),
+			)
 			if err != nil {
 				HandleInternalError(
 					http.StatusUnprocessableEntity,
@@ -947,14 +927,14 @@ func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
 				return
 			}
 			// Add the feed to the database.
-			if err := service.AddFeed(req.Context(), feed); err != nil {
+			if err := feeds.AddFeed(req.Context(), feed); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("create feed: %w", err),
 				).ServeHTTP(res, req)
 				return
 			}
-			slogctx.FromCtx(req.Context()).Info("Added new feed.",
+			slogctx.Info(req.Context(), "Added new feed.",
 				slog.String("feed_url", request.URL),
 				slog.String("feed_id", feed.GetID()),
 				slog.String("feed_title", feed.GetTitle()),
@@ -972,7 +952,7 @@ func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
 		}
 
 		// Add subscription to user.
-		if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
+		if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("add subscription: %w", err),
@@ -994,7 +974,7 @@ func HandleAddNewFeedSubscription(svc SubscriptionsService) http.HandlerFunc {
 	}
 }
 
-func HandleSuggestFeeds() http.HandlerFunc {
+func HandleSuggestFeeds(feeds FeedService, httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get suggestion text.
 		text := validation.SanitizeString(req.FormValue("suggestion_text"))
@@ -1007,7 +987,7 @@ func HandleSuggestFeeds() http.HandlerFunc {
 
 		switch source {
 		case "youtube":
-			results, err := service.SuggestYoutubeFeeds(req.Context(), text)
+			results, err := feeds.SuggestYoutubeFeeds(req.Context(), text)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate youtube suggestions.",
 					slog.Any("error", err),
@@ -1022,7 +1002,7 @@ func HandleSuggestFeeds() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		case "gnews":
-			results, err := service.SuggestGoogleNewsFeeds(req.Context(), text)
+			results, err := feeds.SuggestGoogleNewsFeeds(req.Context(), httpClient, text)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate google news suggestions.",
 					slog.Any("error", err),
@@ -1039,7 +1019,11 @@ func HandleSuggestFeeds() http.HandlerFunc {
 		case "web":
 			fallthrough
 		default:
-			results, err := service.SuggestFeeds(req.Context(), &models.SuggestFeedsRequest{Text: text, Count: 10})
+			results, err := feeds.SuggestFeeds(
+				req.Context(),
+				httpClient,
+				&models.SuggestFeedsRequest{Text: text, Count: 10},
+			)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate feed suggestions.",
 					slog.Any("error", err),
@@ -1058,7 +1042,7 @@ func HandleSuggestFeeds() http.HandlerFunc {
 }
 
 // HandleAddSearchSubscription handles adding a new search subscription.
-func HandleAddSearchSubscription(svc SubscriptionsService) http.HandlerFunc {
+func HandleAddSearchSubscription(subscriptions SubscriptionsService, users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1120,7 +1104,7 @@ func HandleAddSearchSubscription(svc SubscriptionsService) http.HandlerFunc {
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
-			if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
+			if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add search subscription: %w", err),
@@ -1192,7 +1176,7 @@ func HandleAddSubscriptionToSearch() http.HandlerFunc {
 }
 
 // HandleAddGroupSubscription handles adding a new group subscription.
-func HandleAddGroupSubscription(svc SubscriptionsService) http.HandlerFunc {
+func HandleAddGroupSubscription(subscriptions SubscriptionsService, users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1262,7 +1246,7 @@ func HandleAddGroupSubscription(svc SubscriptionsService) http.HandlerFunc {
 				return
 			}
 			// Add subscriptions
-			if err := svc.AddSubscriptions(req.Context(), subscription); err != nil {
+			if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add subscriptions: %w", err),
@@ -1336,7 +1320,12 @@ func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, re
 }
 
 // HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
-func HandleImportSubscriptions(svc SubscriptionsService) http.HandlerFunc {
+func HandleImportSubscriptions(
+	feeds FeedService,
+	users UserService,
+	subscriptions SubscriptionsService,
+	httpClient *resty.Client,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1407,7 +1396,7 @@ func HandleImportSubscriptions(svc SubscriptionsService) http.HandlerFunc {
 			}
 
 			// Perform bulk import.
-			results := svc.BulkImportFeeds(req.Context(), requests...)
+			results := bulkImportFeeds(req.Context(), feeds, users, subscriptions, httpClient, requests...)
 
 			// Display all results.
 			RenderPartial(&ImportSubscriptionsResults{
@@ -1444,7 +1433,7 @@ func (h *ExportSubscriptions) PartialResponse(res http.ResponseWriter, req *http
 }
 
 // HandleExportSubscriptions handles configuring and performing an export of user subscriptions.
-func HandleExportSubscriptions() http.HandlerFunc {
+func HandleExportSubscriptions(feedSvc FeedService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get the user details.
 		user := models.UserFromCtx(req.Context())
@@ -1477,7 +1466,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				return
 			}
 			// Generate opml file.
-			opmlFile, err := service.GenerateOPML(
+			opmlFile, err := feedSvc.GenerateOPML(
 				req.Context(),
 				subscriptions.FilterByType(models.SubscriptionTypeFeed).GetFeedIDs()...)
 			if err != nil {
@@ -1490,7 +1479,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
-			filename := config.GetAppName() + "-Export.opml"
+			filename := "Foragd-Export.opml"
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(opmlFile))
 		}
@@ -1523,7 +1512,7 @@ func HandleSubscriptionCategories() http.HandlerFunc {
 	}
 }
 
-func processThumbnail(req *http.Request, objectID string) (string, error) {
+func processThumbnail(appCfg AppConfig, cache ImageCache, req *http.Request, objectID string) (string, error) {
 	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
 
 	// Get any uploaded image.
@@ -1548,49 +1537,151 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 			return "", fmt.Errorf("save thumbnail: %w", err)
 		}
 		// Construct a new full URL to the uploaded avatar on the local server.
-		return config.GetBaseURL() + "/img/subscription/" + imageFileID, nil
+		return appCfg.GetBaseURL().JoinPath("/img/subscription/" + imageFileID).String(), nil
 	}
 
 	return "", nil
 }
 
-func getSubscriptionCategorySuggestions(
+// bulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
+func bulkImportFeeds(
 	ctx context.Context,
-	feedIDs []models.FeedID,
-	excludedCategories []models.Category,
-) []models.Category {
-	var suggestions []models.Category
+	feeds FeedService,
+	users UserService,
+	subscriptions SubscriptionsService,
+	httpClient *resty.Client,
+	requests ...models.FeedSubscriptionRequest,
+) []models.FeedSubscriptionResult {
+	// Process requests.
+	resultsCh := make(chan models.FeedSubscriptionResult)
+	var wg sync.WaitGroup
 
-	// Get categories from feed sources.
-	if feeds, err := service.GetFeeds(ctx, feedIDs...); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to get feeds for category suggestions.",
-			slog.Any("error", err))
-	} else {
-		suggestions = feeds.GetCategories()
+	for request := range slices.Values(requests) {
+		wg.Go(func() {
+			// Find an existing or create a new feed from the requested URL.
+			feed, isNew, err := feeds.FindOrCreateFeed(ctx, httpClient, request.URL)
+			if err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("create subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to create subscription",
+							fmt.Sprintf("Could not find feed data for URL: %q", request.URL),
+						),
+					},
+				}
+				return
+			}
+			if isNew {
+				// Add the feed if it is new.
+				if err := feeds.AddFeed(ctx, feed); err != nil {
+					resultsCh <- models.FeedSubscriptionResult{
+						Request: &request,
+						Error: &models.APIError{
+							InternalError: fmt.Errorf("create subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to add feed subscription",
+								fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
+							),
+						},
+					}
+					return
+				}
+			}
+
+			allSubscriptions := models.SubscriptionsFromCtx(ctx)
+			existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
+			if existingSubscriptions != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: errors.New("create subscription: already subscribed"),
+						StatusCode:    http.StatusConflict,
+						UserMessage: models.NewWarningMessage(
+							"Already subscribed to feed",
+							fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+
+			// Create feed newSubscription.
+			newSubscription, err := service.NewFeedSubscription(ctx, feed, nil)
+			if err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("create subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+			if err := addSubscriptions(ctx, users, subscriptions, newSubscription); err != nil {
+				resultsCh <- models.FeedSubscriptionResult{
+					Request: &request,
+					Error: &models.APIError{
+						InternalError: fmt.Errorf("add subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
+						),
+					},
+				}
+				return
+			}
+			resultsCh <- models.FeedSubscriptionResult{
+				Request:      &request,
+				Subscription: newSubscription,
+			}
+		})
+	}
+	// Wait for all request processing to complete.
+	go func() {
+		defer close(resultsCh)
+		wg.Wait()
+	}()
+	results := make([]models.FeedSubscriptionResult, 0, len(requests))
+	// Gather results.
+	for result := range resultsCh {
+		results = append(results, result)
 	}
 
-	// Query items for feeds and get append top categories from items.
-	topCategoriesQuery := query.Bool(
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", feedIDs),
-		),
-		query.MustNot(
-			query.Terms(
-				"categories.raw",
-				slices.Concat(models.CommonCategoryFilters, excludedCategories),
-			),
-		),
-	)
-	if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
-		suggestedCategories = slices.Collect(
-			models.FilterSlice(suggestedCategories, func(category models.Category) bool {
-				return !slices.Contains(models.CommonCategoryFilters, category)
-			}),
-		)
-		suggestions = append(suggestions, suggestedCategories...)
-	}
+	return results
+}
 
-	slices.Sort(suggestions)
-	return slices.Compact(suggestions)
+// AddSubscriptions adds the given subscriptions to a user.
+func addSubscriptions(
+	ctx context.Context,
+	users UserService,
+	subscriptions SubscriptionsService,
+	newSubscriptions ...*models.Subscription,
+) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	if err := subscriptions.UpdateSubscriptions(ctx, newSubscriptions...); err != nil {
+		return fmt.Errorf("update subscriptions: %w", err)
+	}
+	// Disable onboarding once a subscription has been added.
+	if settings := user.GetSettings(); settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+		// Update the user object.
+		if err := users.UpdateUser(ctx, user, map[string]any{
+			"settings": settings,
+		}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+	}
+	return nil
 }

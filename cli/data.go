@@ -14,9 +14,9 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/service"
 )
 
 // DataCmd defines the `data` command, which contains commands for manipulating data.
@@ -32,20 +32,26 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
+
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		return fmt.Errorf("load elastic service: %w", err)
+	}
+
 	switch {
 	case strings.HasPrefix(opts.ObjectID, "feed_"):
-		if err := elastic.DeleteDoc(ctx, schema.FeedsIndexRW(), opts.ObjectID); err != nil {
+		if err := elastic.DeleteDoc(ctx, elasticSvc.GetIndexRW(service.FeedsIndex), opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
 	case strings.HasPrefix(opts.ObjectID, "user_"):
 		// Delete the user.
-		if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW(), opts.ObjectID); err != nil {
+		if err := elastic.DeleteDoc(ctx, elasticSvc.GetIndexRW(service.UsersIndex), opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
 		}
 		// Delete the user's subscriptions.
 		if err := elastic.DeleteDocs(
 			ctx,
-			schema.SubscriptionsIndexRW(),
+			elasticSvc.GetIndexRW(service.SubscriptionsIndex),
 			query.Term("user_id", opts.ObjectID),
 		); err != nil {
 			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)

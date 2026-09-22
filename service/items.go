@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"slices"
 	"strconv"
 	"sync"
@@ -19,29 +18,23 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/go-resty/resty/v2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/providers/zyte"
+	"github.com/immanent-tech/foragd/server/cache"
 )
-
-var itemsCache = otter.Must(&otter.Options[models.ItemID, *models.Item]{
-	MaximumSize:      10_000,
-	ExpiryCalculator: &itemCacheexpiryCalculator{},
-})
 
 // itemCacheExpiryCalculator is a custom expiry calculator for the feed cache.
 type itemCacheexpiryCalculator struct{}
@@ -64,8 +57,30 @@ func (ec *itemCacheexpiryCalculator) ExpireAfterRead(entry otter.Entry[models.It
 	return 24 * time.Hour // Extend by 24 hours.
 }
 
+// ItemService holds a cache and backend connection for handling [models.Item] objects.
+type ItemService struct {
+	*otter.Cache[models.ItemID, *models.Item]
+
+	store *ElasticService
+}
+
+// LoadItemService loads a service that can manipulate item objects in the backend store.
+var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
+	svc, err := LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
+	}
+	return &ItemService{
+		Cache: otter.Must(&otter.Options[models.ItemID, *models.Item]{
+			MaximumSize:      10_000,
+			ExpiryCalculator: &itemCacheexpiryCalculator{},
+		}),
+		store: svc,
+	}, nil
+})
+
 // GetItems retrieves the Items matching the given ItemIDs.
-func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
+func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 	var (
 		items       models.Items
 		unCachedIDs []models.ItemID
@@ -73,7 +88,7 @@ func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 
 	// Fetch items from cache.
 	for id := range slices.Values(ids) {
-		if item, found := itemsCache.GetIfPresent(id); found {
+		if item, found := s.GetIfPresent(id); found {
 			items = append(items, item)
 		} else {
 			unCachedIDs = append(unCachedIDs, id)
@@ -81,21 +96,24 @@ func GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 	}
 	// If there are items missing from the cache, fetch and cache them.
 	if len(unCachedIDs) > 0 {
-		unCachedItems, err := elastic.GetDocs[models.ItemID, *models.Item](ctx, schema.ItemsIndexRO(), unCachedIDs...)
+		unCachedItems, err := elastic.GetDocs[models.ItemID, *models.Item](
+			ctx,
+			s.store.GetIndexRO(ItemsIndex),
+			unCachedIDs...)
 		if err != nil {
 			return nil, fmt.Errorf("get items: %w", err)
 		}
 		for item := range slices.Values(unCachedItems) {
 			items = append(items, item)
-			itemsCache.Set(item.GetID(), item)
+			s.Set(item.GetID(), item)
 		}
 	}
 	return items, nil
 }
 
 // CountItems returns a count of items that match the given query.
-func CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, schema.ItemsIndexRO(), query)
+func (s *ItemService) CountItems(ctx context.Context, query query.Option) (int64, error) {
+	count, err := elastic.Count(ctx, s.store.GetIndexRO(ItemsIndex), query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -105,21 +123,21 @@ func CountItems(ctx context.Context, query query.Option) (int64, error) {
 
 // AddItems will add the given items to the database. It returns a map divided into "updated" and "new" items, to
 // indicate items that existed and were updated vs. items that were added as new.
-func AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
-	existingItems, err := GetItems(ctx, items.GetIDs()...)
+func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+	existingItems, err := s.GetItems(ctx, items.GetIDs()...)
 	if err != nil {
 		// Cannot determine if there are any existing items. Fallback to bulk update of all items for safety.
 		slogctx.FromCtx(ctx).
 			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
 				slog.Any("error", err),
 			)
-		if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), items...); err != nil {
+		if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(ItemsIndex), items...); err != nil {
 			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
 		}
 		// Update cache.
 		for item := range slices.Values(items) {
-			itemsCache.Invalidate(item.GetID())
-			itemsCache.Set(item.GetID(), item)
+			s.Invalidate(item.GetID())
+			s.Set(item.GetID(), item)
 		}
 		return map[string]models.Items{"updated": items}, nil
 	}
@@ -155,7 +173,10 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	results := make(map[string]models.Items)
 	results["updated"] = updatedItems
 	results["new"] = newItems
-	if err := bulk.IndexDocuments(ctx, schema.ItemsIndexRW(), slices.Concat(updatedItems, newItems)...); err != nil {
+	if err := bulk.IndexDocuments(
+		ctx,
+		s.store.GetIndexRW(ItemsIndex),
+		slices.Concat(updatedItems, newItems)...); err != nil {
 		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
 	}
 
@@ -164,8 +185,8 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	wg.Go(func() {
 		for _, items := range results {
 			for item := range slices.Values(items) {
-				itemsCache.Invalidate(item.GetID())
-				itemsCache.Set(item.GetID(), item)
+				s.Invalidate(item.GetID())
+				s.Set(item.GetID(), item)
 			}
 		}
 	})
@@ -182,8 +203,10 @@ func AddItems(ctx context.Context, items models.Items) (map[string]models.Items,
 	return results, nil
 }
 
-
-func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error) {
+func (s *ItemService) GetTopCategoriesForItems(
+	ctx context.Context,
+	itemsQuery query.Option,
+) (models.CategoryCounts, error) {
 	// Build elastic.
 	termsField := "categories.raw"
 	termsCount := 200
@@ -197,7 +220,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (mod
 	}
 
 	resp, err := elastic.Search[*models.Item](ctx,
-		schema.ItemsIndexRO(),
+		s.store.GetIndexRO(ItemsIndex),
 		elastic.WithQueryOptions[*elastic.SearchRequest](itemsQuery),
 		elastic.WithAggregations(aggs),
 		elastic.WithSize(0),
@@ -643,7 +666,13 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 
 // EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
 // missing data from the item source.
-func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error {
+func EnrichItem(
+	ctx context.Context,
+	httpClient *resty.Client,
+	itemPageCache cache.ObjectCache,
+	feed *models.Feed,
+	item *models.Item,
+) error {
 	took := time.Now().UTC()
 
 	ctx = slogctx.With(ctx,
@@ -691,7 +720,7 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	}
 
 	// Get the item content, either from the cache or fetch fresh.
-	itemContentBuf, err := getItemContent(ctx, item.GetID(), itemURL)
+	itemContentBuf, err := getItemContent(ctx, httpClient, itemPageCache, item.GetID(), itemURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
@@ -734,7 +763,13 @@ func EnrichItem(ctx context.Context, feed *models.Feed, item *models.Item) error
 	return nil
 }
 
-func getItemContent(ctx context.Context, id models.ItemID, itemURL *url.URL) (*bytes.Buffer, error) {
+func getItemContent(
+	ctx context.Context,
+	httpClient *resty.Client,
+	itemPageCache cache.ObjectCache,
+	id models.ItemID,
+	itemURL *url.URL,
+) (*bytes.Buffer, error) {
 	// Create a buffer for the feed data.
 	itemContentBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
@@ -744,25 +779,19 @@ func getItemContent(ctx context.Context, id models.ItemID, itemURL *url.URL) (*b
 	defer bufPool.Put(itemContentBuf)
 
 	// Try to load content from the article cache.
-	if err := loaditemPageCache(); err != nil {
-		slogctx.FromCtx(ctx).Debug("Unable to load item content cache.",
-			slog.Any("error", err),
-		)
-	} else {
-		if err := itemPageCache.Copy(ctx, id, itemContentBuf); err != nil {
-			if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
-				if apiErr.StatusCode != http.StatusNotFound {
-					slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
-						slog.Any("error", err),
-					)
-				}
+	if err := itemPageCache.Copy(ctx, id, itemContentBuf); err != nil {
+		if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
+			if apiErr.StatusCode != http.StatusNotFound {
+				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
+					slog.Any("error", err),
+				)
 			}
 		}
 	}
 	// If no item content cached, fetch from remote.
 	if itemContentBuf.Len() == 0 {
 		// Fetch the item's HTML source, used for enrichment.
-		source, err := fetchItemContentDirect(ctx, itemURL)
+		source, err := fetchItemContentDirect(ctx, httpClient, itemURL)
 		if err != nil {
 			return nil, fmt.Errorf("fetch item: %w", err)
 		}
@@ -773,7 +802,7 @@ func getItemContent(ctx context.Context, id models.ItemID, itemURL *url.URL) (*b
 	return itemContentBuf, nil
 }
 
-func fetchItemContentDirect(ctx context.Context, sourceURL *url.URL) ([]byte, error) {
+func fetchItemContentDirect(ctx context.Context, httpClient *resty.Client, sourceURL *url.URL) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "Cannot fetch directly, context done.",
 			slog.Any("cause", context.Cause(ctx)),
@@ -782,7 +811,7 @@ func fetchItemContentDirect(ctx context.Context, sourceURL *url.URL) ([]byte, er
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
-	rawHTML, err := htmlx.GetHTML(ctx, sourceURL.String())
+	rawHTML, err := htmlx.GetHTML(ctx, httpClient, sourceURL.String())
 	if err != nil {
 		if respErr, isHtmlxErr := errors.AsType[*htmlx.Response](err); isHtmlxErr {
 			// Check if response status is forbidden. If so, try through Zyte.
@@ -898,28 +927,6 @@ func NewItemsFromZyteArticles(
 
 	return items, nil
 }
-
-var itemPageCache objectCache
-
-var loaditemPageCache = sync.OnceValue(func() error {
-	switch config.GetEnvironment() {
-	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
-		var err error
-		itemPageCache, err = gcs.Connect(context.Background(), bucketName, "articles")
-		if err != nil {
-			return fmt.Errorf("connect to gcs: %w", err)
-		}
-	default:
-		var err error
-		itemPageCache, err = newDirCache("articles")
-		if err != nil {
-			return fmt.Errorf("create dir cache: %w", err)
-		}
-	}
-
-	return nil
-})
 
 // roundDownTo5Min truncates t to the most recent 5-minute boundary (floor), not the nearest one. For a "since" cutoff
 // you almost always want floor, not round-to-nearest — rounding up risks skipping records that fall between the true

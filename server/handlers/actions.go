@@ -17,11 +17,11 @@ import (
 )
 
 // GetSubscriptionActionSuggestions handles showing a list of subscriptions as suggestions when building a search query.
-func GetSubscriptionActionSuggestions(svc SubscriptionsService) http.HandlerFunc {
+func GetSubscriptionActionSuggestions(subs SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
 		text := validation.SanitizeString(req.FormValue("command-text"))
-		subscriptions, err := svc.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
+		subscriptions, err := subs.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
 				slog.Any("error", err),

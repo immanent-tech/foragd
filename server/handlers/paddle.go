@@ -12,69 +12,70 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // HandlePaddleWebhook handles incoming webhooks from paddle.
-func HandlePaddleWebhook(res http.ResponseWriter, req *http.Request) {
-	verifier, err := paddle.NewWebhookClient()
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Could not create paddle webhook client.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+func HandlePaddleWebhook(userSvc UserService) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
 
-	// Verify the request with the verifier
-	ok, err := verifier.Verify(req)
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Error occurred when verifying incoming webhook.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if !ok {
-		slogctx.FromCtx(req.Context()).Error("Invalid webhook.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusForbidden)
-		return
-	}
+		verifier, err := paddle.NewWebhookClient()
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not create paddle webhook client.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	body, err := io.ReadAll(io.LimitReader(req.Body, 1<<20))
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Could read incoming webhook body.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-		return
+		// Verify the request with the verifier
+		ok, err := verifier.Verify(req)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error occurred when verifying incoming webhook.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if !ok {
+			slogctx.FromCtx(req.Context()).Error("Invalid webhook.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		body, err := io.ReadAll(io.LimitReader(req.Body, 1<<20))
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could read incoming webhook body.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		defer req.Body.Close()
+
+		var webhook paddle.Webhook
+		if err := json.Unmarshal(body, &webhook); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable unmarshal webhook data.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		webhook.RawBody = body
+
+		paddle.HandleWebhook(req.Context(), userSvc, webhook)
+
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusOK)
+		res.Write([]byte(`{"success": true}`))
 	}
-	defer req.Body.Close()
-
-	var webhook paddle.Webhook
-	if err := json.Unmarshal(body, &webhook); err != nil {
-		slogctx.FromCtx(req.Context()).Error("Unable unmarshal webhook data.",
-			slog.Any("error", err),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	webhook.RawBody = body
-
-	paddle.HandleWebhook(req.Context(), webhook)
-
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(`{"success": true}`))
 }
 
-func HandleChoosePaddleSubscription() http.HandlerFunc {
+func HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -97,7 +98,11 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 			}
 		}
 
-		checkout := &models.CheckoutRequest{UserSubscriptionType: models.UserSubscriptionTypePaddle}
+		checkout := &models.CheckoutRequest{
+			UserSubscriptionType: models.UserSubscriptionTypePaddle,
+			BaseURL:              appCfg.GetBaseURL(),
+			Environment:          appCfg.GetAppEnvironment(),
+		}
 		if err := checkout.SubscriptionData.FromPaddleCheckout(models.PaddleCheckout{
 			PlanID:        planID,
 			TransactionID: &transactionID,
@@ -120,7 +125,7 @@ func HandleChoosePaddleSubscription() http.HandlerFunc {
 	}
 }
 
-func handlePaddlePurchase() http.HandlerFunc {
+func handlePaddlePurchase(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -160,7 +165,7 @@ func handlePaddlePurchase() http.HandlerFunc {
 			slog.String("plan_type", frequency),
 		)
 
-		successURL := config.GetBaseURL() + "/checkout/success"
+		successURL := appCfg.GetBaseURL().JoinPath("/checkout/success").String()
 		res.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(res).Encode(map[string]string{
 			"priceId":    priceID,
