@@ -288,7 +288,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"btn-primary\">Go to your subscriptions</button></div><div class=\"space-y-8 py-4\"><ul class=\"list\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"btn btn-primary\">Go to your subscriptions</button></div><div class=\"space-y-8 py-4\"><ul class=\"list\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

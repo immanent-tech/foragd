@@ -142,7 +142,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters) }
-			class="btn-primary"
+			class="btn btn-primary"
 		>
 			Go to your subscriptions
 		</button>
