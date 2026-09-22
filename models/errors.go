@@ -117,6 +117,12 @@ func HTTPStatus(err error) int {
 
 type ErrorOption func(*APIError)
 
+func WithUserMessage(msg *UserMessage) ErrorOption {
+	return func(a *APIError) {
+		a.UserMessage = msg
+	}
+}
+
 func WithUserErrorSummary(msg string) ErrorOption {
 	return func(a *APIError) {
 		if a.UserMessage == nil {

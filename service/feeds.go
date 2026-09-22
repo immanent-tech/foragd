@@ -1302,16 +1302,35 @@ func FetchFeed(
 	// Parse the URL to ensure its valid.
 	sourceURL, err := url.Parse(feedURL)
 	if err != nil {
-		return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse url: %w", err))
+		return nil, models.NewAPIError(
+			http.StatusUnprocessableEntity,
+			fmt.Errorf("parse url: %w", err),
+			models.WithUserMessage(models.NewErrorMessage("Feed URL is invalid", feedURL)),
+		)
 	}
 	if !sourceURL.IsAbs() {
-		return nil, models.NewAPIError(http.StatusBadRequest, fmt.Errorf("not an absolute URL: %w", err))
+		return nil, models.NewAPIError(
+			http.StatusBadRequest,
+			fmt.Errorf("not an absolute URL: %w", err),
+			models.WithUserMessage(models.NewErrorMessage("Not an absolute URL", feedURL)),
+		)
+	}
+	if sourceURL.Scheme != "https" {
+		return nil, models.NewAPIError(
+			http.StatusBadRequest,
+			fmt.Errorf("not a https URL: %s", sourceURL.String()),
+			models.WithUserMessage(models.NewErrorMessage("Unknown or insecure URL", feedURL)),
+		)
 	}
 
 	// Create a buffer for the feed data.
 	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
-		return nil, models.NewAPIError(http.StatusInternalServerError, errors.New("get feed buffer failed"))
+		return nil, models.NewAPIError(
+			http.StatusInternalServerError,
+			errors.New("get feed buffer failed"),
+			models.WithUserMessage(models.NewErrorMessage("An internal processing error occurred", "")),
+		)
 	}
 	feedBuf.Reset()
 	defer bufPool.Put(feedBuf)
@@ -1323,7 +1342,6 @@ func FetchFeed(
 		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
 			slog.String("feed_url", sourceURL.String()),
 		)
-
 		resp, err := httpClient.R().
 			SetContext(ctx).
 			SetDoNotParseResponse(true).
@@ -1331,15 +1349,31 @@ func FetchFeed(
 			Get(sourceURL.String())
 		switch {
 		case err != nil:
-			return nil, models.NewAPIError(http.StatusInternalServerError, err)
+			return nil, models.NewAPIError(
+				http.StatusInternalServerError,
+				fmt.Errorf("fetch failed: %s: %w", sourceURL.String(), err),
+				models.WithUserMessage(models.NewErrorMessage("Could not fetch feed", sourceURL.String())),
+			)
 		case resp.IsError():
 			if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
 				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
 					slog.String("feed_url", sourceURL.String()),
 				)
-				return FetchFeed(ctx, httpClient, feedURL, FetchWithProxy(true), FetchWithFeedID(opts.FeedID))
+				return FetchFeed(
+					ctx,
+					httpClient,
+					sourceURL.String(),
+					FetchWithProxy(true),
+					FetchWithFeedID(opts.FeedID),
+				)
 			}
-			return nil, models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
+			return nil, models.NewAPIError(
+				resp.StatusCode(),
+				errors.New(resp.Status()),
+				models.WithUserMessage(
+					models.NewErrorMessage("Could not fetch feed from URL: "+resp.Status(), sourceURL.String()),
+				),
+			)
 		}
 		defer resp.RawBody().Close()
 
@@ -1349,18 +1383,39 @@ func FetchFeed(
 			// For gzipped response, uncompress first.
 			reader, err := gzip.NewReader(resp.RawBody())
 			if err != nil {
-				return nil, fmt.Errorf("read gzip response: %w", err)
+				return nil, models.NewAPIError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("read gzip response: %w", err),
+					models.WithUserMessage(models.NewErrorMessage(
+						"Feed URL returned invalid or malformed data",
+						sourceURL.String(),
+					)),
+				)
 			}
 			defer reader.Close()
 			const maxBodySize = 10 * 1024 * 1024 // 10 MB limit
 			limitReader := io.LimitReader(reader, maxBodySize)
 			if _, err := io.Copy(feedBuf, limitReader); err != nil {
-				return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+				return nil, models.NewAPIError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("read response: %w", err),
+					models.WithUserMessage(models.NewErrorMessage(
+						"Feed URL returned invalid or malformed data",
+						sourceURL.String(),
+					)),
+				)
 			}
 		} else {
 			// Read response directly.
 			if _, err := io.Copy(feedBuf, resp.RawBody()); err != nil {
-				return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+				return nil, models.NewAPIError(
+					http.StatusUnprocessableEntity,
+					fmt.Errorf("read response: %w", err),
+					models.WithUserMessage(models.NewErrorMessage(
+						"Feed URL returned invalid or malformed data",
+						sourceURL.String(),
+					)),
+				)
 			}
 		}
 	case true:
@@ -1377,59 +1432,131 @@ func FetchFeed(
 		)
 		if err != nil {
 			if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
-				return nil, models.NewAPIError(zyteErr.HTTPStatus(), fmt.Errorf("proxy request: %w", zyteErr))
+				return nil, models.NewAPIError(
+					zyteErr.HTTPStatus(),
+					fmt.Errorf("proxy request: %w", zyteErr),
+					models.WithUserMessage(models.NewErrorMessage(
+						"Could not fetch feed from URL: "+strconv.Itoa(zyteErr.HTTPStatus()),
+						sourceURL.String(),
+					)),
+				)
 			}
-			return nil, models.NewAPIError(http.StatusInternalServerError, err)
+			return nil, models.NewAPIError(
+				http.StatusInternalServerError,
+				fmt.Errorf("proxy request: %w", err),
+				models.WithUserMessage(models.NewErrorMessage(
+					"Could not fetch feed from URL",
+					sourceURL.String(),
+				)),
+			)
 		}
 		body, err := resp.GetHTMLResponse()
 		if err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("get response body: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("get response body: %w", err),
+				models.WithUserMessage(models.NewErrorMessage(
+					"Feed URL returned invalid or malformed data",
+					sourceURL.String(),
+				)),
+			)
 		}
 		if _, err := feedBuf.Write(body); err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err),
+				models.WithUserMessage(models.NewErrorMessage(
+					"Feed URL returned invalid or malformed data",
+					sourceURL.String(),
+				)),
+			)
 		}
 	}
 
 	data, err := io.ReadAll(feedBuf)
 	if err != nil {
-		return nil, fmt.Errorf("read feed data: %w", err)
+		return nil, models.NewAPIError(
+			http.StatusUnprocessableEntity,
+			fmt.Errorf("read feed data: %w", err),
+			models.WithUserMessage(models.NewErrorMessage(
+				"Feed URL returned invalid or malformed data",
+				sourceURL.String(),
+			)),
+		)
 	}
 
 	// Parse the response as a feed type.
 	var feedData *feeds.Feed
 	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(data)); {
 	case err != nil:
-		return nil, fmt.Errorf("detect feed type: %w", err)
+		return nil, models.NewAPIError(
+			http.StatusUnprocessableEntity,
+			fmt.Errorf("detect source type: %w", err),
+			models.WithUserMessage(models.NewWarningMessage(
+				"Could not determine source type",
+				sourceURL.String(),
+			)),
+		)
 	case feedType == types.SourceUnknown:
 		return nil, models.NewAPIError(
-			http.StatusUnsupportedMediaType,
-			errors.New("cannot determine feed type"),
+			http.StatusUnprocessableEntity, fmt.Errorf("detect source type: %w", err),
+			models.WithUserMessage(models.NewWarningMessage(
+				"Could not determine source type",
+				sourceURL.String(),
+			)),
 		)
 	case feedType == types.SourceAtom:
 		// Atom feed.
 		feedData, err = feeds.NewDecoder[*atom.Feed](bytes.NewReader(data))
 		if err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse atom: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse atom: %w", err),
+				models.WithUserMessage(models.NewWarningMessage("Unable to parse Atom feed", sourceURL.String())),
+			)
 		}
 	case feedType == types.SourceRSS:
 		// RSS 2.0 feed.
 		feedData, err = feeds.NewDecoder[*rss.RSS](bytes.NewReader(data))
 		if err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse rss: %w", err),
+				models.WithUserMessage(models.NewWarningMessage("Unable to parse RSS feed", sourceURL.String())),
+			)
 		}
 	case feedType == types.SourceRDF:
 		// RDF/RSS 1.0 feed.
 		feedData, err = feeds.NewDecoder[*rdf.RDF](bytes.NewReader(data))
 		if err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse rss: %w", err),
+				models.WithUserMessage(models.NewWarningMessage("Unable to parse RDF feed", sourceURL.String())),
+			)
 		}
 	case feedType == types.SourceJSONFeed:
 		// JSONFeed.
 		feedData, err = feeds.NewDecoder[*jsonfeed.Feed](bytes.NewReader(data))
 		if err != nil {
-			return nil, models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse rss: %w", err))
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse rss: %w", err),
+				models.WithUserMessage(models.NewWarningMessage("Unable to parse JSON feed", sourceURL.String())),
+			)
 		}
 	case feedType == types.SourceHTML:
+		// Set a context value to let us know we have already attempted fetching from the HTML link. This protects
+		// against weird links that do infinite redirection or other strange loops.
+		_, found := ctx.Value("html_attempted").(bool)
+		if found {
+			return nil, models.NewAPIError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("cannot fetch from URL: %s", sourceURL.String()),
+				models.WithUserMessage(models.NewWarningMessage("Cannot fetch feed data from URL", sourceURL.String())),
+			)
+		} else {
+			ctx = context.WithValue(ctx, "html_attempted", true)
+		}
 		// HTML web page. Use "autodiscovery" to find feed.
 		if newURL, err := DiscoverFeedURL(
 			sourceURL,
@@ -1439,17 +1566,26 @@ func FetchFeed(
 			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
 			return FetchFeed(ctx, httpClient, newURL, options...)
 		}
-		return nil, models.ErrNotFound
+		return nil, models.NewAPIError(
+			http.StatusNotFound,
+			fmt.Errorf("not found: %s", sourceURL.String()),
+			models.WithUserMessage(models.NewErrorMessage("No feed found at URL", sourceURL.String())),
+		)
 	default:
 		return nil, models.NewAPIError(
 			http.StatusUnsupportedMediaType,
 			fmt.Errorf("unsupported media type: %s", contentType),
+			models.WithUserMessage(models.NewWarningMessage("Unsupported feed type: "+contentType, sourceURL.String())),
 		)
 	}
 
 	// Handle getting through the switch but still not parsing the content.
 	if feedData == nil {
-		return nil, models.ErrNotFound
+		return nil, models.NewAPIError(
+			http.StatusNotFound,
+			fmt.Errorf("not found: %s", sourceURL.String()),
+			models.WithUserMessage(models.NewErrorMessage("No feed found at URL", sourceURL.String())),
+		)
 	}
 
 	// If the source URL is not set, set it.

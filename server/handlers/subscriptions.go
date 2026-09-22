@@ -1572,17 +1572,20 @@ func bulkImportFeeds(
 			// Find an existing or create a new feed from the requested URL.
 			feed, isNew, err := feeds.FindOrCreateFeed(ctx, httpClient, request.URL)
 			if err != nil {
-				resultsCh <- models.FeedSubscriptionResult{
+				result := models.FeedSubscriptionResult{
 					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to create subscription",
-							fmt.Sprintf("Could not find feed data for URL: %q", request.URL),
-						),
-					},
 				}
+				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+					result.Error = apiErr
+				} else {
+					result.Error = models.NewAPIError(
+						http.StatusUnprocessableEntity,
+						fmt.Errorf("create subscription: %w", err),
+						models.WithUserErrorSummary("Unable to process feed URL"),
+						models.WithUserErrorDescription(request.URL),
+					)
+				}
+				resultsCh <- result
 				return
 			}
 			if isNew {
