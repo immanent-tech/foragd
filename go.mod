@@ -14,7 +14,7 @@ require (
 	cloud.google.com/go/errorreporting v0.9.0
 	cloud.google.com/go/language v1.18.0
 	cloud.google.com/go/pubsub/v2 v2.7.0
-	cloud.google.com/go/storage v1.67.0
+	cloud.google.com/go/storage v1.67.1
 	codeberg.org/readeck/go-readability/v2 v2.1.2
 	dario.cat/mergo v1.0.2
 	github.com/BurntSushi/toml v1.6.0
@@ -26,7 +26,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/didip/tollbooth/v8 v8.0.1
-	github.com/dimmerz92/go-icons v0.51.0
+	github.com/dimmerz92/go-icons v0.54.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/go-elasticsearch/v9 v9.5.2
 	github.com/fatih/color v1.19.0
