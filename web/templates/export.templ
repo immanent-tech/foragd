@@ -6,7 +6,7 @@ package templates
 import "github.com/immanent-tech/foragd/models"
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
-templ ExportSubscriptions() {
+templ ExportSubscriptions(breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
@@ -27,7 +27,11 @@ templ ExportSubscriptions() {
 						<button
 							type="button"
 							class="btn btn-secondary hover:btn-error"
-							hx-get={ FromPathFromCtx(ctx) }
+							if prev, found := breadcrumbs.Previous(ctx); !found {
+								hx-get="/home"
+							} else {
+								hx-get={ prev }
+							}
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML transition:true"
 							hx-push-url="true"

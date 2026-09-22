@@ -756,18 +756,18 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 }
 
 // EditFeedSubscription is a page for editing an existing feed subscription.
-templ EditFeedSubscription(request *models.FeedSubscriptionRequest) {
+templ EditFeedSubscription(request *models.FeedSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
-				@manageFeedSubscription("edit", request)
+				@manageFeedSubscription("edit", request, breadcrumbs)
 			}
 		}
 	}
 }
 
 // manageFeedSubscription generates the appropriate form layout for either adding or editing a feed subscription.
-templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequest) {
+templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	@pageHeading() {
 		{{ var title string }}
 		switch action {
@@ -873,7 +873,11 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				<button
 					type="button"
 					class="btn btn-secondary hover:btn-error"
-					hx-get={ FromPathFromCtx(ctx) }
+					if prev, found := breadcrumbs.Previous(ctx); !found {
+						hx-get="/home"
+					} else {
+						hx-get={ prev }
+					}
 					hx-target={ ContentID.Target() }
 					hx-swap="morph:innerHTML transition:true"
 					hx-push-url="true"
@@ -931,20 +935,20 @@ templ ShowNoSuggestions(text string) {
 }
 
 // AddSearchSubscription is a page for adding a new search subscription.
-templ AddSearchSubscription(request *models.SearchSubscriptionRequest) {
+templ AddSearchSubscription(request *models.SearchSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	// Change the sort order to newest first as in most cases, when creating a search subscription. Users will be
 	// interested in the newest articles that match.
 	{{ request.Search.Sort = models.SortNewestFirst }}
-	@manageSearchSubscription("add", request)
+	@manageSearchSubscription("add", request, breadcrumbs)
 }
 
 // EditSearchSubscription is a page for editing a search subscription.
-templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
-	@manageSearchSubscription("edit", request)
+templ EditSearchSubscription(request *models.SearchSubscriptionRequest, breadcrumbs Breadcrumbs) {
+	@manageSearchSubscription("edit", request, breadcrumbs)
 }
 
 // manageSearchSubscription generates the appropriate form layout for either adding or editing a search subscription.
-templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest) {
+templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
@@ -1134,7 +1138,11 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							<button
 								type="button"
 								class="btn btn-secondary hover:btn-error"
-								hx-get={ FromPathFromCtx(ctx) }
+								if prev, found := breadcrumbs.Previous(ctx); !found {
+									hx-get="/home"
+								} else {
+									hx-get={ prev }
+								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"
 								hx-push-url="true"
@@ -1164,17 +1172,17 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 }
 
 // AddGroupSubscription is a page for adding a new group subscription.
-templ AddGroupSubscription(request *models.GroupSubscriptionRequest) {
-	@manageGroupSubscription("add", request)
+templ AddGroupSubscription(request *models.GroupSubscriptionRequest, breadcrumbs Breadcrumbs) {
+	@manageGroupSubscription("add", request, breadcrumbs)
 }
 
 // EditGroupSubscription is a page for editing a group subscription.
-templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
-	@manageGroupSubscription("edit", request)
+templ EditGroupSubscription(request *models.GroupSubscriptionRequest, breadcrumbs Breadcrumbs) {
+	@manageGroupSubscription("edit", request, breadcrumbs)
 }
 
 // manageGroupSubscription generates the appropriate form layout for either adding or editing a group subscription.
-templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest) {
+templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
@@ -1320,7 +1328,11 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							<button
 								type="button"
 								class="btn btn-secondary hover:btn-error"
-								hx-get={ FromPathFromCtx(ctx) }
+								if prev, found := breadcrumbs.Previous(ctx); !found {
+									hx-get="/home"
+								} else {
+									hx-get={ prev }
+								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"
 								hx-push-url="true"
@@ -1363,7 +1375,7 @@ templ AddSubscriptionToGroup(id, name string) {
 	</button>
 }
 
-templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
+templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
@@ -1432,7 +1444,11 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						<button
 							type="button"
 							class="btn btn-secondary hover:btn-error"
-							hx-get={ FromPathFromCtx(ctx) }
+							if prev, found := breadcrumbs.Previous(ctx); !found {
+								hx-get="/home"
+							} else {
+								hx-get={ prev }
+							}
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML transition:true"
 							hx-push-url="true"

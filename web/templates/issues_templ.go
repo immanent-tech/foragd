@@ -20,7 +20,7 @@ import (
 )
 
 // ReportIssue renders a form for reporting issues with the app.
-func ReportIssue(details *models.ReportIssueRequest) templ.Component {
+func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -208,33 +208,48 @@ func ReportIssue(details *models.ReportIssueRequest) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></label> <label class=\"fieldset\"><span class=\"label\">Issue Description</span> <textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose\"></textarea><p class=\"label\">Describe the issue in as much detail as possible.</p></label><div class=\"mt-4 flex w-full justify-end gap-4\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\" hx-get=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></label> <label class=\"fieldset\"><span class=\"label\">Issue Description</span> <textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose\"></textarea><p class=\"label\">Describe the issue in as much detail as possible.</p></label><div class=\"mt-4 flex w-full justify-end gap-4\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var13 string
-					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(FromPathFromCtx(ctx))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 132, Col: 37}
+					if prev, found := breadcrumbs.Previous(ctx); !found {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " hx-get=\"/home\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " hx-get=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var13 string
+						templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(prev)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 135, Col: 22}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var14 string
 					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 133, Col: 38}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 137, Col: 38}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-swap=\"morph:innerHTML transition:true\" hx-push-url=\"true\">Back</button> <button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></fieldset>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"morph:innerHTML transition:true\" hx-push-url=\"true\">Back</button> <button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></fieldset>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

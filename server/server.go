@@ -42,6 +42,7 @@ import (
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web"
 
+	"github.com/immanent-tech/go-base/server/middlewares/breadcrumbs"
 	"github.com/immanent-tech/go-base/server/middlewares/etag"
 	"github.com/immanent-tech/go-base/server/middlewares/security"
 )
@@ -129,6 +130,8 @@ func Start() error {
 	if err != nil {
 		return fmt.Errorf("load authenticator: %w", err)
 	}
+
+	breadcrumbs := breadcrumbs.New(sessionManager)
 
 	// Set up OpenTelemetry.
 	otelShutdown, err := otel.Setup(ctx, appCfg)
@@ -288,10 +291,10 @@ func Start() error {
 		r.Use(
 			htmx.SetupHTMX,
 			sessionManager.LoadAndSave,
+			breadcrumbs.Recorder,
 			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager, httpClient),
 			middlewares.RequireValidUser,
 			handlers.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
-			middlewares.StorePaths(appCfg),
 			middlewares.NoCache,
 		)
 		// Manual login refresh.
@@ -346,14 +349,22 @@ func Start() error {
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
-					r.Post("/read", handlers.HandleMarkSubscription(subscriptionSvc, sessionManager, models.MarkRead))
+					r.Post(
+						"/read",
+						handlers.HandleMarkSubscription(subscriptionSvc, sessionManager, breadcrumbs, models.MarkRead),
+					)
 					r.Post(
 						"/unread",
-						handlers.HandleMarkSubscription(subscriptionSvc, sessionManager, models.MarkUnread),
+						handlers.HandleMarkSubscription(
+							subscriptionSvc,
+							sessionManager,
+							breadcrumbs,
+							models.MarkUnread,
+						),
 					)
 					r.Post("/favorite", handlers.HandleFavoriteSubscription(subscriptionSvc))
 					r.Route("/edit", func(r chi.Router) {
-						r.Get("/", handlers.HandleEditSubscription(subscriptionSvc))
+						r.Get("/", handlers.HandleEditSubscription(subscriptionSvc, breadcrumbs))
 						r.Post("/", handlers.HandleSaveSubscription(appCfg, imgCache, subscriptionSvc))
 					})
 					r.Get("/remove", handlers.HandleRemoveSubscription(subscriptionSvc))
@@ -368,13 +379,13 @@ func Start() error {
 				r.With(htmx.RequireHTMX).
 					Post("/feed", handlers.HandleAddNewFeedSubscription(subscriptionSvc, userSvc, feedSvc, httpClient))
 				// Add search subscription.
-				r.Get("/search", handlers.HandleAddSearchSubscription(subscriptionSvc, userSvc))
+				r.Get("/search", handlers.HandleAddSearchSubscription(subscriptionSvc, userSvc, breadcrumbs))
 				r.With(htmx.RequireHTMX).
-					Post("/search", handlers.HandleAddSearchSubscription(subscriptionSvc, userSvc))
+					Post("/search", handlers.HandleAddSearchSubscription(subscriptionSvc, userSvc, breadcrumbs))
 				// Add group subscription.
-				r.Get("/group", handlers.HandleAddGroupSubscription(subscriptionSvc, userSvc))
+				r.Get("/group", handlers.HandleAddGroupSubscription(subscriptionSvc, userSvc, breadcrumbs))
 				r.With(htmx.RequireHTMX).
-					Post("/group", handlers.HandleAddGroupSubscription(subscriptionSvc, userSvc))
+					Post("/group", handlers.HandleAddGroupSubscription(subscriptionSvc, userSvc, breadcrumbs))
 			})
 			// Group subscription management.
 			r.Route("/group", func(r chi.Router) {
@@ -441,7 +452,7 @@ func Start() error {
 		})
 		// Issues.
 		r.Route("/issue", func(r chi.Router) {
-			r.Get("/", handlers.HandleReportIssue(appCfg))
+			r.Get("/", handlers.HandleReportIssue(appCfg, breadcrumbs))
 			r.With(htmx.RequireHTMX).Post("/", handlers.HandleSubmitIssue(appCfg, imgCache))
 		})
 		// Help/Documentation.
@@ -459,8 +470,8 @@ func Start() error {
 				r.Get("/import", handlers.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
 				r.With(htmx.RequireHTMX).
 					Post("/import", handlers.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
-				r.Get("/export", handlers.HandleExportSubscriptions(feedSvc))
-				r.Post("/export", handlers.HandleExportSubscriptions(feedSvc))
+				r.Get("/export", handlers.HandleExportSubscriptions(feedSvc, breadcrumbs))
+				r.Post("/export", handlers.HandleExportSubscriptions(feedSvc, breadcrumbs))
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

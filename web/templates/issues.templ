@@ -11,7 +11,7 @@ import (
 )
 
 // ReportIssue renders a form for reporting issues with the app.
-templ ReportIssue(details *models.ReportIssueRequest) {
+templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
@@ -129,7 +129,11 @@ templ ReportIssue(details *models.ReportIssueRequest) {
 							<button
 								type="button"
 								class="btn btn-secondary hover:btn-error"
-								hx-get={ FromPathFromCtx(ctx) }
+								if prev, found := breadcrumbs.Previous(ctx); !found {
+									hx-get="/home"
+								} else {
+									hx-get={ prev }
+								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"
 								hx-push-url="true"

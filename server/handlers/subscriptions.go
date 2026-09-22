@@ -314,7 +314,12 @@ func HandleListSubscriptionsUpdates(itemSvc ItemService) http.HandlerFunc {
 }
 
 // HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func HandleMarkSubscription(svc SubscriptionsService, session SessionManager, mark models.Mark) http.HandlerFunc {
+func HandleMarkSubscription(
+	subSvc SubscriptionsService,
+	session SessionManager,
+	breadcrumbs Breadcrumbs,
+	mark models.Mark,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "mark-subscription")
 
@@ -326,7 +331,7 @@ func HandleMarkSubscription(svc SubscriptionsService, session SessionManager, ma
 		}
 
 		// Mark subscription.
-		if err := svc.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
+		if err := subSvc.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
 			HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("mark subscriptions: %w", err),
@@ -334,14 +339,12 @@ func HandleMarkSubscription(svc SubscriptionsService, session SessionManager, ma
 			return
 		}
 
-		// Get any from value.
-		from := templates.FromPathFromCtx(req.Context())
+		prev, _ := breadcrumbs.Previous(req.Context())
 
 		// Update toggle.
 		RenderPartial(&PartialTemplate{
 			template: templates.SubscriptionMarkToggle(subscription,
 				element.WithHXSwapOOB("true"),
-				element.WithHXValues(map[string]string{"from": from}),
 			),
 		}).ServeHTTP(res, req)
 
@@ -350,7 +353,7 @@ func HandleMarkSubscription(svc SubscriptionsService, session SessionManager, ma
 			"/list/subscriptions": postMarkSubscriptionList,
 			"/list/articles":      postMarkSubscriptionArticles(session),
 		}
-		if hook, ok := postMarkHooks[from]; ok {
+		if hook, ok := postMarkHooks[prev]; ok {
 			if err := hook(res, req); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
@@ -560,7 +563,7 @@ func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Re
 }
 
 // HandleEditSubscription handles presenting the user with a form for editing a subscription.
-func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFunc {
+func HandleEditSubscription(subSvc SubscriptionsService, breadcrumbs Breadcrumbs) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(models.ActionHeader, "edit-subscription")
 
@@ -585,13 +588,13 @@ func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFu
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			request.SuggestedCategories = subscriptionSvc.GetSubscriptionCategorySuggestions(
+			request.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				[]models.FeedID{subscription.FeedData.GetFeedID()},
 				subscription.Customisation.Categories,
 			)
 			// Generate page template.
-			template = templates.EditFeedSubscription(request)
+			template = templates.EditFeedSubscription(request, breadcrumbs)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
 				Description: subscription.GetTitle(),
@@ -620,7 +623,7 @@ func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFu
 			// 	ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// }
 			// Generate page template.
-			template = templates.EditSearchSubscription(request)
+			template = templates.EditSearchSubscription(request, breadcrumbs)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
 				Description: request.Customisation.GetNickname(),
@@ -659,7 +662,7 @@ func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFu
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
-			request.SuggestedCategories = subscriptionSvc.GetSubscriptionCategorySuggestions(
+			request.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				groupedSubscriptions.GetFeedIDs(),
 				groupedSubscriptions.GetCategories(),
@@ -669,7 +672,7 @@ func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFu
 				ExcludeIDs(subscription.GroupData.GetGroupedSubscriptionIDs()...)
 
 			// Generate page template.
-			template = templates.EditGroupSubscription(request)
+			template = templates.EditGroupSubscription(request, breadcrumbs)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
 				Description: request.Customisation.GetNickname(),
@@ -684,7 +687,7 @@ func HandleEditSubscription(subscriptionSvc SubscriptionsService) http.HandlerFu
 			// Get suggested categories from existing subscriptions.
 			request.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
 			// Create template.
-			template = templates.EditEmailSubscription(request)
+			template = templates.EditEmailSubscription(request, breadcrumbs)
 			pageTitle = templates.PageTitle{
 				Summary:     "Edit Subscription",
 				Description: request.Customisation.GetNickname(),
@@ -1040,7 +1043,11 @@ func HandleSuggestFeeds(feeds FeedService, httpClient *resty.Client) http.Handle
 }
 
 // HandleAddSearchSubscription handles adding a new search subscription.
-func HandleAddSearchSubscription(subscriptions SubscriptionsService, users UserService) http.HandlerFunc {
+func HandleAddSearchSubscription(
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	breadcrumbs Breadcrumbs,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1081,6 +1088,7 @@ func HandleAddSearchSubscription(subscriptions SubscriptionsService, users UserS
 							).Limit(10).
 								GetCategories(),
 						},
+						breadcrumbs,
 					),
 				},
 			).ServeHTTP(res, req.WithContext(req.Context()))
@@ -1102,7 +1110,7 @@ func HandleAddSearchSubscription(subscriptions SubscriptionsService, users UserS
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
-			if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
+			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add search subscription: %w", err),
@@ -1174,7 +1182,11 @@ func HandleAddSubscriptionToSearch() http.HandlerFunc {
 }
 
 // HandleAddGroupSubscription handles adding a new group subscription.
-func HandleAddGroupSubscription(subscriptions SubscriptionsService, users UserService) http.HandlerFunc {
+func HandleAddGroupSubscription(
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	breadcrumbs Breadcrumbs,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -1215,6 +1227,7 @@ func HandleAddGroupSubscription(subscriptions SubscriptionsService, users UserSe
 					},
 					template: templates.AddGroupSubscription(
 						models.NewGroupSubscriptionRequest(suggestedSubscriptions, suggestedCategories),
+						breadcrumbs,
 					),
 				},
 			).ServeHTTP(res, req)
@@ -1244,7 +1257,7 @@ func HandleAddGroupSubscription(subscriptions SubscriptionsService, users UserSe
 				return
 			}
 			// Add subscriptions
-			if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
+			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add subscriptions: %w", err),
@@ -1431,7 +1444,7 @@ func (h *ExportSubscriptions) PartialResponse(res http.ResponseWriter, req *http
 }
 
 // HandleExportSubscriptions handles configuring and performing an export of user subscriptions.
-func HandleExportSubscriptions(feedSvc FeedService) http.HandlerFunc {
+func HandleExportSubscriptions(feedSvc FeedService, breadcrumbs Breadcrumbs) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get the user details.
 		user := models.UserFromCtx(req.Context())
@@ -1450,7 +1463,7 @@ func HandleExportSubscriptions(feedSvc FeedService) http.HandlerFunc {
 						Summary:     "Export",
 						Description: "Export your subscriptions as OPML",
 					},
-					template: templates.ExportSubscriptions(),
+					template: templates.ExportSubscriptions(breadcrumbs),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:

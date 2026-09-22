@@ -52,7 +52,7 @@ func (p *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 }
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
-func HandleReportIssue(appCfg AppConfig) http.HandlerFunc {
+func HandleReportIssue(appCfg AppConfig, breadcrumbs Breadcrumbs) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -79,6 +79,7 @@ func HandleReportIssue(appCfg AppConfig) http.HandlerFunc {
 			},
 			template: templates.ReportIssue(
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
+				breadcrumbs,
 			),
 		}).ServeHTTP(res, req)
 	}

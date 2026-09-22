@@ -177,6 +177,10 @@ type AuthURLResult interface {
 	GetCodeVerifier() string
 }
 
+type Breadcrumbs interface {
+	Previous(ctx context.Context) (string, bool)
+}
+
 type Route = string
 
 var (

@@ -12,7 +12,6 @@ import (
 const (
 	userCtxKey       contextKey = "user"
 	clientTypeCtxKey contextKey = "client_type"
-	returnToCtxKey   contextKey = "return_to"
 )
 
 type contextKey string
@@ -49,19 +48,4 @@ func ClientTypeFromCtx(ctx context.Context) ClientType {
 		return ClientTypeWeb
 	}
 	return clientType
-}
-
-// ReturnToCtx stores the value to return_to in the context, which indicates to a request that it should redirect to the
-// given path.
-func ReturnToCtx(ctx context.Context, returnTo string) context.Context {
-	return context.WithValue(ctx, returnToCtxKey, returnTo)
-}
-
-// ReturnToFromCtx retrieves the value to return_to in the context, which indicates to a request that it should redirect to
-// the given path.
-func ReturnToFromCtx(ctx context.Context) string {
-	if returnTo, ok := ctx.Value(returnToCtxKey).(string); ok {
-		return returnTo
-	}
-	return ""
 }
