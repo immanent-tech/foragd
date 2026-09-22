@@ -14,7 +14,7 @@ require (
 	cloud.google.com/go/errorreporting v0.9.0
 	cloud.google.com/go/language v1.18.0
 	cloud.google.com/go/pubsub/v2 v2.7.0
-	cloud.google.com/go/storage v1.67.1
+	cloud.google.com/go/storage v1.68.0
 	codeberg.org/readeck/go-readability/v2 v2.1.2
 	dario.cat/mergo v1.0.2
 	github.com/BurntSushi/toml v1.6.0
