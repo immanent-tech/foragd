@@ -195,10 +195,11 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
 
 	// Delete scheduled job for feed.
-	if err := scheduler.NewManager(ctx); err != nil {
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
 		return fmt.Errorf("could not run scheduler: %w", err)
 	}
-	if err := scheduler.Manager.DeleteJob(
+	if err := manager.DeleteJob(
 		quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
 	); err != nil && !errors.Is(err, quartz.ErrJobNotFound) {
 		return fmt.Errorf("delete feed job: %w", err)
@@ -247,10 +248,11 @@ func (c *UpdateFeedCmd) Run() error {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Delete scheduled job for feed.
-		if err := scheduler.NewManager(ctx); err != nil {
+		manager, err := scheduler.NewManager(ctx)
+		if err != nil {
 			return fmt.Errorf("could not run scheduler: %w", err)
 		}
-		if err := scheduler.Manager.DeleteJob(
+		if err := manager.DeleteJob(
 			quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
 		); err != nil {
 			return fmt.Errorf("delete feed job: %w", err)
@@ -261,7 +263,7 @@ func (c *UpdateFeedCmd) Run() error {
 			return fmt.Errorf("create new feed job: %w", err)
 		}
 		// Schedule the new job.
-		if err = scheduler.Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
+		if err = manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
 			return fmt.Errorf("schedule feed job: %w", err)
 		}
 		slogctx.Info(ctx, "Added new job for feed.",

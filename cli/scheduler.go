@@ -40,9 +40,13 @@ func (c *RunSchedulerCmd) Run() error {
 	defer cancelFunc()
 	ctx = slogctx.NewCtx(ctx, logging.New())
 
-	// Run scheduler.
-	if err := scheduler.Run(ctx); err != nil {
-		return fmt.Errorf("could not run scheduler: %w", err)
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
+		return fmt.Errorf("new scheduler: %w", err)
+	}
+
+	if err := manager.Run(ctx); err != nil {
+		return fmt.Errorf("run scheduler: %w", err)
 	}
 	return nil
 }
@@ -55,11 +59,13 @@ func (c *ClearSchedulerCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx); err != nil {
-		return fmt.Errorf("could not setup scheduler: %w", err)
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
+		return fmt.Errorf("new scheduler: %w", err)
 	}
+
 	// Clear job queue.
-	if err := scheduler.Manager.Clear(ctx); err != nil {
+	if err := manager.Clear(); err != nil {
 		return fmt.Errorf("could not clear job queue: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Job queue cleared.")
@@ -81,16 +87,17 @@ func (c *InitSchedulerCmd) Run() error {
 	}
 
 	// Set up and create scheduler instance.
-	if err := setupScheduler(ctx); err != nil {
-		return fmt.Errorf("setup scheduler: %w", err)
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
+		return fmt.Errorf("new scheduler: %w", err)
 	}
 	// Load admin jobs.
-	if err := scheduler.InitAdminJobs(ctx); err != nil {
+	if err := manager.InitAdminJobs(ctx); err != nil {
 		return fmt.Errorf("load admin jobs: %w", err)
 	}
 
 	// Load feed update jobs.
-	if err := scheduler.LoadUpdateFeedJobs(ctx, feedSvc); err != nil {
+	if err := manager.LoadUpdateFeedJobs(ctx, feedSvc); err != nil {
 		return fmt.Errorf("load update feed jobs: %w", err)
 	}
 
@@ -106,12 +113,13 @@ func (c *ListJobsSchedulerCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx); err != nil {
-		return fmt.Errorf("could not setup scheduler: %w", err)
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
+		return fmt.Errorf("new scheduler: %w", err)
 	}
 
 	// Clear job queue.
-	keys, err := scheduler.Manager.GetJobKeys()
+	keys, err := manager.GetJobKeys()
 	if err != nil {
 		return fmt.Errorf("could not list jobs: %w", err)
 	}
@@ -135,30 +143,22 @@ func (c *DeleteJobSchedulerCmd) Run() error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := setupScheduler(ctx); err != nil {
-		return fmt.Errorf("could not setup scheduler: %w", err)
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
+		return fmt.Errorf("new scheduler: %w", err)
 	}
 
 	if c.Group != "" {
-		if err := scheduler.Manager.DeleteJob(
+		if err := manager.DeleteJob(
 			quartz.NewJobKeyWithGroup(c.ID, c.Group),
 		); err != nil {
 			return fmt.Errorf("delete job: %w", err)
 		}
 	} else {
-		if err := scheduler.Manager.DeleteJob(quartz.NewJobKey(c.ID)); err != nil {
+		if err := manager.DeleteJob(quartz.NewJobKey(c.ID)); err != nil {
 			return fmt.Errorf("delete job: %w", err)
 		}
 	}
 
-	return nil
-}
-
-func setupScheduler(ctx context.Context) error {
-	ctx = slogctx.NewCtx(ctx, logging.New())
-	// Run scheduler.
-	if err := scheduler.NewManager(ctx); err != nil {
-		return fmt.Errorf("could not run scheduler: %w", err)
-	}
 	return nil
 }

@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"slices"
@@ -43,65 +42,65 @@ const (
 	gracefulShutdownTimeout  = 30 * time.Second
 )
 
-// manager contains data for managing a scheduler instance.
-type manager struct {
+// Manager contains data for managing a scheduler instance.
+type Manager struct {
 	quartz.Scheduler
 
 	queue quartz.JobQueue
 	store *service.ElasticService
 }
 
-var Manager *manager
+// NewManager will create a new manager object containing the scheduler and job queue.
+func NewManager(ctx context.Context) (*Manager, error) {
+	// Create distributed queue instance.
+	jobQueue, err := queue.NewJobQueue(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("new job queue: %w", err)
+	}
 
-// Clear will remove all jobs from the queue.
-func (m *manager) Clear(ctx context.Context) error {
-	if err := m.queue.Clear(); err != nil {
-		return fmt.Errorf("clear job queue: %w", err)
+	// Create scheduler instance.
+	scheduler, err := quartz.NewStdScheduler(
+		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
+		quartz.WithRetryInterval(500*time.Millisecond),
+		quartz.WithQueue(jobQueue, &sync.Mutex{}),
+		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("new scheduler: %w", err)
 	}
-	return nil
-}
 
-func (m *manager) UpdateSerializedJob(ctx context.Context, job *jobs.SerializedJob) error {
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			job,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string](m.store.GetIndexRW(service.ScheduleIndex)),
-		),
-	); err != nil {
-		return fmt.Errorf("update serialized job: %w", err)
+	// Load the elastic service.
+	elasticSvc, err := service.LoadElasticService()
+	if err != nil {
+		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Unable to flush bulk request.",
-			slog.Any("error", err))
-	}
-	return nil
+
+	return &Manager{
+		Scheduler: scheduler,
+		queue:     jobQueue,
+		store:     elasticSvc,
+	}, nil
 }
 
 // Run starts the scheduler manager.
-func Run(ctx context.Context) error {
+func (m *Manager) Run(ctx context.Context) error {
 	appCfg, err := config.LoadAppConfig()
 	if err != nil {
 		return fmt.Errorf("load app config: %w", err)
 	}
 
-	if err := NewManager(ctx); err != nil {
-		return fmt.Errorf("create scheduler: %w", err)
-	}
-
-	// Create an indexer that jobs can use and store it in the context for access by jobs.
+	// Store various objects in the context for access by jobs:
+	// Elastic service.
+	ctx = jobs.ElasticToCtx(ctx, m.store)
+	// Bulk indexer.
 	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
 	if err != nil {
 		return fmt.Errorf("create indexer: %w", err)
 	}
 	ctx = jobs.IndexerToCtx(ctx, indexer)
-
-	// Store the scheduler in the context for access by jobs.
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
-
-	ctx = jobs.ElasticToCtx(ctx, Manager.store)
-
-	// Load the http client.
+	// Scheduler.
+	ctx = jobs.SchedulerAPIToCtx(ctx, m)
+	// HTTP client.
 	httpClient, err := client.Load()
 	if err != nil {
 		return fmt.Errorf("load http client: %w", err)
@@ -111,39 +110,38 @@ func Run(ctx context.Context) error {
 		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
 	)
 	ctx = jobs.HTTPClientToCtx(ctx, httpClient)
-
-	// Load the articles cache.
+	// Item cache.
 	itemsCache, err := cache.NewItemsCache()
 	if err != nil {
 		return fmt.Errorf("load items cache: %w", err)
 	}
 	ctx = jobs.ItemCacheToCtx(ctx, itemsCache)
-
+	// Item service.
+	itemSvc, err := service.LoadItemService()
+	if err != nil {
+		return fmt.Errorf("load item service: %w", err)
+	}
+	ctx = jobs.ItemSvcToCtx(ctx, itemSvc)
+	// User service.
 	userSvc, err := service.LoadUserService()
 	if err != nil {
 		return fmt.Errorf("load user service: %w", err)
 	}
 	ctx = jobs.UserSvcToCtx(ctx, userSvc)
-
+	// Feed service.
 	feedSvc, err := service.LoadFeedService()
 	if err != nil {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 	ctx = jobs.FeedSvcToCtx(ctx, feedSvc)
 
-	itemSvc, err := service.LoadItemService()
-	if err != nil {
-		return fmt.Errorf("load item service: %w", err)
-	}
-	ctx = jobs.ItemSvcToCtx(ctx, itemSvc)
-
 	// Load all admin jobs as needed.
-	if err := InitAdminJobs(ctx); err != nil {
+	if err := m.InitAdminJobs(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
 
 	// Start scheduling jobs.
-	Manager.Start(ctx)
+	m.Start(ctx)
 	slogctx.Info(ctx, "Scheduler started.",
 		slog.String("version", appCfg.Version),
 		slog.Time("start_time", time.Now()),
@@ -170,7 +168,7 @@ func Run(ctx context.Context) error {
 			slog.Any("error", err),
 		)
 	}
-	Manager.Stop()
+	m.Stop()
 
 	slogctx.FromCtx(shutdownCtx).Debug("Scheduler stopped.",
 		slog.Time("stop_time", time.Now()),
@@ -179,54 +177,17 @@ func Run(ctx context.Context) error {
 	return nil
 }
 
-// NewManager will create a new manager object containing the scheduler and job queue.
-func NewManager(ctx context.Context) error {
-	// Create distributed queue instance.
-	jobQueue, err := queue.NewJobQueue(ctx)
-	if err != nil {
-		return fmt.Errorf("new job queue: %w", err)
-	}
-
-	// Create scheduler instance.
-	scheduler, err := quartz.NewStdScheduler(
-		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
-		quartz.WithRetryInterval(500*time.Millisecond),
-		quartz.WithQueue(jobQueue, &sync.Mutex{}),
-		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
-	)
-	if err != nil {
-		return fmt.Errorf("new scheduler: %w", err)
-	}
-
-	// Load the elastic service.
-	elasticSvc, err := service.LoadElasticService()
-	if err != nil {
-		return fmt.Errorf("load elastic service: %w", err)
-	}
-
-	Manager = &manager{
-		Scheduler: scheduler,
-		queue:     jobQueue,
-		store:     elasticSvc,
-	}
-
-	return nil
-}
-
-func LoadManager(ctx context.Context) error {
-	return sync.OnceValue(func() error {
-		if err := NewManager(ctx); err != nil {
-			return fmt.Errorf("init scheduler: %w", err)
-		}
-		return nil
-	})()
-}
+// // Clear will remove all jobs from the queue.
+// func (m *Manager) Clear(ctx context.Context) error {
+// 	if err := m.queue.Clear(); err != nil {
+// 		return fmt.Errorf("clear job queue: %w", err)
+// 	}
+// 	return nil
+// }
 
 // InitAdminJobs loads the listed jobs into the scheduler. These are administrative jobs that should always be
 // scheduled.
-func InitAdminJobs(ctx context.Context) error {
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
-
+func (m *Manager) InitAdminJobs(ctx context.Context) error {
 	// List of jobs to activate at startup.
 	var startupJobs = []func() (*jobs.SerializedJob, error){
 		jobs.NewGetNewFeedsJob,
@@ -238,24 +199,25 @@ func InitAdminJobs(ctx context.Context) error {
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
 	defer tasksCtx.Done()
 
-	for job := range slices.Values(startupJobs) {
+	for newJobFunc := range slices.Values(startupJobs) {
 		startupTasks.Go(func() error {
-			serialized, err := job()
+			serialized, err := newJobFunc()
 			if err != nil {
 				return fmt.Errorf("serialize job: %w", err)
 			}
-			_, err = elastic.GetDoc[string, *jobs.SerializedJob](
-				ctx,
-				Manager.store.GetIndexRO(service.ScheduleIndex),
-				serialized.JobDetail().JobKey().String(),
+			keys, err := m.GetJobKeys(matcher.JobNameEquals(serialized.JobDetail().JobKey().Name()))
+			if err != nil {
+				return fmt.Errorf("get existing job details: %w", err)
+			}
+			if len(keys) > 0 {
+				slogctx.Debug(ctx, "Job already scheduled.", slog.String("job_key", keys[0].String()))
+				return nil
+			}
+			slogctx.Info(ctx, "Adding job.",
+				slog.String("job_id", serialized.JobDetail().JobKey().String()),
 			)
-			if err != nil || errors.Is(err, elastic.ErrNotFound) {
-				slogctx.Info(ctx, "Adding job.",
-					slog.String("job_id", serialized.JobDetail().JobKey().String()),
-				)
-				if err = Manager.ScheduleJob(serialized.JobDetail(), serialized.Trigger()); err != nil {
-					return fmt.Errorf("schedule get new feeds job: %w", err)
-				}
+			if err = m.ScheduleJob(serialized.JobDetail(), serialized.Trigger()); err != nil {
+				return fmt.Errorf("schedule get new feeds job: %w", err)
 			}
 			return nil
 		})
@@ -268,9 +230,9 @@ func InitAdminJobs(ctx context.Context) error {
 	return nil
 }
 
-func LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error {
+func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error {
 	// Gather all current feed jobs.
-	jobKeys, err := Manager.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
+	jobKeys, err := m.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
 	if err != nil {
 		panic(fmt.Errorf("get existing jobs: %w", err))
 	}
@@ -284,7 +246,7 @@ func LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error
 	// Find all feeds that don't have an existing job.
 	joblessFeeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
-		Manager.store.GetIndexRO(service.FeedsIndex),
+		m.store.GetIndexRO(service.FeedsIndex),
 		query.Bool(
 			query.MustNot(
 				query.Terms("feed_id", feedIDs),
@@ -293,7 +255,7 @@ func LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error
 		5000,
 	)
 	if err != nil {
-		panic(fmt.Errorf("search feeds: %w", err))
+		return fmt.Errorf("search feeds: %w", err)
 	}
 	if len(joblessFeeds) > 0 {
 		slogctx.Info(ctx, "Found feeds without jobs.",
@@ -301,65 +263,40 @@ func LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error
 		)
 	}
 
+	var wg sync.WaitGroup
+
 	for feed := range slices.Values(joblessFeeds) {
 		// Add additional feed details to logs.
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 
-		// Create a job for the feed.
-		jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
-		// Check if there is an existing scheduled job.
-		switch existingJob, err := Manager.GetScheduledJob(jobKey); {
-		case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
-			// If we cannot ascertain if there is an existing scheduled job, skip this feed.
-			slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err),
-			)
-		case errors.Is(err, quartz.ErrJobNotFound):
-			// If there is no existing scheduled newJob, create one.
-			newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
-			if err != nil {
-				slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
+		wg.Go(func() {
+			if err := jobs.AddFeedJob(ctx, m, feedSvc, feed); err != nil {
+				slogctx.Error(ctx, "Could not add job for feed.",
 					slog.Any("error", err),
 				)
-				continue
 			}
-
-			// Schedule the new job.
-			if err = Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
-				slogctx.FromCtx(feedCtx).Error("Failed to schedule new job for feed.",
-					slog.String("job_id", newJob.JobDetail().JobKey().String()),
-					slog.String("job_schedule", newJob.Trigger().Description()),
-					slog.Any("error", err),
-				)
-				continue
-			}
-			slogctx.FromCtx(feedCtx).Debug("Added new job for feed.",
-				slog.String("job_id", newJob.JobDetail().JobKey().String()),
-				slog.String("job_schedule", newJob.Trigger().Description()),
-			)
-			// // Do an initial run of the job.
-			// if err = newJob.JobDetail().Job().Execute(ctx); err != nil {
-			// 	slogctx.FromCtx(feedCtx).Error("Failed initial run of update feed job.",
-			// 		slog.String("job_id", newJob.JobDetail().JobKey().String()),
-			// 		slog.String("job_schedule", newJob.Trigger().Description()),
-			// 		slog.Any("error", err),
-			// 	)
-			// }
-		case existingJob != nil:
-			// Existing job found, ignore.
-			slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
-				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-				slog.String("feed_id", feed.GetID()),
-			)
-		default:
-			// Unhandled result.
-			slogctx.FromCtx(feedCtx).Debug("Unhandled result.",
-				slog.String("feed_id", feed.GetID()),
-			)
-		}
+		})
 	}
 
+	wg.Wait()
+
+	return nil
+}
+
+func (m *Manager) UpdateSerializedJob(ctx context.Context, job *jobs.SerializedJob) error {
+	if err := bulk.AddAction(ctx,
+		bulk.NewAction(
+			job,
+			bulk.AsOperation[string](bulk.OpIndex),
+			bulk.ToIndex[string](m.store.GetIndexRW(service.ScheduleIndex)),
+		),
+	); err != nil {
+		return fmt.Errorf("update serialized job: %w", err)
+	}
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Unable to flush bulk request.",
+			slog.Any("error", err))
+	}
 	return nil
 }

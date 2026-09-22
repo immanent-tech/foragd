@@ -25,7 +25,8 @@ func main() {
 		panic(err)
 	}
 
-	if err := scheduler.NewManager(ctx); err != nil {
+	manager, err := scheduler.NewManager(ctx)
+	if err != nil {
 		panic(err)
 	}
 
@@ -55,7 +56,7 @@ func main() {
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 
 		jobKey := quartz.NewJobKeyWithGroup(feed.GetID(), "update_feed")
-		switch existingJob, err := scheduler.Manager.GetScheduledJob(jobKey); {
+		switch existingJob, err := manager.GetScheduledJob(jobKey); {
 		case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
 			// If we cannot ascertain if there is an existing scheduled job, skip this feed.
 			slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",
@@ -73,7 +74,7 @@ func main() {
 			}
 
 			// Schedule the new job.
-			if err = scheduler.Manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
+			if err = manager.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
 				slogctx.FromCtx(feedCtx).Error("Failed to schedule new job for feed.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),

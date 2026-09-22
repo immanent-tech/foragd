@@ -186,7 +186,8 @@ func HandleLoginCallback(
 				return
 			}
 			// Load the scheduler (but don't start it).
-			if err := scheduler.LoadManager(req.Context()); err != nil {
+			manager, err := scheduler.NewManager(req.Context())
+			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Could not load scheduler, cannot schedule new user jobs.",
 					slog.Any("error", err),
 				)
@@ -210,7 +211,7 @@ func HandleLoginCallback(
 							slog.Any("error", err),
 						)
 					}
-					if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+					if err := manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
 						slogctx.FromCtx(req.Context()).Warn("Unable to schedule user tip job.",
 							slog.String("email", id),
 							slog.Any("error", err),
