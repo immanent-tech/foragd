@@ -406,7 +406,7 @@ func HandleViewArticle(
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
-		itemID := chi.URLParam(req, "item_id")
+		itemID := chi.URLParam(req, "articleID")
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
 			HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -425,6 +425,7 @@ func HandleViewArticle(
 			return
 		}
 		if len(articles) == 0 {
+			slogctx.Warn(req.Context(), "Unable to fetch article details.", slog.Any("error", err))
 			res.WriteHeader(http.StatusNotFound)
 			HandleNotFound().ServeHTTP(res, req)
 			return

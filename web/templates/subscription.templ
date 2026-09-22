@@ -388,7 +388,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 															<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
 																<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
 																	<a
-																		hx-get={ "/view/article/" + item.GetID() }
+																		hx-get={ "/articles/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
 																		hx-swap="morph:innerHTML show:top transition:true"
 																		hx-trigger="click"

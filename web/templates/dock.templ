@@ -67,8 +67,8 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
-			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/view/article")) }
-			if strings.HasPrefix(pageURL, "/view/article") {
+			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/articles")) }
+			if strings.HasPrefix(pageURL, "/articles/item_") {
 				hx-include="[name='subscriptions']"
 			}
 		>

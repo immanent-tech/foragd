@@ -291,7 +291,7 @@ templ suggestArticle(article *models.Article) {
 	<li
 		role="option"
 		tabindex="-1"
-		hx-get={ "/view/article/" + article.GetID() }
+		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"

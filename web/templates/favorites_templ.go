@@ -197,9 +197,9 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 												return templ_7745c5c3_Err
 											}
 											var templ_7745c5c3_Var10 string
-											templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
+											templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("/articles/" + item.GetID())
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 121, Col: 57}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 121, Col: 53}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 											if templ_7745c5c3_Err != nil {

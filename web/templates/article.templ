@@ -166,7 +166,7 @@ templ articleViewToggle(article *models.Article) {
 		<a
 			class="btn btn-square btn-ghost btn-sm"
 			_="on click halt the event's bubbling"
-			hx-get={ "/view/article/" + article.GetID() }
+			hx-get={ "/articles/" + article.GetID() }
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hx-swap="morph:innerHTML show:top transition:true"
@@ -235,11 +235,11 @@ templ articleShowRemoteContentButton(article *models.Article) {
 		role="button"
 		id="show-remote-content-button"
 		class="group btn btn-outline border-neutral/15"
-		hx-get={ "/view/article/" + article.GetID() }
+		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + article.GetID() + "?show_full_content=true" }
+		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
@@ -260,11 +260,11 @@ templ articleShowFeedContentButton(article *models.Article) {
 		role="button"
 		id="show-feed-content-button"
 		class="group btn btn-outline border-neutral/15"
-		hx-get={ "/view/article/" + article.GetID() }
+		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true show:top"
 		hx-trigger="click consume"
-		hx-replace-url={ "/view/article/" + article.GetID() + "?show_full_content=false" }
+		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
 		hx-disabled-elt="this"
 	>
@@ -360,7 +360,7 @@ templ ArticleCard(idx int, article *models.Article, view models.View) {
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithClasses(
 			"group", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
-		element.WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+		element.WithHXMethod(http.MethodGet, "/articles/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
 		element.WithHXSwap("morph:innerHTML show:top transition:true"),
 		element.WithHXTrigger("click"),
@@ -827,7 +827,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				hx-get={ "/articles/" + resp.Article.GetID() + "/prev" }
 				hx-target={ ContentID.Target() }
 				hx-swap="morph:innerHTML transition:true show:top"
-				hx-push-url={ "/view/article/" + resp.Article.GetID() }
+				hx-push-url={ "/articles/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowLeft()
 				<span class="sr-only">Previous Article</span>
@@ -839,7 +839,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				hx-get={ "/articles/" + resp.Article.GetID() + "/next" }
 				hx-target={ ContentID.Target() }
 				hx-swap="morph:innerHTML transition:true show:top"
-				hx-push-url={ "/view/article/" + resp.Article.GetID() }
+				hx-push-url={ "/articles/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowRight()
 				<span class="sr-only">Next Article</span>

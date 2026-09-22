@@ -1280,9 +1280,9 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 													return templ_7745c5c3_Err
 												}
 												var templ_7745c5c3_Var57 string
-												templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("/view/article/" + item.GetID())
+												templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("/articles/" + item.GetID())
 												if templ_7745c5c3_Err != nil {
-													return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 391, Col: 58}
+													return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 391, Col: 54}
 												}
 												_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var57)
 												if templ_7745c5c3_Err != nil {

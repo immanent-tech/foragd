@@ -160,7 +160,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 = []any{"group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
-			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/view/article"))}
+			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/articles"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -208,7 +208,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if strings.HasPrefix(pageURL, "/view/article") {
+		if strings.HasPrefix(pageURL, "/articles/item_") {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " hx-include=\"[name='subscriptions']\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

@@ -22,7 +22,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-resty/resty/v2"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -45,7 +44,6 @@ func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			subscriptions, err := svc.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				godump.Dump(err)
 				HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get all user subscriptions: %w", err),

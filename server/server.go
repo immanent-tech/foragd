@@ -400,10 +400,6 @@ func Start() error {
 			r.Post("/updates", handlers.HandleListArticlesUpdates(itemSvc))
 			r.With(htmx.RequireHTMX).Get("/categories", handlers.ListCategories(subscriptionSvc, itemSvc))
 		})
-		r.Get(
-			"/view/article/{item_id}",
-			handlers.HandleViewArticle(appCfg, itemSvc, sessionManager, httpClient, itemsCache),
-		)
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
 			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
@@ -415,6 +411,10 @@ func Start() error {
 			})
 			r.Route("/{articleID}", func(r chi.Router) {
 				r.Use(handlers.ArticleCtx(itemSvc))
+				r.Get(
+					"/",
+					handlers.HandleViewArticle(appCfg, itemSvc, sessionManager, httpClient, itemsCache),
+				)
 				r.Get("/similar", handlers.HandleFindSimilarArticles(itemSvc))
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
@@ -489,6 +489,7 @@ func Start() error {
 		r.Get("/list/favorites", handlers.RedirectTo("/favorites", http.StatusMovedPermanently))
 		r.Get("/posts", handlers.RedirectTo("/blog", http.StatusMovedPermanently))
 		r.Get("/posts/*", handlers.RedirectParam("*", "blog/%s", http.StatusMovedPermanently))
+		r.Get("/view/article/{item_id}", handlers.RedirectParam("item_id", "/articles/%s", http.StatusMovedPermanently))
 	})
 
 	svr := &http.Server{

@@ -8,6 +8,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"strings"
 )
 
 templ SideBar(options ...element.PropertiesOption) {
@@ -68,7 +69,7 @@ templ SideBar(options ...element.PropertiesOption) {
 						</a>
 					</li>
 					<li
-						class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/articles") }
+						class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", (PathFromCtx(ctx) == "/list/articles") || strings.HasPrefix(PathFromCtx(ctx),"/articles") ) }
 					>
 						<a
 							hx-trigger="click,globalShortcutArticles"
