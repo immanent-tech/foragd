@@ -73,7 +73,6 @@ func HandleSitemap(appCfg AppConfig) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slogctx.Error(r.Context(), "Cannot render sitemap.", slog.Any("error", err))
 			http.Error(w, "cannot render sitemap", http.StatusInternalServerError)
-			return
 		})
 	}
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
