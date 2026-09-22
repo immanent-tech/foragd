@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -21,7 +22,7 @@ import (
 )
 
 type UserArgs struct {
-	UserID models.UserID `arg:"" help:"ID of object to delete"`
+	UserID models.UserID `arg:"" help:"ID of user"`
 }
 
 // UserCmd contains sub commands for managing users.
@@ -100,7 +101,7 @@ func (c *BlockUserCmd) Run() error {
 }
 
 type ListUserCmd struct {
-	UserArgs
+	UserID models.UserID `arg:"" help:"ID of user" optional:""`
 }
 
 func (c *ListUserCmd) Run() error {
@@ -113,17 +114,35 @@ func (c *ListUserCmd) Run() error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 
-	user, err := userSvc.GetUser(ctx, c.UserID)
-	if err != nil {
-		return fmt.Errorf("get user: %w", err)
+	var users []*models.User
+
+	if c.UserID != "" {
+		user, err := userSvc.GetUser(ctx, c.UserID)
+		if err != nil {
+			return fmt.Errorf("get user: %w", err)
+		}
+		users = []*models.User{user}
+	} else {
+		users, err = userSvc.GetAllUsers(ctx)
+		if err != nil {
+			return fmt.Errorf("get all users: %w", err)
+		}
 	}
 
+	for user := range slices.Values(users) {
+		showUserDetails(ctx, user)
+	}
+
+	return nil
+}
+
+func showUserDetails(ctx context.Context, user *models.User) {
 	var output strings.Builder
 
 	// Name/IDs.
-	fmt.Fprintf(
+	color.New(color.Bold).Fprintf(
 		&output,
-		"%s (Internal ID: %s External ID: %s)\n",
+		"\n\n%s (Internal ID: %s External ID: %s)\n",
 		user.GetNickname(),
 		user.GetID(),
 		user.GetExternalID(),
@@ -166,7 +185,7 @@ func (c *ListUserCmd) Run() error {
 			switch *user.UserSubscriptionType {
 			case models.UserSubscriptionTypePaddle:
 				if subscription, err := user.Subscription.AsPaddleSubscription(); err != nil {
-					slogctx.FromCtx(ctx).Error("Cannot parse Paddle subscription.", slog.Any("error", err))
+					slogctx.Error(ctx, "Cannot parse Paddle subscription.", slog.Any("error", err))
 				} else {
 					fmt.Fprintf(
 						&output,
@@ -185,6 +204,4 @@ func (c *ListUserCmd) Run() error {
 	}
 
 	fmt.Fprintf(os.Stdout, "%s", output.String())
-
-	return nil
 }

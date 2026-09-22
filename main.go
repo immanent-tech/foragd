@@ -20,7 +20,6 @@ type CLI struct {
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Elastic      cli.ElasticCmd       `cmd:"" help:"Elastic operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
-	Data         cli.DataCmd          `cmd:"" help:"Manipulate data."`
 	User         cli.UserCmd          `cmd:"" help:"Manipulate users."`
 	Feed         cli.FeedCmd          `cmd:"" help:"Perform feed actions"`
 	ProfileFlags logging.ProfileFlags `       help:"Set profiling flags." name:"profile"`

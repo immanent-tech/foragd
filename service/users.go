@@ -84,6 +84,20 @@ func (s *UserService) GetUser(ctx context.Context, id models.UserID) (*models.Us
 	return user, nil
 }
 
+// GetUser retrieves the user doc with the given id.
+func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.User, error) {
+	ctx, span := tracer.Start(ctx, "GetUser")
+	defer span.End()
+
+	users, err := elastic.SearchAll[*models.User](ctx, s.store.GetIndexRO(UsersIndex), query.MatchAll(), 5000)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+	return users, nil
+}
+
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func (s *UserService) GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	ctx, span := tracer.Start(ctx, "GetUserByExternalID")
