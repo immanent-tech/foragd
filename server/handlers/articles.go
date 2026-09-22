@@ -731,36 +731,22 @@ func updateFavoriteArticle(
 		// Get the article details.
 		articles, err := itemSvc.GetArticles(ctx, id)
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("get favorite articles: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get favorite articles: %w", err))
 		}
 		if len(articles) != 1 {
 			return models.NewAPIError(http.StatusInternalServerError,
 				models.ErrInvalidAPIResult,
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
 			)
 		}
 		article := articles[0]
 		// Archive the article.
 		archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("new archived article: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("new archived article: %w", err))
 		}
 		err = itemSvc.ArchiveArticle(ctx, archive)
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("archive article: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("archive article: %w", err))
 		}
 		// Update the list of favorites items in the user object
 		user.ItemFavorites = append(user.ItemFavorites, id)
@@ -768,20 +754,12 @@ func updateFavoriteArticle(
 			"item_favorites": user.ItemFavorites,
 		})
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("update user: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err))
 		}
 	case false:
 		err := itemSvc.UnarchiveArticle(ctx, user.GetID(), id)
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("unarchive article: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("unarchive article: %w", err))
 		}
 		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
 			return e == id
@@ -790,11 +768,7 @@ func updateFavoriteArticle(
 			"item_favorites": newFavorites,
 		})
 		if err != nil {
-			return models.NewAPIError(http.StatusInternalServerError,
-				fmt.Errorf("update user: %w", err),
-				models.WithUserErrorSummary("Backend error"),
-				models.WithUserErrorDescription("This might be a temporary problem. Please try again"),
-			)
+			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err))
 		}
 	}
 	return nil

@@ -123,24 +123,6 @@ func WithUserMessage(msg *UserMessage) ErrorOption {
 	}
 }
 
-func WithUserErrorSummary(msg string) ErrorOption {
-	return func(a *APIError) {
-		if a.UserMessage == nil {
-			a.UserMessage = &UserMessage{}
-		}
-		a.UserMessage.Summary = msg
-	}
-}
-
-func WithUserErrorDescription(msg string) ErrorOption {
-	return func(a *APIError) {
-		if a.UserMessage == nil {
-			a.UserMessage = &UserMessage{}
-		}
-		a.UserMessage.Details = &msg
-	}
-}
-
 func NewAPIError(status int, err error, options ...ErrorOption) *APIError {
 	apiErr := &APIError{
 		StatusCode:    status,

@@ -1581,8 +1581,10 @@ func bulkImportFeeds(
 					result.Error = models.NewAPIError(
 						http.StatusUnprocessableEntity,
 						fmt.Errorf("create subscription: %w", err),
-						models.WithUserErrorSummary("Unable to process feed URL"),
-						models.WithUserErrorDescription(request.URL),
+						models.WithUserMessage(models.NewErrorMessage(
+							"Could not create feed from URL",
+							request.URL,
+						)),
 					)
 				}
 				resultsCh <- result

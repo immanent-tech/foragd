@@ -465,21 +465,11 @@ func (s *SubscriptionService) MarkArticles(
 ) error {
 	subscription, err := s.GetSubscription(ctx, subscriptionID)
 	if err != nil {
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("get subscriptions: %w", err),
-			models.WithUserErrorSummary("Backend request failed!"),
-			models.WithUserErrorDescription("This might be a temporary error, please try again."),
-		)
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get subscriptions: %w", err))
 	}
 	subscription.MarkItems(mark, itemIDs...)
 	if err = s.UpdateSubscriptions(ctx, subscription); err != nil {
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("update subscription: %w", err),
-			models.WithUserErrorSummary("Backend request failed!"),
-			models.WithUserErrorDescription("This might be a temporary error, please try again."),
-		)
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("update subscription: %w", err))
 	}
 	return nil
 }
