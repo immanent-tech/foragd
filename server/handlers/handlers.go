@@ -368,6 +368,20 @@ func ListFiltersFromSession(ctx context.Context, session SessionManager, path st
 	return &filters
 }
 
+// ListFiltersToCtx stores the given list filters in the context.
+func ListFiltersToCtx(ctx context.Context, filters *models.ListFilters) context.Context {
+	return context.WithValue(ctx, listFiltersCtxKey, *filters)
+}
+
+// ListFiltersFromCtx retrieves the given list filters in the context.
+func ListFiltersFromCtx(ctx context.Context) *models.ListFilters {
+	if filters, ok := ctx.Value(listFiltersCtxKey).(models.ListFilters); ok {
+		return &filters
+	}
+	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
+	return models.NewListFilters()
+}
+
 // ListCountToSession stores the current count of objects displayed in the list in the session. The path is used as a
 // suffix so that the count is stored per-route.
 func ListCountToSession(ctx context.Context, session SessionManager, path string, count int) {
@@ -416,4 +430,18 @@ func SearchCountFromSession(ctx context.Context, session SessionManager) int {
 		return 9
 	}
 	return count
+}
+
+// SearchParamsToCtx stores the given search params in the context.
+func SearchParamsToCtx(ctx context.Context, search *models.SearchRequest) context.Context {
+	return context.WithValue(ctx, searchParamsCtxKey, *search)
+}
+
+// SearchParamsFromCtx retrieves the given search params in the context.
+func SearchParamsFromCtx(ctx context.Context) *models.SearchRequest {
+	if search, ok := ctx.Value(searchParamsCtxKey).(models.SearchRequest); ok {
+		return &search
+	}
+	slogctx.Warn(ctx, "No search params in context. Returning new search params.")
+	return models.NewSearchRequest()
 }

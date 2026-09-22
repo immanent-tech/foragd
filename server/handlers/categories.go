@@ -22,7 +22,7 @@ import (
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
 func ListCategories(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := ListFiltersFromCtx(req.Context())
 		switch {
 		case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
 			// Parse the list of displayed subscriptions.

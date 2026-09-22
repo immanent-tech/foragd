@@ -43,7 +43,7 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 				filters.From = nil
 				filters.UpTo = nil
 				// Store in context.
-				ctx := models.ListFiltersToCtx(req.Context(), filters)
+				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
@@ -79,7 +79,7 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 					}
 				}
 				// Save values.
-				ctx := models.ListFiltersToCtx(req.Context(), filters)
+				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
 				handlers.ListFiltersToSession(ctx, session, path, filters)
 				handlers.ListCountToSession(ctx, session, path, filters.Count)
 				next.ServeHTTP(res, req.WithContext(ctx))
@@ -100,7 +100,7 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 					handlers.ListCountToSession(spanCtx, session, path, count)
 				}
 				// Save values.
-				ctx := models.ListFiltersToCtx(req.Context(), filters)
+				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
 				handlers.ListFiltersToSession(ctx, session, path, filters)
 
 				next.ServeHTTP(res, req.WithContext(ctx))

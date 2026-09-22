@@ -139,7 +139,7 @@ func HandleListSubscriptions(subscriptionSvc SubscriptionsService) http.HandlerF
 
 		// Generate request object.
 		request := &models.ListRequest{
-			Filters: *models.ListFiltersFromCtx(req.Context()),
+			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
 			HandleInternalError(
@@ -229,7 +229,7 @@ func HandleListSubscriptions(subscriptionSvc SubscriptionsService) http.HandlerF
 // HandleListSubscriptionsUpdates handles checking for any updates and notifying the user.
 func HandleListSubscriptionsUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := ListFiltersFromCtx(req.Context())
 
 		// Don't bother calculating updates if user is not viewing unread items.
 		if filters.GetView() != models.ViewUnread {
@@ -372,7 +372,7 @@ func postMarkSubscriptionList(res http.ResponseWriter, req *http.Request) error 
 	if subscription == nil {
 		return fmt.Errorf("no subscription in context")
 	}
-	filters := models.ListFiltersFromCtx(req.Context())
+	filters := ListFiltersFromCtx(req.Context())
 	// If we aren't viewing all subscriptions, remove the subscription card.
 	if models.View(filters.GetView()) != models.ViewAll {
 		res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")

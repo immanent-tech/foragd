@@ -56,7 +56,7 @@ func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Ha
 					}
 				}
 				// Save values.
-				ctx := models.SearchParamsToCtx(req.Context(), search)
+				ctx := handlers.SearchParamsToCtx(req.Context(), search)
 				handlers.SearchParamsToSession(ctx, session, search)
 				handlers.SearchCountToSession(ctx, session, search.Count)
 				next.ServeHTTP(res, req.WithContext(ctx))
@@ -77,7 +77,7 @@ func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Ha
 					handlers.SearchCountToSession(spanCtx, session, count)
 				}
 				// Save values.
-				ctx := models.SearchParamsToCtx(req.Context(), search)
+				ctx := handlers.SearchParamsToCtx(req.Context(), search)
 				handlers.SearchParamsToSession(ctx, session, search)
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}

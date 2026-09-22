@@ -4,7 +4,6 @@
 package models
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -13,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/immanent-tech/go-base/validation"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
@@ -215,21 +213,4 @@ func (f ListFilters) Encode() string {
 		query.Set("search_after", url.QueryEscape(*f.SearchAfter))
 	}
 	return query.Encode()
-}
-
-const listFiltersCtxKey contextKey = "listFilters"
-const listCountCtxKey contextKey = "listCount"
-
-// ListFiltersToCtx stores the given list filters in the context.
-func ListFiltersToCtx(ctx context.Context, filters *ListFilters) context.Context {
-	return context.WithValue(ctx, listFiltersCtxKey, *filters)
-}
-
-// ListFiltersFromCtx retrieves the given list filters in the context.
-func ListFiltersFromCtx(ctx context.Context) *ListFilters {
-	if filters, ok := ctx.Value(listFiltersCtxKey).(ListFilters); ok {
-		return &filters
-	}
-	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
-	return NewListFilters()
 }

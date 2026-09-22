@@ -61,7 +61,7 @@ func HandleMap(itemSvc ItemService) http.HandlerFunc {
 
 		// Build request object.
 		request := &models.ListRequest{
-			Filters: *models.ListFiltersFromCtx(req.Context()),
+			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
 			HandleInternalError(
@@ -184,7 +184,7 @@ func HandleMap(itemSvc ItemService) http.HandlerFunc {
 
 func HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := ListFiltersFromCtx(req.Context())
 
 		// Don't bother calculating updates if user is not viewing unread items.
 		if filters.GetView() != models.ViewUnread {

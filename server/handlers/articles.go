@@ -100,7 +100,7 @@ func HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 
 		// Build request object.
 		request := &models.ListRequest{
-			Filters: *models.ListFiltersFromCtx(req.Context()),
+			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
 			HandleInternalError(
@@ -229,7 +229,7 @@ func HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
 func HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := ListFiltersFromCtx(req.Context())
 
 		// Don't bother calculating updates if user is not viewing unread items.
 		if filters.GetView() != models.ViewUnread {
@@ -582,7 +582,7 @@ func HandleMarkArticle(
 			return
 		}
 		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/list/articles") {
-			filters := models.ListFiltersFromCtx(req.Context())
+			filters := ListFiltersFromCtx(req.Context())
 			// Remove the article card.
 			if filters.GetView() != models.ViewAll {
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")

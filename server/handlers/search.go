@@ -165,7 +165,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 func HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve search params.
-		search := models.SearchParamsFromCtx(req.Context())
+		search := SearchParamsFromCtx(req.Context())
 		if txt := req.FormValue("advanced-search-text"); txt != "" {
 			search.Text = txt
 		}
@@ -261,7 +261,7 @@ func HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 func HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
-		search := models.SearchParamsFromCtx(req.Context())
+		search := SearchParamsFromCtx(req.Context())
 
 		// Build query.
 		user := models.UserFromCtx(req.Context())

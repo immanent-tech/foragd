@@ -4,7 +4,6 @@
 package models
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"github.com/immanent-tech/go-base/validation"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
@@ -237,23 +235,6 @@ func (r *SearchRequest) Encode() string {
 		params.Set("subscription_id", *r.SubscriptionID)
 	}
 	return params.Encode()
-}
-
-const searchParamsCtxKey contextKey = "searchParams"
-const searchCountCtxKey contextKey = "searchCount"
-
-// SearchParamsToCtx stores the given search params in the context.
-func SearchParamsToCtx(ctx context.Context, search *SearchRequest) context.Context {
-	return context.WithValue(ctx, searchParamsCtxKey, *search)
-}
-
-// SearchParamsFromCtx retrieves the given search params in the context.
-func SearchParamsFromCtx(ctx context.Context) *SearchRequest {
-	if search, ok := ctx.Value(searchParamsCtxKey).(SearchRequest); ok {
-		return &search
-	}
-	slogctx.Warn(ctx, "No search params in context. Returning new search params.")
-	return NewSearchRequest()
 }
 
 // Valid returns a boolean indicating whether the add subscription search filter data is valid.
