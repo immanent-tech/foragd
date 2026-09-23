@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.235.1](https://github.com/immanent-tech/foragd/compare/v0.235.0...v0.235.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* ♻️ use *url.URL returned from breadcrumbs middleware for more flexible history navigation ([6d57793](https://github.com/immanent-tech/foragd/commit/6d57793ab5ed0d7e2c1dba0fa6c97b5c62400936))
+* **templates/import:** 🎨 fix missing btn style ([c4dc503](https://github.com/immanent-tech/foragd/commit/c4dc503baa1c39ea8b37f59f86b074d0c6e5547c))
+
 ## [0.235.0](https://github.com/immanent-tech/foragd/compare/v0.234.0...v0.235.0) (2026-09-22)
 
 
