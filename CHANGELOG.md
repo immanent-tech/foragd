@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.235.2](https://github.com/immanent-tech/foragd/compare/v0.235.1...v0.235.2) (2026-09-23)
+
+
+### Miscellaneous Chores
+
+* release 0.235.2 ([df5f503](https://github.com/immanent-tech/foragd/commit/df5f503791e925778029d9e069d56a637620f734))
+
 ## [0.235.1](https://github.com/immanent-tech/foragd/compare/v0.235.0...v0.235.1) (2026-09-23)
 
 
