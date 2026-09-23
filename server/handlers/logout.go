@@ -14,10 +14,10 @@ import (
 )
 
 // Logout handles logout requests.
-func HandleLogout(authenticator *auth0.Authenticator, session SessionManager) http.HandlerFunc {
+func (m *Manager) HandleLogout(authenticator *auth0.Authenticator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Delete the session cookie.
-		if err := session.Clear(req.Context()); err != nil {
+		// Delete the m.SessionMgr cookie.
+		if err := m.SessionMgr.Clear(req.Context()); err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}

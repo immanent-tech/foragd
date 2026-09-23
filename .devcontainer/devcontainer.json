@@ -41,7 +41,8 @@
         "kamikillerto.vscode-colorize",
         "elijah-potter.harper",
         "psioniq.psi-header",
-        "usernamehw.errorlens"
+        "usernamehw.errorlens",
+        "Vue.volar"
       ]
     }
   }

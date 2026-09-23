@@ -87,7 +87,7 @@ type HomePageService interface {
 }
 
 // HandleHome handles displaying the user's home page.
-func HandleHome(homepageSvc HomePageService) http.HandlerFunc {
+func (m *Manager) HandleHome(homepageSvc HomePageService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		title := templates.PageTitle{
 			Summary:     "Your Home",

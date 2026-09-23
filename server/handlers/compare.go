@@ -47,7 +47,7 @@ func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request
 	).ServeHTTP(res, req)
 }
 
-func HandleComparison(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleComparison() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		comparisons, err := getComparisons()
@@ -90,7 +90,7 @@ func HandleComparison(appCfg AppConfig) http.HandlerFunc {
 				) + " covering pricing, features, and which is best for different use cases.",
 				Path:      text.Frontmatter.Slug,
 				ImagePath: "/content/logo-vertical-light.webp",
-				baseURL:   appCfg.GetBaseURL(),
+				baseURL:   m.AppConfig.GetBaseURL(),
 			},
 		}).ServeHTTP(res, req)
 	}

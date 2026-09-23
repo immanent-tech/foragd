@@ -49,7 +49,7 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleMap(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -182,7 +182,7 @@ func HandleMap(itemSvc ItemService) http.HandlerFunc {
 	}
 }
 
-func HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := ListFiltersFromCtx(req.Context())
 

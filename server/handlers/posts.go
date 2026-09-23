@@ -122,7 +122,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 }
 
 // HandlePosts handles showing the posts index or individual posts.
-func HandlePosts(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandlePosts() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		posts, err := getPosts()
@@ -154,11 +154,11 @@ func HandlePosts(appCfg AppConfig) http.HandlerFunc {
 					Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
 					Path:        "/blog",
 					ImagePath:   "/content/logo-vertical-light.webp",
-					baseURL:     appCfg.GetBaseURL(),
+					baseURL:     m.AppConfig.GetBaseURL(),
 				},
 				data: templates.PostsData{
 					Files:   posts,
-					BaseURL: appCfg.GetBaseURL(),
+					BaseURL: m.AppConfig.GetBaseURL(),
 				},
 			}
 			RenderExternalPage(index).ServeHTTP(res, req)
@@ -175,7 +175,7 @@ func HandlePosts(appCfg AppConfig) http.HandlerFunc {
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
 			RenderExternalPage(&Post{
-				baseURL: appCfg.GetBaseURL(),
+				baseURL: m.AppConfig.GetBaseURL(),
 				File:    posts[idx],
 			}).ServeHTTP(res, req)
 		}
@@ -183,7 +183,7 @@ func HandlePosts(appCfg AppConfig) http.HandlerFunc {
 }
 
 // HandlePostsFeed handles showing an RSS file for posts.
-func HandlePostsFeed(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandlePostsFeed() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Reject requests with any query parameters set.
 		if len(req.URL.Query()) > 0 {
@@ -205,19 +205,19 @@ func HandlePostsFeed(appCfg AppConfig) http.HandlerFunc {
 		rssFile := rss.NewRSS(
 			"Posts from the Foragd Team",
 			"Comparisons, opinions and other content from the Foragd team",
-			appCfg.GetBaseURL().String(),
+			m.AppConfig.GetBaseURL().String(),
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithAtomLink(&atom.Link{
 				Rel:  new(atom.LinkRelSelf),
-				Href: appCfg.GetBaseURL().JoinPath("/rss").String(),
+				Href: m.AppConfig.GetBaseURL().JoinPath("/rss").String(),
 				Type: new("application/rss+xml"),
 			}),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  appCfg.GetBaseURL().String(),
-				URL:   appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+				Link:  m.AppConfig.GetBaseURL().String(),
+				URL:   m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 				Title: "Posts from the Foragd Team",
 			}),
 			rss.WithUpdatePeriod("monthly"),
@@ -233,13 +233,13 @@ func HandlePostsFeed(appCfg AppConfig) http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(post.Frontmatter.Title),
 				rss.WithItemDescription(post.Frontmatter.Description, false),
-				rss.WithItemLink(appCfg.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String()),
+				rss.WithItemLink(m.AppConfig.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String()),
 				rss.WithItemGUID(
-					rss.NewGUID(appCfg.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String(), true),
+					rss.NewGUID(m.AppConfig.GetBaseURL().JoinPath("/blog/"+post.Frontmatter.Slug).String(), true),
 				),
 				rss.WithItemImage(&types.Image{
 					Title: &post.Frontmatter.Title,
-					URL:   appCfg.GetBaseURL().JoinPath(*post.Frontmatter.Image).String(),
+					URL:   m.AppConfig.GetBaseURL().JoinPath(*post.Frontmatter.Image).String(),
 				}),
 				rss.WithItemContent(contentStr, true),
 				rss.WithItemPublishedDate(post.Frontmatter.GetCreatedDate()),

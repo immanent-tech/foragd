@@ -379,15 +379,11 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</head>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		templ_7745c5c3_Err = SetFontStyle(FontStyleFromCtx(ctx)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<body hx-ext=\"morph,head-support\" class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</head><body hx-ext=\"morph,head-support\" class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -400,7 +396,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -426,7 +422,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"notifications\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"notifications\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -455,7 +451,7 @@ func UpdateTitle(title PageTitle) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -468,7 +464,7 @@ func UpdateTitle(title PageTitle) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

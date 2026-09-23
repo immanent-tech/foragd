@@ -27,7 +27,7 @@ var getPolicyDocs = sync.OnceValues(func() ([]*markdownx.File, error) {
 })
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
-func PolicyDocsHandler(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) PolicyDocsHandler() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		polices, err := getPolicyDocs()
@@ -57,9 +57,9 @@ func PolicyDocsHandler(appCfg AppConfig) http.HandlerFunc {
 		}
 		policyOG := opengraph.NewArticle(
 			title.String(),
-			appCfg.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String(),
+			m.AppConfig.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String(),
 			policyFile.Frontmatter.Description,
-			appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+			m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 			policyFile.Frontmatter.GetCreatedDate().String(),
 			policyFile.Frontmatter.GetUpdatedDate().String(),
 			"",
@@ -84,7 +84,7 @@ func PolicyDocsHandler(appCfg AppConfig) http.HandlerFunc {
 			templates.WithPageDescription(policyFile.Frontmatter.Description),
 			templates.WithOpenGraphMetadata(policyOG),
 			templates.WithJSONLDSchema(
-				generateSiteJSONLD(appCfg.GetBaseURL()),
+				generateSiteJSONLD(m.AppConfig.GetBaseURL()),
 				policyJsonLd,
 			),
 		)

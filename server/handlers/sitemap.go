@@ -67,8 +67,8 @@ func loadSitemapXML(baseURL *url.URL) ([]byte, error) {
 
 // HandleSitemap handles requests for sitemap.xml. In the future, it may handle more requests from non natural human
 // clients...
-func HandleSitemap(appCfg AppConfig) http.Handler {
-	sitemap, err := loadSitemapXML(appCfg.GetBaseURL())
+func (m *Manager) HandleSitemap() http.Handler {
+	sitemap, err := loadSitemapXML(m.AppConfig.GetBaseURL())
 	if err != nil {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slogctx.Error(r.Context(), "Cannot render sitemap.", slog.Any("error", err))

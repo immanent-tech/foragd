@@ -62,7 +62,7 @@ func (p *LinterError) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.LinterError(p.msg)).ServeHTTP(res, req)
 }
 
-func HandleLinter(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch fetchErr := models.NewErrorMessage(
 			"Unable to find feed at provided URL",
@@ -77,7 +77,7 @@ func HandleLinter(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
 				Description: "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
 				Path:        "/linter",
 				ImagePath:   "/content/logo-vertical-light.webp",
-				baseURL:     appCfg.GetBaseURL(),
+				baseURL:     m.AppConfig.GetBaseURL(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			feedData, err := fetchFeedData(httpClient, req.FormValue("url"))

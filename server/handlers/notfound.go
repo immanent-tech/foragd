@@ -17,7 +17,7 @@ type NotFoundPage struct {
 }
 
 // HandleNotFound handles showing a page for a 404 response.
-func HandleNotFound() http.HandlerFunc {
+func (m *Manager) HandleNotFound() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		var layout templ.Component

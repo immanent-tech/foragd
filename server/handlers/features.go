@@ -15,7 +15,7 @@ type Features struct {
 	pageMetadata
 }
 
-func HandleFeatures(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleFeatures() http.HandlerFunc {
 	return RenderExternalPage(&Features{
 		Title: templates.PageTitle{
 			Summary:     "Features",
@@ -24,7 +24,7 @@ func HandleFeatures(appCfg AppConfig) http.HandlerFunc {
 		Description: "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms.",
 		Path:        "/features",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	})
 }
 
@@ -45,7 +45,7 @@ type FeaturesCollect struct {
 	pageMetadata
 }
 
-func HandleFeaturesCollect(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleFeaturesCollect() http.HandlerFunc {
 	return RenderExternalPage(&FeaturesCollect{
 		Title: templates.PageTitle{
 			Summary:     "Collect",
@@ -54,7 +54,7 @@ func HandleFeaturesCollect(appCfg AppConfig) http.HandlerFunc {
 		Description: "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily.",
 		Path:        "/features/collect",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	})
 }
 
@@ -75,7 +75,7 @@ type FeaturesCurate struct {
 	pageMetadata
 }
 
-func HandleFeaturesCurate(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleFeaturesCurate() http.HandlerFunc {
 	return RenderExternalPage(&FeaturesCurate{
 		Title: templates.PageTitle{
 			Summary:     "Curate",
@@ -84,7 +84,7 @@ func HandleFeaturesCurate(appCfg AppConfig) http.HandlerFunc {
 		Description: "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily.",
 		Path:        "/features/curate",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	})
 }
 
@@ -105,7 +105,7 @@ type FeaturesConsume struct {
 	pageMetadata
 }
 
-func HandleFeaturesConsume(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleFeaturesConsume() http.HandlerFunc {
 	return RenderExternalPage(&FeaturesConsume{
 		Title: templates.PageTitle{
 			Summary:     "Consume",
@@ -114,7 +114,7 @@ func HandleFeaturesConsume(appCfg AppConfig) http.HandlerFunc {
 		Description: "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more.",
 		Path:        "features/consume",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	})
 }
 

@@ -52,7 +52,7 @@ func (p *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 }
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
-func HandleReportIssue(appCfg AppConfig, breadcrumbs Breadcrumbs) http.HandlerFunc {
+func (m *Manager) HandleReportIssue() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -75,18 +75,18 @@ func HandleReportIssue(appCfg AppConfig, breadcrumbs Breadcrumbs) http.HandlerFu
 				Description: "Report issues and problems with the site",
 				Path:        "/issue",
 				ImagePath:   "/content/logo-vertical-light.webp",
-				baseURL:     appCfg.GetBaseURL(),
+				baseURL:     m.AppConfig.GetBaseURL(),
 			},
 			template: templates.ReportIssue(
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
-				breadcrumbs,
+				m.Breadcrumbs,
 			),
 		}).ServeHTTP(res, req)
 	}
 }
 
 // HandleSubmitIssue handles processing the user submitted subscription issues form.
-func HandleSubmitIssue(appCfg AppConfig, cache ImageCache) http.HandlerFunc {
+func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
@@ -105,7 +105,7 @@ func HandleSubmitIssue(appCfg AppConfig, cache ImageCache) http.HandlerFunc {
 		}
 
 		// Process any uploaded screenshot.
-		screenshotURL, err := processScreenshots(appCfg, cache, req)
+		screenshotURL, err := processScreenshots(m.AppConfig, cache, req)
 		if err != nil {
 			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return

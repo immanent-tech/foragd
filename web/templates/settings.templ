@@ -706,15 +706,13 @@ templ DisplaySettings(user *models.User) {
 				<label class="fieldset py-4">
 					<span class="label">Article Text</span>
 					<select
-						hx-post="/user/settings/fonts"
+						hx-post="/settings/display/font"
 						hx-swap="none"
 						class="select"
 						name="font_style"
 						_="
 						on change
 							set fontStyle to my value
-						    set computedFontStyle to getComputedStyle(document.documentElement).getPropertyValue(my value)
-							call document.documentElement.style.setProperty('--font-serif', computedFontStyle)
 							then set document.cookie to `font_style=${fontStyle};path=/;max-age=31536000;samesite=lax`"
 					>
 						<option
@@ -830,9 +828,9 @@ templ DisplaySettings(user *models.User) {
 }
 
 templ SetFontStyle(style string) {
-	{{ rootFontStyle := fmt.Sprintf("<style>:root { --font-serif: var(%s); }</style>", style) }}
+	{{ style = fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", style) }}
 	<head>
-		@templ.Raw(rootFontStyle)
+		@templ.Raw(style)
 	</head>
 }
 

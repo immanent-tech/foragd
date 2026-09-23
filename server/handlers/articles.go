@@ -88,7 +88,7 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 }
 
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
-func HandleListArticles(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -227,7 +227,7 @@ func HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 }
 
 // HandleListArticlesUpdates handles checking for any updates and notifying the user.
-func HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := ListFiltersFromCtx(req.Context())
 
@@ -345,7 +345,7 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 }
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
-func HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -397,10 +397,8 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 }
 
 // HandleViewArticle handles showing an article's content.
-func HandleViewArticle(
-	appCfg AppConfig,
+func (m *Manager) HandleViewArticle(
 	itemSvc ItemService,
-	session SessionManager,
 	httpClient *resty.Client,
 	itemsCache cache.ObjectCache,
 ) http.HandlerFunc {
@@ -427,7 +425,7 @@ func HandleViewArticle(
 		if len(articles) == 0 {
 			slogctx.Warn(req.Context(), "Unable to fetch article details.", slog.Any("error", err))
 			res.WriteHeader(http.StatusNotFound)
-			HandleNotFound().ServeHTTP(res, req)
+			m.HandleNotFound().ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
@@ -477,15 +475,15 @@ func HandleViewArticle(
 			},
 			template: templates.ArticleContent(&models.ShowArticleResponse{
 				Article: *article,
-				Filters: *ListFiltersFromSession(req.Context(), session, "/list/articles"),
-				BaseURL: appCfg.GetBaseURL(),
+				Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/list/articles"),
+				BaseURL: m.AppConfig.GetBaseURL(),
 				// Filters: filters,
 			}),
 		}).ServeHTTP(res, req)
 	}
 }
 
-func HandleBrowseArticles(
+func (m *Manager) HandleBrowseArticles(
 	subSvc SubscriptionsService,
 	itemSvc ItemService,
 	direction string,
@@ -561,7 +559,7 @@ func HandleBrowseArticles(
 }
 
 // HandleMarkArticle handles marking an article as read or unread.
-func HandleMarkArticle(
+func (m *Manager) HandleMarkArticle(
 	subsSvc SubscriptionsService,
 	mark models.Mark,
 ) http.HandlerFunc {
@@ -597,7 +595,7 @@ func HandleMarkArticle(
 }
 
 // HandleBulkMarkArticles handles marking multiple articles.
-func HandleBulkMarkArticles(
+func (m *Manager) HandleBulkMarkArticles(
 	subsSvc SubscriptionsService,
 	mark models.Mark,
 ) http.HandlerFunc {
@@ -654,7 +652,7 @@ func HandleBulkMarkArticles(
 }
 
 // HandleFavoriteArticle handles toggling an article favorite.
-func HandleFavoriteArticle(itemSvc ItemService, userSvc UserService) http.HandlerFunc {
+func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
@@ -696,7 +694,7 @@ func HandleFavoriteArticle(itemSvc ItemService, userSvc UserService) http.Handle
 }
 
 // HandleShareArticle handles sharing an article.
-func HandleShareArticle() http.HandlerFunc {
+func (m *Manager) HandleShareArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())

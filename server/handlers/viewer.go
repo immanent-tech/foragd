@@ -61,7 +61,7 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 }
 
 // HandleViewer handles powering the feed viewer page.
-func HandleViewer(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 	metadata := pageMetadata{
 		Title: templates.PageTitle{
 			Summary:     "Free RSS Feed Viewer",
@@ -70,7 +70,7 @@ func HandleViewer(appCfg AppConfig, httpClient *resty.Client) http.HandlerFunc {
 		Description: "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
 		Path:        "/viewer",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch fetchErr := models.NewErrorMessage(

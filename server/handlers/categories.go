@@ -20,7 +20,7 @@ import (
 )
 
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
-func ListCategories(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := ListFiltersFromCtx(req.Context())
 		switch {

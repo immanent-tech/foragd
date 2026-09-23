@@ -35,7 +35,7 @@ func (h *Discover) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleDiscover() http.HandlerFunc {
+func (m *Manager) HandleDiscover() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
@@ -56,7 +56,7 @@ func HandleDiscover() http.HandlerFunc {
 	}
 }
 
-func HandleDiscoverSuggestions(feedSvc FeedService, httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService, httpClient *resty.Client) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {

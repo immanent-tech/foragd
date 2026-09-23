@@ -19,7 +19,7 @@ func (p *About) FullResponse(w http.ResponseWriter, r *http.Request) {
 	templ.Handler(p.template).ServeHTTP(w, r)
 }
 
-func HandleAbout(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleAbout() http.HandlerFunc {
 	metadata := &pageMetadata{
 		Title: templates.PageTitle{
 			Summary:     "About",
@@ -28,7 +28,7 @@ func HandleAbout(appCfg AppConfig) http.HandlerFunc {
 		Description: "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd.",
 		Path:        "/about",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		RenderExternalPage(&About{
@@ -37,7 +37,7 @@ func HandleAbout(appCfg AppConfig) http.HandlerFunc {
 				templates.WithPageDescription(metadata.Description),
 				templates.WithOpenGraphMetadata(metadata.OpengraphData()),
 				templates.WithJSONLDSchema(
-					generateSiteJSONLD(appCfg.GetBaseURL()),
+					generateSiteJSONLD(m.AppConfig.GetBaseURL()),
 					metadata.JSONLD(),
 				),
 			),

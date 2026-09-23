@@ -33,7 +33,7 @@ func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)).ServeHTTP(res, req)
 }
 
-func HandleForgetMe() http.HandlerFunc {
+func (m *Manager) HandleForgetMe() http.HandlerFunc {
 	return RenderExternalPage(&ForgetMe{
 		Title: templates.PageTitle{
 			Summary:     "Forget Me Request",

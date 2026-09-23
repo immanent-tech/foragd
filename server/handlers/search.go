@@ -37,7 +37,7 @@ func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func HandleSearchSuggestions(svc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -162,7 +162,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 }
 
 // HandleSearchResults performs a search with the user input and renders a page with the search results.
-func HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve search params.
 		search := SearchParamsFromCtx(req.Context())
@@ -258,7 +258,7 @@ func HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 }
 
 // HandleSearchUpdates handles checking for any new results for the search request and notifying the user.
-func HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
+func (m *Manager) HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
 		search := SearchParamsFromCtx(req.Context())
@@ -298,7 +298,7 @@ func HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 }
 
 // AddSubscriptionFilter handles adding a subscription as a search filter.
-func AddSubscriptionFilter() http.HandlerFunc {
+func (m *Manager) AddSubscriptionFilter() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		subscription, err := parseForm[*models.AddSubscriptionSearchFilterRequest](req)
 		if err != nil {
@@ -313,7 +313,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 }
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
-func GetSubscriptionFilterSuggestions(svc SubscriptionsService) http.HandlerFunc {
+func (m *Manager) GetSubscriptionFilterSuggestions(svc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
 		suggestion, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)

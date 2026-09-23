@@ -33,7 +33,7 @@ func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)).ServeHTTP(res, req)
 }
 
-func HandleContact(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleContact() http.HandlerFunc {
 	return RenderExternalPage(&Contact{
 		Title: templates.PageTitle{
 			Summary:     "Contact",
@@ -42,11 +42,11 @@ func HandleContact(appCfg AppConfig) http.HandlerFunc {
 		Description: "Contact the developers of Foragd.",
 		Path:        "/contact",
 		ImagePath:   "/content/logo-vertical-light.webp",
-		baseURL:     appCfg.GetBaseURL(),
+		baseURL:     m.AppConfig.GetBaseURL(),
 	})
 }
 
-func HandleSubmitContact() http.HandlerFunc {
+func (m *Manager) HandleSubmitContact() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ContactRequest](req)

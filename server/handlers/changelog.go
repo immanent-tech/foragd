@@ -65,7 +65,7 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleChangelog(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleChangelog() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -74,7 +74,7 @@ func HandleChangelog(appCfg AppConfig) http.HandlerFunc {
 			},
 			description: "Latest release notes containing new features, updates and fixes for Foragd",
 			Releases:    make([]templates.Release, 0),
-			link:        appCfg.GetBaseURL().JoinPath("changelog").String(),
+			link:        m.AppConfig.GetBaseURL().JoinPath("changelog").String(),
 		}
 
 		if _, err := toml.DecodeFS(
@@ -96,7 +96,7 @@ func HandleChangelog(appCfg AppConfig) http.HandlerFunc {
 	}
 }
 
-func HandleChangelogFeed(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -122,10 +122,10 @@ func HandleChangelogFeed(appCfg AppConfig) http.HandlerFunc {
 		rssFile := rss.NewRSS(
 			changelog.title.String(),
 			changelog.description,
-			appCfg.GetBaseURL().String(),
+			m.AppConfig.GetBaseURL().String(),
 			rss.WithAtomLink(&atom.Link{
 				Rel:  new(atom.LinkRelSelf),
-				Href: appCfg.GetBaseURL().JoinPath("/changelog/feed").String(),
+				Href: m.AppConfig.GetBaseURL().JoinPath("/changelog/feed").String(),
 				Type: new("application/rss+xml"),
 			}),
 			rss.WithCopyright("Copyright 2026 Joshua Rich joshua.rich@gmail.com"),
@@ -133,8 +133,8 @@ func HandleChangelogFeed(appCfg AppConfig) http.HandlerFunc {
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  appCfg.GetBaseURL().String(),
-				URL:   appCfg.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+				Link:  m.AppConfig.GetBaseURL().String(),
+				URL:   m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("daily"),
@@ -159,7 +159,7 @@ func HandleChangelogFeed(appCfg AppConfig) http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(release.Version),
 				rss.WithItemDescription(string(release.Type), false),
-				rss.WithItemLink(appCfg.GetBaseURL().JoinPath("/changelog#"+release.Version).String()),
+				rss.WithItemLink(m.AppConfig.GetBaseURL().JoinPath("/changelog#"+release.Version).String()),
 				rss.WithItemContent(content.String(), true),
 				rss.WithItemPublishedDate(timestamp),
 			)

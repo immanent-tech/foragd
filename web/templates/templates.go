@@ -5,6 +5,7 @@ package templates
 
 import (
 	"context"
+	"net/url"
 )
 
 const (
@@ -82,5 +83,5 @@ func ThemeFromCtx(ctx context.Context) string {
 // }
 
 type Breadcrumbs interface {
-	Previous(ctx context.Context) (string, bool)
+	Previous(ctx context.Context) (*url.URL, bool)
 }

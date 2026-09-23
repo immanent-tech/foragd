@@ -60,7 +60,7 @@ func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Reques
 }
 
 // ShowSettings handles retrieving and rendering the user settings page.
-func ShowSettings() http.HandlerFunc {
+func (m *Manager) ShowSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		RenderInternalPage(&UserSettings{
 			title: templates.PageTitle{
@@ -72,7 +72,7 @@ func ShowSettings() http.HandlerFunc {
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
-func HandleShowDisplaySettings() http.HandlerFunc {
+func (m *Manager) HandleShowDisplaySettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -88,7 +88,7 @@ func HandleShowDisplaySettings() http.HandlerFunc {
 }
 
 // HandleShowAccountSettings handles showing the settings related to user accounts.
-func HandleShowAccountSettings() http.HandlerFunc {
+func (m *Manager) HandleShowAccountSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -104,7 +104,7 @@ func HandleShowAccountSettings() http.HandlerFunc {
 }
 
 // HandleShowSubscriptionsSettings handles showing the user's subscriptions for bulk management.
-func HandleShowSubscriptionsSettings() http.HandlerFunc {
+func (m *Manager) HandleShowSubscriptionsSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -136,7 +136,7 @@ func HandleShowSubscriptionsSettings() http.HandlerFunc {
 }
 
 // HandleSaveSubscriptionsSettings handles saving any subscription settings the user has applied.
-func HandleSaveSubscriptionsSettings(users UserService) http.HandlerFunc {
+func (m *Manager) HandleSaveSubscriptionsSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -180,7 +180,7 @@ func HandleSaveSubscriptionsSettings(users UserService) http.HandlerFunc {
 }
 
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
-func HandleSaveDisplaySettings(users UserService) http.HandlerFunc {
+func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -215,7 +215,7 @@ func HandleSaveDisplaySettings(users UserService) http.HandlerFunc {
 // HandleSaveAccountSettings handles processing and saving new account settings.
 //
 //nolint:funlen
-func HandleSaveAccountSettings(users UserService, appCfg AppConfig, cache ImageCache) http.HandlerFunc {
+func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -269,7 +269,7 @@ func HandleSaveAccountSettings(users UserService, appCfg AppConfig, cache ImageC
 				return
 			}
 			// Construct a new full URL to the uploaded avatar on the local server.
-			request.AvatarURL = new(appCfg.GetBaseURL().JoinPath("/img/avatar/" + avatarFileID).String())
+			request.AvatarURL = new(m.AppConfig.GetBaseURL().JoinPath("/img/avatar/" + avatarFileID).String())
 		}
 
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
@@ -327,7 +327,7 @@ func HandleSaveAccountSettings(users UserService, appCfg AppConfig, cache ImageC
 	}
 }
 
-func HandleSaveFontSettings(users UserService) http.HandlerFunc {
+func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -362,11 +362,14 @@ func HandleSaveFontSettings(users UserService) http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+		RenderPartial(&PartialTemplate{
+			template: templates.SetFontStyle(fontStyle),
+		}).ServeHTTP(res, req)
 		res.WriteHeader(http.StatusOK)
 	}
 }
 
-func HandleSaveThemeSettings(users UserService) http.HandlerFunc {
+func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -406,7 +409,7 @@ func HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 }
 
 // HandleChangePassword handles a change password request from the user.
-func HandleChangePassword() http.HandlerFunc {
+func (m *Manager) HandleChangePassword() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.ChangePasswordRequest](req)
 		if err != nil {
@@ -433,10 +436,9 @@ func HandleChangePassword() http.HandlerFunc {
 // HandleDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
-func HandleDeactivateAccount(
+func (m *Manager) HandleDeactivateAccount(
 	users UserService,
 	auth *auth0.Authenticator,
-	sessionMgr SessionManager,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.DeactivationRequest](req)
@@ -538,7 +540,7 @@ func HandleDeactivateAccount(
 				}
 
 				// Pass to logout handler.
-				HandleLogout(auth, sessionMgr)(res, req)
+				m.HandleLogout(auth)(res, req)
 			default:
 				// Paid user. Cancel their subscription appropriately and notify.
 				switch *user.UserSubscriptionType {
@@ -583,7 +585,7 @@ func HandleDeactivateAccount(
 }
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
-func HandleAddFeedset(
+func (m *Manager) HandleAddFeedset(
 	feeds FeedService,
 	users UserService,
 	subscriptions SubscriptionsService,
@@ -711,10 +713,6 @@ func HandleAccountSuccess() http.HandlerFunc {
 	}
 }
 
-func HandleAccountCancel(appCfg AppConfig) http.HandlerFunc {
-	return HandleLanding(appCfg)
-}
-
 // AccountIssue contains data for rendering a page to present the user when there is an issue with their account.
 type AccountIssue struct{}
 
@@ -732,14 +730,14 @@ func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) 
 
 // HandleAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
 // critical issue with their account blocking access to the service.
-func HandleAccountIssue() http.HandlerFunc {
+func (m *Manager) HandleAccountIssue() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// stripeSessionID := req.FormValue("session_id")
 		RenderExternalPage(&AccountIssue{}).ServeHTTP(res, req)
 	}
 }
 
-func HandleManageAccountSubscription() http.HandlerFunc {
+func (m *Manager) HandleManageAccountSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if sessionID := req.FormValue("session_id"); sessionID == "" {
 			HandleExternalError(&models.APIError{
@@ -753,7 +751,7 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 	}
 }
 
-func HandleGenerateSubscriptionEmail(users UserService) http.HandlerFunc {
+func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
@@ -826,7 +824,7 @@ func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
 // (user manually goes to page) and non-interactive (as per RFC 8058).
-func HandleUserUnsubscribe(users UserService) http.HandlerFunc {
+func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		token := chi.RouteContext(req.Context()).URLParam("token")
 		if token == "" {

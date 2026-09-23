@@ -181,6 +181,13 @@ type Breadcrumbs interface {
 	Previous(ctx context.Context) (*url.URL, bool)
 }
 
+// Manager contains the common interfaces that nearly all handlers require access to.
+type Manager struct {
+	AppConfig   AppConfig
+	SessionMgr  SessionManager
+	Breadcrumbs Breadcrumbs
+}
+
 var (
 	// ErrInvalidContent indicates that the content for rendering is invalid.
 	ErrInvalidContent = errors.New("invalid content")

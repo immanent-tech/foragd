@@ -48,9 +48,9 @@ func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandleChooseSubscription(appCfg AppConfig) http.HandlerFunc {
-	paddleChoice := HandleChoosePaddleSubscription(appCfg)
-	androidChoice := HandleChooseAndroidSubscription(appCfg)
+func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
+	paddleChoice := HandleChoosePaddleSubscription(m.AppConfig)
+	androidChoice := HandleChooseAndroidSubscription(m.AppConfig)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := req.ParseForm(); err != nil {
@@ -78,8 +78,8 @@ func HandleChooseSubscription(appCfg AppConfig) http.HandlerFunc {
 	}
 }
 
-func HandlePurchaseSubscription(appCfg AppConfig, userSvc UserService) http.HandlerFunc {
-	paddlePurchase := handlePaddlePurchase(appCfg)
+func (m *Manager) HandlePurchaseSubscription(userSvc UserService) http.HandlerFunc {
+	paddlePurchase := handlePaddlePurchase(m.AppConfig)
 	androidPurchase := HandleAndroidPurchase(userSvc)
 
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -150,7 +150,7 @@ func (t *PurchaseSubscriptionSuccess) PartialResponse(res http.ResponseWriter, r
 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
-func HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
+func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
