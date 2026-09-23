@@ -1589,109 +1589,120 @@ func bulkImportFeeds(
 ) []models.FeedSubscriptionResult {
 	// Process requests.
 	resultsCh := make(chan models.FeedSubscriptionResult)
+
+	const maxConcurrentImports = 100
+	requestCh := make(chan models.FeedSubscriptionRequest, 200)
 	var wg sync.WaitGroup
 
-	for request := range slices.Values(requests) {
+	for range maxConcurrentImports {
 		wg.Go(func() {
-			// Find an existing or create a new feed from the requested URL.
-			feed, isNew, err := feeds.FindOrCreateFeed(ctx, httpClient, request.URL)
-			if err != nil {
-				result := models.FeedSubscriptionResult{
-					Request: &request,
+			for request := range requestCh {
+				// Find an existing or create a new feed from the requested URL.
+				feed, isNew, err := feeds.FindOrCreateFeed(ctx, httpClient, request.URL)
+				if err != nil {
+					result := models.FeedSubscriptionResult{
+						Request: &request,
+					}
+					if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+						result.Error = apiErr
+					} else {
+						result.Error = models.NewAPIError(
+							http.StatusUnprocessableEntity,
+							fmt.Errorf("create subscription: %w", err),
+							models.WithUserMessage(models.NewErrorMessage(
+								"Could not create feed from URL",
+								request.URL,
+							)),
+						)
+					}
+					resultsCh <- result
+					return
 				}
-				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-					result.Error = apiErr
-				} else {
-					result.Error = models.NewAPIError(
-						http.StatusUnprocessableEntity,
-						fmt.Errorf("create subscription: %w", err),
-						models.WithUserMessage(models.NewErrorMessage(
-							"Could not create feed from URL",
-							request.URL,
-						)),
-					)
+				if isNew {
+					// Add the feed if it is new.
+					if err := feeds.AddFeed(ctx, feed); err != nil {
+						resultsCh <- models.FeedSubscriptionResult{
+							Request: &request,
+							Error: &models.APIError{
+								InternalError: fmt.Errorf("create subscription: %w", err),
+								StatusCode:    http.StatusInternalServerError,
+								UserMessage: models.NewErrorMessage(
+									"Unable to add feed subscription",
+									fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
+								),
+							},
+						}
+						return
+					}
 				}
-				resultsCh <- result
-				return
-			}
-			if isNew {
-				// Add the feed if it is new.
-				if err := feeds.AddFeed(ctx, feed); err != nil {
+
+				allSubscriptions := models.SubscriptionsFromCtx(ctx)
+				existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
+				if existingSubscriptions != nil {
+					resultsCh <- models.FeedSubscriptionResult{
+						Request: &request,
+						Error: &models.APIError{
+							InternalError: errors.New("create subscription: already subscribed"),
+							StatusCode:    http.StatusConflict,
+							UserMessage: models.NewWarningMessage(
+								"Already subscribed to feed",
+								fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
+							),
+						},
+					}
+					return
+				}
+
+				// Create feed newSubscription.
+				newSubscription, err := service.NewFeedSubscription(ctx, feed, nil)
+				if err != nil {
 					resultsCh <- models.FeedSubscriptionResult{
 						Request: &request,
 						Error: &models.APIError{
 							InternalError: fmt.Errorf("create subscription: %w", err),
 							StatusCode:    http.StatusInternalServerError,
 							UserMessage: models.NewErrorMessage(
-								"Unable to add feed subscription",
-								fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
+								"Unable to add subscription",
+								fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
 							),
 						},
 					}
 					return
 				}
-			}
-
-			allSubscriptions := models.SubscriptionsFromCtx(ctx)
-			existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
-			if existingSubscriptions != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: errors.New("create subscription: already subscribed"),
-						StatusCode:    http.StatusConflict,
-						UserMessage: models.NewWarningMessage(
-							"Already subscribed to feed",
-							fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
+				if err := addSubscriptions(ctx, users, subscriptions, newSubscription); err != nil {
+					resultsCh <- models.FeedSubscriptionResult{
+						Request: &request,
+						Error: &models.APIError{
+							InternalError: fmt.Errorf("add subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: models.NewErrorMessage(
+								"Unable to add subscription",
+								fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
+							),
+						},
+					}
+					return
 				}
-				return
-			}
-
-			// Create feed newSubscription.
-			newSubscription, err := service.NewFeedSubscription(ctx, feed, nil)
-			if err != nil {
 				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
+					Request:      &request,
+					Subscription: newSubscription,
 				}
-				return
-			}
-			if err := addSubscriptions(ctx, users, subscriptions, newSubscription); err != nil {
-				resultsCh <- models.FeedSubscriptionResult{
-					Request: &request,
-					Error: &models.APIError{
-						InternalError: fmt.Errorf("add subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
-						),
-					},
-				}
-				return
-			}
-			resultsCh <- models.FeedSubscriptionResult{
-				Request:      &request,
-				Subscription: newSubscription,
 			}
 		})
 	}
+
+	for request := range slices.Values(requests) {
+		requestCh <- request
+	}
+	close(requestCh)
 	// Wait for all request processing to complete.
 	go func() {
 		defer close(resultsCh)
 		wg.Wait()
 	}()
-	results := make([]models.FeedSubscriptionResult, 0, len(requests))
+
 	// Gather results.
+	results := make([]models.FeedSubscriptionResult, 0, len(requests))
 	for result := range resultsCh {
 		results = append(results, result)
 	}
