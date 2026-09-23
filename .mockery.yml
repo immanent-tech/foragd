@@ -1,0 +1,9 @@
+template: matryer
+packages:
+  github.com/immanent-tech/foragd/server/handlers:
+    config:
+      dir: "{{.InterfaceDir}}"
+      filename: "handlers_mocks_test.go"
+      pkgname: "{{.SrcPackageName}}_test"
+      structname: "Moq{{.InterfaceName}}"
+      all: true

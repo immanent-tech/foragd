@@ -16,6 +16,15 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
+func SetupManager(t testing.TB) *handlers.Manager {
+	t.Helper()
+	return &handlers.Manager{
+		AppConfig:   &MoqAppConfig{},
+		SessionMgr:  &MoqSessionManager{},
+		Breadcrumbs: &MoqBreadcrumbs{},
+	}
+}
+
 func TestHandleHome(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -60,6 +69,7 @@ func TestHandleHome(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mgr := SetupManager(t)
 			ctx := t.Context()
 			if tt.ctxSetup != nil {
 				ctx = tt.ctxSetup(ctx)
@@ -67,7 +77,7 @@ func TestHandleHome(t *testing.T) {
 			req := tt.reqSetup(ctx)
 			rec := httptest.NewRecorder()
 
-			handlers.HandleHome(tt.homepageSvc)(rec, req)
+			mgr.HandleHome(tt.homepageSvc)(rec, req)
 
 			if rec.Code != tt.want {
 				t.Fatalf("got status %d, want %d", rec.Code, tt.want)
