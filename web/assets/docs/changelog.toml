@@ -1,8 +1,28 @@
 [[releases]]
-version = "v0.235"
+version = "v0.236"
 date = "Sep 23, 2026"
 type = "minor"
 is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+When you changed the font style, it would sometimes revert back to the default. This is fixed and your custom choice stays.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Recent updates broke highlighting the current page in the sidebar/dock. That's been fixed.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+When viewing the articles for a subscription, the filter icon to the left of the subscription name is now clickable, and will take you to the edit subscription page. Similarly, when the subscription you are viewing has articles with geo info, you'll see a map icon that when clicked, will take you to the map with the articles.
+"""
+
+[[releases]]
+version = "v0.235"
+date = "Sep 23, 2026"
+type = "minor"
 [[releases.changes]]
 type = "fixed"
 description = """
@@ -33,7 +53,6 @@ Behind the scenes, the app keeps track of the pages you browse, which should mak
 version = "v0.234"
 date = "Sep 18, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "fixed"
 description = """
