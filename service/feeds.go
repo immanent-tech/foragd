@@ -801,17 +801,17 @@ func (s *FeedService) FindOrCreateFeed(
 
 	// Create terms queries to match the new feed to an existing feed.
 	var terms []query.Option
-	for url := range slices.Values(newFeed.SourceURLs) {
+	for url := range slices.Values(newFeed.GetSourceURLs()) {
 		terms = append(terms, query.Term("source_urls", url))
 		// Also match url with trailing slash.
 		if !strings.HasSuffix(url, "/") {
 			terms = append(terms, query.Term("source_urls", url+"/"))
 		}
 	}
-	terms = append(terms, query.Term("url", newFeed.URL))
+	terms = append(terms, query.Term("url", newFeed.GetLink()))
 	// Also match url with trailing slash.
-	if !strings.HasSuffix(newFeed.URL, "/") {
-		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
+	if !strings.HasSuffix(newFeed.GetLink(), "/") {
+		terms = append(terms, query.Term("source_urls", newFeed.GetLink()+"/"))
 	}
 	// Find any existing feed.
 	resp, err := elastic.Search[*models.Feed](ctx,
@@ -833,6 +833,14 @@ func (s *FeedService) FindOrCreateFeed(
 	if len(resp.Results) == 1 {
 		// If an existing feed is found, use that feed.
 		return resp.Results[0], false, nil
+	}
+	if len(resp.Results) > 1 {
+		matches := make([]string, 0, len(resp.Results))
+		for result := range slices.Values(resp.Results) {
+			matches = append(matches, result.GetID())
+		}
+		slogctx.Warn(ctx, "Multiple feeds match new URL.",
+			slog.String("matches", strings.Join(matches, ",")))
 	}
 	// Otherwise use the new feed.
 	return newFeed, true, nil
