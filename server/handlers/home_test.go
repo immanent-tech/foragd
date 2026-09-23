@@ -9,6 +9,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/immanent-tech/foragd/models"
@@ -19,8 +20,20 @@ import (
 func SetupManager(t testing.TB) *handlers.Manager {
 	t.Helper()
 	return &handlers.Manager{
-		AppConfig:   &MoqAppConfig{},
-		SessionMgr:  &MoqSessionManager{},
+		AppConfig: &MoqAppConfig{
+			GetBaseURLFunc: func() *url.URL {
+				baseURL, _ := url.Parse("http://localhost")
+				return baseURL
+			},
+			IsProductionFunc: func() bool {
+				return false
+			},
+		},
+		SessionMgr: &MoqSessionManager{
+			GetFunc: func(ctx context.Context, key string) any {
+				return nil
+			},
+		},
 		Breadcrumbs: &MoqBreadcrumbs{},
 	}
 }
