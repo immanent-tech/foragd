@@ -37,6 +37,8 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
+// CheckUserLimits checks that the user has not breached their account limits. If they have, this middleware will break
+// the chain and return a 403. Otherwise it will pass control silently to the next handler.
 func (m *Manager) CheckUserLimits(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
@@ -56,6 +58,30 @@ func (m *Manager) CheckUserLimits(next http.Handler) http.Handler {
 				models.ErrEmailNewsletterLimitExceeded,
 			).ServeHTTP(res, req)
 			return
+		}
+		next.ServeHTTP(res, req)
+	})
+}
+
+// CustomisationCtx retrieves the user settings and stores some values in the session cookie for use by templates. If
+// the user has not made any relevant customisations, this middleware does nothing. It's safe to apply outside of
+// authenticated paths as it is a no-op if there is no user.
+func (m *Manager) CustomisationCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.Debug(req.Context(), "Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			next.ServeHTTP(res, req)
+			return
+		}
+		// Save some settings in the session cookie.
+		settings := user.GetSettings()
+		if settings.Theme != nil {
+			m.SessionMgr.Put(req.Context(), "theme", *settings.Theme)
+		}
+		if settings.FontStyle != nil {
+			m.SessionMgr.Put(req.Context(), "font-style", *settings.FontStyle)
 		}
 		next.ServeHTTP(res, req)
 	})
@@ -393,6 +419,9 @@ func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+		// Update the font style value in the session cookie.
+		m.SessionMgr.Put(req.Context(), "font-style", fontStyle)
+
 		RenderPartial(&PartialTemplate{
 			template: templates.SetFontStyle(fontStyle),
 		}).ServeHTTP(res, req)
@@ -435,6 +464,9 @@ func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return
 		}
+		// Update the theme value in the session cookie.
+		m.SessionMgr.Put(req.Context(), "theme", theme)
+
 		res.WriteHeader(http.StatusOK)
 	}
 }

@@ -171,7 +171,6 @@ func Start() error {
 			security.WithCSRFInsecureBypassPattern("/checkout/webhooks"),
 			security.WithCSRFInsecureBypassPattern("/mail/webhooks"),
 		),
-		middlewares.Customisation,
 		// middlewares.RateLimit,
 		etag.Etag,
 		middlewares.SetClient,
@@ -296,6 +295,7 @@ func Start() error {
 			middlewares.RequireValidUser,
 			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
 			middlewares.NoCache,
+			handlerMgr.CustomisationCtx,
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(httpClient, authenticator))
@@ -461,7 +461,9 @@ func Start() error {
 
 		r.Route("/settings", func(r chi.Router) {
 			r.Route("/display", func(r chi.Router) {
+				r.Use(htmx.RequireHTMX)
 				r.Post("/font", handlerMgr.HandleSaveFontSettings(userSvc))
+				r.Post("/theme", handlerMgr.HandleSaveThemeSettings(userSvc))
 			})
 		})
 
@@ -497,8 +499,6 @@ func Start() error {
 				r.Get("/subscription", handlerMgr.HandleManageAccountSubscription())
 				r.With(htmx.RequireHTMX).Post("/password", handlerMgr.HandleChangePassword())
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlerMgr.HandleGenerateSubscriptionEmail(userSvc))
-				r.With(htmx.RequireHTMX).Post("/fonts", handlerMgr.HandleSaveFontSettings(userSvc))
-				r.With(htmx.RequireHTMX).Post("/theme", handlerMgr.HandleSaveThemeSettings(userSvc))
 			})
 			r.With(htmx.RequireHTMX).
 				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authenticator))

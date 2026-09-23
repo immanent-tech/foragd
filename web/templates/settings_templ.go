@@ -1617,7 +1617,7 @@ func themePreviewCard(theme string) templ.Component {
 		templ_7745c5c3_Err = partials.Card(element.WithAttribute("data-theme", theme),
 			element.WithAttribute("_", "on click set @data-theme of <html/> to my @data-theme then send themeChanged(theme:my @data-theme) end"),
 			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]"),
-			element.WithHXMethod(http.MethodPost, "/user/settings/theme"),
+			element.WithHXMethod(http.MethodPost, "/settings/display/theme"),
 			element.WithHXValues(map[string]any{"theme": theme}),
 			element.WithHXSwap("none"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var69), templ_7745c5c3_Buffer)

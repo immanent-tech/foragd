@@ -12,7 +12,6 @@ const (
 	pathCtxKey      contextKey = "path"
 	fragmentsCtxKey contextKey = "fragments"
 	fontStyleCtxKey contextKey = "fontStyle"
-	themeCtxKey     contextKey = "theme"
 	baseURLCtxKey   contextKey = "baseURL"
 )
 
@@ -57,18 +56,6 @@ func FontStyleFromCtx(ctx context.Context) string {
 		return "--font-oldstyle"
 	}
 	return style
-}
-
-func ThemeToCtx(ctx context.Context, theme string) context.Context {
-	return context.WithValue(ctx, themeCtxKey, theme)
-}
-
-func ThemeFromCtx(ctx context.Context) string {
-	theme, found := ctx.Value(themeCtxKey).(string)
-	if !found {
-		return "greenhouse"
-	}
-	return theme
 }
 
 type AppConfig interface {

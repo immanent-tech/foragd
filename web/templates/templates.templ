@@ -145,11 +145,14 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
   			 end
   		   on mutation of @data-theme
 		    set theme to @data-theme
-			then set document.cookie to `theme=${theme};path=/;max-age=31536000;samesite=lax`
   			then send themeChanged(theme:theme)
 		   "
 		class="min-h-dvh scrollbar-thumb-(--color-primary) scrollbar-gutter-stable overscroll-y-none"
-		data-theme={ ThemeFromCtx(ctx) }
+		if theme, ok := session.Get(ctx,"theme").(string); ok {
+			data-theme={ theme }
+		} else {
+			data-theme="greenhouse"
+		}
 	>
 		<head>
 			<meta charset="UTF-8"/>
