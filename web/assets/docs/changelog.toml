@@ -9,6 +9,11 @@ description = """
 In some rare cases, an OPML import will fail because of misbehaving servers when fetching feed details. This has been fixed.
 """
 [[releases.changes]]
+type = "fixed"
+description = """
+Importing via OPML or adding directly feeds with minimum information (no timestamps, etc.) is more robust.
+"""
+[[releases.changes]]
 type = "improved"
 description = """
 When importing via OPML, the results page will show more specific reasons for feeds failing to import.
