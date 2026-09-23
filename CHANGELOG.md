@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.236.1](https://github.com/immanent-tech/foragd/compare/v0.236.0...v0.236.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* **models:** 🔧 don't assume we can parse a domain name from the feed link ([f941e0c](https://github.com/immanent-tech/foragd/commit/f941e0cca22ef75114f8bd8c498bc44d4e062d18))
+* **service/feeds:** 🔧 warn if multiple feeds match new feed URL ([4364a8e](https://github.com/immanent-tech/foragd/commit/4364a8e2d0653f6012892e98520bc854bfa2726d))
+
 ## [0.236.0](https://github.com/immanent-tech/foragd/compare/v0.235.2...v0.236.0) (2026-09-23)
 
 
