@@ -12,7 +12,7 @@ import (
 
 // ReportIssue renders a form for reporting issues with the app.
 templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal("", &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
 				@pageHeading() {

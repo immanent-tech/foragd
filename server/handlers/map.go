@@ -49,8 +49,8 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 		templ.Handler(p.template, templ.WithFragments(components.MapMarkersFragment)).ServeHTTP(res, req)
 	}
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavMap, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavMap, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {

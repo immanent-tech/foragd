@@ -15,7 +15,7 @@ import (
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ MapArticles(response *models.ListArticlesResponse) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavMap, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
 			@container(element.WithClasses("pt-4")) {

@@ -392,7 +392,7 @@ templ suggestDiscover() {
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResults(results *models.SearchResults) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal("", &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
@@ -863,7 +863,7 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal("", &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@partials.BackToTopButton()
 		@templ.Fragment(ContentFragment) {
 			@container() {

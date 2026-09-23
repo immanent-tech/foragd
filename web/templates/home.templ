@@ -30,7 +30,7 @@ templ UserHome(data *HomeData) {
 		ctx, span = tracer.Start(ctx, "render")
 		defer span.End()
 	}}
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavHome, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
@@ -197,7 +197,7 @@ templ UserHome(data *HomeData) {
 
 // NewUserHome is a home page displayed for new users, with some instructions and actions to help them set up the app.
 templ NewUserHome() {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavHome, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="mt-16 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 0">

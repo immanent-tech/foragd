@@ -13,10 +13,10 @@ type InternalLayoutProps struct {
 	User *models.User
 }
 
-templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
+templ LayoutInternal(nav Navigation, props *InternalLayoutProps, content ...templ.Component) {
 	<a class="sr-only" href={ ContentID.Target() }>Skip to content</a>
 	@HeaderInternal(props)
-	@SideBar(nil)
+	@SideBar(nav)
 	<main
 		aria-label="Main Content"
 		id={ ContentID.String() }
@@ -27,7 +27,7 @@ templ LayoutInternal(props *InternalLayoutProps, content ...templ.Component) {
 		}
 		{ children... }
 	</main>
-	@Dock(nil)
+	@Dock(nav)
 }
 
 templ LayoutExternal(content ...templ.Component) {

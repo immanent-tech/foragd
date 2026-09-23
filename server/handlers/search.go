@@ -147,8 +147,8 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/search/paginate":
 		if len(h.results.Articles) == 0 {
 			res.WriteHeader(http.StatusNoContent)

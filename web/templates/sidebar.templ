@@ -8,10 +8,9 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"strings"
 )
 
-templ SideBar(options ...element.PropertiesOption) {
+templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<nav
 		aria-label="Sidebar Navigation"
@@ -22,7 +21,7 @@ templ SideBar(options ...element.PropertiesOption) {
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
 			<div class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="my-auto flex flex-1 flex-col gap-y-8 py-16">
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/home") }>
+					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavHome) }>
 						<a
 							hx-trigger="click,globalShortcutHome"
 							hx-get="/home"
@@ -45,7 +44,7 @@ templ SideBar(options ...element.PropertiesOption) {
 						</a>
 					</li>
 					{{ filters := models.NewListFilters() }}
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/subscriptions") }>
+					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavSubscriptions) }>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
@@ -69,7 +68,7 @@ templ SideBar(options ...element.PropertiesOption) {
 						</a>
 					</li>
 					<li
-						class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", (PathFromCtx(ctx) == "/list/articles") || strings.HasPrefix(PathFromCtx(ctx),"/articles") ) }
+						class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavArticles) }
 					>
 						<a
 							hx-trigger="click,globalShortcutArticles"
@@ -93,7 +92,7 @@ templ SideBar(options ...element.PropertiesOption) {
 							<span class="not-sr-only text-base font-semibold text-base-content">Articles</span>
 						</a>
 					</li>
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/favorites") }>
+					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav ==NavFavorites) }>
 						<a
 							hx-trigger="click,globalShortcutFavorites"
 							hx-get="/favorites"
@@ -115,7 +114,7 @@ templ SideBar(options ...element.PropertiesOption) {
 							<span class="not-sr-only text-base font-semibold text-base-content">Favorites</span>
 						</a>
 					</li>
-					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/discover") }>
+					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav ==NavDiscover) }>
 						<a
 							hx-trigger="click,globalShortcutDiscover"
 							hx-get="/discover"

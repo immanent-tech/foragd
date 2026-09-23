@@ -42,6 +42,7 @@ func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 	if user := models.UserFromCtx(req.Context()); user != nil {
 		template = templates.LayoutInternal(
+			"",
 			&templates.InternalLayoutProps{User: user},
 			templates.ChangelogPage(p.Releases),
 		)
@@ -63,8 +64,8 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 		templates.ChangelogPage(p.Releases),
 		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleChangelog() http.HandlerFunc {

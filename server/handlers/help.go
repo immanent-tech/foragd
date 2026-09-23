@@ -50,8 +50,8 @@ func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.metadata.Title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
@@ -93,6 +93,7 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 			RenderInternalPage(&Help{
 				metadata: metadata,
 				template: templates.LayoutInternal(
+					"",
 					&templates.InternalLayoutProps{User: user},
 					templates.Document(mdHTML),
 				),

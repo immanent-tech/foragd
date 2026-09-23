@@ -82,8 +82,8 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/articles/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
@@ -345,8 +345,8 @@ func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Req
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
@@ -400,8 +400,8 @@ func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request
 // PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
 func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 }
 

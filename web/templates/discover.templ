@@ -14,7 +14,7 @@ import (
 )
 
 templ Discover(request *models.SuggestFeedsRequest) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavDiscover, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				@pageHeading() {

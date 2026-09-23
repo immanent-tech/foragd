@@ -112,8 +112,8 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/subscriptions/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
@@ -829,8 +829,8 @@ func (h *AddSubscription) FullResponse(res http.ResponseWriter, req *http.Reques
 func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // HandleAddSubscription handles showing a form for adding a new subscription.

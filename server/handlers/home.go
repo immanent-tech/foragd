@@ -81,8 +81,8 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	}
 	// Update title, dock/sidebar.
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavHome, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavHome, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 type HomePageService interface {

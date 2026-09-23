@@ -347,7 +347,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		ctx, span = tracer.Start(ctx, "render")
 		defer span.End()
 	}}
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()
@@ -596,7 +596,7 @@ templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				@pageHeading() {
@@ -757,7 +757,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 
 // EditFeedSubscription is a page for editing an existing feed subscription.
 templ EditFeedSubscription(request *models.FeedSubscriptionRequest, breadcrumbs Breadcrumbs) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
 				@manageFeedSubscription("edit", request, breadcrumbs)
@@ -949,7 +949,7 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest, breadcru
 
 // manageSearchSubscription generates the appropriate form layout for either adding or editing a search subscription.
 templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest, breadcrumbs Breadcrumbs) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
 				@pageHeading() {
@@ -1183,7 +1183,7 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest, breadcrumb
 
 // manageGroupSubscription generates the appropriate form layout for either adding or editing a group subscription.
 templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest, breadcrumbs Breadcrumbs) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@narrowContainer(element.WithClasses("pt-4")) {
 				@pageHeading() {
@@ -1376,7 +1376,7 @@ templ AddSubscriptionToGroup(id, name string) {
 }
 
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadcrumbs Breadcrumbs) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				@pageHeading() {

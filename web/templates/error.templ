@@ -9,7 +9,7 @@ import "github.com/dimmerz92/go-icons/tabler-outline"
 const ErrorFragment templFragmentKey = "error"
 
 templ InternalError(user *models.User, referer string, msg *models.UserMessage) {
-	@LayoutInternal(&InternalLayoutProps{User: user}) {
+	@LayoutInternal("", &InternalLayoutProps{User: user}) {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
 				<div class="mt-12 text-center">

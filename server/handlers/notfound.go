@@ -26,6 +26,7 @@ func (m *Manager) HandleNotFound() http.HandlerFunc {
 			layout = templates.LayoutExternal(templates.NotFound())
 		} else {
 			layout = templates.LayoutInternal(
+				"",
 				&templates.InternalLayoutProps{User: user},
 				templates.NotFound(),
 			)

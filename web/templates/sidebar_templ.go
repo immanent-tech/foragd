@@ -17,10 +17,9 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"strings"
 )
 
-func SideBar(options ...element.PropertiesOption) templ.Component {
+func SideBar(nav Navigation, options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -54,7 +53,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/home")}
+		var templ_7745c5c3_Var2 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavHome)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -79,7 +78,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 29, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 28, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
@@ -100,7 +99,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		filters := models.NewListFilters()
-		var templ_7745c5c3_Var5 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/list/subscriptions")}
+		var templ_7745c5c3_Var5 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavSubscriptions)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -125,7 +124,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 52, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 51, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
@@ -138,7 +137,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 53, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 52, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -158,7 +157,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", (PathFromCtx(ctx) == "/list/articles") || strings.HasPrefix(PathFromCtx(ctx), "/articles"))}
+		var templ_7745c5c3_Var9 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavArticles)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -183,7 +182,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 77, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 76, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -196,7 +195,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 78, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 77, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -216,7 +215,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/favorites")}
+		var templ_7745c5c3_Var13 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavFavorites)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -241,7 +240,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 100, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 99, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -261,7 +260,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var16 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", PathFromCtx(ctx) == "/discover")}
+		var templ_7745c5c3_Var16 = []any{"w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavDiscover)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -286,7 +285,7 @@ func SideBar(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 122, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/sidebar.templ`, Line: 121, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 		if templ_7745c5c3_Err != nil {

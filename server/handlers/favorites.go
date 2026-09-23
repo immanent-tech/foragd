@@ -43,8 +43,8 @@ func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) 
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavFavorites, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavFavorites, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 // HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.

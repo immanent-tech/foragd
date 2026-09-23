@@ -8,11 +8,9 @@ import (
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"strings"
 )
 
-templ Dock(options ...element.PropertiesOption) {
-	{{ pageURL := PathFromCtx(ctx) }}
+templ Dock(nav Navigation, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<footer
 		aria-label="Footer Navigation"
@@ -26,7 +24,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home")) }
+			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavHome) }
 		>
 			<span class="sr-only">Go to Home Page</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -47,7 +45,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-params="not subscriptions"
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions")) }
+			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavSubscriptions) }
 		>
 			<span class="sr-only">Go to Subscriptions</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -66,11 +64,8 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(filters) }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
-			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/articles")) }
-			if strings.HasPrefix(pageURL, "/articles/item_") {
-				hx-include="[name='subscriptions']"
-			}
+			class={ "group", templ.KV("bg-primary/25 rounded-lg", nav == NavArticles) }
+			hx-include="[name='subscriptions']"
 		>
 			<span class="sr-only">Go to Articles</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -88,7 +83,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/favorites")) }
+			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavFavorites) }
 		>
 			<span class="sr-only">Go to Favorites</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -106,7 +101,7 @@ templ Dock(options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="morph:innerHTML show:top transition:true"
 			hx-sync="#page-dock:drop"
-			class={ "group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/discover")) }
+			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavDiscover) }
 		>
 			<span class="sr-only">Discover Feeds</span>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">

@@ -603,7 +603,7 @@ templ ArticleMapPopup(article *models.Article) {
 // ArticleContent renders the complete content of an article.
 templ ArticleContent(a *models.ShowArticleResponse) {
 	{{ article := &a.Article }}
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavArticles, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			// Show a subtle reading progress bar across the top of the article.
 			<div
@@ -855,7 +855,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 		ctx, span = tracer.Start(ctx, "render")
 		defer span.End()
 	}}
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavArticles, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
 			@components.PullToRefreshSentinel()

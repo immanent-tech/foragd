@@ -31,7 +31,7 @@ func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Req
 		templates.CreatePage(
 			t.appCfg,
 			t.sessionMgr,
-			templates.LayoutInternal(
+			templates.LayoutInternal("",
 				&templates.InternalLayoutProps{User: t.user},
 				templates.Checkout(t.user, t.request),
 			),
@@ -43,13 +43,14 @@ func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(
 		templates.LayoutInternal(
+			"",
 			&templates.InternalLayoutProps{User: t.user},
 			templates.Checkout(t.user, t.request),
 		),
 		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
@@ -138,6 +139,7 @@ func (t *PurchaseSubscriptionSuccess) FullResponse(res http.ResponseWriter, req 
 			t.appCfg,
 			t.sessionMgr,
 			templates.LayoutInternal(
+				"",
 				&templates.InternalLayoutProps{User: t.user},
 				templates.PurchaseSubscriptionSuccess(t.transactionID),
 			),
@@ -149,13 +151,14 @@ func (t *PurchaseSubscriptionSuccess) PartialResponse(res http.ResponseWriter, r
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(
 		templates.LayoutInternal(
+			"",
 			&templates.InternalLayoutProps{User: t.user},
 			templates.PurchaseSubscriptionSuccess(t.transactionID),
 		),
 		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {

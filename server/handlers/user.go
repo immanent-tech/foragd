@@ -108,8 +108,8 @@ func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) 
 func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(templates.UserSettings(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templates.NavSettings, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templates.NavSettings, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 }
 

@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	pathCtxKey      contextKey = "path"
 	fragmentsCtxKey contextKey = "fragments"
 	fontStyleCtxKey contextKey = "fontStyle"
 	baseURLCtxKey   contextKey = "baseURL"
@@ -17,19 +16,18 @@ const (
 
 type contextKey string
 
-// PathToCtx stores the URL path in the context.
-func PathToCtx(ctx context.Context, path string) context.Context {
-	return context.WithValue(ctx, pathCtxKey, path)
-}
+const (
+	NavHome          Navigation = "home"
+	NavSubscriptions Navigation = "subscriptions"
+	NavArticles      Navigation = "articles"
+	NavMap           Navigation = "map"
+	NavFavorites     Navigation = "favorites"
+	NavDiscover      Navigation = "discover"
+	NavSettings      Navigation = "settings"
+)
 
-// PathFromCtx retrieves the URL path from the context.
-func PathFromCtx(ctx context.Context) string {
-	path, found := ctx.Value(pathCtxKey).(string)
-	if !found {
-		return ""
-	}
-	return path
-}
+// Navigation reflects what navigation marker the current page should be placed under.
+type Navigation string
 
 func FragmentKeysToCtx(ctx context.Context, keys ...templFragmentKey) context.Context {
 	if len(keys) > 0 {

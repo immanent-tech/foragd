@@ -14,7 +14,7 @@ import (
 
 // ListFavorites renders subscription and article favorites in a grid layout.
 templ ListFavorites(response *models.ListFavoritesResponse) {
-	@LayoutInternal(&InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+	@LayoutInternal(NavFavorites, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		<script type="module">
   const tabGroup = document.getElementById('favorites-tabs');
 

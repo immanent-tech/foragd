@@ -17,10 +17,9 @@ import (
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"strings"
 )
 
-func Dock(options ...element.PropertiesOption) templ.Component {
+func Dock(nav Navigation, options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -41,7 +40,6 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		pageURL := PathFromCtx(ctx)
 		props := element.NewProperties(options...)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock border-t border-neutral/20 bg-base-200 px-safe text-base-content shadow-sm lg:hidden\"")
 		if templ_7745c5c3_Err != nil {
@@ -55,7 +53,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/home"))}
+		var templ_7745c5c3_Var2 = []any{"group", templ.KV("rounded-lg bg-primary/25", nav == NavHome)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -67,7 +65,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 26, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 24, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
@@ -101,7 +99,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		filters := models.NewListFilters()
-		var templ_7745c5c3_Var5 = []any{"group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/list/subscriptions"))}
+		var templ_7745c5c3_Var5 = []any{"group", templ.KV("rounded-lg bg-primary/25", nav == NavSubscriptions)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -113,7 +111,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 45, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 43, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 		if templ_7745c5c3_Err != nil {
@@ -126,7 +124,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 46, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 44, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
@@ -159,8 +157,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 = []any{"group", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")),
-			templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/articles"))}
+		var templ_7745c5c3_Var9 = []any{"group", templ.KV("bg-primary/25 rounded-lg", nav == NavArticles)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -172,7 +169,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 65, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 63, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
@@ -185,7 +182,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 66, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 64, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -204,17 +201,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if strings.HasPrefix(pageURL, "/articles/item_") {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " hx-include=\"[name='subscriptions']\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "><span class=\"sr-only\">Go to Articles</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-include=\"[name='subscriptions']\"><span class=\"sr-only\">Go to Articles</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -224,29 +211,29 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> <span class=\"dock-label not-sr-only\">Articles</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span> <span class=\"dock-label not-sr-only\">Articles</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 = []any{"group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/favorites"))}
+		var templ_7745c5c3_Var13 = []any{"group", templ.KV("rounded-lg bg-primary/25", nav == NavFavorites)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<a hx-get=\"/favorites\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<a hx-get=\"/favorites\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 88, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 83, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-sync=\"#page-dock:drop\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-sync=\"#page-dock:drop\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -259,7 +246,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><span class=\"sr-only\">Go to Favorites</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -269,29 +256,29 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span> <span class=\"dock-label not-sr-only\">Favorites</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> <span class=\"dock-label not-sr-only\">Favorites</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var16 = []any{"group", templ.KV("rounded-lg bg-primary/25", strings.HasPrefix(pageURL, "/discover"))}
+		var templ_7745c5c3_Var16 = []any{"group", templ.KV("rounded-lg bg-primary/25", nav == NavDiscover)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<a hx-get=\"/discover\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<a hx-get=\"/discover\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 106, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 101, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-sync=\"#page-dock:drop\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-sync=\"#page-dock:drop\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -304,7 +291,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\"><span class=\"sr-only\">Discover Feeds</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"><span class=\"sr-only\">Discover Feeds</span> <span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading loading-md loading-spinner text-base-content\"></span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -314,7 +301,7 @@ func Dock(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span> <span class=\"dock-label not-sr-only\">Discover</span></a></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span> <span class=\"dock-label not-sr-only\">Discover</span></a></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
