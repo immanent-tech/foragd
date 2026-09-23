@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.236.0](https://github.com/immanent-tech/foragd/compare/v0.235.2...v0.236.0) (2026-09-23)
+
+
+### Features
+
+* **templates:** ✨ make filter/map icons on list articles page clickable ([755e358](https://github.com/immanent-tech/foragd/commit/755e3587fd6e81f4c9e93feb4da397c8634e72b7))
+
+
+### Bug Fixes
+
+* 🔧 fix navigation highlight in dock/sidebar ([f76ac17](https://github.com/immanent-tech/foragd/commit/f76ac17d0236f75754eb903abcadc78745a39d6b))
+* **templates:** 🔧 fix font style not being applied ([5a9ef38](https://github.com/immanent-tech/foragd/commit/5a9ef38ccb4a15fe96fbdb5933427a79121d6d8d))
+
+
+### Performance Improvements
+
+* **handlers:** ⚡ add limiter logic to mediate concurrent bulk imports ([1006e1c](https://github.com/immanent-tech/foragd/commit/1006e1cfe9c1e6d8bda44b88c3c553e1c28d6460))
+
 ## [0.235.2](https://github.com/immanent-tech/foragd/compare/v0.235.1...v0.235.2) (2026-09-23)
 
 
