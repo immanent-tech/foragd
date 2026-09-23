@@ -300,10 +300,10 @@ func HandleRefreshToken(
 			// Redirect back to the referrer or home (same-origin only).
 			ref := req.Referer()
 			if ref == "" {
-				ref = RouteHome
+				ref = "/home"
 			}
 			if u, err := url.Parse(ref); err != nil || (u.Host != "" && u.Host != req.Host) {
-				ref = RouteHome
+				ref = "/home"
 			}
 			http.Redirect(res, req, ref, http.StatusFound)
 		}

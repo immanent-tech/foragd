@@ -181,8 +181,6 @@ type Breadcrumbs interface {
 	Previous(ctx context.Context) (*url.URL, bool)
 }
 
-type Route = string
-
 var (
 	// ErrInvalidContent indicates that the content for rendering is invalid.
 	ErrInvalidContent = errors.New("invalid content")

@@ -300,8 +300,8 @@ func HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFunc {
 		if updateCount > 0 {
 			var route string
 			switch {
-			case strings.Contains(req.Referer(), RouteHome):
-				route = RouteHome
+			case strings.Contains(req.Referer(), "/home"):
+				route = "/home"
 			default:
 				route = "/list/articles"
 			}
