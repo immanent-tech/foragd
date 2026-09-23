@@ -876,7 +876,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					if prev, found := breadcrumbs.Previous(ctx); !found {
 						hx-get="/home"
 					} else {
-						hx-get={ prev }
+						hx-get={ prev.Path + prev.Fragment }
 					}
 					hx-target={ ContentID.Target() }
 					hx-swap="morph:innerHTML transition:true"
@@ -1141,7 +1141,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 								if prev, found := breadcrumbs.Previous(ctx); !found {
 									hx-get="/home"
 								} else {
-									hx-get={ prev }
+									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"
@@ -1331,7 +1331,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								if prev, found := breadcrumbs.Previous(ctx); !found {
 									hx-get="/home"
 								} else {
-									hx-get={ prev }
+									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"
@@ -1447,7 +1447,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 							if prev, found := breadcrumbs.Previous(ctx); !found {
 								hx-get="/home"
 							} else {
-								hx-get={ prev }
+								hx-get={ prev.Path + prev.Fragment }
 							}
 							hx-target={ ContentID.Target() }
 							hx-swap="morph:innerHTML transition:true"

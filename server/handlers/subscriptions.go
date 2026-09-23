@@ -339,8 +339,6 @@ func HandleMarkSubscription(
 			return
 		}
 
-		prev, _ := breadcrumbs.Previous(req.Context())
-
 		// Update toggle.
 		RenderPartial(&PartialTemplate{
 			template: templates.SubscriptionMarkToggle(subscription,
@@ -353,13 +351,17 @@ func HandleMarkSubscription(
 			"/list/subscriptions": postMarkSubscriptionList,
 			"/list/articles":      postMarkSubscriptionArticles(session),
 		}
-		if hook, ok := postMarkHooks[prev]; ok {
-			if err := hook(res, req); err != nil {
-				HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("run post mark hook: %w", err),
-				).ServeHTTP(res, req)
-				return
+
+		prev, found := breadcrumbs.Previous(req.Context())
+		if found {
+			if hook, ok := postMarkHooks[prev.Path]; ok {
+				if err := hook(res, req); err != nil {
+					HandleInternalError(
+						http.StatusInternalServerError,
+						fmt.Errorf("run post mark hook: %w", err),
+					).ServeHTTP(res, req)
+					return
+				}
 			}
 		}
 

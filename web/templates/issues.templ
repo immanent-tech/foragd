@@ -132,7 +132,7 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 								if prev, found := breadcrumbs.Previous(ctx); !found {
 									hx-get="/home"
 								} else {
-									hx-get={ prev }
+									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
 								hx-swap="morph:innerHTML transition:true"

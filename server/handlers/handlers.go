@@ -178,7 +178,7 @@ type AuthURLResult interface {
 }
 
 type Breadcrumbs interface {
-	Previous(ctx context.Context) (string, bool)
+	Previous(ctx context.Context) (*url.URL, bool)
 }
 
 type Route = string
