@@ -99,8 +99,9 @@ func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	}
 
 	// Extract the hostname from the link into the domain field.
-	link, _ := url.Parse(source.GetLink())
-	feed.Domain = link.Hostname()
+	if link, err := url.Parse(source.GetLink()); err == nil {
+		feed.Domain = link.Hostname()
+	}
 
 	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
 	// calls to fetch additional information (e.g., images).
