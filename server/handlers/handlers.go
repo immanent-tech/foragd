@@ -188,6 +188,14 @@ type Manager struct {
 	Breadcrumbs Breadcrumbs
 }
 
+func (m *Manager) NewPageServices() pageServices {
+	return pageServices{
+		appCfg:      m.AppConfig,
+		sessionMgr:  m.SessionMgr,
+		breadcrumbs: m.Breadcrumbs,
+	}
+}
+
 var (
 	// ErrInvalidContent indicates that the content for rendering is invalid.
 	ErrInvalidContent = errors.New("invalid content")
@@ -353,6 +361,12 @@ func generateSiteOG(baseURL *url.URL) *opengraph.WebSite {
 		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
 		baseURL.Clone().JoinPath("/content/logo-vertical-light.webp").String(),
 	)
+}
+
+type pageServices struct {
+	appCfg      AppConfig
+	sessionMgr  SessionManager
+	breadcrumbs Breadcrumbs
 }
 
 const listFiltersCtxKey contextKey = "listFilters"

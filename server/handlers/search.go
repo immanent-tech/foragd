@@ -120,11 +120,15 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 type SearchResults struct {
 	title   templates.PageTitle
 	results *models.SearchResults
+	svc     pageServices
 }
 
 func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(templates.SearchResults(h.results),
+		templates.CreatePage(
+			h.svc.appCfg,
+			h.svc.sessionMgr,
+			templates.SearchResults(h.results),
 			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
@@ -221,7 +225,8 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 
 		// Run background requests in parallel and wait for results.
 		if err := searchJobs.Wait(); err != nil {
-			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("search items: %w", err)).
+				ServeHTTP(res, req)
 			return
 		}
 
@@ -253,6 +258,7 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 				Description: search.Text,
 			},
 			results: results,
+			svc:     m.NewPageServices(),
 		}).ServeHTTP(res, req)
 	}
 }
@@ -302,7 +308,7 @@ func (m *Manager) AddSubscriptionFilter() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		subscription, err := parseForm[*models.AddSubscriptionSearchFilterRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 

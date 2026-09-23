@@ -46,7 +46,7 @@ func (m *Manager) HandleLogin(authenticator *auth0.Authenticator) http.HandlerFu
 		// Generate state, verification and authentication URL.
 		result, err := authenticator.GenerateAuthURL(req)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("generate auth url: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
@@ -57,7 +57,7 @@ func (m *Manager) HandleLogin(authenticator *auth0.Authenticator) http.HandlerFu
 
 		// Renew m.SessionMgr token before writing to prevent m.SessionMgr fixation.
 		if err := m.SessionMgr.RenewToken(req.Context()); err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("renew m.SessionMgr token: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
@@ -85,7 +85,7 @@ func (m *Manager) HandleLoginCallback(
 		// Check for errors returned by Auth0.
 		if errCode := req.FormValue("error"); errCode != "" {
 			errDesc := req.FormValue("error_description")
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)
@@ -98,7 +98,7 @@ func (m *Manager) HandleLoginCallback(
 			m.SessionMgr,
 		); err != nil ||
 			req.FormValue("state") != state {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("restore state: %w", err),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)
@@ -109,7 +109,7 @@ func (m *Manager) HandleLoginCallback(
 		code := req.FormValue("code")
 		verifier, err := authenticator.GetCodeVerifier(req.Context(), m.SessionMgr)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("restore verifier: %w", err),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)
@@ -118,7 +118,7 @@ func (m *Manager) HandleLoginCallback(
 
 		token, profile, err := authenticator.PerformExchange(req.Context(), code, verifier)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("exchange auth token: %w", err),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)
@@ -127,7 +127,7 @@ func (m *Manager) HandleLoginCallback(
 
 		// Renew m.SessionMgr token before writing to prevent m.SessionMgr fixation.
 		if err := m.SessionMgr.RenewToken(req.Context()); err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("renew m.SessionMgr token: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
@@ -143,7 +143,7 @@ func (m *Manager) HandleLoginCallback(
 		user, err = userSvc.GetUserByExternalID(req.Context(), profile.GetID())
 		switch {
 		case err != nil && models.HTTPStatus(err) != http.StatusNotFound: // Backend error.
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user: %w", err),
 				StatusCode:    http.StatusForbidden,
 			}).ServeHTTP(res, req)
@@ -156,7 +156,7 @@ func (m *Manager) HandleLoginCallback(
 			// }
 			newUser, err := auth0.CreateUserFromProfileData(req.Context(), userSvc, profile)
 			if err != nil {
-				HandleExternalError(&models.APIError{
+				m.HandleExternalError(&models.APIError{
 					InternalError: fmt.Errorf("create user from profile: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 				}).ServeHTTP(res, req)
@@ -175,14 +175,14 @@ func (m *Manager) HandleLoginCallback(
 				resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
 			)
 			if err != nil {
-				HandleExternalError(&models.APIError{
+				m.HandleExternalError(&models.APIError{
 					InternalError: fmt.Errorf("create welcome email: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 				}).ServeHTTP(res, req)
 				return
 			}
 			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
-				HandleExternalError(&models.APIError{
+				m.HandleExternalError(&models.APIError{
 					InternalError: fmt.Errorf("send welcome email: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 				}).ServeHTTP(res, req)
@@ -259,7 +259,7 @@ func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 		slog.String("tracking", req.URL.Query().Get("tracking")),
 	)
-	RenderExternalPage(&AccountIssue{}).ServeHTTP(res, req)
+	RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
 }
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.
@@ -271,7 +271,7 @@ func (m *Manager) HandleRefreshToken(
 		// Retrieve the refresh token and expiry from the m.SessionMgr.
 		tkn, err := authenticator.GetRefreshToken(req.Context(), m.SessionMgr)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("get refresh token from m.SessionMgr: %w", err),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)
@@ -279,7 +279,7 @@ func (m *Manager) HandleRefreshToken(
 		}
 		expiry, err := authenticator.GetTokenExpiry(req.Context(), m.SessionMgr)
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("get token expiry from m.SessionMgr: %w", err),
 				StatusCode:    http.StatusBadRequest,
 			}).ServeHTTP(res, req)

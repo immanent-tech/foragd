@@ -23,12 +23,16 @@ import (
 type Help struct {
 	template templ.Component
 	metadata pageMetadata
+	svc      pageServices
 }
 
 // FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.metadata.Title),
 			templates.WithPageDescription(p.metadata.Description),
 			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
@@ -92,6 +96,7 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 					&templates.InternalLayoutProps{User: user},
 					templates.Document(mdHTML),
 				),
+				svc: m.NewPageServices(),
 			}).ServeHTTP(res, req.WithContext(req.Context()))
 		} else {
 			RenderExternalPage(&Help{
@@ -99,6 +104,7 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 				template: templates.LayoutExternal(
 					templates.Document(mdHTML),
 				),
+				svc: m.NewPageServices(),
 			}).ServeHTTP(res, req.WithContext(req.Context()))
 		}
 	}

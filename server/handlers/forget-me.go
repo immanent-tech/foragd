@@ -18,10 +18,14 @@ import (
 
 type ForgetMe struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.ForgetMe(),
+	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
+		templates.ForgetMe(),
 		templates.WithPageTitle(p.Title),
 		templates.WithPageDescription(p.Description),
 		templates.WithCanonicalLink(p.CanonicalLink()),
@@ -42,14 +46,15 @@ func (m *Manager) HandleForgetMe() http.HandlerFunc {
 		Description: "Request deletion of your account and personal data.",
 		Path:        "/forget-me",
 		ImagePath:   "/content/logo-vertical-light.webp",
+		svc:         m.NewPageServices(),
 	})
 }
 
-func HandleSubmitForgetMe() http.HandlerFunc {
+func (m *Manager) HandleSubmitForgetMe() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		contact, err := mail.ParseAddress(req.FormValue("contact_email"))
 		if err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("parse contact address: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
@@ -74,7 +79,7 @@ func HandleSubmitForgetMe() http.HandlerFunc {
 			resend.WithTextContent(bodyBuilder.String()),
 			resend.WithTag(resend.TagCategory, resend.TagCategorySupport),
 		); err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("send contact email: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(

@@ -37,15 +37,43 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
+func (m *Manager) CheckUserLimits(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.Debug(req.Context(), "Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+		switch {
+		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
+			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			return
+		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
+			m.HandleInternalError(
+				http.StatusForbidden,
+				models.ErrEmailNewsletterLimitExceeded,
+			).ServeHTTP(res, req)
+			return
+		}
+		next.ServeHTTP(res, req)
+	})
+}
+
 // UserSettings contains the data for rendering the user settings page.
 type UserSettings struct {
 	title templates.PageTitle
+	svc   pageServices
 }
 
 // FullResponse renders a full page (headers, footers and content).
 func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(templates.UserSettings(),
+		templates.CreatePage(
+			t.svc.appCfg,
+			t.svc.sessionMgr,
+			templates.UserSettings(),
 			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req)
 }
@@ -67,6 +95,7 @@ func (m *Manager) ShowSettings() http.HandlerFunc {
 				Summary:     "Settings",
 				Description: "Configure the app",
 			},
+			svc: m.NewPageServices(),
 		}).ServeHTTP(res, req)
 	}
 }
@@ -117,7 +146,7 @@ func (m *Manager) HandleShowSubscriptionsSettings() http.HandlerFunc {
 		// Get all subscriptions.
 		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 		if allSubscriptions == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -141,7 +170,7 @@ func (m *Manager) HandleSaveSubscriptionsSettings(users UserService) http.Handle
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -151,12 +180,12 @@ func (m *Manager) HandleSaveSubscriptionsSettings(users UserService) http.Handle
 		// Decode request.
 		request, err := parseForm[*models.UserSettings](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		if err := validation.Validate.Struct(request); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("validate settings: %w", err),
 			).ServeHTTP(res, req)
@@ -169,7 +198,8 @@ func (m *Manager) HandleSaveSubscriptionsSettings(users UserService) http.Handle
 		// Update local user object.
 		err = users.UpdateUser(req.Context(), user, map[string]any{"settings": settings})
 		if err != nil {
-			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).
+				ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -185,7 +215,7 @@ func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc 
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -195,14 +225,15 @@ func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc 
 		// Decode request.
 		request, err := parseForm[*models.UserSettings](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Update local user object.
 		err = users.UpdateUser(req.Context(), user, map[string]any{"settings": request})
 		if err != nil {
-			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update data: %w", err)).
+				ServeHTTP(res, req)
 			return
 		}
 		// Report success.
@@ -220,7 +251,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -230,14 +261,14 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 		// Decode request.
 		request, err := parseMultipartForm[*models.EditUserRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Parse and process avatar.
 		avatar, err := decodeMultipartFile(req, "avatar")
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("decode avatar: %w", err),
 			).ServeHTTP(res, req)
@@ -247,7 +278,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 			// Maximum size of an avatar image is 1MB.
 			const maxAvatarSizeBytes = 1000000
 			if avatar.GetSize() > maxAvatarSizeBytes {
-				HandleInternalError(http.StatusUnprocessableEntity, models.ErrFileTooLarge).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, models.ErrFileTooLarge).ServeHTTP(res, req)
 				return
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
@@ -255,14 +286,14 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 			// Read the uploaded data and store in the cache.
 			avatarData, err := io.ReadAll(avatar.Data)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("read avatar: %w", err),
 				).ServeHTTP(res, req)
 				return
 			}
 			if err := cache.SaveAvatar(req.Context(), avatarFileID, avatarData); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("read avatar: %w", err),
 				).ServeHTTP(res, req)
@@ -301,7 +332,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 		// Update on backend.
 		err = auth0.UpdateUserCustomisation(req.Context(), request)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update user in auth0: %w", err),
 			).ServeHTTP(res, req)
@@ -310,7 +341,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 		// Update local user object.
 		err = users.UpdateUser(req.Context(), user, updates)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update local user: %w", err),
 			).ServeHTTP(res, req)
@@ -332,7 +363,7 @@ func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -345,7 +376,7 @@ func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 			fontStyle,
 			"oneof=--font-systemui --font-transitional --font-oldstyle --font-humanist --font-geohumanist --font-classhuman --font-neogrote",
 		); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				fmt.Errorf("invalid font style: %s: %w", fontStyle, err),
 			).ServeHTTP(res, req)
@@ -356,7 +387,7 @@ func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 		settings := user.GetSettings()
 		settings.FontStyle = &fontStyle
 		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update font style: %w", err),
 			).ServeHTTP(res, req)
@@ -374,7 +405,7 @@ func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -387,7 +418,7 @@ func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 			theme,
 			"oneof=greenhouse minimal-light forest evergreen catppuccin-latte catppuccin-mocha solarized-light solarized-dark enterprise minimal-dark",
 		); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				fmt.Errorf("invalid theme: %s: %w", theme, err),
 			).ServeHTTP(res, req)
@@ -398,7 +429,7 @@ func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 		settings := user.GetSettings()
 		settings.Theme = &theme
 		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update font style: %w", err),
 			).ServeHTTP(res, req)
@@ -413,14 +444,14 @@ func (m *Manager) HandleChangePassword() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.ChangePasswordRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Update on backend.
 		err = auth0.ChangeUserPassword(req.Context(), request)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("change password in auth0: %w", err),
 			).ServeHTTP(res, req)
@@ -443,7 +474,7 @@ func (m *Manager) HandleDeactivateAccount(
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.DeactivationRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -452,7 +483,7 @@ func (m *Manager) HandleDeactivateAccount(
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -502,7 +533,7 @@ func (m *Manager) HandleDeactivateAccount(
 				// User in trial. Just delete from Elasticsearch and Auth0 then send confirmation email.
 				// Delete from Elasticsearch backend.
 				if err := users.DeleteUser(req.Context(), user); err != nil {
-					HandleInternalError(
+					m.HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("delete user in elasticsearch: %w", err),
 					).ServeHTTP(res, req)
@@ -510,7 +541,7 @@ func (m *Manager) HandleDeactivateAccount(
 				}
 				// Delete from Auth0 backend
 				if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
-					HandleInternalError(
+					m.HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("delete user in auth0: %w", err),
 					).ServeHTTP(res, req)
@@ -548,7 +579,7 @@ func (m *Manager) HandleDeactivateAccount(
 					var timeLeft *time.Time
 					userSubscription, err := user.Subscription.AsPaddleSubscription()
 					if err != nil {
-						HandleInternalError(
+						m.HandleInternalError(
 							http.StatusUnprocessableEntity,
 							fmt.Errorf("get paddle subscription: %w", err),
 						).ServeHTTP(res, req)
@@ -556,7 +587,7 @@ func (m *Manager) HandleDeactivateAccount(
 					}
 					if paddle.IsActive(&userSubscription) {
 						if err := paddle.CancelSubscription(req.Context(), user); err != nil {
-							HandleInternalError(
+							m.HandleInternalError(
 								http.StatusInternalServerError,
 								fmt.Errorf("deactivate paddle subscription: %w", err),
 							).ServeHTTP(res, req)
@@ -601,7 +632,7 @@ func (m *Manager) HandleAddFeedset(
 		}
 		request, err := parseForm[*models.AddFeedsetRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -654,7 +685,7 @@ func (m *Manager) HandleAddFeedset(
 				continue
 			}
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("read feedset: %w", err),
 				).ServeHTTP(res, req)
@@ -662,7 +693,7 @@ func (m *Manager) HandleAddFeedset(
 			}
 			opmlImport, err := opml.NewOPMLFromBytes(data)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("create opml: %w", err),
 				).ServeHTTP(res, req)
@@ -714,12 +745,16 @@ func HandleAccountSuccess() http.HandlerFunc {
 }
 
 // AccountIssue contains data for rendering a page to present the user when there is an issue with their account.
-type AccountIssue struct{}
+type AccountIssue struct {
+	svc pageServices
+}
 
 // FullResponse renders the page for the user to choose a subscription plan.
 func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(
+			t.svc.appCfg,
+			t.svc.sessionMgr,
 			templates.UserAccountIssue(),
 			templates.WithPageTitle(templates.PageTitle{
 				Summary:     "Account Issue",
@@ -733,14 +768,14 @@ func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) 
 func (m *Manager) HandleAccountIssue() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// stripeSessionID := req.FormValue("session_id")
-		RenderExternalPage(&AccountIssue{}).ServeHTTP(res, req)
+		RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
 	}
 }
 
 func (m *Manager) HandleManageAccountSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if sessionID := req.FormValue("session_id"); sessionID == "" {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: errors.New("no session id"),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
@@ -756,7 +791,7 @@ func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.Handle
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -770,7 +805,8 @@ func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.Handle
 		) + "@foragd.app")
 
 		if err := users.UpdateUser(req.Context(), user, map[string]any{"settings": settings}); err != nil {
-			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("update user: %w", err)).
+				ServeHTTP(res, req)
 			return
 		}
 
@@ -783,12 +819,15 @@ func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.Handle
 // Unsubscribe represents an unsubscribe request.
 type Unsubscribe struct {
 	Token string
+	svc   pageServices
 }
 
 func (p *Unsubscribe) FullResponse(res http.ResponseWriter, req *http.Request) {
 	description := "Unsubscribe from promotional emails from Foragd."
 	templ.Handler(
 		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
 			templates.Unsubscribe(p.Token),
 			templates.WithPageTitle(templates.PageTitle{
 				Summary:     "Unsubscribe Options",
@@ -802,12 +841,15 @@ func (p *Unsubscribe) FullResponse(res http.ResponseWriter, req *http.Request) {
 // UnsubscribeResult represents an unsubscribe result.
 type UnsubscribeResult struct {
 	Msg *models.UserMessage
+	svc pageServices
 }
 
 func (p *UnsubscribeResult) FullResponse(res http.ResponseWriter, req *http.Request) {
 	description := "Unsubscribe from promotional emails from Foragd."
 	templ.Handler(
 		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
 			templates.UnsubscribeResult(p.Msg),
 			templates.WithPageTitle(templates.PageTitle{
 				Summary: "Unsubscribe Results",
@@ -828,7 +870,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		token := chi.RouteContext(req.Context()).URLParam("token")
 		if token == "" {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: errors.New("invalid or empty email token"),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
@@ -843,6 +885,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 		case http.MethodGet:
 			RenderExternalPage(&Unsubscribe{
 				Token: token,
+				svc:   m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Closure used to display results.
@@ -863,15 +906,15 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 						"You have been unsubscribed from promotional emails.",
 					)
 				}
+				page := &UnsubscribeResult{
+					Msg: msg,
+					svc: m.NewPageServices(),
+				}
 				switch {
 				case htmx.IsHTMX(req):
-					RenderPartial(&UnsubscribeResult{
-						Msg: msg,
-					}).ServeHTTP(res, req)
+					RenderPartial(page).ServeHTTP(res, req)
 				default:
-					RenderExternalPage(&UnsubscribeResult{
-						Msg: msg,
-					}).ServeHTTP(res, req)
+					RenderExternalPage(page).ServeHTTP(res, req)
 				}
 			}
 
@@ -904,7 +947,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 	}
 }
 
-func ValidateSubscriptionLimits(
+func (m *Manager) ValidateSubscriptionLimits(
 	users UserService,
 	subscriptions SubscriptionsService,
 ) func(next http.Handler) http.Handler {
@@ -915,7 +958,7 @@ func ValidateSubscriptionLimits(
 
 			user := models.UserFromCtx(ctx)
 			if user == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusForbidden,
 					models.ErrCtxValueNotFound,
 				).ServeHTTP(res, req.WithContext(ctx))
@@ -924,7 +967,7 @@ func ValidateSubscriptionLimits(
 
 			allSubscriptions, err := subscriptions.GetAllSubscriptions(ctx)
 			if err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
 
@@ -936,7 +979,8 @@ func ValidateSubscriptionLimits(
 						UTC().
 						After(user.Metadata.SubscriptionLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
 					// User has exceeded subscription limit for over 7 days, deny access.
-					HandleInternalError(http.StatusForbidden, models.ErrForbidden).ServeHTTP(res, req.WithContext(ctx))
+					m.HandleInternalError(http.StatusForbidden, models.ErrForbidden).
+						ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
 				if user.Metadata.SubscriptionLimit.Exceeded && len(
@@ -950,7 +994,7 @@ func ValidateSubscriptionLimits(
 						Timestamp: time.Now().UTC(),
 					}
 					if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
-						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+						m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 						return
 					}
 					slogctx.FromCtx(ctx).Info("User has corrected subscription limit overage.")
@@ -961,7 +1005,8 @@ func ValidateSubscriptionLimits(
 						UTC().
 						After(user.Metadata.NewsletterLimit.Timestamp.Add(models.LimitExceededGracePeriod)) {
 					// User has exceeded newsletter limit for over 7 days, deny access.
-					HandleInternalError(http.StatusForbidden, models.ErrForbidden).ServeHTTP(res, req.WithContext(ctx))
+					m.HandleInternalError(http.StatusForbidden, models.ErrForbidden).
+						ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
 				if user.Metadata.NewsletterLimit.Exceeded &&
@@ -972,7 +1017,7 @@ func ValidateSubscriptionLimits(
 						Timestamp: time.Now().UTC(),
 					}
 					if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
-						HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+						m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					}
 					slogctx.FromCtx(ctx).Info("User has corrected newsletter limit overage.")
 				}
@@ -986,7 +1031,7 @@ func ValidateSubscriptionLimits(
 					Timestamp: time.Now().UTC(),
 				}
 				if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
-					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
 				// Create and send email to notify them about exceeding their limit.
@@ -1010,7 +1055,7 @@ func ValidateSubscriptionLimits(
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusForbidden,
 					models.ErrSubscriptionLimitExceeded,
 				).ServeHTTP(res, req.WithContext(ctx))
@@ -1022,7 +1067,7 @@ func ValidateSubscriptionLimits(
 					Timestamp: time.Now().UTC(),
 				}
 				if err := users.UpdateUser(ctx, user, map[string]any{"metadata": user.Metadata}); err != nil {
-					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
+					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req.WithContext(ctx))
 					return
 				}
 				// Create and send email to notify them about exceeding their limit.
@@ -1046,7 +1091,7 @@ func ValidateSubscriptionLimits(
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusForbidden,
 					models.ErrEmailNewsletterLimitExceeded,
 				).ServeHTTP(res, req.WithContext(ctx))

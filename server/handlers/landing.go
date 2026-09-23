@@ -41,7 +41,10 @@ func (m *Manager) HandleLanding() http.HandlerFunc {
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		RenderExternalPage(&Landing{
-			template: templates.CreatePage(templates.Landing(),
+			template: templates.CreatePage(
+				m.AppConfig,
+				m.SessionMgr,
+				templates.Landing(),
 				templates.WithPageTitle(metadata.Title),
 				templates.WithOpenGraphMetadata(metadata.OpengraphData()),
 				templates.WithJSONLDSchema(

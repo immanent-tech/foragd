@@ -294,17 +294,17 @@ func Start() error {
 			breadcrumbs.Recorder,
 			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager, httpClient),
 			middlewares.RequireValidUser,
-			handlers.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
+			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
 			middlewares.NoCache,
 		)
 		// Manual login refresh.
 		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(httpClient, authenticator))
-		r.With(handlers.AllSubscriptionsCtx(subscriptionSvc)).
+		r.With(handlerMgr.AllSubscriptionsCtx(subscriptionSvc)).
 			Get("/home", handlerMgr.HandleHome(&service.Home{}))
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeSearchParams(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleSearchResults(itemSvc))
 			r.With(htmx.RequireHTMX).
 				Post("/suggestions", handlerMgr.HandleSearchSuggestions(subscriptionSvc, itemSvc))
@@ -319,20 +319,20 @@ func Start() error {
 				Post("/subscription/suggestions", handlerMgr.GetSubscriptionActionSuggestions(subscriptionSvc))
 		})
 		r.Route("/discover", func(r chi.Router) {
-			r.Use(middlewares.CheckUserLimits)
+			r.Use(handlerMgr.CheckUserLimits)
 			r.Get("/", handlerMgr.HandleDiscover())
 			r.With(htmx.RequireHTMX).Post("/suggest", handlerMgr.HandleDiscoverSuggestions(feedSvc, httpClient))
 		})
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleListSubscriptions(subscriptionSvc))
 			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
 		})
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
@@ -345,7 +345,7 @@ func Start() error {
 				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(itemSvc))
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
-				r.Use(handlers.SubscriptionCtx(subscriptionSvc))
+				r.Use(handlerMgr.SubscriptionCtx(subscriptionSvc))
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
@@ -373,7 +373,7 @@ func Start() error {
 			})
 		})
 		r.Route("/subscription", func(r chi.Router) {
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Route("/add", func(r chi.Router) {
 				r.Get("/", handlerMgr.HandleAddSubscription())
 				r.With(htmx.RequireHTMX).Post("/suggestions", handlerMgr.HandleSuggestFeeds(feedSvc, httpClient))
@@ -407,14 +407,14 @@ func Start() error {
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleListArticles(itemSvc))
 			r.Post("/updates", handlerMgr.HandleListArticlesUpdates(itemSvc))
 			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
 		})
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
 				r.Post("/paginate", handlerMgr.HandleListArticles(itemSvc))
@@ -422,7 +422,7 @@ func Start() error {
 				r.Post("/unread", handlerMgr.HandleBulkMarkArticles(subscriptionSvc, models.MarkRead))
 			})
 			r.Route("/{articleID}", func(r chi.Router) {
-				r.Use(handlers.ArticleCtx(itemSvc))
+				r.Use(handlerMgr.ArticleCtx(itemSvc))
 				r.Get(
 					"/",
 					handlerMgr.HandleViewArticle(itemSvc, httpClient, itemsCache),
@@ -441,13 +441,13 @@ func Start() error {
 		})
 		// Favorites.
 		r.Route("/favorites", func(r chi.Router) {
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleListFavorites(subscriptionSvc, itemSvc))
 		})
 		// Map
 		r.Route("/map", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleMap(itemSvc))
 			r.With(htmx.RequireHTMX).Post("/updates", handlerMgr.HandleMapUpdates(itemSvc))
 		})
@@ -473,7 +473,7 @@ func Start() error {
 			)
 			// Import/export.
 			r.Group(func(r chi.Router) {
-				r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 				r.Get("/import", handlerMgr.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
 				r.With(htmx.RequireHTMX).
 					Post("/import", handlerMgr.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
@@ -490,7 +490,7 @@ func Start() error {
 					Post("/account", handlerMgr.HandleSaveAccountSettings(userSvc, imgCache))
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
-					r.Use(handlers.AllSubscriptionsCtx(subscriptionSvc))
+					r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 					r.Get("/subscriptions", handlerMgr.HandleShowSubscriptionsSettings())
 					r.Post("/subscriptions", handlerMgr.HandleSaveSubscriptionsSettings(userSvc))
 				})

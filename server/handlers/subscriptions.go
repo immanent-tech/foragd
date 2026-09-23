@@ -39,12 +39,12 @@ import (
 )
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
-func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
+func (m *Manager) AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			subscriptions, err := svc.GetAllSubscriptions(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get all user subscriptions: %w", err),
 				).ServeHTTP(res, req)
@@ -61,20 +61,20 @@ func AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.
 }
 
 // SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
-func SubscriptionCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
+func (m *Manager) SubscriptionCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			id := chi.URLParam(req, "subscriptionID")
 			subscription, err := svc.GetSubscription(req.Context(), id)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("fetch subscription %s details: %w", id, err),
 				).ServeHTTP(res, req)
 				return
 			}
 			if subscription == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusNotFound,
 					fmt.Errorf("fetch subscription %s: not found", id),
 				).ServeHTTP(res, req)
@@ -90,12 +90,16 @@ func SubscriptionCtx(svc SubscriptionsService) func(next http.Handler) http.Hand
 type ListSubscriptions struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 // FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
@@ -128,7 +132,7 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 
 		subscriptions := models.SubscriptionsFromCtx(req.Context())
 		if subscriptions == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -140,7 +144,7 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("validate request: %w", err),
 			).ServeHTTP(res, req)
@@ -188,20 +192,20 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 			Description: string(response.Filters.GetView()) + " | " + response.Filters.GetSort().String(),
 		}
 
+		page := &ListSubscriptions{
+			title:    title,
+			template: templates.ListSubscriptions(response),
+			svc:      m.NewPageServices(),
+		}
+
 		// Choose rendering method based on method (get = page, post = partial).
 		// ctx := service.ListFiltersToCtx(req.Context(), request.Filters)
 		switch req.Method {
 		case http.MethodGet:
-			RenderInternalPage(&ListSubscriptions{
-				title:    title,
-				template: templates.ListSubscriptions(response),
-			}).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Render new subscription cards.
-			RenderPartial(&ListSubscriptions{
-				title:    title,
-				template: templates.ListSubscriptions(response),
-			}).ServeHTTP(res, req)
+			RenderPartial(page).ServeHTTP(res, req)
 			// Render new category filters.
 			RenderPartial(&PartialTemplate{
 				template: templates.UpdateListCategoryFilters(
@@ -324,13 +328,13 @@ func (m *Manager) HandleMarkSubscription(
 		// Retrieve the subscription details.
 		subscription := models.SubscriptionFromCtx(req.Context())
 		if subscription == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
 		// Mark subscription.
 		if err := subSvc.MarkSubscriptions(req.Context(), mark, subscription.GetID()); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("mark subscriptions: %w", err),
 			).ServeHTTP(res, req)
@@ -354,7 +358,7 @@ func (m *Manager) HandleMarkSubscription(
 		if found {
 			if hook, ok := postMarkHooks[prev.Path]; ok {
 				if err := hook(res, req); err != nil {
-					HandleInternalError(
+					m.HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("run post mark hook: %w", err),
 					).ServeHTTP(res, req)
@@ -412,7 +416,7 @@ func (m *Manager) HandleBulkMarkSubscriptions(svc SubscriptionsService, mark mod
 		// Decode request parameters.
 		request, err := parseForm[*models.BulkMarkSubscriptionsRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -435,7 +439,7 @@ func (m *Manager) HandleBulkMarkSubscriptions(svc SubscriptionsService, mark mod
 			}
 			// Mark selected subscriptions.
 			if err = svc.MarkSubscriptions(ctx, mark, request.Subscriptions...); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("mark subscriptions: %w", err),
 				).ServeHTTP(res, req.WithContext(ctx))
@@ -455,7 +459,7 @@ func (m *Manager) HandleFavoriteSubscription(svc SubscriptionsService) http.Hand
 		// Retrieve the subscription details.
 		subscription := models.SubscriptionFromCtx(req.Context())
 		if subscription == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -463,7 +467,7 @@ func (m *Manager) HandleFavoriteSubscription(svc SubscriptionsService) http.Hand
 		subscription.Favorite = !subscription.IsFavorite()
 		// Update subscription
 		if err := svc.UpdateSubscriptions(req.Context(), subscription); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription: %w", err),
 			).ServeHTTP(res, req)
@@ -489,14 +493,14 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 		// Retrieve the subscription details.
 		subscription := models.SubscriptionFromCtx(req.Context())
 		if subscription == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
 		// Decode request parameters.
 		request, err := parseForm[*models.ConfirmRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -518,7 +522,7 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 			}
 		case true:
 			if err := svc.RemoveSubscriptions(req.Context(), subscription.GetID()); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("remove subscriptions: %w", err),
 				).ServeHTTP(res, req)
@@ -547,11 +551,15 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 type EditSubscription struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 func (p *EditSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
@@ -570,7 +578,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 		// Retrieve the subscription details.
 		subscription := models.SubscriptionFromCtx(req.Context())
 		if subscription == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -614,7 +622,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			// if len(request.Search.Subscriptions) > 0 {
 			// 	subscriptions, err := service.GetSubscriptionsByID(ctx, request.Search.Subscriptions...)
 			// 	if err != nil {
-			// 		HandleInternalError(
+			// 		m.HandleInternalError(
 			// 			http.StatusInternalServerError,
 			// 			fmt.Errorf("get subscriptions by ID: %w", err),
 			// 		).ServeHTTP(res, req)
@@ -632,7 +640,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			// Get all subscriptions.
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -642,7 +650,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			groupedSubscriptions := allSubscriptions.FilterByIDs(
 				subscription.GroupData.GetGroupedSubscriptionIDs()...)
 			if len(groupedSubscriptions) == 0 {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					errors.New("no grouped subscriptions!"),
 				).ServeHTTP(res, req)
@@ -698,6 +706,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			&EditSubscription{
 				title:    pageTitle,
 				template: template,
+				svc:      m.NewPageServices(),
 			},
 		).ServeHTTP(res, req.WithContext(ctx))
 	}
@@ -720,7 +729,7 @@ func (m *Manager) HandleSaveSubscription(cache ImageCache, svc SubscriptionsServ
 		// Retrieve the subscription details.
 		subscription := models.SubscriptionFromCtx(req.Context())
 		if subscription == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no subscription in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -729,41 +738,41 @@ func (m *Manager) HandleSaveSubscription(cache ImageCache, svc SubscriptionsServ
 		case models.SubscriptionTypeFeed:
 			request, err := parseMultipartForm[*models.FeedSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
 			if err := service.EditFeedSubscription(req.Context(), subscription, request); err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 				return
 			}
 		case models.SubscriptionTypeSearch:
 			request, err := parseMultipartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
 			if err := service.EditSearchSubscription(req.Context(), subscription, request); err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 				return
 			}
 		case models.SubscriptionTypeGroup:
 			request, err := parseMultipartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
 			if err := service.EditGroupSubscription(req.Context(), subscription, request); err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 				return
 			}
 		case models.SubscriptionTypeEmail:
 			request, err := parseMultipartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
 			if err := service.EditEmailSubscription(req.Context(), subscription, request); err != nil {
-				HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 				return
 			}
 		}
@@ -771,7 +780,7 @@ func (m *Manager) HandleSaveSubscription(cache ImageCache, svc SubscriptionsServ
 		// Process any uploaded thumbnail image.
 		thumbnail, err := processThumbnail(m.AppConfig, cache, req, subscription.GetID())
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription: %w", err),
 			).ServeHTTP(res, req)
@@ -784,7 +793,7 @@ func (m *Manager) HandleSaveSubscription(cache ImageCache, svc SubscriptionsServ
 		// Update the subscription object.
 		subscription.UpdatedAt = new(time.Now().UTC())
 		if err = svc.UpdateSubscriptions(req.Context(), subscription); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update subscription: %w", err),
 			).ServeHTTP(res, req)
@@ -804,11 +813,15 @@ func (m *Manager) HandleSaveSubscription(cache ImageCache, svc SubscriptionsServ
 type AddSubscription struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 func (h *AddSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(h.template,
+		templates.CreatePage(
+			h.svc.appCfg,
+			h.svc.sessionMgr,
+			h.template,
 			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
@@ -832,10 +845,10 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 		}
 		switch {
 		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 			return
 		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
 			return
 		}
 
@@ -852,7 +865,7 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 			givenURL, err = models.NormalizeFeedURL(v)
 		}
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				err,
 				WithUserMessage(
@@ -877,6 +890,7 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 					Description: "New Feed Subscription",
 				},
 				template: templates.AddFeedSubscription(request),
+				svc:      m.NewPageServices(),
 			},
 		).ServeHTTP(res, req)
 	}
@@ -892,7 +906,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -921,7 +935,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 				service.FetchWithFeedID(request.FeedID),
 			)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("new feed from URL: %w", err),
 				).ServeHTTP(res, req)
@@ -929,7 +943,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 			}
 			// Add the feed to the database.
 			if err := feeds.AddFeed(req.Context(), feed); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("create feed: %w", err),
 				).ServeHTTP(res, req)
@@ -945,7 +959,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 		// Create a new subscription.
 		subscription, err := service.NewFeedSubscription(req.Context(), feed, nil)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("create subscription: %w", err),
 			).ServeHTTP(res, req)
@@ -954,7 +968,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 
 		// Add subscription to user.
 		if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("add subscription: %w", err),
 			).ServeHTTP(res, req)
@@ -1057,10 +1071,10 @@ func (m *Manager) HandleAddSearchSubscription(
 		}
 		switch {
 		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 			return
 		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
 			return
 		}
 
@@ -1069,7 +1083,7 @@ func (m *Manager) HandleAddSearchSubscription(
 			// Get the details.
 			request, err := parseForm[*models.SearchRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			}
 			// Render form.
 			RenderInternalPage(
@@ -1089,28 +1103,29 @@ func (m *Manager) HandleAddSearchSubscription(
 						},
 						m.Breadcrumbs,
 					),
+					svc: m.NewPageServices(),
 				},
 			).ServeHTTP(res, req.WithContext(req.Context()))
 		case http.MethodPost:
 			request, err := parseMultipartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			}
 			subscription, err := service.NewSearchSubscription(req.Context(), request)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
 			if err := subscription.Validate(); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
 			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add search subscription: %w", err),
 				).ServeHTTP(res, req)
@@ -1195,10 +1210,10 @@ func (m *Manager) HandleAddGroupSubscription(
 		}
 		switch {
 		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 			return
 		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
 			return
 		}
 
@@ -1209,7 +1224,7 @@ func (m *Manager) HandleAddGroupSubscription(
 			// Get suggested suggested subscriptions.
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -1227,20 +1242,21 @@ func (m *Manager) HandleAddGroupSubscription(
 						models.NewGroupSubscriptionRequest(suggestedSubscriptions, suggestedCategories),
 						m.Breadcrumbs,
 					),
+					svc: m.NewPageServices(),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Decode request.
 			request, err := parseMultipartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil {
-				HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 				return
 			}
 
 			// Generate subscription metadata from request.
 			subscription, err := service.NewGroupSubscription(req.Context(), request)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("new group subscription: %w", err),
 				).ServeHTTP(res, req)
@@ -1248,7 +1264,7 @@ func (m *Manager) HandleAddGroupSubscription(
 			}
 			// Validate subscription.
 			if err = subscription.Validate(); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("validate group subscription: %w", err),
 				).ServeHTTP(res, req)
@@ -1256,7 +1272,7 @@ func (m *Manager) HandleAddGroupSubscription(
 			}
 			// Add subscriptions
 			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add subscriptions: %w", err),
 				).ServeHTTP(res, req)
@@ -1277,13 +1293,13 @@ func (m *Manager) HandleAddSubscriptionToGroup() http.HandlerFunc {
 		// Parse add subscription to group request.
 		request, err := parseForm[*models.AddSubscriptionToGroupRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
 		// Ignore request to add subscription that is already in the group.
 		if slices.Contains(slices.Collect(maps.Values(request.ExistingSubscriptions)), request.SuggestionText) {
-			HandleInternalError(http.StatusConflict, errors.New("subscription already in group")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusConflict, errors.New("subscription already in group")).ServeHTTP(res, req)
 			return
 		}
 		for subscriptionID, subscriptionName := range request.Suggestions {
@@ -1305,11 +1321,15 @@ func (m *Manager) HandleAddSubscriptionToGroup() http.HandlerFunc {
 type ImportSubscriptions struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 func (h *ImportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(h.template,
+		templates.CreatePage(
+			h.svc.appCfg,
+			h.svc.sessionMgr,
+			h.template,
 			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
@@ -1345,10 +1365,10 @@ func (m *Manager) HandleImportSubscriptions(
 		}
 		switch {
 		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 			return
 		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
-			HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
 			return
 		}
 
@@ -1361,13 +1381,14 @@ func (m *Manager) HandleImportSubscriptions(
 					Description: "Choose source to import subscriptions",
 				},
 				template: templates.ImportSubscriptions(),
+				svc:      m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
 			opmlData, err := decodeMultipartFile(req, "source")
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("decode opml: %w", err),
 				).ServeHTTP(res, req)
@@ -1377,7 +1398,7 @@ func (m *Manager) HandleImportSubscriptions(
 			// Generate subscription requests from OPML file contents.
 			requests, err := opmlFile.GenerateRequests()
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("generate subscription requests: %w", err),
 				).ServeHTTP(res, req)
@@ -1386,7 +1407,7 @@ func (m *Manager) HandleImportSubscriptions(
 			// Get user's existing subscriptions.
 			currentSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if currentSubscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -1400,7 +1421,7 @@ func (m *Manager) HandleImportSubscriptions(
 			)-len(
 				currentSubscriptions.FilterByType(models.SubscriptionTypeEmail),
 			) > models.MaxSubscriptions {
-				HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
 				return
 			}
 
@@ -1426,11 +1447,15 @@ func (m *Manager) HandleImportSubscriptions(
 type ExportSubscriptions struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 func (h *ExportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(h.template,
+		templates.CreatePage(
+			h.svc.appCfg,
+			h.svc.sessionMgr,
+			h.template,
 			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
@@ -1462,13 +1487,14 @@ func (m *Manager) HandleExportSubscriptions(feedSvc FeedService) http.HandlerFun
 						Description: "Export your subscriptions as OPML",
 					},
 					template: templates.ExportSubscriptions(m.Breadcrumbs),
+					svc:      m.NewPageServices(),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get all user subscriptions.
 			subscriptions := models.SubscriptionsFromCtx(req.Context())
 			if subscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -1479,7 +1505,7 @@ func (m *Manager) HandleExportSubscriptions(feedSvc FeedService) http.HandlerFun
 				req.Context(),
 				subscriptions.FilterByType(models.SubscriptionTypeFeed).GetFeedIDs()...)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("generate opml: %w", err),
 				).ServeHTTP(res, req)
@@ -1501,7 +1527,7 @@ func (m *Manager) HandleSubscriptionCategories() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.AddCategoryToSubscriptionRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 

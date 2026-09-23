@@ -33,14 +33,16 @@ func WithUserMessage(msg *models.UserMessage) ErrorOption {
 
 // InternalError represents errors shown on internal (pages accessible to logged in users) pages.
 type InternalError struct {
-	err     *models.APIError
-	referer string
+	err        *models.APIError
+	referer    string
+	appCfg     AppConfig
+	sessionMgr SessionManager
 }
 
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users). If the passed in
 // error can be unwrapped as a models.APIError, the status code and value of the APIError is used and the passed in
 // status code is ignored. Otherwise a new APIError will be generated from the status code and error.
-func HandleInternalError(status int, err error, options ...ErrorOption) http.HandlerFunc {
+func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOption) http.HandlerFunc {
 	opts := &ErrorOptions{
 		UserMessage: models.NewErrorMessage(
 			"Problem occurred while processing request",
@@ -69,8 +71,10 @@ func HandleInternalError(status int, err error, options ...ErrorOption) http.Han
 				apiErr.UserMessage = opts.UserMessage
 			}
 			page := &InternalError{
-				err:     apiErr,
-				referer: req.URL.Path,
+				err:        apiErr,
+				referer:    req.URL.Path,
+				appCfg:     m.AppConfig,
+				sessionMgr: m.SessionMgr,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		} else {
@@ -85,8 +89,10 @@ func HandleInternalError(status int, err error, options ...ErrorOption) http.Han
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &InternalError{
-				err:     apiErr,
-				referer: req.URL.Path,
+				err:        apiErr,
+				referer:    req.URL.Path,
+				appCfg:     m.AppConfig,
+				sessionMgr: m.SessionMgr,
 			}
 			RenderInternalPage(page).ServeHTTP(res, req)
 		}
@@ -95,7 +101,11 @@ func HandleInternalError(status int, err error, options ...ErrorOption) http.Han
 
 // FullResponse renders the error message on a full page.
 func (p *InternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.InternalError(models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage))).
+	templ.Handler(templates.CreatePage(
+		p.appCfg,
+		p.sessionMgr,
+		templates.InternalError(
+			models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage))).
 		ServeHTTP(res, req)
 }
 
@@ -119,7 +129,7 @@ type ExternalError struct {
 }
 
 // HandleExternalError handles display errors on external pages.
-func HandleExternalError(err error) http.HandlerFunc {
+func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Don't cache errors.
 		res.Header().Set("Cache-Control", "no-store")
@@ -134,7 +144,13 @@ func HandleExternalError(err error) http.HandlerFunc {
 			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &ExternalError{
-				template: templates.ExternalError(models.UserFromCtx(req.Context()), apiErr.GetUserMessage()),
+				template: templates.CreatePage(
+					m.AppConfig,
+					m.SessionMgr,
+					templates.ExternalError(models.UserFromCtx(req.Context()),
+						apiErr.GetUserMessage()),
+					templates.WithPageTitle(templates.PageTitle{Summary: "Whoops! Something went wrong"}),
+				),
 			}
 			RenderExternalPage(page).ServeHTTP(res, req)
 		} else {
@@ -149,6 +165,5 @@ func HandleExternalError(err error) http.HandlerFunc {
 
 // FullResponse renders the error on a full page.
 func (p *ExternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(p.template, templates.WithPageTitle(templates.PageTitle{Summary: "Whoops! Something went wrong"}))).
-		ServeHTTP(res, req)
+	templ.Handler(p.template).ServeHTTP(res, req)
 }

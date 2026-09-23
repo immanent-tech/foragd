@@ -28,11 +28,14 @@ import (
 
 type Linter struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (p *Linter) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
 			templates.Linter(),
 			templates.WithPageTitle(p.Title),
 			templates.WithPageDescription(p.Description),
@@ -78,6 +81,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				Path:        "/linter",
 				ImagePath:   "/content/logo-vertical-light.webp",
 				baseURL:     m.AppConfig.GetBaseURL(),
+				svc:         m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			feedData, err := fetchFeedData(httpClient, req.FormValue("url"))

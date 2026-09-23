@@ -43,11 +43,14 @@ var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
 type PostsIndex struct {
 	data     templates.PostsData
 	metadata pageMetadata
+	svc      pageServices
 }
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
 		templates.PostsIndex(p.data),
 		templates.WithPageTitle(p.metadata.Title),
 		templates.WithPageDescription(p.metadata.Description),
@@ -64,7 +67,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 // Post is an individual post.
 type Post struct {
 	*markdownx.File
-	baseURL *url.URL
+	svc pageServices
 }
 
 // FullResponse renders an individual post.
@@ -89,9 +92,9 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	}
 	postOG := opengraph.NewArticle(
 		title.String(),
-		p.baseURL.Clone().JoinPath("blog", p.Frontmatter.Slug).String(),
+		p.svc.appCfg.GetBaseURL().JoinPath("blog", p.Frontmatter.Slug).String(),
 		p.Frontmatter.Description,
-		p.baseURL.Clone().JoinPath(*p.Frontmatter.Image).String(),
+		p.svc.appCfg.GetBaseURL().JoinPath(*p.Frontmatter.Image).String(),
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
 		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
 		"",
@@ -101,7 +104,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	)
 	postJsonLd := schemaorg.NewArticle(
 		title.String(),
-		[]string{p.baseURL.Clone().JoinPath(*p.Frontmatter.Image).String()},
+		[]string{p.svc.appCfg.GetBaseURL().JoinPath(*p.Frontmatter.Image).String()},
 		nil,
 		nil,
 		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
@@ -109,13 +112,15 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		p.Frontmatter.Description,
 	)
 	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
 		templates.Post(p.File),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(p.baseURL.Clone().JoinPath("blog", p.Frontmatter.Slug).String()),
+		templates.WithCanonicalLink(p.svc.appCfg.GetBaseURL().JoinPath("blog", p.Frontmatter.Slug).String()),
 		templates.WithOpenGraphMetadata(postOG),
 		templates.WithJSONLDSchema(
-			generateSiteJSONLD(p.baseURL),
+			generateSiteJSONLD(p.svc.appCfg.GetBaseURL()),
 			postJsonLd,
 		),
 	)).ServeHTTP(res, req.WithContext(ctx))
@@ -160,7 +165,9 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 					Files:   posts,
 					BaseURL: m.AppConfig.GetBaseURL(),
 				},
+				svc: m.NewPageServices(),
 			}
+
 			RenderExternalPage(index).ServeHTTP(res, req)
 		default:
 			// Individual post.
@@ -175,8 +182,8 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
 			RenderExternalPage(&Post{
-				baseURL: m.AppConfig.GetBaseURL(),
-				File:    posts[idx],
+				File: posts[idx],
+				svc:  m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		}
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-func HandleChooseAndroidSubscription(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleChooseAndroidSubscription(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -40,7 +40,7 @@ func HandleChooseAndroidSubscription(appCfg AppConfig) http.HandlerFunc {
 		if err := checkout.SubscriptionData.FromAndroidCheckout(models.AndroidCheckout{
 			SKU: plan,
 		}); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("generate checkout request: %w", err),
 			).ServeHTTP(res, req)
@@ -52,18 +52,20 @@ func HandleChooseAndroidSubscription(appCfg AppConfig) http.HandlerFunc {
 				Summary:     "Choose Subscription Plan",
 				Description: "Pick whether to subscribe monthly or yearly",
 			},
-			user:    user,
-			request: checkout,
+			user:       user,
+			request:    checkout,
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
 	}
 }
 
 // HandleAndroidPurchase receives a purchaseToken from the client and verifies it server-side.
-func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
+func (m *Manager) HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -80,7 +82,7 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 				return
 			}
 
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusConflict,
 				errors.New("user has existing subscription"),
 			).ServeHTTP(res, req)
@@ -89,7 +91,7 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 
 		// Verify we are processing an android subscription.
 		if subscriptionType := req.FormValue("subscription_type"); subscriptionType != "android" {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("handle purchase: invalid subscription type %s", subscriptionType),
 			).ServeHTTP(res, req)
@@ -101,7 +103,7 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 
 		// Check SKU is valid.
 		if !android.IsValidSKU(sku) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				fmt.Errorf("handle purchase: unrecognised sku %s", sku),
 			).ServeHTTP(res, req)
@@ -111,14 +113,14 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 		// Check token hasn't already been granted.
 		granted, err := android.TokenAlreadyGranted(req.Context(), userSvc, token)
 		if err != nil && !errors.Is(err, android.ErrNotFound) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				fmt.Errorf("handle purchase: check for existing token %w", err),
 			).ServeHTTP(res, req)
 			return
 		}
 		if granted {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("handle purchase: token already claimed: %s", token),
 			).ServeHTTP(res, req)
@@ -127,7 +129,7 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 
 		// Validate purchase parameters.
 		if sku == "" || token == "" {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				errors.New("parse form values: sku and/or token missing"),
 			).ServeHTTP(res, req)
@@ -140,7 +142,8 @@ func HandleAndroidPurchase(userSvc UserService) http.HandlerFunc {
 
 		_, err = android.VerifyAndAcknowledgeSubscription(req.Context(), userSvc, user, sku, token)
 		if err != nil {
-			HandleInternalError(http.StatusBadRequest, fmt.Errorf("billing verification: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusBadRequest, fmt.Errorf("billing verification: %w", err)).
+				ServeHTTP(res, req)
 			return
 		}
 

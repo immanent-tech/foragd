@@ -71,17 +71,18 @@ func ThemeFromCtx(ctx context.Context) string {
 	return theme
 }
 
-// func BaseURLToCtx(ctx context.Context, baseURL *url.URL) context.Context {
-// 	return context.WithValue(ctx, baseURLCtxKey, *baseURL)
-// }
-
-// func BaseURLFromCtx(ctx context.Context) *url.URL {
-// 	if baseURL, ok := ctx.Value(baseURLCtxKey).(url.URL); ok {
-// 		return &baseURL
-// 	}
-// 	return nil
-// }
+type AppConfig interface {
+	GetAppID() string
+	GetAppVersion() string
+	GetAppName() string
+	IsProduction() bool
+	GetBaseURL() *url.URL
+}
 
 type Breadcrumbs interface {
 	Previous(ctx context.Context) (*url.URL, bool)
+}
+
+type SessionManager interface {
+	Get(ctx context.Context, key string) any
 }

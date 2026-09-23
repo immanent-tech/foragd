@@ -77,6 +77,8 @@ func (m *Manager) PolicyDocsHandler() http.HandlerFunc {
 			policyFile.Frontmatter.Description,
 		)
 		template := templates.CreatePage(
+			m.AppConfig,
+			m.SessionMgr,
 			templates.LayoutExternal(
 				templates.Document(policyFile.Content),
 			),

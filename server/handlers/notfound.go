@@ -14,6 +14,7 @@ import (
 
 type NotFoundPage struct {
 	template templ.Component
+	svc      pageServices
 }
 
 // HandleNotFound handles showing a page for a 404 response.
@@ -30,17 +31,20 @@ func (m *Manager) HandleNotFound() http.HandlerFunc {
 			)
 		}
 		res.WriteHeader(http.StatusNotFound)
-		RenderInternalPage(&NotFoundPage{template: layout}).ServeHTTP(res, req)
+		RenderInternalPage(&NotFoundPage{
+			template: layout,
+			svc:      m.NewPageServices(),
+		}).ServeHTTP(res, req)
 	}
 }
 
 func (p *NotFoundPage) FullResponse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(p.template)).ServeHTTP(w, r)
+	templ.Handler(templates.CreatePage(p.svc.appCfg, p.svc.sessionMgr, p.template)).ServeHTTP(w, r)
 }
 
 func (p *NotFoundPage) PartialResponse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(p.template), templ.WithFragments(templates.ErrorFragment)).
+	templ.Handler(templates.CreatePage(p.svc.appCfg, p.svc.sessionMgr, p.template), templ.WithFragments(templates.ErrorFragment)).
 		ServeHTTP(w, r)
 }

@@ -16,25 +16,15 @@ import (
 )
 
 type Contact struct {
-	pageMetadata
+	template templ.Component
 }
 
 func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.Contact(),
-		templates.WithPageTitle(p.Title),
-		templates.WithPageDescription(p.Description),
-		templates.WithCanonicalLink(p.CanonicalLink()),
-		templates.WithOpenGraphMetadata(p.OpengraphData()),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(p.baseURL),
-			p.JSONLD(),
-			orgJsonLd,
-		),
-	)).ServeHTTP(res, req)
+	templ.Handler(p.template).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleContact() http.HandlerFunc {
-	return RenderExternalPage(&Contact{
+	metadata := pageMetadata{
 		Title: templates.PageTitle{
 			Summary:     "Contact",
 			Description: "Contact the developers of Foragd.",
@@ -43,6 +33,22 @@ func (m *Manager) HandleContact() http.HandlerFunc {
 		Path:        "/contact",
 		ImagePath:   "/content/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
+	}
+	return RenderExternalPage(&Contact{
+		template: templates.CreatePage(
+			m.AppConfig,
+			m.SessionMgr,
+			templates.Contact(),
+			templates.WithPageTitle(metadata.Title),
+			templates.WithPageDescription(metadata.Description),
+			templates.WithCanonicalLink(metadata.CanonicalLink()),
+			templates.WithOpenGraphMetadata(metadata.OpengraphData()),
+			templates.WithJSONLDSchema(
+				generateSiteJSONLD(metadata.baseURL),
+				metadata.JSONLD(),
+				orgJsonLd,
+			),
+		),
 	})
 }
 
@@ -51,7 +57,7 @@ func (m *Manager) HandleSubmitContact() http.HandlerFunc {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ContactRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -73,7 +79,7 @@ func (m *Manager) HandleSubmitContact() http.HandlerFunc {
 			resend.WithTextContent(bodyBuilder.String()),
 			resend.WithTag(resend.TagCategory, resend.TagCategorySupport),
 		); err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("send contact email: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(

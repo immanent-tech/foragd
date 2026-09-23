@@ -6,41 +6,44 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/go-resty/resty/v2"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
-type Discover struct {
-	title    templates.PageTitle
-	template templ.Component
-}
+// type Discover struct {
+// 	title      templates.PageTitle
+// 	template   templ.Component
+// 	appCfg     AppConfig
+// 	sessionMgr SessionManager
+// }
 
-func (h *Discover) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(h.template,
-			templates.WithPageTitle(h.title),
-		)).ServeHTTP(res, req)
-}
+// func (h *Discover) FullResponse(res http.ResponseWriter, req *http.Request) {
+// 	templ.Handler(
+// 		templates.CreatePage(
+// 			h.appCfg,
+// 			h.sessionMgr,
+// 			h.template,
+// 			templates.WithPageTitle(h.title),
+// 		)).ServeHTTP(res, req)
+// }
 
-func (h *Discover) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-}
+// func (h *Discover) PartialResponse(res http.ResponseWriter, req *http.Request) {
+// 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+// 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
+// 	templ.Handler(templates.SideBar(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+// 	templ.Handler(templates.Dock(element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+// }
 
 func (m *Manager) HandleDiscover() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -60,12 +63,12 @@ func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService, httpClient *res
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 		results, err := feedSvc.SuggestFeeds(req.Context(), httpClient, request)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 		RenderPartial(&PartialTemplate{

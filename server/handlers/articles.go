@@ -33,20 +33,20 @@ import (
 )
 
 // ArticleCtx retrieves the article matching the URL param and stores it in the context.
-func ArticleCtx(itemSvc ItemService) func(next http.Handler) http.Handler {
+func (m *Manager) ArticleCtx(itemSvc ItemService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			id := chi.URLParam(req, "articleID")
 			articles, err := itemSvc.GetArticles(req.Context(), id)
 			if err != nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
 					fmt.Errorf("fetch article %s details: %w", id, err),
 				).ServeHTTP(res, req)
 				return
 			}
 			if len(articles) == 0 {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusNotFound,
 					fmt.Errorf("fetch article %s: not found", id),
 				).ServeHTTP(res, req)
@@ -60,14 +60,16 @@ func ArticleCtx(itemSvc ItemService) func(next http.Handler) http.Handler {
 
 // ListArticles holds data for generating the articles list page.
 type ListArticles struct {
-	title    templates.PageTitle
-	template templ.Component
+	appCfg     AppConfig
+	sessionMgr SessionManager
+	title      templates.PageTitle
+	template   templ.Component
 }
 
 // FullResponse renders a full page (headers, footers and list of articles).
 func (p *ListArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(p.appCfg, p.sessionMgr, p.template,
 			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
@@ -103,7 +105,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("parse query values: %w", err),
 			).ServeHTTP(res, req)
@@ -136,7 +138,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			// Get user subscriptions.
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -145,7 +147,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			// Filter by ID.
 			subscription = allSubscriptions.GetByID(subscriptionID)
 			if subscription == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusNotFound,
 					fmt.Errorf("get subscription details: %w", err),
 				).ServeHTTP(res, req)
@@ -160,7 +162,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 		var next models.Pagination
 		articles, next, err = itemSvc.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("filter articles: %w", err),
 			).ServeHTTP(res, req)
@@ -190,20 +192,21 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			Description: string(response.Filters.GetView()) + " | " + response.Filters.GetSort().String(),
 		}
 
+		page := &ListArticles{
+			title:      title,
+			template:   templates.ListArticles(response),
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
+		}
+
 		// Choose rendering method based on method.
 		switch req.Method {
 		case http.MethodGet:
 			// GET: render full page.
-			RenderInternalPage(&ListArticles{
-				title:    title,
-				template: templates.ListArticles(response),
-			}).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.
-			RenderPartial(&ListArticles{
-				title:    title,
-				template: templates.ListArticles(response),
-			}).ServeHTTP(res, req)
+			RenderPartial(page).ServeHTTP(res, req)
 			// Update category filters.
 			RenderPartial(&PartialTemplate{
 				template: templates.UpdateListCategoryFilters(
@@ -249,7 +252,7 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 		// Retreive subscription details.
 		subscriptions := models.SubscriptionsFromCtx(req.Context())
 		if subscriptions == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -322,14 +325,16 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 }
 
 type SimilarArticles struct {
-	title    templates.PageTitle
-	template templ.Component
+	appCfg     AppConfig
+	sessionMgr SessionManager
+	title      templates.PageTitle
+	template   templ.Component
 }
 
 // FullResponse renders a full page (headers, footers and list of subscriptions).
 func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(h.template,
+		templates.CreatePage(h.appCfg, h.sessionMgr, h.template,
 			templates.WithPageTitle(h.title),
 		)).ServeHTTP(res, req)
 }
@@ -350,7 +355,7 @@ func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFun
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -358,7 +363,7 @@ func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFun
 
 		articles, err := itemSvc.FindSimilarArticles(req.Context(), similarArticlesCount, article.GetID())
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("find similar articles: %w", err),
 			).ServeHTTP(res, req)
@@ -369,21 +374,25 @@ func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFun
 			title: templates.PageTitle{
 				Summary: "Similar Articles",
 			},
-			template: templates.SimilarArticles(articles),
+			template:   templates.SimilarArticles(articles),
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
 	}
 }
 
 // ArticleContent contains the data to view article content.
 type ArticleContent struct {
-	title    templates.PageTitle
-	template templ.Component
+	appCfg     AppConfig
+	sessionMgr SessionManager
+	title      templates.PageTitle
+	template   templ.Component
 }
 
 // FullResponse renders a full page (headers, footers and content).
 func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(t.template,
+		templates.CreatePage(t.appCfg, t.sessionMgr, t.template,
 			templates.WithPageTitle(t.title),
 		)).ServeHTTP(res, req)
 }
@@ -406,7 +415,7 @@ func (m *Manager) HandleViewArticle(
 		// Extract request parameters.
 		itemID := chi.URLParam(req, "articleID")
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("decode request: %w", err),
 			).ServeHTTP(res, req)
@@ -416,7 +425,7 @@ func (m *Manager) HandleViewArticle(
 		// Fetch article.
 		articles, err := itemSvc.GetArticles(req.Context(), itemID)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("get article content: %w", err),
 			).ServeHTTP(res, req)
@@ -433,7 +442,7 @@ func (m *Manager) HandleViewArticle(
 		// Get the "show_full_content" value and override the article value.
 		request, err := parseForm[*models.ViewArticleRequest](req)
 		if err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("parse request params: %w", err),
 			).ServeHTTP(res, req)
@@ -479,6 +488,8 @@ func (m *Manager) HandleViewArticle(
 				BaseURL: m.AppConfig.GetBaseURL(),
 				// Filters: filters,
 			}),
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
 	}
 }
@@ -491,7 +502,7 @@ func (m *Manager) HandleBrowseArticles(
 	return func(res http.ResponseWriter, req *http.Request) {
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				errors.New("no article in context"),
 			).ServeHTTP(res, req)
@@ -528,7 +539,7 @@ func (m *Manager) HandleBrowseArticles(
 			article.GetUpdatedDate().UTC(),
 		)
 		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get next article: %w", err),
 			).ServeHTTP(res, req)
@@ -567,7 +578,7 @@ func (m *Manager) HandleMarkArticle(
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
 		// Mark the article.
@@ -577,7 +588,7 @@ func (m *Manager) HandleMarkArticle(
 			article.GetSubscriptionID(),
 			article.GetID(),
 		); err != nil {
-			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/list/articles") {
@@ -603,7 +614,7 @@ func (m *Manager) HandleBulkMarkArticles(
 		// Parse confirmation.
 		request, err := parseForm[*models.BulkMarkArticlesRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -618,7 +629,7 @@ func (m *Manager) HandleBulkMarkArticles(
 			// For each subscription's articles shown, mark.
 			for subscriptionID, itemIDs := range request.DisplayedArticles {
 				if err = subsSvc.MarkArticles(req.Context(), mark, subscriptionID, itemIDs...); err != nil {
-					HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+					m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 					return
 				}
 			}
@@ -657,7 +668,7 @@ func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
 
@@ -677,7 +688,7 @@ func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService
 		}
 
 		if err := updateFavoriteArticle(req.Context(), itemSvc, userSvc, user, article.GetID(), favorite); err != nil {
-			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -699,7 +710,7 @@ func (m *Manager) HandleShareArticle() http.HandlerFunc {
 		// Retrieve the article details.
 		article := models.ArticleFromCtx(req.Context())
 		if article == nil {
-			HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusNotFound, fmt.Errorf("no article in context")).ServeHTTP(res, req)
 			return
 		}
 		// Render share modal.

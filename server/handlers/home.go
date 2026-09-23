@@ -22,6 +22,7 @@ import (
 type Home struct {
 	title templates.PageTitle
 	data  *templates.HomeData
+	svc   pageServices
 }
 
 // FullResponse renders a full page (headers, footers and data).
@@ -37,12 +38,18 @@ func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 	switch user.GetSettings().ShowOnboarding {
 	case true:
 		templ.Handler(
-			templates.CreatePage(templates.NewUserHome(),
+			templates.CreatePage(
+				p.svc.appCfg,
+				p.svc.sessionMgr,
+				templates.NewUserHome(),
 				templates.WithPageTitle(p.title),
 			)).ServeHTTP(res, req)
 	case false:
 		templ.Handler(
-			templates.CreatePage(templates.UserHome(p.data),
+			templates.CreatePage(
+				p.svc.appCfg,
+				p.svc.sessionMgr,
+				templates.UserHome(p.data),
 				templates.WithPageTitle(p.title),
 			)).ServeHTTP(res, req)
 	}
@@ -117,7 +124,7 @@ func (m *Manager) HandleHome(homepageSvc HomePageService) http.HandlerFunc {
 			subscriptions,
 		)
 		if err != nil {
-			HandleInternalError(http.StatusInternalServerError, err)
+			m.HandleInternalError(http.StatusInternalServerError, err)
 			return
 		}
 
@@ -132,6 +139,7 @@ func (m *Manager) HandleHome(homepageSvc HomePageService) http.HandlerFunc {
 		RenderInternalPage(&Home{
 			title: title,
 			data:  data,
+			svc:   m.NewPageServices(),
 		}).ServeHTTP(res, req)
 	}
 }

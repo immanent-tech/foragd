@@ -18,15 +18,19 @@ import (
 )
 
 type ChooseSubscription struct {
-	title   templates.PageTitle
-	user    *models.User
-	request *models.CheckoutRequest
+	title      templates.PageTitle
+	user       *models.User
+	request    *models.CheckoutRequest
+	appCfg     AppConfig
+	sessionMgr SessionManager
 }
 
 func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
 	ctx := slogctx.With(req.Context(), "client", models.ClientTypeFromCtx(req.Context()))
 	templ.Handler(
 		templates.CreatePage(
+			t.appCfg,
+			t.sessionMgr,
 			templates.LayoutInternal(
 				&templates.InternalLayoutProps{User: t.user},
 				templates.Checkout(t.user, t.request),
@@ -49,12 +53,12 @@ func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.
 }
 
 func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
-	paddleChoice := HandleChoosePaddleSubscription(m.AppConfig)
-	androidChoice := HandleChooseAndroidSubscription(m.AppConfig)
+	paddleChoice := m.HandleChoosePaddleSubscription(m.AppConfig)
+	androidChoice := m.HandleChooseAndroidSubscription(m.AppConfig)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := req.ParseForm(); err != nil {
-			HandleExternalError(&models.APIError{
+			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("parse form: %w", err),
 				StatusCode:    http.StatusBadRequest,
 				UserMessage: models.NewErrorMessage(
@@ -80,7 +84,7 @@ func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
 
 func (m *Manager) HandlePurchaseSubscription(userSvc UserService) http.HandlerFunc {
 	paddlePurchase := handlePaddlePurchase(m.AppConfig)
-	androidPurchase := HandleAndroidPurchase(userSvc)
+	androidPurchase := m.HandleAndroidPurchase(userSvc)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Pre-parse form data and fail early if there is no form submission.
@@ -123,12 +127,16 @@ type PurchaseSubscriptionSuccess struct {
 	title         templates.PageTitle
 	user          *models.User
 	transactionID string
+	appCfg        AppConfig
+	sessionMgr    SessionManager
 }
 
 func (t *PurchaseSubscriptionSuccess) FullResponse(res http.ResponseWriter, req *http.Request) {
 	ctx := slogctx.With(req.Context(), "client", models.ClientTypeFromCtx(req.Context()))
 	templ.Handler(
 		templates.CreatePage(
+			t.appCfg,
+			t.sessionMgr,
 			templates.LayoutInternal(
 				&templates.InternalLayoutProps{User: t.user},
 				templates.PurchaseSubscriptionSuccess(t.transactionID),
@@ -154,7 +162,7 @@ func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 			).ServeHTTP(res, req)
@@ -166,6 +174,9 @@ func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 			title: templates.PageTitle{
 				Summary: "Purchase subscription success",
 			},
-			user: user, transactionID: txID}).ServeHTTP(res, req)
+			user: user, transactionID: txID,
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
+		}).ServeHTTP(res, req)
 	}
 }

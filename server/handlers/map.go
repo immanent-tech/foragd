@@ -27,11 +27,15 @@ import (
 type MapArticles struct {
 	title    templates.PageTitle
 	template templ.Component
+	svc      pageServices
 }
 
 func (p *MapArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
@@ -64,7 +68,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			Filters: *ListFiltersFromCtx(req.Context()),
 		}
 		if err := request.Validate(); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("parse query values: %w", err),
 			).ServeHTTP(res, req)
@@ -88,7 +92,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			// Get user subscriptions.
 			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 			if allSubscriptions == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
 				).ServeHTTP(res, req)
@@ -97,7 +101,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			// Filter by ID.
 			subscription = allSubscriptions.GetByID(subscriptionID)
 			if subscription == nil {
-				HandleInternalError(
+				m.HandleInternalError(
 					http.StatusNotFound,
 					fmt.Errorf("get subscription details: %w", err),
 				).ServeHTTP(res, req)
@@ -126,7 +130,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 		request.Filters.Count = 50
 		articles, next, err = itemSvc.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("filter articles: %w", err),
 			).ServeHTTP(res, req)
@@ -163,6 +167,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			RenderInternalPage(&MapArticles{
 				title:    title,
 				template: templates.MapArticles(response),
+				svc:      m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.

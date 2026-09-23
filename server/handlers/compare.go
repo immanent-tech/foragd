@@ -27,14 +27,19 @@ var getComparisons = sync.OnceValues(func() ([]*markdownx.File, error) {
 })
 
 type ComparisonPage struct {
-	text     *markdownx.File
-	metadata pageMetadata
+	text       *markdownx.File
+	metadata   pageMetadata
+	appCfg     AppConfig
+	sessionMgr SessionManager
 }
 
 func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request) {
 	// Render appropriate content.
 	templ.Handler(
-		templates.CreatePage(templates.Comparison(p.text),
+		templates.CreatePage(
+			p.appCfg,
+			p.sessionMgr,
+			templates.Comparison(p.text),
 			templates.WithPageTitle(p.metadata.Title),
 			templates.WithPageDescription(p.metadata.Description),
 			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
@@ -92,6 +97,8 @@ func (m *Manager) HandleComparison() http.HandlerFunc {
 				ImagePath: "/content/logo-vertical-light.webp",
 				baseURL:   m.AppConfig.GetBaseURL(),
 			},
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
 	}
 }

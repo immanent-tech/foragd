@@ -25,13 +25,17 @@ import (
 
 type PageIssue struct {
 	metadata pageMetadata
+	svc      pageServices
 	template templ.Component
 }
 
 // FullResponse renders a full page (headers, footers and content).
 func (p *PageIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.metadata.Title),
 			templates.WithPageDescription(p.metadata.Description),
 			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
@@ -81,6 +85,7 @@ func (m *Manager) HandleReportIssue() http.HandlerFunc {
 				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
 				m.Breadcrumbs,
 			),
+			svc: m.NewPageServices(),
 		}).ServeHTTP(res, req)
 	}
 }
@@ -91,7 +96,7 @@ func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
 		if err != nil {
-			HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
@@ -107,7 +112,7 @@ func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
 		// Process any uploaded screenshot.
 		screenshotURL, err := processScreenshots(m.AppConfig, cache, req)
 		if err != nil {
-			HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
 		if screenshotURL != "" {
@@ -155,7 +160,7 @@ func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
 			resend.WithRemoteAttachment(
 				resend.NewRemoteFileAttachment(screenshotURL, filepath.Base(screenshotURL))),
 		); err != nil {
-			HandleInternalError(http.StatusInternalServerError, fmt.Errorf("send email: %w", err)).ServeHTTP(res, req)
+			m.HandleInternalError(http.StatusInternalServerError, fmt.Errorf("send email: %w", err)).ServeHTTP(res, req)
 			return
 		}
 

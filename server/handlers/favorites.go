@@ -20,14 +20,19 @@ import (
 )
 
 type Favorites struct {
-	title    templates.PageTitle
-	template templ.Component
+	title      templates.PageTitle
+	template   templ.Component
+	appCfg     AppConfig
+	sessionMgr SessionManager
 }
 
 // FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
-		templates.CreatePage(p.template,
+		templates.CreatePage(
+			p.appCfg,
+			p.sessionMgr,
+			p.template,
 			templates.WithPageTitle(p.title),
 		)).ServeHTTP(res, req)
 }
@@ -86,7 +91,7 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 		})
 
 		if err := wg.Wait(); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("run data collection: %w", err),
 			).ServeHTTP(res, req)
@@ -103,7 +108,9 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 				Summary:     "Favorites",
 				Description: "All favorited Subscriptions and Articles",
 			},
-			template: templates.ListFavorites(response),
+			template:   templates.ListFavorites(response),
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}
 
 		RenderInternalPage(page).ServeHTTP(res, req)

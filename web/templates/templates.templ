@@ -1,17 +1,16 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package templates
 
 import (
 	"github.com/immanent-tech/foragd/web/templates/components"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/templx"
 	"github.com/immanent-tech/go-base/server/handlers/assets"
-	"github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
-	"log/slog"
 	"slices"
 	"strings"
 )
@@ -124,14 +123,9 @@ func WithCanonicalLink(link string) PageOption {
 }
 
 // CreatePage creates a new page with the given body template and additional options.
-templ CreatePage(template templ.Component, options ...PageOption) {
+templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Component, options ...PageOption) {
 	// Build page with specified options.
 	{{
-		appCfg, err := config.LoadAppConfig()
-		if err != nil {
-			slogctx.Error(ctx, "Could not load app config.", slog.Any("error", err))
-			return
-		}
 		p := &Page{
 			Component: template,
 			Title:     "Foragd",

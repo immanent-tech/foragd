@@ -32,7 +32,7 @@ func (m *Manager) HandleAbout() http.HandlerFunc {
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		RenderExternalPage(&About{
-			template: templates.CreatePage(templates.About(),
+			template: templates.CreatePage(m.AppConfig, m.SessionMgr, templates.About(),
 				templates.WithPageTitle(metadata.Title),
 				templates.WithPageDescription(metadata.Description),
 				templates.WithOpenGraphMetadata(metadata.OpengraphData()),

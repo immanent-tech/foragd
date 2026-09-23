@@ -33,6 +33,8 @@ type Changelog struct {
 	description string              `toml:"-"`
 	Releases    []templates.Release `toml:"releases"`
 	link        string
+	appCfg      AppConfig
+	sessionMgr  SessionManager
 }
 
 func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -48,7 +50,7 @@ func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
 	}
 
 	templ.Handler(
-		templates.CreatePage(template,
+		templates.CreatePage(p.appCfg, p.sessionMgr, template,
 			templates.WithPageTitle(p.title),
 			templates.WithPageDescription(p.description),
 			templates.WithCanonicalLink(p.link),
@@ -75,6 +77,8 @@ func (m *Manager) HandleChangelog() http.HandlerFunc {
 			description: "Latest release notes containing new features, updates and fixes for Foragd",
 			Releases:    make([]templates.Release, 0),
 			link:        m.AppConfig.GetBaseURL().JoinPath("changelog").String(),
+			appCfg:      m.AppConfig,
+			sessionMgr:  m.SessionMgr,
 		}
 
 		if _, err := toml.DecodeFS(

@@ -75,7 +75,7 @@ func HandlePaddleWebhook(userSvc UserService) http.HandlerFunc {
 	}
 }
 
-func HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -93,7 +93,7 @@ func HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
 			var err error
 			planID, err = paddle.GetPriceID(frequency)
 			if err != nil {
-				HandleInternalError(http.StatusBadRequest, fmt.Errorf("get price id: %w", err)).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusBadRequest, fmt.Errorf("get price id: %w", err)).ServeHTTP(res, req)
 				return
 			}
 		}
@@ -107,7 +107,7 @@ func HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
 			PlanID:        planID,
 			TransactionID: &transactionID,
 		}); err != nil {
-			HandleInternalError(
+			m.HandleInternalError(
 				http.StatusBadRequest,
 				fmt.Errorf("generate checkout request: %w", err),
 			).ServeHTTP(res, req)
@@ -119,8 +119,10 @@ func HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
 				Summary:     "Choose Subscription Plan",
 				Description: "Pick whether to subscribe monthly or yearly",
 			},
-			user:    user,
-			request: checkout,
+			user:       user,
+			request:    checkout,
+			appCfg:     m.AppConfig,
+			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
 	}
 }

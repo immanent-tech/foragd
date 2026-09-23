@@ -13,6 +13,7 @@ import (
 
 type Features struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (m *Manager) HandleFeatures() http.HandlerFunc {
@@ -25,11 +26,15 @@ func (m *Manager) HandleFeatures() http.HandlerFunc {
 		Path:        "/features",
 		ImagePath:   "/content/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
+		svc:         m.NewPageServices(),
 	})
 }
 
 func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.Features(),
+	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
+		templates.Features(),
 		templates.WithPageTitle(p.Title),
 		templates.WithPageDescription(p.Description),
 		templates.WithCanonicalLink(p.CanonicalLink()),
@@ -43,6 +48,7 @@ func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 type FeaturesCollect struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (m *Manager) HandleFeaturesCollect() http.HandlerFunc {
@@ -55,11 +61,15 @@ func (m *Manager) HandleFeaturesCollect() http.HandlerFunc {
 		Path:        "/features/collect",
 		ImagePath:   "/content/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
+		svc:         m.NewPageServices(),
 	})
 }
 
 func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.FeaturesPageCollect(p.baseURL),
+	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
+		templates.FeaturesPageCollect(p.baseURL),
 		templates.WithPageTitle(p.Title),
 		templates.WithPageDescription(p.Description),
 		templates.WithCanonicalLink(p.CanonicalLink()),
@@ -73,6 +83,7 @@ func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Reques
 
 type FeaturesCurate struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (m *Manager) HandleFeaturesCurate() http.HandlerFunc {
@@ -85,11 +96,15 @@ func (m *Manager) HandleFeaturesCurate() http.HandlerFunc {
 		Path:        "/features/curate",
 		ImagePath:   "/content/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
+		svc:         m.NewPageServices(),
 	})
 }
 
 func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.FeaturesPageCurate(p.baseURL),
+	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
+		templates.FeaturesPageCurate(p.baseURL),
 		templates.WithPageTitle(p.Title),
 		templates.WithPageDescription(p.Description),
 		templates.WithCanonicalLink(p.CanonicalLink()),
@@ -103,6 +118,7 @@ func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request
 
 type FeaturesConsume struct {
 	pageMetadata
+	svc pageServices
 }
 
 func (m *Manager) HandleFeaturesConsume() http.HandlerFunc {
@@ -115,11 +131,15 @@ func (m *Manager) HandleFeaturesConsume() http.HandlerFunc {
 		Path:        "features/consume",
 		ImagePath:   "/content/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
+		svc:         m.NewPageServices(),
 	})
 }
 
 func (p *FeaturesConsume) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(templates.FeaturesPageConsume(p.baseURL),
+	templ.Handler(templates.CreatePage(
+		p.svc.appCfg,
+		p.svc.sessionMgr,
+		templates.FeaturesPageConsume(p.baseURL),
 		templates.WithPageTitle(p.Title),
 		templates.WithPageDescription(p.Description),
 		templates.WithCanonicalLink(p.CanonicalLink()),

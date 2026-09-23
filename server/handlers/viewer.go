@@ -22,12 +22,15 @@ type Viewer struct {
 	metadata pageMetadata
 	feed     *models.Feed
 	errMsg   *models.UserMessage
+	svc      pageServices
 }
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(
+			p.svc.appCfg,
+			p.svc.sessionMgr,
 			templates.Viewer(p.feed, p.errMsg),
 			templates.WithPageTitle(p.metadata.Title),
 			templates.WithPageDescription(p.metadata.Description),
@@ -79,7 +82,10 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 		); req.Method {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
-				RenderExternalPage(&Viewer{metadata: metadata}).ServeHTTP(res, req)
+				RenderExternalPage(&Viewer{
+					metadata: metadata,
+					svc:      m.NewPageServices(),
+				}).ServeHTTP(res, req)
 				return
 			}
 			feedURL, err := models.NormalizeFeedURL(chi.URLParam(req, "*"))
@@ -90,6 +96,7 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 				RenderExternalPage(&Viewer{
 					metadata: metadata,
 					errMsg:   fetchErr,
+					svc:      m.NewPageServices(),
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -103,6 +110,7 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 				RenderExternalPage(&Viewer{
 					metadata: metadata,
 					errMsg:   fetchErr,
+					svc:      m.NewPageServices(),
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -110,6 +118,7 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 			RenderExternalPage(&Viewer{
 				metadata: metadata,
 				feed:     feed,
+				svc:      m.NewPageServices(),
 			}).ServeHTTP(res, req)
 
 		case http.MethodPost:
