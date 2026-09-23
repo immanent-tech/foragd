@@ -20,6 +20,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/templx"
@@ -178,7 +179,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 152, Col: 21}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 153, Col: 21}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -201,7 +202,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 159, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 160, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
@@ -214,7 +215,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		var templ_7745c5c3_Var4 templ.SafeURL
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs("/assets/" + assets.GetAssetPath(ctx, "styles.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 174, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 175, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -238,7 +239,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 			var templ_7745c5c3_Var5 templ.SafeURL
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(p.CanonicalLink))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 179, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 180, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -256,7 +257,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 			var templ_7745c5c3_Var6 templ.SafeURL
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(appCfg.GetBaseURL().String()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 181, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 182, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -274,7 +275,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		var templ_7745c5c3_Var7 templ.SafeURL
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(appCfg.GetBaseURL().JoinPath("/feed").String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 196, Col: 129}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 197, Col: 129}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -295,7 +296,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue("/assets/" + assets.GetAssetPath(ctx, "scripts.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 204, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 205, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -338,7 +339,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 			DisableInheritance:        new(true),
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 235, Col: 5}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 236, Col: 5}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 		if templ_7745c5c3_Err != nil {
@@ -367,7 +368,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 244, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 245, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -393,24 +394,41 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SetFontStyle(FontStyleFromCtx(ctx)).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		if fontStyle, ok := session.Get(ctx, "font-style").(string); ok {
+			style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", fontStyle)
+			templ_7745c5c3_Err = templ.Raw(style).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", "--font-oldstyle")
+			templ_7745c5c3_Err = templ.Raw(style).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</head><body hx-ext=\"morph,head-support\" class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</head><body hx-ext=\"morph,head-support\" class=\"flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased\" _=\"\n\t\t\ton htmx:historyCacheMiss\n\t\t\t\tlog 'historyCacheMiss'\n\t\t\t\tjs sessionStorage.setItem('foragd-history-miss', '1') end\n\t\t\tend\n\t\t\t\"><noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript><input id=\"timezone\" type=\"hidden\" name=\"timezone\" _=\"init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 269, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 278, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -436,7 +454,7 @@ func CreatePage(appCfg AppConfig, session SessionManager, template templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"notifications\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div aria-live=\"assertive\" class=\"pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start\"><div id=\"notifications\" class=\"m-4 flex w-full flex-col items-center space-y-4 sm:items-end\"></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -465,20 +483,20 @@ func UpdateTitle(title PageTitle) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(title.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 283, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/templates.templ`, Line: 292, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

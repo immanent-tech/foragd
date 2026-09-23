@@ -10,8 +10,6 @@ import (
 
 const (
 	fragmentsCtxKey contextKey = "fragments"
-	fontStyleCtxKey contextKey = "fontStyle"
-	baseURLCtxKey   contextKey = "baseURL"
 )
 
 type contextKey string
@@ -42,18 +40,6 @@ func FragmentKeysFromCtx(ctx context.Context) []templFragmentKey {
 		return nil
 	}
 	return keys
-}
-
-func FontStyleToCtx(ctx context.Context, style string) context.Context {
-	return context.WithValue(ctx, fontStyleCtxKey, style)
-}
-
-func FontStyleFromCtx(ctx context.Context) string {
-	style, found := ctx.Value(fontStyleCtxKey).(string)
-	if !found {
-		return "--font-oldstyle"
-	}
-	return style
 }
 
 type AppConfig interface {

@@ -137,7 +137,7 @@ func (m *Manager) HandleShowDisplaySettings() http.HandlerFunc {
 			return
 		}
 		RenderPartial(&PartialTemplate{
-			template: templates.DisplaySettings(user),
+			template: templates.DisplaySettings(user, m.SessionMgr),
 		}).ServeHTTP(res, req)
 	}
 }
@@ -422,9 +422,9 @@ func (m *Manager) HandleSaveFontSettings(users UserService) http.HandlerFunc {
 		// Update the font style value in the session cookie.
 		m.SessionMgr.Put(req.Context(), "font-style", fontStyle)
 
-		RenderPartial(&PartialTemplate{
-			template: templates.SetFontStyle(fontStyle),
-		}).ServeHTTP(res, req)
+		// RenderPartial(&PartialTemplate{
+		// 	template: templates.SetFontStyle(fontStyle),
+		// }).ServeHTTP(res, req)
 		res.WriteHeader(http.StatusOK)
 	}
 }

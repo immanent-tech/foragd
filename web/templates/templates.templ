@@ -6,6 +6,7 @@
 package templates
 
 import (
+	"fmt"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/templx"
@@ -250,7 +251,15 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			@components.MasonryGridBehavior()
 			// Pull-to-refresh.
 			@components.PullToRefreshBehavior()
-			@SetFontStyle(FontStyleFromCtx(ctx))
+			if fontStyle, ok := session.Get(ctx,"font-style").(string); ok {
+				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", fontStyle) }}
+				@templ.Raw(style)
+				// @SetFontStyle(fontStyle)
+			} else {
+				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", "--font-oldstyle") }}
+				@templ.Raw(style)
+				// @SetFontStyle("--font-oldstyle")
+			}
 		</head>
 		<body
 			hx-ext="morph,head-support"
