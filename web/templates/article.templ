@@ -885,10 +885,34 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						if response.Subscription != nil {
 							if articleFilters := response.Subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
 								<div class="tooltip tooltip-bottom" data-tip="Article filtering applied">
-									<span class="sr-only">Article filtering applied</span>
-									@tablerfilled.Filter(templ.Attributes{"class": "ml-2 size-6 fill-accent", "aria-hidden": "true"})
+									<button
+										hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit#article-filtering" }
+										hx-target={ ContentID.Target() }
+										hx-swap="morph:innerHTML show:top transition:true"
+										hx-trigger="click consume"
+										class="btn btn-sm btn-ghost btn-square"
+									>
+										<span class="sr-only">Article filtering applied</span>
+										@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
+									</button>
 								</div>
 							}
+						}
+						// Add an icon to map articles if the subscription has articles with geo info.
+						if response.Subscription != nil && response.Subscription.HasGeoInfo() {
+							<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
+								<button
+									hx-get="/map"
+									hx-target={ ContentID.Target() }
+									hx-swap="morph:innerHTML show:top transition:true"
+									hx-trigger="click consume"
+									hx-vals={ templ.JSONString(map[string]string{"subscriptions": response.Subscription.GetID()}) }
+									class="btn btn-sm btn-ghost btn-square"
+								>
+									<span class="sr-only">Show articles on map</span>
+									@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
+								</button>
+							</div>
 						}
 					</div>
 				}
