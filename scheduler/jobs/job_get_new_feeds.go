@@ -155,13 +155,6 @@ func AddFeedJob(
 			slog.String("job_schedule", job.Trigger().Description()),
 			slog.Any("error", err),
 		)
-		if err := scheduler.PauseJob(job.getJobKey()); err != nil {
-			slogctx.Error(ctx, "Unable to pause failing job.",
-				slog.String("job_id", job.JobDetail().JobKey().String()),
-				slog.String("job_schedule", job.Trigger().Description()),
-				slog.Any("error", err),
-			)
-		}
 		feed.LastFetched = time.Now().UTC()
 		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.Error(ctx, "Unable to update last fetched.",
