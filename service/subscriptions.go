@@ -410,13 +410,20 @@ func (s *SubscriptionService) UpdateSubscriptions(
 	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
 	}
+	if err := bulk.Flush(ctx); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		slogctx.Warn(ctx, "Could not flush bulk indexer after subscription updates. Info might be stale.",
+			slog.Any("error", err),
+		)
+	}
 
 	// Update the subscription dynamic info
 	if err := s.UpdateSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		slogctx.FromCtx(ctx).Warn("Could not update subscription dynamic info.",
-			slog.Any("errro", err),
+			slog.Any("error", err),
 		)
 	}
 
