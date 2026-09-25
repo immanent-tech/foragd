@@ -294,20 +294,3 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 
 	return nil
 }
-
-func (m *Manager) UpdateSerializedJob(ctx context.Context, job *jobs.SerializedJob) error {
-	if err := bulk.AddAction(ctx,
-		bulk.NewAction(
-			job,
-			bulk.AsOperation[string](bulk.OpIndex),
-			bulk.ToIndex[string](m.store.GetIndexRW(service.ScheduleIndex)),
-		),
-	); err != nil {
-		return fmt.Errorf("update serialized job: %w", err)
-	}
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Unable to flush bulk request.",
-			slog.Any("error", err))
-	}
-	return nil
-}

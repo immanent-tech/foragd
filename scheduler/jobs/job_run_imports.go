@@ -21,13 +21,15 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
+const JobTypeRunImports JobType = "run_imports"
+
 // NewGetNewFeedsJob creates a job for checking for new feeds.
 func NewRunImportsJob() (*SerializedJob, error) {
 	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
 		JobDescription: new("Run any pending import jobs for users."),
-		JobKey:         quartz.NewJobKey("run_imports").String(),
-		JobType:        "run_imports",
+		JobKey:         quartz.NewJobKey(string(JobTypeRunImports)).String(),
+		JobType:        JobTypeRunImports,
 		JobNextRun:     models.UnixEpoch,
 		JobTriggerType: TriggerTypePoll,
 	}

@@ -37,7 +37,6 @@ type SchedulerAPI interface {
 	DeleteJob(jobKey *quartz.JobKey) error
 	PauseJob(jobKey *quartz.JobKey) error
 	GetJobKeys(...quartz.Matcher[quartz.ScheduledJob]) ([]*quartz.JobKey, error)
-	UpdateSerializedJob(ctx context.Context, job *SerializedJob) error
 }
 
 func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.Context {

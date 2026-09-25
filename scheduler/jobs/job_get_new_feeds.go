@@ -60,8 +60,6 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 
 	start := time.Now()
 
-	slogctx.Debug(ctx, "Looking for new feeds.")
-
 	// Find new feeds.
 	newFeeds, err := feedSvc.GetNewFeedsSince(ctx, models.UnixEpoch)
 	if err != nil {
@@ -75,7 +73,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	// Get job keys for existing feed jobs.
-	existingJobKeys, err := schedulerAPI.GetJobKeys(matcher.JobGroupEquals("update_feed"))
+	existingJobKeys, err := schedulerAPI.GetJobKeys(matcher.JobGroupEquals(string(JobTypeUpdateFeed)))
 	if err != nil {
 		return fmt.Errorf("get job keys: %w", err)
 	}
