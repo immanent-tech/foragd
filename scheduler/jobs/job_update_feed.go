@@ -22,7 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/service"
 )
 
-const updateFeedJobTimeout = 15 * time.Minute
+const updateFeedJobTimeout = 5 * time.Minute
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
@@ -107,6 +107,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Add additional feed details to logs.
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
+	slogctx.Debug(ctx, "Fetching latest feed source.")
 	// Get new feed data.
 	var (
 		feed    *models.Feed
@@ -129,6 +130,8 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
+
+	slogctx.Debug(ctx, "Feed fetched. Applying updates.")
 
 	if err := feedSvc.ApplyFeedUpdates(ctx, itemSvc, httpClient, itemsCache, details, feed); err != nil {
 		slogctx.Error(ctx, "Could not apply feed updates.",
