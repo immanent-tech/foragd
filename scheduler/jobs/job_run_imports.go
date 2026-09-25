@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
@@ -22,6 +23,8 @@ import (
 )
 
 const JobTypeRunImports JobType = "run_imports"
+
+var runImportsRunning atomic.Bool
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
 func NewRunImportsJob() (*SerializedJob, error) {
@@ -44,6 +47,11 @@ func NewRunImportsJob() (*SerializedJob, error) {
 // ExecuteGetNewFeeds runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
 func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
+	if wasRunning := runImportsRunning.Swap(true); wasRunning {
+		return errors.New("job is running")
+	}
+	defer runImportsRunning.Store(false)
+
 	importSvc := ImportSvcFromCtx(ctx)
 	if importSvc == nil {
 		return errors.New("cannot execute: no import service in context")
