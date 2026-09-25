@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -72,6 +73,12 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 				var err error
 				articles, err = itemSvc.GetArticles(jobCtx, user.ItemFavorites...)
 				if err != nil {
+					if apiErr, ok := errors.AsType[*models.APIError](
+						err,
+					); ok &&
+						apiErr.StatusCode == http.StatusNotFound {
+						return nil
+					}
 					return fmt.Errorf("get articles: %w", err)
 				}
 			}
@@ -86,7 +93,9 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
 			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites)
-			subSvc.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
+			if len(favoriteSubscriptions) > 0 {
+				subSvc.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
+			}
 			return nil
 		})
 
