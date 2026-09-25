@@ -110,6 +110,7 @@ type SubscriptionsService interface {
 		excludedCategories []models.Category,
 	) []models.Category
 	GetLatestArticles(ctx context.Context, view models.View, subscriptions models.Subscriptions)
+	Invalidate(userID models.UserID)
 }
 
 type ArticleService interface {

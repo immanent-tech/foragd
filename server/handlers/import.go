@@ -131,7 +131,7 @@ func (p *ImportStatus) PartialResponse(res http.ResponseWriter, req *http.Reques
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 }
 
-func (m *Manager) HandleImportStatus(importSvc Importer) http.HandlerFunc {
+func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsService) http.HandlerFunc {
 	page := &ImportSubscriptions{
 		title: templates.PageTitle{
 			Summary: "Import Status",
@@ -139,6 +139,17 @@ func (m *Manager) HandleImportStatus(importSvc Importer) http.HandlerFunc {
 		svc: m.NewPageServices(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", models.ErrCtxValueNotFound))
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Invalidate the user subscription cache.
+		subSvc.Invalidate(user.GetID())
+
 		jobID := chi.URLParam(req, "jobID")
 		status, results, err := importSvc.GetImportStatus(req.Context(), jobID)
 		if err != nil {

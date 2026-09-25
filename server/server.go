@@ -479,8 +479,8 @@ func Start() error {
 			r.Route("/status", func(r chi.Router) {
 				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 				r.With(htmx.RequireHTMX)
-				r.Get("/", handlerMgr.HandleImportStatus(importSvc))
-				r.Get("/{jobID}", handlerMgr.HandleImportStatus(importSvc))
+				r.Get("/", handlerMgr.HandleImportStatus(importSvc, subscriptionSvc))
+				r.Get("/{jobID}", handlerMgr.HandleImportStatus(importSvc, subscriptionSvc))
 			})
 		})
 

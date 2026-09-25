@@ -243,6 +243,12 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 	}, nil
 })
 
+// Invalidate will invalidate the cache for the given user. Can be used to force fetching subscriptions from the
+// backend.
+func (s *SubscriptionService) Invalidate(userID models.UserID) {
+	s.Cache.Invalidate(userID)
+}
+
 // GetAllSubscriptions returns a [models.Subscriptions] slice of all subscriptions for a user.
 func (s *SubscriptionService) GetAllSubscriptions(
 	ctx context.Context,
@@ -403,10 +409,6 @@ func (s *SubscriptionService) UpdateSubscriptions(
 
 	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(SubscriptionsIndex), subscriptions...); err != nil {
 		return ElasticsearchToAPIError(err)
-	}
-	if err := bulk.Flush(ctx); err != nil {
-		slogctx.Warn(ctx, "Failed to flush subscription updates.",
-			slog.Any("error", err))
 	}
 
 	// Update the subscription dynamic info
