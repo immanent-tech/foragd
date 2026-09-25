@@ -413,7 +413,7 @@ func (m *Manager) HandleBulkMarkSubscriptions(svc SubscriptionsService, mark mod
 		res.Header().Set(models.ActionHeader, "bulk-mark-subscriptions")
 
 		// Decode request parameters.
-		request, err := parseForm[*models.BulkMarkSubscriptionsRequest](req)
+		request, err := parseForm[*models.BulkSubscriptionsActionRequest](req)
 		if err != nil {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
@@ -543,6 +543,47 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 				},
 			).ServeHTTP(res, req)
 		}
+	}
+}
+
+func (m *Manager) HandleBulkRemoveSubscriptions(svc SubscriptionsService) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set(models.ActionHeader, "bulk-remove-subscription")
+
+		// Decode request parameters.
+		request, err := parseForm[*models.BulkSubscriptionsActionRequest](req)
+		if err != nil {
+			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
+			return
+		}
+
+		switch request.Confirmed {
+		case false:
+			// Show modal to confirm bulk mark articles.
+			RenderPartial(&Modal{
+				template: templates.BulkRemoveSubscriptionsModal(element.WithHXSwap("none"))}).ServeHTTP(res, req)
+		case true:
+			// Determine actions to apply based on which route this handler was called from.
+			ctx := req.Context()
+			switch {
+			case strings.Contains(req.Referer(), "/user/settings"):
+				ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
+				res.Header().Set(htmx.HeaderRefresh, "true")
+			default:
+				res.Header().Set(htmx.HeaderRefresh, "true")
+			}
+			// Mark selected subscriptions.
+			if err = svc.RemoveSubscriptions(ctx, request.Subscriptions...); err != nil {
+				m.HandleInternalError(
+					http.StatusInternalServerError,
+					fmt.Errorf("bulk remove subscriptions: %w", err),
+				).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+		}
+
+		res.WriteHeader(http.StatusOK)
+
 	}
 }
 

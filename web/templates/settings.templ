@@ -950,7 +950,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					type="button"
 					class="btn btn-primary"
 					hx-push-url="true"
-					hx-get="/user/export"
+					hx-get="/export"
 					hx-target={ ContentID.Target() }
 				>Export</button>
 			</div>
@@ -1134,6 +1134,17 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												hx-include="[name='selected_subscriptions']"
 											>
 												@tableroutline.Mail(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
+											</button>
+										</div>
+										// Unsubscribe all action.
+										<div class="tooltip" data-tip="Unsubscribe from selected">
+											<button
+												class="btn btn-square btn-ghost btn-md"
+												hx-post="/subscriptions/remove"
+												hx-target={ ModalContainerID.Target() }
+												hx-include="[name='selected_subscriptions']"
+											>
+												@tableroutline.Trash(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
 										</div>
 									</div>

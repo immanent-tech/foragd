@@ -347,6 +347,7 @@ func Start() error {
 					"/unread",
 					handlerMgr.HandleBulkMarkSubscriptions(subscriptionSvc, models.MarkRead),
 				)
+				r.Post("/remove", handlerMgr.HandleBulkRemoveSubscriptions(subscriptionSvc))
 				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(itemSvc))
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {

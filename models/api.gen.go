@@ -137,8 +137,8 @@ type BulkMarkArticlesRequest struct {
 	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles" validate:"omitempty,dive,keys,startswith=sub_,endkeys,dive,startswith=item_"`
 }
 
-// BulkMarkSubscriptionsRequest contains data for bulk marking subscriptions.
-type BulkMarkSubscriptionsRequest struct {
+// BulkSubscriptionsActionRequest contains data for performing an action on multiple subscriptions.
+type BulkSubscriptionsActionRequest struct {
 	// Confirmed indicates the user confirmation.
 	Confirmed bool `form:"confirmed" json:"confirmed"`
 
