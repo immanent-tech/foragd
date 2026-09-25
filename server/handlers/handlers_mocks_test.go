@@ -1317,6 +1317,9 @@ var _ handlers.SubscriptionsService = &MoqSubscriptionsService{}
 //			GetSubscriptionSuggestionsFunc: func(ctx context.Context, text string, count int, ignoredSubscriptions []models.SubscriptionID) (models.Subscriptions, error) {
 //				panic("mock out the GetSubscriptionSuggestions method")
 //			},
+//			InvalidateFunc: func(userID models.UserID)  {
+//				panic("mock out the Invalidate method")
+//			},
 //			MarkArticlesFunc: func(ctx context.Context, mark models.Mark, subscriptionID models.SubscriptionID, itemIDs ...models.ItemID) error {
 //				panic("mock out the MarkArticles method")
 //			},
@@ -1359,6 +1362,9 @@ type MoqSubscriptionsService struct {
 
 	// GetSubscriptionSuggestionsFunc mocks the GetSubscriptionSuggestions method.
 	GetSubscriptionSuggestionsFunc func(ctx context.Context, text string, count int, ignoredSubscriptions []models.SubscriptionID) (models.Subscriptions, error)
+
+	// InvalidateFunc mocks the Invalidate method.
+	InvalidateFunc func(userID models.UserID)
 
 	// MarkArticlesFunc mocks the MarkArticles method.
 	MarkArticlesFunc func(ctx context.Context, mark models.Mark, subscriptionID models.SubscriptionID, itemIDs ...models.ItemID) error
@@ -1432,6 +1438,11 @@ type MoqSubscriptionsService struct {
 			// IgnoredSubscriptions is the ignoredSubscriptions argument value.
 			IgnoredSubscriptions []models.SubscriptionID
 		}
+		// Invalidate holds details about calls to the Invalidate method.
+		Invalidate []struct {
+			// UserID is the userID argument value.
+			UserID models.UserID
+		}
 		// MarkArticles holds details about calls to the MarkArticles method.
 		MarkArticles []struct {
 			// Ctx is the ctx argument value.
@@ -1481,6 +1492,7 @@ type MoqSubscriptionsService struct {
 	lockGetSubscription                    sync.RWMutex
 	lockGetSubscriptionCategorySuggestions sync.RWMutex
 	lockGetSubscriptionSuggestions         sync.RWMutex
+	lockInvalidate                         sync.RWMutex
 	lockMarkArticles                       sync.RWMutex
 	lockMarkSubscriptions                  sync.RWMutex
 	lockRemoveSubscriptions                sync.RWMutex
@@ -1749,6 +1761,38 @@ func (mock *MoqSubscriptionsService) GetSubscriptionSuggestionsCalls() []struct 
 	mock.lockGetSubscriptionSuggestions.RLock()
 	calls = mock.calls.GetSubscriptionSuggestions
 	mock.lockGetSubscriptionSuggestions.RUnlock()
+	return calls
+}
+
+// Invalidate calls InvalidateFunc.
+func (mock *MoqSubscriptionsService) Invalidate(userID models.UserID) {
+	if mock.InvalidateFunc == nil {
+		panic("MoqSubscriptionsService.InvalidateFunc: method is nil but SubscriptionsService.Invalidate was just called")
+	}
+	callInfo := struct {
+		UserID models.UserID
+	}{
+		UserID: userID,
+	}
+	mock.lockInvalidate.Lock()
+	mock.calls.Invalidate = append(mock.calls.Invalidate, callInfo)
+	mock.lockInvalidate.Unlock()
+	mock.InvalidateFunc(userID)
+}
+
+// InvalidateCalls gets all the calls that were made to Invalidate.
+// Check the length with:
+//
+//	len(mockedSubscriptionsService.InvalidateCalls())
+func (mock *MoqSubscriptionsService) InvalidateCalls() []struct {
+	UserID models.UserID
+} {
+	var calls []struct {
+		UserID models.UserID
+	}
+	mock.lockInvalidate.RLock()
+	calls = mock.calls.Invalidate
+	mock.lockInvalidate.RUnlock()
 	return calls
 }
 

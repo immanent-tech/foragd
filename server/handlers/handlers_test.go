@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+//go:generate go tool mockery
 package handlers_test
 
 import (
