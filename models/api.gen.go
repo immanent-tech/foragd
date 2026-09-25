@@ -13,6 +13,30 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for ImportStatusStatus.
+const (
+	ImportStatusStatusDone    ImportStatusStatus = "done"
+	ImportStatusStatusFailed  ImportStatusStatus = "failed"
+	ImportStatusStatusPending ImportStatusStatus = "pending"
+	ImportStatusStatusRunning ImportStatusStatus = "running"
+)
+
+// Valid indicates whether the value is a known member of the ImportStatusStatus enum.
+func (e ImportStatusStatus) Valid() bool {
+	switch e {
+	case ImportStatusStatusDone:
+		return true
+	case ImportStatusStatusFailed:
+		return true
+	case ImportStatusStatusPending:
+		return true
+	case ImportStatusStatusRunning:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -188,8 +212,11 @@ type FeedSubscriptionResult struct {
 	// Error represents an error returned from any API within the service/application.
 	Error *APIError `json:"error,omitempty"`
 
+	// Feed represents a feed object.
+	Feed *Feed `json:"feed,omitempty" validate:"validateFn"`
+
 	// Request is a request to add a new feed subscription.
-	Request *FeedSubscriptionRequest `json:"request,omitempty"`
+	Request FeedSubscriptionRequest `json:"request"`
 
 	// Subscription represents any kind of subscription.
 	Subscription *Subscription `json:"subscription,omitempty"`
@@ -214,6 +241,61 @@ type GroupSubscriptionRequest struct {
 	// SuggestedSubscriptions is a list of suggested subscriptions for the subscription.
 	SuggestedSubscriptions Subscriptions `form:"-" json:"-"`
 }
+
+// ImportRequest is a request to import a feed at a given URL.
+type ImportRequest struct {
+	Categories []string `json:"categories,omitempty" validate:"omitmepty,dive,unique"`
+
+	// URL is a URL.
+	URL URL `form:"url" json:"url"`
+}
+
+// ImportResult is the result for the import of an individual feed.
+type ImportResult struct {
+	Categories []string `json:"categories,omitempty" validate:"omitmepty,dive,unique"`
+	DocType    string   `json:"doc_type" validate:"required,equals=import_result"`
+
+	// Error is a non-nil string that describes why this feed failed to import.
+	Error *UserMessage `json:"error,omitempty"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID *FeedID `json:"feed_id,omitempty" validate:"omitempty,startswith=feed_"`
+	JobID  string  `json:"job_id" validate:"required,startswith=import_"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID *SubscriptionID `json:"subscription_id,omitempty" validate:"omitempty,startswith=sub_"`
+
+	// URL is a URL.
+	URL URL `form:"url" json:"url"`
+}
+
+// ImportStatus contains the data and current status of a user import.
+type ImportStatus struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+	DocType   string    `json:"doc_type" validate:"required,equals=import_status"`
+
+	// Error is non-nil if the import has a "failed" status, and describes the failure.
+	Error *UserMessage `json:"error,omitempty"`
+
+	// JobID is a unique id to represent this import job.
+	JobID string `json:"job_id" validate:"required,startswith=import_"`
+
+	// Requests contains the individual feed URLs for this import.
+	Requests []ImportRequest `json:"requests"`
+
+	// Status is the current status of the import.
+	Status ImportStatusStatus `json:"status" validate:"required,oneof=pending running done failed"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
+}
+
+// ImportStatusStatus is the current status of the import.
+type ImportStatusStatus string
 
 // ListArticlesRequest contains additional request data specific for listing articles.
 type ListArticlesRequest struct {

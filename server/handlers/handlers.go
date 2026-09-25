@@ -92,6 +92,7 @@ type SubscriptionsService interface {
 		subscriptionID models.SubscriptionID,
 		itemIDs ...models.ItemID,
 	) error
+	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
 	RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error
 	UpdateSubscriptionDynamicInfo(
 		ctx context.Context,
@@ -179,6 +180,11 @@ type AuthURLResult interface {
 
 type Breadcrumbs interface {
 	Previous(ctx context.Context) (*url.URL, bool)
+}
+
+type Importer interface {
+	StartImport(ctx context.Context, file *models.OPMLFile) (string, error)
+	GetImportStatus(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error)
 }
 
 // Manager contains the common interfaces that nearly all handlers require access to.

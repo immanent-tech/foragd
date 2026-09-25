@@ -521,6 +521,49 @@ var (
 )
 
 var (
+	importsComponentTemplate = withComponentTemplatesMigration(
+		templates.NewComponentTemplate(
+			"imports_component_template",
+			templates.NewTemplate(
+				templates.WithTemplateMapping(
+					templates.WithProperties(
+						templates.WithDatetimeMapping("created_at"),
+						templates.WithDatetimeMapping("updated_at"),
+						templates.WithKeywordMapping("doc_type"),
+						templates.WithKeywordMapping("job_id"),
+						templates.WithKeywordMapping("user_id"),
+						templates.WithKeywordMapping("status"),
+						templates.WithObjectMapping("error",
+							templates.WithTextMapping("summary", types.NewTextProperty()),
+							templates.WithTextMapping("details", types.NewTextProperty()),
+							templates.WithKeywordMapping("status"),
+						),
+						templates.WithObjectMapping("requests",
+							templates.WithKeywordMapping("url"),
+							templates.WithKeywordMapping("categories"),
+						),
+						templates.WithKeywordMapping("url"),
+						templates.WithKeywordMapping("feed_id"),
+						templates.WithKeywordMapping("subscription_id"),
+						templates.WithKeywordMapping("categories"),
+					),
+				),
+			),
+			templates.WithComponentTemplateMetadata(defaultMetadata),
+		),
+	)
+	// favoriteItemsIndexTemplate contains the settings for Favorites indices.
+	importsIndexTemplate = withIndexTemplateMigration(
+		templates.NewIndexTemplate(
+			"imports_index_template",
+			templates.WithComponentTemplates("imports_component_template"),
+			templates.WithIndexPatterns(importsSchemaPrefix+"-*"),
+			templates.WithIndexTemplateMetadata(defaultMetadata),
+		),
+	)
+)
+
+var (
 	// logsILMPolicy is a general-purpose ILM policy for logs indices. Indices are quickly moved through the phases from
 	// hot to cold and then kept indefinitely in the cold phase.
 	logsILMPolicy = ilm.NewILMPolicy(

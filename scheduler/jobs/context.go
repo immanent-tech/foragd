@@ -26,6 +26,7 @@ const (
 	userSvcCtxKey      contextKey = "user_svc"
 	feedSvcCtxKey      contextKey = "feed_svc"
 	itemSvcCtxKey      contextKey = "item_svc"
+	importSvcCtxKey    contextKey = "import_svc"
 )
 
 type contextKey string
@@ -129,5 +130,17 @@ func ItemSvcFromCtx(ctx context.Context) *service.ItemService {
 		return svc
 	}
 	slogctx.Warn(ctx, "No feed service found in context")
+	return nil
+}
+
+func ImportSvcToCtx(ctx context.Context, svc *service.ImportService) context.Context {
+	return context.WithValue(ctx, importSvcCtxKey, svc)
+}
+
+func ImportSvcFromCtx(ctx context.Context) *service.ImportService {
+	if svc, ok := ctx.Value(importSvcCtxKey).(*service.ImportService); ok {
+		return svc
+	}
+	slogctx.Warn(ctx, "No import service found in context")
 	return nil
 }

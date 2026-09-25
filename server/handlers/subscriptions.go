@@ -16,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -898,9 +897,9 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 
 // HandleAddNewFeedSubscription handles adding a new feed subscription for a user.
 func (m *Manager) HandleAddNewFeedSubscription(
-	subscriptions SubscriptionsService,
-	users UserService,
-	feeds FeedService,
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	feedSvc FeedService,
 	httpClient *resty.Client,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -922,7 +921,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 		)
 
 		// Fetch the feed details from the database.
-		feed, err := feeds.GetFeed(req.Context(), request.FeedID)
+		feed, err := feedSvc.GetFeed(req.Context(), request.FeedID)
 		if err != nil || feed == nil {
 			// Fetch the feed details from the URL.
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
@@ -942,7 +941,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 				return
 			}
 			// Add the feed to the database.
-			if err := feeds.AddFeed(req.Context(), feed); err != nil {
+			if err := feedSvc.AddFeed(req.Context(), feed); err != nil {
 				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("create feed: %w", err),
@@ -967,7 +966,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 		}
 
 		// Add subscription to user.
-		if err := addSubscriptions(req.Context(), users, subscriptions, subscription); err != nil {
+		if err := subSvc.AddSubscriptions(req.Context(), subscription); err != nil {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("add subscription: %w", err),
@@ -1124,7 +1123,7 @@ func (m *Manager) HandleAddSearchSubscription(
 					fmt.Errorf("create search subscription: %w", err),
 				).ServeHTTP(res, req)
 			}
-			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
+			if err := subSvc.AddSubscriptions(req.Context(), subscription); err != nil {
 				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add search subscription: %w", err),
@@ -1271,7 +1270,7 @@ func (m *Manager) HandleAddGroupSubscription(
 				return
 			}
 			// Add subscriptions
-			if err := addSubscriptions(req.Context(), userSvc, subSvc, subscription); err != nil {
+			if err := subSvc.AddSubscriptions(req.Context(), subscription); err != nil {
 				m.HandleInternalError(
 					http.StatusInternalServerError,
 					fmt.Errorf("add subscriptions: %w", err),
@@ -1314,132 +1313,6 @@ func (m *Manager) HandleAddSubscriptionToGroup() http.HandlerFunc {
 			}
 		}
 		res.WriteHeader(http.StatusNoContent)
-	}
-}
-
-// ImportSubscriptions contains the data for rendering a page for importing subscriptions.
-type ImportSubscriptions struct {
-	title    templates.PageTitle
-	template templ.Component
-	svc      pageServices
-}
-
-func (h *ImportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			h.svc.appCfg,
-			h.svc.sessionMgr,
-			h.template,
-			templates.WithPageTitle(h.title),
-		)).ServeHTTP(res, req)
-}
-
-func (h *ImportSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-}
-
-type ImportSubscriptionsResults struct {
-	template templ.Component
-}
-
-func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(h.template).ServeHTTP(res, req)
-}
-
-// HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
-func (m *Manager) HandleImportSubscriptions(
-	feeds FeedService,
-	users UserService,
-	subscriptions SubscriptionsService,
-	httpClient *resty.Client,
-) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-		switch {
-		case user.Metadata.SubscriptionLimit != nil && user.Metadata.SubscriptionLimit.Exceeded:
-			m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
-			return
-		case user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded:
-			m.HandleInternalError(http.StatusForbidden, models.ErrEmailNewsletterLimitExceeded).ServeHTTP(res, req)
-			return
-		}
-
-		switch req.Method {
-		// GET: show import modal.
-		case http.MethodGet:
-			RenderInternalPage(&ImportSubscriptions{
-				title: templates.PageTitle{
-					Summary:     "Import",
-					Description: "Choose source to import subscriptions",
-				},
-				template: templates.ImportSubscriptions(),
-				svc:      m.NewPageServices(),
-			}).ServeHTTP(res, req)
-		// POST: process import.
-		case http.MethodPost:
-			// Extract OPML file.
-			opmlData, err := decodeMultipartFile(req, "source")
-			if err != nil {
-				m.HandleInternalError(
-					http.StatusUnprocessableEntity,
-					fmt.Errorf("decode opml: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			opmlFile := &models.OPMLFile{FileUpload: opmlData}
-			// Generate subscription requests from OPML file contents.
-			requests, err := opmlFile.GenerateRequests()
-			if err != nil {
-				m.HandleInternalError(
-					http.StatusUnprocessableEntity,
-					fmt.Errorf("generate subscription requests: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			// Get user's existing subscriptions.
-			currentSubscriptions := models.SubscriptionsFromCtx(req.Context())
-			if currentSubscriptions == nil {
-				m.HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
-				).ServeHTTP(res, req)
-				return
-			}
-			// Check adding new subscription will not cause user to exceed subscriptions limit.
-			if len(
-				requests,
-			)+len(
-				currentSubscriptions,
-			)-len(
-				currentSubscriptions.FilterByType(models.SubscriptionTypeEmail),
-			) > models.MaxSubscriptions {
-				m.HandleInternalError(http.StatusForbidden, models.ErrSubscriptionLimitExceeded).ServeHTTP(res, req)
-				return
-			}
-
-			// Perform bulk import.
-			results := bulkImportFeeds(req.Context(), feeds, users, subscriptions, httpClient, requests...)
-
-			// Display all results.
-			RenderPartial(&ImportSubscriptionsResults{
-				template: templates.ImportSubscriptionsResults(results),
-			}).ServeHTTP(res, req)
-			// Display notification.
-			RenderPartial(&Notification{
-				msg: models.NewSuccessMessage(
-					"OPML import complete.",
-					"Please consult the results and check for any issues.",
-				),
-			}).ServeHTTP(res, req)
-		}
 	}
 }
 
@@ -1576,163 +1449,4 @@ func processThumbnail(appCfg AppConfig, cache ImageCache, req *http.Request, obj
 	}
 
 	return "", nil
-}
-
-// bulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
-func bulkImportFeeds(
-	ctx context.Context,
-	feeds FeedService,
-	users UserService,
-	subscriptions SubscriptionsService,
-	httpClient *resty.Client,
-	requests ...models.FeedSubscriptionRequest,
-) []models.FeedSubscriptionResult {
-	// Process requests.
-	resultsCh := make(chan models.FeedSubscriptionResult)
-
-	const maxConcurrentImports = 100
-	requestCh := make(chan models.FeedSubscriptionRequest, 200)
-	var wg sync.WaitGroup
-
-	for range maxConcurrentImports {
-		wg.Go(func() {
-			for request := range requestCh {
-				// Find an existing or create a new feed from the requested URL.
-				feed, isNew, err := feeds.FindOrCreateFeed(ctx, httpClient, request.URL)
-				if err != nil {
-					result := models.FeedSubscriptionResult{
-						Request: &request,
-					}
-					if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-						result.Error = apiErr
-					} else {
-						result.Error = models.NewAPIError(
-							http.StatusUnprocessableEntity,
-							fmt.Errorf("create subscription: %w", err),
-							models.WithUserMessage(models.NewErrorMessage(
-								"Could not create feed from URL",
-								request.URL,
-							)),
-						)
-					}
-					resultsCh <- result
-					return
-				}
-				if isNew {
-					// Add the feed if it is new.
-					if err := feeds.AddFeed(ctx, feed); err != nil {
-						resultsCh <- models.FeedSubscriptionResult{
-							Request: &request,
-							Error: &models.APIError{
-								InternalError: fmt.Errorf("create subscription: %w", err),
-								StatusCode:    http.StatusInternalServerError,
-								UserMessage: models.NewErrorMessage(
-									"Unable to add feed subscription",
-									fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
-								),
-							},
-						}
-						return
-					}
-				}
-
-				allSubscriptions := models.SubscriptionsFromCtx(ctx)
-				existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
-				if existingSubscriptions != nil {
-					resultsCh <- models.FeedSubscriptionResult{
-						Request: &request,
-						Error: &models.APIError{
-							InternalError: errors.New("create subscription: already subscribed"),
-							StatusCode:    http.StatusConflict,
-							UserMessage: models.NewWarningMessage(
-								"Already subscribed to feed",
-								fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
-							),
-						},
-					}
-					return
-				}
-
-				// Create feed newSubscription.
-				newSubscription, err := service.NewFeedSubscription(ctx, feed, nil)
-				if err != nil {
-					resultsCh <- models.FeedSubscriptionResult{
-						Request: &request,
-						Error: &models.APIError{
-							InternalError: fmt.Errorf("create subscription: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to add subscription",
-								fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
-							),
-						},
-					}
-					return
-				}
-				if err := addSubscriptions(ctx, users, subscriptions, newSubscription); err != nil {
-					resultsCh <- models.FeedSubscriptionResult{
-						Request: &request,
-						Error: &models.APIError{
-							InternalError: fmt.Errorf("add subscription: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-							UserMessage: models.NewErrorMessage(
-								"Unable to add subscription",
-								fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
-							),
-						},
-					}
-					return
-				}
-				resultsCh <- models.FeedSubscriptionResult{
-					Request:      &request,
-					Subscription: newSubscription,
-				}
-			}
-		})
-	}
-
-	for request := range slices.Values(requests) {
-		requestCh <- request
-	}
-	close(requestCh)
-	// Wait for all request processing to complete.
-	go func() {
-		defer close(resultsCh)
-		wg.Wait()
-	}()
-
-	// Gather results.
-	results := make([]models.FeedSubscriptionResult, 0, len(requests))
-	for result := range resultsCh {
-		results = append(results, result)
-	}
-
-	return results
-}
-
-// AddSubscriptions adds the given subscriptions to a user.
-func addSubscriptions(
-	ctx context.Context,
-	users UserService,
-	subscriptions SubscriptionsService,
-	newSubscriptions ...*models.Subscription,
-) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-	if err := subscriptions.UpdateSubscriptions(ctx, newSubscriptions...); err != nil {
-		return fmt.Errorf("update subscriptions: %w", err)
-	}
-	// Disable onboarding once a subscription has been added.
-	if settings := user.GetSettings(); settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-		// Update the user object.
-		if err := users.UpdateUser(ctx, user, map[string]any{
-			"settings": settings,
-		}); err != nil {
-			return fmt.Errorf("update user: %w", err)
-		}
-	}
-	return nil
 }

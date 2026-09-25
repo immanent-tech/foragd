@@ -110,6 +110,11 @@ func Start() error {
 		return fmt.Errorf("load items service: %w", err)
 	}
 
+	importSvc, err := service.NewImportService()
+	if err != nil {
+		return fmt.Errorf("load import service: %w", err)
+	}
+
 	// Load the server config.
 	if err := loadConfigOnce(); err != nil {
 		return fmt.Errorf("unable to load server config: %w", err)
@@ -466,19 +471,27 @@ func Start() error {
 				r.Post("/theme", handlerMgr.HandleSaveThemeSettings(userSvc))
 			})
 		})
+		// Import
+		r.Route("/import", func(r chi.Router) {
+			r.Get("/", handlerMgr.HandleSetupImport(subscriptionSvc, userSvc))
+			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleStartImport(importSvc))
+			r.Route("/status", func(r chi.Router) {
+				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
+				r.With(htmx.RequireHTMX)
+				r.Get("/", handlerMgr.HandleImportStatus(importSvc))
+				r.Get("/{jobID}", handlerMgr.HandleImportStatus(importSvc))
+			})
+		})
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			r.Post(
 				"/feedset",
-				handlerMgr.HandleAddFeedset(feedSvc, userSvc, subscriptionSvc, httpClient, web.StaticContentFS),
+				handlerMgr.HandleAddFeedset(feedSvc, subscriptionSvc),
 			)
 			// Import/export.
 			r.Group(func(r chi.Router) {
 				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-				r.Get("/import", handlerMgr.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
-				r.With(htmx.RequireHTMX).
-					Post("/import", handlerMgr.HandleImportSubscriptions(feedSvc, userSvc, subscriptionSvc, httpClient))
 				r.Get("/export", handlerMgr.HandleExportSubscriptions(feedSvc))
 				r.Post("/export", handlerMgr.HandleExportSubscriptions(feedSvc))
 			})
@@ -509,6 +522,7 @@ func Start() error {
 		r.Get("/posts", handlers.RedirectTo("/blog", http.StatusMovedPermanently))
 		r.Get("/posts/*", handlers.RedirectParam("*", "blog/%s", http.StatusMovedPermanently))
 		r.Get("/view/article/{item_id}", handlers.RedirectParam("item_id", "/articles/%s", http.StatusMovedPermanently))
+		r.Get("/user/import", handlers.RedirectTo("/import", http.StatusMovedPermanently))
 	})
 
 	svr := &http.Server{

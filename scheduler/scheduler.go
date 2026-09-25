@@ -134,6 +134,12 @@ func (m *Manager) Run(ctx context.Context) error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 	ctx = jobs.FeedSvcToCtx(ctx, feedSvc)
+	// Import service
+	importSvc, err := service.NewImportService()
+	if err != nil {
+		return fmt.Errorf("load import service: %w", err)
+	}
+	ctx = jobs.ImportSvcToCtx(ctx, importSvc)
 
 	// Load all admin jobs as needed.
 	if err := m.InitAdminJobs(ctx); err != nil {
@@ -177,14 +183,6 @@ func (m *Manager) Run(ctx context.Context) error {
 	return nil
 }
 
-// // Clear will remove all jobs from the queue.
-// func (m *Manager) Clear(ctx context.Context) error {
-// 	if err := m.queue.Clear(); err != nil {
-// 		return fmt.Errorf("clear job queue: %w", err)
-// 	}
-// 	return nil
-// }
-
 // InitAdminJobs loads the listed jobs into the scheduler. These are administrative jobs that should always be
 // scheduled.
 func (m *Manager) InitAdminJobs(ctx context.Context) error {
@@ -194,6 +192,7 @@ func (m *Manager) InitAdminJobs(ctx context.Context) error {
 		jobs.NewClearDeletedFeedsJob,
 		jobs.NewDeleteExpiredSessionsJob,
 		jobs.NewRestartFeedUpdatesJob,
+		jobs.NewRunImportsJob,
 	}
 
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
@@ -263,13 +262,23 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 		)
 	}
 
+	existingJobKeys, err := m.GetJobKeys(matcher.JobGroupEquals("update_feed"))
+	if err != nil {
+		return fmt.Errorf("get job keys: %w", err)
+	}
+
 	var wg sync.WaitGroup
 
 	for feed := range slices.Values(joblessFeeds) {
 		// Add additional feed details to logs.
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
-
+		if slices.ContainsFunc(existingJobKeys, func(e *quartz.JobKey) bool {
+			return e.Name() == feed.GetID()
+		}) {
+			slogctx.Warn(ctx, "Existing job found.")
+			continue
+		}
 		wg.Go(func() {
 			if err := jobs.AddFeedJob(ctx, m, feedSvc, feed); err != nil {
 				slogctx.Error(ctx, "Could not add job for feed.",

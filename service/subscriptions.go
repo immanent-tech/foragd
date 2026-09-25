@@ -113,7 +113,6 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
 	return &SubscriptionService{
-
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *UserSubscriptions]{
 				MaximumSize:      100,
@@ -333,6 +332,36 @@ func (s *SubscriptionService) BulkGetSubscriptions(
 	}
 
 	return subscriptions, nil
+}
+
+// AddSubscriptions adds the given subscriptions to a user.
+func (s *SubscriptionService) AddSubscriptions(
+	ctx context.Context,
+	newSubscriptions ...*models.Subscription,
+) error {
+	userSvc, err := LoadUserService()
+	if err != nil {
+		return fmt.Errorf("load user service: %w", err)
+	}
+
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	if err := s.UpdateSubscriptions(ctx, newSubscriptions...); err != nil {
+		return fmt.Errorf("update subscriptions: %w", err)
+	}
+	// Disable onboarding once a subscription has been added.
+	if settings := user.GetSettings(); settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+		// Update the user object.
+		if err := userSvc.UpdateUser(ctx, user, map[string]any{
+			"settings": settings,
+		}); err != nil {
+			return fmt.Errorf("update user: %w", err)
+		}
+	}
+	return nil
 }
 
 // RemoveSubscriptions removes subscriptions with the given [models.SubscriptionID] from a user.

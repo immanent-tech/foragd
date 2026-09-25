@@ -17,6 +17,8 @@ const (
 	subscriptionsSchemaPrefix = "subscriptions"
 	schedulerIndexPrefix      = "scheduler"
 	sessionsSchemaPrefix      = "sessions"
+	importsSchemaPrefix       = "imports"
+
 	// indexWriteSuffix is the suffix appended to indices that are used for write (indexing) operations.
 	indexWriteSuffix = "_rw"
 	// indexReadSuffix is the suffix appended to indices that are used for read (search, get) operations.
@@ -35,7 +37,7 @@ var allIndices = []string{
 
 // IndicesOptions contains the options for performing index schema operations.
 type IndicesOptions struct {
-	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
+	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions,imports" help:"List of indicies to perform command on."`
 }
 
 var allILMPolicies = map[string]*ilm.Policy{

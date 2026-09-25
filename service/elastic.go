@@ -26,6 +26,7 @@ const (
 	SubscriptionsIndex Index = "subscriptions"
 	ScheduleIndex      Index = "scheduler"
 	SessionsIndex      Index = "sessions"
+	ImportIndex        Index = "imports"
 
 	// indexWriteSuffix is the suffix appended to indices that are used for write (indexing) operations.
 	indexWriteSuffix = "_rw"

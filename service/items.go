@@ -673,8 +673,6 @@ func EnrichItem(
 	feed *models.Feed,
 	item *models.Item,
 ) error {
-	took := time.Now().UTC()
-
 	ctx = slogctx.With(ctx,
 		slog.String("feed_id", item.GetFeedID()),
 		slog.String("item_id", item.GetID()),
@@ -755,10 +753,6 @@ func EnrichItem(
 			item.Description = &desc
 		}
 	}
-
-	slogctx.FromCtx(ctx).Debug("Item enriched.",
-		slog.Duration("took", time.Now().UTC().Sub(took)),
-	)
 
 	return nil
 }

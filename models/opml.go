@@ -21,6 +21,10 @@ type OPMLFile struct {
 	*FileUpload
 }
 
+func NewOPMLFile(file *FileUpload) *OPMLFile {
+	return &OPMLFile{FileUpload: file}
+}
+
 // Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
 // will contain details about validation failures.
 func (f *OPMLFile) Validate() (bool, error) {
@@ -35,7 +39,7 @@ func (f *OPMLFile) Validate() (bool, error) {
 }
 
 // GenerateRequests extracts the feed outlines from the OPML file and returns a slice of subscription requests.
-func (f *OPMLFile) GenerateRequests() ([]FeedSubscriptionRequest, error) {
+func (f *OPMLFile) GenerateRequests() ([]ImportRequest, error) {
 	importfile, err := f.parse()
 	if err != nil {
 		return nil, fmt.Errorf("could not generate requests from opml file: %w", err)
@@ -59,12 +63,15 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 	return opmlImport, nil
 }
 
-func GenerateRequestsFromOutlines(outlines ...opml.Outline) []FeedSubscriptionRequest {
-	requests := make([]FeedSubscriptionRequest, 0, len(outlines))
+func GenerateRequestsFromOutlines(outlines ...opml.Outline) []ImportRequest {
+	requests := make([]ImportRequest, 0, len(outlines))
 	for outline := range slices.Values(outlines) {
 		if outline.EffectiveType() == "rss" {
 			if xmlURL, ok := outline.XMLURL(); ok {
-				requests = append(requests, FeedSubscriptionRequest{URL: xmlURL})
+				requests = append(requests, ImportRequest{
+					URL:        xmlURL,
+					Categories: outline.Category,
+				})
 			}
 		}
 		if len(outline.Outlines) > 0 {

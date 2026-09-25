@@ -108,6 +108,8 @@ components:
       description: >
         is the result of adding a feed subscription.
       type: object
+      required:
+        - request
       properties:
         request:
           $ref: "#/components/schemas/FeedSubscriptionRequest"
@@ -115,6 +117,8 @@ components:
           $ref: "#/components/schemas/APIError"
         subscription:
           $ref: "models.yaml#/components/schemas/Subscription"
+        feed:
+          $ref: "models.yaml#/components/schemas/Feed"
     GroupSubscriptionRequest:
       description: >
         represents a request to create a group subscription.
@@ -654,3 +658,90 @@ components:
           x-go-name: "BaseURL"
         environment:
           x-go-type: "config.Environment"
+    ImportStatus:
+      description: contains the data and current status of a user import.
+      type: object
+      required:
+        - created_at
+        - user_id
+        - job_id
+        - status
+        - requests
+        - doc_type
+      properties:
+        created_at:
+          $ref: "models.yaml#/components/schemas/CreatedAt"
+        updated_at:
+          $ref: "models.yaml#/components/schemas/UpdatedAt"
+        user_id:
+          $ref: "models.yaml#/components/schemas/UserID"
+        job_id:
+          description: is a unique id to represent this import job.
+          type: string
+          x-go-name: JobID
+          x-oapi-codegen-extra-tags:
+            validate: "required,startswith=import_"
+        status:
+          description: is the current status of the import.
+          type: string
+          enum: ["pending", "running", "done", "failed"]
+          x-oapi-codegen-extra-tags:
+            validate: "required,oneof=pending running done failed"
+        requests:
+          description: contains the individual feed URLs for this import.
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportRequest"
+        error:
+          description: >
+            is non-nil if the import has a "failed" status, and describes the failure.
+          $ref: "models.yaml#/components/schemas/UserMessage"
+        doc_type:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required,equals=import_status"
+    ImportRequest:
+      description: is a request to import a feed at a given URL.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          $ref: "models.yaml#/components/schemas/URL"
+        categories:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitmepty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+    ImportResult:
+      description: is the result for the import of an individual feed.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/ImportRequest"
+        - type: object
+          required:
+            - job_id
+            - doc_type
+          properties:
+            job_id:
+              type: string
+              x-go-name: JobID
+              x-oapi-codegen-extra-tags:
+                validate: "required,startswith=import_"
+            doc_type:
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: "required,equals=import_result"
+            subscription_id:
+              $ref: "models.yaml#/components/schemas/SubscriptionID"
+              x-oapi-codegen-extra-tags:
+                validate: "omitempty,startswith=sub_"
+            feed_id:
+              $ref: "models.yaml#/components/schemas/FeedID"
+              x-oapi-codegen-extra-tags:
+                validate: "omitempty,startswith=feed_"
+            error:
+              description: is a non-nil string that describes why this feed failed to import.
+              $ref: "models.yaml#/components/schemas/UserMessage"

@@ -1296,6 +1296,9 @@ var _ handlers.SubscriptionsService = &MoqSubscriptionsService{}
 //
 //		// make and configure a mocked handlers.SubscriptionsService
 //		mockedSubscriptionsService := &MoqSubscriptionsService{
+//			AddSubscriptionsFunc: func(ctx context.Context, subscriptions ...*models.Subscription) error {
+//				panic("mock out the AddSubscriptions method")
+//			},
 //			BulkGetSubscriptionsFunc: func(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
 //				panic("mock out the BulkGetSubscriptions method")
 //			},
@@ -1336,6 +1339,9 @@ var _ handlers.SubscriptionsService = &MoqSubscriptionsService{}
 //
 //	}
 type MoqSubscriptionsService struct {
+	// AddSubscriptionsFunc mocks the AddSubscriptions method.
+	AddSubscriptionsFunc func(ctx context.Context, subscriptions ...*models.Subscription) error
+
 	// BulkGetSubscriptionsFunc mocks the BulkGetSubscriptions method.
 	BulkGetSubscriptionsFunc func(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error)
 
@@ -1371,6 +1377,13 @@ type MoqSubscriptionsService struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddSubscriptions holds details about calls to the AddSubscriptions method.
+		AddSubscriptions []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Subscriptions is the subscriptions argument value.
+			Subscriptions []*models.Subscription
+		}
 		// BulkGetSubscriptions holds details about calls to the BulkGetSubscriptions method.
 		BulkGetSubscriptions []struct {
 			// Ctx is the ctx argument value.
@@ -1461,6 +1474,7 @@ type MoqSubscriptionsService struct {
 			Subscriptions []*models.Subscription
 		}
 	}
+	lockAddSubscriptions                   sync.RWMutex
 	lockBulkGetSubscriptions               sync.RWMutex
 	lockGetAllSubscriptions                sync.RWMutex
 	lockGetLatestArticles                  sync.RWMutex
@@ -1472,6 +1486,42 @@ type MoqSubscriptionsService struct {
 	lockRemoveSubscriptions                sync.RWMutex
 	lockUpdateSubscriptionDynamicInfo      sync.RWMutex
 	lockUpdateSubscriptions                sync.RWMutex
+}
+
+// AddSubscriptions calls AddSubscriptionsFunc.
+func (mock *MoqSubscriptionsService) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
+	if mock.AddSubscriptionsFunc == nil {
+		panic("MoqSubscriptionsService.AddSubscriptionsFunc: method is nil but SubscriptionsService.AddSubscriptions was just called")
+	}
+	callInfo := struct {
+		Ctx           context.Context
+		Subscriptions []*models.Subscription
+	}{
+		Ctx:           ctx,
+		Subscriptions: subscriptions,
+	}
+	mock.lockAddSubscriptions.Lock()
+	mock.calls.AddSubscriptions = append(mock.calls.AddSubscriptions, callInfo)
+	mock.lockAddSubscriptions.Unlock()
+	return mock.AddSubscriptionsFunc(ctx, subscriptions...)
+}
+
+// AddSubscriptionsCalls gets all the calls that were made to AddSubscriptions.
+// Check the length with:
+//
+//	len(mockedSubscriptionsService.AddSubscriptionsCalls())
+func (mock *MoqSubscriptionsService) AddSubscriptionsCalls() []struct {
+	Ctx           context.Context
+	Subscriptions []*models.Subscription
+} {
+	var calls []struct {
+		Ctx           context.Context
+		Subscriptions []*models.Subscription
+	}
+	mock.lockAddSubscriptions.RLock()
+	calls = mock.calls.AddSubscriptions
+	mock.lockAddSubscriptions.RUnlock()
+	return calls
 }
 
 // BulkGetSubscriptions calls BulkGetSubscriptionsFunc.
@@ -4446,6 +4496,128 @@ func (mock *MoqBreadcrumbs) PreviousCalls() []struct {
 	mock.lockPrevious.RLock()
 	calls = mock.calls.Previous
 	mock.lockPrevious.RUnlock()
+	return calls
+}
+
+// Ensure that MoqImporter does implement handlers.Importer.
+// If this is not the case, regenerate this file with mockery.
+var _ handlers.Importer = &MoqImporter{}
+
+// MoqImporter is a mock implementation of handlers.Importer.
+//
+//	func TestSomethingThatUsesImporter(t *testing.T) {
+//
+//		// make and configure a mocked handlers.Importer
+//		mockedImporter := &MoqImporter{
+//			GetImportStatusFunc: func(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error) {
+//				panic("mock out the GetImportStatus method")
+//			},
+//			StartImportFunc: func(ctx context.Context, file *models.OPMLFile) (string, error) {
+//				panic("mock out the StartImport method")
+//			},
+//		}
+//
+//		// use mockedImporter in code that requires handlers.Importer
+//		// and then make assertions.
+//
+//	}
+type MoqImporter struct {
+	// GetImportStatusFunc mocks the GetImportStatus method.
+	GetImportStatusFunc func(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error)
+
+	// StartImportFunc mocks the StartImport method.
+	StartImportFunc func(ctx context.Context, file *models.OPMLFile) (string, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// GetImportStatus holds details about calls to the GetImportStatus method.
+		GetImportStatus []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// JobID is the jobID argument value.
+			JobID string
+		}
+		// StartImport holds details about calls to the StartImport method.
+		StartImport []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// File is the file argument value.
+			File *models.OPMLFile
+		}
+	}
+	lockGetImportStatus sync.RWMutex
+	lockStartImport     sync.RWMutex
+}
+
+// GetImportStatus calls GetImportStatusFunc.
+func (mock *MoqImporter) GetImportStatus(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error) {
+	if mock.GetImportStatusFunc == nil {
+		panic("MoqImporter.GetImportStatusFunc: method is nil but Importer.GetImportStatus was just called")
+	}
+	callInfo := struct {
+		Ctx   context.Context
+		JobID string
+	}{
+		Ctx:   ctx,
+		JobID: jobID,
+	}
+	mock.lockGetImportStatus.Lock()
+	mock.calls.GetImportStatus = append(mock.calls.GetImportStatus, callInfo)
+	mock.lockGetImportStatus.Unlock()
+	return mock.GetImportStatusFunc(ctx, jobID)
+}
+
+// GetImportStatusCalls gets all the calls that were made to GetImportStatus.
+// Check the length with:
+//
+//	len(mockedImporter.GetImportStatusCalls())
+func (mock *MoqImporter) GetImportStatusCalls() []struct {
+	Ctx   context.Context
+	JobID string
+} {
+	var calls []struct {
+		Ctx   context.Context
+		JobID string
+	}
+	mock.lockGetImportStatus.RLock()
+	calls = mock.calls.GetImportStatus
+	mock.lockGetImportStatus.RUnlock()
+	return calls
+}
+
+// StartImport calls StartImportFunc.
+func (mock *MoqImporter) StartImport(ctx context.Context, file *models.OPMLFile) (string, error) {
+	if mock.StartImportFunc == nil {
+		panic("MoqImporter.StartImportFunc: method is nil but Importer.StartImport was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		File *models.OPMLFile
+	}{
+		Ctx:  ctx,
+		File: file,
+	}
+	mock.lockStartImport.Lock()
+	mock.calls.StartImport = append(mock.calls.StartImport, callInfo)
+	mock.lockStartImport.Unlock()
+	return mock.StartImportFunc(ctx, file)
+}
+
+// StartImportCalls gets all the calls that were made to StartImport.
+// Check the length with:
+//
+//	len(mockedImporter.StartImportCalls())
+func (mock *MoqImporter) StartImportCalls() []struct {
+	Ctx  context.Context
+	File *models.OPMLFile
+} {
+	var calls []struct {
+		Ctx  context.Context
+		File *models.OPMLFile
+	}
+	mock.lockStartImport.RLock()
+	calls = mock.calls.StartImport
+	mock.lockStartImport.RUnlock()
 	return calls
 }
 

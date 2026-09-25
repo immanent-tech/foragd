@@ -665,7 +665,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div><div class=\"card-title text-secondary\">Add a feed</div><p class=\"text-base/7 text-secondary\">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p></div><div class=\"card-actions justify-end text-accent\">Get started <span aria-hidden=\"true\">-></span></div></a> <a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/user/import\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div><div class=\"card-title text-secondary\">Add a feed</div><p class=\"text-base/7 text-secondary\">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p></div><div class=\"card-actions justify-end text-accent\">Get started <span aria-hidden=\"true\">-></span></div></a> <a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/import\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

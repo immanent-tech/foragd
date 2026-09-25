@@ -157,6 +157,13 @@ func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, op
 			); err != nil {
 				return fmt.Errorf("could not migrate sessions: %w", err)
 			}
+		case importsSchemaPrefix:
+			if err := migrateIndexTemplates(ctx, api,
+				importsComponentTemplate,
+				importsIndexTemplate,
+			); err != nil {
+				return fmt.Errorf("could not migrate sessions: %w", err)
+			}
 		}
 	}
 
@@ -282,6 +289,10 @@ func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *I
 			}
 		case sessionsSchemaPrefix:
 			if err := migrateIndexData(ctx, api, sessionsSchemaPrefix); err != nil {
+				return fmt.Errorf("migrate sessions: %w", err)
+			}
+		case importsSchemaPrefix:
+			if err := migrateIndexData(ctx, api, importsSchemaPrefix); err != nil {
 				return fmt.Errorf("migrate sessions: %w", err)
 			}
 		}

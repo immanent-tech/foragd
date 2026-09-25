@@ -137,7 +137,7 @@ func handleRecievedEmail(
 			return fmt.Errorf("create email subscription: %w", err)
 		}
 		// Add the new subscription.
-		if err := addSubscriptions(ctx, userSvc, subSvc, subscription); err != nil {
+		if err := subSvc.AddSubscriptions(ctx, subscription); err != nil {
 			return fmt.Errorf("add email subscription: %w", err)
 		}
 	} else {

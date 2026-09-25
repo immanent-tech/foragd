@@ -9,6 +9,8 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	slogctx "github.com/veqryn/slog-context"
+	"log/slog"
 	"slices"
 	"strconv"
 )
@@ -30,7 +32,7 @@ templ ImportSubscriptions() {
 					<form
 						id="import-subscriptions-form"
 						hx-encoding="multipart/form-data"
-						hx-post="/user/import"
+						hx-post="/import"
 						hx-target="#import-results"
 						hx-indicator="#import-button"
 						hx-push-url="false"
@@ -95,103 +97,170 @@ templ ImportSubscriptions() {
 	}
 }
 
-// ImportSubscriptionsResults renders the results of importing the users subscriptions.
-templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
-	@partials.BackToTopButton()
-	// Generate seperate lists of successful/failed/warning imports.
-	{{
-		successfulResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-			return result.Error == nil && result.Subscription != nil
-		}))
-		warningResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-			return result.Error != nil && result.Error.UserMessage.IsWarning()
-		}))
-		failedResults := slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
-			return result.Error != nil && result.Error.UserMessage.IsError()
-		}))
-	}}
-	<div class="min-w-0 flex-1 pb-8">
-		<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
-			Import Results
-		</h2>
-	</div>
-	// Import results summary.
-	<ul class="space-y-8 py-4">
-		if len(successfulResults) > 0 {
-			<li class="flex items-center">
-				@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-10 text-success", "aria-hidden": "true"})
-				<p class="font-semibold text-success">{ strconv.Itoa(len(successfulResults)) } Created</p>
-			</li>
-		}
-		if len(failedResults) > 0 {
-			<li class="flex items-center">
-				@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-10 text-error", "aria-hidden": "true"})
-				<p class="font-semibold text-error">{ strconv.Itoa(len(failedResults)) } Failed</p>
-			</li>
-		}
-		if len(warningResults) > 0 {
-			<li class="flex items-center">
-				@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-10 text-warning", "aria-hidden": "true"})
-				<p class="font-semibold text-warning">{ strconv.Itoa(len(warningResults)) } Warnings</p>
-			</li>
-		}
-	</ul>
-	<div class="py-4">
-		{{ filters := models.NewListFilters() }}
-		<button
-			hx-get="/list/subscriptions"
-			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters) }
-			class="btn btn-primary"
-		>
-			Go to your subscriptions
-		</button>
-	</div>
-	<div class="space-y-8 py-4">
-		<ul class="list">
-			for result := range slices.Values(successfulResults) {
-				<li class="list-row items-center">
-					<div class="flex items-center space-x-2">
-						@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-6 text-success", "aria-hidden": "true"})
-						<div class="space-y-2">
-							<p>Subscription Created:</p>
-							<p>{ result.Subscription.GetTitle() }</p>
-						</div>
-					</div>
-				</li>
-			}
-			for result := range slices.Values(failedResults) {
-				<li class="list-row items-center">
-					<div class="flex items-center space-x-2">
-						@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-6 text-error", "aria-hidden": "true"})
-						{{ msg := result.Error.GetUserMessage() }}
-						<div class="space-y-2">
-							<div>{ msg.Summary }</div>
+templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, msg *models.UserMessage) {
+	@LayoutInternal("", &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@templ.Fragment(ContentFragment) {
+			@partials.BackToTopButton()
+			@narrowContainer(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					@pageTitle("Import Status")
+				}
+				if msg != nil {
+					// Show a message if there is one.
+					<div class="mt-12 text-center">
+						@tableroutline.MoodConfuzed(templ.Attributes{"class": "mx-auto size-12 text-accent"})
+						if msg != nil {
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ msg.Summary }</h1>
 							if msg.HasDetails() {
-								<p class="list-col-wrap text-xs">
-									{ *msg.Details }
-								</p>
+								<p>{ *msg.Details }</p>
+							}
+						} else {
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Whoops!</h1>
+							<p>An unexpected problem occurred and the request could not be completed. This is likely a temporary problem. Please try again.</p>
+						}
+						// Show a contact support button if the status indicates a failure.
+						if status != nil && status.Status == models.ImportStatusStatusFailed {
+							<div class="mt-6">
+								<a href="/contact" class="btn btn-primary">
+									Contact Support <span aria-hidden="true">&rarr;</span>
+								</a>
+							</div>
+						}
+					</div>
+				}
+				if status != nil {
+					// Generate seperate lists of successful/failed/warning imports.
+					{{
+						successfulResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+							return result.Error == nil && result.SubscriptionID != nil
+						}))
+						warningResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+							return result.Error != nil && result.Error.IsWarning()
+						}))
+						failedResults := slices.Collect(models.FilterSlice(results, func(result *models.ImportResult) bool {
+							return result.Error != nil && result.Error.IsError()
+						}))
+						allSubscriptions := models.SubscriptionsFromCtx(ctx)
+					}}
+					<div
+						id="import-status"
+						if status.Status == "pending" || status.Status == "running" {
+							hx-get={ "/import/status/" + status.GetID() }
+							hx-trigger="every 10s"
+							hx-target={ ContentID.Target() }
+							hx-swap="morph:innerHTML"
+						}
+					>
+						<p class="font-semibold text-lg py-4">Status: { string(status.Status) }...</p>
+						// Import results summary.
+						<div class="stats stats-vertical sm:stats-horizontal shadow">
+							if len(successfulResults) > 0 {
+								<a href="#successful">
+									<div class="stat">
+										<div class="stat-figure">
+											@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-10 text-success", "aria-hidden": "true"})
+										</div>
+										<div class="stat-title">Successful</div>
+										<div class="stat-value text-success">{ strconv.Itoa(len(successfulResults)) }</div>
+									</div>
+								</a>
+							}
+							if len(failedResults) > 0 {
+								<a href="#failed">
+									<div class="stat">
+										<div class="stat-figure">
+											@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-10 text-error", "aria-hidden": "true"})
+										</div>
+										<div class="stat-title">Failed</div>
+										<div class="stat-value text-error">{ strconv.Itoa(len(failedResults)) }</div>
+									</div>
+								</a>
+							}
+							if len(warningResults) > 0 {
+								<a href="#warning">
+									<div class="stat">
+										<div class="stat-figure">
+											@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-10 text-warning", "aria-hidden": "true"})
+										</div>
+										<div class="stat-title">Warnings</div>
+										<div class="stat-value text-warning">{ strconv.Itoa(len(warningResults)) }</div>
+									</div>
+								</a>
 							}
 						</div>
-					</div>
-				</li>
-			}
-			for result := range slices.Values(warningResults) {
-				<li class="list-row items-center">
-					<div class="flex items-center space-x-2">
-						@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-6 text-warning", "aria-hidden": "true"})
-						{{ msg := result.Error.GetUserMessage() }}
-						<div class="space-y-2">
-							<div>{ msg.Summary }</div>
-							if msg.HasDetails() {
-								<p class="list-col-wrap text-xs">
-									{ *msg.Details }
-								</p>
-							}
+						<div class="py-4">
+							{{ filters := models.NewListFilters() }}
+							<button
+								hx-get="/list/subscriptions"
+								hx-target={ ContentID.Target() }
+								hx-vals={ templ.JSONString(filters) }
+								class="btn btn-primary"
+							>
+								Go to your subscriptions
+							</button>
+						</div>
+						<div class="space-y-8 py-4">
+							<ul class="list">
+								<div id="successful">
+									for result := range slices.Values(successfulResults) {
+										if subscription := allSubscriptions.GetByID(*result.SubscriptionID); subscription != nil {
+											<li class="list-row items-center">
+												<div class="flex items-center space-x-2">
+													@tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-6 text-success", "aria-hidden": "true"})
+													<div class="space-y-2">
+														<p>Subscription Created:</p>
+														<p>{ subscription.GetTitle() }</p>
+													</div>
+												</div>
+											</li>
+										} else {
+											{{
+												slogctx.Warn(ctx, "Could not retrieve subscription details",
+													slog.String("subscription_id", *result.SubscriptionID),
+												)
+											}}
+										}
+									}
+								</div>
+								<div id="failed">
+									for result := range slices.Values(failedResults) {
+										<li class="list-row items-center">
+											<div class="flex items-center space-x-2">
+												@tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-6 text-error", "aria-hidden": "true"})
+												<div class="space-y-2">
+													<div>{ result.Error.Summary }</div>
+													if result.Error.HasDetails() {
+														<p class="list-col-wrap text-xs">
+															{ *result.Error.Details }
+														</p>
+													}
+												</div>
+											</div>
+										</li>
+									}
+								</div>
+								<div id="warning">
+									for result := range slices.Values(warningResults) {
+										<li class="list-row items-center">
+											<div class="flex items-center space-x-2">
+												@tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-6 text-warning", "aria-hidden": "true"})
+												<div class="space-y-2">
+													<div>{ result.Error.Summary }</div>
+													if result.Error.HasDetails() {
+														<p class="list-col-wrap text-xs">
+															{ *result.Error.Details }
+														</p>
+													}
+												</div>
+											</div>
+										</li>
+									}
+								</div>
+							</ul>
 						</div>
 					</div>
-				</li>
+				}
 			}
-		</ul>
-	</div>
+		}
+	}
 }
