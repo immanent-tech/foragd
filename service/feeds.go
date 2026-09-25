@@ -356,7 +356,7 @@ func (s *FeedService) UpdateFeedItems(
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
 		maxConcurrentEnrichment := runtime.GOMAXPROCS(0)
-		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*5)
+		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*25)
 		var wg sync.WaitGroup
 		for range maxConcurrentEnrichment {
 			// Try to enrich item with additional data if possible.
@@ -379,6 +379,7 @@ func (s *FeedService) UpdateFeedItems(
 				return oldData.LastFetched, ctx.Err()
 			}
 		}
+		close(enrichJobCh)
 		wg.Wait()
 
 		// Add new items.
