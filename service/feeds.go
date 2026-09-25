@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -197,6 +198,34 @@ func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (model
 	return feeds, nil
 }
 
+// GetFeedByURLs retrieves a [models.Feeds] slice containing all feeds that have a source matching one of the given URLs.
+func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models.Feeds, error) {
+	var terms []query.Option
+	for url := range slices.Values(urls) {
+		terms = append(terms, query.Term("source_urls", url))
+		// Also match url with trailing slash.
+		if !strings.HasSuffix(url, "/") {
+			terms = append(terms, query.Term("source_urls", url+"/"))
+		}
+	}
+	// Find any existing feed.
+	feeds, err := elastic.SearchAll[*models.Feed](ctx,
+		s.store.GetIndexRO(FeedsIndex),
+		query.Bool(
+			query.Filter(
+				query.Bool(
+					query.Should(terms...),
+				),
+			),
+		),
+		5000,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search all feeds: %w", err)
+	}
+	return feeds, nil
+}
+
 // AddFeed adds a new feed to Elasticsearch and the cache.
 func (s *FeedService) AddFeed(ctx context.Context, feed *models.Feed) error {
 	if err := bulk.AddAction(ctx,
@@ -326,8 +355,8 @@ func (s *FeedService) UpdateFeedItems(
 		return oldData.LastFetched, nil
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		const maxConcurrentEnrichment = 50
-		enrichJobCh := make(chan *models.Item, 100)
+		maxConcurrentEnrichment := runtime.GOMAXPROCS(0)
+		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*5)
 		var wg sync.WaitGroup
 		for range maxConcurrentEnrichment {
 			// Try to enrich item with additional data if possible.
@@ -342,9 +371,14 @@ func (s *FeedService) UpdateFeedItems(
 			})
 		}
 		for item := range slices.Values(newItems) {
-			enrichJobCh <- item
+			select {
+			case enrichJobCh <- item:
+			case <-ctx.Done():
+				close(enrichJobCh)
+				wg.Wait()
+				return oldData.LastFetched, ctx.Err()
+			}
 		}
-		close(enrichJobCh)
 		wg.Wait()
 
 		// Add new items.
@@ -798,7 +832,6 @@ func (s *FeedService) FindOrCreateFeed(
 	if err != nil {
 		return nil, false, fmt.Errorf("fetch new feed: %w", err)
 	}
-
 	// Create terms queries to match the new feed to an existing feed.
 	var terms []query.Option
 	for url := range slices.Values(newFeed.GetSourceURLs()) {
@@ -1347,9 +1380,6 @@ func FetchFeed(
 	var contentType string
 	switch opts.Proxy {
 	case false:
-		slogctx.FromCtx(ctx).Debug("Fetching feed directly.",
-			slog.String("feed_url", sourceURL.String()),
-		)
 		resp, err := httpClient.R().
 			SetContext(ctx).
 			SetDoNotParseResponse(true).
