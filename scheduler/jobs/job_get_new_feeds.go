@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/reugn/go-quartz/matcher"
@@ -22,6 +23,8 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/service"
 )
+
+var getNewFeedsRunning atomic.Bool
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
 func NewGetNewFeedsJob() (*SerializedJob, error) {
@@ -48,6 +51,11 @@ func NewGetNewFeedsJob() (*SerializedJob, error) {
 // ExecuteGetNewFeeds runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
 func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
+	if wasRunning := getNewFeedsRunning.Swap(true); wasRunning {
+		return errors.New("job is running")
+	}
+	defer getNewFeedsRunning.Store(false)
+
 	schedulerAPI := SchedulerAPIFromCtx(ctx)
 	if schedulerAPI == nil {
 		return errors.New("cannot execute: no scheduler API in context")
@@ -66,9 +74,8 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("get new feeds since: %w", err)
 	}
 	if len(newFeeds) > 0 {
-		slogctx.Debug(ctx, "Found new feeds.",
+		slogctx.Info(ctx, "Found new feeds to process.",
 			slog.Int("count", len(newFeeds)),
-			slog.Any("feed_ids", newFeeds.GetIDs()),
 		)
 	}
 
@@ -78,31 +85,30 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("get job keys: %w", err)
 	}
 
-	maxConcurrentImports := runtime.GOMAXPROCS(0)
-	feedCh := make(chan *models.Feed, maxConcurrentImports*5)
+	maxConcurrentWorkers := runtime.GOMAXPROCS(0) * 2
+	feedCh := make(chan *models.Feed, maxConcurrentWorkers*5)
 	var wg sync.WaitGroup
 
-	for range maxConcurrentImports {
-		// Create new feed jobs where necessary.
-		for feed := range slices.Values(newFeeds) {
-			// Add additional feed details to logs.
-			feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
-			feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
-			// Skip adding if there is already an existing job.
-			if slices.ContainsFunc(existingJobKeys, func(e *quartz.JobKey) bool {
-				return e.Name() == feed.GetID()
-			}) {
-				continue
-			}
-			// Add and process update feed job.
-			wg.Go(func() {
+	for range maxConcurrentWorkers {
+		wg.Go(func() {
+			// Create new feed jobs where necessary.
+			for feed := range feedCh {
+				feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
+				feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
+				// Skip adding if there is already an existing job. Likely just waiting on next fetch.
+				if slices.ContainsFunc(existingJobKeys, func(e *quartz.JobKey) bool {
+					return e.Name() == feed.GetID()
+				}) {
+					continue
+				}
+				// Add and process update feed job.
 				if err := AddFeedJob(feedCtx, schedulerAPI, feedSvc, feed); err != nil {
-					slogctx.Error(ctx, "Unable to add feed job",
+					slogctx.Error(feedCtx, "Unable to add feed job",
 						slog.Any("error", err),
 					)
 				}
-			})
-		}
+			}
+		})
 	}
 
 	for feed := range slices.Values(newFeeds) {
@@ -137,30 +143,29 @@ func AddFeedJob(
 		return fmt.Errorf("new update feed job: %w", err)
 	}
 
-	// Schedule the new job.
-	if err = scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-		return fmt.Errorf("schedule update feed job: %w", err)
-	}
-	slogctx.Info(ctx, "Added new job for feed.",
+	ctx = slogctx.With(ctx,
 		slog.String("job_id", job.JobDetail().JobKey().String()),
 		slog.String("job_schedule", job.Trigger().Description()),
 	)
 
 	// Do an initial run of the job.
-	if err = job.JobDetail().Job().Execute(ctx); err != nil {
+	slogctx.Info(ctx, "Performing initial execution of update feed job.")
+	if err := safeExecute(ctx, job, ExecuteUpdateFeed); err != nil {
 		slogctx.Warn(ctx, "Failed initial run of update feed job. Pausing.",
-			slog.String("job_id", job.JobDetail().JobKey().String()),
-			slog.String("job_schedule", job.Trigger().Description()),
 			slog.Any("error", err),
 		)
 		feed.LastFetched = time.Now().UTC()
 		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
 			slogctx.Error(ctx, "Unable to update last fetched.",
-				slog.String("job_id", job.JobDetail().JobKey().String()),
-				slog.String("job_schedule", job.Trigger().Description()),
 				slog.Any("error", err),
 			)
 		}
 	}
+	// Schedule the new job.
+	if err = scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+		return fmt.Errorf("schedule update feed job: %w", err)
+	}
+	slogctx.Info(ctx, "Added update feed job.")
+
 	return nil
 }
