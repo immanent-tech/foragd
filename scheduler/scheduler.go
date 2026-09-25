@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -60,6 +61,7 @@ func NewManager(ctx context.Context) (*Manager, error) {
 
 	// Create scheduler instance.
 	scheduler, err := quartz.NewStdScheduler(
+		quartz.WithWorkerLimit(runtime.GOMAXPROCS(0)*2),
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithRetryInterval(500*time.Millisecond),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
