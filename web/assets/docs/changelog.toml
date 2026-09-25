@@ -1,8 +1,23 @@
 [[releases]]
+version = "v0.237"
+date = "Sep 28, 2026"
+type = "major"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+You can now bulk unsubscribe from the <a href="/user/settings#subscriptions" class="link">subscriptions settings</a> page.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Importing via OPML has been greatly overhauled. You now start an import and it is processed in the background. There is a <a href="/import/status" class="link">status page</a> you can check on the progress, and new subscribtions will show up as they are added and updated. Any import errors are clearer as well.
+"""
+
+[[releases]]
 version = "v0.236"
 date = "Sep 23, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "fixed"
 description = """
