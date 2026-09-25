@@ -130,13 +130,6 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 		}
 
 		subscriptions := models.SubscriptionsFromCtx(req.Context())
-		if subscriptions == nil {
-			m.HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
-			).ServeHTTP(res, req)
-			return
-		}
 
 		// Generate request object.
 		request := &models.ListRequest{

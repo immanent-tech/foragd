@@ -168,14 +168,6 @@ func (m *Manager) HandleShowSubscriptionsSettings() http.HandlerFunc {
 		}
 		// Get all subscriptions.
 		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
-		if allSubscriptions == nil {
-			m.HandleInternalError(
-				http.StatusInternalServerError,
-				fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
-			).ServeHTTP(res, req)
-			return
-		}
-		// Sort by newest first.
 		allSubscriptions = allSubscriptions.Sort(models.SortNewestFirst)
 		// Render the subscription list.
 		RenderPartial(&PartialTemplate{
