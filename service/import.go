@@ -333,6 +333,12 @@ func (i *ImportService) ProcessRequests(
 		}
 	}
 
+	if err := bulk.Flush(ctx); err != nil {
+		slogctx.Warn(ctx, "Could not flush bulk indexer after adding subscriptions.",
+			slog.Any("error", err),
+		)
+	}
+
 	if err := i.updateStatus(ctx, status, models.ImportStatusStatusDone, nil); err != nil {
 		slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
 	}
