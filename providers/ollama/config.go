@@ -62,10 +62,10 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("generate token source: %w", err)
 		}
+		// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
+		// than minting a new one on every single call.
+		cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
 	}
-	// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
-	// than minting a new one on every single call.
-	cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
 
 	slog.Debug("Ollama config loaded.") //nolint:sloglint // we don't pass a context.
 	return &cfg, nil
