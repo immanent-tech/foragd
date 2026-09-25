@@ -6,7 +6,6 @@
 package handlers
 
 import (
-	"embed"
 	"errors"
 	"fmt"
 	"io"
@@ -19,11 +18,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
-
-	"github.com/immanent-tech/go-syndication/opml"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
@@ -33,6 +29,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
@@ -649,11 +646,8 @@ func (m *Manager) HandleDeactivateAccount(
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
 func (m *Manager) HandleAddFeedset(
-	feeds FeedService,
-	users UserService,
-	subscriptions SubscriptionsService,
-	httpClient *resty.Client,
-	static embed.FS,
+	feedSvc FeedService,
+	subSvc SubscriptionsService,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
@@ -689,75 +683,83 @@ func (m *Manager) HandleAddFeedset(
 		}
 
 		// Process requested feedsets and generate subscription requests.
-		var subscriptionRequests []models.FeedSubscriptionRequest
+		feeds := make(models.Feeds, 0)
 		for set := range slices.Values(request.Feedset) {
-			var data []byte
 			switch set {
 			case "enlightened":
-				ids := make([]models.FeedID, 0, len(feedsetEnlightened))
-				for _, id := range feedsetEnlightened {
-					ids = append(ids, id)
+				for name, id := range feedsetEnlightened {
+					feed, err := feedSvc.GetFeed(req.Context(), id)
+					if err != nil {
+						slogctx.Warn(req.Context(), "Could not fetch feed from feedset.",
+							slog.String("feed_id", id),
+							slog.String("feed_name", name),
+							slog.Any("error", err),
+						)
+					} else {
+						feeds = append(feeds, feed)
+					}
 				}
-				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			case "informed":
-				ids := make([]models.FeedID, 0, len(feedsetInformed))
-				for _, id := range feedsetInformed {
-					ids = append(ids, id)
+				for name, id := range feedsetInformed {
+					feed, err := feedSvc.GetFeed(req.Context(), id)
+					if err != nil {
+						slogctx.Warn(req.Context(), "Could not fetch feed from feedset.",
+							slog.String("feed_id", id),
+							slog.String("feed_name", name),
+							slog.Any("error", err),
+						)
+					} else {
+						feeds = append(feeds, feed)
+					}
 				}
-				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			case "inspired":
-				ids := make([]models.FeedID, 0, len(feedsetInspired))
-				for _, id := range feedsetInspired {
-					ids = append(ids, id)
+				for name, id := range feedsetInspired {
+					feed, err := feedSvc.GetFeed(req.Context(), id)
+					if err != nil {
+						slogctx.Warn(req.Context(), "Could not fetch feed from feedset.",
+							slog.String("feed_id", id),
+							slog.String("feed_name", name),
+							slog.Any("error", err),
+						)
+					} else {
+						feeds = append(feeds, feed)
+					}
 				}
-				data, err = feeds.GenerateOPML(req.Context(), ids...)
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Unknown feedset.",
 					slog.String("set", set))
 				continue
 			}
-			if err != nil {
-				m.HandleInternalError(
-					http.StatusUnprocessableEntity,
-					fmt.Errorf("read feedset: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			opmlImport, err := opml.NewOPMLFromBytes(data)
-			if err != nil {
-				m.HandleInternalError(
-					http.StatusUnprocessableEntity,
-					fmt.Errorf("create opml: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			subscriptionRequests = append(
-				subscriptionRequests,
-				models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
 		}
 
-		// Process requests.
-		results := bulkImportFeeds(req.Context(), feeds, users, subscriptions, httpClient, subscriptionRequests...)
-
-		// Process results
-		for result := range slices.Values(results) {
-			if result.Error != nil {
-				switch {
-				case result.Error.UserMessage.IsError():
-					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
-						slog.String("url", result.Request.URL),
-						slog.Any("error", result.Error),
-					)
-				case result.Error.UserMessage.IsWarning():
-					fallthrough
-				default:
-					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
-						slog.String("url", result.Request.URL),
-						slog.Any("error", result.Error),
-					)
-				}
+		subscriptions := make(models.Subscriptions, 0, len(feeds))
+		for feed := range slices.Values(feeds) {
+			subscription, err := service.NewFeedSubscription(req.Context(), feed, nil)
+			if err != nil {
+				slogctx.Warn(req.Context(), "Could not create a subscription from feed",
+					slog.String("feed_id", feed.GetID()),
+					slog.String("feed_name", feed.GetTitle()),
+					slog.Any("error", err),
+				)
+			} else {
+				subscriptions = append(subscriptions, subscription)
 			}
 		}
+
+		if err := subSvc.AddSubscriptions(req.Context(), subscriptions...); err != nil {
+			m.HandleInternalError(
+				http.StatusInternalServerError,
+				err,
+				WithUserMessage(
+					models.NewErrorMessage(
+						"Could not add feedsets",
+						"A backend error occurred while creating your subscriptions. This might be temporary, please try again.",
+					),
+				),
+			)
+			return
+		}
+
 		// Show notification.
 		for feedset := range slices.Values(request.Feedset) {
 			RenderPartial(&Notification{
