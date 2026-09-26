@@ -80,13 +80,10 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	serialized.UpdatedAt = time.Now().UTC()
 
 	// Update in backend.
-
-	if err := elastic.UpdateDoc(
-		ctx,
+	if err := elastic.CreateDoc(ctx,
 		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		serialized,
-		elastic.WithDocAsUpsert(true),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
@@ -107,7 +104,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 	// Delete the job from the queue and invalidate its cache entry.
 	if err := jq.deleteJob(ctx, job.(*jobs.SerializedJob)); err != nil {
-		return nil, fmt.Errorf("remove job: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrPopJobFailed, err)
 	}
 
 	return job, nil
@@ -123,15 +120,15 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 		elastic.WithSize(1),
 		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
 		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
-		elastic.WithSeqNoPrimaryTerm(),
+		// elastic.WithSeqNoPrimaryTerm(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
 	}
 
 	job := resp.Results[0]
-	job.SeqNo = resp.Hits.Hits[0].SeqNo_
-	job.PrimaryTerm = resp.Hits.Hits[0].PrimaryTerm_
+	// job.SeqNo = resp.Hits.Hits[0].SeqNo_
+	// job.PrimaryTerm = resp.Hits.Hits[0].PrimaryTerm_
 
 	// Return the job that should run next.
 	return job, nil
@@ -171,7 +168,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 
 	// Delete the job from the queue and invalidate its cache entry.
 	if err := jq.deleteJob(ctx, job.(*jobs.SerializedJob)); err != nil {
-		return nil, fmt.Errorf("remove job: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
 
 	jq.logger.Debug("Removed job from queue.",
@@ -239,8 +236,8 @@ func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) erro
 		ctx,
 		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.GetID(),
-		elastic.WithDeleteSeqNo(*job.SeqNo),
-		elastic.WithDeletePrimaryTerm(*job.PrimaryTerm),
+		// elastic.WithDeleteSeqNo(*job.SeqNo),
+		// elastic.WithDeletePrimaryTerm(*job.PrimaryTerm),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
