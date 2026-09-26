@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	defaultOutdatedThreshold = 50 * time.Second
+	defaultOutdatedThreshold = 5 * time.Second
 	gracefulShutdownTimeout  = 30 * time.Second
 )
 
@@ -63,7 +63,7 @@ func NewManager(ctx context.Context) (*Manager, error) {
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithWorkerLimit(runtime.GOMAXPROCS(0)*2),
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
-		quartz.WithRetryInterval(500*time.Millisecond),
+		quartz.WithRetryInterval(time.Second),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
 		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
 	)
