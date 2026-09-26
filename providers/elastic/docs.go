@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
@@ -79,19 +80,23 @@ func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error
 }
 
 // CreateDoc will create the given document, with given id, in the given index.
-func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O) error {
+func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O, options ...CreateOption) error {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
-		return fmt.Errorf("connect to elasticsearch: %w", err)
+		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
 	}
 
-	resp, err := api.Create(index, string(id)).
+	req := api.Create(index, string(id)).
 		Document(doc).
-		Header(ReqIDHeader, middleware.GetReqID(ctx)).
-		Refresh(refresh.True).
-		Do(ctx)
+		Header(ReqIDHeader, middleware.GetReqID(ctx))
+
+	for option := range slices.Values(options) {
+		option(req)
+	}
+
+	resp, err := req.Do(ctx)
 	if err != nil {
-		return fmt.Errorf("create doc: %w", err)
+		return AsAPIError(err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Created document.",
@@ -100,6 +105,25 @@ func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O)
 		)
 	}
 	return nil
+}
+
+type CreateOption func(*create.Create)
+
+func WithCreateRefresh(value string) CreateOption {
+	return func(c *create.Create) {
+		if value == "waitfo" {
+			c = c.Refresh(refresh.Waitfor)
+			return
+		}
+		if v, err := strconv.ParseBool(value); err == nil {
+			switch v {
+			case true:
+				c = c.Refresh(refresh.True)
+			case false:
+				c = c.Refresh(refresh.False)
+			}
+		}
+	}
 }
 
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
@@ -133,7 +157,7 @@ func UpdateDoc[T ~string](
 // DeleteDoc deletes the document with the given id from the given index.
 func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...DeleteOption) error {
 	if err := Connect(); err != nil {
-		return fmt.Errorf("connect to elasticsearch: %w", err)
+		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
 	}
 
 	req := api.Delete(index, string(id)).
@@ -146,7 +170,7 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...De
 
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return fmt.Errorf("delete doc: %w", err)
+		return AsAPIError(err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Deleted document.",
@@ -174,6 +198,23 @@ func WithDeletePrimaryTerm(term int64) DeleteOption {
 			return d.IfPrimaryTerm(strconv.FormatInt(term, 10))
 		}
 		return d
+	}
+}
+
+func WithDeleteRefresh(value string) DeleteOption {
+	return func(c *delete.Delete) *delete.Delete {
+		if value == "waitfo" {
+			return c.Refresh(refresh.Waitfor)
+		}
+		if v, err := strconv.ParseBool(value); err == nil {
+			switch v {
+			case true:
+				return c.Refresh(refresh.True)
+			case false:
+				return c.Refresh(refresh.False)
+			}
+		}
+		return c
 	}
 }
 

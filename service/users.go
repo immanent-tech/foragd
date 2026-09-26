@@ -332,7 +332,13 @@ func (s *UserService) SyncUser(res http.ResponseWriter, req *http.Request, user 
 
 // AddUser stores and caches the given [*models.User] in the backend.
 func (s UserService) AddUser(ctx context.Context, user *models.User) error {
-	if err := elastic.CreateDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID(), user); err != nil {
+	if err := elastic.CreateDoc(
+		ctx,
+		s.store.GetIndexRW(UsersIndex),
+		user.GetID(),
+		user,
+		elastic.WithCreateRefresh("waitfor"),
+	); err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
 	if _, ok := s.Set(user.GetID(), *user); !ok {
