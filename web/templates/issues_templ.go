@@ -112,14 +112,14 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">email us</a> instead.</p><fieldset class=\"fieldset min-w-0\"><form id=\"report-app-issue\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue("/issue")
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 37, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 36, Col: 23}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 					if templ_7745c5c3_Err != nil {
@@ -132,7 +132,7 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					var templ_7745c5c3_Var8 string
 					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 38, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 37, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 					if templ_7745c5c3_Err != nil {
@@ -145,13 +145,13 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 39, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 38, Col: 41}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-disabled-elt=\"find button[type='submit']\" class=\"mt-12\"><input type=\"hidden\" name=\"page_url\" value=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-disabled-elt=\"find button[type='submit']\" class=\"mt-12\"><fieldset class=\"fieldset min-w-0\"><input type=\"hidden\" name=\"page_url\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -187,7 +187,7 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<label class=\"fieldset\"><span class=\"label\">Email Address</span> <input id=\"email\" type=\"email\" name=\"user_email\" value=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<label class=\"fieldset min-w-0\"><span class=\"font-semibold\">Email Address</span> <input id=\"email\" type=\"email\" name=\"user_email\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -200,7 +200,7 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"><p class=\"label\">Please enter an email address you can be contacted through.</p></label> <label class=\"fieldset\"><span class=\"label\">Screenshot</span><div id=\"drop-zone\" class=\"group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg\" _=\"\n                                on dragover\n                                  halt the event\n                                  add .bg-base-300 .border-accent to me\n                                end\n\n                                on dragleave\n                                  remove .bg-base-300 .border-accent from me\n                                end\n\n                                on drop\n                                  halt the event\n                                  remove .bg-base-300 .border-accent from me\n                                  set files to event.dataTransfer.files\n                                  set #screenshot-upload's files to files\n                                  set #file-name's textContent to files[0].name\n\t\t\t\t\t\t\t\t  set f to event.dataTransfer.files[0]\n\t\t\t\t\t\t\t\t  js(f)\n      \t\t\t\t\t\t\t\treturn new Promise(resolve => {\n      \t\t\t\t\t\t\t\t  if (!f.type.startsWith('image/')) { resolve(null); return; }\n      \t\t\t\t\t\t\t\t  const r = new FileReader();\n      \t\t\t\t\t\t\t\t  r.onload = e => resolve(e.target.result);\n      \t\t\t\t\t\t\t\t  r.readAsDataURL(f);\n      \t\t\t\t\t\t\t\t});\n    \t\t\t\t\t\t\t  end\n                                end\n                                \"><div class=\"text-center\"><div id=\"preview-area\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"><p class=\"text-sm/6\">Please enter an email address you can be contacted through.</p></label> <label class=\"fieldset min-w-0\"><span class=\"font-semibold\">Screenshot</span><div id=\"drop-zone\" class=\"group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg\" _=\"\n                                on dragover\n                                  halt the event\n                                  add .bg-base-300 .border-accent to me\n                                end\n\n                                on dragleave\n                                  remove .bg-base-300 .border-accent from me\n                                end\n\n                                on drop\n                                  halt the event\n                                  remove .bg-base-300 .border-accent from me\n                                  set files to event.dataTransfer.files\n                                  set #screenshot-upload's files to files\n                                  set #file-name's textContent to files[0].name\n\t\t\t\t\t\t\t\t  set f to event.dataTransfer.files[0]\n\t\t\t\t\t\t\t\t  js(f)\n      \t\t\t\t\t\t\t\treturn new Promise(resolve => {\n      \t\t\t\t\t\t\t\t  if (!f.type.startsWith('image/')) { resolve(null); return; }\n      \t\t\t\t\t\t\t\t  const r = new FileReader();\n      \t\t\t\t\t\t\t\t  r.onload = e => resolve(e.target.result);\n      \t\t\t\t\t\t\t\t  r.readAsDataURL(f);\n      \t\t\t\t\t\t\t\t});\n    \t\t\t\t\t\t\t  end\n                                end\n                                \"><div class=\"text-center\"><div id=\"preview-area\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -208,7 +208,7 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></label> <label class=\"fieldset\"><span class=\"label\">Issue Description</span> <textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose\"></textarea><p class=\"label\">Describe the issue in as much detail as possible.</p></label><div class=\"mt-4 flex w-full justify-end gap-4\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p id=\"preview-meta\" style=\"font-size:0.85rem; color:#666;\"></p></div><span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"screenshot-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-dash btn-neutral\">Upload a file</span> <input id=\"screenshot-upload\" type=\"file\" name=\"screenshot\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">JPG, PNG or WEBP up to 10MB</p></div></div></label> <label class=\"fieldset\"><span class=\"font-semibold\">Issue Description</span> <textarea id=\"details\" name=\"details\" rows=\"5\" class=\"textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose\"></textarea><p class=\"text-sm/6\">Describe the issue in as much detail as possible.</p></label><div class=\"mt-4 flex w-full justify-end gap-4\"><button type=\"button\" class=\"btn btn-secondary hover:btn-error\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -249,7 +249,7 @@ func ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) te
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"morph:innerHTML transition:true\" hx-push-url=\"true\">Back</button> <button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></fieldset>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"morph:innerHTML transition:true\" hx-push-url=\"true\">Back</button> <button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></fieldset></form>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

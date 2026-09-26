@@ -31,23 +31,23 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 						email us
 					</a> instead.
 				</p>
-				<fieldset class="fieldset min-w-0">
-					<form
-						id="report-app-issue"
-						hx-post={ "/issue" }
-						hx-target={ ContentID.Target() }
-						hx-target-error={ ContentID.Target() }
-						hx-encoding="multipart/form-data"
-						hx-swap="none"
-						hx-disabled-elt="find button[type='submit']"
-						class="mt-12"
-					>
+				<form
+					id="report-app-issue"
+					hx-post={ "/issue" }
+					hx-target={ ContentID.Target() }
+					hx-target-error={ ContentID.Target() }
+					hx-encoding="multipart/form-data"
+					hx-swap="none"
+					hx-disabled-elt="find button[type='submit']"
+					class="mt-12"
+				>
+					<fieldset class="fieldset min-w-0">
 						<input type="hidden" name="page_url" value={ details.PageUrl }/>
 						if details.ObjectID != nil && *details.ObjectID != "" {
 							<input type="hidden" name="object_id" value={ *details.ObjectID }/>
 						}
-						<label class="fieldset">
-							<span class="label">Email Address</span>
+						<label class="fieldset min-w-0">
+							<span class="font-semibold">Email Address</span>
 							<input
 								id="email"
 								type="email"
@@ -57,10 +57,10 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 								required
 								class="input bg-base-300 brightness-95 input-primary"
 							/>
-							<p class="label">Please enter an email address you can be contacted through.</p>
+							<p class="text-sm/6">Please enter an email address you can be contacted through.</p>
 						</label>
-						<label class="fieldset">
-							<span class="label">Screenshot</span>
+						<label class="fieldset min-w-0">
+							<span class="font-semibold">Screenshot</span>
 							<div
 								id="drop-zone"
 								class="group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg"
@@ -116,14 +116,14 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 							</div>
 						</label>
 						<label class="fieldset">
-							<span class="label">Issue Description</span>
+							<span class="font-semibold">Issue Description</span>
 							<textarea
 								id="details"
 								name="details"
 								rows="5"
 								class="textarea w-full bg-base-300 brightness-95 textarea-primary sm:max-w-prose"
 							></textarea>
-							<p class="label">Describe the issue in as much detail as possible.</p>
+							<p class="text-sm/6">Describe the issue in as much detail as possible.</p>
 						</label>
 						<div class="mt-4 flex w-full justify-end gap-4">
 							<button
@@ -153,8 +153,8 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 								</span>
 							</button>
 						</div>
-					</form>
-				</fieldset>
+					</fieldset>
+				</form>
 			}
 		}
 	}
