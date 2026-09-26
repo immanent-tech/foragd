@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.237.0](https://github.com/immanent-tech/foragd/compare/v0.236.1...v0.237.0) (2026-09-26)
+
+
+### Features
+
+* ✨ add a bulk remove subscriptions action ([1f5aef8](https://github.com/immanent-tech/foragd/commit/1f5aef841af01f139c6a6bf0bf80f79eee17426e))
+* **scheduler/jobs:** ✨ improved import handling ([6ca292a](https://github.com/immanent-tech/foragd/commit/6ca292a1f68752ca52d1cdb28cc205b76f4965f7))
+
+
+### Bug Fixes
+
+* **handlers/favorites:** 🔧 handle no favorites gracefully ([023e120](https://github.com/immanent-tech/foragd/commit/023e120816dedee679a1fcf4a15169ea7810c4aa))
+* **handlers:** 🔧 fix some cases of returning an error where we shouldn't ([1cfda1c](https://github.com/immanent-tech/foragd/commit/1cfda1cdd6542ef9024fe22da8278db1625f23d4))
+* **providers/ollama:** 🔧 fix setting up id token ([db816bb](https://github.com/immanent-tech/foragd/commit/db816bbe37a555828dfbc006882639b8c5265695))
+* **scheduler/jobs:** 🔧 don't pause failing job ([1e9ad04](https://github.com/immanent-tech/foragd/commit/1e9ad04bed6630e26decb48bd5102bde896c97a6))
+* **scheduler/jobs:** 🔧 ensure only one import job execution can happen at any time ([d179a56](https://github.com/immanent-tech/foragd/commit/d179a56ff42f540034318d6b64b09d0dc463358e))
+* **scheduler/jobs:** 🔧 fix get new feeds job issues ([af4a64e](https://github.com/immanent-tech/foragd/commit/af4a64eff75b065625ad11ae66eee6f1108fb3db))
+* **scheduler/jobs:** 🔧 use job type over string ([a2f4216](https://github.com/immanent-tech/foragd/commit/a2f4216ab55bd2910df38a26b4183d48afbdd85c))
+* **service/feeds:** 🔧 fix bug in concurrent processing ([d660626](https://github.com/immanent-tech/foragd/commit/d660626a19f8c4dfd24a55341c67420671870f70))
+* **service/imports:** 🔧 flush bulk indexer after adding all new subscriptions ([64272be](https://github.com/immanent-tech/foragd/commit/64272beb32e49f17aadbaafc90a1d5cd9d5278cc))
+* **service/subscriptions:** ⚡ flush indexer after updating subscriptions and before updating dynamic info ([b98f20d](https://github.com/immanent-tech/foragd/commit/b98f20d0d3545ec1b4f133de233a40a9651aaa9b))
+* **service/subscriptions:** 🔧 add method to invalidate a user's subscription cache (used when importing) ([b6417d3](https://github.com/immanent-tech/foragd/commit/b6417d38e82f7e187694eb000abf3205a2721a12))
+* **service:** 🔧 fix fetching latest articles ([81812f0](https://github.com/immanent-tech/foragd/commit/81812f0fd1196ef8d130e8ba35eed8af06bbabd2))
+* **templates/issue:** 🔧 fix form layout on mobile screens ([c199f88](https://github.com/immanent-tech/foragd/commit/c199f8865fef3250a23c02dd739194305598bba7))
+
+
+### Performance Improvements
+
+* **elastic:** ⚡ improved doc requests ([60caef9](https://github.com/immanent-tech/foragd/commit/60caef9838b357907f3168991447dc9cbc7d61c0))
+* **handlers:** ⚡ simplify adding feedsets ([09788ab](https://github.com/immanent-tech/foragd/commit/09788abd0a666d84bdf921b6b1f322b9c0f41741))
+* **scheduler/jobs:** ♻️ reduce job timeout for update feed jobs ([38107b2](https://github.com/immanent-tech/foragd/commit/38107b2377ced240c6d2d59359da8c84841e1d55))
+* **scheduler/jobs:** ⚡ improved get new feeds job ([8908dfa](https://github.com/immanent-tech/foragd/commit/8908dfaf92f797e2b4186b8714c607d51954be47))
+* **scheduler/queue:** ⚡ better optimistic concurrency control ([5ebd704](https://github.com/immanent-tech/foragd/commit/5ebd70457a7f8d1bed1030b3f7da5efae46935a2))
+* **scheduler:** ⚡ adjust scheduler timeouts ([888d1eb](https://github.com/immanent-tech/foragd/commit/888d1eb2ac74513e8bf623c0e3bc71a8c0005b40))
+* **scheduler:** ⚡ specify max workers for scheduler based on GOMAXPROCS ([5ce90d0](https://github.com/immanent-tech/foragd/commit/5ce90d080af7cc0eb3c24e8d59480d4e730d9f49))
+* **service/feeds:** ⚡ improved item enrichement ([b019ab4](https://github.com/immanent-tech/foragd/commit/b019ab455db904a2ad0a435924d34e85f193317b))
+
 ## [0.236.1](https://github.com/immanent-tech/foragd/compare/v0.236.0...v0.236.1) (2026-09-23)
 
 
