@@ -469,6 +469,7 @@ func (s *SubscriptionService) MarkSubscriptions(
 	}
 
 	for subscription := range slices.Values(subscriptions) {
+		ctx := slogctx.With(ctx, slog.String("subscription_id", subscription.GetID()))
 		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
 			if err = s.MarkSubscriptions(
 				ctx,
@@ -486,7 +487,6 @@ func (s *SubscriptionService) MarkSubscriptions(
 				return fmt.Errorf("update subscription data: %w", err)
 			}
 			slogctx.Debug(ctx, "Marked subscription.",
-				slog.String("subscription_id", subscription.GetID()),
 				slog.String("mark", string(mark)),
 			)
 		}
@@ -922,7 +922,13 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 	// Get all Feed IDs.
 	feedIDs := subscriptions.GetFeedIDs()
 
-	// Build queries for the filter buckets.
+	// globalFilters filter out results before aggregations.
+	globalFilters := []query.Option{
+		query.Terms("feed_id", feedIDs),
+		query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
+	}
+
+	// Build queries for the filter buckets aggregation.
 	subscriptionFilters := make(map[string]*estypes.Query)
 	for subscription := range slices.Values(subscriptions) {
 		switch view {
@@ -948,8 +954,7 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 		elastic.WithQueryOptions[*elastic.SearchRequest](
 			query.Bool(
 				query.Filter(
-					query.Terms("feed_id", feedIDs),
-					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
+					globalFilters...,
 				),
 			),
 		),
