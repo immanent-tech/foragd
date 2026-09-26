@@ -21,7 +21,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 )
 
 var getNewFeedsRunning atomic.Bool
@@ -56,20 +55,15 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 	defer getNewFeedsRunning.Store(false)
 
-	schedulerAPI := SchedulerAPIFromCtx(ctx)
-	if schedulerAPI == nil {
-		return errors.New("cannot execute: no scheduler API in context")
-	}
-
-	feedSvc := FeedSvcFromCtx(ctx)
-	if feedSvc == nil {
-		return errors.New("cannot execute: no feed service in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	start := time.Now()
 
 	// Find new feeds.
-	newFeeds, err := feedSvc.GetNewFeedsSince(ctx, models.UnixEpoch)
+	newFeeds, err := services.Feeds.GetNewFeedsSince(ctx, models.UnixEpoch)
 	if err != nil {
 		return fmt.Errorf("get new feeds since: %w", err)
 	}
@@ -80,7 +74,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	// Get job keys for existing feed jobs.
-	existingJobKeys, err := schedulerAPI.GetJobKeys(matcher.JobGroupEquals(string(JobTypeUpdateFeed)))
+	existingJobKeys, err := services.Scheduler.GetJobKeys(matcher.JobGroupEquals(string(JobTypeUpdateFeed)))
 	if err != nil {
 		return fmt.Errorf("get job keys: %w", err)
 	}
@@ -102,7 +96,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 					continue
 				}
 				// Add and process update feed job.
-				if err := AddFeedJob(feedCtx, schedulerAPI, feedSvc, feed); err != nil {
+				if err := AddFeedJob(feedCtx, services.Scheduler, services.Feeds, feed); err != nil {
 					slogctx.Error(feedCtx, "Unable to add feed job",
 						slog.Any("error", err),
 					)
@@ -134,7 +128,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 func AddFeedJob(
 	ctx context.Context,
 	scheduler SchedulerAPI,
-	feedSvc *service.FeedService,
+	feedSvc FeedsAPI,
 	feed *models.Feed,
 ) error {
 	// Create update feed job.

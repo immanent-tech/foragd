@@ -47,9 +47,9 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 		return errors.New("unable to get scheduler api from context")
 	}
 
-	feedSvc := FeedSvcFromCtx(ctx)
-	if feedSvc == nil {
-		return errors.New("cannot execute: no feed service in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	// Gather all current feed jobs. Match against the job group "update_feed".
@@ -65,7 +65,7 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 	}
 
 	// Get all feeds except those with jobs (i.e. "jobless" feeds).
-	joblessFeeds, err := feedSvc.GetAllFeedsExcept(ctx, feedIDs...)
+	joblessFeeds, err := services.Feeds.GetAllFeedsExcept(ctx, feedIDs...)
 	if err != nil {
 		return fmt.Errorf("get jobless feeds: %w", err)
 	}
@@ -89,7 +89,7 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 			)
 		case errors.Is(err, quartz.ErrJobNotFound):
 			// If there is no existing scheduled newJob, create one.
-			newJob, err := NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
+			newJob, err := NewUpdateFeedJob(ctx, services.Feeds, feed.GetID())
 			if err != nil {
 				slogctx.Warn(ctx, "Unable to create new update feed job for feed.",
 					slog.Any("error", err),

@@ -126,15 +126,17 @@ func (j *SerializedJob) shouldExecute(ctx context.Context) (bool, error) {
 		if err = j.JobTrigger.FromOneShotTrigger(trigger); err != nil {
 			return false, fmt.Errorf("marshal trigger: %w", err)
 		}
-		// Update the job (delete then reschedule).
-		schedulerAPI := SchedulerAPIFromCtx(ctx)
-		if schedulerAPI == nil {
-			return false, errors.New("cannot update: no scheduler api in context")
+
+		services := ServicesFromCtx(ctx)
+		if services == nil {
+			return false, errors.New("no services in context")
 		}
-		if err := schedulerAPI.DeleteJob(j.getJobKey()); err != nil {
+
+		// Update the job (delete then reschedule).
+		if err := services.Scheduler.DeleteJob(j.getJobKey()); err != nil {
 			return false, fmt.Errorf("delete job: %w", err)
 		}
-		if err := schedulerAPI.ScheduleJob(j.JobDetail(), j.Trigger()); err != nil {
+		if err := services.Scheduler.ScheduleJob(j.JobDetail(), j.Trigger()); err != nil {
 			return false, fmt.Errorf("reschedule job: %w", err)
 		}
 	}

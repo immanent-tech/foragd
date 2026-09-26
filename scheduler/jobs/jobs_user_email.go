@@ -50,15 +50,15 @@ func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
 
-	userSvc := UserSvcFromCtx(ctx)
-	if userSvc == nil {
-		return errors.New("missing user service in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	start := time.Now()
 
 	// Get user details.
-	user, err := userSvc.GetUser(ctx, data.UserID)
+	user, err := services.Users.GetUser(ctx, data.UserID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}

@@ -52,19 +52,14 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 	}
 	defer runImportsRunning.Store(false)
 
-	importSvc := ImportSvcFromCtx(ctx)
-	if importSvc == nil {
-		return errors.New("cannot execute: no import service in context")
-	}
-
-	httpClient := HTTPClientFromCtx(ctx)
-	if httpClient == nil {
-		return errors.New("cannot execute: no httpClient in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	start := time.Now()
 
-	pendingImports, err := importSvc.GetPendingImports(ctx)
+	pendingImports, err := services.Imports.GetPendingImports(ctx)
 	if err != nil {
 		return fmt.Errorf("get pending imports: %w", err)
 	}
@@ -76,7 +71,7 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 	for range maxConcurrentImports {
 		wg.Go(func() {
 			for status := range statusCh {
-				if err := importSvc.ProcessRequests(ctx, &status, httpClient); err != nil {
+				if err := services.Imports.ProcessRequests(ctx, &status, services.HttpClient); err != nil {
 					slogctx.Error(ctx, "Unable to process import.",
 						slog.String("job_id", status.GetID()),
 						slog.String("user_id", status.UserID),

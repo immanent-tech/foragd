@@ -339,11 +339,15 @@ func (r *diffReporter) PopStep() {
 // new item's timestamp.
 func (s *FeedService) UpdateFeedItems(
 	ctx context.Context,
-	items *ItemService,
 	httpClient *resty.Client,
 	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed,
 ) (time.Time, error) {
+	itemSvc, err := LoadItemService()
+	if err != nil {
+		return time.Time{}, fmt.Errorf("load item service: %w", err)
+	}
+
 	// Add any new items since the last feed update.
 	if len(newData.GetItems()) == 0 {
 		logMsg := newFeedStatusMsg(oldData.GetID())
@@ -383,7 +387,7 @@ func (s *FeedService) UpdateFeedItems(
 		wg.Wait()
 
 		// Add new items.
-		results, err := items.AddItems(ctx, newItems)
+		results, err := itemSvc.AddItems(ctx, newItems)
 		if err != nil {
 			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
 		}
@@ -420,12 +424,11 @@ func (s *FeedService) UpdateFeedItems(
 // writes the updated feed back to the database. It will add/update both any new/updated items and any updates to the
 // feed metadata.
 func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
-	items *ItemService,
 	httpClient *resty.Client,
 	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed) error {
 	// Add any new or update existing items.
-	lastFetched, err := s.UpdateFeedItems(ctx, items, httpClient, itemPageCache, oldData, newData)
+	lastFetched, err := s.UpdateFeedItems(ctx, httpClient, itemPageCache, oldData, newData)
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))

@@ -54,9 +54,9 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
 
-	elasticSvc := ElasticFromCtx(ctx)
-	if elasticSvc == nil {
-		return errors.New("cannot execute: no elastic service in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	start := time.Now()
@@ -77,7 +77,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	)
 	jobs, err = elastic.SearchAll[*SerializedJob](
 		ctx,
-		elasticSvc.GetIndexRO(service.ScheduleIndex),
+		services.Elastic.GetIndexRO(service.ScheduleIndex),
 		query.Term("job_data.deleted", true),
 		5000,
 	)
@@ -117,7 +117,7 @@ func ExecuteClearDeletedFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 	if err := elastic.UpdateDoc(
 		ctx,
-		elasticSvc.GetIndexRW(service.ScheduleIndex),
+		services.Elastic.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		job,
 		elastic.WithDocAsUpsert(true),

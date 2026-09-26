@@ -7,11 +7,13 @@ package jobs
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
@@ -27,6 +29,7 @@ const (
 	feedSvcCtxKey      contextKey = "feed_svc"
 	itemSvcCtxKey      contextKey = "item_svc"
 	importSvcCtxKey    contextKey = "import_svc"
+	servicesCtxKey     contextKey = "services"
 )
 
 type contextKey string
@@ -39,107 +42,52 @@ type SchedulerAPI interface {
 	GetJobKeys(...quartz.Matcher[quartz.ScheduledJob]) ([]*quartz.JobKey, error)
 }
 
-func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.Context {
-	return context.WithValue(ctx, schedulerAPICtxKey, schedulerAPI)
+type FeedsAPI interface {
+	GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
+	GetAllFeedsExcept(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	GetFeed(ctx context.Context, feedID models.FeedID) (*models.Feed, error)
+	ApplyFeedUpdates(
+		ctx context.Context,
+		httpClient *resty.Client,
+		itemsCache cache.ObjectCache,
+		old, new *models.Feed,
+	) error
+	UpdateFeed(ctx context.Context, feed *models.Feed) error
 }
 
-func SchedulerAPIFromCtx(ctx context.Context) SchedulerAPI {
-	if api, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI); ok {
-		return api
+type ImportAPI interface {
+	GetPendingImports(ctx context.Context) ([]*models.ImportStatus, error)
+	ProcessRequests(ctx context.Context, status *models.ImportStatus, httpClient *resty.Client) error
+}
+
+type UserAPI interface {
+	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
+}
+
+type ElasticAPI interface {
+	GetIndexRO(idx service.Index) string
+	GetIndexRW(idx service.Index) string
+}
+
+type Services struct {
+	Scheduler  SchedulerAPI
+	Feeds      FeedsAPI
+	Imports    ImportAPI
+	Users      UserAPI
+	Elastic    ElasticAPI
+	ItemsCache cache.ObjectCache
+	Indexer    *bulk.Indexer
+	HttpClient *resty.Client
+}
+
+func ServicesToCtx(ctx context.Context, services *Services) context.Context {
+	return context.WithValue(ctx, servicesCtxKey, services)
+}
+
+func ServicesFromCtx(ctx context.Context) *Services {
+	if services, ok := ctx.Value(servicesCtxKey).(*Services); ok {
+		return services
 	}
-	slogctx.Warn(ctx, "No scheduler api in context.")
-	return nil
-}
-
-func IndexerToCtx(ctx context.Context, indexer *bulk.Indexer) context.Context {
-	return context.WithValue(ctx, indexerCtxKey, indexer)
-}
-
-func IndexerFromCtx(ctx context.Context) (*bulk.Indexer, bool) {
-	indexer, ok := ctx.Value(indexerCtxKey).(*bulk.Indexer)
-	return indexer, ok
-}
-
-func HTTPClientToCtx(ctx context.Context, httpClient *resty.Client) context.Context {
-	return context.WithValue(ctx, httpClientCtxKey, httpClient)
-}
-
-func HTTPClientFromCtx(ctx context.Context) *resty.Client {
-	if httpClient, ok := ctx.Value(httpClientCtxKey).(*resty.Client); ok {
-		return httpClient
-	}
-	slogctx.Warn(ctx, "No http client found in context, using default client")
-	return resty.New()
-}
-
-func ItemCacheToCtx(ctx context.Context, itemCache cache.ObjectCache) context.Context {
-	return context.WithValue(ctx, itemCacheCtxKey, itemCache)
-}
-
-func ItemCacheFromCtx(ctx context.Context) cache.ObjectCache {
-	if itemCache, ok := ctx.Value(itemCacheCtxKey).(cache.ObjectCache); ok {
-		return itemCache
-	}
-	slogctx.Warn(ctx, "No item cache found in context")
-	return nil
-}
-
-func ElasticToCtx(ctx context.Context, svc *service.ElasticService) context.Context {
-	return context.WithValue(ctx, elasticCtxKey, svc)
-}
-
-func ElasticFromCtx(ctx context.Context) *service.ElasticService {
-	if svc, ok := ctx.Value(elasticCtxKey).(*service.ElasticService); ok {
-		return svc
-	}
-	slogctx.Warn(ctx, "No elastic service found in context")
-	return nil
-}
-
-func UserSvcToCtx(ctx context.Context, svc *service.UserService) context.Context {
-	return context.WithValue(ctx, userSvcCtxKey, svc)
-}
-
-func UserSvcFromCtx(ctx context.Context) *service.UserService {
-	if svc, ok := ctx.Value(userSvcCtxKey).(*service.UserService); ok {
-		return svc
-	}
-	slogctx.Warn(ctx, "No user service found in context")
-	return nil
-}
-
-func FeedSvcToCtx(ctx context.Context, svc *service.FeedService) context.Context {
-	return context.WithValue(ctx, feedSvcCtxKey, svc)
-}
-
-func FeedSvcFromCtx(ctx context.Context) *service.FeedService {
-	if svc, ok := ctx.Value(feedSvcCtxKey).(*service.FeedService); ok {
-		return svc
-	}
-	slogctx.Warn(ctx, "No feed service found in context")
-	return nil
-}
-
-func ItemSvcToCtx(ctx context.Context, svc *service.ItemService) context.Context {
-	return context.WithValue(ctx, itemSvcCtxKey, svc)
-}
-
-func ItemSvcFromCtx(ctx context.Context) *service.ItemService {
-	if svc, ok := ctx.Value(itemSvcCtxKey).(*service.ItemService); ok {
-		return svc
-	}
-	slogctx.Warn(ctx, "No feed service found in context")
-	return nil
-}
-
-func ImportSvcToCtx(ctx context.Context, svc *service.ImportService) context.Context {
-	return context.WithValue(ctx, importSvcCtxKey, svc)
-}
-
-func ImportSvcFromCtx(ctx context.Context) *service.ImportService {
-	if svc, ok := ctx.Value(importSvcCtxKey).(*service.ImportService); ok {
-		return svc
-	}
-	slogctx.Warn(ctx, "No import service found in context")
+	slogctx.Warn(ctx, "No services in context.")
 	return nil
 }

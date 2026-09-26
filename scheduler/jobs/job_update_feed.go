@@ -27,7 +27,7 @@ const updateFeedJobTimeout = 5 * time.Minute
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
 // NewUpdateFeedJob creates a job for updating a feed.
-func NewUpdateFeedJob(ctx context.Context, feedSvc *service.FeedService, id models.FeedID) (*SerializedJob, error) {
+func NewUpdateFeedJob(ctx context.Context, feedSvc FeedsAPI, id models.FeedID) (*SerializedJob, error) {
 	// Get the feed details.
 	feed, err := feedSvc.GetFeed(ctx, id)
 	if err != nil {
@@ -74,17 +74,9 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		return nil
 	}
 
-	httpClient := HTTPClientFromCtx(ctx)
-	itemsCache := ItemCacheFromCtx(ctx)
-
-	feedSvc := FeedSvcFromCtx(ctx)
-	if feedSvc == nil {
-		return errors.New("cannot execute: no feed service in context")
-	}
-
-	itemSvc := ItemSvcFromCtx(ctx)
-	if itemSvc == nil {
-		return errors.New("cannot execute: no item service in context")
+	services := ServicesFromCtx(ctx)
+	if services == nil {
+		return errors.New("no services in context")
 	}
 
 	start := time.Now()
@@ -96,7 +88,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	ctx = slogctx.With(ctx, "feed_id", data.FeedID)
 
 	// Retrieve the feed details.
-	details, err := feedSvc.GetFeed(ctx, data.FeedID)
+	details, err := services.Feeds.GetFeed(ctx, data.FeedID)
 	switch {
 	case err != nil && errors.Is(err, elastic.ErrNotFound):
 		return fmt.Errorf("cannot execute: %s: no feed found", data.FeedID)
@@ -122,7 +114,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		fallthrough
 	default:
 		// Assume a regular web-based feed. Fetch feed data directly.
-		feed, feedURL, err = service.FetchFeedUpdates(ctx, httpClient, details)
+		feed, feedURL, err = service.FetchFeedUpdates(ctx, services.HttpClient, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)
@@ -133,7 +125,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 
 	slogctx.Debug(ctx, "Feed fetched. Applying updates.")
 
-	if err := feedSvc.ApplyFeedUpdates(ctx, itemSvc, httpClient, itemsCache, details, feed); err != nil {
+	if err := services.Feeds.ApplyFeedUpdates(
+		ctx,
+		services.HttpClient,
+		services.ItemsCache,
+		details,
+		feed,
+	); err != nil {
 		slogctx.Error(ctx, "Could not apply feed updates.",
 			slog.Any("error", err))
 	}

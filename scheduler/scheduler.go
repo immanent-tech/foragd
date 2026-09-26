@@ -86,62 +86,12 @@ func NewManager(ctx context.Context) (*Manager, error) {
 
 // Run starts the scheduler manager.
 func (m *Manager) Run(ctx context.Context) error {
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return fmt.Errorf("load app config: %w", err)
-	}
-
 	// Store various objects in the context for access by jobs:
-	// Elastic service.
-	ctx = jobs.ElasticToCtx(ctx, m.store)
-	// Bulk indexer.
-	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
+	jobServices, err := m.generateJobServices(ctx)
 	if err != nil {
-		return fmt.Errorf("create indexer: %w", err)
+		return fmt.Errorf("load job services: %w", err)
 	}
-	ctx = jobs.IndexerToCtx(ctx, indexer)
-	// Scheduler.
-	ctx = jobs.SchedulerAPIToCtx(ctx, m)
-	// HTTP client.
-	httpClient, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
-		"User-Agent",
-		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-	)
-	ctx = jobs.HTTPClientToCtx(ctx, httpClient)
-	// Item cache.
-	itemsCache, err := cache.NewItemsCache()
-	if err != nil {
-		return fmt.Errorf("load items cache: %w", err)
-	}
-	ctx = jobs.ItemCacheToCtx(ctx, itemsCache)
-	// Item service.
-	itemSvc, err := service.LoadItemService()
-	if err != nil {
-		return fmt.Errorf("load item service: %w", err)
-	}
-	ctx = jobs.ItemSvcToCtx(ctx, itemSvc)
-	// User service.
-	userSvc, err := service.LoadUserService()
-	if err != nil {
-		return fmt.Errorf("load user service: %w", err)
-	}
-	ctx = jobs.UserSvcToCtx(ctx, userSvc)
-	// Feed service.
-	feedSvc, err := service.LoadFeedService()
-	if err != nil {
-		return fmt.Errorf("load feed service: %w", err)
-	}
-	ctx = jobs.FeedSvcToCtx(ctx, feedSvc)
-	// Import service
-	importSvc, err := service.NewImportService()
-	if err != nil {
-		return fmt.Errorf("load import service: %w", err)
-	}
-	ctx = jobs.ImportSvcToCtx(ctx, importSvc)
+	ctx = jobs.ServicesToCtx(ctx, jobServices)
 
 	// Load all admin jobs as needed.
 	if err := m.InitAdminJobs(ctx); err != nil {
@@ -151,7 +101,6 @@ func (m *Manager) Run(ctx context.Context) error {
 	// Start scheduling jobs.
 	m.Start(ctx)
 	slogctx.Info(ctx, "Scheduler started.",
-		slog.String("version", appCfg.Version),
 		slog.Time("start_time", time.Now()),
 	)
 
@@ -293,4 +242,58 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 	wg.Wait()
 
 	return nil
+}
+
+func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load app config: %w", err)
+	}
+
+	// Store various objects in the context for access by jobs:
+	// Bulk indexer.
+	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
+	if err != nil {
+		return nil, fmt.Errorf("create indexer: %w", err)
+	}
+	// HTTP client.
+	httpClient, err := client.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load http client: %w", err)
+	}
+	httpClient = httpClient.SetHeader(
+		"User-Agent",
+		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+	)
+	// Item cache.
+	itemsCache, err := cache.NewItemsCache()
+	if err != nil {
+		return nil, fmt.Errorf("load items cache: %w", err)
+	}
+	// User service.
+	userSvc, err := service.LoadUserService()
+	if err != nil {
+		return nil, fmt.Errorf("load user service: %w", err)
+	}
+	// Feed service.
+	feedSvc, err := service.LoadFeedService()
+	if err != nil {
+		return nil, fmt.Errorf("load feed service: %w", err)
+	}
+	// Import service
+	importSvc, err := service.NewImportService()
+	if err != nil {
+		return nil, fmt.Errorf("load import service: %w", err)
+	}
+
+	return &jobs.Services{
+		Scheduler:  m,
+		Elastic:    m.store,
+		Feeds:      feedSvc,
+		Imports:    importSvc,
+		Users:      userSvc,
+		ItemsCache: itemsCache,
+		Indexer:    indexer,
+		HttpClient: httpClient,
+	}, nil
 }
