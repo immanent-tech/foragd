@@ -69,7 +69,7 @@ func (s *Store) DeleteCtx(ctx context.Context, token string) error {
 }
 
 func (s *Store) Delete(token string) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	ctx, cancelFunc := s.ctx()
 	defer cancelFunc()
 	return s.DeleteCtx(ctx, token)
 }
@@ -93,7 +93,7 @@ func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error)
 }
 
 func (s *Store) Find(token string) ([]byte, bool, error) {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	ctx, cancelFunc := s.ctx()
 	defer cancelFunc()
 	return s.FindCtx(ctx, token)
 }
@@ -118,7 +118,7 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 }
 
 func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	ctx, cancelFunc := s.ctx()
 	defer cancelFunc()
 	return s.CommitCtx(ctx, token, b, expiry)
 }
@@ -148,7 +148,11 @@ func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 }
 
 func (s *Store) All() (map[string][]byte, error) {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultRequestTimeout)
+	ctx, cancelFunc := s.ctx()
 	defer cancelFunc()
 	return s.AllCtx(ctx)
+}
+
+func (s *Store) ctx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), defaultRequestTimeout)
 }
