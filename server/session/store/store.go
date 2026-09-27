@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -55,7 +57,12 @@ var New = sync.OnceValues(func() (*Store, error) {
 // DeleteCtx should remove the session token and corresponding data from the session store. If the token does not exist
 // then Delete should be a no-op and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	if err := elastic.DeleteDoc(ctx, s.backend.GetIndexRW(service.SessionsIndex), token); err != nil {
+	if err := elastic.DeleteDoc(
+		ctx,
+		s.backend.GetIndexRW(service.SessionsIndex),
+		token,
+		elastic.WithRefresh[*delete.Delete](refresh.True),
+	); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
 	return nil

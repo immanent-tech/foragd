@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
-	"strconv"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
@@ -80,7 +79,13 @@ func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error
 }
 
 // CreateDoc will create the given document, with given id, in the given index.
-func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O, options ...CreateOption) error {
+func CreateDoc[T ~string, O any](
+	ctx context.Context,
+	index string,
+	id T,
+	doc O,
+	options ...Option[*create.Create],
+) error {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
@@ -105,25 +110,6 @@ func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O,
 		)
 	}
 	return nil
-}
-
-type CreateOption func(*create.Create)
-
-func WithCreateRefresh(value string) CreateOption {
-	return func(c *create.Create) {
-		if value == "waitfo" {
-			c = c.Refresh(refresh.Waitfor)
-			return
-		}
-		if v, err := strconv.ParseBool(value); err == nil {
-			switch v {
-			case true:
-				c = c.Refresh(refresh.True)
-			case false:
-				c = c.Refresh(refresh.False)
-			}
-		}
-	}
 }
 
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
@@ -155,14 +141,12 @@ func UpdateDoc[T ~string](
 }
 
 // DeleteDoc deletes the document with the given id from the given index.
-func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...DeleteOption) error {
+func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...Option[*delete.Delete]) error {
 	if err := Connect(); err != nil {
 		return AsAPIError(fmt.Errorf("connect to elasticsearch: %w", err))
 	}
 
-	req := api.Delete(index, string(id)).
-		Header(ReqIDHeader, middleware.GetReqID(ctx)).
-		Refresh(refresh.Waitfor)
+	req := api.Delete(index, string(id)).Header(ReqIDHeader, middleware.GetReqID(ctx))
 
 	for option := range slices.Values(options) {
 		req = option(req)
@@ -179,43 +163,6 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...De
 		)
 	}
 	return nil
-}
-
-type DeleteOption func(*delete.Delete) *delete.Delete
-
-func WithDeleteSeqNo(seqno int64) DeleteOption {
-	return func(d *delete.Delete) *delete.Delete {
-		if seqno != 0 {
-			return d.IfSeqNo(strconv.FormatInt(seqno, 10))
-		}
-		return d
-	}
-}
-
-func WithDeletePrimaryTerm(term int64) DeleteOption {
-	return func(d *delete.Delete) *delete.Delete {
-		if term != 0 {
-			return d.IfPrimaryTerm(strconv.FormatInt(term, 10))
-		}
-		return d
-	}
-}
-
-func WithDeleteRefresh(value string) DeleteOption {
-	return func(c *delete.Delete) *delete.Delete {
-		if value == "waitfo" {
-			return c.Refresh(refresh.Waitfor)
-		}
-		if v, err := strconv.ParseBool(value); err == nil {
-			switch v {
-			case true:
-				return c.Refresh(refresh.True)
-			case false:
-				return c.Refresh(refresh.False)
-			}
-		}
-		return c
-	}
 }
 
 type GetRequest struct {

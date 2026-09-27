@@ -14,6 +14,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
+
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel/codes"
@@ -337,7 +341,7 @@ func (s UserService) AddUser(ctx context.Context, user *models.User) error {
 		s.store.GetIndexRW(UsersIndex),
 		user.GetID(),
 		user,
-		elastic.WithCreateRefresh("waitfor"),
+		elastic.WithRefresh[*create.Create](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
@@ -350,7 +354,12 @@ func (s UserService) AddUser(ctx context.Context, user *models.User) error {
 // DeleteUser deletes the user and the user's subscription objects from Elasticsearch.
 func (s *UserService) DeleteUser(ctx context.Context, user *models.User) error {
 	// Delete user object.
-	if err := elastic.DeleteDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID()); err != nil {
+	if err := elastic.DeleteDoc(
+		ctx,
+		s.store.GetIndexRW(UsersIndex),
+		user.GetID(),
+		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
+	); err != nil {
 		return fmt.Errorf("delete user object: %w", err)
 	}
 	// Delete the user's subscriptions.

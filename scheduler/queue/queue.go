@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -22,6 +23,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
+
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
 )
 
 const (
@@ -88,7 +92,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		serialized,
-		elastic.WithCreateRefresh("waitfor"),
+		elastic.WithRefresh[*create.Create](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
@@ -250,9 +254,9 @@ func (jq *JobQueue) deleteJob(ctx context.Context, job *jobs.SerializedJob) erro
 		ctx,
 		jq.backend.GetIndexRW(service.ScheduleIndex),
 		job.GetID(),
-		elastic.WithDeleteSeqNo(*job.SeqNo),
-		elastic.WithDeletePrimaryTerm(*job.PrimaryTerm),
-		elastic.WithDeleteRefresh("waitfor"),
+		elastic.WithSeqNo[*delete.Delete](*job.SeqNo),
+		elastic.WithPrimaryTerm[*delete.Delete](*job.PrimaryTerm),
+		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}

@@ -6,6 +6,7 @@ package elastic
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
@@ -13,6 +14,43 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
+
+type Option[T any] func(T) T
+
+type supportsRefresh[T any] interface {
+	Refresh(value refresh.Refresh) T
+}
+
+// WithRefresh is a functional option to set the refresh value on the request.
+func WithRefresh[T supportsRefresh[T]](value refresh.Refresh) Option[T] {
+	return func(t T) T {
+		return t.Refresh(value)
+	}
+}
+
+type supportsSeqNo[T any] interface {
+	IfSeqNo(string) T
+}
+
+// WithSeqNo is a functional option to specify the sequence no of the doc on which to operate.
+func WithSeqNo[T supportsSeqNo[T]](seqno int64) Option[T] {
+	v := strconv.FormatInt(seqno, 10)
+	return func(t T) T {
+		return t.IfSeqNo(v)
+	}
+}
+
+type supportsPrimaryTerm[T any] interface {
+	IfPrimaryTerm(string) T
+}
+
+// WithPrimaryTerm is a functional option to specify the primary term of the doc on which to operate.
+func WithPrimaryTerm[T supportsPrimaryTerm[T]](term int64) Option[T] {
+	v := strconv.FormatInt(term, 10)
+	return func(t T) T {
+		return t.IfPrimaryTerm(v)
+	}
+}
 
 // HasHeader represents a request that can set a header value.
 type HasHeader interface {
@@ -231,39 +269,6 @@ type HasIDs interface {
 func WithIDs[T HasIDs](ids ...string) func(T) {
 	return func(t T) {
 		t.SetIDs(ids...)
-	}
-}
-
-const (
-	// RefreshFalse (default) leaves Elasticsearch to handle shard refreshes as normal.
-	RefreshFalse Refresh = iota
-	// RefreshTrue will force Elasticsearch to immediately refresh any affected shards.
-	RefreshTrue
-	// RefreshWaitFor will force the request to wait for the next shard refresh performed by Elasticsearch.
-	RefreshWaitFor
-)
-
-// Refresh indicates how the operation will handle any required shard refreshes.
-type Refresh int
-
-// HasRefresh represents a request that can set a refresh state for affected shards after completion.
-type HasRefresh interface {
-	*UpdateRequest
-
-	SetRefresh(refresh refresh.Refresh)
-}
-
-// WithRefresh option sets the refresh option.
-func WithRefresh[T HasRefresh](value Refresh) func(T) {
-	return func(t T) {
-		switch value {
-		case RefreshTrue:
-			t.SetRefresh(refresh.True)
-		case RefreshWaitFor:
-			t.SetRefresh(refresh.Waitfor)
-		case RefreshFalse:
-			t.SetRefresh(refresh.False)
-		}
 	}
 }
 
