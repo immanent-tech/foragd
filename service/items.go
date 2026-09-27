@@ -19,7 +19,6 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
-	"github.com/goforj/godump"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
@@ -652,8 +651,6 @@ func EnrichItem(
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
-
-	godump.Dump(itemContentBuf.String())
 
 	// Extract opengraph and readability data from item HTML source.
 	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
