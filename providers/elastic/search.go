@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -18,7 +17,6 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
-	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
 
 // SearchResponse represents the results of a search request. In addition to exposing the raw API response, the object
@@ -34,15 +32,15 @@ type SearchResponse[O any] struct {
 func Search[O any](
 	ctx context.Context,
 	index string,
-	options ...func(*SearchRequest),
+	options ...Option[*search.Search],
 ) (*SearchResponse[O], error) {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
 		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 
-	searchOptions := []func(*SearchRequest){
-		WithIndex[*SearchRequest](index),
+	searchOptions := []Option[*search.Search]{
+		WithIndex[*search.Search](index),
 	}
 	searchOptions = append(searchOptions, options...)
 	req := NewSearchRequest(ctx, searchOptions...)
@@ -72,7 +70,7 @@ func SearchAll[O any](
 	index string,
 	query query.Option,
 	paginationSize int,
-	options ...func(*SearchRequest),
+	options ...Option[*search.Search],
 ) ([]O, error) {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
@@ -88,13 +86,13 @@ func SearchAll[O any](
 	// Loop until we've paginated through all results.
 	var loops int
 	for {
-		searchOpts := []func(*SearchRequest){
-			WithIndex[*SearchRequest](index),
-			WithQueryOptions[*SearchRequest](query),
-			WithSize(paginationSize),
-			WithDocSorting(),
-			WithSearchAfter(searchAfter...),
-			WithTrackTotalHits(false),
+		searchOpts := []Option[*search.Search]{
+			WithIndex[*search.Search](index),
+			WithQuery[*search.Search](query),
+			WithSize[*search.Search](paginationSize),
+			WithDocSorting[*search.Search](),
+			WithSearchAfter[*search.Search](searchAfter...),
+			WithTrackHits[*search.Search](false),
 		}
 		searchOpts = append(searchOpts, options...)
 		resp, err := Search[O](ctx, index, searchOpts...)
@@ -123,82 +121,12 @@ func SearchAll[O any](
 	return allResults, nil
 }
 
-// SearchRequest represents an elastic search request.
-type SearchRequest struct {
-	*search.Search
-}
-
 // NewSearchRequest creates a new search request with the given options.
-func NewSearchRequest(ctx context.Context, options ...func(*SearchRequest)) *SearchRequest {
-	req := &SearchRequest{
-		Search: api.Search(),
-	}
-
-	WithHeader[*SearchRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+func NewSearchRequest(ctx context.Context, options ...Option[*search.Search]) *search.Search {
+	req := api.Search()
+	req = WithHeader[*search.Search](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for _, option := range options {
 		option(req)
 	}
-
 	return req
-}
-
-func (r *SearchRequest) SetHeader(key, value string) {
-	r.Search = r.Header(key, value)
-}
-
-func (r *SearchRequest) SetIndex(index string) {
-	r.Search = r.Index(index)
-}
-
-func (r *SearchRequest) SetQueryOptions(options ...query.Option) {
-	if query := query.Build(options...); query != nil {
-		r.Search = r.Query(query)
-	}
-}
-
-func (r *SearchRequest) SetRetrieverOptions(options ...retriever.Option) {
-	retriever := &types.RetrieverContainer{}
-	for option := range slices.Values(options) {
-		option(retriever)
-	}
-	r.Search = r.Retriever(retriever)
-}
-
-func (r *SearchRequest) SetAggregations(aggs map[string]types.Aggregations) {
-	r.Search = r.Aggregations(aggs)
-}
-
-func (r *SearchRequest) SetSize(size int) {
-	r.Search = r.Size(size)
-}
-
-func (r *SearchRequest) SetFrom(from int) {
-	r.Search = r.From(from)
-}
-
-func (r *SearchRequest) SetSearchAfter(values ...types.FieldValueVariant) {
-	r.Search = r.SearchAfter(values...)
-}
-
-func (r *SearchRequest) SetSort(sort ...types.SortCombinationsVariant) {
-	r.Search = r.Sort(sort...)
-}
-
-func (r *SearchRequest) SetFields(fields ...types.FieldAndFormatVariant) {
-	r.Search = r.Fields(fields...)
-}
-
-func (r *SearchRequest) SetTrackTotalHits(value bool) {
-	r.Search = r.TrackTotalHits(TrackHits(value))
-}
-
-func (r *SearchRequest) SetCollapseOn(collapse *types.FieldCollapse) {
-	r.Search = r.Collapse(collapse)
-}
-
-func WithSeqNoPrimaryTerm() func(*SearchRequest) {
-	return func(r *SearchRequest) {
-		r.Search = r.Search.SeqNoPrimaryTerm(true)
-	}
 }

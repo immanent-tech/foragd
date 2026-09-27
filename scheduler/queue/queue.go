@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 )
 
 const (
@@ -131,10 +132,10 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 
 	resp, err := elastic.Search[*jobs.SerializedJob](ctx,
 		jq.backend.GetIndexRO(service.ScheduleIndex),
-		elastic.WithSize(1),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query.MatchAll()),
-		elastic.WithSort(&jobSorting{JobNextRun: "asc"}),
-		elastic.WithSeqNoPrimaryTerm(),
+		elastic.WithSize[*search.Search](1),
+		elastic.WithQuery[*search.Search](query.MatchAll()),
+		elastic.WithSort[*search.Search](&jobSorting{JobNextRun: "asc"}),
+		elastic.WithSeqNoPrimaryTerm[*search.Search](true),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)

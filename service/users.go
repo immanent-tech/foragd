@@ -16,6 +16,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
 	"github.com/maypok86/otter/v2"
@@ -55,12 +57,12 @@ var LoadUserService = sync.OnceValues(func() (*UserService, error) {
 				index := ctx.Value("users_index").(string)
 				switch resp, err := elastic.Search[*models.User](ctx,
 					index,
-					elastic.WithQueryOptions[*elastic.SearchRequest](
+					elastic.WithQuery[*search.Search](
 						query.Term("external_user_id", id, query.WithQueryName[*query.TermQuery]("get-user-by-external-id")),
 					),
-					elastic.WithDocSorting(),
-					elastic.WithTrackTotalHits(false),
-					elastic.WithSize(1),
+					elastic.WithDocSorting[*search.Search](),
+					elastic.WithTrackHits[*search.Search](false),
+					elastic.WithSize[*search.Search](1),
 				); {
 				case err != nil:
 					return models.User{}, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
@@ -128,12 +130,12 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		s.store.GetIndexRO(UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Term("email", email),
 		),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
+		elastic.WithDocSorting[*search.Search](),
+		elastic.WithTrackHits[*search.Search](false),
+		elastic.WithSize[*search.Search](1),
 	); {
 	case err != nil:
 		return nil, fmt.Errorf("search: %w", err)
@@ -149,12 +151,12 @@ func (s *UserService) GetUserBySubscriptionEmail(ctx context.Context, emails ...
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		s.store.GetIndexRO(UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Terms("settings.subscription_email", emails),
 		),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
+		elastic.WithDocSorting[*search.Search](),
+		elastic.WithTrackHits[*search.Search](false),
+		elastic.WithSize[*search.Search](1),
 	); {
 	case err != nil:
 		return nil, fmt.Errorf("search by subscription email: %w", err)
@@ -170,12 +172,12 @@ func (s *UserService) GetUserBySubscriptionID(ctx context.Context, id string) (*
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		s.store.GetIndexRO(UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Term("subscription.subscription_id", id),
 		),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
+		elastic.WithDocSorting[*search.Search](),
+		elastic.WithTrackHits[*search.Search](false),
+		elastic.WithSize[*search.Search](1),
 	); {
 	case err != nil:
 		return nil, fmt.Errorf("search by subscription id: %w", err)
@@ -192,10 +194,10 @@ func (s *UserService) GetUserByPurchaseToken(ctx context.Context, token string) 
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		s.store.GetIndexRO(UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.purchase_token", token)),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
+		elastic.WithQuery[*search.Search](query.Term("subscription.purchase_token", token)),
+		elastic.WithDocSorting[*search.Search](),
+		elastic.WithTrackHits[*search.Search](false),
+		elastic.WithSize[*search.Search](1),
 	); {
 	case err != nil:
 		return nil, fmt.Errorf("search by subscription id: %w", err)
@@ -213,10 +215,10 @@ func (s *UserService) GetUserByCustomerID(ctx context.Context, id string) (*mode
 	switch resp, err := elastic.Search[*models.User](
 		ctx,
 		s.store.GetIndexRO(UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query.Term("subscription.customer_id", id)),
-		elastic.WithDocSorting(),
-		elastic.WithTrackTotalHits(false),
-		elastic.WithSize(1),
+		elastic.WithQuery[*search.Search](query.Term("subscription.customer_id", id)),
+		elastic.WithDocSorting[*search.Search](),
+		elastic.WithTrackHits[*search.Search](false),
+		elastic.WithSize[*search.Search](1),
 	); {
 	case err != nil:
 		return nil, fmt.Errorf("find user by customer id: %w", err)
@@ -235,7 +237,7 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, s.store.GetIndexRW(UsersIndex), user.GetID(), updates,
 		// elastic.WithRefresh(elastic.RefreshTrue),
-		elastic.WithRetryOnConflict(3),
+		elastic.WithRetryOnConflict[*update.Update](3),
 	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

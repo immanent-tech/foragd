@@ -4,8 +4,7 @@
 package elastic
 
 import (
-	"encoding/json"
-	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -15,13 +14,14 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/retriever"
 )
 
+// Option is a functional option for a request of type T.
 type Option[T any] func(T) T
 
 type supportsRefresh[T any] interface {
 	Refresh(value refresh.Refresh) T
 }
 
-// WithRefresh is a functional option to set the refresh value on the request.
+// WithRefresh option sets the refresh value on the request.
 func WithRefresh[T supportsRefresh[T]](value refresh.Refresh) Option[T] {
 	return func(t T) T {
 		return t.Refresh(value)
@@ -32,7 +32,7 @@ type supportsSeqNo[T any] interface {
 	IfSeqNo(string) T
 }
 
-// WithSeqNo is a functional option to specify the sequence no of the doc on which to operate.
+// WithSeqNo option specifies the sequence no of the doc on which to operate.
 func WithSeqNo[T supportsSeqNo[T]](seqno int64) Option[T] {
 	v := strconv.FormatInt(seqno, 10)
 	return func(t T) T {
@@ -44,7 +44,7 @@ type supportsPrimaryTerm[T any] interface {
 	IfPrimaryTerm(string) T
 }
 
-// WithPrimaryTerm is a functional option to specify the primary term of the doc on which to operate.
+// WithPrimaryTerm option to specifies the primary term of the doc on which to operate.
 func WithPrimaryTerm[T supportsPrimaryTerm[T]](term int64) Option[T] {
 	v := strconv.FormatInt(term, 10)
 	return func(t T) T {
@@ -52,173 +52,123 @@ func WithPrimaryTerm[T supportsPrimaryTerm[T]](term int64) Option[T] {
 	}
 }
 
-// HasHeader represents a request that can set a header value.
-type HasHeader interface {
-	*SearchRequest | *CountRequest | *GetRequest | *MGetRequest | *DeleteByQueryRequest | *UpdateRequest
-
-	SetHeader(key string, value string)
+type supportsHeader[T any] interface {
+	Header(key string, value string) T
 }
 
-// WithHeader option sets a header on the request.
-func WithHeader[T HasHeader](key, value string) func(T) {
-	return func(t T) {
-		t.SetHeader(key, value)
+// WithHeader option sets a HTTP header on the request.
+func WithHeader[T supportsHeader[T]](key, value string) Option[T] {
+	return func(t T) T {
+		return t.Header(key, value)
 	}
 }
 
-// HasIndex represents a request that can specify an index to operate on.
-type HasIndex interface {
-	*SearchRequest | *CountRequest | *MGetRequest | *DeleteByQueryRequest
-
-	SetIndex(index string)
+type supportsIndex[T any] interface {
+	Index(index string) T
 }
 
 // WithIndex option sets the index the request will operate on.
-func WithIndex[T HasIndex](index string) func(T) {
-	return func(t T) {
-		t.SetIndex(index)
+func WithIndex[T supportsIndex[T]](index string) Option[T] {
+	return func(t T) T {
+		return t.Index(index)
 	}
 }
 
-// HasQuery represents a request that can specify a query.
-type HasQuery interface {
-	*SearchRequest | *CountRequest | *DeleteByQueryRequest
-
-	SetQueryOptions(options ...query.Option)
+type supportsQuery[T any] interface {
+	Query(query types.QueryVariant) T
 }
 
-// WithQueryOptions option defines the query options that will be applied to the request.
-func WithQueryOptions[T HasQuery](options ...query.Option) func(T) {
-	return func(t T) {
-		t.SetQueryOptions(options...)
+// WithQuery option sets a query as a part of the request.
+func WithQuery[T supportsQuery[T]](options ...query.Option) Option[T] {
+	q := query.Build(options...)
+	return func(t T) T {
+		return t.Query(q)
 	}
 }
 
-// HasRetriever represents a request that can specify a retriever option.
-type HasRetriever interface {
-	*SearchRequest
-
-	SetRetrieverOptions(options ...retriever.Option)
+type supportsRetriever[T any] interface {
+	Retriever(retriever types.RetrieverContainerVariant) T
 }
 
-// WithRetriever option defines the retriever options that will be applied to the request.
-func WithRetriever[T HasRetriever](options ...retriever.Option) func(T) {
-	return func(t T) {
-		t.SetRetrieverOptions(options...)
+// WithRetriever option sets a retriever as part of the request.
+func WithRetriever[T supportsRetriever[T]](options ...retriever.Option) Option[T] {
+	r := &types.RetrieverContainer{}
+	for option := range slices.Values(options) {
+		option(r)
+	}
+	return func(t T) T {
+		return t.Retriever(r)
 	}
 }
 
-// HasAggregations represents a request that can specify aggregations.
-type HasAggregations interface {
-	*SearchRequest
-
-	SetAggregations(aggs map[string]types.Aggregations)
+type supportsAggregations[T any] interface {
+	AddAggregation(key string, value types.AggregationsVariant) T
+	Aggregations(aggregations map[string]types.Aggregations) T
 }
 
-// WithAggregations option defines aggregations to add to the request.
-func WithAggregations[T HasAggregations](aggs map[string]types.Aggregations) func(T) {
-	return func(t T) {
-		t.SetAggregations(aggs)
+// WithAggregations option sets the aggregations to perform with the request.
+func WithAggregations[T supportsAggregations[T]](aggregations map[string]types.Aggregations) Option[T] {
+	return func(t T) T {
+		return t.Aggregations(aggregations)
 	}
 }
 
-// HasFrom represents a request that can define a from value for the starting document offset.
-type HasFrom interface {
-	*SearchRequest
-
-	SetFrom(from int)
-}
-
-// WithFrom option specifies the starting document offset.
-func WithFrom[T HasFrom](from int) func(T) {
-	return func(t T) {
-		t.SetFrom(from)
+// WithAggregation option adds an aggregation to perform with the request.
+func WithAggregation[T supportsAggregations[T]](key string, value types.AggregationsVariant) Option[T] {
+	return func(t T) T {
+		return t.AddAggregation(key, value)
 	}
 }
 
-// HasSize represents a request that can define a size for number of results returned.
-type HasSize interface {
-	*SearchRequest
-
-	SetSize(size int)
+type supportsFrom[T any] interface {
+	From(from int) T
 }
 
-// WithSize option specifies the number of results to return. In most cases, if not specified, a default of 10 results
-// is returned.
-func WithSize[T HasSize](size int) func(T) {
-	return func(t T) {
-		t.SetSize(size)
+// From option sets the pagination point within the results.
+func WithFrom[T supportsFrom[T]](from int) Option[T] {
+	return func(t T) T {
+		return t.From(from)
 	}
 }
 
-type FieldValue[T types.FieldValue] struct {
-	value T
+type supportsSize[T any] interface {
+	Size(size int) T
 }
 
-func NewFieldValue[T any](value T) *FieldValue[T] {
-	return &FieldValue[T]{value: value}
-}
-
-func (v *FieldValue[T]) FieldValueCaster() *types.FieldValue {
-	casted := types.FieldValue(v)
-	return &casted
-}
-
-func (v *FieldValue[T]) MarshalJSON() ([]byte, error) {
-	data, err := json.Marshal(v.value)
-	if err != nil {
-		return data, fmt.Errorf("failed to marshal pagination value: %w", err)
-	}
-	return data, nil
-}
-
-// HasSearchAfter represents a request that can specify search after data.
-type HasSearchAfter interface {
-	*SearchRequest
-
-	SetSearchAfter(values ...types.FieldValueVariant)
-}
-
-// WithSearchAfter option specifies the search after values for paginating through results.
-func WithSearchAfter[T HasSearchAfter](values ...types.FieldValueVariant) func(T) {
-	return func(t T) {
-		t.SetSearchAfter(values...)
+// WithSize option sets the number of results that will be returned.
+func WithSize[T supportsSize[T]](size int) Option[T] {
+	return func(t T) T {
+		return t.Size(size)
 	}
 }
 
-// HasSort represents a request that can sort its results.
-type HasSort interface {
-	*SearchRequest
-
-	SetSort(sort ...types.SortCombinationsVariant)
+type supportsSort[T any] interface {
+	Sort(sorts ...types.SortCombinationsVariant) T
 }
 
-// WithSort option specifies how the results will be sorted.
-func WithSort[T HasSort](sort ...types.SortCombinationsVariant) func(T) {
-	return func(t T) {
-		t.SetSort(sort...)
+// WithSort option sets how the results will be sorted.
+func WithSort[T supportsSort[T]](sorts ...types.SortCombinationsVariant) Option[T] {
+	return func(t T) T {
+		return t.Sort(sorts...)
 	}
 }
 
 // WithDocSorting option is a convenience option to sort the results by doc id. This option is useful when fetching all
 // results or deep pagination where sort order is irrelevant.
-func WithDocSorting[T HasSort]() func(T) {
-	return func(t T) {
-		t.SetSort(&types.SortOptions{Doc_: types.NewScoreSort()})
+func WithDocSorting[T supportsSort[T]]() Option[T] {
+	return func(t T) T {
+		return t.Sort(&types.SortOptions{Doc_: types.NewScoreSort()})
 	}
 }
 
-// HasFields represents a request that can filter its results by fields.
-type HasFields interface {
-	*SearchRequest
-
-	SetFields(fields ...types.FieldAndFormatVariant)
+type supportsSearchAfter[T any] interface {
+	SearchAfter(sortresults ...types.FieldValueVariant) T
 }
 
-// WithFields option specifies the fields to return in each result.
-func WithFields[T HasFields](fields ...types.FieldAndFormatVariant) func(T) {
-	return func(t T) {
-		t.SetFields(fields...)
+// WithSearchAfter option sets the point after which results should be fetched.
+func WithSearchAfter[T supportsSearchAfter[T]](sortresults ...types.FieldValueVariant) Option[T] {
+	return func(t T) T {
+		return t.SearchAfter(sortresults...)
 	}
 }
 
@@ -230,93 +180,69 @@ func (t TrackHits) TrackHitsCaster() *types.TrackHits {
 	return &value
 }
 
-// HasTotalHitsTracking represents a request that can track total hits.
-type HasTotalHitsTracking interface {
-	*SearchRequest
-
-	SetTrackTotalHits(value bool)
+type supportsTrackHits[T any] interface {
+	TrackTotalHits(trackhits types.TrackHitsVariant) T
 }
 
-// WithTrackTotalHits option specifies whether to track total hits for the request.
-func WithTrackTotalHits[T HasTotalHitsTracking](value bool) func(T) {
-	return func(t T) {
-		t.SetTrackTotalHits(value)
+// WithTrackHits option sets whether total hits should be tracked.
+func WithTrackHits[T supportsTrackHits[T]](value TrackHits) Option[T] {
+	return func(t T) T {
+		return t.TrackTotalHits(value)
 	}
 }
 
-// HasCollapse represents a request that can collapse its results on a single field in each result.
-type HasCollapse interface {
-	*SearchRequest
-
-	SetCollapseOn(field *types.FieldCollapse)
+type supportsCollapse[T any] interface {
+	Collapse(collapse types.FieldCollapseVariant) T
 }
 
-// WithCollapseField option specifies the field on which to collapse multiple results.
-func WithCollapseField[T HasCollapse](field string) func(T) {
-	return func(t T) {
-		t.SetCollapseOn(&types.FieldCollapse{Field: field})
+// WithCollapse option sets that duplicate results for the given field should be collapsed down to the first result.
+func WithCollapse[T supportsCollapse[T]](field string) Option[T] {
+	return func(t T) T {
+		return t.Collapse(&types.FieldCollapse{Field: field})
 	}
 }
 
-// HasIDs represents a request that can operate against specific document IDs.
-type HasIDs interface {
-	*MGetRequest
-
-	SetIDs(ids ...string)
+type supportsIDs[T any] interface {
+	Ids(ids ...string) T
 }
 
-// WithIDs option specifies the document IDs to operate on for this request.
-func WithIDs[T HasIDs](ids ...string) func(T) {
-	return func(t T) {
-		t.SetIDs(ids...)
+// WithDocIDs option sets the doc IDs to retrieve.
+func WithDocIDs[T supportsIDs[T]](ids ...string) Option[T] {
+	return func(t T) T {
+		return t.Ids(ids...)
 	}
 }
 
-// HasRetryOnConflict represents a request that can retry its operation on conflicts.
-type HasRetryOnConflict interface {
-	*UpdateRequest
-
-	SetRetryOnConflict(retries int)
+type supportsRetryOnConflict[T any] interface {
+	RetryOnConflict(retryonconflict int) T
 }
 
-// WithRetryOnConflict option sets the number of retries to perform on a conflict.
-func WithRetryOnConflict[T HasRetryOnConflict](retries int) func(T) {
-	return func(t T) {
-		t.SetRetryOnConflict(retries)
+// WithRetryOnConflict option sets the number of times the request will be retried if there is a conflict.
+func WithRetryOnConflict[T supportsRetryOnConflict[T]](retries int) Option[T] {
+	return func(t T) T {
+		return t.RetryOnConflict(retries)
 	}
 }
 
-// HasDocAsUpsert represents a request that can perform an upsert operation on a document.
-type HasDocAsUpsert interface {
-	*UpdateRequest
-
-	SetDocAsUpsert(value bool)
+type supportsDocAsUpsert[T any] interface {
+	DocAsUpsert(docasupsert bool) T
 }
 
-// WithDocAsUpsert option defines whether to perform an upsert operation if the document does not exist.
-func WithDocAsUpsert[T HasDocAsUpsert](value bool) func(T) {
-	return func(t T) {
-		t.SetDocAsUpsert(value)
+// WithDocAsUpsert option specifies that the doc should be added if it does not already exist. Normally, the request
+// would not add a document if none already exist.
+func WithDocAsUpsert[T supportsDocAsUpsert[T]](value bool) Option[T] {
+	return func(t T) T {
+		return t.DocAsUpsert(value)
 	}
 }
 
-// // FieldValue represents a value of a field.
-// type FieldValue struct {
-// 	value any
-// }
+type supportsSeqNoPrimaryTerm[T any] interface {
+	SeqNoPrimaryTerm(value bool) T
+}
 
-// // NewFieldValue converts any value into a FieldValue.
-// func NewFieldValue(value any) FieldValue {
-// 	return FieldValue{value: value}
-// }
-
-// // FieldValueCaster is required to allow FieldValue to be used as an Elasticsearch  field value.
-// func (v FieldValue) FieldValueCaster() *types.FieldValue {
-// 	switch data := v.value.(type) {
-// 	case types.FieldValue:
-// 		return &data
-// 	default:
-// 		fv := types.FieldValue(data)
-// 		return &fv
-// 	}
-// }
+// WithSeqNoPrimaryTerm option specifies that the results should return the sequence no and primary term of each hit.
+func WithSeqNoPrimaryTerm[T supportsSeqNoPrimaryTerm[T]](value bool) Option[T] {
+	return func(t T) T {
+		return t.SeqNoPrimaryTerm(value)
+	}
+}

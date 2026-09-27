@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/maypok86/otter/v2"
@@ -530,7 +531,7 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 	resp, err := elastic.Search[*models.Subscription](
 		ctx,
 		s.store.GetIndexRO(SubscriptionsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					query.Term("user_id", user.GetID()),
@@ -553,8 +554,8 @@ func (s *SubscriptionService) GetSubscriptionSuggestions(
 				),
 			),
 		),
-		elastic.WithSort(newSubscriptionSortOptions(new(models.SortMostRelevant))...),
-		elastic.WithSize(count),
+		elastic.WithSort[*search.Search](newSubscriptionSortOptions(new(models.SortMostRelevant))...),
+		elastic.WithSize[*search.Search](count),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search subscriptions: %w", err)
@@ -951,14 +952,14 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					globalFilters...,
 				),
 			),
 		),
-		elastic.WithAggregations(
+		elastic.WithAggregations[*search.Search](
 			elastic.Aggs{
 				"feed": estypes.Aggregations{
 					Filters: &estypes.FiltersAggregation{
@@ -975,8 +976,8 @@ func (s *SubscriptionService) getFeedSubscriptionLatestItems(
 				},
 			},
 		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
@@ -1171,7 +1172,7 @@ func (s *SubscriptionService) getSubscriptionUnreadCounts(
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					query.Terms(
@@ -1185,7 +1186,7 @@ func (s *SubscriptionService) getSubscriptionUnreadCounts(
 				),
 			),
 		),
-		elastic.WithAggregations(
+		elastic.WithAggregations[*search.Search](
 			elastic.Aggs{
 				"UnreadCounts": estypes.Aggregations{
 					Filters: &estypes.FiltersAggregation{
@@ -1194,8 +1195,8 @@ func (s *SubscriptionService) getSubscriptionUnreadCounts(
 				},
 			},
 		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)

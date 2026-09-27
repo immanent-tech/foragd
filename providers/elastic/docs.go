@@ -15,7 +15,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -41,8 +40,8 @@ func GetDocs[T ~string, O any](
 		docIDs = append(docIDs, string(id))
 	}
 	resp, err := NewMGetRequest(ctx, api.TypedClient,
-		WithIndex[*MGetRequest](index),
-		WithIDs(docIDs...),
+		WithIndex[*mget.Mget](index),
+		WithDocIDs[*mget.Mget](docIDs...),
 	).Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get docs: %w", err)
@@ -119,7 +118,7 @@ func UpdateDoc[T ~string](
 	index string,
 	id T,
 	updates any,
-	options ...func(*UpdateRequest),
+	options ...Option[*update.Update],
 ) error {
 	// Connect to elasticsearch (if not already connected).
 	if err := Connect(); err != nil {
@@ -147,7 +146,6 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...Op
 	}
 
 	req := api.Delete(index, string(id)).Header(ReqIDHeader, middleware.GetReqID(ctx))
-
 	for option := range slices.Values(options) {
 		req = option(req)
 	}
@@ -165,68 +163,32 @@ func DeleteDoc[T ~string](ctx context.Context, index string, id T, options ...Op
 	return nil
 }
 
-type GetRequest struct {
-	*get.Get
-}
-
 // NewGetRequest creates a new get object with the given options.
 func NewGetRequest(
 	ctx context.Context,
 	api *elasticsearch.TypedClient,
 	index string,
 	id string,
-	options ...func(*GetRequest),
-) *GetRequest {
-	req := &GetRequest{
-		Get: api.Get(index, id),
-	}
-
-	WithHeader[*GetRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+	options ...Option[*get.Get],
+) *get.Get {
+	req := api.Get(index, id)
+	req = WithHeader[*get.Get](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for option := range slices.Values(options) {
 		option(req)
 	}
-
 	return req
-}
-
-func (r *GetRequest) SetHeader(key, value string) {
-	r.Get = r.Header(key, value)
-}
-
-type MGetRequest struct {
-	*mget.Mget
 }
 
 // NewMGetRequest creates a new mget object with the given options.
-func NewMGetRequest(ctx context.Context, api *elasticsearch.TypedClient, options ...func(*MGetRequest)) *MGetRequest {
-	req := &MGetRequest{
-		Mget: api.Mget(),
-	}
+func NewMGetRequest(ctx context.Context, api *elasticsearch.TypedClient, options ...Option[*mget.Mget]) *mget.Mget {
+	req := api.Mget()
 
-	WithHeader[*MGetRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+	req = WithHeader[*mget.Mget](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for option := range slices.Values(options) {
 		option(req)
 	}
 
 	return req
-}
-
-func (r *MGetRequest) SetHeader(key, value string) {
-	r.Mget = r.Header(key, value)
-}
-
-func (r *MGetRequest) SetIndex(index string) {
-	r.Mget = r.Index(index)
-}
-
-func (r *MGetRequest) SetIDs(ids ...string) {
-	r.Mget = r.Ids(ids...)
-}
-
-type UpdateRequest struct {
-	*update.Update
 }
 
 // NewUpdateDocRequest creates a new doc update request with the given options.
@@ -235,33 +197,14 @@ func NewUpdateDocRequest(
 	api *elasticsearch.TypedClient,
 	index, id string,
 	doc any,
-	options ...func(*UpdateRequest),
-) *UpdateRequest {
-	req := &UpdateRequest{
-		Update: api.Update(index, id).Doc(doc),
-	}
+	options ...Option[*update.Update],
+) *update.Update {
+	req := api.Update(index, id).Doc(doc)
 
-	WithHeader[*UpdateRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+	req = WithHeader[*update.Update](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for _, option := range options {
 		option(req)
 	}
 
 	return req
-}
-
-func (r *UpdateRequest) SetHeader(key, value string) {
-	r.Update = r.Header(key, value)
-}
-
-func (r *UpdateRequest) SetRefresh(value refresh.Refresh) {
-	r.Update = r.Refresh(value)
-}
-
-func (r *UpdateRequest) SetDocAsUpsert(value bool) {
-	r.Update = r.DocAsUpsert(value)
-}
-
-func (r *UpdateRequest) SetRetryOnConflict(retries int) {
-	r.Update = r.RetryOnConflict(retries)
 }

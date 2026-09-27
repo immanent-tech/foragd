@@ -22,8 +22,8 @@ func Count(ctx context.Context, index string, queries ...query.Option) (int64, e
 	}
 
 	resp, err := NewCountRequest(ctx, api.TypedClient,
-		WithIndex[*CountRequest](index),
-		WithQueryOptions[*CountRequest](queries...),
+		WithIndex[*count.Count](index),
+		WithQuery[*count.Count](queries...),
 	).Do(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("count: %w", err)
@@ -32,39 +32,16 @@ func Count(ctx context.Context, index string, queries ...query.Option) (int64, e
 	return resp.Count, nil
 }
 
-type CountRequest struct {
-	*count.Count
-}
-
 // NewCountRequest creates a new count request with the given options.
 func NewCountRequest(
 	ctx context.Context,
 	api *elasticsearch.TypedClient,
-	options ...func(*CountRequest),
-) *CountRequest {
-	req := &CountRequest{
-		Count: api.Count(),
-	}
-
-	WithHeader[*CountRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+	options ...Option[*count.Count],
+) *count.Count {
+	req := api.Count()
+	req = WithHeader[*count.Count](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for _, option := range options {
 		option(req)
 	}
-
 	return req
-}
-
-func (r *CountRequest) SetHeader(key, value string) {
-	r.Count = r.Header(key, value)
-}
-
-func (r *CountRequest) SetIndex(index string) {
-	r.Count = r.Index(index)
-}
-
-func (r *CountRequest) SetQueryOptions(options ...query.Option) {
-	if query := query.Build(options...); query != nil {
-		r.Count = r.Query(query)
-	}
 }

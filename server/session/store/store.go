@@ -11,6 +11,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -109,7 +110,7 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 			"expiry":     expiry,
 			"updated_at": time.Now().UTC(),
 		},
-		elastic.WithDocAsUpsert(true),
+		elastic.WithDocAsUpsert[*update.Update](true),
 	); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}

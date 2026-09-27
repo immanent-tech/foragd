@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
@@ -140,10 +141,10 @@ func (s *ItemService) QueryItems(
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query),
-		elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithSearchAfter(searchAfter...),
-		elastic.WithSize(count),
+		elastic.WithQuery[*search.Search](query),
+		elastic.WithSort[*search.Search](NewItemSortOptions(sort)...),
+		elastic.WithSearchAfter[*search.Search](searchAfter...),
+		elastic.WithSize[*search.Search](count),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("search items: %w", err)
@@ -203,7 +204,7 @@ func (s *ItemService) RetrieveItems(
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever(
+		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
 				retriever.WithQueryFilters(filter),
@@ -220,8 +221,8 @@ func (s *ItemService) RetrieveItems(
 			),
 		),
 		// elastic.WithSort(NewItemSortOptions(sort)...),
-		elastic.WithFrom(from),
-		elastic.WithSize(request.Count),
+		elastic.WithFrom[*search.Search](from),
+		elastic.WithSize[*search.Search](request.Count),
 	)
 	if err != nil {
 		return nil, models.Pagination{}, fmt.Errorf("search items: %w", err)
@@ -251,7 +252,7 @@ func (s *ItemService) CountSearchResults(ctx context.Context, request *models.Se
 	// Perform search.
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever(
+		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
 				retriever.WithQueryFilters(filter),
@@ -267,8 +268,8 @@ func (s *ItemService) CountSearchResults(ctx context.Context, request *models.Se
 				),
 			),
 		),
-		elastic.WithSize(0),
-		elastic.WithTrackTotalHits(true),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithTrackHits[*search.Search](true),
 	)
 	if err != nil {
 		return 0, fmt.Errorf("search items: %w", err)
@@ -293,7 +294,7 @@ func (s *ItemService) GetTopItemCategoriesForSearchResults(
 	// Perform aggregation.
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithRetriever(
+		elastic.WithRetriever[*search.Search](
 			retriever.WithReciprocalRankFusionRetriever(
 				retriever.WithRankWindowSize(150),
 				retriever.WithQueryFilters(filter),
@@ -321,7 +322,7 @@ func (s *ItemService) GetTopItemCategoriesForSearchResults(
 		// 		),
 		// 	),
 		// ),
-		elastic.WithAggregations(
+		elastic.WithAggregations[*search.Search](
 			elastic.Aggs{
 				"TopCategories": estypes.Aggregations{
 					Terms: &estypes.TermsAggregation{
@@ -331,7 +332,7 @@ func (s *ItemService) GetTopItemCategoriesForSearchResults(
 				},
 			},
 		),
-		elastic.WithSize(0),
+		elastic.WithSize[*search.Search](0),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("aggregate articles: %w", err)

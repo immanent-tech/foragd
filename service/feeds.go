@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"dario.cat/mergo"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
@@ -519,7 +520,7 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		s.store.GetIndexRO(FeedsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.MustNot(
 					// User must not already be subscribed.
@@ -539,10 +540,10 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 				),
 			),
 		),
-		elastic.WithSort(
+		elastic.WithSort[*search.Search](
 			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
-		elastic.WithSize(5),
+		elastic.WithSize[*search.Search](5),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search feeds: %w", err)
@@ -604,7 +605,7 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		s.store.GetIndexRO(FeedsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.MustNot(
 					// User must not already be subscribed.
@@ -625,10 +626,10 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 				),
 			),
 		),
-		elastic.WithSort(
+		elastic.WithSort[*search.Search](
 			NewFeedSortOptions(new(models.SortMostRelevant))...,
 		),
-		elastic.WithSize(5),
+		elastic.WithSize[*search.Search](5),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("search feeds: %w", err)
@@ -779,9 +780,9 @@ func (s *FeedService) SuggestFeeds(
 	resp, err := elastic.Search[*models.Feed](
 		ctx,
 		s.store.GetIndexRO(FeedsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](feedSearchQuery),
-		elastic.WithSize(request.Count),
-		elastic.WithSort(NewFeedSortOptions(new(models.SortMostRelevant))...),
+		elastic.WithQuery[*search.Search](feedSearchQuery),
+		elastic.WithSize[*search.Search](request.Count),
+		elastic.WithSort[*search.Search](NewFeedSortOptions(new(models.SortMostRelevant))...),
 	)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to find feed suggestions.",
@@ -853,7 +854,7 @@ func (s *FeedService) FindOrCreateFeed(
 	// Find any existing feed.
 	resp, err := elastic.Search[*models.Feed](ctx,
 		s.store.GetIndexRO(FeedsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					query.Bool(
@@ -862,7 +863,7 @@ func (s *FeedService) FindOrCreateFeed(
 				),
 			),
 		),
-		elastic.WithSize(1),
+		elastic.WithSize[*search.Search](1),
 	)
 	if err != nil {
 		return nil, false, fmt.Errorf("search existing feeds: %w", err)
@@ -1088,14 +1089,14 @@ func getFeedLatestItems(
 ) (map[models.FeedID]models.Items, error) {
 	resp, err := elastic.Search[*models.Item](ctx,
 		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					query.Terms("feed_id", feedIDs),
 				),
 			),
 		),
-		elastic.WithAggregations(
+		elastic.WithAggregations[*search.Search](
 			elastic.Aggs{
 				"feed": estypes.Aggregations{
 					Terms: &estypes.TermsAggregation{
@@ -1113,8 +1114,8 @@ func getFeedLatestItems(
 				},
 			},
 		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("fetch latest articles: %w", err)
@@ -1199,10 +1200,10 @@ func getFeedLastUpdates(
 	resp, err := elastic.Search[*models.Item](
 		ctx,
 		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query.Terms("feed_id", ids)),
-		elastic.WithSize(len(ids)),
-		elastic.WithCollapseField("feed_id"),
-		elastic.WithSort(NewItemSortOptions(&sort)...),
+		elastic.WithQuery[*search.Search](query.Terms("feed_id", ids)),
+		elastic.WithSize[*search.Search](len(ids)),
+		elastic.WithCollapse[*search.Search]("feed_id"),
+		elastic.WithSort[*search.Search](NewItemSortOptions(&sort)...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
@@ -1269,10 +1270,10 @@ func getFeedAverageDailyUpdates(
 
 	resp, err := elastic.Search[*models.Item](ctx,
 		svc.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](query),
-		elastic.WithAggregations(aggs),
-		elastic.WithSize(len(ids)),
-		elastic.WithDocSorting(),
+		elastic.WithQuery[*search.Search](query),
+		elastic.WithAggregations[*search.Search](aggs),
+		elastic.WithSize[*search.Search](len(ids)),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)

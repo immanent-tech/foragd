@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -80,7 +81,7 @@ func ExecuteDeleteExpiredSessions(ctx context.Context, job *SerializedJob) error
 		services.Elastic.GetIndexRW(service.ScheduleIndex),
 		job.JobDetail().JobKey().String(),
 		job,
-		elastic.WithDocAsUpsert(true),
+		elastic.WithDocAsUpsert[*update.Update](true),
 	); err != nil {
 		return fmt.Errorf("update job: %w", err)
 	}

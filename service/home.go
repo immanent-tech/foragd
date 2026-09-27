@@ -12,6 +12,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -51,7 +52,7 @@ func (s *Home) AggregateSubscriptions(
 		ctx,
 		svc.GetIndexRO(ItemsIndex),
 		// Query is adapted from service.FilterArticles query to boost favorites and return unread only.
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					query.Terms(
@@ -66,7 +67,7 @@ func (s *Home) AggregateSubscriptions(
 				),
 			),
 		),
-		elastic.WithAggregations(
+		elastic.WithAggregations[*search.Search](
 			elastic.Aggs{
 				// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
 				// source.
@@ -123,8 +124,8 @@ func (s *Home) AggregateSubscriptions(
 				},
 			},
 		),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("aggregate: %w", err)

@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
@@ -221,10 +222,10 @@ func (s *ItemService) GetTopCategoriesForItems(
 
 	resp, err := elastic.Search[*models.Item](ctx,
 		s.store.GetIndexRO(ItemsIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](itemsQuery),
-		elastic.WithAggregations(aggs),
-		elastic.WithSize(0),
-		elastic.WithDocSorting(),
+		elastic.WithQuery[*search.Search](itemsQuery),
+		elastic.WithAggregations[*search.Search](aggs),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
 	)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)

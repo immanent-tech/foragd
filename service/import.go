@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
@@ -456,7 +457,7 @@ func (i *ImportService) findActiveImports(ctx context.Context, userID models.Use
 			),
 		),
 		5000,
-		elastic.WithSort[*elastic.SearchRequest](&statusSorting{CreatedAt: "desc"}),
+		elastic.WithSort[*search.Search](&statusSorting{CreatedAt: "desc"}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("find active imports: %w", err)

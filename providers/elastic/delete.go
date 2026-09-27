@@ -29,7 +29,7 @@ func DeleteDocs(ctx context.Context, index string, queries ...query.Option) erro
 	resp, err := NewDeleteByQueryRequest(ctx,
 		api.TypedClient,
 		index,
-		WithQueryOptions[*DeleteByQueryRequest](queries...),
+		WithQuery[*deletebyquery.DeleteByQuery](queries...),
 	).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("delete docs: %w", err)
@@ -42,37 +42,18 @@ func DeleteDocs(ctx context.Context, index string, queries ...query.Option) erro
 	return nil
 }
 
-type DeleteByQueryRequest struct {
-	*deletebyquery.DeleteByQuery
-}
-
 // NewDeleteByQueryRequest creates a new delete by query request that will operate on the given index with the given
 // options.
 func NewDeleteByQueryRequest(
 	ctx context.Context,
 	api *elasticsearch.TypedClient,
 	index string,
-	options ...func(*DeleteByQueryRequest),
-) *DeleteByQueryRequest {
-	req := &DeleteByQueryRequest{
-		DeleteByQuery: api.DeleteByQuery(index),
-	}
-
-	WithHeader[*DeleteByQueryRequest](ReqIDHeader, middleware.GetReqID(ctx))(req)
-
+	options ...Option[*deletebyquery.DeleteByQuery],
+) *deletebyquery.DeleteByQuery {
+	req := api.DeleteByQuery(index)
+	req = WithHeader[*deletebyquery.DeleteByQuery](ReqIDHeader, middleware.GetReqID(ctx))(req)
 	for option := range slices.Values(options) {
 		option(req)
 	}
-
 	return req
-}
-
-func (r *DeleteByQueryRequest) SetHeader(key, value string) {
-	r.DeleteByQuery = r.Header(key, value)
-}
-
-func (r *DeleteByQueryRequest) SetQueryOptions(options ...query.Option) {
-	if query := query.Build(options...); query != nil {
-		r.DeleteByQuery = r.Query(query)
-	}
 }
