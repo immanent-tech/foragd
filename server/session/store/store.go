@@ -62,7 +62,7 @@ func (s *Store) DeleteCtx(ctx context.Context, token string) error {
 		ctx,
 		s.backend.GetIndexRW(service.SessionsIndex),
 		token,
-		elastic.WithRefresh[*delete.Delete](refresh.True),
+		elastic.WithRefresh[*delete.Delete](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
@@ -111,6 +111,7 @@ func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry
 			"updated_at": time.Now().UTC(),
 		},
 		elastic.WithDocAsUpsert[*update.Update](true),
+		elastic.WithRefresh[*update.Update](refresh.Waitfor),
 	); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
