@@ -6,6 +6,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -35,7 +36,7 @@ func main() {
 	resp, err := elastic.Search[*models.User](
 		ctx,
 		elasticSvc.GetIndexRO(service.UsersIndex),
-		elastic.WithQueryOptions[*elastic.SearchRequest](
+		elastic.WithQuery[*search.Search](
 			query.Bool(
 				query.Filter(
 					// Account should be older than 30 days.
