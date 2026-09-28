@@ -663,9 +663,21 @@ func EnrichItem(
 	if item.GetImage() == nil {
 		switch {
 		case opengraphData != nil && opengraphData.Image != "":
-			item.Image = models.NewRemoteImage(opengraphData.Image, item.GetTitle())
+			if imgURL, err := url.Parse(opengraphData.Image); err == nil {
+				if !imgURL.IsAbs() {
+					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
+				} else {
+					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
+				}
+			}
 		case readabilityData.ImageURL() != "":
-			item.Image = models.NewRemoteImage(readabilityData.ImageURL(), item.GetTitle())
+			if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
+				if !imgURL.IsAbs() {
+					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
+				} else {
+					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
+				}
+			}
 		default:
 			if imgURL, imgAlt, _ := htmlx.ExtractImage(itemContentBuf.String(), item.GetLink()); imgURL != "" {
 				item.Image = models.NewRemoteImage(imgURL, imgAlt)
