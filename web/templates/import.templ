@@ -152,6 +152,18 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 						}
 					>
 						<p class="font-semibold text-lg py-4">Status: { string(status.Status) }...</p>
+						switch status.Status {
+							case "pending":
+								<p>
+									Waiting to schedule the import on the backend. This should happen shortly. Stay on
+									this page to watch the status.
+								</p>
+							case "running":
+								<p>
+									Your subscriptions are being added. Stay on this page to watch the status, or you can
+									start browsing your subscriptions as they are added.
+								</p>
+						}
 						// Import results summary.
 						<div class="stats stats-vertical sm:stats-horizontal shadow">
 							if len(successfulResults) > 0 {
