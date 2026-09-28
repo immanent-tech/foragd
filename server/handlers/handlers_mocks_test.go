@@ -4553,6 +4553,9 @@ var _ handlers.Importer = &MoqImporter{}
 //
 //		// make and configure a mocked handlers.Importer
 //		mockedImporter := &MoqImporter{
+//			GetAllImportsFunc: func(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
+//				panic("mock out the GetAllImports method")
+//			},
 //			GetImportStatusFunc: func(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error) {
 //				panic("mock out the GetImportStatus method")
 //			},
@@ -4566,6 +4569,9 @@ var _ handlers.Importer = &MoqImporter{}
 //
 //	}
 type MoqImporter struct {
+	// GetAllImportsFunc mocks the GetAllImports method.
+	GetAllImportsFunc func(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error)
+
 	// GetImportStatusFunc mocks the GetImportStatus method.
 	GetImportStatusFunc func(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error)
 
@@ -4574,6 +4580,13 @@ type MoqImporter struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetAllImports holds details about calls to the GetAllImports method.
+		GetAllImports []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserID is the userID argument value.
+			UserID models.UserID
+		}
 		// GetImportStatus holds details about calls to the GetImportStatus method.
 		GetImportStatus []struct {
 			// Ctx is the ctx argument value.
@@ -4589,8 +4602,45 @@ type MoqImporter struct {
 			File *models.OPMLFile
 		}
 	}
+	lockGetAllImports   sync.RWMutex
 	lockGetImportStatus sync.RWMutex
 	lockStartImport     sync.RWMutex
+}
+
+// GetAllImports calls GetAllImportsFunc.
+func (mock *MoqImporter) GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
+	if mock.GetAllImportsFunc == nil {
+		panic("MoqImporter.GetAllImportsFunc: method is nil but Importer.GetAllImports was just called")
+	}
+	callInfo := struct {
+		Ctx    context.Context
+		UserID models.UserID
+	}{
+		Ctx:    ctx,
+		UserID: userID,
+	}
+	mock.lockGetAllImports.Lock()
+	mock.calls.GetAllImports = append(mock.calls.GetAllImports, callInfo)
+	mock.lockGetAllImports.Unlock()
+	return mock.GetAllImportsFunc(ctx, userID)
+}
+
+// GetAllImportsCalls gets all the calls that were made to GetAllImports.
+// Check the length with:
+//
+//	len(mockedImporter.GetAllImportsCalls())
+func (mock *MoqImporter) GetAllImportsCalls() []struct {
+	Ctx    context.Context
+	UserID models.UserID
+} {
+	var calls []struct {
+		Ctx    context.Context
+		UserID models.UserID
+	}
+	mock.lockGetAllImports.RLock()
+	calls = mock.calls.GetAllImports
+	mock.lockGetAllImports.RUnlock()
+	return calls
 }
 
 // GetImportStatus calls GetImportStatusFunc.
