@@ -771,6 +771,9 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 								>
 									@templ.Raw(content)
 								</div>
+								if rights := article.Item.GetRights(); rights != "" {
+									<p class="italic pt-4">{ rights }</p>
+								}
 							}
 							<div class="mt-8 w-full border-t border-neutral/20"></div>
 							@showNextPrevActions(a)
