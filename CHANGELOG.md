@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.238.0](https://github.com/immanent-tech/foragd/compare/v0.237.1...v0.238.0) (2026-09-28)
+
+
+### Features
+
+* **templates/article:** ✨ if the item has copyright/rights information, show it ([281fb54](https://github.com/immanent-tech/foragd/commit/281fb541b0f350b3dc016148740a3091bea9e1dc))
+* **templates/imports:** ✨ add an import status page to see past imports ([649a74a](https://github.com/immanent-tech/foragd/commit/649a74ace5976d21308e4fe5d6ac01fb07c2cdc5))
+
 ## [0.237.1](https://github.com/immanent-tech/foragd/compare/v0.237.0...v0.237.1) (2026-09-28)
 
 
