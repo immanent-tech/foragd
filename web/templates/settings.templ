@@ -19,6 +19,7 @@ import (
 
 templ UserSettings() {
 	@LayoutInternal(NavSettings, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@partials.BackToTopButton()
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				<script type="module">
