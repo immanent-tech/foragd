@@ -7,14 +7,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"slices"
 	"time"
 
-	"github.com/go-resty/resty/v2"
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -122,11 +118,6 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 		return nil, fmt.Errorf("proxy request: %w", err)
 	}
 
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load app config: %w", err)
-	}
-
 	sourceURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse URL %s: %w", rawURL, err)
@@ -144,23 +135,11 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 	result := &Response{}
 	errResult := &ResponseError{}
 
-	client, err := client.Load()
-	if err != nil {
-		return nil, fmt.Errorf("load http client: %w", err)
-	}
-	switch resp, err := client.
-		// Add retry logic for 429 and 520 responses as per Zyte API guidelines.
-		SetRetryCount(3).
-		AddRetryCondition(
-			func(r *resty.Response, _ error) bool {
-				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == 520
-			},
-		).
+	httpClient := loadHTTPClient()
+	switch resp, err := httpClient.
 		R().
 		SetContext(ctx).
-		SetHeader("User-Agent", appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)").
 		SetBasicAuth(cfg.APIKey, "").
-		SetHeader("Content-Type", "application/json").
 		SetBody(req).
 		SetError(errResult).
 		// SetDebug(true).

@@ -257,14 +257,11 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		return nil, fmt.Errorf("create indexer: %w", err)
 	}
 	// HTTP client.
-	httpClient, err := client.Load()
-	if err != nil {
-		return nil, fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
-		"User-Agent",
-		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-	)
+	httpClient := client.New().
+		SetHeader(
+			"User-Agent",
+			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+		)
 	// Item cache.
 	itemsCache, err := cache.NewItemsCache()
 	if err != nil {

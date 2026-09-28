@@ -11,17 +11,21 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-base/client"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/zyte"
@@ -36,6 +40,22 @@ var bufPool = sync.Pool{
 	},
 }
 
+var httpTransportSettings = &http.Transport{
+	Proxy: http.ProxyFromEnvironment,
+	DialContext: (&net.Dialer{
+		Timeout:   5 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).DialContext,
+	ForceAttemptHTTP2:     true, // required when you supply a custom transport
+	MaxIdleConns:          200,
+	MaxIdleConnsPerHost:   32, // match your per-host concurrency
+	MaxConnsPerHost:       32, // hard cap so you don't hammer one origin
+	IdleConnTimeout:       90 * time.Second,
+	TLSHandshakeTimeout:   5 * time.Second,
+	ResponseHeaderTimeout: 10 * time.Second,
+	DisableCompression:    true, // images are already compressed
+}
+
 type AppConfig interface {
 	GetAppName() string
 	GetAppVersion() string
@@ -48,7 +68,23 @@ type ImageCache interface {
 
 // HandleImage is handler that will attempt to proxy an image through the image proxy. It will fetch, store
 // and retrieve the image from the cache as needed.
-func HandleImage(cache ImageCache, httpClient *resty.Client) http.HandlerFunc {
+func HandleImage(cache ImageCache) http.HandlerFunc {
+	// Optimise client for concurrent image processing.
+	httpClient := client.New().
+		SetTransport(httpTransportSettings).
+		SetTimeout(30*time.Second). // total per-request, including body read
+		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)).
+		SetHeader("Accept", "image/*").
+		SetRetryCount(3).
+		SetRetryWaitTime(500 * time.Millisecond).
+		SetRetryMaxWaitTime(5 * time.Second).
+		AddRetryCondition(func(r *resty.Response, err error) bool {
+			if err != nil {
+				return true
+			}
+			c := r.StatusCode()
+			return c == 429 || c >= 500
+		})
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := loadConfig(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -167,10 +203,10 @@ func directFetchRemoteImage(
 ) error {
 	remoteURL, err := url.Parse(urlStr)
 	if err != nil {
-		return fmt.Errorf("parse URL: %w", err)
+		models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse URL: %w", err))
 	}
 	if !remoteURL.IsAbs() {
-		return fmt.Errorf("not an absolute URL: %w", err)
+		models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("not an absolute URL: %w", err))
 	}
 
 	// Fetch the image (either from proxy or direct).
@@ -179,30 +215,24 @@ func directFetchRemoteImage(
 		SetDoNotParseResponse(true).
 		Get(urlStr)
 	if err != nil {
-		return &models.APIError{
-			InternalError: err,
-			StatusCode:    http.StatusInternalServerError,
-		}
+		return models.NewAPIError(http.StatusInternalServerError, err)
 	}
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusForbidden {
 			// If we get a forbidden response, try proxying the request.
 			return proxyFetchRemoteImage(ctx, urlStr, buf)
 		}
-		return &models.APIError{
-			InternalError: errors.New(resp.Status()),
-			StatusCode:    resp.StatusCode(),
-		}
+		return models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
+	}
+	if ct := resp.Header().Get("Content-Type"); !strings.HasPrefix(ct, "image/") {
+		return models.NewAPIError(http.StatusUnsupportedMediaType, fmt.Errorf("unexpected content-type %q", ct))
 	}
 
 	// Copy the image data to the buffer.
 	defer resp.RawBody().Close()
 	_, err = io.Copy(buf, resp.RawBody())
 	if err != nil {
-		return &models.APIError{
-			InternalError: errors.New(resp.Status()),
-			StatusCode:    resp.StatusCode(),
-		}
+		return models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 	}
 	return nil
 }

@@ -81,11 +81,7 @@ func Start() error {
 	}
 
 	// Load the http client.
-	httpClient, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
+	httpClient := client.New().SetHeader(
 		"User-Agent",
 		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
 	)
@@ -197,7 +193,7 @@ func Start() error {
 	router.Handle("/favicon.ico", assets.HandleFiles("", "/content"))
 
 	// Image proxy.
-	router.Get("/img-proxy/*", imgproxy.HandleImage(imgCache, httpClient))
+	router.Get("/img-proxy/*", imgproxy.HandleImage(imgCache))
 	// Avatars
 	router.Get("/img/avatar/*", cache.HandleImage(imgCache))
 	// User custom subscription images.

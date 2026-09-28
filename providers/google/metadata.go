@@ -12,8 +12,7 @@ import (
 
 func queryMetadataServer(path string) (string, error) {
 	metadataServerURL := "http://metadata.google.internal"
-	httpClient, err := client.Load()
-	resp, err := httpClient.R().
+	resp, err := client.New().R().
 		SetHeader("Metadata-Flavor", "Google").
 		SetDoNotParseResponse(true).
 		Get(metadataServerURL + path)

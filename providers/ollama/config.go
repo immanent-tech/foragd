@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+	"github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
 	"golang.org/x/oauth2"
@@ -30,8 +32,9 @@ type Config struct {
 	// BatchSize is the number of input texts to process at once.
 	BatchSize int `koanf:"batchsize" validate:"omitempty,gt=0"`
 	// KeepAlive is how long to keep a request alive.
-	KeepAlive   config.Duration `koanf:"keepalive"`
-	tokenSource oauth2.TokenSource
+	KeepAlive   config.Duration    `koanf:"keepalive"`
+	tokenSource oauth2.TokenSource `koanf:"-"`
+	httpClient  *resty.Client      `koanf:"-"`
 }
 
 // LoadConfig loads the auth0 configuration and ensures this is only done
@@ -65,6 +68,15 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
 		// than minting a new one on every single call.
 		cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
+	}
+
+	cfg.httpClient = client.New()
+	if cfg.tokenSource != nil {
+		token, err := cfg.tokenSource.Token()
+		if err != nil {
+			return nil, fmt.Errorf("get authorization token: %w", err)
+		}
+		cfg.httpClient = cfg.httpClient.SetAuthToken(token.AccessToken)
 	}
 
 	slog.Debug("Ollama config loaded.") //nolint:sloglint // we don't pass a context.

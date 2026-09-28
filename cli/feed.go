@@ -83,14 +83,11 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("load app config: %w", err)
 	}
 
-	httpClient, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
-		"User-Agent",
-		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-	)
+	httpClient := client.New().
+		SetHeader(
+			"User-Agent",
+			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+		)
 
 	feedSvc, err := service.LoadFeedService()
 	if err != nil {
@@ -376,14 +373,11 @@ func (c *ClassifyFeedCmd) Run() error {
 		return fmt.Errorf("load app config: %w", err)
 	}
 
-	httpClient, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
-		"User-Agent",
-		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-	)
+	httpClient := client.New().
+		SetHeader(
+			"User-Agent",
+			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+		)
 
 	details, err := feedSvc.GetFeed(ctx, c.FeedID)
 	if err != nil {
@@ -437,14 +431,11 @@ func (c *AddFeedCmd) Run() error {
 		return fmt.Errorf("load app config: %w", err)
 	}
 
-	httpClient, err := client.Load()
-	if err != nil {
-		return fmt.Errorf("load http client: %w", err)
-	}
-	httpClient = httpClient.SetHeader(
-		"User-Agent",
-		appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-	)
+	httpClient := client.New().
+		SetHeader(
+			"User-Agent",
+			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
+		)
 
 	// Parse the given URL.
 	feedURL, err := models.NormalizeFeedURL(c.URL)
