@@ -61,7 +61,7 @@ func NewManager(ctx context.Context) (*Manager, error) {
 
 	// Create scheduler instance.
 	scheduler, err := quartz.NewStdScheduler(
-		quartz.WithWorkerLimit(runtime.GOMAXPROCS(0)*2),
+		quartz.WithWorkerLimit(runtime.GOMAXPROCS(0)),
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithRetryInterval(time.Second),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
