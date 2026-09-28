@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.237.1](https://github.com/immanent-tech/foragd/compare/v0.237.0...v0.237.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **service/items:** 🔧 better resolution of item image URL during enrichment ([000801d](https://github.com/immanent-tech/foragd/commit/000801d6cef8d6506ffe5bdf34524934e0b4a7c9))
+* **templates/import:** ♻️ add some explainer text about the import state ([644e667](https://github.com/immanent-tech/foragd/commit/644e6671601f28f7aabb50a099d5992121e5d6dd))
+
 ## [0.237.0](https://github.com/immanent-tech/foragd/compare/v0.236.1...v0.237.0) (2026-09-28)
 
 
