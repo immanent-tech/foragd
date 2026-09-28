@@ -99,7 +99,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Add additional feed details to logs.
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
-	slogctx.Debug(ctx, "Fetching latest feed source.")
+	slogctx.Info(ctx, "Running update feed job.")
 	// Get new feed data.
 	var (
 		feed    *models.Feed
@@ -123,8 +123,6 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
-	slogctx.Debug(ctx, "Feed fetched. Applying updates.")
-
 	if err := services.Feeds.ApplyFeedUpdates(
 		ctx,
 		services.HttpClient,
@@ -136,7 +134,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 			slog.Any("error", err))
 	}
 
-	slogctx.Debug(ctx, "Finished update feed job.",
+	slogctx.Info(ctx, "Finished update feed job.",
 		slog.Duration("took", time.Since(start)))
 
 	return nil
