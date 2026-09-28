@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -84,8 +83,9 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("get job keys: %w", err)
 	}
 
-	maxConcurrentWorkers := runtime.GOMAXPROCS(0) * 2
-	feedCh := make(chan *models.Feed, maxConcurrentWorkers*10)
+	maxConcurrentWorkers := 25
+	maxConcurrentFeeds := 100
+	feedCh := make(chan *models.Feed, maxConcurrentFeeds)
 	var wg sync.WaitGroup
 
 	for range maxConcurrentWorkers {
