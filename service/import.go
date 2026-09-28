@@ -130,6 +130,8 @@ func (i *ImportService) ProcessRequests(
 		slog.String("user_id", status.UserID),
 	)
 
+	slogctx.Info(ctx, "Processing user import")
+
 	feedSvc, err := LoadFeedService()
 	if err != nil {
 		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
@@ -171,6 +173,9 @@ func (i *ImportService) ProcessRequests(
 		return fmt.Errorf("get user subscriptions: %w", err)
 	}
 
+	// Set a timeout on HTTP requests.
+	httpClient = httpClient.SetTimeout(time.Minute)
+
 	if err := i.updateStatus(ctx, status, models.ImportStatusStatusRunning, nil); err != nil {
 		slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
 		return fmt.Errorf("update status to running: %w", err)
@@ -182,16 +187,23 @@ func (i *ImportService) ProcessRequests(
 		Subscription *models.Subscription
 		Feed         *models.Feed
 	}
-	const maxConcurrentImports = 5
+	maxConcurrentWorkers := 20
+	maxConcurrentRequests := 50
 	resultsCh := make(chan result)
-	requestCh := make(chan models.ImportRequest, 10)
+	requestCh := make(chan models.ImportRequest, maxConcurrentRequests)
 	var wg sync.WaitGroup
 
 	start := time.Now()
 
-	for range maxConcurrentImports {
+	for range maxConcurrentWorkers {
 		wg.Go(func() {
 			for request := range requestCh {
+				requestCtx := slogctx.With(ctx, slog.String("source_url", request.URL))
+
+				slogctx.Info(requestCtx, "Processing subscription request")
+				start := time.Now()
+
+				// Create result object.
 				result := result{
 					Details: &models.ImportResult{
 						Categories: request.Categories,
@@ -202,10 +214,9 @@ func (i *ImportService) ProcessRequests(
 				}
 
 				// Fetch feed details from remote URL.
-				feed, err := FetchFeed(ctx, httpClient, request.URL)
+				feed, err := FetchFeed(requestCtx, httpClient, request.URL)
 				if err != nil {
-					slogctx.Error(ctx, "Unable to fetch feed.",
-						slog.String("source_url", request.URL),
+					slogctx.Error(requestCtx, "Unable to fetch feed.",
 						slog.Any("error", err))
 					if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 						result.Details.Error = apiErr.GetUserMessage()
@@ -220,10 +231,9 @@ func (i *ImportService) ProcessRequests(
 				}
 
 				// Check if there is an existing feed.
-				existingFeeds, err := feedSvc.GetFeedsByURLs(ctx, feed.GetSourceURLs()...)
+				existingFeeds, err := feedSvc.GetFeedsByURLs(requestCtx, feed.GetSourceURLs()...)
 				if err != nil {
-					slogctx.Error(ctx, "Unable to check for existing feeds with URL(s).",
-						slog.String("source_url", request.URL),
+					slogctx.Error(requestCtx, "Unable to check for existing feeds with URL(s).",
 						slog.Any("error", err))
 					result.Details.Error = models.NewErrorMessage(
 						"Failed check existing feeds",
@@ -235,8 +245,7 @@ func (i *ImportService) ProcessRequests(
 				switch {
 				case len(existingFeeds) > 1:
 					// Multiple feeds match new feed URLs! This should not happen.
-					slogctx.Error(ctx, "Multiple feeds match given URL(s).",
-						slog.String("source_url", request.URL),
+					slogctx.Error(requestCtx, "Multiple feeds match given URL(s).",
 						slog.String("feed_ids", strings.Join(existingFeeds.GetIDs(), ",")))
 					result.Details.Error = models.NewErrorMessage(
 						"Ambiguous feed match",
@@ -252,7 +261,6 @@ func (i *ImportService) ProcessRequests(
 					// New feed required. Add it.
 					result.Details.FeedID = new(feed.GetID())
 					result.Feed = feed
-
 				}
 
 				// Check for an existing subscription to this feed.
@@ -267,9 +275,9 @@ func (i *ImportService) ProcessRequests(
 				}
 
 				// Create new subscription.
-				newSubscription, err := NewFeedSubscription(ctx, feed, nil)
+				newSubscription, err := NewFeedSubscription(requestCtx, feed, nil)
 				if err != nil {
-					slogctx.Error(ctx, "Create subscription failed.",
+					slogctx.Error(requestCtx, "Create subscription failed.",
 						slog.Any("error", err),
 					)
 					result.Details.Error = models.NewErrorMessage(
@@ -286,6 +294,11 @@ func (i *ImportService) ProcessRequests(
 
 				result.Details.SubscriptionID = new(newSubscription.GetID())
 				result.Subscription = newSubscription
+
+				slogctx.Info(requestCtx, "Subscription request processed",
+					slog.Duration("took", time.Since(start)),
+				)
+
 				resultsCh <- result
 			}
 		})
@@ -293,6 +306,15 @@ func (i *ImportService) ProcessRequests(
 
 	// Process all requests.
 	go func() {
+		// Sort requests.
+		slices.SortFunc(status.Requests, func(a, b models.ImportRequest) int {
+			return strings.Compare(a.URL, b.URL)
+		})
+		// Remove duplicates.
+		status.Requests = slices.CompactFunc(status.Requests, func(a, b models.ImportRequest) bool {
+			return a.URL == b.URL
+		})
+		// Process requests.
 		for request := range slices.Values(status.Requests) {
 			requestCh <- request
 		}
@@ -302,11 +324,11 @@ func (i *ImportService) ProcessRequests(
 	// Wait for all request processing to complete.
 	go func() {
 		defer close(resultsCh)
-
 		wg.Wait()
 	}()
 
 	// Gather results.
+	var errs error
 	for result := range resultsCh {
 		// Add new feed as needed.
 		if result.Feed != nil {
@@ -317,7 +339,10 @@ func (i *ImportService) ProcessRequests(
 					bulk.ToIndex[models.FeedID](i.store.GetIndexRW(FeedsIndex)),
 				),
 			); err != nil {
-				return fmt.Errorf("add new feed: %w", err)
+				slogctx.Error(ctx, "Failed to process new feed",
+					slog.Any("error", err))
+				errs = errors.Join(errs, err)
+				continue
 			}
 		}
 		// Add new subscription as needed.
@@ -329,7 +354,10 @@ func (i *ImportService) ProcessRequests(
 					bulk.ToIndex[models.SubscriptionID](i.store.GetIndexRW(SubscriptionsIndex)),
 				),
 			); err != nil {
-				return fmt.Errorf("add new subscription: %w", err)
+				slogctx.Error(ctx, "Failed to process new subscription",
+					slog.Any("error", err))
+				errs = errors.Join(errs, err)
+				continue
 			}
 		}
 		// Index the results.
@@ -340,7 +368,10 @@ func (i *ImportService) ProcessRequests(
 				bulk.ToIndex[string](i.store.GetIndexRW(ImportIndex)),
 			),
 		); err != nil {
-			return fmt.Errorf("add import result: %w", err)
+			slogctx.Error(ctx, "Failed to process import result",
+				slog.Any("error", err))
+			errs = errors.Join(errs, err)
+			continue
 		}
 	}
 
@@ -351,12 +382,17 @@ func (i *ImportService) ProcessRequests(
 	}
 
 	if err := i.updateStatus(ctx, status, models.ImportStatusStatusDone, nil); err != nil {
-		slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
+		slogctx.Error(ctx, "Could not update status",
+			slog.String("status", string(status.Status)),
+			slog.Any("error", err),
+		)
 	}
 
-	slogctx.Debug(ctx, "Import processing complete", slog.Duration("took", time.Since(start)))
+	slogctx.Info(ctx, "User import processed",
+		slog.Duration("took", time.Since(start)),
+	)
 
-	return nil
+	return errs
 }
 
 func (i *ImportService) GetImportStatus(
