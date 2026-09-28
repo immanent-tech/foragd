@@ -177,9 +177,14 @@ func (i *ImportService) ProcessRequests(
 	}
 
 	// Process requests.
+	type result struct {
+		Details      *models.ImportResult
+		Subscription *models.Subscription
+		Feed         *models.Feed
+	}
 	const maxConcurrentImports = 5
-	resultsCh := make(chan models.ImportResult)
-	requestCh := make(chan models.ImportRequest, 5)
+	resultsCh := make(chan result)
+	requestCh := make(chan models.ImportRequest, 10)
 	var wg sync.WaitGroup
 
 	start := time.Now()
@@ -187,11 +192,13 @@ func (i *ImportService) ProcessRequests(
 	for range maxConcurrentImports {
 		wg.Go(func() {
 			for request := range requestCh {
-				result := models.ImportResult{
-					Categories: request.Categories,
-					URL:        request.URL,
-					JobID:      status.GetID(),
-					DocType:    "import_result",
+				result := result{
+					Details: &models.ImportResult{
+						Categories: request.Categories,
+						URL:        request.URL,
+						JobID:      status.GetID(),
+						DocType:    "import_result",
+					},
 				}
 
 				// Fetch feed details from remote URL.
@@ -200,10 +207,14 @@ func (i *ImportService) ProcessRequests(
 					slogctx.Error(ctx, "Unable to fetch feed.",
 						slog.String("source_url", request.URL),
 						slog.Any("error", err))
-					result.Error = models.NewErrorMessage(
-						"Could not fetch feed data from url",
-						request.URL,
-					)
+					if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+						result.Details.Error = apiErr.GetUserMessage()
+					} else {
+						result.Details.Error = models.NewErrorMessage(
+							"Could not fetch feed data from url",
+							request.URL,
+						)
+					}
 					resultsCh <- result
 					continue
 				}
@@ -214,7 +225,7 @@ func (i *ImportService) ProcessRequests(
 					slogctx.Error(ctx, "Unable to check for existing feeds with URL(s).",
 						slog.String("source_url", request.URL),
 						slog.Any("error", err))
-					result.Error = models.NewErrorMessage(
+					result.Details.Error = models.NewErrorMessage(
 						"Failed check existing feeds",
 						"Could not determine if there is an existing feed for the url: "+request.URL,
 					)
@@ -227,7 +238,7 @@ func (i *ImportService) ProcessRequests(
 					slogctx.Error(ctx, "Multiple feeds match given URL(s).",
 						slog.String("source_url", request.URL),
 						slog.String("feed_ids", strings.Join(existingFeeds.GetIDs(), ",")))
-					result.Error = models.NewErrorMessage(
+					result.Details.Error = models.NewErrorMessage(
 						"Ambiguous feed match",
 						"Could not determine which existing feed this URL is for: "+request.URL,
 					)
@@ -236,34 +247,18 @@ func (i *ImportService) ProcessRequests(
 				case len(existingFeeds) == 1:
 					// There is an existing feed. Record its ID.
 					feed = existingFeeds[0]
-					result.FeedID = new(existingFeeds[0].GetID())
+					result.Details.FeedID = new(existingFeeds[0].GetID())
 				default:
 					// New feed required. Add it.
-					if err := feedSvc.AddFeed(ctx, feed); err != nil {
-						slogctx.Error(ctx, "Failed to add new feed.",
-							slog.String("feed_id", feed.GetID()),
-							slog.String("feed_title", feed.GetTitle()),
-							slog.Any("error", err),
-						)
-						result.Error = models.NewErrorMessage(
-							"Unable to add new feed details for URL",
-							request.URL,
-						)
-						resultsCh <- result
-						continue
-					} else {
-						slogctx.Debug(ctx, "New feed added.",
-							slog.String("feed_id", feed.GetID()),
-							slog.String("feed_title", feed.GetTitle()),
-						)
-						result.FeedID = new(feed.GetID())
-					}
+					result.Details.FeedID = new(feed.GetID())
+					result.Feed = feed
+
 				}
 
 				// Check for an existing subscription to this feed.
 				existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
 				if len(existingSubscriptions) > 0 {
-					result.Error = models.NewWarningMessage(
+					result.Details.Error = models.NewWarningMessage(
 						fmt.Sprintf("Already subscribed to feed (%s)", existingSubscriptions[0].GetTitle()),
 						request.URL,
 					)
@@ -277,7 +272,7 @@ func (i *ImportService) ProcessRequests(
 					slogctx.Error(ctx, "Create subscription failed.",
 						slog.Any("error", err),
 					)
-					result.Error = models.NewErrorMessage(
+					result.Details.Error = models.NewErrorMessage(
 						"Unable to add subscription",
 						"Failed to add subscription for URL: "+request.URL,
 					)
@@ -288,19 +283,9 @@ func (i *ImportService) ProcessRequests(
 				if len(request.Categories) > 0 {
 					newSubscription.Customisation.Categories = request.Categories
 				}
-				if err := subSvc.AddSubscriptions(ctx, newSubscription); err != nil {
-					slogctx.Error(ctx, "Add subscription failed.",
-						slog.Any("error", err),
-					)
-					result.Error = models.NewErrorMessage(
-						"Unable to add subscription",
-						"Failed to add subscription for URL: "+request.URL,
-					)
-					resultsCh <- result
-					continue
-				}
 
-				result.SubscriptionID = new(newSubscription.GetID())
+				result.Details.SubscriptionID = new(newSubscription.GetID())
+				result.Subscription = newSubscription
 				resultsCh <- result
 			}
 		})
@@ -323,9 +308,34 @@ func (i *ImportService) ProcessRequests(
 
 	// Gather results.
 	for result := range resultsCh {
+		// Add new feed as needed.
+		if result.Feed != nil {
+			if err := bulk.AddAction(ctx,
+				bulk.NewAction(
+					result.Feed,
+					bulk.AsOperation[models.FeedID](bulk.OpCreate),
+					bulk.ToIndex[models.FeedID](i.store.GetIndexRW(FeedsIndex)),
+				),
+			); err != nil {
+				return fmt.Errorf("add new feed: %w", err)
+			}
+		}
+		// Add new subscription as needed.
+		if result.Subscription != nil {
+			if err := bulk.AddAction(ctx,
+				bulk.NewAction(
+					result.Subscription,
+					bulk.AsOperation[models.SubscriptionID](bulk.OpCreate),
+					bulk.ToIndex[models.SubscriptionID](i.store.GetIndexRW(SubscriptionsIndex)),
+				),
+			); err != nil {
+				return fmt.Errorf("add new subscription: %w", err)
+			}
+		}
+		// Index the results.
 		if err := bulk.AddAction(ctx,
 			bulk.NewAction(
-				&result,
+				result.Details,
 				bulk.AsOperation[string](bulk.OpCreate),
 				bulk.ToIndex[string](i.store.GetIndexRW(ImportIndex)),
 			),
