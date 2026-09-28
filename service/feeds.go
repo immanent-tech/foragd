@@ -436,7 +436,6 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	}
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
-		slogctx.FromCtx(ctx).Debug("Feed needs classifying")
 		if err := ClassifyFeed(ctx, newData); err != nil {
 			slogctx.Warn(ctx, "Could not classify feed",
 				slog.Any("error", err))
@@ -1346,7 +1345,9 @@ func FetchFeed(
 	}
 
 	// Retry errors up to 3 times.
-	httpClient = httpClient.AddRetryAfterErrorCondition().SetRetryCount(3)
+	httpClient = httpClient.AddRetryAfterErrorCondition().
+		SetRetryCount(3).
+		SetTimeout(time.Minute)
 
 	// Parse the URL to ensure its valid.
 	sourceURL, err := url.Parse(feedURL)
@@ -1360,14 +1361,14 @@ func FetchFeed(
 	if !sourceURL.IsAbs() {
 		return nil, models.NewAPIError(
 			http.StatusBadRequest,
-			fmt.Errorf("not an absolute URL: %w", err),
+			fmt.Errorf("%q is not an absolute URL", feedURL),
 			models.WithUserMessage(models.NewErrorMessage("Not an absolute URL", feedURL)),
 		)
 	}
 	if sourceURL.Scheme != "https" && sourceURL.Scheme != "http" {
 		return nil, models.NewAPIError(
 			http.StatusBadRequest,
-			fmt.Errorf("not a https URL: %s", sourceURL.String()),
+			fmt.Errorf("%q has an invalid or unknown scheme", sourceURL.String()),
 			models.WithUserMessage(models.NewErrorMessage("Unknown URL", feedURL)),
 		)
 	}
@@ -1397,7 +1398,7 @@ func FetchFeed(
 		case err != nil:
 			return nil, models.NewAPIError(
 				http.StatusInternalServerError,
-				fmt.Errorf("fetch failed: %s: %w", sourceURL.String(), err),
+				fmt.Errorf("fetch failed: %q: %w", sourceURL.String(), err),
 				models.WithUserMessage(models.NewErrorMessage("Could not fetch feed", sourceURL.String())),
 			)
 		case resp.IsError():
