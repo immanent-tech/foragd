@@ -186,6 +186,7 @@ type Breadcrumbs interface {
 type Importer interface {
 	StartImport(ctx context.Context, file *models.OPMLFile) (string, error)
 	GetImportStatus(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error)
+	GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error)
 }
 
 // Manager contains the common interfaces that nearly all handlers require access to.

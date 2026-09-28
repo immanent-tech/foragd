@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"slices"
 	"strconv"
+	"time"
 )
 
 // ImportSubscriptions renders a form for the user to select or drag and drop an OPML file to import their
@@ -272,6 +273,64 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 						</div>
 					</div>
 				}
+			}
+		}
+	}
+}
+
+templ ImportList(imports []*models.ImportStatus, msg *models.UserMessage) {
+	@LayoutInternal("", &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
+		@templ.Fragment(ContentFragment) {
+			@partials.BackToTopButton()
+			@narrowContainer(element.WithClasses("pt-4")) {
+				@pageHeading() {
+					@pageTitle("List of Imports By Date")
+				}
+				if msg != nil {
+					// Show a message if there is one.
+					<div class="mt-12 text-center">
+						@tableroutline.MoodConfuzed(templ.Attributes{"class": "mx-auto size-12 text-accent"})
+						if msg != nil {
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ msg.Summary }</h1>
+							if msg.HasDetails() {
+								<p>{ *msg.Details }</p>
+							}
+						} else {
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Whoops!</h1>
+							<p>An unexpected problem occurred and the request could not be completed. This is likely a temporary problem. Please try again.</p>
+						}
+						<div class="mt-6">
+							<a href="/contact" class="btn btn-primary">
+								Contact Support <span aria-hidden="true">&rarr;</span>
+							</a>
+						</div>
+					</div>
+				}
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Status</th>
+							<th>Feed Count</th>
+						</tr>
+					</thead>
+					<tbody>
+						for importStatus := range slices.Values(imports) {
+							<tr
+								id={ importStatus.GetID() }
+								hx-get={ "/import/status/" + importStatus.GetID() }
+								hx-target={ ContentID.Target() }
+								hx-swap="morph:innerHTML"
+								hx-push-url="true"
+								class="link link-hover"
+							>
+								<td>{ importStatus.CreatedAt.Format(time.DateTime) }</td>
+								<td class="capitalize">{ importStatus.Status }</td>
+								<td>{ len(importStatus.Requests) }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
 			}
 		}
 	}

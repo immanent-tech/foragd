@@ -147,37 +147,58 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 			return
 		}
 
-		// Invalidate the user subscription cache.
-		subSvc.Invalidate(user.GetID())
+		// Have jobID URL param.
+		if jobID := chi.URLParam(req, "jobID"); jobID != "" {
+			// Invalidate the user subscription cache.
+			subSvc.Invalidate(user.GetID())
 
-		jobID := chi.URLParam(req, "jobID")
-		status, results, err := importSvc.GetImportStatus(req.Context(), jobID)
-		if err != nil {
-			var msg *models.UserMessage
-			if apiError, ok := errors.AsType[*models.APIError](err); ok && apiError.UserMessage != nil {
-				msg = apiError.UserMessage
-			} else {
-				msg = models.NewErrorMessage(
-					"Unexpected error with import",
-					"An error occurred processing the import. This might be temporary, please try again",
-				)
+			status, results, err := importSvc.GetImportStatus(req.Context(), jobID)
+			if err != nil {
+				var msg *models.UserMessage
+				if apiError, ok := errors.AsType[*models.APIError](err); ok && apiError.UserMessage != nil {
+					msg = apiError.UserMessage
+				} else {
+					msg = models.NewErrorMessage(
+						"Unexpected error with import",
+						"An error occurred processing the import. This might be temporary, please try again",
+					)
+				}
+				page.template = templates.ImportStatus(nil, nil, msg)
+				RenderInternalPage(page).ServeHTTP(res, req)
+				return
 			}
-			page.template = templates.ImportStatus(nil, nil, msg)
+			// If no job ID was given, replace the URL with a new one containing the retrieved job ID.
+			if jobID == "" {
+				res.Header().Set(htmx.HeaderReplaceUrl, "/import/status"+status.GetID())
+			}
+			page.template = templates.ImportStatus(status, results, nil)
+			page.title.Description = string(status.Status)
+			switch status.Status {
+			case "pending", "running", "done":
+				RenderInternalPage(page).ServeHTTP(res, req)
+			case "error":
+				slogctx.Error(req.Context(), "Import failed.", slog.Any("error", err))
+				RenderInternalPage(page).ServeHTTP(res, req)
+			}
+		} else {
+			imports, err := importSvc.GetAllImports(req.Context(), user.GetID())
+			if err != nil {
+				var msg *models.UserMessage
+				if apiError, ok := errors.AsType[*models.APIError](err); ok && apiError.UserMessage != nil {
+					msg = apiError.UserMessage
+				} else {
+					msg = models.NewErrorMessage(
+						"Unexpected error with import",
+						"An error occurred processing the import. This might be temporary, please try again",
+					)
+				}
+				page.template = templates.ImportList(nil, msg)
+				RenderInternalPage(page).ServeHTTP(res, req)
+				return
+			}
+			page.template = templates.ImportList(imports, nil)
 			RenderInternalPage(page).ServeHTTP(res, req)
-			return
 		}
-		// If no job ID was given, replace the URL with a new one containing the retrieved job ID.
-		if jobID == "" {
-			res.Header().Set(htmx.HeaderReplaceUrl, "/import/status"+status.GetID())
-		}
-		page.template = templates.ImportStatus(status, results, nil)
-		page.title.Description = string(status.Status)
-		switch status.Status {
-		case "pending", "running", "done":
-			RenderInternalPage(page).ServeHTTP(res, req)
-		case "error":
-			slogctx.Error(req.Context(), "Import failed.", slog.Any("error", err))
-			RenderInternalPage(page).ServeHTTP(res, req)
-		}
+
 	}
 }

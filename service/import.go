@@ -486,6 +486,25 @@ func (i *ImportService) GetPendingImports(ctx context.Context) ([]*models.Import
 	return statuses, nil
 }
 
+func (i *ImportService) GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
+	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
+		i.store.GetIndexRO(ImportIndex),
+		query.Bool(
+			// Is Import Status and owned by User.
+			query.Filter(
+				query.Term("doc_type", "import_status"),
+				query.Term("user_id", userID),
+			),
+		),
+		5000,
+		elastic.WithSort[*search.Search](&statusSorting{CreatedAt: "desc"}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("find active imports: %w", err)
+	}
+	return activeImports, nil
+}
+
 func (i *ImportService) findActiveImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error) {
 	activeImports, err := elastic.SearchAll[*models.ImportStatus](ctx,
 		i.store.GetIndexRO(ImportIndex),
