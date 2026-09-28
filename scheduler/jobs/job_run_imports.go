@@ -22,7 +22,11 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
-const JobTypeRunImports JobType = "run_imports"
+const (
+	JobTypeRunImports JobType = "run_imports"
+	// importTimeout is the maximum amount of time a single import can run for.
+	importTimeout = time.Hour
+)
 
 var runImportsRunning atomic.Bool
 
@@ -71,7 +75,13 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 	for range maxConcurrentImports {
 		wg.Go(func() {
 			for status := range statusCh {
-				if err := services.Imports.ProcessRequests(ctx, &status, services.HttpClient); err != nil {
+				importCtx, importCancel := context.WithTimeoutCause(
+					ctx,
+					importTimeout,
+					errors.New("import job exceeded maximum timeout"),
+				)
+				defer importCancel()
+				if err := services.Imports.ProcessRequests(importCtx, &status, services.HttpClient); err != nil {
 					slogctx.Error(ctx, "Unable to process import.",
 						slog.String("job_id", status.GetID()),
 						slog.String("user_id", status.UserID),
