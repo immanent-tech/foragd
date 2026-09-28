@@ -1,4 +1,4 @@
-FROM ollama/ollama:0.34.0@sha256:684d8674b4315fa18f4f0e973a118ec2652ed96f67563277839985175858e0ba
+FROM ollama/ollama:0.34.2@sha256:da6e0dc5651df159e45686fd663c4dbe1624a52c44d7280eeac1551d8f865532
 
 # Start the server in the background just long enough to pull the model,
 # then kill it — the weights get baked into the image layer.
