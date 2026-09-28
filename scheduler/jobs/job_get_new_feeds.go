@@ -23,6 +23,11 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
+const (
+	// addFeedTimeout is the maximum time to spend trying to add a feed.
+	addFeedTimeout = 10 * time.Minute
+)
+
 var getNewFeedsRunning atomic.Bool
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
@@ -80,14 +85,20 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	maxConcurrentWorkers := runtime.GOMAXPROCS(0) * 2
-	feedCh := make(chan *models.Feed, maxConcurrentWorkers*5)
+	feedCh := make(chan *models.Feed, maxConcurrentWorkers*10)
 	var wg sync.WaitGroup
 
 	for range maxConcurrentWorkers {
 		wg.Go(func() {
 			// Create new feed jobs where necessary.
 			for feed := range feedCh {
-				feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
+				feedCtx, feedCancel := context.WithTimeoutCause(
+					ctx,
+					addFeedTimeout,
+					errors.New("exceeded max add feed timeout"),
+				)
+				defer feedCancel()
+				feedCtx = slogctx.With(ctx, "feed_id", feed.GetID())
 				feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 				// Skip adding if there is already an existing job. Likely just waiting on next fetch.
 				if slices.ContainsFunc(existingJobKeys, func(e *quartz.JobKey) bool {
