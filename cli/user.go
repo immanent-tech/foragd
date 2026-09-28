@@ -200,8 +200,12 @@ func showUserDetails(ctx context.Context, user *models.User) {
 					)
 				}
 			}
+		} else {
+			color.New(color.FgYellow).Fprintf(&output, "No Active Subscription\n")
 		}
 	}
+
+
 
 	fmt.Fprintf(os.Stdout, "%s", output.String())
 }
