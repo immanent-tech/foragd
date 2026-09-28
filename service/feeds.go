@@ -1345,6 +1345,9 @@ func FetchFeed(
 		option(opts)
 	}
 
+	// Retry errors up to 3 times.
+	httpClient = httpClient.AddRetryAfterErrorCondition().SetRetryCount(3)
+
 	// Parse the URL to ensure its valid.
 	sourceURL, err := url.Parse(feedURL)
 	if err != nil {
@@ -1361,11 +1364,11 @@ func FetchFeed(
 			models.WithUserMessage(models.NewErrorMessage("Not an absolute URL", feedURL)),
 		)
 	}
-	if sourceURL.Scheme != "https" {
+	if sourceURL.Scheme != "https" && sourceURL.Scheme != "http" {
 		return nil, models.NewAPIError(
 			http.StatusBadRequest,
 			fmt.Errorf("not a https URL: %s", sourceURL.String()),
-			models.WithUserMessage(models.NewErrorMessage("Unknown or insecure URL", feedURL)),
+			models.WithUserMessage(models.NewErrorMessage("Unknown URL", feedURL)),
 		)
 	}
 
