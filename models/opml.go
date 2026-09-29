@@ -64,21 +64,56 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 }
 
 func GenerateRequestsFromOutlines(outlines ...opml.Outline) []ImportRequest {
-	requests := make([]ImportRequest, 0, len(outlines))
-	for outline := range slices.Values(outlines) {
-		if outline.EffectiveType() == "rss" {
-			if xmlURL, ok := outline.XMLURL(); ok {
-				requests = append(requests, ImportRequest{
-					URL:        xmlURL,
-					Categories: outline.Category,
-				})
-			}
+	requests := make([]ImportRequest, 0)
+	for feed := range slices.Values(flatten(outlines, nil)) {
+		request := ImportRequest{
+			Categories: feed.Categories,
+			URL:        feed.XMLURL,
 		}
-		if len(outline.Outlines) > 0 {
-			requests = append(requests, GenerateRequestsFromOutlines(outline.Outlines...)...)
-		}
+		requests = append(requests, request)
 	}
 	return requests
+}
+
+type OPMLFeedEntry struct {
+	Title      string
+	XMLURL     string
+	HTMLURL    string
+	Categories []string // ancestor folder names, outermost first
+}
+
+// flatten walks the tree, carrying the ancestor folder names down.
+func flatten(outlines []opml.Outline, parents []string) []OPMLFeedEntry {
+	var feeds []OPMLFeedEntry
+	for o := range slices.Values(outlines) {
+		var name string
+		if title := o.GetAttr("title"); title == "" {
+			name = title
+		} else {
+			name = o.Text
+		}
+
+		if xmlURL := o.GetAttr("xmlUrl"); xmlURL != "" { // it's a feed
+			htmlURL := o.GetAttr("htmlUrl")
+			// copy so sibling feeds never share a backing array
+			cats := append([]string(nil), parents...)
+			if len(o.Category) > 0 {
+				cats = append(cats, o.Category...)
+			}
+			feeds = append(feeds, OPMLFeedEntry{
+				Title:      name,
+				XMLURL:     xmlURL,
+				HTMLURL:    htmlURL,
+				Categories: cats,
+			})
+		}
+
+		if len(o.Outlines) > 0 { // it's a folder: recurse with it added
+			next := append(append([]string(nil), parents...), name)
+			feeds = append(feeds, flatten(o.Outlines, next)...)
+		}
+	}
+	return feeds
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
