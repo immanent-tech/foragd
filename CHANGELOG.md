@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.239.2](https://github.com/immanent-tech/foragd/compare/v0.239.1...v0.239.2) (2026-09-29)
+
+
+### Bug Fixes
+
+* **service/articles:** 🔧 actually filter on language ([185fc89](https://github.com/immanent-tech/foragd/commit/185fc892c30714de2b087b18b1804f6815d0c18c))
+* **service/import:** 🔧 remove need to pass httpClient to import process requests method ([dc6dba2](https://github.com/immanent-tech/foragd/commit/dc6dba271d853f61738c565d3d6e1f974c359461))
+
+
+### Performance Improvements
+
+* **server/imgproxy:** ⚡ max image read size 20MB ([ffcba06](https://github.com/immanent-tech/foragd/commit/ffcba0631bfeb91bb472c39c0e7152e8a9338b8a))
+* **server/imgproxy:** ⚡ tune image proxy http client ([79e1885](https://github.com/immanent-tech/foragd/commit/79e1885f833c2315de6d204eefc91481dd95f77a))
+
 ## [0.239.1](https://github.com/immanent-tech/foragd/compare/v0.239.0...v0.239.1) (2026-09-29)
 
 
