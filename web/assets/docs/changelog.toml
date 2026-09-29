@@ -1,8 +1,28 @@
 [[releases]]
+version = "v0.239"
+date = "Sep 29, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+You can now filter articles by their language.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+You can now view the status of all recent imports. Imports history is kept for around a month.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+When importing an OPML, the assigned "folders" or categories in the OPML file will be added as categories to your imported subscriptions.
+"""
+
+[[releases]]
 version = "v0.237"
 date = "Sep 28, 2026"
 type = "major"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
