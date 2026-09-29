@@ -31,58 +31,63 @@ type EmailProcessor interface {
 func HandleResendWebhook(verifier WebhookVerifier, processor EmailProcessor) http.HandlerFunc {
 	const maxBodyBytes = int64(65536)
 	return func(res http.ResponseWriter, req *http.Request) {
+		log := slogctx.FromCtx(req.Context())
+
 		body, err := io.ReadAll(http.MaxBytesReader(res, req.Body, maxBodyBytes))
 		if err != nil {
-			slogctx.Error(req.Context(), "Error reading webhook request body.",
+			log.Error("Error reading webhook request body.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
+		// Verify webhook data.
 		if err := verifier.Verify(req, body); err != nil {
-			slogctx.Error(req.Context(), "Webhook verification failed.",
+			log.Error("Webhook verification failed.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		// Parse the verified payload
+		// Parse the verified payload.
 		var payload map[string]any
 		if err := json.Unmarshal(body, &payload); err != nil {
-			slogctx.Error(req.Context(), "Unable to parse received webhook body.",
+			log.Error("Unable to parse received webhook body.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
+		// Extract the "envelope".
 		var envelope struct {
 			Type string          `json:"type"`
 			Data json.RawMessage `json:"data"`
 		}
 		if err := json.Unmarshal(body, &envelope); err != nil {
-			slogctx.Error(req.Context(), "Unable to parse received webhook body.", slog.Any("error", err))
+			log.Error("Unable to parse received webhook body.", slog.Any("error", err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
+		// Act accordingly based on type.
 		switch envelope.Type {
 		case "email.received":
 			var details resend.EmailRecieved
 			if err := json.Unmarshal(envelope.Data, &details); err != nil {
-				slogctx.Error(req.Context(), "Unable to parse email.received webhook body.", slog.Any("error", err))
+				log.Error("Unable to parse email.received webhook body.", slog.Any("error", err))
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
 			if err := processor.ProcessReceived(req.Context(), details); err != nil {
-				slogctx.Error(req.Context(), "Error occurred processing received email.", slog.Any("error", err))
+				log.Error("Error occurred processing received email.", slog.Any("error", err))
 				res.WriteHeader(http.StatusOK)
 				return
 			}
 		default:
-			slogctx.Warn(req.Context(), "Received unhandled webhook", slog.String("type", envelope.Type))
+			log.Warn("Received unhandled webhook", slog.String("type", envelope.Type))
 		}
 
 		res.Header().Set("Content-Type", "application/json")

@@ -136,7 +136,6 @@ type ItemService interface {
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error)
-	GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error)
 	GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error)
 	GetUserByCustomerID(ctx context.Context, id string) (*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error
