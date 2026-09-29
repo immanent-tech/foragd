@@ -88,6 +88,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	feedCh := make(chan *models.Feed, maxConcurrentFeeds)
 	var wg sync.WaitGroup
 
+	var added int
 	for range maxConcurrentWorkers {
 		wg.Go(func() {
 			// Create new feed jobs where necessary.
@@ -111,6 +112,8 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 					slogctx.Error(feedCtx, "Unable to add feed job",
 						slog.Any("error", err),
 					)
+				} else {
+					added++
 				}
 			}
 		})
@@ -131,6 +134,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	wg.Wait()
 
 	slogctx.Debug(ctx, "Finished get new feeds job.",
+		slog.Int("added", added),
 		slog.Duration("took", time.Since(start)))
 
 	return nil
