@@ -214,7 +214,7 @@ func (i *ImportService) ProcessRequests(
 				}
 
 				// Fetch feed details from remote URL.
-				feed, err := FetchFeed(requestCtx, httpClient, request.URL)
+				feed, err := feedSvc.FetchFeed(requestCtx, request.URL)
 				if err != nil {
 					slogctx.Error(requestCtx, "Unable to fetch feed.",
 						slog.Any("error", err))

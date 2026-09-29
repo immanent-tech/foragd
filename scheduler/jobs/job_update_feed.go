@@ -19,10 +19,9 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/service"
 )
 
-const updateFeedJobTimeout = 5 * time.Minute
+const updateFeedJobTimeout = 15 * time.Minute
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
@@ -108,13 +107,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
 		// Zyte article list extraction.
-		feed, feedURL, err = service.FetchFeedUpdatesAsArticles(ctx, details)
+		feed, feedURL, err = services.Feeds.FetchFeedUpdatesAsArticles(ctx, details)
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		// Direct (or proxied) request.
 		fallthrough
 	default:
 		// Assume a regular web-based feed. Fetch feed data directly.
-		feed, feedURL, err = service.FetchFeedUpdates(ctx, services.HttpClient, details)
+		feed, feedURL, err = services.Feeds.FetchFeedUpdates(ctx, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)
@@ -123,13 +122,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
-	if err := services.Feeds.ApplyFeedUpdates(
-		ctx,
-		services.HttpClient,
-		services.ItemsCache,
-		details,
-		feed,
-	); err != nil {
+	if err := services.Feeds.ApplyFeedUpdates(ctx, services.ItemsCache, details, feed); err != nil {
 		slogctx.Error(ctx, "Could not apply feed updates.",
 			slog.Any("error", err))
 	}

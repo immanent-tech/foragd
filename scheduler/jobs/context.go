@@ -46,12 +46,9 @@ type FeedsAPI interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	GetAllFeedsExcept(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetFeed(ctx context.Context, feedID models.FeedID) (*models.Feed, error)
-	ApplyFeedUpdates(
-		ctx context.Context,
-		httpClient *resty.Client,
-		itemsCache cache.ObjectCache,
-		old, new *models.Feed,
-	) error
+	FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
+	FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
+	ApplyFeedUpdates(ctx context.Context, itemsCache cache.ObjectCache, old, new *models.Feed) error
 	UpdateFeed(ctx context.Context, feed *models.Feed) error
 }
 

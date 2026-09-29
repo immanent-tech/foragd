@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/go-resty/resty/v2"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
@@ -61,14 +60,14 @@ func (m *Manager) HandleDiscover() http.HandlerFunc {
 	}
 }
 
-func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService, httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.SuggestFeedsRequest](req)
 		if err != nil {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
-		results, err := feedSvc.SuggestFeeds(req.Context(), httpClient, request)
+		results, err := feedSvc.SuggestFeeds(req.Context(), request)
 		if err != nil {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return

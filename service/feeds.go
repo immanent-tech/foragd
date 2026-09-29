@@ -83,8 +83,9 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterRead(entry otter.Entry[models.Fe
 type FeedService struct {
 	*otter.Cache[models.FeedID, *models.Feed]
 
-	store  *ElasticService
-	loader otter.LoaderFunc[models.FeedID, *models.Feed]
+	store      *ElasticService
+	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
+	httpClient *resty.Client
 }
 
 // LoadFeedService loads a service that can manipulate feed objects in the backend store.
@@ -109,6 +110,7 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 				return feed, nil
 			},
 		),
+		httpClient: newHTTPClient(),
 	}, nil
 })
 
@@ -340,7 +342,6 @@ func (r *diffReporter) PopStep() {
 // new item's timestamp.
 func (s *FeedService) UpdateFeedItems(
 	ctx context.Context,
-	httpClient *resty.Client,
 	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed,
 ) (time.Time, error) {
@@ -367,7 +368,7 @@ func (s *FeedService) UpdateFeedItems(
 			// Try to enrich item with additional data if possible.
 			wg.Go(func() {
 				for item := range enrichJobCh {
-					if err := EnrichItem(ctx, httpClient, itemPageCache, oldData, item); err != nil {
+					if err := itemSvc.EnrichItem(ctx, itemPageCache, oldData, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
@@ -425,11 +426,10 @@ func (s *FeedService) UpdateFeedItems(
 // writes the updated feed back to the database. It will add/update both any new/updated items and any updates to the
 // feed metadata.
 func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
-	httpClient *resty.Client,
 	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed) error {
 	// Add any new or update existing items.
-	lastFetched, err := s.UpdateFeedItems(ctx, httpClient, itemPageCache, oldData, newData)
+	lastFetched, err := s.UpdateFeedItems(ctx, itemPageCache, oldData, newData)
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))
@@ -585,7 +585,6 @@ func (s *FeedService) SuggestYoutubeFeeds(ctx context.Context, text string) (*mo
 // SuggestGoogleNewsFeeds will return a google news RSS feed for the given search query.
 func (s *FeedService) SuggestGoogleNewsFeeds(
 	ctx context.Context,
-	httpClient *resty.Client,
 	text string,
 ) (*models.SuggestFeedsResults, error) {
 	newsURL, err := news.GenerateRSSURL(text)
@@ -656,7 +655,7 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 	slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 		slog.String("url", newsURL.String()),
 	)
-	newFeed, err := FetchFeed(ctx, httpClient, newsURL.String())
+	newFeed, err := s.FetchFeed(ctx, newsURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to fetch google news RSS feed: %w", err)
 	}
@@ -682,7 +681,6 @@ func (s *FeedService) SuggestGoogleNewsFeeds(
 // feeds in Elasticsearch. If the given text is a URL, it will fallback to searching the website for a feed.
 func (s *FeedService) SuggestFeeds(
 	ctx context.Context,
-	httpClient *resty.Client,
 	request *models.SuggestFeedsRequest,
 ) (*models.SuggestFeedsResults, error) {
 	// Ignore if text is empty and no categories specified.
@@ -806,7 +804,7 @@ func (s *FeedService) SuggestFeeds(
 			slogctx.FromCtx(ctx).Debug("Looking for new feed for URL.",
 				slog.String("url", newFeedURL.String()),
 			)
-			newFeed, err := FetchFeed(ctx, httpClient, newFeedURL.String())
+			newFeed, err := s.FetchFeed(ctx, newFeedURL.String())
 			if err != nil {
 				return nil, fmt.Errorf("new feed from url: %w", err)
 			}
@@ -828,11 +826,10 @@ func (s *FeedService) SuggestFeeds(
 // the boolean return value will be true.
 func (s *FeedService) FindOrCreateFeed(
 	ctx context.Context,
-	httpClient *resty.Client,
 	feedURL string,
 ) (*models.Feed, bool, error) {
 	// Fetch from URL as feed.
-	newFeed, err := FetchFeed(ctx, httpClient, feedURL)
+	newFeed, err := s.FetchFeed(ctx, feedURL)
 	if err != nil {
 		return nil, false, fmt.Errorf("fetch new feed: %w", err)
 	}
@@ -1333,9 +1330,8 @@ func FetchWithFeedID(id models.FeedID) FetchOption {
 }
 
 // FetchFeed retrieves the feed found at the given URL.
-func FetchFeed(
+func (s *FeedService) FetchFeed(
 	ctx context.Context,
-	httpClient *resty.Client,
 	feedURL string,
 	options ...FetchOption,
 ) (*models.Feed, error) {
@@ -1343,11 +1339,6 @@ func FetchFeed(
 	for option := range slices.Values(options) {
 		option(opts)
 	}
-
-	// Retry errors up to 3 times.
-	httpClient = httpClient.AddRetryAfterErrorCondition().
-		SetRetryCount(3).
-		SetTimeout(time.Minute)
 
 	// Parse the URL to ensure its valid.
 	sourceURL, err := url.Parse(feedURL)
@@ -1389,7 +1380,7 @@ func FetchFeed(
 	var contentType string
 	switch opts.Proxy {
 	case false:
-		resp, err := httpClient.R().
+		resp, err := s.httpClient.R().
 			SetContext(ctx).
 			SetDoNotParseResponse(true).
 			// SetDebug(true).
@@ -1406,9 +1397,8 @@ func FetchFeed(
 				slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
 					slog.String("feed_url", sourceURL.String()),
 				)
-				return FetchFeed(
+				return s.FetchFeed(
 					ctx,
-					httpClient,
 					sourceURL.String(),
 					FetchWithProxy(true),
 					FetchWithFeedID(opts.FeedID),
@@ -1611,7 +1601,7 @@ func FetchFeed(
 		); err == nil && newURL != "" &&
 			newURL != sourceURL.String() {
 			slogctx.FromCtx(ctx).Debug("Found feed URL in HTML, re-fetching.")
-			return FetchFeed(ctx, httpClient, newURL, options...)
+			return s.FetchFeed(ctx, newURL, options...)
 		}
 		return nil, models.NewAPIError(
 			http.StatusNotFound,
@@ -1667,9 +1657,8 @@ func FetchFeed(
 // FetchFeedUpdates fetches an updated version of the feed, including items. It returns the updated feed, and the source
 // URL used to fetch the updates (for disambiguation of feeds with multiple source URLs). A non-nil error is returned
 // where there is a critical error fetching the feed details.
-func FetchFeedUpdates(
+func (s *FeedService) FetchFeedUpdates(
 	ctx context.Context,
-	httpClient *resty.Client,
 	details *models.Feed,
 ) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
@@ -1691,9 +1680,8 @@ func FetchFeedUpdates(
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
 	for feedURL := range slices.Values(details.GetSourceURLs()) {
-		feed, err := FetchFeed(
+		feed, err := s.FetchFeed(
 			ctx,
-			httpClient,
 			feedURL,
 			FetchWithFeedID(details.GetID()),
 			FetchWithProxy(proxyRequest),
@@ -1719,7 +1707,10 @@ func FetchFeedUpdates(
 // website articles list. It returns the updated feed, and the source URL used to fetch the updates (for disambiguation
 // of feeds with multiple source URLs). A non-nil error is returned where there is a critical error fetching the feed
 // details.
-func FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error) {
+func (s *FeedService) FetchFeedUpdatesAsArticles(
+	ctx context.Context,
+	details *models.Feed,
+) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
 			slog.Any("cause", context.Cause(ctx)),

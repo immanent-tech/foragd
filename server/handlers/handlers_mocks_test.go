@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -859,7 +858,10 @@ var _ handlers.FeedService = &MoqFeedService{}
 //			AddFeedFunc: func(ctx context.Context, feed *models.Feed) error {
 //				panic("mock out the AddFeed method")
 //			},
-//			FindOrCreateFeedFunc: func(ctx context.Context, httpClient *resty.Client, feedURL string) (*models.Feed, bool, error) {
+//			FetchFeedFunc: func(ctx context.Context, feedURL string, options ...service.FetchOption) (*models.Feed, error) {
+//				panic("mock out the FetchFeed method")
+//			},
+//			FindOrCreateFeedFunc: func(ctx context.Context, feedURL string) (*models.Feed, bool, error) {
 //				panic("mock out the FindOrCreateFeed method")
 //			},
 //			GenerateOPMLFunc: func(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error) {
@@ -871,10 +873,10 @@ var _ handlers.FeedService = &MoqFeedService{}
 //			GetFeedsFunc: func(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 //				panic("mock out the GetFeeds method")
 //			},
-//			SuggestFeedsFunc: func(ctx context.Context, httpClient *resty.Client, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
+//			SuggestFeedsFunc: func(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
 //				panic("mock out the SuggestFeeds method")
 //			},
-//			SuggestGoogleNewsFeedsFunc: func(ctx context.Context, httpClient *resty.Client, text string) (*models.SuggestFeedsResults, error) {
+//			SuggestGoogleNewsFeedsFunc: func(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 //				panic("mock out the SuggestGoogleNewsFeeds method")
 //			},
 //			SuggestYoutubeFeedsFunc: func(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
@@ -890,8 +892,11 @@ type MoqFeedService struct {
 	// AddFeedFunc mocks the AddFeed method.
 	AddFeedFunc func(ctx context.Context, feed *models.Feed) error
 
+	// FetchFeedFunc mocks the FetchFeed method.
+	FetchFeedFunc func(ctx context.Context, feedURL string, options ...service.FetchOption) (*models.Feed, error)
+
 	// FindOrCreateFeedFunc mocks the FindOrCreateFeed method.
-	FindOrCreateFeedFunc func(ctx context.Context, httpClient *resty.Client, feedURL string) (*models.Feed, bool, error)
+	FindOrCreateFeedFunc func(ctx context.Context, feedURL string) (*models.Feed, bool, error)
 
 	// GenerateOPMLFunc mocks the GenerateOPML method.
 	GenerateOPMLFunc func(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
@@ -903,10 +908,10 @@ type MoqFeedService struct {
 	GetFeedsFunc func(ctx context.Context, ids ...models.FeedID) (models.Feeds, error)
 
 	// SuggestFeedsFunc mocks the SuggestFeeds method.
-	SuggestFeedsFunc func(ctx context.Context, httpClient *resty.Client, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error)
+	SuggestFeedsFunc func(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error)
 
 	// SuggestGoogleNewsFeedsFunc mocks the SuggestGoogleNewsFeeds method.
-	SuggestGoogleNewsFeedsFunc func(ctx context.Context, httpClient *resty.Client, text string) (*models.SuggestFeedsResults, error)
+	SuggestGoogleNewsFeedsFunc func(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
 
 	// SuggestYoutubeFeedsFunc mocks the SuggestYoutubeFeeds method.
 	SuggestYoutubeFeedsFunc func(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
@@ -920,12 +925,19 @@ type MoqFeedService struct {
 			// Feed is the feed argument value.
 			Feed *models.Feed
 		}
+		// FetchFeed holds details about calls to the FetchFeed method.
+		FetchFeed []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// FeedURL is the feedURL argument value.
+			FeedURL string
+			// Options is the options argument value.
+			Options []service.FetchOption
+		}
 		// FindOrCreateFeed holds details about calls to the FindOrCreateFeed method.
 		FindOrCreateFeed []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// HttpClient is the httpClient argument value.
-			HttpClient *resty.Client
 			// FeedURL is the feedURL argument value.
 			FeedURL string
 		}
@@ -954,8 +966,6 @@ type MoqFeedService struct {
 		SuggestFeeds []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// HttpClient is the httpClient argument value.
-			HttpClient *resty.Client
 			// Request is the request argument value.
 			Request *models.SuggestFeedsRequest
 		}
@@ -963,8 +973,6 @@ type MoqFeedService struct {
 		SuggestGoogleNewsFeeds []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// HttpClient is the httpClient argument value.
-			HttpClient *resty.Client
 			// Text is the text argument value.
 			Text string
 		}
@@ -977,6 +985,7 @@ type MoqFeedService struct {
 		}
 	}
 	lockAddFeed                sync.RWMutex
+	lockFetchFeed              sync.RWMutex
 	lockFindOrCreateFeed       sync.RWMutex
 	lockGenerateOPML           sync.RWMutex
 	lockGetFeed                sync.RWMutex
@@ -1022,24 +1031,62 @@ func (mock *MoqFeedService) AddFeedCalls() []struct {
 	return calls
 }
 
+// FetchFeed calls FetchFeedFunc.
+func (mock *MoqFeedService) FetchFeed(ctx context.Context, feedURL string, options ...service.FetchOption) (*models.Feed, error) {
+	if mock.FetchFeedFunc == nil {
+		panic("MoqFeedService.FetchFeedFunc: method is nil but FeedService.FetchFeed was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		FeedURL string
+		Options []service.FetchOption
+	}{
+		Ctx:     ctx,
+		FeedURL: feedURL,
+		Options: options,
+	}
+	mock.lockFetchFeed.Lock()
+	mock.calls.FetchFeed = append(mock.calls.FetchFeed, callInfo)
+	mock.lockFetchFeed.Unlock()
+	return mock.FetchFeedFunc(ctx, feedURL, options...)
+}
+
+// FetchFeedCalls gets all the calls that were made to FetchFeed.
+// Check the length with:
+//
+//	len(mockedFeedService.FetchFeedCalls())
+func (mock *MoqFeedService) FetchFeedCalls() []struct {
+	Ctx     context.Context
+	FeedURL string
+	Options []service.FetchOption
+} {
+	var calls []struct {
+		Ctx     context.Context
+		FeedURL string
+		Options []service.FetchOption
+	}
+	mock.lockFetchFeed.RLock()
+	calls = mock.calls.FetchFeed
+	mock.lockFetchFeed.RUnlock()
+	return calls
+}
+
 // FindOrCreateFeed calls FindOrCreateFeedFunc.
-func (mock *MoqFeedService) FindOrCreateFeed(ctx context.Context, httpClient *resty.Client, feedURL string) (*models.Feed, bool, error) {
+func (mock *MoqFeedService) FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error) {
 	if mock.FindOrCreateFeedFunc == nil {
 		panic("MoqFeedService.FindOrCreateFeedFunc: method is nil but FeedService.FindOrCreateFeed was just called")
 	}
 	callInfo := struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		FeedURL    string
+		Ctx     context.Context
+		FeedURL string
 	}{
-		Ctx:        ctx,
-		HttpClient: httpClient,
-		FeedURL:    feedURL,
+		Ctx:     ctx,
+		FeedURL: feedURL,
 	}
 	mock.lockFindOrCreateFeed.Lock()
 	mock.calls.FindOrCreateFeed = append(mock.calls.FindOrCreateFeed, callInfo)
 	mock.lockFindOrCreateFeed.Unlock()
-	return mock.FindOrCreateFeedFunc(ctx, httpClient, feedURL)
+	return mock.FindOrCreateFeedFunc(ctx, feedURL)
 }
 
 // FindOrCreateFeedCalls gets all the calls that were made to FindOrCreateFeed.
@@ -1047,14 +1094,12 @@ func (mock *MoqFeedService) FindOrCreateFeed(ctx context.Context, httpClient *re
 //
 //	len(mockedFeedService.FindOrCreateFeedCalls())
 func (mock *MoqFeedService) FindOrCreateFeedCalls() []struct {
-	Ctx        context.Context
-	HttpClient *resty.Client
-	FeedURL    string
+	Ctx     context.Context
+	FeedURL string
 } {
 	var calls []struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		FeedURL    string
+		Ctx     context.Context
+		FeedURL string
 	}
 	mock.lockFindOrCreateFeed.RLock()
 	calls = mock.calls.FindOrCreateFeed
@@ -1171,23 +1216,21 @@ func (mock *MoqFeedService) GetFeedsCalls() []struct {
 }
 
 // SuggestFeeds calls SuggestFeedsFunc.
-func (mock *MoqFeedService) SuggestFeeds(ctx context.Context, httpClient *resty.Client, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
+func (mock *MoqFeedService) SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error) {
 	if mock.SuggestFeedsFunc == nil {
 		panic("MoqFeedService.SuggestFeedsFunc: method is nil but FeedService.SuggestFeeds was just called")
 	}
 	callInfo := struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		Request    *models.SuggestFeedsRequest
+		Ctx     context.Context
+		Request *models.SuggestFeedsRequest
 	}{
-		Ctx:        ctx,
-		HttpClient: httpClient,
-		Request:    request,
+		Ctx:     ctx,
+		Request: request,
 	}
 	mock.lockSuggestFeeds.Lock()
 	mock.calls.SuggestFeeds = append(mock.calls.SuggestFeeds, callInfo)
 	mock.lockSuggestFeeds.Unlock()
-	return mock.SuggestFeedsFunc(ctx, httpClient, request)
+	return mock.SuggestFeedsFunc(ctx, request)
 }
 
 // SuggestFeedsCalls gets all the calls that were made to SuggestFeeds.
@@ -1195,14 +1238,12 @@ func (mock *MoqFeedService) SuggestFeeds(ctx context.Context, httpClient *resty.
 //
 //	len(mockedFeedService.SuggestFeedsCalls())
 func (mock *MoqFeedService) SuggestFeedsCalls() []struct {
-	Ctx        context.Context
-	HttpClient *resty.Client
-	Request    *models.SuggestFeedsRequest
+	Ctx     context.Context
+	Request *models.SuggestFeedsRequest
 } {
 	var calls []struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		Request    *models.SuggestFeedsRequest
+		Ctx     context.Context
+		Request *models.SuggestFeedsRequest
 	}
 	mock.lockSuggestFeeds.RLock()
 	calls = mock.calls.SuggestFeeds
@@ -1211,23 +1252,21 @@ func (mock *MoqFeedService) SuggestFeedsCalls() []struct {
 }
 
 // SuggestGoogleNewsFeeds calls SuggestGoogleNewsFeedsFunc.
-func (mock *MoqFeedService) SuggestGoogleNewsFeeds(ctx context.Context, httpClient *resty.Client, text string) (*models.SuggestFeedsResults, error) {
+func (mock *MoqFeedService) SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error) {
 	if mock.SuggestGoogleNewsFeedsFunc == nil {
 		panic("MoqFeedService.SuggestGoogleNewsFeedsFunc: method is nil but FeedService.SuggestGoogleNewsFeeds was just called")
 	}
 	callInfo := struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		Text       string
+		Ctx  context.Context
+		Text string
 	}{
-		Ctx:        ctx,
-		HttpClient: httpClient,
-		Text:       text,
+		Ctx:  ctx,
+		Text: text,
 	}
 	mock.lockSuggestGoogleNewsFeeds.Lock()
 	mock.calls.SuggestGoogleNewsFeeds = append(mock.calls.SuggestGoogleNewsFeeds, callInfo)
 	mock.lockSuggestGoogleNewsFeeds.Unlock()
-	return mock.SuggestGoogleNewsFeedsFunc(ctx, httpClient, text)
+	return mock.SuggestGoogleNewsFeedsFunc(ctx, text)
 }
 
 // SuggestGoogleNewsFeedsCalls gets all the calls that were made to SuggestGoogleNewsFeeds.
@@ -1235,14 +1274,12 @@ func (mock *MoqFeedService) SuggestGoogleNewsFeeds(ctx context.Context, httpClie
 //
 //	len(mockedFeedService.SuggestGoogleNewsFeedsCalls())
 func (mock *MoqFeedService) SuggestGoogleNewsFeedsCalls() []struct {
-	Ctx        context.Context
-	HttpClient *resty.Client
-	Text       string
+	Ctx  context.Context
+	Text string
 } {
 	var calls []struct {
-		Ctx        context.Context
-		HttpClient *resty.Client
-		Text       string
+		Ctx  context.Context
+		Text string
 	}
 	mock.lockSuggestGoogleNewsFeeds.RLock()
 	calls = mock.calls.SuggestGoogleNewsFeeds

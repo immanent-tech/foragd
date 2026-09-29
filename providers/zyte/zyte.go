@@ -54,7 +54,6 @@ var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 		userAgent = "Foragd/Unknown (+https://foragd.app/policies/bot)"
 	} else {
 		userAgent = appCfg.GetAppName() + "/" + appCfg.GetAppVersion() + " (+https://foragd.app/policies/bot)"
-
 	}
 	client := client.New().
 		SetRetryCount(3).

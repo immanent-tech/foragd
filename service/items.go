@@ -62,7 +62,9 @@ func (ec *itemCacheexpiryCalculator) ExpireAfterRead(entry otter.Entry[models.It
 type ItemService struct {
 	*otter.Cache[models.ItemID, *models.Item]
 
-	store *ElasticService
+	store      *ElasticService
+	cache      cache.ObjectCache
+	httpClient *resty.Client
 }
 
 // LoadItemService loads a service that can manipulate item objects in the backend store.
@@ -76,7 +78,8 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 			MaximumSize:      10_000,
 			ExpiryCalculator: &itemCacheexpiryCalculator{},
 		}),
-		store: svc,
+		store:      svc,
+		httpClient: newHTTPClient(),
 	}, nil
 })
 
@@ -202,6 +205,110 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 	wg.Wait()
 
 	return results, nil
+}
+
+// EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
+// missing data from the item source.
+func (s *ItemService) EnrichItem(
+	ctx context.Context,
+	itemPageCache cache.ObjectCache,
+	feed *models.Feed,
+	item *models.Item,
+) error {
+	ctx = slogctx.With(ctx,
+		slog.String("feed_id", item.GetFeedID()),
+		slog.String("item_id", item.GetID()),
+		slog.String("url", item.GetLink()),
+	)
+
+	itemURL, err := url.Parse(item.GetLink())
+	if err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
+	}
+
+	var fetchSummaries bool
+
+	// Check if the feed indicates summaries should be fetched separately.
+	if feed.FetchMethod == models.FeedFetchMethodDirect || feed.FetchMethod == models.FeedFetchMethodProxied {
+		if feed.FetchOptions != nil {
+			if fetchOptions, err := feed.FetchOptions.AsFetchDirectOptions(); err != nil {
+				slogctx.Warn(ctx, "Unable to parse feed fetch options.",
+					slog.Any("error", err))
+			} else {
+				if fetchOptions.FetchItemSummaries {
+					fetchSummaries = true
+				}
+			}
+		}
+	}
+	// Check if the item has a summary.
+	if item.GetDescription() == "" {
+		fetchSummaries = true
+	}
+
+	// Flag if the item needs enrichment.
+	var needsEnriching bool
+	if fetchSummaries {
+		needsEnriching = true
+	}
+	if item.GetImage() == nil {
+		needsEnriching = true
+	}
+	// Bail if no enrichment needs to be done.
+	if !needsEnriching {
+		return nil
+	}
+
+	// Get the item content, either from the cache or fetch fresh.
+	itemContentBuf, err := getItemContent(ctx, s.httpClient, itemPageCache, item.GetID(), itemURL)
+	if err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
+	}
+
+	// Extract opengraph and readability data from item HTML source.
+	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
+	if err != nil {
+		logGeneralError(ctx, err, feed.GetSourceURLs()[0], feed.GetID())
+	}
+
+	// Add an image if needed.
+	if item.GetImage() == nil {
+		switch {
+		case opengraphData != nil && opengraphData.Image != "":
+			if imgURL, err := url.Parse(opengraphData.Image); err == nil {
+				if !imgURL.IsAbs() {
+					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
+				} else {
+					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
+				}
+			}
+		case readabilityData.ImageURL() != "":
+			if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
+				if !imgURL.IsAbs() {
+					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
+				} else {
+					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
+				}
+			}
+		default:
+			if imgURL, imgAlt, _ := htmlx.ExtractImage(itemContentBuf.String(), item.GetLink()); imgURL != "" {
+				item.Image = models.NewRemoteImage(imgURL, imgAlt)
+			}
+		}
+	}
+
+	// When item summaries needed to be fetched, check and add an item description if missing.
+	if fetchSummaries {
+		switch {
+		case opengraphData != nil && opengraphData.Description != "":
+			item.Description = &opengraphData.Description
+		case readabilityData.Excerpt() != "":
+			desc := readabilityData.Excerpt()
+			item.Description = &desc
+		}
+	}
+
+	return nil
 }
 
 func (s *ItemService) GetTopCategoriesForItems(
@@ -642,111 +749,6 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
-}
-
-// EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
-// missing data from the item source.
-func EnrichItem(
-	ctx context.Context,
-	httpClient *resty.Client,
-	itemPageCache cache.ObjectCache,
-	feed *models.Feed,
-	item *models.Item,
-) error {
-	ctx = slogctx.With(ctx,
-		slog.String("feed_id", item.GetFeedID()),
-		slog.String("item_id", item.GetID()),
-		slog.String("url", item.GetLink()),
-	)
-
-	itemURL, err := url.Parse(item.GetLink())
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
-	}
-
-	var fetchSummaries bool
-
-	// Check if the feed indicates summaries should be fetched separately.
-	if feed.FetchMethod == models.FeedFetchMethodDirect || feed.FetchMethod == models.FeedFetchMethodProxied {
-		if feed.FetchOptions != nil {
-			if fetchOptions, err := feed.FetchOptions.AsFetchDirectOptions(); err != nil {
-				slogctx.Warn(ctx, "Unable to parse feed fetch options.",
-					slog.Any("error", err))
-			} else {
-				if fetchOptions.FetchItemSummaries {
-					fetchSummaries = true
-				}
-			}
-		}
-	}
-	// Check if the item has a summary.
-	if item.GetDescription() == "" {
-		fetchSummaries = true
-	}
-
-	// Flag if the item needs enrichment.
-	var needsEnriching bool
-	if fetchSummaries {
-		needsEnriching = true
-	}
-	if item.GetImage() == nil {
-		needsEnriching = true
-	}
-	// Bail if no enrichment needs to be done.
-	if !needsEnriching {
-		return nil
-	}
-
-	// Get the item content, either from the cache or fetch fresh.
-	itemContentBuf, err := getItemContent(ctx, httpClient, itemPageCache, item.GetID(), itemURL)
-	if err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
-	}
-
-	// Extract opengraph and readability data from item HTML source.
-	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
-	if err != nil {
-		logGeneralError(ctx, err, feed.GetSourceURLs()[0], feed.GetID())
-	}
-
-	// Add an image if needed.
-	if item.GetImage() == nil {
-		switch {
-		case opengraphData != nil && opengraphData.Image != "":
-			if imgURL, err := url.Parse(opengraphData.Image); err == nil {
-				if !imgURL.IsAbs() {
-					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
-				} else {
-					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
-				}
-			}
-		case readabilityData.ImageURL() != "":
-			if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
-				if !imgURL.IsAbs() {
-					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
-				} else {
-					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
-				}
-			}
-		default:
-			if imgURL, imgAlt, _ := htmlx.ExtractImage(itemContentBuf.String(), item.GetLink()); imgURL != "" {
-				item.Image = models.NewRemoteImage(imgURL, imgAlt)
-			}
-		}
-	}
-
-	// When item summaries needed to be fetched, check and add an item description if missing.
-	if fetchSummaries {
-		switch {
-		case opengraphData != nil && opengraphData.Description != "":
-			item.Description = &opengraphData.Description
-		case readabilityData.Excerpt() != "":
-			desc := readabilityData.Excerpt()
-			item.Description = &desc
-		}
-	}
-
-	return nil
 }
 
 func getItemContent(

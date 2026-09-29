@@ -233,9 +233,9 @@ func Start() error {
 		})
 		// Feed Viewer.
 		r.Route("/viewer", func(r chi.Router) {
-			r.Get("/", handlerMgr.HandleViewer(httpClient))
-			r.Get("/url/*", handlerMgr.HandleViewer(httpClient))
-			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleViewer(httpClient))
+			r.Get("/", handlerMgr.HandleViewer(feedSvc))
+			r.Get("/url/*", handlerMgr.HandleViewer(feedSvc))
+			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleViewer(feedSvc))
 		})
 		// Feed Linter.
 		r.Route("/linter", func(r chi.Router) {
@@ -322,7 +322,7 @@ func Start() error {
 		r.Route("/discover", func(r chi.Router) {
 			r.Use(handlerMgr.CheckUserLimits)
 			r.Get("/", handlerMgr.HandleDiscover())
-			r.With(htmx.RequireHTMX).Post("/suggest", handlerMgr.HandleDiscoverSuggestions(feedSvc, httpClient))
+			r.With(htmx.RequireHTMX).Post("/suggest", handlerMgr.HandleDiscoverSuggestions(feedSvc))
 		})
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
@@ -378,9 +378,9 @@ func Start() error {
 			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Route("/add", func(r chi.Router) {
 				r.Get("/", handlerMgr.HandleAddSubscription())
-				r.With(htmx.RequireHTMX).Post("/suggestions", handlerMgr.HandleSuggestFeeds(feedSvc, httpClient))
+				r.With(htmx.RequireHTMX).Post("/suggestions", handlerMgr.HandleSuggestFeeds(feedSvc))
 				r.With(htmx.RequireHTMX).
-					Post("/feed", handlerMgr.HandleAddNewFeedSubscription(subscriptionSvc, userSvc, feedSvc, httpClient))
+					Post("/feed", handlerMgr.HandleAddNewFeedSubscription(subscriptionSvc, userSvc, feedSvc))
 				// Add search subscription.
 				r.Get("/search", handlerMgr.HandleAddSearchSubscription(subscriptionSvc, userSvc))
 				r.With(htmx.RequireHTMX).

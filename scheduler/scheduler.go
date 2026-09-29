@@ -25,9 +25,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
@@ -245,11 +242,6 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 }
 
 func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load app config: %w", err)
-	}
-
 	// Store various objects in the context for access by jobs:
 	// Bulk indexer.
 	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
@@ -257,11 +249,7 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		return nil, fmt.Errorf("create indexer: %w", err)
 	}
 	// HTTP client.
-	httpClient := client.New().
-		SetHeader(
-			"User-Agent",
-			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-		)
+
 	// Item cache.
 	itemsCache, err := cache.NewItemsCache()
 	if err != nil {
@@ -291,6 +279,5 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		Users:      userSvc,
 		ItemsCache: itemsCache,
 		Indexer:    indexer,
-		HttpClient: httpClient,
 	}, nil
 }

@@ -10,11 +10,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -64,7 +62,7 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 }
 
 // HandleViewer handles powering the feed viewer page.
-func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 	metadata := pageMetadata{
 		Title: templates.PageTitle{
 			Summary:     "Free RSS Feed Viewer",
@@ -102,7 +100,7 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 			}
 
 			// Parse the URL and find feed content.
-			feed, err := service.FetchFeed(req.Context(), httpClient, feedURL.String())
+			feed, err := feedSvc.FetchFeed(req.Context(), feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -134,7 +132,7 @@ func (m *Manager) HandleViewer(httpClient *resty.Client) http.HandlerFunc {
 				return
 			}
 
-			feed, err := service.FetchFeed(req.Context(), httpClient, feedURL.String())
+			feed, err := feedSvc.FetchFeed(req.Context(), feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

@@ -20,8 +20,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/client"
-	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
@@ -77,21 +75,14 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("validate options: %w", err)
 	}
 
-	// Load the app config.
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return fmt.Errorf("load app config: %w", err)
-	}
-
-	httpClient := client.New().
-		SetHeader(
-			"User-Agent",
-			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-		)
-
 	feedSvc, err := service.LoadFeedService()
 	if err != nil {
 		return fmt.Errorf("load feed service: %w", err)
+	}
+
+	itemSvc, err := service.LoadItemService()
+	if err != nil {
+		return fmt.Errorf("load item service: %w", err)
 	}
 
 	// Load the articles cache.
@@ -113,11 +104,11 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		switch details.FetchMethod {
 		case models.FeedFetchMethodZyteArticles:
-			feed, _, err = service.FetchFeedUpdatesAsArticles(ctx, details)
+			feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, details)
 		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 			fallthrough
 		default:
-			feed, _, err = service.FetchFeedUpdates(ctx, httpClient, details)
+			feed, _, err = feedSvc.FetchFeedUpdates(ctx, details)
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL
@@ -125,7 +116,7 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
-		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String())
+		feed, err = feedSvc.FetchFeed(ctx, feedURL.String())
 	default:
 		return errors.New("no fetch method specified")
 	}
@@ -142,7 +133,7 @@ func (c *FetchFeedCmd) Run() error {
 			var wg sync.WaitGroup
 			for item := range slices.Values(newItems) {
 				wg.Go(func() {
-					if err := service.EnrichItem(ctx, httpClient, itemsCache, details, item); err != nil {
+					if err := itemSvc.EnrichItem(ctx, itemsCache, details, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
@@ -367,18 +358,6 @@ func (c *ClassifyFeedCmd) Run() error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 
-	// Load the app config.
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return fmt.Errorf("load app config: %w", err)
-	}
-
-	httpClient := client.New().
-		SetHeader(
-			"User-Agent",
-			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-		)
-
 	details, err := feedSvc.GetFeed(ctx, c.FeedID)
 	if err != nil {
 		return fmt.Errorf("get feed: %w", err)
@@ -387,11 +366,11 @@ func (c *ClassifyFeedCmd) Run() error {
 	var feed *models.Feed
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
-		feed, _, err = service.FetchFeedUpdatesAsArticles(ctx, details)
+		feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, details)
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		fallthrough
 	default:
-		feed, _, err = service.FetchFeedUpdates(ctx, httpClient, details)
+		feed, _, err = feedSvc.FetchFeedUpdates(ctx, details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed updates: %w", err)
@@ -426,17 +405,6 @@ func (c *AddFeedCmd) Run() error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return fmt.Errorf("load app config: %w", err)
-	}
-
-	httpClient := client.New().
-		SetHeader(
-			"User-Agent",
-			appCfg.GetAppName()+"/"+appCfg.GetAppVersion()+" (+https://foragd.app/policies/bot)",
-		)
-
 	// Parse the given URL.
 	feedURL, err := models.NormalizeFeedURL(c.URL)
 	if err != nil {
@@ -449,12 +417,12 @@ func (c *AddFeedCmd) Run() error {
 
 	switch c.FetchMethod {
 	case models.FeedFetchMethodDirect:
-		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String())
+		feed, err = feedSvc.FetchFeed(ctx, feedURL.String())
 		if err != nil {
 			return fmt.Errorf("fetch feed directly: %w", err)
 		}
 	case models.FeedFetchMethodProxied:
-		feed, err = service.FetchFeed(ctx, httpClient, feedURL.String(), service.FetchWithProxy(true))
+		feed, err = feedSvc.FetchFeed(ctx, feedURL.String(), service.FetchWithProxy(true))
 		if err != nil {
 			return fmt.Errorf("fetch feed with proxy: %w", err)
 		}

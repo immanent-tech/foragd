@@ -20,7 +20,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -934,7 +933,6 @@ func (m *Manager) HandleAddNewFeedSubscription(
 	subSvc SubscriptionsService,
 	userSvc UserService,
 	feedSvc FeedService,
-	httpClient *resty.Client,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseMultipartForm[*models.AddFeedSubscriptionRequest](req)
@@ -961,9 +959,8 @@ func (m *Manager) HandleAddNewFeedSubscription(
 			slogctx.FromCtx(req.Context()).Debug("Fetching new feed details.",
 				slog.String("feed_url", request.URL),
 			)
-			feed, err = service.FetchFeed(
+			feed, err = feedSvc.FetchFeed(
 				req.Context(),
-				httpClient,
 				request.URL,
 				service.FetchWithFeedID(request.FeedID),
 			)
@@ -1022,7 +1019,7 @@ func (m *Manager) HandleAddNewFeedSubscription(
 	}
 }
 
-func (m *Manager) HandleSuggestFeeds(feeds FeedService, httpClient *resty.Client) http.HandlerFunc {
+func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get suggestion text.
 		text := validation.SanitizeString(req.FormValue("suggestion_text"))
@@ -1050,7 +1047,7 @@ func (m *Manager) HandleSuggestFeeds(feeds FeedService, httpClient *resty.Client
 			}).ServeHTTP(res, req)
 			return
 		case "gnews":
-			results, err := feeds.SuggestGoogleNewsFeeds(req.Context(), httpClient, text)
+			results, err := feeds.SuggestGoogleNewsFeeds(req.Context(), text)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate google news suggestions.",
 					slog.Any("error", err),
@@ -1067,11 +1064,7 @@ func (m *Manager) HandleSuggestFeeds(feeds FeedService, httpClient *resty.Client
 		case "web":
 			fallthrough
 		default:
-			results, err := feeds.SuggestFeeds(
-				req.Context(),
-				httpClient,
-				&models.SuggestFeedsRequest{Text: text, Count: 10},
-			)
+			results, err := feeds.SuggestFeeds(req.Context(), &models.SuggestFeedsRequest{Text: text, Count: 10})
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate feed suggestions.",
 					slog.Any("error", err),

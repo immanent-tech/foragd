@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/server/forms"
 	"github.com/indaco/teseo/opengraph"
@@ -62,17 +61,10 @@ type FeedService interface {
 	GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error)
 	AddFeed(ctx context.Context, feed *models.Feed) error
 	SuggestYoutubeFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
-	SuggestGoogleNewsFeeds(
-		ctx context.Context,
-		httpClient *resty.Client,
-		text string,
-	) (*models.SuggestFeedsResults, error)
-	SuggestFeeds(
-		ctx context.Context,
-		httpClient *resty.Client,
-		request *models.SuggestFeedsRequest,
-	) (*models.SuggestFeedsResults, error)
-	FindOrCreateFeed(ctx context.Context, httpClient *resty.Client, feedURL string) (*models.Feed, bool, error)
+	SuggestGoogleNewsFeeds(ctx context.Context, text string) (*models.SuggestFeedsResults, error)
+	SuggestFeeds(ctx context.Context, request *models.SuggestFeedsRequest) (*models.SuggestFeedsResults, error)
+	FindOrCreateFeed(ctx context.Context, feedURL string) (*models.Feed, bool, error)
+	FetchFeed(ctx context.Context, feedURL string, options ...service.FetchOption) (*models.Feed, error)
 	GenerateOPML(ctx context.Context, feedIDs ...models.FeedID) ([]byte, error)
 }
 
