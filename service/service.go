@@ -6,7 +6,6 @@ package service
 import (
 	"bytes"
 	"errors"
-	"net"
 	"net/http"
 	"net/url"
 	"sync"
@@ -57,11 +56,8 @@ var newHTTPClient = sync.OnceValue(func() *resty.Client {
 	}
 	httpClient := client.New().
 		SetTransport(&http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   5 * time.Second,
-				KeepAlive: 30 * time.Second,
-			}).DialContext,
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           client.SecureDialer.DialContext,
 			ForceAttemptHTTP2:     true, // required when you supply a custom transport
 			MaxIdleConns:          200,
 			MaxIdleConnsPerHost:   32, // match your per-host concurrency

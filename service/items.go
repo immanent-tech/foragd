@@ -225,6 +225,12 @@ func (s *ItemService) EnrichItem(
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("parse item link: %w", err))
 	}
+	if !itemURL.IsAbs() {
+		return models.NewAPIError(
+			http.StatusUnprocessableEntity,
+			fmt.Errorf("%q is not an absolute URL", itemURL.String()),
+		)
+	}
 
 	var fetchSummaries bool
 
