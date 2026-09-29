@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<OPML version="2.0">
+    <body>
+        <outline
+      description="If it ain&#39;t broke, you&#39;re not trying hard enough."
+      htmlUrl="http://testing.googleblog.com/"
+      text="Google Testing Blog"
+      title="Google Testing Blog"
+      type="rss"
+      xmlUrl="https://feeds.feedburner.com/blogspot/RLXA" />
+    </body>
+    <head>
+        <dateCreated>2025-10-28T09:01:50.677705854+10:00</dateCreated>
+        <dateModified>2025-10-28T09:01:50.677705919+10:00</dateModified>
+        <title>Foragd subscriptions export</title>
+    </head>
+</OPML>

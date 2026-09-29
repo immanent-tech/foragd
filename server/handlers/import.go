@@ -157,11 +157,13 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 				var msg *models.UserMessage
 				if apiError, ok := errors.AsType[*models.APIError](err); ok && apiError.UserMessage != nil {
 					msg = apiError.UserMessage
+					res.WriteHeader(apiError.StatusCode)
 				} else {
 					msg = models.NewErrorMessage(
 						"Unexpected error with import",
 						"An error occurred processing the import. This might be temporary, please try again",
 					)
+					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportStatus(nil, nil, msg)
 				RenderInternalPage(page).ServeHTTP(res, req)
@@ -186,11 +188,13 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 				var msg *models.UserMessage
 				if apiError, ok := errors.AsType[*models.APIError](err); ok && apiError.UserMessage != nil {
 					msg = apiError.UserMessage
+					res.WriteHeader(apiError.StatusCode)
 				} else {
 					msg = models.NewErrorMessage(
 						"Unexpected error with import",
 						"An error occurred processing the import. This might be temporary, please try again",
 					)
+					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportList(nil, msg)
 				RenderInternalPage(page).ServeHTTP(res, req)

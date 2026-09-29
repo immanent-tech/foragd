@@ -9,34 +9,12 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/service"
 )
-
-func SetupManager(t testing.TB) *handlers.Manager {
-	t.Helper()
-	return &handlers.Manager{
-		AppConfig: &MoqAppConfig{
-			GetBaseURLFunc: func() *url.URL {
-				baseURL, _ := url.Parse("http://localhost")
-				return baseURL
-			},
-			IsProductionFunc: func() bool {
-				return false
-			},
-		},
-		SessionMgr: &MoqSessionManager{
-			GetFunc: func(ctx context.Context, key string) any {
-				return nil
-			},
-		},
-		Breadcrumbs: &MoqBreadcrumbs{},
-	}
-}
 
 func TestHandleHome(t *testing.T) {
 	tests := []struct {
@@ -82,7 +60,7 @@ func TestHandleHome(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mgr := SetupManager(t)
+			mgr := setupManager(t)
 			ctx := t.Context()
 			if tt.ctxSetup != nil {
 				ctx = tt.ctxSetup(ctx)
