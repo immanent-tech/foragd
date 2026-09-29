@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.239.1](https://github.com/immanent-tech/foragd/compare/v0.239.0...v0.239.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **handlers/forget-me:** 🔧 add missing baseURL ([b469908](https://github.com/immanent-tech/foragd/commit/b4699081b0ddfa61db91a06a93b6976b2126c8a4))
+* **providers/resend:** 🔧 always return OK status (but log errors) ([a0cc360](https://github.com/immanent-tech/foragd/commit/a0cc360c70035f50bdfaa4f3fe67643c537f4688))
+
+
+### Performance Improvements
+
+* **scheduler:** ♻️ increase outdate job threshold ([600ed79](https://github.com/immanent-tech/foragd/commit/600ed79a0414e3dfcb55181a2b5d1e1900fd3a49))
+* **service:** ⚡ share a resty client between services instances ([19a966b](https://github.com/immanent-tech/foragd/commit/19a966ba4c4c43264fb2b0d29f2a6422a9b887c8))
+
 ## [0.239.0](https://github.com/immanent-tech/foragd/compare/v0.238.0...v0.239.0) (2026-09-29)
 
 
