@@ -40,22 +40,6 @@ var bufPool = sync.Pool{
 	},
 }
 
-var httpTransportSettings = &http.Transport{
-	Proxy: http.ProxyFromEnvironment,
-	DialContext: (&net.Dialer{
-		Timeout:   5 * time.Second,
-		KeepAlive: 30 * time.Second,
-	}).DialContext,
-	ForceAttemptHTTP2:     true, // required when you supply a custom transport
-	MaxIdleConns:          200,
-	MaxIdleConnsPerHost:   32, // match your per-host concurrency
-	MaxConnsPerHost:       32, // hard cap so you don't hammer one origin
-	IdleConnTimeout:       90 * time.Second,
-	TLSHandshakeTimeout:   5 * time.Second,
-	ResponseHeaderTimeout: 10 * time.Second,
-	DisableCompression:    true, // images are already compressed
-}
-
 type AppConfig interface {
 	GetAppName() string
 	GetAppVersion() string
@@ -71,7 +55,20 @@ type ImageCache interface {
 func HandleImage(cache ImageCache) http.HandlerFunc {
 	// Optimise client for concurrent image processing.
 	httpClient := client.New().
-		SetTransport(httpTransportSettings).
+		SetTransport(&http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			ForceAttemptHTTP2:     true, // required when you supply a custom transport
+			MaxIdleConns:          200,
+			MaxIdleConnsPerHost:   80, // match your per-host concurrency
+			MaxConnsPerHost:       80, // hard cap so you don't hammer one origin
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   5 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+		}).
 		SetTimeout(30*time.Second). // total per-request, including body read
 		SetRedirectPolicy(resty.FlexibleRedirectPolicy(5)).
 		SetHeader("Accept", "image/*").
