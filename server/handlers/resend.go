@@ -72,7 +72,7 @@ func HandleResendWebhook(subSvc SubscriptionsService, userSvc UserService, itemS
 				slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
 					slog.Any("error", err),
 				)
-				res.WriteHeader(http.StatusInternalServerError)
+				res.WriteHeader(http.StatusOK)
 				return
 			}
 		default:
