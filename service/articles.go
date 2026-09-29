@@ -148,6 +148,8 @@ func (s *ItemService) FilterArticles(
 					query.Terms("feed_id", subscriptions.GetFeedIDs()),
 					// Must match these categories.
 					query.Terms("categories.raw", request.Filters.GetCategories()),
+					// Must have matching language.
+					query.Term("language", request.Filters.GetLanguage()),
 					// Must match these global article filters.
 					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
 					// Must match this additional query.
