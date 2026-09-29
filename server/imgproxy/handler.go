@@ -226,8 +226,9 @@ func directFetchRemoteImage(
 	}
 
 	// Copy the image data to the buffer.
+	const maxSize = 20 << 20
 	defer resp.RawBody().Close()
-	_, err = io.Copy(buf, resp.RawBody())
+	_, err = io.Copy(buf, io.LimitReader(resp.RawBody(), maxSize))
 	if err != nil {
 		return models.NewAPIError(resp.StatusCode(), errors.New(resp.Status()))
 	}
