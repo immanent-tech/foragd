@@ -10,6 +10,7 @@
     - [Navigating Around the Interface](#navigating-around-the-interface)
     - [Adding Sources](#adding-sources)
     - [Discovering Feeds](#discovering-feeds)
+    - [Importing via OPML](#importing-via-opml)
   - [How to Search Articles \& Subscriptions](#how-to-search-articles--subscriptions)
     - [About Search Results](#about-search-results)
   - [Managing Your Subscriptions](#managing-your-subscriptions)
@@ -21,6 +22,7 @@
     - [Search Subscriptions](#search-subscriptions)
     - [Email Newsletter Subscriptions](#email-newsletter-subscriptions)
     - [Bulk Subscription Management](#bulk-subscription-management)
+    - [Exporting Your Subscriptions](#exporting-your-subscriptions)
   - [Viewing Articles](#viewing-articles)
     - [Viewing Remote Article Content](#viewing-remote-article-content)
   - [Saving and Viewing Your Favorite Subscriptions and Articles](#saving-and-viewing-your-favorite-subscriptions-and-articles)
@@ -75,9 +77,13 @@ Foragd supports adding subscriptions from a number of sources:
 - YouTube Channels.
 - Google News searches.
 
-To add a subscription, click the *Add a subscription* button at the top of the [subscriptions list
-page](/list/subscriptions) (or in the actions section of the Options popover on mobile), or at the bottom of the latest
-subscriptions on the home page, or go to [/subscription/add](/subscription/add).
+To add a subscription:
+
+- Click the *Add a subscription* button at the top of the [subscriptions list page](/list/subscriptions).
+  - Or on mobile, in the actions section of the Options popover on mobile)
+- Click the **Add a subscription** button at the bottom of the latest subscriptions on the homepage.
+- Type *Add* in the search bar and choose the **Add a subscription** option shown.
+- Click/bookmark [/subscription/add](/subscription/add).
 
 By default, you can enter any website or feed URL and Foragd will either find or parse and present potential
 subscriptions you can subscribe to. Alternatively, use the **Source** drop-down to add a YouTube channel or Google New
@@ -94,6 +100,17 @@ can go to [/discover](/discover) to search and browse for feeds.
 
 Enter a search and/or filter by category and view a selection of available feeds that match. You can subscribe directly
 to any feed shown and see the latest articles from the feed.
+
+### Importing via OPML
+
+If you have an OPML file from another feed application or service, you can import it by navigating to the
+[Settings->Subscriptions](/user/settings/#subscriptions) tab and clicking import (or [go directly to the import
+page](/import)).
+
+Upload or drag and drop your OPML file and you'll be redirected to a page showing the status of the import. The import
+is processed in the background and the [status page](/import/status) will update with a summary of successful/failed
+feed imports as they are processed. You can leave the status page and start browsing your feed subscriptions as they
+appear, and come back to the status page to check its progress anytime.
 
 ## How to Search Articles & Subscriptions
 
@@ -194,8 +211,14 @@ nickname, or even filter received emails) as with any other subscription.
 ### Bulk Subscription Management
 
 You can manage your subscriptions at [Settings->Subscriptions](/user/settings#subscriptions). This page provides a way
-to edit, mark and manage subscriptions both individually and in bulk. It also shows how many subscriptions you have in
+to edit, mark, and manage subscriptions both individually and in bulk. It also shows how many subscriptions you have in
 total (and what your account limits on subscriptions are).
+
+### Exporting Your Subscriptions
+
+You can export your subscriptions by navigating to [Settings->Subscriptions](/user/settings#subscriptions) and
+clicking the **Export** button (or [go direct to the export page](/export). Your subscriptions are exported as a
+standard `OPML` file that all good feed readers support importing from.
 
 ## Viewing Articles
 
