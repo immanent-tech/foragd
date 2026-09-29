@@ -1,12 +1,16 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package resend
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/mail"
 	"slices"
 	"time"
@@ -14,6 +18,9 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 )
 
 type ReceivedEmail struct {
@@ -156,4 +163,107 @@ type EmailRecieved struct {
 	MessageId   string       `json:"message_id,omitempty"`
 	Subject     string       `json:"subject,omitempty"`
 	Attachments []Attachment `json:"attachments,omitempty"`
+}
+
+type UserService interface {
+	GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error)
+}
+
+type SubscriptionsService interface {
+	GetAllSubscriptions(ctx context.Context) (models.Subscriptions, error)
+	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error
+}
+
+type ItemService interface {
+	AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error)
+}
+
+// SubscriptionFactory wraps service.NewEmailSubscription.
+type SubscriptionFactory func(ctx context.Context, userID string, from *mail.Address) (*models.Subscription, error)
+
+type Processor struct {
+	subs   SubscriptionsService
+	users  UserService
+	items  ItemService
+	newSub SubscriptionFactory
+}
+
+func NewReceivedEmailProcessor(
+	subs SubscriptionsService, users UserService, items ItemService,
+	newSub SubscriptionFactory,
+) *Processor {
+	return &Processor{subs, users, items, newSub}
+}
+
+func (p *Processor) ProcessReceived(ctx context.Context, details EmailRecieved) error {
+	user, err := p.users.GetUserBySubscriptionEmail(ctx, details.To...)
+	if err != nil {
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
+			return p.handleNonUser(ctx, &details)
+		}
+		return fmt.Errorf("get user by subscription email: %w", err)
+	}
+
+	if user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded {
+		return models.ErrEmailNewsletterLimitExceeded
+	}
+
+	from, err := mail.ParseAddress(details.From)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to parse from address. Deriving manually.",
+			slog.Any("error", err),
+		)
+		from = &mail.Address{
+			Address: details.From,
+		}
+	}
+
+	// Try to find an existing subscription for this email newsletter.
+	var subscription *models.Subscription
+	allSubscriptions, err := p.subs.GetAllSubscriptions(ctx)
+	if err != nil {
+		return fmt.Errorf("get user subscriptions: %w", err)
+	}
+	emailSubscriptions := allSubscriptions.FilterEmailIDs(from.Address)
+	if len(emailSubscriptions) == 0 {
+		// Create a new email subscription for this newsletter.
+		var err error
+		subscription, err = service.NewEmailSubscription(ctx, user.GetID(), from)
+		if err != nil {
+			return fmt.Errorf("create email subscription: %w", err)
+		}
+		// Add the new subscription.
+		if err := p.subs.AddSubscriptions(ctx, subscription); err != nil {
+			return fmt.Errorf("add email subscription: %w", err)
+		}
+	} else {
+		subscription = emailSubscriptions[0]
+	}
+
+	// Retrieve the full email content and details.
+	email, err := GetFullEmail(ctx, details.EmailId)
+	if err != nil {
+		return fmt.Errorf("parse email: %w", err)
+	}
+	if err := email.Validate(); err != nil {
+		return fmt.Errorf("validate email: %w", err)
+	}
+
+	// Create an Item from the email and index it.
+	item := models.NewEmailItem(email, subscription)
+	if _, err := p.items.AddItems(ctx, models.Items{item}); err != nil {
+		return fmt.Errorf("add email item: %w", err)
+	}
+	return nil
+}
+
+func (p *Processor) handleNonUser(ctx context.Context, details *EmailRecieved) error {
+	valid, err := IsValidReplyTo(details.To)
+	if !valid {
+		return fmt.Errorf("check valid reply to: %w", err)
+	}
+	if err := ForwardAdminEmail(ctx, details); err != nil {
+		return fmt.Errorf("forward admin email: %w", err)
+	}
+	return nil
 }

@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package resend
 
@@ -69,12 +71,21 @@ var loadConfig = sync.OnceValue(func() error {
 	return nil
 })
 
-func VerifyWebhook(req *http.Request, body []byte) (bool, error) {
+type Verifier struct {
+	client *resend.Client
+}
+
+func NewVerifier() (*Verifier, error) {
 	client, err := LoadClient()
 	if err != nil {
-		return false, fmt.Errorf("load client: %w", err)
+		return nil, fmt.Errorf("load client: %w", err)
 	}
+	return &Verifier{
+		client: client,
+	}, nil
+}
 
+func (v *Verifier) Verify(req *http.Request, body []byte) error {
 	// Extract Svix headers
 	headers := resend.WebhookHeaders{
 		Id:        req.Header.Get("svix-id"),
@@ -83,15 +94,15 @@ func VerifyWebhook(req *http.Request, body []byte) (bool, error) {
 	}
 
 	// Verify the webhook
-	if err := client.Webhooks.Verify(&resend.VerifyWebhookOptions{
+	if err := v.client.Webhooks.Verify(&resend.VerifyWebhookOptions{
 		Payload:       string(body),
 		Headers:       headers,
 		WebhookSecret: cfg.WebHookSecret,
 	}); err != nil {
-		return false, fmt.Errorf("verfication failed: %w", err)
+		return fmt.Errorf("verfication failed: %w", err)
 	}
 
-	return true, nil
+	return nil
 }
 
 func GetFullEmail(ctx context.Context, id string) (*ReceivedEmail, error) {

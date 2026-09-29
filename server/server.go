@@ -33,6 +33,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/google/android"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/imgproxy"
@@ -109,6 +110,17 @@ func Start() error {
 	importSvc, err := service.NewImportService()
 	if err != nil {
 		return fmt.Errorf("load import service: %w", err)
+	}
+
+	resendProcesser := resend.NewReceivedEmailProcessor(
+		subscriptionSvc,
+		userSvc,
+		itemSvc,
+		service.NewEmailSubscription,
+	)
+	resendVerifier, err := resend.NewVerifier()
+	if err != nil {
+		return fmt.Errorf("load resend verifier: %w", err)
 	}
 
 	// Load the server config.
@@ -202,7 +214,7 @@ func Start() error {
 	router.Get("/img/screenshots/*", cache.HandleImage(imgCache))
 
 	// Handle incoming webhooks from Resend
-	router.Post("/mail/webhooks", handlers.HandleResendWebhook(subscriptionSvc, userSvc, itemSvc))
+	router.Post("/mail/webhooks", handlers.HandleResendWebhook(resendVerifier, resendProcesser))
 	// Handle incoming webhooks from Paddle.
 	router.Post("/webhooks/paddle", handlers.HandlePaddleWebhook(userSvc))
 	// Handle incoming Google Play Real Time Developer Notifications.
