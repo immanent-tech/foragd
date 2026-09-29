@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	defaultOutdatedThreshold = 5 * time.Second
+	defaultOutdatedThreshold = time.Hour
 	gracefulShutdownTimeout  = 30 * time.Second
 )
 
