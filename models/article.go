@@ -66,6 +66,18 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+// GetLanguageCounts returns a count of the occurrence of a [models.Language] across all the [models.Article] in the
+// slice.
+func (a Articles) GetLanguageCounts() map[string]int64 {
+	counts := make(map[string]int64)
+	for article := range slices.Values(a) {
+		if lang := article.Item.GetLanguage(); lang != "" {
+			counts[lang]++
+		}
+	}
+	return counts
+}
+
 // FilterByView returns a slice containing the subscription which match the given view state.
 func (a Articles) FilterByView(view View) Articles {
 	switch view {

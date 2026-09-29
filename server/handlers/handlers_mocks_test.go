@@ -2386,6 +2386,9 @@ var _ handlers.ItemService = &MoqItemService{}
 //			GetTopItemCategoriesForSearchResultsFunc: func(ctx context.Context, request *models.SearchRequest) (models.Categories, error) {
 //				panic("mock out the GetTopItemCategoriesForSearchResults method")
 //			},
+//			GetTopLanguageCountsForItemsFunc: func(ctx context.Context, itemsQuery query.Option) (map[string]int64, error) {
+//				panic("mock out the GetTopLanguageCountsForItems method")
+//			},
 //			RetrieveItemsFunc: func(ctx context.Context, request *models.SearchRequest) (models.Items, models.Pagination, error) {
 //				panic("mock out the RetrieveItems method")
 //			},
@@ -2431,6 +2434,9 @@ type MoqItemService struct {
 
 	// GetTopItemCategoriesForSearchResultsFunc mocks the GetTopItemCategoriesForSearchResults method.
 	GetTopItemCategoriesForSearchResultsFunc func(ctx context.Context, request *models.SearchRequest) (models.Categories, error)
+
+	// GetTopLanguageCountsForItemsFunc mocks the GetTopLanguageCountsForItems method.
+	GetTopLanguageCountsForItemsFunc func(ctx context.Context, itemsQuery query.Option) (map[string]int64, error)
 
 	// RetrieveItemsFunc mocks the RetrieveItems method.
 	RetrieveItemsFunc func(ctx context.Context, request *models.SearchRequest) (models.Items, models.Pagination, error)
@@ -2523,6 +2529,13 @@ type MoqItemService struct {
 			// Request is the request argument value.
 			Request *models.SearchRequest
 		}
+		// GetTopLanguageCountsForItems holds details about calls to the GetTopLanguageCountsForItems method.
+		GetTopLanguageCountsForItems []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// ItemsQuery is the itemsQuery argument value.
+			ItemsQuery query.Option
+		}
 		// RetrieveItems holds details about calls to the RetrieveItems method.
 		RetrieveItems []struct {
 			// Ctx is the ctx argument value.
@@ -2557,6 +2570,7 @@ type MoqItemService struct {
 	lockGetNextArticle                       sync.RWMutex
 	lockGetTopCategoriesForItems             sync.RWMutex
 	lockGetTopItemCategoriesForSearchResults sync.RWMutex
+	lockGetTopLanguageCountsForItems         sync.RWMutex
 	lockRetrieveItems                        sync.RWMutex
 	lockSuggestItems                         sync.RWMutex
 	lockUnarchiveArticle                     sync.RWMutex
@@ -2939,6 +2953,42 @@ func (mock *MoqItemService) GetTopItemCategoriesForSearchResultsCalls() []struct
 	mock.lockGetTopItemCategoriesForSearchResults.RLock()
 	calls = mock.calls.GetTopItemCategoriesForSearchResults
 	mock.lockGetTopItemCategoriesForSearchResults.RUnlock()
+	return calls
+}
+
+// GetTopLanguageCountsForItems calls GetTopLanguageCountsForItemsFunc.
+func (mock *MoqItemService) GetTopLanguageCountsForItems(ctx context.Context, itemsQuery query.Option) (map[string]int64, error) {
+	if mock.GetTopLanguageCountsForItemsFunc == nil {
+		panic("MoqItemService.GetTopLanguageCountsForItemsFunc: method is nil but ItemService.GetTopLanguageCountsForItems was just called")
+	}
+	callInfo := struct {
+		Ctx        context.Context
+		ItemsQuery query.Option
+	}{
+		Ctx:        ctx,
+		ItemsQuery: itemsQuery,
+	}
+	mock.lockGetTopLanguageCountsForItems.Lock()
+	mock.calls.GetTopLanguageCountsForItems = append(mock.calls.GetTopLanguageCountsForItems, callInfo)
+	mock.lockGetTopLanguageCountsForItems.Unlock()
+	return mock.GetTopLanguageCountsForItemsFunc(ctx, itemsQuery)
+}
+
+// GetTopLanguageCountsForItemsCalls gets all the calls that were made to GetTopLanguageCountsForItems.
+// Check the length with:
+//
+//	len(mockedItemService.GetTopLanguageCountsForItemsCalls())
+func (mock *MoqItemService) GetTopLanguageCountsForItemsCalls() []struct {
+	Ctx        context.Context
+	ItemsQuery query.Option
+} {
+	var calls []struct {
+		Ctx        context.Context
+		ItemsQuery query.Option
+	}
+	mock.lockGetTopLanguageCountsForItems.RLock()
+	calls = mock.calls.GetTopLanguageCountsForItems
+	mock.lockGetTopLanguageCountsForItems.RUnlock()
 	return calls
 }
 

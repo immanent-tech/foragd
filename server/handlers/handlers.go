@@ -138,6 +138,7 @@ type ItemService interface {
 	CountItems(ctx context.Context, query query.Option) (int64, error)
 	SuggestItems(ctx context.Context, request *models.SearchRequest) (models.Items, error)
 	GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error)
+	GetTopLanguageCountsForItems(ctx context.Context, itemsQuery query.Option) (map[string]int64, error)
 }
 
 type UserService interface {

@@ -46,6 +46,7 @@ func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Ha
 				} else {
 					// For regular requests, parse the params from the query. If they differ, redirect the user.
 					search = models.ParseSearchParams(req.URL.Query())
+					search.Sanitise()
 					if canonical := search.Encode(); req.URL.RawQuery != canonical {
 						slogctx.Debug(spanCtx, "Redirect after params canonicalization.",
 							slog.String("query", req.URL.RawQuery),

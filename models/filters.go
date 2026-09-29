@@ -81,6 +81,10 @@ func ParseListFilters(query url.Values) *ListFilters {
 	if c := query.Get("category"); c != "" {
 		filters.Category = &c
 	}
+	if c := query.Get("language"); c != "" {
+		filters.Language = &c
+	}
+
 	// if v, err := strconv.Atoi(query.Get("from")); err == nil && v > 0 {
 	// 	filters.From = &v
 	// }
@@ -119,6 +123,13 @@ func (f ListFilters) GetSort() Sort {
 	return f.Sort
 }
 
+func (f ListFilters) GetLanguage() Language {
+	if f.Language != nil {
+		return *f.Language
+	}
+	return ""
+}
+
 func (f ListFilters) GetCategories() Categories {
 	if f.Category != nil {
 		return []Category{*f.Category}
@@ -146,6 +157,9 @@ func (f *ListFilters) Sanitise() error {
 	}
 	if f.Category != nil {
 		f.Category = new(validation.SanitizeString(*f.Category))
+	}
+	if f.Language != nil {
+		f.Language = new(validation.SanitizeString(*f.Language))
 	}
 	if len(f.Subscriptions) > 0 {
 		slices.Sort(f.Subscriptions)
@@ -199,6 +213,9 @@ func (f ListFilters) Encode() string {
 	query.Set("count", strconv.Itoa(f.Count))
 	if f.Category != nil {
 		query.Set("category", *f.Category)
+	}
+	if f.Language != nil {
+		query.Set("language", *f.Language)
 	}
 	if len(f.Subscriptions) > 0 {
 		query.Set("subscriptions", strings.Join(f.Subscriptions, ","))

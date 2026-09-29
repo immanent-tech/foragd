@@ -69,6 +69,7 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 				} else {
 					// For regular requests, parse the filters from the query.
 					filters = models.ParseListFilters(req.URL.Query())
+					filters.Sanitise()
 					if canonical := filters.Encode(); req.URL.RawQuery != canonical {
 						slogctx.Debug(spanCtx, "Redirect after filters canonicalization.",
 							slog.String("query", req.URL.RawQuery),

@@ -210,7 +210,7 @@ func (s *ItemService) GetTopCategoriesForItems(
 ) (models.CategoryCounts, error) {
 	// Build elastic.
 	termsField := "categories.raw"
-	termsCount := 200
+	termsCount := 20
 	aggs := elastic.Aggs{
 		"CategoryCounts": estypes.Aggregations{
 			Terms: &estypes.TermsAggregation{
@@ -253,6 +253,56 @@ func (s *ItemService) GetTopCategoriesForItems(
 		var category models.Category
 		if category, ok = bucket.Key.(string); ok {
 			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
+}
+
+func (s *ItemService) GetTopLanguageCountsForItems(
+	ctx context.Context,
+	itemsQuery query.Option,
+) (map[string]int64, error) {
+	aggs := elastic.Aggs{
+		"LanguageCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: new("language"),
+				Size:  new(10),
+			},
+		},
+	}
+
+	resp, err := elastic.Search[*models.Item](ctx,
+		s.store.GetIndexRO(ItemsIndex),
+		elastic.WithQuery[*search.Search](itemsQuery),
+		elastic.WithAggregations[*search.Search](aggs),
+		elastic.WithSize[*search.Search](0),
+		elastic.WithDocSorting[*search.Search](),
+	)
+	if err != nil {
+		return nil, ElasticsearchToAPIError(err)
+	}
+
+	languageCounts, ok := resp.Aggregations["LanguageCounts"].(*estypes.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"language counts aggregation invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+	languageCountsBuckets, ok := languageCounts.Buckets.([]estypes.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"language counts aggregation invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(map[string]int64, len(languageCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(languageCountsBuckets) {
+		if lang, ok := bucket.Key.(string); ok {
+			counts[lang] = bucket.DocCount
 		}
 	}
 	return counts, nil

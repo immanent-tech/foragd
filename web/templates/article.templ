@@ -922,6 +922,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				// List actions.
 				@NewListControls("/list/articles", response.Filters,
 					WithListCategories(response.Articles.GetCategoryCounts().GetCategories()),
+					WithListLanguages(response.Articles.GetLanguageCounts()),
 					WithListActions(listArticlesActions(response)),
 					WithListButtons(listArticlesButtons(response)),
 				)

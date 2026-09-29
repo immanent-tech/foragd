@@ -74,6 +74,10 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             validate: "omitempty,email"
+    Language:
+      description: >
+        is the language the content is written in.
+      type: string
     Mark:
       description: >
         applies the given mark action to objects.
@@ -656,9 +660,7 @@ components:
             type: string
           x-go-type-skip-optional-pointer: true
         language:
-          description: >
-            is the language the content is written in.
-          type: string
+          $ref: "#/components/schemas/Language"
         copyright:
           description: >
             is a copyright notice for the content.
@@ -1442,6 +1444,8 @@ components:
               $ref: "#/components/schemas/Sort"
             category:
               $ref: "#/components/schemas/Category"
+            language:
+              $ref: "#/components/schemas/Language"
             subscriptions:
               description: is a list of subscription IDs to filter on.
               type: array

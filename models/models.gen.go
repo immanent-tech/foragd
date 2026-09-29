@@ -418,7 +418,7 @@ type ArticleArchive struct {
 	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
 
 	// Language is the language the content is written in.
-	Language *string `json:"language,omitempty"`
+	Language *Language `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -633,7 +633,7 @@ type Feed struct {
 	Items []*Item `json:"-"`
 
 	// Language is the language the content is written in.
-	Language *string `json:"language,omitempty"`
+	Language *Language `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.
 	LastFetched LastFetched `json:"last_fetched,omitempty"`
@@ -832,7 +832,7 @@ type Item struct {
 	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
 
 	// Language is the language the content is written in.
-	Language *string `json:"language,omitempty"`
+	Language *Language `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -882,6 +882,9 @@ type ItemGeo = externalRef1.GeoRSSSimple
 // ItemID is the unique ID of an item.
 type ItemID = string
 
+// Language is the language the content is written in.
+type Language = string
+
 // LastFetched indicates when an object was last fetched.
 type LastFetched = time.Time
 
@@ -895,6 +898,9 @@ type ListFilters struct {
 
 	// From is the count from which to retrieve objects.
 	From *int `form:"from" json:"from,omitempty,omitzero"`
+
+	// Language is the language the content is written in.
+	Language *Language `json:"language,omitempty"`
 
 	// SearchAfter is the data indicating the point after which objects should be retrieved.
 	SearchAfter *string `form:"search_after" json:"search_after,omitempty"`
@@ -945,7 +951,7 @@ type ObjectCommon struct {
 	Image *RemoteImage `json:"image,omitempty,omitzero"`
 
 	// Language is the language the content is written in.
-	Language *string `json:"language,omitempty"`
+	Language *Language `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`

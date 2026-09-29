@@ -215,6 +215,14 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 					response.Articles.GetCategoryCounts().GetCategories(),
 				),
 			}).ServeHTTP(res, req)
+			// Update language filters.
+			RenderPartial(&PartialTemplate{
+				template: templates.UpdateListLanguageFilters(
+					"/list/articles",
+					response.Filters,
+					response.Articles.GetLanguageCounts(),
+				),
+			}).ServeHTTP(res, req)
 			// Update pagination control element.
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
