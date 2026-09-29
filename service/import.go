@@ -19,7 +19,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -123,7 +122,6 @@ func (i *ImportService) StartImport(
 func (i *ImportService) ProcessRequests(
 	ctx context.Context,
 	status *models.ImportStatus,
-	httpClient *resty.Client,
 ) error {
 	ctx = slogctx.With(ctx,
 		slog.String("import_id", status.GetID()),
@@ -172,9 +170,6 @@ func (i *ImportService) ProcessRequests(
 		}
 		return fmt.Errorf("get user subscriptions: %w", err)
 	}
-
-	// Set a timeout on HTTP requests.
-	httpClient = httpClient.SetTimeout(time.Minute)
 
 	if err := i.updateStatus(ctx, status, models.ImportStatusStatusRunning, nil); err != nil {
 		slogctx.Error(ctx, "Could not update status", slog.Any("error", err))

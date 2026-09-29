@@ -81,7 +81,7 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 					errors.New("import job exceeded maximum timeout"),
 				)
 				defer importCancel()
-				if err := services.Imports.ProcessRequests(importCtx, &status, services.HttpClient); err != nil {
+				if err := services.Imports.ProcessRequests(importCtx, &status); err != nil {
 					slogctx.Error(ctx, "Unable to process import.",
 						slog.String("job_id", status.GetID()),
 						slog.String("user_id", status.UserID),

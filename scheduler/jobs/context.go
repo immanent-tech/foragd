@@ -54,7 +54,7 @@ type FeedsAPI interface {
 
 type ImportAPI interface {
 	GetPendingImports(ctx context.Context) ([]*models.ImportStatus, error)
-	ProcessRequests(ctx context.Context, status *models.ImportStatus, httpClient *resty.Client) error
+	ProcessRequests(ctx context.Context, status *models.ImportStatus) error
 }
 
 type UserAPI interface {
