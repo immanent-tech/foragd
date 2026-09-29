@@ -37,9 +37,7 @@ const (
 
 var ErrInvalidEmail = errors.New("email is invalid")
 
-var cfg Config
-
-// Config structure.
+// Config is the configuration values for the Resend service.
 type Config struct {
 	WebHookSecret string `koanf:"webhooksecret" validate:"required"`
 	APIKey        string `koanf:"apikey"        validate:"required"`
@@ -49,34 +47,44 @@ type Config struct {
 	Salt          string `koanf:"salt"          validate:"required"`
 }
 
-// LoadClient loads the resend API client and ensures this is only done one time, no matter how many times it is called.
-var LoadClient = sync.OnceValues(func() (*resend.Client, error) {
-	if err := loadConfig(); err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-	client := resend.NewClient(cfg.APIKey)
-	return client, nil
-})
-
 // loadConfig loads the Resend configuration and ensures this is only done one time, no matter how many times it is
 // called.
-var loadConfig = sync.OnceValue(func() error {
+var loadConfig = sync.OnceValues(func() (*Config, error) {
+	var cfg Config
 	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
-		return fmt.Errorf("load environment variables: %w", err)
+		return nil, fmt.Errorf("load environment variables: %w", err)
 	}
 
 	if err := validation.Validate.Struct(cfg); err != nil {
-		return fmt.Errorf("validate config: %w", err)
+		return nil, fmt.Errorf("validate config: %w", err)
 	}
-	return nil
+	return &cfg, nil
 })
 
+type Client struct {
+	*resend.Client
+	Config *Config
+}
+
+// loadClient loads the resend API client and ensures this is only done one time, no matter how many times it is called.
+var loadClient = sync.OnceValues(func() (*Client, error) {
+	cfg, err := loadConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
+	}
+	return &Client{
+		Client: resend.NewClient(cfg.APIKey),
+		Config: cfg,
+	}, nil
+})
+
+// Verifier handles verification of incoming webhook data.
 type Verifier struct {
-	client *resend.Client
+	client *Client
 }
 
 func NewVerifier() (*Verifier, error) {
-	client, err := LoadClient()
+	client, err := loadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
@@ -85,19 +93,20 @@ func NewVerifier() (*Verifier, error) {
 	}, nil
 }
 
+// Verify performs verification of the webhook data received in the given request.
 func (v *Verifier) Verify(req *http.Request, body []byte) error {
-	// Extract Svix headers
+	// Extract Svix headers.
 	headers := resend.WebhookHeaders{
 		Id:        req.Header.Get("svix-id"),
 		Timestamp: req.Header.Get("svix-timestamp"),
 		Signature: req.Header.Get("svix-signature"),
 	}
 
-	// Verify the webhook
+	// Verify the webhook.
 	if err := v.client.Webhooks.Verify(&resend.VerifyWebhookOptions{
 		Payload:       string(body),
 		Headers:       headers,
-		WebhookSecret: cfg.WebHookSecret,
+		WebhookSecret: v.client.Config.WebHookSecret,
 	}); err != nil {
 		return fmt.Errorf("verfication failed: %w", err)
 	}
@@ -106,7 +115,7 @@ func (v *Verifier) Verify(req *http.Request, body []byte) error {
 }
 
 func GetFullEmail(ctx context.Context, id string) (*ReceivedEmail, error) {
-	client, err := LoadClient()
+	client, err := loadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
@@ -121,7 +130,8 @@ func GetFullEmail(ctx context.Context, id string) (*ReceivedEmail, error) {
 }
 
 func IsValidReplyTo(to []string) (bool, error) {
-	if err := loadConfig(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
 		return false, fmt.Errorf("load config: %w", err)
 	}
 
@@ -134,6 +144,11 @@ func IsValidReplyTo(to []string) (bool, error) {
 }
 
 func ForwardAdminEmail(ctx context.Context, received *EmailRecieved) error {
+	cfg, err := loadConfig()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
 	// Retrieve the full email content and details.
 	email, err := GetFullEmail(ctx, received.EmailId)
 	if err != nil {

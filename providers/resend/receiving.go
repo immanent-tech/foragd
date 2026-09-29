@@ -89,7 +89,7 @@ func (e *ReceivedEmail) Validate() error {
 // ExtractAttachments will extract and return the attachments on the email, if any.
 func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attachment, error) {
 	attachments := make([]*resend.Attachment, 0, len(e.Attachments))
-	client, err := LoadClient()
+	client, err := loadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
@@ -116,7 +116,7 @@ func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attac
 
 // Forward will forward the recieved email to the given addresses.
 func (e *ReceivedEmail) Forward(ctx context.Context, to ...string) error {
-	client, err := LoadClient()
+	client, err := loadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
 	}

@@ -33,7 +33,8 @@ func deriveKey(passphrase, salt string) ([]byte, error) {
 // EncodeEmail encrypts an email using AES-GCM with a key derived from the
 // passphrase + salt. The result is URL-safe base64 (no padding).
 func EncodeEmail(email string) (string, error) {
-	if err := loadConfig(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 
@@ -67,7 +68,8 @@ func EncodeEmail(email string) (string, error) {
 
 // DecodeEmail decrypts and returns the plain-text email encrypted by EncodeEmail.
 func DecodeEmail(token string) (string, error) {
-	if err := loadConfig(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 
