@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.239.0](https://github.com/immanent-tech/foragd/compare/v0.238.0...v0.239.0) (2026-09-29)
+
+
+### Features
+
+* ✨ filter articles by language ([43503d0](https://github.com/immanent-tech/foragd/commit/43503d09c5b46c4ffe65ebc37befbe58391fcdd2))
+
+
+### Bug Fixes
+
+* **models:** 🔧 treat outlines without feed info as categories in opml files ([54a5a12](https://github.com/immanent-tech/foragd/commit/54a5a12fd3c5c1d11ac0834c06a80e3df8f39c69))
+
 ## [0.238.0](https://github.com/immanent-tech/foragd/compare/v0.237.1...v0.238.0) (2026-09-28)
 
 
