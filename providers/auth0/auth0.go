@@ -7,17 +7,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/gob"
 	"fmt"
 	"io"
-	"time"
 )
-
-func init() {
-	gob.Register(UserProfile{})
-	gob.Register(time.Time{})
-	gob.Register(map[string]string{})
-}
 
 // generateCodeVerifier creates a cryptographically random PKCE code verifier.
 func generateCodeVerifier() (string, error) {

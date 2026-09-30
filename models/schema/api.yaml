@@ -745,3 +745,92 @@ components:
             error:
               description: is a non-nil string that describes why this feed failed to import.
               $ref: "models.yaml#/components/schemas/UserMessage"
+    UserProfileResponse:
+      description: >
+        represents the data returned from the auth backend that represents an authorised user.
+      type: object
+      required:
+        - issuer
+        - audience
+        - issued_at
+        - expiry
+        - subject
+        - session_id
+      properties:
+        issuer:
+          description: is the URL of the server which issued this token.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "iss"
+            validate: "required,url"
+        audience:
+          description: is the client ID, or set of client IDs, that this token is issued for.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "aud"
+            validate: "required"
+        issued_at:
+          description: is when the token was issued by the provider.
+          type: integer
+          format: double
+          x-oapi-codegen-extra-tags:
+            json: "iat"
+            validate: "required,gt=0"
+        expiry:
+          description: is the expiry of the token.
+          type: integer
+          format: double
+          x-oapi-codegen-extra-tags:
+            json: "exp"
+            validate: "required,gt=0"
+        subject:
+          description: is a unique string which identifies the end user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "sub"
+            validate: "required"
+        session_id:
+          description: is the ID of the current session.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: "sid"
+            validate: "required"
+        email:
+          description: is the user's email address.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,email"
+        email_verified:
+          description: indicates whether the user has verified their email address.
+          type: boolean
+        picture:
+          description: is a URL pointing to the user's profile picture.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        family_name:
+          description: is the user's family name.
+          type: string
+        given_name:
+          description: is the user's given name.
+          type: string
+        name:
+          description: is the user's full name.
+          type: string
+        nickname:
+          description: is the user's nickname.
+          type: string
+        updated_at:
+          description: is a timestamp indicating when the user's profile was last updated/modified.
+          type: string
+        logins_count:
+          description: >
+            LoginsCount is the number of times the user has logged in. If a user is blocked and logs in, the blocked
+            session is still counted. For a new user, this will be 1 as creating the account is counted as the first
+            login.
+          type: integer
+          format: double
+        blocked:
+          description: >
+            Blocked indicates whether the user has been blocked.
+          type: boolean

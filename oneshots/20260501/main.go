@@ -33,6 +33,11 @@ func main() {
 		panic(err)
 	}
 
+	emailSender, err := resend.NewSender()
+	if err != nil {
+		panic(err)
+	}
+
 	resp, err := elastic.Search[*models.User](
 		ctx,
 		elasticSvc.GetIndexRO(service.UsersIndex),
@@ -77,7 +82,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+		if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 			panic(err)
 		}
 		metadata := user.Metadata

@@ -139,9 +139,16 @@ func Start() error {
 		return fmt.Errorf("load session manager: %w", err)
 	}
 
-	authenticator, err := auth0.LoadAuthenticator()
+	// Load the authenticator service, used to exchange authentication with the backend service.
+	auth, err := auth0.LoadAuthenticator()
 	if err != nil {
 		return fmt.Errorf("load authenticator: %w", err)
+	}
+
+	// Load the authentication manager service, used for managing user accounts and authentication settings.
+	authMgr, err := auth0.LoadManager()
+	if err != nil {
+		return fmt.Errorf("load user manager: %w", err)
 	}
 
 	emailSender, err := resend.NewSender()
@@ -278,19 +285,19 @@ func Start() error {
 		r.Get("/feed", handlerMgr.HandlePostsFeed())
 		// Sign-up/Login routes.
 		r.Group(func(r chi.Router) {
-			r.Get("/signup", handlerMgr.HandleLogin(authenticator))
+			r.Get("/signup", handlerMgr.HandleLogin(auth))
 			r.Route("/login", func(r chi.Router) {
-				r.Get("/", handlerMgr.HandleLogin(authenticator))
-				r.Get("/callback", handlerMgr.HandleLoginCallback(userSvc, authenticator, emailSender))
+				r.Get("/", handlerMgr.HandleLogin(auth))
+				r.Get("/callback", handlerMgr.HandleLoginCallback(userSvc, authMgr, auth, emailSender))
 				r.Get("/error", handlerMgr.HandleLoginError)
 			})
-			r.Get("/logout", handlerMgr.HandleLogout(authenticator))
+			r.Get("/logout", handlerMgr.HandleLogout(auth))
 			r.Get("/account-issue", handlerMgr.HandleAccountIssue())
 		})
 		// Web payment routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
-				middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager),
+				middlewares.ExtractUserFromSession(userSvc, auth, sessionManager),
 			)
 			r.Route("/checkout", func(r chi.Router) {
 				r.Get("/", handlerMgr.HandleChooseSubscription())
@@ -309,14 +316,14 @@ func Start() error {
 	router.Group(func(r chi.Router) {
 		r.Use(
 			breadcrumbs.Recorder,
-			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager),
+			middlewares.ExtractUserFromSession(userSvc, auth, sessionManager),
 			middlewares.RequireValidUser,
 			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc, emailSender),
 			middlewares.NoCache,
 			handlerMgr.CustomisationCtx,
 		)
 		// Manual login refresh.
-		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(authenticator))
+		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(auth))
 		r.With(handlerMgr.AllSubscriptionsCtx(subscriptionSvc)).
 			Get("/home", handlerMgr.HandleHome(&service.Home{}))
 		// Searching.
@@ -516,7 +523,7 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/display", handlerMgr.HandleSaveDisplaySettings(userSvc))
 				r.With(htmx.RequireHTMX).Get("/account", handlerMgr.HandleShowAccountSettings())
 				r.With(htmx.RequireHTMX).
-					Post("/account", handlerMgr.HandleSaveAccountSettings(userSvc, imgCache))
+					Post("/account", handlerMgr.HandleSaveAccountSettings(userSvc, authMgr, imgCache))
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
 					r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
@@ -524,11 +531,11 @@ func Start() error {
 					r.Post("/subscriptions", handlerMgr.HandleSaveSubscriptionsSettings(userSvc))
 				})
 				r.Get("/subscription", handlerMgr.HandleManageAccountSubscription())
-				r.With(htmx.RequireHTMX).Post("/password", handlerMgr.HandleChangePassword())
+				r.With(htmx.RequireHTMX).Post("/password", handlerMgr.HandleChangePassword(authMgr))
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlerMgr.HandleGenerateSubscriptionEmail(userSvc))
 			})
 			r.With(htmx.RequireHTMX).
-				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authenticator, emailSender))
+				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authMgr, auth, emailSender))
 		})
 
 		// Moved routes.

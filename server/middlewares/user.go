@@ -29,11 +29,12 @@ type UserService interface {
 // then store the user object in the context for use by later handlers.
 func ExtractUserFromSession(
 	users UserService,
-	auth *auth0.Authenticator,
+	auth handlers.Authenticator,
 	session handlers.SessionManager,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			log := slogctx.FromCtx(req.Context())
 
 			// Ignore updates route.
 			if strings.HasPrefix(req.URL.Path, "/updates") {
@@ -42,9 +43,9 @@ func ExtractUserFromSession(
 			}
 
 			// If user isn't authenticated, redirect to authenticate.
-			if !auth.IsAuthenticated(req.Context(), session) {
-				slogctx.Warn(req.Context(), "Unauthenticated; redirecting to login.")
-				auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+			if !auth.IsAuthenticated(req.Context()) {
+				log.Warn("Unauthenticated; redirecting to login.")
+				auth.PutReturnTo(req.Context(), req.URL.RequestURI())
 				if htmx.IsHTMX(req) {
 					res.Header().Add(htmx.HeaderRedirect, "/login")
 					res.WriteHeader(http.StatusUnauthorized)
@@ -54,14 +55,14 @@ func ExtractUserFromSession(
 				return
 			}
 
-			if auth.IsAccessTokenExpired(req.Context(), session) {
-				refreshToken, err := auth.GetRefreshToken(req.Context(), session)
+			if auth.IsAccessTokenExpired(req.Context()) {
+				refreshToken, err := auth.GetRefreshToken(req.Context())
 				if err != nil || refreshToken == "" {
-					slogctx.Warn(req.Context(), "Access token expired and no refresh token; redirecting to login.",
+					log.Warn("Access token expired and no refresh token; redirecting to login.",
 						slog.Any("error", err),
 					)
-					auth.ClearAuth(req.Context(), session)
-					auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+					auth.ClearAuth(req.Context())
+					auth.PutReturnTo(req.Context(), req.URL.RequestURI())
 					if htmx.IsHTMX(req) {
 						res.Header().Add(htmx.HeaderRedirect, "/login")
 						res.WriteHeader(http.StatusUnauthorized)
@@ -72,13 +73,12 @@ func ExtractUserFromSession(
 				}
 
 				slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
-				token, err := auth.RefreshTokens(req.Context(), refreshToken)
-				if err != nil {
-					slogctx.Warn(req.Context(), "Token refresh failed.",
+				if err := auth.RefreshTokens(req.Context(), refreshToken); err != nil {
+					log.Warn("Token refresh failed.",
 						slog.Any("error", err),
 					)
-					auth.ClearAuth(req.Context(), session)
-					auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+					auth.ClearAuth(req.Context())
+					auth.PutReturnTo(req.Context(), req.URL.RequestURI())
 					if htmx.IsHTMX(req) {
 						res.Header().Add(htmx.HeaderRedirect, "/login")
 						res.WriteHeader(http.StatusUnauthorized)
@@ -89,15 +89,27 @@ func ExtractUserFromSession(
 				}
 
 				// Rotate tokens in session.
-				auth.SaveTokens(req.Context(), session, token)
-				slogctx.Debug(req.Context(), "Token refresh successful.")
+				log.Debug("Token refresh successful.")
 			}
 
-			profile, ok := session.Get(req.Context(), "profile").(auth0.UserProfile)
-			if !ok {
-				slogctx.Warn(req.Context(), "Unable to retrieve profile from session.")
-				auth.ClearAuth(req.Context(), session)
-				auth.PutReturnTo(req.Context(), session, req.URL.RequestURI())
+			var externalUserID string
+			var blocked bool
+			switch profile := session.Get(req.Context(), "profile").(type) {
+			case auth0.UserProfile:
+				// TODO: remove this block after a while.
+				externalUserID = profile.GetID()
+				blocked = profile.Blocked
+			case models.UserProfileResponse:
+				externalUserID = profile.GetID()
+				if profile.Blocked != nil {
+					blocked = *profile.Blocked
+				} else {
+					blocked = false
+				}
+			default:
+				log.Warn("Unable to retrieve profile from session.")
+				auth.ClearAuth(req.Context())
+				auth.PutReturnTo(req.Context(), req.URL.RequestURI())
 				if htmx.IsHTMX(req) {
 					res.Header().Add(htmx.HeaderRedirect, "/login")
 					res.WriteHeader(http.StatusUnauthorized)
@@ -107,9 +119,9 @@ func ExtractUserFromSession(
 				return
 			}
 
-			if profile.Blocked {
-				slogctx.Error(req.Context(), "Attempted access from blocked user. Redirecting to account issue page.",
-					slog.String("external_user_id", profile.GetID()),
+			if blocked {
+				log.Error("Attempted access from blocked user. Redirecting to account issue page.",
+					slog.String("external_user_id", externalUserID),
 				)
 				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderRedirect, "/account-issue")
@@ -120,10 +132,10 @@ func ExtractUserFromSession(
 			}
 
 			// Fetch the user from the user management API.
-			user, err := users.GetUserByExternalID(req.Context(), profile.GetID())
+			user, err := users.GetUserByExternalID(req.Context(), externalUserID)
 			if err != nil {
-				slogctx.Error(req.Context(), "Get local user data failed.",
-					slog.String("external_user_id", profile.GetID()),
+				log.Error("Get local user data failed.",
+					slog.String("external_user_id", externalUserID),
 					slog.Any("error", err))
 				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderRedirect, "/")

@@ -18,6 +18,9 @@ import (
 func init() {
 	gob.Register(ListFilters{})
 	gob.Register(SearchRequest{})
+	gob.Register(UserProfileResponse{})
+	gob.Register(time.Time{})
+	gob.Register(map[string]string{})
 }
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")

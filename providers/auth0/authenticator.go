@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package auth0
 
@@ -22,6 +24,9 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	httpclient "github.com/immanent-tech/go-base/client"
+
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 // Session key constants used to store values in the SCS session.
@@ -57,7 +62,8 @@ type TokenResponse struct {
 type Authenticator struct {
 	*oidc.Provider
 	oauth2.Config
-	httpClient *resty.Client
+	httpClient     *resty.Client
+	sessionManager SessionManager
 }
 
 // LoadAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will
@@ -84,6 +90,11 @@ var LoadAuthenticator = sync.OnceValues(func() (*Authenticator, error) {
 		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
 	}
 
+	sessionMgr, err := session.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load session manager: %w", err)
+	}
+
 	httpClient := httpclient.New().
 		SetTransport(&http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
@@ -99,9 +110,10 @@ var LoadAuthenticator = sync.OnceValues(func() (*Authenticator, error) {
 		SetDebug(false)
 
 	return &Authenticator{
-		Provider:   provider,
-		Config:     conf,
-		httpClient: httpClient,
+		Provider:       provider,
+		Config:         conf,
+		httpClient:     httpClient,
+		sessionManager: sessionMgr,
 	}, nil
 })
 
@@ -129,28 +141,28 @@ func (a *Authenticator) postToken(
 	return &token, nil
 }
 
-// Exchange handles verifying and exchanging the authorization code for an access token. It also extracts the ID token
+// PerformExchange handles verifying and exchanging the authorization code for an access token. It also extracts the ID token
 // and user profile.
 func (a *Authenticator) PerformExchange(
 	ctx context.Context,
 	code, verifier string,
-) (*TokenResponse, *UserProfile, error) {
+) (*models.UserProfileResponse, error) {
 	// token, err := AuthClient.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	token, err := a.Exchange(ctx, code)
 	if err != nil {
-		return nil, nil, fmt.Errorf("exchange code for token: %w", err)
+		return nil, fmt.Errorf("exchange code for token: %w", err)
 	}
 
 	// Verify token.
 	idToken, idTokenHash, err := a.VerifyIDToken(ctx, token)
 	if err != nil {
-		return nil, nil, fmt.Errorf("verify id token: %w", err)
+		return nil, fmt.Errorf("verify id token: %w", err)
 	}
 
 	// Extract user profile.
-	var profile UserProfile
+	var profile models.UserProfileResponse
 	if err = idToken.Claims(&profile); err != nil {
-		return nil, nil, fmt.Errorf("extract user profile: %w", err)
+		return nil, fmt.Errorf("extract user profile: %w", err)
 	}
 
 	resp := TokenResponse{
@@ -161,21 +173,30 @@ func (a *Authenticator) PerformExchange(
 		IDToken:      idTokenHash,
 	}
 
-	return &resp, &profile, nil
+	a.saveTokens(ctx, &resp)
+
+	return &profile, nil
 }
 
 // RefreshTokens exchanges a refresh token for a new set of tokens.
 func (a *Authenticator) RefreshTokens(
 	ctx context.Context,
 	refreshToken string,
-) (*TokenResponse, error) {
+) error {
 	form := url.Values{}
 	form.Set("grant_type", "refresh_token")
 	form.Set("client_id", a.Config.ClientID)
 	form.Set("client_secret", a.Config.ClientSecret)
 	form.Set("refresh_token", refreshToken)
 
-	return a.postToken(ctx, form)
+	resp, err := a.postToken(ctx, form)
+	if err != nil {
+		return fmt.Errorf("refresh tokens: %w", err)
+	}
+
+	a.saveTokens(ctx, resp)
+
+	return nil
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
@@ -267,15 +288,15 @@ func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	return logoutURL, nil
 }
 
-func (a *Authenticator) PutState(ctx context.Context, mgr SessionManager, state string) {
-	mgr.Put(ctx, sessionKeyState, state)
+func (a *Authenticator) PutState(ctx context.Context, state string) {
+	a.sessionManager.Put(ctx, sessionKeyState, state)
 }
 
-func (a *Authenticator) PutCodeVerifier(ctx context.Context, mgr SessionManager, verifier string) {
-	mgr.Put(ctx, sessionKeyCodeVerifier, verifier)
+func (a *Authenticator) PutCodeVerifier(ctx context.Context, verifier string) {
+	a.sessionManager.Put(ctx, sessionKeyCodeVerifier, verifier)
 }
 
-func (a *Authenticator) PutReturnTo(ctx context.Context, mgr SessionManager, path string) {
+func (a *Authenticator) PutReturnTo(ctx context.Context, path string) {
 	// When triggered from updates/paginate, return to the base page.
 	switch {
 	case strings.HasSuffix(path, "/updates"):
@@ -283,51 +304,51 @@ func (a *Authenticator) PutReturnTo(ctx context.Context, mgr SessionManager, pat
 	case strings.HasSuffix(path, "/paginate"):
 		path = strings.TrimSuffix(path, "/paginate")
 	}
-	mgr.Put(ctx, sessionKeyReturnTo, path)
+	a.sessionManager.Put(ctx, sessionKeyReturnTo, path)
 }
 
-func (a *Authenticator) GetState(ctx context.Context, mgr SessionManager) (string, error) {
-	state, ok := mgr.Get(ctx, sessionKeyState).(string)
+func (a *Authenticator) GetState(ctx context.Context) (string, error) {
+	state, ok := a.sessionManager.Get(ctx, sessionKeyState).(string)
 	if !ok {
 		return "", errors.New("no state value in session")
 	}
 	return state, nil
 }
 
-func (a *Authenticator) GetCodeVerifier(ctx context.Context, mgr SessionManager) (string, error) {
-	code, ok := mgr.Get(ctx, sessionKeyCodeVerifier).(string)
+func (a *Authenticator) GetCodeVerifier(ctx context.Context) (string, error) {
+	code, ok := a.sessionManager.Get(ctx, sessionKeyCodeVerifier).(string)
 	if !ok {
 		return "", errors.New("no code verifier value in session")
 	}
 	return code, nil
 }
 
-func (a *Authenticator) GetAccessToken(ctx context.Context, mgr SessionManager) (string, error) {
-	accessToken, ok := mgr.Get(ctx, sessionKeyAccessToken).(string)
+func (a *Authenticator) GetAccessToken(ctx context.Context) (string, error) {
+	accessToken, ok := a.sessionManager.Get(ctx, sessionKeyAccessToken).(string)
 	if !ok {
 		return "", errors.New("no access token in session")
 	}
 	return accessToken, nil
 }
 
-func (a *Authenticator) GetRefreshToken(ctx context.Context, mgr SessionManager) (string, error) {
-	refreshToken, ok := mgr.Get(ctx, sessionKeyRefreshToken).(string)
+func (a *Authenticator) GetRefreshToken(ctx context.Context) (string, error) {
+	refreshToken, ok := a.sessionManager.Get(ctx, sessionKeyRefreshToken).(string)
 	if !ok {
 		return "", errors.New("no refresh token in session")
 	}
 	return refreshToken, nil
 }
 
-func (a *Authenticator) GetTokenExpiry(ctx context.Context, mgr SessionManager) (time.Time, error) {
-	expiry, ok := mgr.Get(ctx, sessionKeyTokenExpiry).(time.Time)
+func (a *Authenticator) GetTokenExpiry(ctx context.Context) (time.Time, error) {
+	expiry, ok := a.sessionManager.Get(ctx, sessionKeyTokenExpiry).(time.Time)
 	if !ok {
 		return time.Time{}, errors.New("no token expiry value in session")
 	}
 	return expiry, nil
 }
 
-func (a *Authenticator) GetReturnTo(ctx context.Context, mgr SessionManager) (string, error) {
-	returnTo, ok := mgr.Get(ctx, sessionKeyReturnTo).(string)
+func (a *Authenticator) GetReturnTo(ctx context.Context) (string, error) {
+	returnTo, ok := a.sessionManager.Get(ctx, sessionKeyReturnTo).(string)
 	if !ok {
 		return "", errors.New("no return to value in session")
 	}
@@ -335,39 +356,39 @@ func (a *Authenticator) GetReturnTo(ctx context.Context, mgr SessionManager) (st
 }
 
 // IsAuthenticated returns true if the session contains an access token.
-func (a *Authenticator) IsAuthenticated(ctx context.Context, mgr SessionManager) bool {
-	tkn, err := a.GetAccessToken(ctx, mgr)
+func (a *Authenticator) IsAuthenticated(ctx context.Context) bool {
+	tkn, err := a.GetAccessToken(ctx)
 	return tkn != "" && err == nil
 }
 
 // IsAccessTokenExpired returns true if the access token has expired.
-func (a *Authenticator) IsAccessTokenExpired(ctx context.Context, mgr SessionManager) bool {
-	expiry, err := a.GetTokenExpiry(ctx, mgr)
+func (a *Authenticator) IsAccessTokenExpired(ctx context.Context) bool {
+	expiry, err := a.GetTokenExpiry(ctx)
 	if err != nil || expiry.IsZero() {
 		return true
 	}
 	return time.Now().After(expiry)
 }
 
-// SaveTokens saves the access token and data in the session.
-func (a *Authenticator) SaveTokens(ctx context.Context, mgr SessionManager, token *TokenResponse) {
-	mgr.Put(ctx, sessionKeyAccessToken, token.AccessToken)
-	mgr.Put(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn))
-	mgr.Put(ctx, sessionKeyRefreshToken, token.RefreshToken)
-}
-
 // ClearAuth removes all authentication-related keys from the session.
-func (a *Authenticator) ClearAuth(ctx context.Context, mgr SessionManager) {
-	mgr.Remove(ctx, sessionKeyAccessToken)
-	mgr.Remove(ctx, sessionKeyRefreshToken)
-	mgr.Remove(ctx, sessionKeyTokenExpiry)
-	mgr.Remove(ctx, sessionKeyUserProfile)
+func (a *Authenticator) ClearAuth(ctx context.Context) {
+	a.sessionManager.Remove(ctx, sessionKeyAccessToken)
+	a.sessionManager.Remove(ctx, sessionKeyRefreshToken)
+	a.sessionManager.Remove(ctx, sessionKeyTokenExpiry)
+	a.sessionManager.Remove(ctx, sessionKeyUserProfile)
 }
 
 // ClearState removes all data related to an authorization exchange from the session.
-func (a *Authenticator) ClearState(ctx context.Context, mgr SessionManager) {
-	mgr.Remove(ctx, sessionKeyState)
-	mgr.Remove(ctx, sessionKeyCodeVerifier)
+func (a *Authenticator) ClearState(ctx context.Context) {
+	a.sessionManager.Remove(ctx, sessionKeyState)
+	a.sessionManager.Remove(ctx, sessionKeyCodeVerifier)
+}
+
+// saveTokens saves the access token and data in the session.
+func (a *Authenticator) saveTokens(ctx context.Context, token *TokenResponse) {
+	a.sessionManager.Put(ctx, sessionKeyAccessToken, token.AccessToken)
+	a.sessionManager.Put(ctx, sessionKeyTokenExpiry, tokenExpiry(token.ExpiresIn))
+	a.sessionManager.Put(ctx, sessionKeyRefreshToken, token.RefreshToken)
 }
 
 // tokenExpiry calculates the absolute expiry time from an ExpiresIn value.

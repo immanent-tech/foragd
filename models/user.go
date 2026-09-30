@@ -1,5 +1,7 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -226,4 +228,15 @@ func (r *ChangePasswordRequest) Validate() error {
 // Sanitise will sanitise the user input for a ChangePasswordRequest.
 func (r *ChangePasswordRequest) Sanitise() error {
 	return nil
+}
+
+func (u *UserProfileResponse) GetID() string {
+	return u.Subject
+}
+
+func (u *UserProfileResponse) GetEmail() string {
+	if u.Email != nil {
+		return *u.Email
+	}
+	return ""
 }

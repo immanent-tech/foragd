@@ -1,23 +1,25 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package auth0
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
+	"sync"
 
 	"github.com/auth0/go-auth0/v2/management"
-	"github.com/zeebo/xxh3"
+	"github.com/auth0/go-auth0/v2/management/client"
+	"github.com/auth0/go-auth0/v2/management/option"
 
 	"github.com/immanent-tech/foragd/models"
 )
 
-type UserService interface {
-	AddUser(ctx context.Context, user *models.User) error
+func init() {
+	gob.Register(UserProfile{})
 }
 
 // UserProfile represents the data returned from the auth0 backend that represents an authorised user.
@@ -86,13 +88,33 @@ type UpdateUserData struct {
 	ID string
 }
 
-// DeleteUser will delete the given user from the Auth0 backend.
-func DeleteUser(ctx context.Context, id string) error {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+type Manager struct {
+	*client.Management
+}
+
+// LoadManager loads a connection to the Auth0 management API.
+var LoadManager = sync.OnceValues(func() (*Manager, error) {
+	if err := loadConfigOnce(); err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
+	mgmt, err := client.New(
+		cfg.MgmtDomain,
+		option.WithClientCredentials(
+			context.Background(),
+			cfg.ClientID,
+			cfg.ClientSecret,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("new management api connection: %w", err)
+	}
+
+	return &Manager{Management: mgmt}, nil
+})
+
+// DeleteUser will delete the given user from the Auth0 backend.
+func (m *Manager) DeleteUser(ctx context.Context, id string) error {
 	// ! Only supported with Auth0 enterprise subscription.
 	// // Delete the user's active sessions.
 	// if err := mgmt.Users.Sessions.Delete(ctx, id); err != nil {
@@ -101,63 +123,15 @@ func DeleteUser(ctx context.Context, id string) error {
 	// 	)
 	// }
 
-	if err := mgmt.Users.Delete(ctx, id); err != nil {
+	if err := m.Users.Delete(ctx, id); err != nil {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)
 	}
 	return nil
 }
 
-// CreateUserFromProfileData creates a new user from the external provider details.
-func CreateUserFromProfileData(ctx context.Context, userSvc UserService, profile *UserProfile) (*models.User, error) {
-	auth0User, err := GetUser(ctx, profile.GetID())
-	if err != nil {
-		return nil, fmt.Errorf("get user details: %w", err)
-	}
-
-	id := "user_" + strconv.FormatUint(xxh3.Hash([]byte(profile.GetID())), 10)
-	ts := time.Now().UTC()
-	lastLogin := auth0User.GetUserResponseContent.GetLastLogin()
-	if lastLogin.IsZero() {
-		lastLogin = models.UnixEpoch
-	}
-	user := &models.User{
-		CreatedAt:      ts,
-		UpdatedAt:      &ts,
-		ExternalUserID: profile.GetID(),
-		Provider:       strings.Split(profile.GetID(), "|")[0],
-		Email:          auth0User.GetUserResponseContent.GetEmail(),
-		UserID:         id,
-		AvatarURL:      new(auth0User.GetUserResponseContent.GetPicture()),
-		LoginCount:     *auth0User.GetUserResponseContent.LoginsCount,
-		LastLogin:      lastLogin,
-		Metadata: models.UserMetadata{
-			EmailVerified:    auth0User.GetUserResponseContent.GetEmailVerified(),
-			PromotionalEmail: true,
-		},
-		Settings: models.UserSettings{
-			ShowOnboarding:        true,
-			ShowSubscriptionStats: false,
-			MarkArticleReadOnView: true,
-		},
-	}
-	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok {
-		user.Metadata.PoliciesAccepted = accepted
-	}
-
-	if err := userSvc.AddUser(ctx, user); err != nil {
-		return nil, fmt.Errorf("add user: %w", err)
-	}
-
-	return user, nil
-}
-
 // GetUser fetches the user with the given ID from Auth0.
-func GetUser(ctx context.Context, id string) (*UserData, error) {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return nil, fmt.Errorf("load management API: %w", err)
-	}
-	resp, err := mgmt.Users.Get(ctx, id, &management.GetUserRequestParameters{})
+func (m *Manager) GetUser(ctx context.Context, id string) (*UserData, error) {
+	resp, err := m.Users.Get(ctx, id, &management.GetUserRequestParameters{})
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
@@ -166,14 +140,9 @@ func GetUser(ctx context.Context, id string) (*UserData, error) {
 }
 
 // UpdateUser updates user data in Auth0.
-func UpdateUser(ctx context.Context, update *UpdateUserData) error {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return fmt.Errorf("load management API: %w", err)
-	}
-
+func (m *Manager) UpdateUser(ctx context.Context, update *UpdateUserData) error {
 	// Update the user.
-	_, err = mgmt.Users.Update(
+	_, err := m.Users.Update(
 		ctx,
 		update.ID,
 		update.UpdateUserRequestContent,
@@ -185,13 +154,9 @@ func UpdateUser(ctx context.Context, update *UpdateUserData) error {
 }
 
 // GetNewInactiveUsers returns all accounts created on the backend that haven't yet logged in to the app.
-func GetNewInactiveUsers(ctx context.Context) ([]*UserData, error) {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return nil, fmt.Errorf("load management API: %w", err)
-	}
+func (m *Manager) GetNewInactiveUsers(ctx context.Context) ([]*UserData, error) {
 	query := "logins_count:[0 TO 1]"
-	resp, err := mgmt.Users.List(ctx, &management.ListUsersRequestParameters{
+	resp, err := m.Users.List(ctx, &management.ListUsersRequestParameters{
 		Q:       &query,
 		PerPage: management.Int(100),
 	})
@@ -213,7 +178,8 @@ func GetNewInactiveUsers(ctx context.Context) ([]*UserData, error) {
 	return users, nil
 }
 
-func UpdateUserCustomisation(ctx context.Context, request *models.EditUserRequest) error {
+// UpdateUserCustomisation writes local user customization changes back to the authorization service.
+func (m *Manager) UpdateUserCustomisation(ctx context.Context, request *models.EditUserRequest) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
@@ -234,10 +200,11 @@ func UpdateUserCustomisation(ctx context.Context, request *models.EditUserReques
 		},
 	}
 
-	return UpdateUser(ctx, updates)
+	return m.UpdateUser(ctx, updates)
 }
 
-func UpdateUserMetadata(ctx context.Context, id string, key string, value any) error {
+// UpdateUserMetadata updates the metadata associated with a user on the backend service.
+func (m *Manager) UpdateUserMetadata(ctx context.Context, id string, key string, value any) error {
 	update := &UpdateUserData{
 		ID: id,
 		UpdateUserRequestContent: &management.UpdateUserRequestContent{
@@ -246,25 +213,21 @@ func UpdateUserMetadata(ctx context.Context, id string, key string, value any) e
 			},
 		},
 	}
-	return UpdateUser(ctx, update)
+	return m.UpdateUser(ctx, update)
 }
 
 // ChangeUserPassword will perform a password change on behalf of a user.
-func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return fmt.Errorf("load management API: %w", err)
-	}
+func (m *Manager) ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
-	// Create update object.
+	// Create backend update request.
 	updates := &management.UpdateUserRequestContent{
 		Password: &request.NewPassword,
 	}
 	// Update the user.
-	_, err = mgmt.Users.Update(
+	_, err := m.Users.Update(
 		ctx,
 		user.GetExternalID(),
 		updates,

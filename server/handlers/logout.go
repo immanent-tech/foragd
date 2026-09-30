@@ -9,12 +9,10 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
-
-	"github.com/immanent-tech/foragd/providers/auth0"
 )
 
 // Logout handles logout requests.
-func (m *Manager) HandleLogout(authenticator *auth0.Authenticator) http.HandlerFunc {
+func (m *Manager) HandleLogout(authenticator Authenticator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Delete the m.SessionMgr cookie.
 		if err := m.SessionMgr.Clear(req.Context()); err != nil {
@@ -31,7 +29,7 @@ func (m *Manager) HandleLogout(authenticator *auth0.Authenticator) http.HandlerF
 		// Redirect user to logout URL.
 		slogctx.FromCtx(req.Context()).Info("User logged out.")
 		if htmx.IsHTMX(req) {
-			res.Header().Set("HX-Redirect", logoutURL.String())
+			res.Header().Set(htmx.HeaderRedirect, logoutURL.String())
 			res.WriteHeader(http.StatusOK)
 			return
 		}

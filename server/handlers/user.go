@@ -26,7 +26,6 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
@@ -261,7 +260,11 @@ func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc 
 // HandleSaveAccountSettings handles processing and saving new account settings.
 //
 //nolint:funlen
-func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache) http.HandlerFunc {
+func (m *Manager) HandleSaveAccountSettings(
+	userSvc UserService,
+	authMgr AuthManager,
+	cache ImageCache,
+) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user object
 		user := models.UserFromCtx(req.Context())
@@ -345,8 +348,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 			return
 		}
 		// Update on backend.
-		err = auth0.UpdateUserCustomisation(req.Context(), request)
-		if err != nil {
+		if err = authMgr.UpdateUserCustomisation(req.Context(), request); err != nil {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
 				fmt.Errorf("update user in auth0: %w", err),
@@ -354,7 +356,7 @@ func (m *Manager) HandleSaveAccountSettings(users UserService, cache ImageCache)
 			return
 		}
 		// Update local user object.
-		err = users.UpdateUser(req.Context(), user, updates)
+		err = userSvc.UpdateUser(req.Context(), user, updates)
 		if err != nil {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
@@ -461,7 +463,7 @@ func (m *Manager) HandleSaveThemeSettings(users UserService) http.HandlerFunc {
 }
 
 // HandleChangePassword handles a change password request from the user.
-func (m *Manager) HandleChangePassword() http.HandlerFunc {
+func (m *Manager) HandleChangePassword(authMgr AuthManager) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.ChangePasswordRequest](req)
 		if err != nil {
@@ -470,7 +472,7 @@ func (m *Manager) HandleChangePassword() http.HandlerFunc {
 		}
 
 		// Update on backend.
-		err = auth0.ChangeUserPassword(req.Context(), request)
+		err = authMgr.ChangeUserPassword(req.Context(), request)
 		if err != nil {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
@@ -489,8 +491,9 @@ func (m *Manager) HandleChangePassword() http.HandlerFunc {
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
 func (m *Manager) HandleDeactivateAccount(
-	users UserService,
-	auth *auth0.Authenticator,
+	userSvc UserService,
+	authMgr AuthManager,
+	auth Authenticator,
 	emailSender EmailSender,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -554,7 +557,7 @@ func (m *Manager) HandleDeactivateAccount(
 			case user.InTrial():
 				// User in trial. Just delete from Elasticsearch and Auth0 then send confirmation email.
 				// Delete from Elasticsearch backend.
-				if err := users.DeleteUser(req.Context(), user); err != nil {
+				if err := userSvc.DeleteUser(req.Context(), user); err != nil {
 					m.HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("delete user in elasticsearch: %w", err),
@@ -562,7 +565,7 @@ func (m *Manager) HandleDeactivateAccount(
 					return
 				}
 				// Delete from Auth0 backend
-				if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
+				if err := authMgr.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
 					m.HandleInternalError(
 						http.StatusInternalServerError,
 						fmt.Errorf("delete user in auth0: %w", err),

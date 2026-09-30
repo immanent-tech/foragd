@@ -18,6 +18,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -52,6 +53,11 @@ func (c *DeleteUserCmd) Run() error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 
+	userMgr, err := auth0.LoadManager()
+	if err != nil {
+		return fmt.Errorf("load auth manager: %w", err)
+	}
+
 	user, err := userSvc.GetUser(ctx, c.UserID)
 	if err != nil {
 		return fmt.Errorf("unable to delete user: %w", err)
@@ -59,6 +65,11 @@ func (c *DeleteUserCmd) Run() error {
 
 	if err := userSvc.DeleteUser(ctx, user); err != nil {
 		return fmt.Errorf("delete user: %w", err)
+	}
+
+	// Delete from Auth0 backend
+	if err := userMgr.DeleteUser(ctx, user.GetExternalID()); err != nil {
+		return fmt.Errorf("delete auth0 user: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Info("Deleted user.",
@@ -204,8 +215,6 @@ func showUserDetails(ctx context.Context, user *models.User) {
 			color.New(color.FgYellow).Fprintf(&output, "No Active Subscription\n")
 		}
 	}
-
-
 
 	fmt.Fprintf(os.Stdout, "%s", output.String())
 }

@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"sync"
 	"time"
 
@@ -25,7 +24,6 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -250,92 +248,6 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, updates
 	return nil
 }
 
-// SyncUser tries to sync relevant user data from the auth backend to the local data.
-func (s *UserService) SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
-	ctx, span := tracer.Start(req.Context(), "SyncUser")
-	defer span.End()
-
-	auth0User, err := auth0.GetUser(req.Context(), user.GetExternalID())
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		slogctx.Error(ctx, "Could not sync user data.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err))
-		return
-	}
-
-	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
-	updates := make(map[string]any)
-	// Overwrite local avatar with remote avatar if different
-	if avatarURL := auth0User.GetUserResponseContent.GetPicture(); user.GetAvatar() != avatarURL {
-		updates["avatar_url"] = avatarURL
-		user.AvatarURL = &avatarURL
-	}
-	// Overwrite local nickname with remote nickname if different
-	if nickname := auth0User.GetUserResponseContent.GetNickname(); user.GetNickname() != nickname {
-		updates["nickname"] = nickname
-		user.Nickname = nickname
-	}
-	// Overwrite local email with remote email if different
-	if email := auth0User.GetUserResponseContent.GetEmail(); user.GetEmail() != email {
-		updates["email"] = email
-		user.Email = email
-	}
-	// Update login count.
-	updates["login_count"] = auth0User.GetUserResponseContent.GetLoginsCount()
-	// Update last login timestamp.
-	if lastLogin := auth0User.GetUserResponseContent.GetLastLogin(); lastLogin.After(user.LastLogin) {
-		updates["last_login"] = lastLogin
-	}
-
-	// Update user metadata.
-	metadata := user.Metadata
-	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok &&
-		metadata.PoliciesAccepted != accepted {
-		metadata.PoliciesAccepted = accepted
-	}
-	if emailVerified := auth0User.GetUserResponseContent.GetEmailVerified(); emailVerified != metadata.EmailVerified {
-		metadata.EmailVerified = emailVerified
-	}
-	user.Metadata = metadata
-	updates["metadata"] = metadata
-
-	// Sync user's preferred font style to long-lived customisation cookie.
-	if fontStyle := user.GetSettings().FontStyle; fontStyle != nil {
-		http.SetCookie(res, &http.Cookie{
-			Name:     "font_sans",
-			Value:    *fontStyle,
-			Path:     "/",
-			MaxAge:   365 * 24 * 60 * 60,
-			SameSite: http.SameSiteLaxMode,
-		})
-	}
-
-	// Sync user's preferred theme to long-lived customisation cookie.
-	if theme := user.GetSettings().Theme; theme != nil {
-		http.SetCookie(res, &http.Cookie{
-			Name:     "theme",
-			Value:    *theme,
-			Path:     "/",
-			MaxAge:   365 * 24 * 60 * 60,
-			SameSite: http.SameSiteLaxMode,
-		})
-	}
-
-	// If no updates are necessary, bail early.
-	if len(updates) > 0 {
-		if err := s.UpdateUser(ctx, user, updates); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-			slogctx.Error(ctx, "Could not sync user data.",
-				slog.String("user_id", user.GetID()),
-				slog.Any("error", err))
-			return
-		}
-	}
-}
-
 // AddUser stores and caches the given [*models.User] in the backend.
 func (s UserService) AddUser(ctx context.Context, user *models.User) error {
 	if err := elastic.CreateDoc(
@@ -383,11 +295,6 @@ func (s *UserService) DeleteUser(ctx context.Context, user *models.User) error {
 			slog.String("user_id", user.GetID()),
 			slog.Any("error", err),
 		)
-	}
-
-	// Delete from Auth0 backend
-	if err := auth0.DeleteUser(ctx, user.GetExternalID()); err != nil {
-		return fmt.Errorf("delete auth0 user: %w", err)
 	}
 
 	s.Invalidate(user.GetID())

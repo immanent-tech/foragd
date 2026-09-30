@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package store
 
@@ -22,11 +24,11 @@ import (
 )
 
 const (
-	// defaultRequestTimeout is the maximum time a background action can run before its context is cancelled.
+	// defaultRequestTimeout is the maximum time a background action can run before its context is canceled.
 	defaultRequestTimeout = 5 * time.Second
 )
 
-// Make sure SessionStore implementation satisfies scs interfaces.
+// Make sure [Store] implementation satisfies scs interfaces.
 var (
 	_ scs.IterableCtxStore = (*Store)(nil)
 	_ scs.CtxStore         = (*Store)(nil)
@@ -44,7 +46,7 @@ type UserSession struct {
 	Token string `json:"token"`
 }
 
-// Store satisfies the session store interface for storing sessions in a custom backend.
+// Store satisfies the session store interface for storing sessions in Elastic.
 type Store struct {
 	backend *service.ElasticService
 }

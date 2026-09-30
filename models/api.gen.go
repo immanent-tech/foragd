@@ -457,6 +457,57 @@ type SuggestFeedsResults struct {
 	Text string `json:"text"`
 }
 
+// UserProfileResponse represents the data returned from the auth backend that represents an authorised user.
+type UserProfileResponse struct {
+	// Audience is the client ID, or set of client IDs, that this token is issued for.
+	Audience string `json:"aud" validate:"required"`
+
+	// Blocked Blocked indicates whether the user has been blocked.
+	Blocked *bool `json:"blocked,omitempty"`
+
+	// Email is the user's email address.
+	Email *string `json:"email,omitempty" validate:"omitempty,email"`
+
+	// EmailVerified indicates whether the user has verified their email address.
+	EmailVerified *bool `json:"email_verified,omitempty"`
+
+	// Expiry is the expiry of the token.
+	Expiry int `json:"exp" validate:"required,gt=0"`
+
+	// FamilyName is the user's family name.
+	FamilyName *string `json:"family_name,omitempty"`
+
+	// GivenName is the user's given name.
+	GivenName *string `json:"given_name,omitempty"`
+
+	// IssuedAt is when the token was issued by the provider.
+	IssuedAt int `json:"iat" validate:"required,gt=0"`
+
+	// Issuer is the URL of the server which issued this token.
+	Issuer string `json:"iss" validate:"required,url"`
+
+	// LoginsCount LoginsCount is the number of times the user has logged in. If a user is blocked and logs in, the blocked session is still counted. For a new user, this will be 1 as creating the account is counted as the first login.
+	LoginsCount *int `json:"logins_count,omitempty"`
+
+	// Name is the user's full name.
+	Name *string `json:"name,omitempty"`
+
+	// Nickname is the user's nickname.
+	Nickname *string `json:"nickname,omitempty"`
+
+	// Picture is a URL pointing to the user's profile picture.
+	Picture *string `json:"picture,omitempty" validate:"omitempty,url"`
+
+	// SessionId is the ID of the current session.
+	SessionId string `json:"sid" validate:"required"`
+
+	// Subject is a unique string which identifies the end user.
+	Subject string `json:"sub" validate:"required"`
+
+	// UpdatedAt is a timestamp indicating when the user's profile was last updated/modified.
+	UpdatedAt *string `json:"updated_at,omitempty"`
+}
+
 // ViewArticleRequest contains additional request data for viewing an article.
 type ViewArticleRequest struct {
 	// ShowFullContent indicates whether the full content of the article should be fetched from the source.

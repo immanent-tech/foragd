@@ -140,7 +140,6 @@ type UserService interface {
 	GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error)
 	GetUserByCustomerID(ctx context.Context, id string) (*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error
-	SyncUser(res http.ResponseWriter, req *http.Request, user *models.User)
 	AddUser(ctx context.Context, user *models.User) error
 	DeleteUser(ctx context.Context, user *models.User) error
 }
@@ -154,22 +153,29 @@ type SessionManager interface {
 }
 
 type Authenticator interface {
-	IsAuthenticated(ctx context.Context, session SessionManager) bool
-	GenerateAuthURL(req *http.Request) (AuthURLResult, error)
-	PutState(ctx context.Context, session SessionManager, state string)
-	GetState(ctx context.Context, session SessionManager) (string, error)
-	PutCodeVerifier(ctx context.Context, session SessionManager, verifier string)
-	GetCodeVerifier(ctx context.Context, session SessionManager) (string, error)
-	PerformExchange(ctx context.Context, code, verifier string) (*auth0.TokenResponse, *auth0.UserProfile, error)
-	SaveTokens(ctx context.Context, session SessionManager, token *auth0.TokenResponse)
-	ClearState(ctx context.Context, session SessionManager)
-	GetReturnTo(ctx context.Context, session SessionManager) (string, error)
+	IsAuthenticated(ctx context.Context) bool
+	GenerateAuthURL(req *http.Request) (*auth0.AuthURLResult, error)
+	GenerateLogoutURL(req *http.Request) (*url.URL, error)
+	PutState(ctx context.Context, state string)
+	GetState(ctx context.Context) (string, error)
+	PutCodeVerifier(ctx context.Context, verifier string)
+	GetCodeVerifier(ctx context.Context) (string, error)
+	PutReturnTo(ctx context.Context, path string)
+	PerformExchange(ctx context.Context, code, verifier string) (*models.UserProfileResponse, error)
+	GetRefreshToken(ctx context.Context) (string, error)
+	GetTokenExpiry(ctx context.Context) (time.Time, error)
+	RefreshTokens(ctx context.Context, token string) error
+	ClearAuth(ctx context.Context)
+	ClearState(ctx context.Context)
+	GetReturnTo(ctx context.Context) (string, error)
+	IsAccessTokenExpired(ctx context.Context) bool
 }
 
-type AuthURLResult interface {
-	GetURL() string
-	GetState() string
-	GetCodeVerifier() string
+type AuthManager interface {
+	GetUser(ctx context.Context, userID string) (*auth0.UserData, error)
+	DeleteUser(ctx context.Context, userID string) error
+	UpdateUserCustomisation(ctx context.Context, request *models.EditUserRequest) error
+	ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error
 }
 
 type Breadcrumbs interface {

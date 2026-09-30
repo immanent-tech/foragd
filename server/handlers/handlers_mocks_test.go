@@ -3170,9 +3170,6 @@ var _ handlers.UserService = &MoqUserService{}
 //			GetUserByPurchaseTokenFunc: func(ctx context.Context, token string) (*models.User, error) {
 //				panic("mock out the GetUserByPurchaseToken method")
 //			},
-//			SyncUserFunc: func(res http.ResponseWriter, req *http.Request, user *models.User)  {
-//				panic("mock out the SyncUser method")
-//			},
 //			UpdateUserFunc: func(ctx context.Context, user *models.User, updates map[string]any) error {
 //				panic("mock out the UpdateUser method")
 //			},
@@ -3200,9 +3197,6 @@ type MoqUserService struct {
 
 	// GetUserByPurchaseTokenFunc mocks the GetUserByPurchaseToken method.
 	GetUserByPurchaseTokenFunc func(ctx context.Context, token string) (*models.User, error)
-
-	// SyncUserFunc mocks the SyncUser method.
-	SyncUserFunc func(res http.ResponseWriter, req *http.Request, user *models.User)
 
 	// UpdateUserFunc mocks the UpdateUser method.
 	UpdateUserFunc func(ctx context.Context, user *models.User, updates map[string]any) error
@@ -3251,15 +3245,6 @@ type MoqUserService struct {
 			// Token is the token argument value.
 			Token string
 		}
-		// SyncUser holds details about calls to the SyncUser method.
-		SyncUser []struct {
-			// Res is the res argument value.
-			Res http.ResponseWriter
-			// Req is the req argument value.
-			Req *http.Request
-			// User is the user argument value.
-			User *models.User
-		}
 		// UpdateUser holds details about calls to the UpdateUser method.
 		UpdateUser []struct {
 			// Ctx is the ctx argument value.
@@ -3276,7 +3261,6 @@ type MoqUserService struct {
 	lockGetUserByEmail         sync.RWMutex
 	lockGetUserByExternalID    sync.RWMutex
 	lockGetUserByPurchaseToken sync.RWMutex
-	lockSyncUser               sync.RWMutex
 	lockUpdateUser             sync.RWMutex
 }
 
@@ -3493,46 +3477,6 @@ func (mock *MoqUserService) GetUserByPurchaseTokenCalls() []struct {
 	mock.lockGetUserByPurchaseToken.RLock()
 	calls = mock.calls.GetUserByPurchaseToken
 	mock.lockGetUserByPurchaseToken.RUnlock()
-	return calls
-}
-
-// SyncUser calls SyncUserFunc.
-func (mock *MoqUserService) SyncUser(res http.ResponseWriter, req *http.Request, user *models.User) {
-	if mock.SyncUserFunc == nil {
-		panic("MoqUserService.SyncUserFunc: method is nil but UserService.SyncUser was just called")
-	}
-	callInfo := struct {
-		Res  http.ResponseWriter
-		Req  *http.Request
-		User *models.User
-	}{
-		Res:  res,
-		Req:  req,
-		User: user,
-	}
-	mock.lockSyncUser.Lock()
-	mock.calls.SyncUser = append(mock.calls.SyncUser, callInfo)
-	mock.lockSyncUser.Unlock()
-	mock.SyncUserFunc(res, req, user)
-}
-
-// SyncUserCalls gets all the calls that were made to SyncUser.
-// Check the length with:
-//
-//	len(mockedUserService.SyncUserCalls())
-func (mock *MoqUserService) SyncUserCalls() []struct {
-	Res  http.ResponseWriter
-	Req  *http.Request
-	User *models.User
-} {
-	var calls []struct {
-		Res  http.ResponseWriter
-		Req  *http.Request
-		User *models.User
-	}
-	mock.lockSyncUser.RLock()
-	calls = mock.calls.SyncUser
-	mock.lockSyncUser.RUnlock()
 	return calls
 }
 
@@ -3852,35 +3796,53 @@ var _ handlers.Authenticator = &MoqAuthenticator{}
 //
 //		// make and configure a mocked handlers.Authenticator
 //		mockedAuthenticator := &MoqAuthenticator{
-//			ClearStateFunc: func(ctx context.Context, session handlers.SessionManager)  {
+//			ClearAuthFunc: func(ctx context.Context)  {
+//				panic("mock out the ClearAuth method")
+//			},
+//			ClearStateFunc: func(ctx context.Context)  {
 //				panic("mock out the ClearState method")
 //			},
-//			GenerateAuthURLFunc: func(req *http.Request) (handlers.AuthURLResult, error) {
+//			GenerateAuthURLFunc: func(req *http.Request) (*auth0.AuthURLResult, error) {
 //				panic("mock out the GenerateAuthURL method")
 //			},
-//			GetCodeVerifierFunc: func(ctx context.Context, session handlers.SessionManager) (string, error) {
+//			GenerateLogoutURLFunc: func(req *http.Request) (*url.URL, error) {
+//				panic("mock out the GenerateLogoutURL method")
+//			},
+//			GetCodeVerifierFunc: func(ctx context.Context) (string, error) {
 //				panic("mock out the GetCodeVerifier method")
 //			},
-//			GetReturnToFunc: func(ctx context.Context, session handlers.SessionManager) (string, error) {
+//			GetRefreshTokenFunc: func(ctx context.Context) (string, error) {
+//				panic("mock out the GetRefreshToken method")
+//			},
+//			GetReturnToFunc: func(ctx context.Context) (string, error) {
 //				panic("mock out the GetReturnTo method")
 //			},
-//			GetStateFunc: func(ctx context.Context, session handlers.SessionManager) (string, error) {
+//			GetStateFunc: func(ctx context.Context) (string, error) {
 //				panic("mock out the GetState method")
 //			},
-//			IsAuthenticatedFunc: func(ctx context.Context, session handlers.SessionManager) bool {
+//			GetTokenExpiryFunc: func(ctx context.Context) (time.Time, error) {
+//				panic("mock out the GetTokenExpiry method")
+//			},
+//			IsAccessTokenExpiredFunc: func(ctx context.Context) bool {
+//				panic("mock out the IsAccessTokenExpired method")
+//			},
+//			IsAuthenticatedFunc: func(ctx context.Context) bool {
 //				panic("mock out the IsAuthenticated method")
 //			},
-//			PerformExchangeFunc: func(ctx context.Context, code string, verifier string) (*auth0.TokenResponse, *auth0.UserProfile, error) {
+//			PerformExchangeFunc: func(ctx context.Context, code string, verifier string) (*models.UserProfileResponse, error) {
 //				panic("mock out the PerformExchange method")
 //			},
-//			PutCodeVerifierFunc: func(ctx context.Context, session handlers.SessionManager, verifier string)  {
+//			PutCodeVerifierFunc: func(ctx context.Context, verifier string)  {
 //				panic("mock out the PutCodeVerifier method")
 //			},
-//			PutStateFunc: func(ctx context.Context, session handlers.SessionManager, state string)  {
+//			PutReturnToFunc: func(ctx context.Context, path string)  {
+//				panic("mock out the PutReturnTo method")
+//			},
+//			PutStateFunc: func(ctx context.Context, state string)  {
 //				panic("mock out the PutState method")
 //			},
-//			SaveTokensFunc: func(ctx context.Context, session handlers.SessionManager, token *auth0.TokenResponse)  {
-//				panic("mock out the SaveTokens method")
+//			RefreshTokensFunc: func(ctx context.Context, token string) error {
+//				panic("mock out the RefreshTokens method")
 //			},
 //		}
 //
@@ -3889,47 +3851,73 @@ var _ handlers.Authenticator = &MoqAuthenticator{}
 //
 //	}
 type MoqAuthenticator struct {
+	// ClearAuthFunc mocks the ClearAuth method.
+	ClearAuthFunc func(ctx context.Context)
+
 	// ClearStateFunc mocks the ClearState method.
-	ClearStateFunc func(ctx context.Context, session handlers.SessionManager)
+	ClearStateFunc func(ctx context.Context)
 
 	// GenerateAuthURLFunc mocks the GenerateAuthURL method.
-	GenerateAuthURLFunc func(req *http.Request) (handlers.AuthURLResult, error)
+	GenerateAuthURLFunc func(req *http.Request) (*auth0.AuthURLResult, error)
+
+	// GenerateLogoutURLFunc mocks the GenerateLogoutURL method.
+	GenerateLogoutURLFunc func(req *http.Request) (*url.URL, error)
 
 	// GetCodeVerifierFunc mocks the GetCodeVerifier method.
-	GetCodeVerifierFunc func(ctx context.Context, session handlers.SessionManager) (string, error)
+	GetCodeVerifierFunc func(ctx context.Context) (string, error)
+
+	// GetRefreshTokenFunc mocks the GetRefreshToken method.
+	GetRefreshTokenFunc func(ctx context.Context) (string, error)
 
 	// GetReturnToFunc mocks the GetReturnTo method.
-	GetReturnToFunc func(ctx context.Context, session handlers.SessionManager) (string, error)
+	GetReturnToFunc func(ctx context.Context) (string, error)
 
 	// GetStateFunc mocks the GetState method.
-	GetStateFunc func(ctx context.Context, session handlers.SessionManager) (string, error)
+	GetStateFunc func(ctx context.Context) (string, error)
+
+	// GetTokenExpiryFunc mocks the GetTokenExpiry method.
+	GetTokenExpiryFunc func(ctx context.Context) (time.Time, error)
+
+	// IsAccessTokenExpiredFunc mocks the IsAccessTokenExpired method.
+	IsAccessTokenExpiredFunc func(ctx context.Context) bool
 
 	// IsAuthenticatedFunc mocks the IsAuthenticated method.
-	IsAuthenticatedFunc func(ctx context.Context, session handlers.SessionManager) bool
+	IsAuthenticatedFunc func(ctx context.Context) bool
 
 	// PerformExchangeFunc mocks the PerformExchange method.
-	PerformExchangeFunc func(ctx context.Context, code string, verifier string) (*auth0.TokenResponse, *auth0.UserProfile, error)
+	PerformExchangeFunc func(ctx context.Context, code string, verifier string) (*models.UserProfileResponse, error)
 
 	// PutCodeVerifierFunc mocks the PutCodeVerifier method.
-	PutCodeVerifierFunc func(ctx context.Context, session handlers.SessionManager, verifier string)
+	PutCodeVerifierFunc func(ctx context.Context, verifier string)
+
+	// PutReturnToFunc mocks the PutReturnTo method.
+	PutReturnToFunc func(ctx context.Context, path string)
 
 	// PutStateFunc mocks the PutState method.
-	PutStateFunc func(ctx context.Context, session handlers.SessionManager, state string)
+	PutStateFunc func(ctx context.Context, state string)
 
-	// SaveTokensFunc mocks the SaveTokens method.
-	SaveTokensFunc func(ctx context.Context, session handlers.SessionManager, token *auth0.TokenResponse)
+	// RefreshTokensFunc mocks the RefreshTokens method.
+	RefreshTokensFunc func(ctx context.Context, token string) error
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// ClearAuth holds details about calls to the ClearAuth method.
+		ClearAuth []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+		}
 		// ClearState holds details about calls to the ClearState method.
 		ClearState []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 		}
 		// GenerateAuthURL holds details about calls to the GenerateAuthURL method.
 		GenerateAuthURL []struct {
+			// Req is the req argument value.
+			Req *http.Request
+		}
+		// GenerateLogoutURL holds details about calls to the GenerateLogoutURL method.
+		GenerateLogoutURL []struct {
 			// Req is the req argument value.
 			Req *http.Request
 		}
@@ -3937,29 +3925,36 @@ type MoqAuthenticator struct {
 		GetCodeVerifier []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
+		}
+		// GetRefreshToken holds details about calls to the GetRefreshToken method.
+		GetRefreshToken []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
 		}
 		// GetReturnTo holds details about calls to the GetReturnTo method.
 		GetReturnTo []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 		}
 		// GetState holds details about calls to the GetState method.
 		GetState []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
+		}
+		// GetTokenExpiry holds details about calls to the GetTokenExpiry method.
+		GetTokenExpiry []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+		}
+		// IsAccessTokenExpired holds details about calls to the IsAccessTokenExpired method.
+		IsAccessTokenExpired []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
 		}
 		// IsAuthenticated holds details about calls to the IsAuthenticated method.
 		IsAuthenticated []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 		}
 		// PerformExchange holds details about calls to the PerformExchange method.
 		PerformExchange []struct {
@@ -3974,58 +3969,95 @@ type MoqAuthenticator struct {
 		PutCodeVerifier []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 			// Verifier is the verifier argument value.
 			Verifier string
+		}
+		// PutReturnTo holds details about calls to the PutReturnTo method.
+		PutReturnTo []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Path is the path argument value.
+			Path string
 		}
 		// PutState holds details about calls to the PutState method.
 		PutState []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 			// State is the state argument value.
 			State string
 		}
-		// SaveTokens holds details about calls to the SaveTokens method.
-		SaveTokens []struct {
+		// RefreshTokens holds details about calls to the RefreshTokens method.
+		RefreshTokens []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Session is the session argument value.
-			Session handlers.SessionManager
 			// Token is the token argument value.
-			Token *auth0.TokenResponse
+			Token string
 		}
 	}
-	lockClearState      sync.RWMutex
-	lockGenerateAuthURL sync.RWMutex
-	lockGetCodeVerifier sync.RWMutex
-	lockGetReturnTo     sync.RWMutex
-	lockGetState        sync.RWMutex
-	lockIsAuthenticated sync.RWMutex
-	lockPerformExchange sync.RWMutex
-	lockPutCodeVerifier sync.RWMutex
-	lockPutState        sync.RWMutex
-	lockSaveTokens      sync.RWMutex
+	lockClearAuth            sync.RWMutex
+	lockClearState           sync.RWMutex
+	lockGenerateAuthURL      sync.RWMutex
+	lockGenerateLogoutURL    sync.RWMutex
+	lockGetCodeVerifier      sync.RWMutex
+	lockGetRefreshToken      sync.RWMutex
+	lockGetReturnTo          sync.RWMutex
+	lockGetState             sync.RWMutex
+	lockGetTokenExpiry       sync.RWMutex
+	lockIsAccessTokenExpired sync.RWMutex
+	lockIsAuthenticated      sync.RWMutex
+	lockPerformExchange      sync.RWMutex
+	lockPutCodeVerifier      sync.RWMutex
+	lockPutReturnTo          sync.RWMutex
+	lockPutState             sync.RWMutex
+	lockRefreshTokens        sync.RWMutex
+}
+
+// ClearAuth calls ClearAuthFunc.
+func (mock *MoqAuthenticator) ClearAuth(ctx context.Context) {
+	if mock.ClearAuthFunc == nil {
+		panic("MoqAuthenticator.ClearAuthFunc: method is nil but Authenticator.ClearAuth was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockClearAuth.Lock()
+	mock.calls.ClearAuth = append(mock.calls.ClearAuth, callInfo)
+	mock.lockClearAuth.Unlock()
+	mock.ClearAuthFunc(ctx)
+}
+
+// ClearAuthCalls gets all the calls that were made to ClearAuth.
+// Check the length with:
+//
+//	len(mockedAuthenticator.ClearAuthCalls())
+func (mock *MoqAuthenticator) ClearAuthCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockClearAuth.RLock()
+	calls = mock.calls.ClearAuth
+	mock.lockClearAuth.RUnlock()
+	return calls
 }
 
 // ClearState calls ClearStateFunc.
-func (mock *MoqAuthenticator) ClearState(ctx context.Context, session handlers.SessionManager) {
+func (mock *MoqAuthenticator) ClearState(ctx context.Context) {
 	if mock.ClearStateFunc == nil {
 		panic("MoqAuthenticator.ClearStateFunc: method is nil but Authenticator.ClearState was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}{
-		Ctx:     ctx,
-		Session: session,
+		Ctx: ctx,
 	}
 	mock.lockClearState.Lock()
 	mock.calls.ClearState = append(mock.calls.ClearState, callInfo)
 	mock.lockClearState.Unlock()
-	mock.ClearStateFunc(ctx, session)
+	mock.ClearStateFunc(ctx)
 }
 
 // ClearStateCalls gets all the calls that were made to ClearState.
@@ -4033,12 +4065,10 @@ func (mock *MoqAuthenticator) ClearState(ctx context.Context, session handlers.S
 //
 //	len(mockedAuthenticator.ClearStateCalls())
 func (mock *MoqAuthenticator) ClearStateCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
+	Ctx context.Context
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}
 	mock.lockClearState.RLock()
 	calls = mock.calls.ClearState
@@ -4047,7 +4077,7 @@ func (mock *MoqAuthenticator) ClearStateCalls() []struct {
 }
 
 // GenerateAuthURL calls GenerateAuthURLFunc.
-func (mock *MoqAuthenticator) GenerateAuthURL(req *http.Request) (handlers.AuthURLResult, error) {
+func (mock *MoqAuthenticator) GenerateAuthURL(req *http.Request) (*auth0.AuthURLResult, error) {
 	if mock.GenerateAuthURLFunc == nil {
 		panic("MoqAuthenticator.GenerateAuthURLFunc: method is nil but Authenticator.GenerateAuthURL was just called")
 	}
@@ -4078,22 +4108,52 @@ func (mock *MoqAuthenticator) GenerateAuthURLCalls() []struct {
 	return calls
 }
 
+// GenerateLogoutURL calls GenerateLogoutURLFunc.
+func (mock *MoqAuthenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
+	if mock.GenerateLogoutURLFunc == nil {
+		panic("MoqAuthenticator.GenerateLogoutURLFunc: method is nil but Authenticator.GenerateLogoutURL was just called")
+	}
+	callInfo := struct {
+		Req *http.Request
+	}{
+		Req: req,
+	}
+	mock.lockGenerateLogoutURL.Lock()
+	mock.calls.GenerateLogoutURL = append(mock.calls.GenerateLogoutURL, callInfo)
+	mock.lockGenerateLogoutURL.Unlock()
+	return mock.GenerateLogoutURLFunc(req)
+}
+
+// GenerateLogoutURLCalls gets all the calls that were made to GenerateLogoutURL.
+// Check the length with:
+//
+//	len(mockedAuthenticator.GenerateLogoutURLCalls())
+func (mock *MoqAuthenticator) GenerateLogoutURLCalls() []struct {
+	Req *http.Request
+} {
+	var calls []struct {
+		Req *http.Request
+	}
+	mock.lockGenerateLogoutURL.RLock()
+	calls = mock.calls.GenerateLogoutURL
+	mock.lockGenerateLogoutURL.RUnlock()
+	return calls
+}
+
 // GetCodeVerifier calls GetCodeVerifierFunc.
-func (mock *MoqAuthenticator) GetCodeVerifier(ctx context.Context, session handlers.SessionManager) (string, error) {
+func (mock *MoqAuthenticator) GetCodeVerifier(ctx context.Context) (string, error) {
 	if mock.GetCodeVerifierFunc == nil {
 		panic("MoqAuthenticator.GetCodeVerifierFunc: method is nil but Authenticator.GetCodeVerifier was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}{
-		Ctx:     ctx,
-		Session: session,
+		Ctx: ctx,
 	}
 	mock.lockGetCodeVerifier.Lock()
 	mock.calls.GetCodeVerifier = append(mock.calls.GetCodeVerifier, callInfo)
 	mock.lockGetCodeVerifier.Unlock()
-	return mock.GetCodeVerifierFunc(ctx, session)
+	return mock.GetCodeVerifierFunc(ctx)
 }
 
 // GetCodeVerifierCalls gets all the calls that were made to GetCodeVerifier.
@@ -4101,12 +4161,10 @@ func (mock *MoqAuthenticator) GetCodeVerifier(ctx context.Context, session handl
 //
 //	len(mockedAuthenticator.GetCodeVerifierCalls())
 func (mock *MoqAuthenticator) GetCodeVerifierCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
+	Ctx context.Context
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}
 	mock.lockGetCodeVerifier.RLock()
 	calls = mock.calls.GetCodeVerifier
@@ -4114,22 +4172,52 @@ func (mock *MoqAuthenticator) GetCodeVerifierCalls() []struct {
 	return calls
 }
 
+// GetRefreshToken calls GetRefreshTokenFunc.
+func (mock *MoqAuthenticator) GetRefreshToken(ctx context.Context) (string, error) {
+	if mock.GetRefreshTokenFunc == nil {
+		panic("MoqAuthenticator.GetRefreshTokenFunc: method is nil but Authenticator.GetRefreshToken was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockGetRefreshToken.Lock()
+	mock.calls.GetRefreshToken = append(mock.calls.GetRefreshToken, callInfo)
+	mock.lockGetRefreshToken.Unlock()
+	return mock.GetRefreshTokenFunc(ctx)
+}
+
+// GetRefreshTokenCalls gets all the calls that were made to GetRefreshToken.
+// Check the length with:
+//
+//	len(mockedAuthenticator.GetRefreshTokenCalls())
+func (mock *MoqAuthenticator) GetRefreshTokenCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockGetRefreshToken.RLock()
+	calls = mock.calls.GetRefreshToken
+	mock.lockGetRefreshToken.RUnlock()
+	return calls
+}
+
 // GetReturnTo calls GetReturnToFunc.
-func (mock *MoqAuthenticator) GetReturnTo(ctx context.Context, session handlers.SessionManager) (string, error) {
+func (mock *MoqAuthenticator) GetReturnTo(ctx context.Context) (string, error) {
 	if mock.GetReturnToFunc == nil {
 		panic("MoqAuthenticator.GetReturnToFunc: method is nil but Authenticator.GetReturnTo was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}{
-		Ctx:     ctx,
-		Session: session,
+		Ctx: ctx,
 	}
 	mock.lockGetReturnTo.Lock()
 	mock.calls.GetReturnTo = append(mock.calls.GetReturnTo, callInfo)
 	mock.lockGetReturnTo.Unlock()
-	return mock.GetReturnToFunc(ctx, session)
+	return mock.GetReturnToFunc(ctx)
 }
 
 // GetReturnToCalls gets all the calls that were made to GetReturnTo.
@@ -4137,12 +4225,10 @@ func (mock *MoqAuthenticator) GetReturnTo(ctx context.Context, session handlers.
 //
 //	len(mockedAuthenticator.GetReturnToCalls())
 func (mock *MoqAuthenticator) GetReturnToCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
+	Ctx context.Context
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}
 	mock.lockGetReturnTo.RLock()
 	calls = mock.calls.GetReturnTo
@@ -4151,21 +4237,19 @@ func (mock *MoqAuthenticator) GetReturnToCalls() []struct {
 }
 
 // GetState calls GetStateFunc.
-func (mock *MoqAuthenticator) GetState(ctx context.Context, session handlers.SessionManager) (string, error) {
+func (mock *MoqAuthenticator) GetState(ctx context.Context) (string, error) {
 	if mock.GetStateFunc == nil {
 		panic("MoqAuthenticator.GetStateFunc: method is nil but Authenticator.GetState was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}{
-		Ctx:     ctx,
-		Session: session,
+		Ctx: ctx,
 	}
 	mock.lockGetState.Lock()
 	mock.calls.GetState = append(mock.calls.GetState, callInfo)
 	mock.lockGetState.Unlock()
-	return mock.GetStateFunc(ctx, session)
+	return mock.GetStateFunc(ctx)
 }
 
 // GetStateCalls gets all the calls that were made to GetState.
@@ -4173,12 +4257,10 @@ func (mock *MoqAuthenticator) GetState(ctx context.Context, session handlers.Ses
 //
 //	len(mockedAuthenticator.GetStateCalls())
 func (mock *MoqAuthenticator) GetStateCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
+	Ctx context.Context
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}
 	mock.lockGetState.RLock()
 	calls = mock.calls.GetState
@@ -4186,22 +4268,84 @@ func (mock *MoqAuthenticator) GetStateCalls() []struct {
 	return calls
 }
 
+// GetTokenExpiry calls GetTokenExpiryFunc.
+func (mock *MoqAuthenticator) GetTokenExpiry(ctx context.Context) (time.Time, error) {
+	if mock.GetTokenExpiryFunc == nil {
+		panic("MoqAuthenticator.GetTokenExpiryFunc: method is nil but Authenticator.GetTokenExpiry was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockGetTokenExpiry.Lock()
+	mock.calls.GetTokenExpiry = append(mock.calls.GetTokenExpiry, callInfo)
+	mock.lockGetTokenExpiry.Unlock()
+	return mock.GetTokenExpiryFunc(ctx)
+}
+
+// GetTokenExpiryCalls gets all the calls that were made to GetTokenExpiry.
+// Check the length with:
+//
+//	len(mockedAuthenticator.GetTokenExpiryCalls())
+func (mock *MoqAuthenticator) GetTokenExpiryCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockGetTokenExpiry.RLock()
+	calls = mock.calls.GetTokenExpiry
+	mock.lockGetTokenExpiry.RUnlock()
+	return calls
+}
+
+// IsAccessTokenExpired calls IsAccessTokenExpiredFunc.
+func (mock *MoqAuthenticator) IsAccessTokenExpired(ctx context.Context) bool {
+	if mock.IsAccessTokenExpiredFunc == nil {
+		panic("MoqAuthenticator.IsAccessTokenExpiredFunc: method is nil but Authenticator.IsAccessTokenExpired was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	mock.lockIsAccessTokenExpired.Lock()
+	mock.calls.IsAccessTokenExpired = append(mock.calls.IsAccessTokenExpired, callInfo)
+	mock.lockIsAccessTokenExpired.Unlock()
+	return mock.IsAccessTokenExpiredFunc(ctx)
+}
+
+// IsAccessTokenExpiredCalls gets all the calls that were made to IsAccessTokenExpired.
+// Check the length with:
+//
+//	len(mockedAuthenticator.IsAccessTokenExpiredCalls())
+func (mock *MoqAuthenticator) IsAccessTokenExpiredCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	mock.lockIsAccessTokenExpired.RLock()
+	calls = mock.calls.IsAccessTokenExpired
+	mock.lockIsAccessTokenExpired.RUnlock()
+	return calls
+}
+
 // IsAuthenticated calls IsAuthenticatedFunc.
-func (mock *MoqAuthenticator) IsAuthenticated(ctx context.Context, session handlers.SessionManager) bool {
+func (mock *MoqAuthenticator) IsAuthenticated(ctx context.Context) bool {
 	if mock.IsAuthenticatedFunc == nil {
 		panic("MoqAuthenticator.IsAuthenticatedFunc: method is nil but Authenticator.IsAuthenticated was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}{
-		Ctx:     ctx,
-		Session: session,
+		Ctx: ctx,
 	}
 	mock.lockIsAuthenticated.Lock()
 	mock.calls.IsAuthenticated = append(mock.calls.IsAuthenticated, callInfo)
 	mock.lockIsAuthenticated.Unlock()
-	return mock.IsAuthenticatedFunc(ctx, session)
+	return mock.IsAuthenticatedFunc(ctx)
 }
 
 // IsAuthenticatedCalls gets all the calls that were made to IsAuthenticated.
@@ -4209,12 +4353,10 @@ func (mock *MoqAuthenticator) IsAuthenticated(ctx context.Context, session handl
 //
 //	len(mockedAuthenticator.IsAuthenticatedCalls())
 func (mock *MoqAuthenticator) IsAuthenticatedCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
+	Ctx context.Context
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
+		Ctx context.Context
 	}
 	mock.lockIsAuthenticated.RLock()
 	calls = mock.calls.IsAuthenticated
@@ -4223,7 +4365,7 @@ func (mock *MoqAuthenticator) IsAuthenticatedCalls() []struct {
 }
 
 // PerformExchange calls PerformExchangeFunc.
-func (mock *MoqAuthenticator) PerformExchange(ctx context.Context, code string, verifier string) (*auth0.TokenResponse, *auth0.UserProfile, error) {
+func (mock *MoqAuthenticator) PerformExchange(ctx context.Context, code string, verifier string) (*models.UserProfileResponse, error) {
 	if mock.PerformExchangeFunc == nil {
 		panic("MoqAuthenticator.PerformExchangeFunc: method is nil but Authenticator.PerformExchange was just called")
 	}
@@ -4263,23 +4405,21 @@ func (mock *MoqAuthenticator) PerformExchangeCalls() []struct {
 }
 
 // PutCodeVerifier calls PutCodeVerifierFunc.
-func (mock *MoqAuthenticator) PutCodeVerifier(ctx context.Context, session handlers.SessionManager, verifier string) {
+func (mock *MoqAuthenticator) PutCodeVerifier(ctx context.Context, verifier string) {
 	if mock.PutCodeVerifierFunc == nil {
 		panic("MoqAuthenticator.PutCodeVerifierFunc: method is nil but Authenticator.PutCodeVerifier was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
-		Session  handlers.SessionManager
 		Verifier string
 	}{
 		Ctx:      ctx,
-		Session:  session,
 		Verifier: verifier,
 	}
 	mock.lockPutCodeVerifier.Lock()
 	mock.calls.PutCodeVerifier = append(mock.calls.PutCodeVerifier, callInfo)
 	mock.lockPutCodeVerifier.Unlock()
-	mock.PutCodeVerifierFunc(ctx, session, verifier)
+	mock.PutCodeVerifierFunc(ctx, verifier)
 }
 
 // PutCodeVerifierCalls gets all the calls that were made to PutCodeVerifier.
@@ -4288,12 +4428,10 @@ func (mock *MoqAuthenticator) PutCodeVerifier(ctx context.Context, session handl
 //	len(mockedAuthenticator.PutCodeVerifierCalls())
 func (mock *MoqAuthenticator) PutCodeVerifierCalls() []struct {
 	Ctx      context.Context
-	Session  handlers.SessionManager
 	Verifier string
 } {
 	var calls []struct {
 		Ctx      context.Context
-		Session  handlers.SessionManager
 		Verifier string
 	}
 	mock.lockPutCodeVerifier.RLock()
@@ -4302,24 +4440,58 @@ func (mock *MoqAuthenticator) PutCodeVerifierCalls() []struct {
 	return calls
 }
 
+// PutReturnTo calls PutReturnToFunc.
+func (mock *MoqAuthenticator) PutReturnTo(ctx context.Context, path string) {
+	if mock.PutReturnToFunc == nil {
+		panic("MoqAuthenticator.PutReturnToFunc: method is nil but Authenticator.PutReturnTo was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		Path string
+	}{
+		Ctx:  ctx,
+		Path: path,
+	}
+	mock.lockPutReturnTo.Lock()
+	mock.calls.PutReturnTo = append(mock.calls.PutReturnTo, callInfo)
+	mock.lockPutReturnTo.Unlock()
+	mock.PutReturnToFunc(ctx, path)
+}
+
+// PutReturnToCalls gets all the calls that were made to PutReturnTo.
+// Check the length with:
+//
+//	len(mockedAuthenticator.PutReturnToCalls())
+func (mock *MoqAuthenticator) PutReturnToCalls() []struct {
+	Ctx  context.Context
+	Path string
+} {
+	var calls []struct {
+		Ctx  context.Context
+		Path string
+	}
+	mock.lockPutReturnTo.RLock()
+	calls = mock.calls.PutReturnTo
+	mock.lockPutReturnTo.RUnlock()
+	return calls
+}
+
 // PutState calls PutStateFunc.
-func (mock *MoqAuthenticator) PutState(ctx context.Context, session handlers.SessionManager, state string) {
+func (mock *MoqAuthenticator) PutState(ctx context.Context, state string) {
 	if mock.PutStateFunc == nil {
 		panic("MoqAuthenticator.PutStateFunc: method is nil but Authenticator.PutState was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
-		State   string
+		Ctx   context.Context
+		State string
 	}{
-		Ctx:     ctx,
-		Session: session,
-		State:   state,
+		Ctx:   ctx,
+		State: state,
 	}
 	mock.lockPutState.Lock()
 	mock.calls.PutState = append(mock.calls.PutState, callInfo)
 	mock.lockPutState.Unlock()
-	mock.PutStateFunc(ctx, session, state)
+	mock.PutStateFunc(ctx, state)
 }
 
 // PutStateCalls gets all the calls that were made to PutState.
@@ -4327,14 +4499,12 @@ func (mock *MoqAuthenticator) PutState(ctx context.Context, session handlers.Ses
 //
 //	len(mockedAuthenticator.PutStateCalls())
 func (mock *MoqAuthenticator) PutStateCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
-	State   string
+	Ctx   context.Context
+	State string
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
-		State   string
+		Ctx   context.Context
+		State string
 	}
 	mock.lockPutState.RLock()
 	calls = mock.calls.PutState
@@ -4342,176 +4512,261 @@ func (mock *MoqAuthenticator) PutStateCalls() []struct {
 	return calls
 }
 
-// SaveTokens calls SaveTokensFunc.
-func (mock *MoqAuthenticator) SaveTokens(ctx context.Context, session handlers.SessionManager, token *auth0.TokenResponse) {
-	if mock.SaveTokensFunc == nil {
-		panic("MoqAuthenticator.SaveTokensFunc: method is nil but Authenticator.SaveTokens was just called")
+// RefreshTokens calls RefreshTokensFunc.
+func (mock *MoqAuthenticator) RefreshTokens(ctx context.Context, token string) error {
+	if mock.RefreshTokensFunc == nil {
+		panic("MoqAuthenticator.RefreshTokensFunc: method is nil but Authenticator.RefreshTokens was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
-		Token   *auth0.TokenResponse
+		Ctx   context.Context
+		Token string
 	}{
-		Ctx:     ctx,
-		Session: session,
-		Token:   token,
+		Ctx:   ctx,
+		Token: token,
 	}
-	mock.lockSaveTokens.Lock()
-	mock.calls.SaveTokens = append(mock.calls.SaveTokens, callInfo)
-	mock.lockSaveTokens.Unlock()
-	mock.SaveTokensFunc(ctx, session, token)
+	mock.lockRefreshTokens.Lock()
+	mock.calls.RefreshTokens = append(mock.calls.RefreshTokens, callInfo)
+	mock.lockRefreshTokens.Unlock()
+	return mock.RefreshTokensFunc(ctx, token)
 }
 
-// SaveTokensCalls gets all the calls that were made to SaveTokens.
+// RefreshTokensCalls gets all the calls that were made to RefreshTokens.
 // Check the length with:
 //
-//	len(mockedAuthenticator.SaveTokensCalls())
-func (mock *MoqAuthenticator) SaveTokensCalls() []struct {
-	Ctx     context.Context
-	Session handlers.SessionManager
-	Token   *auth0.TokenResponse
+//	len(mockedAuthenticator.RefreshTokensCalls())
+func (mock *MoqAuthenticator) RefreshTokensCalls() []struct {
+	Ctx   context.Context
+	Token string
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Session handlers.SessionManager
-		Token   *auth0.TokenResponse
+		Ctx   context.Context
+		Token string
 	}
-	mock.lockSaveTokens.RLock()
-	calls = mock.calls.SaveTokens
-	mock.lockSaveTokens.RUnlock()
+	mock.lockRefreshTokens.RLock()
+	calls = mock.calls.RefreshTokens
+	mock.lockRefreshTokens.RUnlock()
 	return calls
 }
 
-// Ensure that MoqAuthURLResult does implement handlers.AuthURLResult.
+// Ensure that MoqAuthManager does implement handlers.AuthManager.
 // If this is not the case, regenerate this file with mockery.
-var _ handlers.AuthURLResult = &MoqAuthURLResult{}
+var _ handlers.AuthManager = &MoqAuthManager{}
 
-// MoqAuthURLResult is a mock implementation of handlers.AuthURLResult.
+// MoqAuthManager is a mock implementation of handlers.AuthManager.
 //
-//	func TestSomethingThatUsesAuthURLResult(t *testing.T) {
+//	func TestSomethingThatUsesAuthManager(t *testing.T) {
 //
-//		// make and configure a mocked handlers.AuthURLResult
-//		mockedAuthURLResult := &MoqAuthURLResult{
-//			GetCodeVerifierFunc: func() string {
-//				panic("mock out the GetCodeVerifier method")
+//		// make and configure a mocked handlers.AuthManager
+//		mockedAuthManager := &MoqAuthManager{
+//			ChangeUserPasswordFunc: func(ctx context.Context, request *models.ChangePasswordRequest) error {
+//				panic("mock out the ChangeUserPassword method")
 //			},
-//			GetStateFunc: func() string {
-//				panic("mock out the GetState method")
+//			DeleteUserFunc: func(ctx context.Context, userID string) error {
+//				panic("mock out the DeleteUser method")
 //			},
-//			GetURLFunc: func() string {
-//				panic("mock out the GetURL method")
+//			GetUserFunc: func(ctx context.Context, userID string) (*auth0.UserData, error) {
+//				panic("mock out the GetUser method")
+//			},
+//			UpdateUserCustomisationFunc: func(ctx context.Context, request *models.EditUserRequest) error {
+//				panic("mock out the UpdateUserCustomisation method")
 //			},
 //		}
 //
-//		// use mockedAuthURLResult in code that requires handlers.AuthURLResult
+//		// use mockedAuthManager in code that requires handlers.AuthManager
 //		// and then make assertions.
 //
 //	}
-type MoqAuthURLResult struct {
-	// GetCodeVerifierFunc mocks the GetCodeVerifier method.
-	GetCodeVerifierFunc func() string
+type MoqAuthManager struct {
+	// ChangeUserPasswordFunc mocks the ChangeUserPassword method.
+	ChangeUserPasswordFunc func(ctx context.Context, request *models.ChangePasswordRequest) error
 
-	// GetStateFunc mocks the GetState method.
-	GetStateFunc func() string
+	// DeleteUserFunc mocks the DeleteUser method.
+	DeleteUserFunc func(ctx context.Context, userID string) error
 
-	// GetURLFunc mocks the GetURL method.
-	GetURLFunc func() string
+	// GetUserFunc mocks the GetUser method.
+	GetUserFunc func(ctx context.Context, userID string) (*auth0.UserData, error)
+
+	// UpdateUserCustomisationFunc mocks the UpdateUserCustomisation method.
+	UpdateUserCustomisationFunc func(ctx context.Context, request *models.EditUserRequest) error
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// GetCodeVerifier holds details about calls to the GetCodeVerifier method.
-		GetCodeVerifier []struct {
+		// ChangeUserPassword holds details about calls to the ChangeUserPassword method.
+		ChangeUserPassword []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Request is the request argument value.
+			Request *models.ChangePasswordRequest
 		}
-		// GetState holds details about calls to the GetState method.
-		GetState []struct {
+		// DeleteUser holds details about calls to the DeleteUser method.
+		DeleteUser []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserID is the userID argument value.
+			UserID string
 		}
-		// GetURL holds details about calls to the GetURL method.
-		GetURL []struct {
+		// GetUser holds details about calls to the GetUser method.
+		GetUser []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserID is the userID argument value.
+			UserID string
+		}
+		// UpdateUserCustomisation holds details about calls to the UpdateUserCustomisation method.
+		UpdateUserCustomisation []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Request is the request argument value.
+			Request *models.EditUserRequest
 		}
 	}
-	lockGetCodeVerifier sync.RWMutex
-	lockGetState        sync.RWMutex
-	lockGetURL          sync.RWMutex
+	lockChangeUserPassword      sync.RWMutex
+	lockDeleteUser              sync.RWMutex
+	lockGetUser                 sync.RWMutex
+	lockUpdateUserCustomisation sync.RWMutex
 }
 
-// GetCodeVerifier calls GetCodeVerifierFunc.
-func (mock *MoqAuthURLResult) GetCodeVerifier() string {
-	if mock.GetCodeVerifierFunc == nil {
-		panic("MoqAuthURLResult.GetCodeVerifierFunc: method is nil but AuthURLResult.GetCodeVerifier was just called")
+// ChangeUserPassword calls ChangeUserPasswordFunc.
+func (mock *MoqAuthManager) ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
+	if mock.ChangeUserPasswordFunc == nil {
+		panic("MoqAuthManager.ChangeUserPasswordFunc: method is nil but AuthManager.ChangeUserPassword was just called")
 	}
 	callInfo := struct {
-	}{}
-	mock.lockGetCodeVerifier.Lock()
-	mock.calls.GetCodeVerifier = append(mock.calls.GetCodeVerifier, callInfo)
-	mock.lockGetCodeVerifier.Unlock()
-	return mock.GetCodeVerifierFunc()
+		Ctx     context.Context
+		Request *models.ChangePasswordRequest
+	}{
+		Ctx:     ctx,
+		Request: request,
+	}
+	mock.lockChangeUserPassword.Lock()
+	mock.calls.ChangeUserPassword = append(mock.calls.ChangeUserPassword, callInfo)
+	mock.lockChangeUserPassword.Unlock()
+	return mock.ChangeUserPasswordFunc(ctx, request)
 }
 
-// GetCodeVerifierCalls gets all the calls that were made to GetCodeVerifier.
+// ChangeUserPasswordCalls gets all the calls that were made to ChangeUserPassword.
 // Check the length with:
 //
-//	len(mockedAuthURLResult.GetCodeVerifierCalls())
-func (mock *MoqAuthURLResult) GetCodeVerifierCalls() []struct {
+//	len(mockedAuthManager.ChangeUserPasswordCalls())
+func (mock *MoqAuthManager) ChangeUserPasswordCalls() []struct {
+	Ctx     context.Context
+	Request *models.ChangePasswordRequest
 } {
 	var calls []struct {
+		Ctx     context.Context
+		Request *models.ChangePasswordRequest
 	}
-	mock.lockGetCodeVerifier.RLock()
-	calls = mock.calls.GetCodeVerifier
-	mock.lockGetCodeVerifier.RUnlock()
+	mock.lockChangeUserPassword.RLock()
+	calls = mock.calls.ChangeUserPassword
+	mock.lockChangeUserPassword.RUnlock()
 	return calls
 }
 
-// GetState calls GetStateFunc.
-func (mock *MoqAuthURLResult) GetState() string {
-	if mock.GetStateFunc == nil {
-		panic("MoqAuthURLResult.GetStateFunc: method is nil but AuthURLResult.GetState was just called")
+// DeleteUser calls DeleteUserFunc.
+func (mock *MoqAuthManager) DeleteUser(ctx context.Context, userID string) error {
+	if mock.DeleteUserFunc == nil {
+		panic("MoqAuthManager.DeleteUserFunc: method is nil but AuthManager.DeleteUser was just called")
 	}
 	callInfo := struct {
-	}{}
-	mock.lockGetState.Lock()
-	mock.calls.GetState = append(mock.calls.GetState, callInfo)
-	mock.lockGetState.Unlock()
-	return mock.GetStateFunc()
+		Ctx    context.Context
+		UserID string
+	}{
+		Ctx:    ctx,
+		UserID: userID,
+	}
+	mock.lockDeleteUser.Lock()
+	mock.calls.DeleteUser = append(mock.calls.DeleteUser, callInfo)
+	mock.lockDeleteUser.Unlock()
+	return mock.DeleteUserFunc(ctx, userID)
 }
 
-// GetStateCalls gets all the calls that were made to GetState.
+// DeleteUserCalls gets all the calls that were made to DeleteUser.
 // Check the length with:
 //
-//	len(mockedAuthURLResult.GetStateCalls())
-func (mock *MoqAuthURLResult) GetStateCalls() []struct {
+//	len(mockedAuthManager.DeleteUserCalls())
+func (mock *MoqAuthManager) DeleteUserCalls() []struct {
+	Ctx    context.Context
+	UserID string
 } {
 	var calls []struct {
+		Ctx    context.Context
+		UserID string
 	}
-	mock.lockGetState.RLock()
-	calls = mock.calls.GetState
-	mock.lockGetState.RUnlock()
+	mock.lockDeleteUser.RLock()
+	calls = mock.calls.DeleteUser
+	mock.lockDeleteUser.RUnlock()
 	return calls
 }
 
-// GetURL calls GetURLFunc.
-func (mock *MoqAuthURLResult) GetURL() string {
-	if mock.GetURLFunc == nil {
-		panic("MoqAuthURLResult.GetURLFunc: method is nil but AuthURLResult.GetURL was just called")
+// GetUser calls GetUserFunc.
+func (mock *MoqAuthManager) GetUser(ctx context.Context, userID string) (*auth0.UserData, error) {
+	if mock.GetUserFunc == nil {
+		panic("MoqAuthManager.GetUserFunc: method is nil but AuthManager.GetUser was just called")
 	}
 	callInfo := struct {
-	}{}
-	mock.lockGetURL.Lock()
-	mock.calls.GetURL = append(mock.calls.GetURL, callInfo)
-	mock.lockGetURL.Unlock()
-	return mock.GetURLFunc()
+		Ctx    context.Context
+		UserID string
+	}{
+		Ctx:    ctx,
+		UserID: userID,
+	}
+	mock.lockGetUser.Lock()
+	mock.calls.GetUser = append(mock.calls.GetUser, callInfo)
+	mock.lockGetUser.Unlock()
+	return mock.GetUserFunc(ctx, userID)
 }
 
-// GetURLCalls gets all the calls that were made to GetURL.
+// GetUserCalls gets all the calls that were made to GetUser.
 // Check the length with:
 //
-//	len(mockedAuthURLResult.GetURLCalls())
-func (mock *MoqAuthURLResult) GetURLCalls() []struct {
+//	len(mockedAuthManager.GetUserCalls())
+func (mock *MoqAuthManager) GetUserCalls() []struct {
+	Ctx    context.Context
+	UserID string
 } {
 	var calls []struct {
+		Ctx    context.Context
+		UserID string
 	}
-	mock.lockGetURL.RLock()
-	calls = mock.calls.GetURL
-	mock.lockGetURL.RUnlock()
+	mock.lockGetUser.RLock()
+	calls = mock.calls.GetUser
+	mock.lockGetUser.RUnlock()
+	return calls
+}
+
+// UpdateUserCustomisation calls UpdateUserCustomisationFunc.
+func (mock *MoqAuthManager) UpdateUserCustomisation(ctx context.Context, request *models.EditUserRequest) error {
+	if mock.UpdateUserCustomisationFunc == nil {
+		panic("MoqAuthManager.UpdateUserCustomisationFunc: method is nil but AuthManager.UpdateUserCustomisation was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Request *models.EditUserRequest
+	}{
+		Ctx:     ctx,
+		Request: request,
+	}
+	mock.lockUpdateUserCustomisation.Lock()
+	mock.calls.UpdateUserCustomisation = append(mock.calls.UpdateUserCustomisation, callInfo)
+	mock.lockUpdateUserCustomisation.Unlock()
+	return mock.UpdateUserCustomisationFunc(ctx, request)
+}
+
+// UpdateUserCustomisationCalls gets all the calls that were made to UpdateUserCustomisation.
+// Check the length with:
+//
+//	len(mockedAuthManager.UpdateUserCustomisationCalls())
+func (mock *MoqAuthManager) UpdateUserCustomisationCalls() []struct {
+	Ctx     context.Context
+	Request *models.EditUserRequest
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Request *models.EditUserRequest
+	}
+	mock.lockUpdateUserCustomisation.RLock()
+	calls = mock.calls.UpdateUserCustomisation
+	mock.lockUpdateUserCustomisation.RUnlock()
 	return calls
 }
 

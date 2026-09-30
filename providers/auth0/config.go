@@ -4,12 +4,8 @@
 package auth0
 
 import (
-	"context"
 	"fmt"
 	"sync"
-
-	"github.com/auth0/go-auth0/v2/management/client"
-	"github.com/auth0/go-auth0/v2/management/option"
 
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
@@ -41,25 +37,4 @@ var loadConfigOnce = sync.OnceValue(func() error {
 		return fmt.Errorf("auth0: unable to validate config: %w", err)
 	}
 	return nil
-})
-
-// loadManagementAPI loads a connection to the Auth0 management API.
-var loadManagementAPI = sync.OnceValues(func() (*client.Management, error) {
-	if err := loadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-
-	mgmt, err := client.New(
-		cfg.MgmtDomain,
-		option.WithClientCredentials(
-			context.Background(),
-			cfg.ClientID,
-			cfg.ClientSecret,
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("new management api connection: %w", err)
-	}
-
-	return mgmt, nil
 })
