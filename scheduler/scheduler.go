@@ -134,6 +134,16 @@ func (m *Manager) Run(ctx context.Context) error {
 // InitAdminJobs loads the listed jobs into the scheduler. These are administrative jobs that should always be
 // scheduled.
 func (m *Manager) InitAdminJobs(ctx context.Context) error {
+	// Load job services if needed.
+	if jobServices := jobs.ServicesFromCtx(ctx); jobServices == nil {
+		// Store various objects in the context for access by jobs:
+		jobServices, err := m.generateJobServices(ctx)
+		if err != nil {
+			return fmt.Errorf("load job services: %w", err)
+		}
+		ctx = jobs.ServicesToCtx(ctx, jobServices)
+	}
+
 	// List of jobs to activate at startup.
 	var startupJobs = []func() (*jobs.SerializedJob, error){
 		jobs.NewGetNewFeedsJob,
@@ -210,18 +220,13 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 		)
 	}
 
-	existingJobKeys, err := m.GetJobKeys(matcher.JobGroupEquals("update_feed"))
-	if err != nil {
-		return fmt.Errorf("get job keys: %w", err)
-	}
-
 	var wg sync.WaitGroup
 
 	for feed := range slices.Values(joblessFeeds) {
 		// Add additional feed details to logs.
 		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
-		if slices.ContainsFunc(existingJobKeys, func(e *quartz.JobKey) bool {
+		if slices.ContainsFunc(jobKeys, func(e *quartz.JobKey) bool {
 			return e.Name() == feed.GetID()
 		}) {
 			slogctx.Warn(ctx, "Existing job found.")
