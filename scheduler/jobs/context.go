@@ -9,12 +9,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -61,20 +61,24 @@ type UserAPI interface {
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 }
 
+type EmailSender interface {
+	Send(ctx context.Context, options ...resend.EmailOption) error
+}
+
 type ElasticAPI interface {
 	GetIndexRO(idx service.Index) string
 	GetIndexRW(idx service.Index) string
 }
 
 type Services struct {
-	Scheduler  SchedulerAPI
-	Feeds      FeedsAPI
-	Imports    ImportAPI
-	Users      UserAPI
-	Elastic    ElasticAPI
-	ItemsCache cache.ObjectCache
-	Indexer    *bulk.Indexer
-	HttpClient *resty.Client
+	Scheduler   SchedulerAPI
+	Feeds       FeedsAPI
+	Imports     ImportAPI
+	Users       UserAPI
+	Elastic     ElasticAPI
+	ItemsCache  cache.ObjectCache
+	EmailSender EmailSender
+	Indexer     *bulk.Indexer
 }
 
 func ServicesToCtx(ctx context.Context, services *Services) context.Context {

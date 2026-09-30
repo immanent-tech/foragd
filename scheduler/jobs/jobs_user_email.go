@@ -90,7 +90,7 @@ func ExecuteUserEmail(ctx context.Context, job *SerializedJob) error {
 	if err != nil {
 		return fmt.Errorf("create new tip email %s: %w", data.EmailId, err)
 	}
-	if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+	if err := services.EmailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 		return fmt.Errorf("send tip email %s: %w", data.EmailId, err)
 	}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/go-base/config"
@@ -3169,9 +3170,6 @@ var _ handlers.UserService = &MoqUserService{}
 //			GetUserByPurchaseTokenFunc: func(ctx context.Context, token string) (*models.User, error) {
 //				panic("mock out the GetUserByPurchaseToken method")
 //			},
-//			GetUserBySubscriptionEmailFunc: func(ctx context.Context, emails ...string) (*models.User, error) {
-//				panic("mock out the GetUserBySubscriptionEmail method")
-//			},
 //			SyncUserFunc: func(res http.ResponseWriter, req *http.Request, user *models.User)  {
 //				panic("mock out the SyncUser method")
 //			},
@@ -3202,9 +3200,6 @@ type MoqUserService struct {
 
 	// GetUserByPurchaseTokenFunc mocks the GetUserByPurchaseToken method.
 	GetUserByPurchaseTokenFunc func(ctx context.Context, token string) (*models.User, error)
-
-	// GetUserBySubscriptionEmailFunc mocks the GetUserBySubscriptionEmail method.
-	GetUserBySubscriptionEmailFunc func(ctx context.Context, emails ...string) (*models.User, error)
 
 	// SyncUserFunc mocks the SyncUser method.
 	SyncUserFunc func(res http.ResponseWriter, req *http.Request, user *models.User)
@@ -3256,13 +3251,6 @@ type MoqUserService struct {
 			// Token is the token argument value.
 			Token string
 		}
-		// GetUserBySubscriptionEmail holds details about calls to the GetUserBySubscriptionEmail method.
-		GetUserBySubscriptionEmail []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Emails is the emails argument value.
-			Emails []string
-		}
 		// SyncUser holds details about calls to the SyncUser method.
 		SyncUser []struct {
 			// Res is the res argument value.
@@ -3282,15 +3270,14 @@ type MoqUserService struct {
 			Updates map[string]any
 		}
 	}
-	lockAddUser                    sync.RWMutex
-	lockDeleteUser                 sync.RWMutex
-	lockGetUserByCustomerID        sync.RWMutex
-	lockGetUserByEmail             sync.RWMutex
-	lockGetUserByExternalID        sync.RWMutex
-	lockGetUserByPurchaseToken     sync.RWMutex
-	lockGetUserBySubscriptionEmail sync.RWMutex
-	lockSyncUser                   sync.RWMutex
-	lockUpdateUser                 sync.RWMutex
+	lockAddUser                sync.RWMutex
+	lockDeleteUser             sync.RWMutex
+	lockGetUserByCustomerID    sync.RWMutex
+	lockGetUserByEmail         sync.RWMutex
+	lockGetUserByExternalID    sync.RWMutex
+	lockGetUserByPurchaseToken sync.RWMutex
+	lockSyncUser               sync.RWMutex
+	lockUpdateUser             sync.RWMutex
 }
 
 // AddUser calls AddUserFunc.
@@ -3506,42 +3493,6 @@ func (mock *MoqUserService) GetUserByPurchaseTokenCalls() []struct {
 	mock.lockGetUserByPurchaseToken.RLock()
 	calls = mock.calls.GetUserByPurchaseToken
 	mock.lockGetUserByPurchaseToken.RUnlock()
-	return calls
-}
-
-// GetUserBySubscriptionEmail calls GetUserBySubscriptionEmailFunc.
-func (mock *MoqUserService) GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*models.User, error) {
-	if mock.GetUserBySubscriptionEmailFunc == nil {
-		panic("MoqUserService.GetUserBySubscriptionEmailFunc: method is nil but UserService.GetUserBySubscriptionEmail was just called")
-	}
-	callInfo := struct {
-		Ctx    context.Context
-		Emails []string
-	}{
-		Ctx:    ctx,
-		Emails: emails,
-	}
-	mock.lockGetUserBySubscriptionEmail.Lock()
-	mock.calls.GetUserBySubscriptionEmail = append(mock.calls.GetUserBySubscriptionEmail, callInfo)
-	mock.lockGetUserBySubscriptionEmail.Unlock()
-	return mock.GetUserBySubscriptionEmailFunc(ctx, emails...)
-}
-
-// GetUserBySubscriptionEmailCalls gets all the calls that were made to GetUserBySubscriptionEmail.
-// Check the length with:
-//
-//	len(mockedUserService.GetUserBySubscriptionEmailCalls())
-func (mock *MoqUserService) GetUserBySubscriptionEmailCalls() []struct {
-	Ctx    context.Context
-	Emails []string
-} {
-	var calls []struct {
-		Ctx    context.Context
-		Emails []string
-	}
-	mock.lockGetUserBySubscriptionEmail.RLock()
-	calls = mock.calls.GetUserBySubscriptionEmail
-	mock.lockGetUserBySubscriptionEmail.RUnlock()
 	return calls
 }
 
@@ -4802,6 +4753,78 @@ func (mock *MoqImporter) StartImportCalls() []struct {
 	return calls
 }
 
+// Ensure that MoqEmailSender does implement handlers.EmailSender.
+// If this is not the case, regenerate this file with mockery.
+var _ handlers.EmailSender = &MoqEmailSender{}
+
+// MoqEmailSender is a mock implementation of handlers.EmailSender.
+//
+//	func TestSomethingThatUsesEmailSender(t *testing.T) {
+//
+//		// make and configure a mocked handlers.EmailSender
+//		mockedEmailSender := &MoqEmailSender{
+//			SendFunc: func(ctx context.Context, options ...resend.EmailOption) error {
+//				panic("mock out the Send method")
+//			},
+//		}
+//
+//		// use mockedEmailSender in code that requires handlers.EmailSender
+//		// and then make assertions.
+//
+//	}
+type MoqEmailSender struct {
+	// SendFunc mocks the Send method.
+	SendFunc func(ctx context.Context, options ...resend.EmailOption) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// Send holds details about calls to the Send method.
+		Send []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Options is the options argument value.
+			Options []resend.EmailOption
+		}
+	}
+	lockSend sync.RWMutex
+}
+
+// Send calls SendFunc.
+func (mock *MoqEmailSender) Send(ctx context.Context, options ...resend.EmailOption) error {
+	if mock.SendFunc == nil {
+		panic("MoqEmailSender.SendFunc: method is nil but EmailSender.Send was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Options []resend.EmailOption
+	}{
+		Ctx:     ctx,
+		Options: options,
+	}
+	mock.lockSend.Lock()
+	mock.calls.Send = append(mock.calls.Send, callInfo)
+	mock.lockSend.Unlock()
+	return mock.SendFunc(ctx, options...)
+}
+
+// SendCalls gets all the calls that were made to Send.
+// Check the length with:
+//
+//	len(mockedEmailSender.SendCalls())
+func (mock *MoqEmailSender) SendCalls() []struct {
+	Ctx     context.Context
+	Options []resend.EmailOption
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Options []resend.EmailOption
+	}
+	mock.lockSend.RLock()
+	calls = mock.calls.Send
+	mock.lockSend.RUnlock()
+	return calls
+}
+
 // Ensure that MoqFileUpload does implement handlers.FileUpload.
 // If this is not the case, regenerate this file with mockery.
 var _ handlers.FileUpload = &MoqFileUpload{}
@@ -5287,5 +5310,149 @@ func (mock *MoqExternalPage) FullResponseCalls() []struct {
 	mock.lockFullResponse.RLock()
 	calls = mock.calls.FullResponse
 	mock.lockFullResponse.RUnlock()
+	return calls
+}
+
+// Ensure that MoqWebhookVerifier does implement handlers.WebhookVerifier.
+// If this is not the case, regenerate this file with mockery.
+var _ handlers.WebhookVerifier = &MoqWebhookVerifier{}
+
+// MoqWebhookVerifier is a mock implementation of handlers.WebhookVerifier.
+//
+//	func TestSomethingThatUsesWebhookVerifier(t *testing.T) {
+//
+//		// make and configure a mocked handlers.WebhookVerifier
+//		mockedWebhookVerifier := &MoqWebhookVerifier{
+//			VerifyFunc: func(req *http.Request, body []byte) error {
+//				panic("mock out the Verify method")
+//			},
+//		}
+//
+//		// use mockedWebhookVerifier in code that requires handlers.WebhookVerifier
+//		// and then make assertions.
+//
+//	}
+type MoqWebhookVerifier struct {
+	// VerifyFunc mocks the Verify method.
+	VerifyFunc func(req *http.Request, body []byte) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// Verify holds details about calls to the Verify method.
+		Verify []struct {
+			// Req is the req argument value.
+			Req *http.Request
+			// Body is the body argument value.
+			Body []byte
+		}
+	}
+	lockVerify sync.RWMutex
+}
+
+// Verify calls VerifyFunc.
+func (mock *MoqWebhookVerifier) Verify(req *http.Request, body []byte) error {
+	if mock.VerifyFunc == nil {
+		panic("MoqWebhookVerifier.VerifyFunc: method is nil but WebhookVerifier.Verify was just called")
+	}
+	callInfo := struct {
+		Req  *http.Request
+		Body []byte
+	}{
+		Req:  req,
+		Body: body,
+	}
+	mock.lockVerify.Lock()
+	mock.calls.Verify = append(mock.calls.Verify, callInfo)
+	mock.lockVerify.Unlock()
+	return mock.VerifyFunc(req, body)
+}
+
+// VerifyCalls gets all the calls that were made to Verify.
+// Check the length with:
+//
+//	len(mockedWebhookVerifier.VerifyCalls())
+func (mock *MoqWebhookVerifier) VerifyCalls() []struct {
+	Req  *http.Request
+	Body []byte
+} {
+	var calls []struct {
+		Req  *http.Request
+		Body []byte
+	}
+	mock.lockVerify.RLock()
+	calls = mock.calls.Verify
+	mock.lockVerify.RUnlock()
+	return calls
+}
+
+// Ensure that MoqEmailReceiver does implement handlers.EmailReceiver.
+// If this is not the case, regenerate this file with mockery.
+var _ handlers.EmailReceiver = &MoqEmailReceiver{}
+
+// MoqEmailReceiver is a mock implementation of handlers.EmailReceiver.
+//
+//	func TestSomethingThatUsesEmailReceiver(t *testing.T) {
+//
+//		// make and configure a mocked handlers.EmailReceiver
+//		mockedEmailReceiver := &MoqEmailReceiver{
+//			ProcessFunc: func(ctx context.Context, details resend.EmailRecieved) error {
+//				panic("mock out the Process method")
+//			},
+//		}
+//
+//		// use mockedEmailReceiver in code that requires handlers.EmailReceiver
+//		// and then make assertions.
+//
+//	}
+type MoqEmailReceiver struct {
+	// ProcessFunc mocks the Process method.
+	ProcessFunc func(ctx context.Context, details resend.EmailRecieved) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// Process holds details about calls to the Process method.
+		Process []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Details is the details argument value.
+			Details resend.EmailRecieved
+		}
+	}
+	lockProcess sync.RWMutex
+}
+
+// Process calls ProcessFunc.
+func (mock *MoqEmailReceiver) Process(ctx context.Context, details resend.EmailRecieved) error {
+	if mock.ProcessFunc == nil {
+		panic("MoqEmailReceiver.ProcessFunc: method is nil but EmailReceiver.Process was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Details resend.EmailRecieved
+	}{
+		Ctx:     ctx,
+		Details: details,
+	}
+	mock.lockProcess.Lock()
+	mock.calls.Process = append(mock.calls.Process, callInfo)
+	mock.lockProcess.Unlock()
+	return mock.ProcessFunc(ctx, details)
+}
+
+// ProcessCalls gets all the calls that were made to Process.
+// Check the length with:
+//
+//	len(mockedEmailReceiver.ProcessCalls())
+func (mock *MoqEmailReceiver) ProcessCalls() []struct {
+	Ctx     context.Context
+	Details resend.EmailRecieved
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Details resend.EmailRecieved
+	}
+	mock.lockProcess.RLock()
+	calls = mock.calls.Process
+	mock.lockProcess.RUnlock()
 	return calls
 }

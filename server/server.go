@@ -112,7 +112,7 @@ func Start() error {
 		return fmt.Errorf("load import service: %w", err)
 	}
 
-	resendProcesser := resend.NewReceivedEmailProcessor(
+	resendProcesser := resend.NewReceiver(
 		subscriptionSvc,
 		userSvc,
 		itemSvc,
@@ -142,6 +142,11 @@ func Start() error {
 	authenticator, err := auth0.LoadAuthenticator()
 	if err != nil {
 		return fmt.Errorf("load authenticator: %w", err)
+	}
+
+	emailSender, err := resend.NewSender()
+	if err != nil {
+		return fmt.Errorf("load email sender: %w", err)
 	}
 
 	breadcrumbs := breadcrumbs.New(sessionManager)
@@ -216,7 +221,7 @@ func Start() error {
 	// Handle incoming webhooks from Resend
 	router.Post("/mail/webhooks", handlers.HandleResendWebhook(resendVerifier, resendProcesser))
 	// Handle incoming webhooks from Paddle.
-	router.Post("/webhooks/paddle", handlers.HandlePaddleWebhook(userSvc))
+	router.Post("/webhooks/paddle", handlers.HandlePaddleWebhook(userSvc, emailSender))
 	// Handle incoming Google Play Real Time Developer Notifications.
 	router.Post("/webhooks/googleplay", android.HandleRTDN(appCfg, userSvc))
 
@@ -237,11 +242,11 @@ func Start() error {
 		// Contact.
 		r.Route("/contact", func(r chi.Router) {
 			r.Get("/", handlerMgr.HandleContact())
-			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitContact())
+			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitContact(emailSender))
 		})
 		r.Route("/forget-me", func(r chi.Router) {
 			r.Get("/", handlerMgr.HandleForgetMe())
-			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitContact())
+			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitContact(emailSender))
 		})
 		// Feed Viewer.
 		r.Route("/viewer", func(r chi.Router) {
@@ -276,7 +281,7 @@ func Start() error {
 			r.Get("/signup", handlerMgr.HandleLogin(authenticator))
 			r.Route("/login", func(r chi.Router) {
 				r.Get("/", handlerMgr.HandleLogin(authenticator))
-				r.Get("/callback", handlerMgr.HandleLoginCallback(userSvc, authenticator))
+				r.Get("/callback", handlerMgr.HandleLoginCallback(userSvc, authenticator, emailSender))
 				r.Get("/error", handlerMgr.HandleLoginError)
 			})
 			r.Get("/logout", handlerMgr.HandleLogout(authenticator))
@@ -306,7 +311,7 @@ func Start() error {
 			breadcrumbs.Recorder,
 			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager),
 			middlewares.RequireValidUser,
-			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
+			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc, emailSender),
 			middlewares.NoCache,
 			handlerMgr.CustomisationCtx,
 		)
@@ -468,7 +473,7 @@ func Start() error {
 		// Issues.
 		r.Route("/issue", func(r chi.Router) {
 			r.Get("/", handlerMgr.HandleReportIssue())
-			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitIssue(imgCache))
+			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubmitIssue(imgCache, emailSender))
 		})
 		// Help/Documentation.
 		r.Get("/docs", handlerMgr.DocumentationHandler("/docs"))
@@ -482,7 +487,7 @@ func Start() error {
 		})
 		// Import
 		r.Route("/import", func(r chi.Router) {
-			r.Get("/", handlerMgr.HandleSetupImport(subscriptionSvc, userSvc))
+			r.Get("/", handlerMgr.HandleSetupImport(subscriptionSvc, userSvc, emailSender))
 			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleStartImport(importSvc))
 			r.Route("/status", func(r chi.Router) {
 				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
@@ -523,7 +528,7 @@ func Start() error {
 				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlerMgr.HandleGenerateSubscriptionEmail(userSvc))
 			})
 			r.With(htmx.RequireHTMX).
-				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authenticator))
+				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authenticator, emailSender))
 		})
 
 		// Moved routes.

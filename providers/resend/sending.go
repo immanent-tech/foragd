@@ -189,13 +189,23 @@ func WithExistingEmail(data *Email) EmailOption {
 	}
 }
 
-// SendEmail sends the given email.
-func SendEmail(ctx context.Context, options ...EmailOption) error {
+// Sender handles sending emails.
+type Sender struct {
+	*Client
+}
+
+func NewSender() (*Sender, error) {
 	client, err := loadClient()
 	if err != nil {
-		return fmt.Errorf("load client: %w", err)
+		return nil, fmt.Errorf("load client: %w", err)
 	}
+	return &Sender{
+		Client: client,
+	}, nil
+}
 
+// Send sends the given email.
+func (s *Sender) Send(ctx context.Context, options ...EmailOption) error {
 	email := &Email{
 		Email:    &resend.Email{},
 		template: &resend.EmailTemplate{},
@@ -213,7 +223,7 @@ func SendEmail(ctx context.Context, options ...EmailOption) error {
 		return fmt.Errorf("create email request: %w", err)
 	}
 
-	_, err = client.Emails.SendWithContext(ctx, req)
+	_, err = s.Emails.SendWithContext(ctx, req)
 	if err != nil {
 		return fmt.Errorf("send email: %w", err)
 	}
@@ -225,13 +235,8 @@ func SendEmail(ctx context.Context, options ...EmailOption) error {
 	return nil
 }
 
-// BatchSendEmails sends the given emails in a batch request.
-func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, error) {
-	client, err := loadClient()
-	if err != nil {
-		return nil, fmt.Errorf("load client: %w", err)
-	}
-
+// BatchSend sends the given emails in a batch request.
+func (s *Sender) BatchSend(ctx context.Context, emails ...*Email) (BatchSendResponse, error) {
 	const maxBatchSize = 100
 	resp := make(BatchSendResponse, 0, len(emails))
 
@@ -254,7 +259,7 @@ func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, 
 
 		batchResp, err := backoff.Retry(
 			context.TODO(),
-			batchOperation(ctx, client, batch),
+			s.batchOperation(ctx, batch),
 			backoff.WithBackOff(backoff.NewExponentialBackOff()),
 		)
 		if err != nil {
@@ -290,14 +295,13 @@ func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, 
 	return resp, nil
 }
 
-func batchOperation(
+func (s *Sender) batchOperation(
 	ctx context.Context,
-	client *Client,
 	batch []*resend.SendEmailRequest,
 ) func() (*resend.BatchEmailResponse, error) {
 	return func() (*resend.BatchEmailResponse, error) {
 		// Send batch.
-		resp, err := client.Batch.SendWithOptions(
+		resp, err := s.Batch.SendWithOptions(
 			ctx,
 			batch,
 			&resend.BatchSendEmailOptions{BatchValidation: resend.BatchValidationPermissive},

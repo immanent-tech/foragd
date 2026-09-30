@@ -181,21 +181,24 @@ type ItemService interface {
 // SubscriptionFactory wraps service.NewEmailSubscription.
 type SubscriptionFactory func(ctx context.Context, userID string, from *mail.Address) (*models.Subscription, error)
 
-type Processor struct {
+// Receiver handles received emails.
+type Receiver struct {
 	subs   SubscriptionsService
 	users  UserService
 	items  ItemService
 	newSub SubscriptionFactory
 }
 
-func NewReceivedEmailProcessor(
+func NewReceiver(
 	subs SubscriptionsService, users UserService, items ItemService,
 	newSub SubscriptionFactory,
-) *Processor {
-	return &Processor{subs, users, items, newSub}
+) *Receiver {
+	return &Receiver{subs, users, items, newSub}
 }
 
-func (p *Processor) ProcessReceived(ctx context.Context, details EmailRecieved) error {
+// Process processes the received email. It forwards admin emails or handles adding articles/creating subscriptions for
+// a user.
+func (p *Receiver) Process(ctx context.Context, details EmailRecieved) error {
 	user, err := p.users.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
@@ -257,7 +260,7 @@ func (p *Processor) ProcessReceived(ctx context.Context, details EmailRecieved) 
 	return nil
 }
 
-func (p *Processor) handleNonUser(ctx context.Context, details *EmailRecieved) error {
+func (p *Receiver) handleNonUser(ctx context.Context, details *EmailRecieved) error {
 	valid, err := IsValidReplyTo(details.To)
 	if !valid {
 		return fmt.Errorf("check valid reply to: %w", err)

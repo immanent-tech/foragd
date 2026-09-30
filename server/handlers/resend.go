@@ -22,13 +22,13 @@ type WebhookVerifier interface {
 	Verify(req *http.Request, body []byte) error
 }
 
-// EmailProcessor handles a verified email.received event.
-type EmailProcessor interface {
-	ProcessReceived(ctx context.Context, details resend.EmailRecieved) error
+// EmailReceiver handles a verified email.received event.
+type EmailReceiver interface {
+	Process(ctx context.Context, details resend.EmailRecieved) error
 }
 
 // HandleResendWebhook will handle incoming webhook requests from Resend.
-func HandleResendWebhook(verifier WebhookVerifier, processor EmailProcessor) http.HandlerFunc {
+func HandleResendWebhook(verifier WebhookVerifier, processor EmailReceiver) http.HandlerFunc {
 	const maxBodyBytes = int64(65536)
 	return func(res http.ResponseWriter, req *http.Request) {
 		log := slogctx.FromCtx(req.Context())
@@ -81,7 +81,7 @@ func HandleResendWebhook(verifier WebhookVerifier, processor EmailProcessor) htt
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			if err := processor.ProcessReceived(req.Context(), details); err != nil {
+			if err := processor.Process(req.Context(), details); err != nil {
 				log.Error("Error occurred processing received email.", slog.Any("error", err))
 				res.WriteHeader(http.StatusOK)
 				return

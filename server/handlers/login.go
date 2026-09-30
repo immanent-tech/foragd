@@ -79,6 +79,7 @@ func (m *Manager) HandleLogin(authenticator *auth0.Authenticator) http.HandlerFu
 func (m *Manager) HandleLoginCallback(
 	userSvc UserService,
 	authenticator *auth0.Authenticator,
+	emailSender EmailSender,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check for errors returned by Auth0.
@@ -180,7 +181,7 @@ func (m *Manager) HandleLoginCallback(
 				}).ServeHTTP(res, req)
 				return
 			}
-			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+			if err := emailSender.Send(req.Context(), resend.WithExistingEmail(email)); err != nil {
 				m.HandleExternalError(&models.APIError{
 					InternalError: fmt.Errorf("send welcome email: %w", err),
 					StatusCode:    http.StatusInternalServerError,

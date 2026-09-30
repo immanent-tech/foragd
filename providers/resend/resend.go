@@ -80,7 +80,7 @@ var loadClient = sync.OnceValues(func() (*Client, error) {
 
 // Verifier handles verification of incoming webhook data.
 type Verifier struct {
-	client *Client
+	*Client
 }
 
 func NewVerifier() (*Verifier, error) {
@@ -89,7 +89,7 @@ func NewVerifier() (*Verifier, error) {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
 	return &Verifier{
-		client: client,
+		Client: client,
 	}, nil
 }
 
@@ -103,10 +103,10 @@ func (v *Verifier) Verify(req *http.Request, body []byte) error {
 	}
 
 	// Verify the webhook.
-	if err := v.client.Webhooks.Verify(&resend.VerifyWebhookOptions{
+	if err := v.Webhooks.Verify(&resend.VerifyWebhookOptions{
 		Payload:       string(body),
 		Headers:       headers,
-		WebhookSecret: v.client.Config.WebHookSecret,
+		WebhookSecret: v.Config.WebHookSecret,
 	}); err != nil {
 		return fmt.Errorf("verfication failed: %w", err)
 	}

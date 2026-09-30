@@ -40,7 +40,7 @@ type Webhook struct {
 	RawBody   []byte                           `json:"-"`
 }
 
-func HandleWebhook(ctx context.Context, userSvc UserService, webhook Webhook) {
+func HandleWebhook(ctx context.Context, userSvc UserService, sender EmailSender, webhook Webhook) {
 	ctx = slogctx.With(ctx, "event_id", webhook.EventID)
 	ctx = slogctx.With(ctx, "event_type", webhook.EventType)
 
@@ -264,7 +264,7 @@ func HandleWebhook(ctx context.Context, userSvc UserService, webhook Webhook) {
 			)
 			return
 		}
-		if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+		if err := sender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 			slogctx.FromCtx(ctx).Error("Unable to send thank you email.",
 				slog.Any("error", err),
 			)

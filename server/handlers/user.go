@@ -491,6 +491,7 @@ func (m *Manager) HandleChangePassword() http.HandlerFunc {
 func (m *Manager) HandleDeactivateAccount(
 	users UserService,
 	auth *auth0.Authenticator,
+	emailSender EmailSender,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, err := parseForm[*models.DeactivationRequest](req)
@@ -534,7 +535,7 @@ func (m *Manager) HandleDeactivateAccount(
 					bodyBuilder.WriteRune('\n')
 				}
 
-				if err := resend.SendEmail(req.Context(),
+				if err := emailSender.Send(req.Context(),
 					resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
 					resend.WithReplyTo[*resend.Email](user.GetEmail()),
 					resend.WithTo("support@immanent.tech"),
@@ -584,7 +585,7 @@ func (m *Manager) HandleDeactivateAccount(
 						slog.Any("error", err),
 					)
 				}
-				if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
+				if err := emailSender.Send(req.Context(), resend.WithExistingEmail(email)); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
 						slog.String("user_id", user.GetID()),
 						slog.Any("error", err),
@@ -976,6 +977,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 func (m *Manager) ValidateSubscriptionLimits(
 	users UserService,
 	subscriptions SubscriptionsService,
+	emailSender EmailSender,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1077,7 +1079,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}
-				if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+				if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}
@@ -1113,7 +1115,7 @@ func (m *Manager) ValidateSubscriptionLimits(
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}
-				if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
+				if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 					slogctx.Error(ctx, "Unable to send account limit email.",
 						slog.Any("error", err))
 				}

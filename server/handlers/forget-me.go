@@ -51,7 +51,7 @@ func (m *Manager) HandleForgetMe() http.HandlerFunc {
 	})
 }
 
-func (m *Manager) HandleSubmitForgetMe() http.HandlerFunc {
+func (m *Manager) HandleSubmitForgetMe(emailSender EmailSender) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		contact, err := mail.ParseAddress(req.FormValue("contact_email"))
 		if err != nil {
@@ -72,7 +72,7 @@ func (m *Manager) HandleSubmitForgetMe() http.HandlerFunc {
 		bodyBuilder.WriteString(contact.String())
 		bodyBuilder.WriteRune('\n')
 
-		if err := resend.SendEmail(req.Context(),
+		if err := emailSender.Send(req.Context(),
 			resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
 			resend.WithReplyTo[*resend.Email](contact.Address),
 			resend.WithTo("privacy@immanent.tech"),

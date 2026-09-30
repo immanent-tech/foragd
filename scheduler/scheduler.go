@@ -29,6 +29,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 	"github.com/immanent-tech/foragd/server/cache"
@@ -276,13 +277,19 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		return nil, fmt.Errorf("load import service: %w", err)
 	}
 
+	emailSender, err := resend.NewSender()
+	if err != nil {
+		return nil, fmt.Errorf("load email sender service: %w", err)
+	}
+
 	return &jobs.Services{
-		Scheduler:  m,
-		Elastic:    m.store,
-		Feeds:      feedSvc,
-		Imports:    importSvc,
-		Users:      userSvc,
-		ItemsCache: itemsCache,
-		Indexer:    indexer,
+		Scheduler:   m,
+		Elastic:     m.store,
+		Feeds:       feedSvc,
+		Imports:     importSvc,
+		Users:       userSvc,
+		ItemsCache:  itemsCache,
+		Indexer:     indexer,
+		EmailSender: emailSender,
 	}, nil
 }

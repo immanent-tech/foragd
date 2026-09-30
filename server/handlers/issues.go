@@ -91,7 +91,7 @@ func (m *Manager) HandleReportIssue() http.HandlerFunc {
 }
 
 // HandleSubmitIssue handles processing the user submitted subscription issues form.
-func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
+func (m *Manager) HandleSubmitIssue(cache ImageCache, emailSender EmailSender) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ReportIssueRequest](req)
@@ -149,7 +149,7 @@ func (m *Manager) HandleSubmitIssue(cache ImageCache) http.HandlerFunc {
 			bodyBuilder.WriteRune('\n')
 		}
 
-		if err := resend.SendEmail(req.Context(),
+		if err := emailSender.Send(req.Context(),
 			resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
 			resend.WithReplyTo[*resend.Email](request.UserEmail),
 			resend.WithTo("support@immanent.tech"),

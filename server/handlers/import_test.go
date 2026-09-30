@@ -24,11 +24,12 @@ import (
 
 func TestManager_HandleSetupImport(t *testing.T) {
 	tests := []struct {
-		name     string
-		subSvc   handlers.SubscriptionsService
-		userSvc  handlers.UserService
-		ctxSetup func(ctx context.Context) context.Context
-		want     int
+		name        string
+		subSvc      handlers.SubscriptionsService
+		userSvc     handlers.UserService
+		emailSender handlers.EmailSender
+		ctxSetup    func(ctx context.Context) context.Context
+		want        int
 	}{
 		{
 			name: "ok",
@@ -52,7 +53,7 @@ func TestManager_HandleSetupImport(t *testing.T) {
 			rec := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, "/import", nil)
 
-			mgr.HandleSetupImport(tt.subSvc, tt.userSvc)(rec, req.WithContext(ctx))
+			mgr.HandleSetupImport(tt.subSvc, tt.userSvc, tt.emailSender)(rec, req.WithContext(ctx))
 
 			if rec.Code != tt.want {
 				t.Fatalf("got status %d, want %d", rec.Code, tt.want)

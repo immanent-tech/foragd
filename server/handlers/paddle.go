@@ -18,7 +18,7 @@ import (
 )
 
 // HandlePaddleWebhook handles incoming webhooks from paddle.
-func HandlePaddleWebhook(userSvc UserService) http.HandlerFunc {
+func HandlePaddleWebhook(userSvc UserService, emailSender EmailSender) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 
 		verifier, err := paddle.NewWebhookClient()
@@ -67,7 +67,7 @@ func HandlePaddleWebhook(userSvc UserService) http.HandlerFunc {
 		}
 		webhook.RawBody = body
 
-		paddle.HandleWebhook(req.Context(), userSvc, webhook)
+		paddle.HandleWebhook(req.Context(), userSvc, emailSender, webhook)
 
 		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusOK)

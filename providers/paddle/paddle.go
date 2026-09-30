@@ -16,6 +16,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/resend"
 )
 
 const (
@@ -126,4 +127,8 @@ type UserService interface {
 	GetUserByCustomerID(ctx context.Context, id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User, updates map[string]any) error
+}
+
+type EmailSender interface {
+	Send(ctx context.Context, options ...resend.EmailOption) error
 }

@@ -52,7 +52,7 @@ func (m *Manager) HandleContact() http.HandlerFunc {
 	})
 }
 
-func (m *Manager) HandleSubmitContact() http.HandlerFunc {
+func (m *Manager) HandleSubmitContact(emailSender EmailSender) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, err := parseMultipartForm[*models.ContactRequest](req)
@@ -71,7 +71,7 @@ func (m *Manager) HandleSubmitContact() http.HandlerFunc {
 		bodyBuilder.WriteString(request.Details)
 		bodyBuilder.WriteRune('\n')
 
-		if err := resend.SendEmail(req.Context(),
+		if err := emailSender.Send(req.Context(),
 			resend.WithFrom[*resend.Email]("no-reply@foragd.app"),
 			resend.WithReplyTo[*resend.Email](request.ContactEmail),
 			resend.WithTo("support@immanent.tech"),

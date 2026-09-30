@@ -27,6 +27,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -179,6 +180,10 @@ type Importer interface {
 	StartImport(ctx context.Context, file *models.OPMLFile) (string, error)
 	GetImportStatus(ctx context.Context, jobID string) (*models.ImportStatus, []*models.ImportResult, error)
 	GetAllImports(ctx context.Context, userID models.UserID) ([]*models.ImportStatus, error)
+}
+
+type EmailSender interface {
+	Send(ctx context.Context, options ...resend.EmailOption) error
 }
 
 // Manager contains the common interfaces that nearly all handlers require access to.

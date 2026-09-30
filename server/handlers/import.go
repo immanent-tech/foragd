@@ -43,8 +43,12 @@ func (h *ImportSubscriptions) PartialResponse(res http.ResponseWriter, req *http
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 }
 
-func (m *Manager) HandleSetupImport(subSvc SubscriptionsService, userSvc UserService) http.HandlerFunc {
-	return m.ValidateSubscriptionLimits(userSvc, subSvc)(
+func (m *Manager) HandleSetupImport(
+	subSvc SubscriptionsService,
+	userSvc UserService,
+	emailSender EmailSender,
+) http.HandlerFunc {
+	return m.ValidateSubscriptionLimits(userSvc, subSvc, emailSender)(
 		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			user := models.UserFromCtx(req.Context())
 			if user == nil {

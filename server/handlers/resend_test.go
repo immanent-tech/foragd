@@ -27,7 +27,7 @@ type fakeProcessor struct {
 	called bool
 }
 
-func (f *fakeProcessor) ProcessReceived(_ context.Context, d resend.EmailRecieved) error {
+func (f *fakeProcessor) Process(_ context.Context, d resend.EmailRecieved) error {
 	f.called, f.got = true, d
 	return f.err
 }
