@@ -93,7 +93,6 @@ templ UserSettings() {
 							hx-get="/user/settings/display"
 							hx-trigger="load, settings-display-revealed"
 							hx-indicator="#tabs-loading"
-							hx-disinherit="*"
 							data-script="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'display'
@@ -124,7 +123,6 @@ templ UserSettings() {
 							hx-get="/user/settings/account"
 							hx-trigger="settings-account-revealed"
 							hx-indicator="#tabs-loading"
-							hx-disinherit="*"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'account'
@@ -156,7 +154,6 @@ templ UserSettings() {
 							hx-get="/user/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
 							hx-indicator="#tabs-loading"
-							hx-disinherit="*"
 							data-script="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'subscriptions'
@@ -418,7 +415,7 @@ templ AccountSettings(user *models.User) {
 								<button
 									hx-encoding="multipart/form-data"
 									hx-post="/user/settings/account"
-									hx-disabled-elt="this"
+									hx-disable="this"
 									hx-swap="none"
 									type="submit"
 									class="group btn btn-primary"
@@ -455,7 +452,7 @@ templ AccountSettings(user *models.User) {
 								class="group btn btn-primary"
 								hx-post="/user/settings/password"
 								hx-swap="none"
-								hx-disabled-elt="this"
+								hx-disable="this"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
@@ -479,7 +476,7 @@ templ AccountSettings(user *models.User) {
 							<button
 								hx-post="/user/settings/subscriptionemail"
 								hx-target="#subscription-email"
-								hx-swap="morph:innerHTML transition:true"
+								hx-swap="innerMorph transition:true"
 								class="group btn btn-primary"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -516,7 +513,7 @@ templ AccountSettings(user *models.User) {
 										hx-post="/user/deactivate"
 										hx-target={ ModalContainerID.Target() }
 										hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
-										hx-disabled-elt="this"
+										hx-disable="this"
 										type="submit"
 										class="btn btn-error"
 									>
@@ -543,7 +540,7 @@ templ AccountSettings(user *models.User) {
 												hx-post="/user/deactivate"
 												hx-target={ ModalContainerID.Target() }
 												hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
-												hx-disabled-elt="this"
+												hx-disable="this"
 												type="submit"
 												class="btn btn-error"
 											>
@@ -601,7 +598,7 @@ templ DisplaySettings(user *models.User, session SessionManager) {
 						hx-post="/user/settings/display"
 						hx-swap="none"
 						hx-include="#theme-settings"
-						hx-disabled-elt="find button[type='submit']"
+						hx-disable="find button[type='submit']"
 						class="group"
 					>
 						<label class="fieldset py-4">
@@ -1208,7 +1205,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												<button
 													hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 													hx-target={ ContentID.Target() }
-													hx-swap="morph:innerHTML show:top transition:true"
+													hx-swap="innerMorph show:top transition:true"
 													hx-trigger="click consume"
 													class="btn btn-square btn-ghost btn-md"
 												>

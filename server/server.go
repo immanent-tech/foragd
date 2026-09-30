@@ -361,6 +361,10 @@ func Start() error {
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlerMgr.SubscriptionCtx(subscriptionSvc))
 				// 	// r.Get("/", handleSubscriptionDetail) // its own article feed: ?sort=&status=&page=
+				r.Route("/edit", func(r chi.Router) {
+					r.Get("/", handlerMgr.HandleEditSubscription(subscriptionSvc))
+					r.Post("/", handlerMgr.HandleSaveSubscription(imgCache, subscriptionSvc))
+				})
 				r.Group(func(r chi.Router) {
 					r.Use(htmx.RequireHTMX)
 					r.Post(
@@ -378,10 +382,6 @@ func Start() error {
 						),
 					)
 					r.Post("/favorite", handlerMgr.HandleFavoriteSubscription(subscriptionSvc))
-					r.Route("/edit", func(r chi.Router) {
-						r.Get("/", handlerMgr.HandleEditSubscription(subscriptionSvc))
-						r.Post("/", handlerMgr.HandleSaveSubscription(imgCache, subscriptionSvc))
-					})
 					r.Get("/remove", handlerMgr.HandleRemoveSubscription(subscriptionSvc))
 				})
 			})

@@ -299,7 +299,7 @@ func (m *Manager) HandleListSubscriptionsUpdates(itemSvc ItemService) http.Handl
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
+				element.WithHXSwap("innerMorph scroll:top transition:true"),
 				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {
@@ -389,7 +389,7 @@ func postMarkSubscriptionArticles(session SessionManager) PostHandlerHook {
 		htmx.LocationResponse(
 			htmx.WithLocationPath("/list/subscriptions"),
 			htmx.WithLocationTarget(templates.ContentID.Target()),
-			htmx.WithLocationSwap("morph:innerHTML transition:true"),
+			htmx.WithLocationSwap("innerMorph transition:true"),
 			htmx.WithLocationHeaders(map[string]string{
 				models.ActionHeader: "mark-subscription",
 			}),

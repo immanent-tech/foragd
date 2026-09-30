@@ -33,7 +33,7 @@ templ ExportSubscriptions(breadcrumbs Breadcrumbs) {
 								hx-get={ prev.Path + prev.Fragment }
 							}
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML transition:true"
+							hx-swap="innerMorph transition:true"
 							hx-push-url="true"
 						>
 							Back

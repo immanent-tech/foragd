@@ -22,7 +22,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavHome) }
 		>
@@ -37,13 +37,11 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			</span>
 			<span class="dock-label not-sr-only">Home</span>
 		</a>
-		{{ filters := models.NewListFilters() }}
 		<a
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters) }
-			hx-params="not subscriptions"
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-vals={ templ.JSONString(models.NewListFilters()) }
+			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavSubscriptions) }
 		>
@@ -61,8 +59,8 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 		<a
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters) }
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-vals={ templ.JSONString(models.NewListFilters()) }
+			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("bg-primary/25 rounded-lg", nav == NavArticles) }
 			hx-include="[name='subscriptions']"
@@ -81,7 +79,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 		<a
 			hx-get="/favorites"
 			hx-target={ ContentID.Target() }
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavFavorites) }
 		>
@@ -99,7 +97,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 		<a
 			hx-get="/discover"
 			hx-target={ ContentID.Target() }
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavDiscover) }
 		>

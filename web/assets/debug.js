@@ -12,7 +12,7 @@ htmx.logger = function (elt, event, data) {
 // Log all events.
 //
 // https://v1.htmx.org/docs/#debugging
-htmx.logAll()
+htmx.config.logAll = true
 
 for (const key in document)
   if (key.startsWith('on')) document.addEventListener(key.slice(2), console.log)

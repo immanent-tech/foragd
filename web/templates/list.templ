@@ -161,7 +161,7 @@ templ NewListControls(path string, filters models.ListFilters, options ...listCo
 					hx-get={ controls.path }
 					hx-include="#sort-hidden,#view-hidden,#count-hidden"
 					hx-replace-url="true"
-					hx-swap="innerHTML transition:true"
+					hx-swap="innerMorph transition:true"
 					hx-target={ ContentID.Target() }
 					hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 					hx-trigger="triggerMe"
@@ -268,7 +268,7 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
@@ -289,7 +289,7 @@ templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 			class="flex justify-between gap-2"
@@ -310,14 +310,14 @@ templ ListPaginationControl(path string, filters *models.ListFilters, options ..
 		id="pagination-sentinel-wrapper"
 		hx-post={ path }
 		hx-vals={ templ.JSONString(filters) }
-		hx-trigger="intersect once delay:250ms from:body"
+		hx-trigger="revealed delay:100ms"
 		hx-target="#grid-objects"
-		hx-swap="beforeend transition:false"
+		hx-swap="append"
 		hx-indicator="#loading-items"
 		_="
-		on htmx:historyRestore from body
+		on htmx:before:history:restore from body
 			toggle .hidden on me until gridLayoutComplete from body
-		on htmx:beforeRequest from <[hx-push-url]/>
+		on htmx:before:request from <[hx-push-url]/>
 			toggle .hidden on me until gridLayoutComplete from body
 		"
 		{ props.Attributes()... }
@@ -359,7 +359,7 @@ templ categoryFilterOption(category models.Category, path string, filters models
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>
@@ -380,7 +380,7 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>
@@ -429,7 +429,7 @@ templ languageFilterOption(lang models.Language, path string, filters models.Lis
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>
@@ -450,7 +450,7 @@ templ clearLanguageFilterOption(path string, filters models.ListFilters) {
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>

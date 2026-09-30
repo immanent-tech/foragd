@@ -323,7 +323,7 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, route),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
+				element.WithHXSwap("innerMorph scroll:top transition:true"),
 				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {
@@ -647,7 +647,7 @@ func (m *Manager) HandleBulkMarkArticles(
 				htmx.LocationResponse(
 					htmx.WithLocationPath("/home"),
 					htmx.WithLocationTarget(templates.ContentID.Target()),
-					htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+					htmx.WithLocationSwap("innerMorph transition:true show:top"),
 					htmx.WithLocationHeaders(map[string]string{
 						models.ActionHeader: "mark-articles",
 					}),
@@ -657,7 +657,7 @@ func (m *Manager) HandleBulkMarkArticles(
 				htmx.LocationResponse(
 					htmx.WithLocationPath(currentURL),
 					htmx.WithLocationTarget(templates.ContentID.Target()),
-					htmx.WithLocationSwap("morph:innerHTML transition:true show:top"),
+					htmx.WithLocationSwap("innerMorph transition:true show:top"),
 					htmx.WithLocationHeaders(map[string]string{
 						models.ActionHeader: "mark-articles",
 					}),

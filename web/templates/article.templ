@@ -37,7 +37,6 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 		id={ article.GetID() + "-toggle-favorite" }
 		class="tooltip tooltip-top tooltip-end"
 		data-tip={ label }
-		hx-inherit="*"
 		{ props.Attributes()... }
 	>
 		<button
@@ -94,7 +93,7 @@ templ articleMarkToggle(article *models.Article, view models.View) {
 			id={ article.GetID() + "-mark-toggle" }
 			class="btn swap btn-square btn-ghost btn-sm"
 			_="
-			  on htmx:afterRequest
+			  on htmx:after:request
 			  	if event.detail.successful
 					halt the event's bubbling
 					if closest .card exists
@@ -169,7 +168,7 @@ templ articleViewToggle(article *models.Article) {
 			hx-get={ "/articles/" + article.GetID() }
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-swap="innerMorph show:top transition:true"
 		>
 			@tableroutline.Eye(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
 			<span class="sr-only">View Article</span>
@@ -237,11 +236,11 @@ templ articleShowRemoteContentButton(article *models.Article) {
 		class="group btn btn-outline border-neutral/15"
 		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
-		hx-swap="morph:innerHTML transition:true show:top"
+		hx-swap="innerMorph transition:true show:top"
 		hx-trigger="click consume"
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
-		hx-disabled-elt="this"
+		hx-disable="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
@@ -262,11 +261,11 @@ templ articleShowFeedContentButton(article *models.Article) {
 		class="group btn btn-outline border-neutral/15"
 		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
-		hx-swap="morph:innerHTML transition:true show:top"
+		hx-swap="innerMorph transition:true show:top"
 		hx-trigger="click consume"
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
-		hx-disabled-elt="this"
+		hx-disable="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-xs loading-spinner"></span>
@@ -300,7 +299,7 @@ templ articleActionsMenu(article *models.Article) {
 					<a
 						hx-get={ "/articles/" + article.GetID() + "/similar" }
 						hx-target={ ContentID.Target() }
-						hx-swap="morph:innerHTML transition:true"
+						hx-swap="innerMorph transition:true"
 						hx-trigger="click consume"
 						hx-vals={ templ.JSONString(map[string]string{"from": "/list/articles"}) }
 					>
@@ -362,7 +361,7 @@ templ ArticleCard(idx int, article *models.Article, view models.View) {
 			"group", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "self-start", "cursor-pointer", "touch-manipulation", "masonry-item"),
 		element.WithHXMethod(http.MethodGet, "/articles/"+article.GetID()),
 		element.WithHXTarget(ContentID.Target()),
-		element.WithHXSwap("morph:innerHTML show:top transition:true"),
+		element.WithHXSwap("innerMorph show:top transition:true"),
 		element.WithHXTrigger("click"),
 		element.WithHXPushURL(true),
 		element.WithHXIndicator("this"),
@@ -629,7 +628,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 						<a
 							hx-get="/list/articles"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-vals={ templ.JSONString(map[string]any{
 									"view": a.Filters.GetView(),
 									"count": a.Filters.GetCount(),
@@ -730,7 +729,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							<div
 								class="prose-article"
 								data-disable-scripting
-								hx-disable
+								hx-ignore
 							>
 								@templ.Raw(article.GetContent())
 							</div>
@@ -750,7 +749,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							if article.GetDescription() != "" {
 								<div
 									data-disable-scripting
-									hx-disable
+									hx-ignore
 									class="prose-article"
 								>
 									@templ.Raw(article.GetDescription())
@@ -766,7 +765,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							if content := article.GetContent(); content != "" {
 								<div
 									data-disable-scripting
-									hx-disable
+									hx-ignore
 									class="prose-article"
 								>
 									@templ.Raw(content)
@@ -802,19 +801,14 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
 				if article.IsUnread() && article.MarkArticleReadOnView {
-					// hx-vals={ templ.JSONString(map[string]any{
-					// 	"subscription_id": article.GetSubscriptionID(),
-					// 	"item_id": article.GetID(),
-					// 	"mark": models.MarkRead,
-					// }) }
 					<div
 						id="auto-mark-read"
 						hx-target="#auto-mark-read"
 						hx-post={ "/articles/" + article.GetID() + "/read" }
 						hx-swap="delete transition:false"
-						hx-trigger="intersect once delay:5s,load delay:5s"
+						hx-trigger="revealed,load delay:5s"
 						aria-hidden="true"
-						_={ "on htmx:afterRequest(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
+						_={ "on htmx:after:request(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
 					></div>
 				}
 			}
@@ -829,7 +823,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				class="btn btn-square btn-ghost"
 				hx-get={ "/articles/" + resp.Article.GetID() + "/prev" }
 				hx-target={ ContentID.Target() }
-				hx-swap="morph:innerHTML transition:true show:top"
+				hx-swap="innerMorph transition:true show:top"
 				hx-push-url={ "/articles/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowLeft()
@@ -841,7 +835,7 @@ templ showNextPrevActions(resp *models.ShowArticleResponse) {
 				class="btn btn-square btn-ghost"
 				hx-get={ "/articles/" + resp.Article.GetID() + "/next" }
 				hx-target={ ContentID.Target() }
-				hx-swap="morph:innerHTML transition:true show:top"
+				hx-swap="innerMorph transition:true show:top"
 				hx-push-url={ "/articles/" + resp.Article.GetID() }
 			>
 				@tableroutline.ArrowNarrowRight()
@@ -891,7 +885,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									<button
 										hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit#article-filtering" }
 										hx-target={ ContentID.Target() }
-										hx-swap="morph:innerHTML show:top transition:true"
+										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
 										class="btn btn-sm btn-ghost btn-square"
 									>
@@ -907,7 +901,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								<button
 									hx-get="/map"
 									hx-target={ ContentID.Target() }
-									hx-swap="morph:innerHTML show:top transition:true"
+									hx-swap="innerMorph show:top transition:true"
 									hx-trigger="click consume"
 									hx-vals={ templ.JSONString(map[string]string{"subscriptions": response.Subscription.GetID()}) }
 									class="btn btn-sm btn-ghost btn-square"
@@ -1051,7 +1045,7 @@ templ listArticlesActions(response *models.ListArticlesResponse) {
 				<a
 					hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit" }
 					hx-target={ ContentID.Target() }
-					hx-swap="morph:innerHTML show:top transition:true"
+					hx-swap="innerMorph show:top transition:true"
 					hx-trigger="click consume"
 					class="flex items-center gap-1"
 				>
@@ -1104,7 +1098,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		<button
 			hx-get={ "/subscriptions/" + response.Subscription.GetID() + "/edit" }
 			hx-target={ ContentID.Target() }
-			hx-swap="morph:innerHTML show:top transition:true"
+			hx-swap="innerMorph show:top transition:true"
 			hx-trigger="click consume"
 			class="btn hidden items-center gap-1 border-neutral/15 btn-outline btn-sm sm:flex"
 		>
@@ -1214,12 +1208,12 @@ templ BulkMarkArticlesModal(mark models.Mark, options ...element.PropertiesOptio
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post={ "/articles/" + string(mark) }
-				hx-disabled-elt="find button[type='submit']"
+				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
 				{ props.Attributes()... }
 				class="flex"
-				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
 				<button
 					type="submit"

@@ -68,8 +68,8 @@ templ UserHome(data *HomeData) {
 									@sectionActions() {
 										<a
 											hx-get="/list/articles"
-											hx-target="#content"
-											hx-swap="morph:innerHTML show:top transition:true"
+											hx-target={ ContentID.Target() }
+											hx-swap="innerMorph show:top transition:true"
 											class="link text-sm text-secondary link-hover"
 										>
 											See all <span aria-hidden="true">-></span>
@@ -214,7 +214,7 @@ templ NewUserHome() {
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/subscription/add"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-push-url="true"
 						>
 							@tableroutline.Plus(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
@@ -228,7 +228,7 @@ templ NewUserHome() {
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
 							hx-get="/import"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-push-url="true"
 						>
 							@tableroutline.CloudDownload(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
@@ -293,7 +293,7 @@ templ NewUserHome() {
 							<button
 								hx-post="/user/feedset"
 								hx-swap="none"
-								hx-disabled-elt="this"
+								hx-disable="this"
 								type="submit"
 								class="btn btn-primary"
 								class="btn btn-outline"

@@ -149,7 +149,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 							hx-get={ "/import/status/" + status.GetID() }
 							hx-trigger="every 10s"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML"
+							hx-swap="innerMorph"
 						}
 					>
 						<p class="font-semibold text-lg py-4">Status: { string(status.Status) }...</p>
@@ -320,7 +320,7 @@ templ ImportList(imports []*models.ImportStatus, msg *models.UserMessage) {
 								id={ importStatus.GetID() }
 								hx-get={ "/import/status/" + importStatus.GetID() }
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML"
+								hx-swap="innerMorph"
 								hx-push-url="true"
 								class="link link-hover"
 							>

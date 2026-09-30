@@ -49,9 +49,9 @@ templ Linter() {
 						hx-post="/linter"
 						hx-push-url="true"
 						hx-target="#linter-results"
-						hx-swap="morph:innerHTML"
-						hx-disabled-elt="find button[type='submit']"
-						_="on htmx:beforeRequest set the innerHTML of #linter-results to ''"
+						hx-swap="innerMorph"
+						hx-disable="find button[type='submit']"
+						_="on htmx:before:request set the innerHTML of #linter-results to ''"
 						class="group"
 					>
 						<div class="mt-12">

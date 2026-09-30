@@ -26,7 +26,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-trigger="click,globalShortcutHome"
 							hx-get="/home"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome end"
@@ -50,7 +50,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-get="/list/subscriptions"
 							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions end"
@@ -75,7 +75,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-get="/list/articles"
 							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles end"
@@ -97,7 +97,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-trigger="click,globalShortcutFavorites"
 							hx-get="/favorites"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end"
@@ -119,7 +119,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-trigger="click,globalShortcutDiscover"
 							hx-get="/discover"
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML show:top transition:true"
+							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end"

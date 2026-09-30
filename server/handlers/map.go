@@ -265,7 +265,7 @@ func (m *Manager) HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/map"),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
+				element.WithHXSwap("innerMorph scroll:top transition:true"),
 				element.WithHXValues(filters),
 			)}).ServeHTTP(res, req)
 		} else {

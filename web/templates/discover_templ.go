@@ -132,7 +132,7 @@ func Discover(request *models.SuggestFeedsRequest) templ.Component {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " autocomplete=\"off\" placeholder=\"Site name, URL or topic...\" hx-post=\"/discover/suggest\" hx-target=\"#discover-suggestions\" hx-trigger=\"keyup changed delay:500ms, keyup[key=='Enter'], categorySuggestions\" hx-sync=\"this:replace\" hx-indicator=\"#discover-loading\" hx-include=\"#category-suggestions\" _=\"\n\t\t\t\t\t\ton htmx:beforeRequest set #discover-suggestions.innerHTML to ''\n\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\"></label><form><div id=\"category-suggestions\" class=\"filter mt-4 gap-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " autocomplete=\"off\" placeholder=\"Site name, URL or topic...\" hx-post=\"/discover/suggest\" hx-target=\"#discover-suggestions\" hx-trigger=\"keyup changed delay:500ms, keyup[key=='Enter'], categorySuggestions\" hx-sync=\"this:replace\" hx-indicator=\"#discover-loading\" hx-include=\"#category-suggestions\" _=\"\n\t\t\t\t\t\ton htmx:before:request set #discover-suggestions.innerHTML to ''\n\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\"></label><form><div id=\"category-suggestions\" class=\"filter mt-4 gap-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -563,7 +563,7 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"> <button type=\"submit\" class=\"group btn btn-primary\" hx-post=\"/subscription/add/feed\" hx-swap=\"none\" hx-disabled-elt=\"this\" hx-encoding=\"multipart/form-data\" data-suggestionid=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"> <button type=\"submit\" class=\"group btn btn-primary\" hx-post=\"/subscription/add/feed\" hx-swap=\"none\" hx-disable=\"this\" hx-encoding=\"multipart/form-data\" data-suggestionid=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -576,7 +576,7 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" _=\"on htmx:afterRequest(successful) remove me\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner text-primary\"></span> Subscribing</span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">Subscribe</span></button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" _=\"on htmx:after:request(successful) remove me\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner text-primary\"></span> Subscribing</span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\">Subscribe</span></button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

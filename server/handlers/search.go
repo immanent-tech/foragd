@@ -294,7 +294,7 @@ func (m *Manager) HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
 				element.WithHXMethod(http.MethodGet, "/search"),
 				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("morph:innerHTML scroll:top transition:true"),
+				element.WithHXSwap("innerMorph scroll:top transition:true"),
 				element.WithHXValues(search),
 			)}).ServeHTTP(res, req)
 		} else {

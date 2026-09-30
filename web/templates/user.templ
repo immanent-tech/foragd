@@ -66,8 +66,8 @@ templ DeactivateAccountModal() {
 					hx-post="/user/deactivate"
 					hx-swap="none"
 					hx-vals={ templ.JSONString(map[string]any{"confirmed": true}) }
-					hx-disabled-elt="this"
-					_="on htmx:afterRequest remove @open from  the closest <el-dialog/>"
+					hx-disable="this"
+					_="on htmx:after:request remove @open from  the closest <el-dialog/>"
 					class="group btn btn-error"
 				>
 					<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -190,7 +190,7 @@ templ DeactivateResult(user *models.User, timeLeft *time.Time) {
 					class="btn btn-primary"
 					hx-get="/home"
 					hx-target={ ContentID.Target() }
-					hx-swap="morph:innerHTML transition:true"
+					hx-swap="innerMorph transition:true"
 					hx-trigger="load delay:10s"
 				>Go Home</a>
 			</div>
@@ -223,7 +223,7 @@ templ Unsubscribe(token string) {
 					class="btn btn-primary hover:btn-success"
 					hx-post={ "/unsubscribe/" + token }
 					hx-target="#unsubscribe"
-					hx-swap="morph:innerHTML transition:true"
+					hx-swap="innerMorph transition:true"
 				>
 					Unsubscribe
 				</button>

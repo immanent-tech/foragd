@@ -69,7 +69,7 @@ templ Search() {
        					  set me.disabled to false
        					end
 					on change set #search-text's value to my value
-					on htmx:afterRequest
+					on htmx:after:request
 					  wait 500ms
 					  set window._searchSubmitted to false
 					  call #search-suggestions-popover.hidePopover()
@@ -202,7 +202,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-include="#search-filters,[id='timezone']"
 			hx-sync="#search-suggestions-popover:drop"
 			hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-			_="on htmx:beforeRequest set #global-search.value to #suggestion-text.value"
+			_="on htmx:before:request set #global-search.value to #suggestion-text.value"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 		>
 			// Search for text suggestion.
@@ -529,7 +529,7 @@ templ SearchControls(results *models.SearchResults) {
 									<a
 										hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 										hx-target={ ContentID.Target() }
-										hx-swap="morph:innerHTML show:top transition:true"
+										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
 										class="group/item flex items-center gap-x-2"
 									>
@@ -584,7 +584,7 @@ templ SearchControls(results *models.SearchResults) {
 					<button
 						hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 						hx-target={ ContentID.Target() }
-						hx-swap="morph:innerHTML show:top transition:true"
+						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
 						class="btn border-neutral/15 btn-outline btn-sm"
 					>
@@ -613,14 +613,14 @@ templ SearchPaginationControl(search *models.SearchRequest, options ...element.P
 		id="pagination-sentinel-wrapper"
 		hx-post="/search/paginate"
 		hx-vals={ templ.JSONString(search) }
-		hx-trigger="intersect once"
+		hx-trigger="revealed delay:100ms"
 		hx-target="#grid-objects"
-		hx-swap="beforeend transition:false"
+		hx-swap="append"
 		hx-indicator="#loading-items"
 		_="
-		on htmx:historyRestore from body
+		on htmx:before:history:restore from body
 			toggle .hidden on me until gridLayoutComplete from body
-		on htmx:beforeRequest from <[hx-push-url]/>
+		on htmx:before:request from <[hx-push-url]/>
 			toggle .hidden on me until gridLayoutComplete from body
 		"
 		{ props.Attributes()... }
@@ -785,9 +785,8 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="[id='timezone'],#search-filters"
-				hx-params="not subscription-text,#global-search"
-				hx-disabled-elt="find button[type='submit']"
-				_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
+				hx-disable="find button[type='submit']"
+				_="on htmx:before:request call #search-advanced-popover.hidePopover()"
 			>
 				<button
 					type="submit"
@@ -834,8 +833,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-post="/search/subscription"
 			hx-swap="beforeend"
 			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
-			hx-params="subscription_id,subscription_name,subscriptions-input-name"
-			_="on htmx:afterRequest(successful) remove me"
+			_="on htmx:after:request(successful) remove me"
 			aria-label={ "Add subscription filter for " + subscription.GetTitle() }
 		>
 			<div class="badge badge-sm hover:cursor-pointer hover:badge-success">

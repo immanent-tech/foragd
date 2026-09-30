@@ -112,7 +112,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"#current-categories\" hx-swap=\"beforeend\" hx-trigger=\"click, categorySuggestionSelected from:body\" type=\"button\" class=\"btn btn-square btn-primary\" _=\"on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''\"><span class=\"sr-only\">Add category</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"#current-categories\" hx-swap=\"beforeend\" hx-trigger=\"click, categorySuggestionSelected from:body\" type=\"button\" class=\"btn btn-square btn-primary\" _=\"on htmx:after:request if event.detail.successful then set #category-suggestion.value to ''\"><span class=\"sr-only\">Add category</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -474,7 +474,7 @@ func categoryOption(path string, category models.Category, filters models.ListFi
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" hx-replace-url=\"true\" hx-swap=\"morph:innerHTML transition:true\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" hx-replace-url=\"true\" hx-swap=\"innerMorph transition:true\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -589,7 +589,7 @@ func clearCategoryFiltersOption(path string, filters models.ListFilters) templ.C
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" hx-replace-url=\"true\" hx-swap=\"morph:innerHTML transition:true\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" hx-replace-url=\"true\" hx-swap=\"innerMorph transition:true\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

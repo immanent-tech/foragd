@@ -82,7 +82,7 @@ func paddleCheckoutButton(frequency string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-swap=\"none\" hx-disabled-elt=\"this\" _=\"\n\t\ton htmx:afterRequest\n\t\t\tif event.detail.successful\n\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\tset data to JSON.parse(response)\n\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n        \t    \tcustomer: {email: data.email},\n\t\t\t\t\tsuccessUrl: data.successUrl,\n        \t    \tallowLogout: false\n\t\t\t\t})\n\t\t\tend\n\t\t\">Activate ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-swap=\"none\" hx-disable=\"this\" _=\"\n\t\ton htmx:after:request\n\t\t\tif event.detail.successful\n\t\t\t\tset response to event.detail.xhr.responseText\n\t\t\t\tset data to JSON.parse(response)\n\t\t\t\tPaddle.Checkout.open({\n\t\t\t\t\titems: [{ priceId: data.priceId, quantity: 1 }],\n        \t    \tcustomer: {email: data.email},\n\t\t\t\t\tsuccessUrl: data.successUrl,\n        \t    \tallowLogout: false\n\t\t\t\t})\n\t\t\tend\n\t\t\">Activate ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -38,7 +38,7 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 					hx-target-error={ ContentID.Target() }
 					hx-encoding="multipart/form-data"
 					hx-swap="none"
-					hx-disabled-elt="find button[type='submit']"
+					hx-disable="find button[type='submit']"
 					class="mt-12"
 				>
 					<fieldset class="fieldset min-w-0">
@@ -135,7 +135,7 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML transition:true"
+								hx-swap="innerMorph transition:true"
 								hx-push-url="true"
 							>
 								Back

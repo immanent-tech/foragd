@@ -102,7 +102,7 @@ func (m *Manager) HandleStartImport(importSvc Importer) http.HandlerFunc {
 		htmx.LocationResponse(
 			htmx.WithLocationPath("/import/status/"+jobID),
 			htmx.WithLocationTarget(templates.ContentID.Target()),
-			htmx.WithLocationSwap("morph:innerHTML transition:true"),
+			htmx.WithLocationSwap("innerMorph transition:true"),
 			htmx.WithLocationHeaders(map[string]string{
 				models.ActionHeader: "import-started",
 			}),

@@ -22,9 +22,9 @@ templ paddleCheckoutButton(frequency string) {
 			"subscription_type": "paddle",
 		}) }
 		hx-swap="none"
-		hx-disabled-elt="this"
+		hx-disable="this"
 		_="
-		on htmx:afterRequest
+		on htmx:after:request
 			if event.detail.successful
 				set response to event.detail.xhr.responseText
 				set data to JSON.parse(response)

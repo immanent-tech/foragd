@@ -172,7 +172,7 @@ behavior MasonryGrid
     call resetLayout()
   end
 
-  on DOMContentLoaded or load or htmx:afterSettle from document
+  on DOMContentLoaded or load or htmx:after:swap from document
     call resetLayout()
   end
 
@@ -182,11 +182,11 @@ behavior MasonryGrid
     end
   end
 
-  on htmx:afterSwap from document
+  on htmx:after:swap from document
     wait 1ms then call layout()
   end
 
-  on htmx:afterRequest from me
+  on htmx:after:request from me
     wait 1ms then call layout()
   end
 

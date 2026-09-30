@@ -34,7 +34,6 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription, options ...e
 		id={ subscription.GetID() + "-toggle-favorite" }
 		data-tip={ label }
 		class="tooltip tooltip-top tooltip-end"
-		hx-inherit="*"
 		{ props.Attributes()... }
 	>
 		<button
@@ -71,7 +70,6 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 		id={ subscription.GetID() + "-toggle-mark" }
 		class="tooltip tooltip-top tooltip-end"
 		data-tip={ "Mark " + string(mark) }
-		hx-inherit="*"
 		{ props.Attributes()... }
 	>
 		<button
@@ -135,7 +133,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 							<button
 								hx-get={ "/subscriptions/" + subscription.GetID() + "/edit#article-filtering" }
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML show:top transition:true"
+								hx-swap="innerMorph show:top transition:true"
 								hx-trigger="click consume"
 								class="btn btn-sm btn-ghost btn-square"
 							>
@@ -150,7 +148,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 							<button
 								hx-get="/map"
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML show:top transition:true"
+								hx-swap="innerMorph show:top transition:true"
 								hx-trigger="click consume"
 								hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
 								class="btn btn-sm btn-ghost btn-square"
@@ -239,7 +237,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 										<a
 											hx-get="/map"
 											hx-target={ ContentID.Target() }
-											hx-swap="morph:innerHTML show:top transition:true"
+											hx-swap="innerMorph show:top transition:true"
 											hx-trigger="click consume"
 											hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
 										>
@@ -253,7 +251,7 @@ templ SubscriptionCard(idx int, path string, subscription *models.Subscription, 
 									<a
 										hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
 										hx-target={ ContentID.Target() }
-										hx-swap="morph:innerHTML show:top transition:true"
+										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
 									>
 										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
@@ -390,7 +388,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																	<a
 																		hx-get={ "/articles/" + item.GetID() }
 																		hx-target={ ContentID.Target() }
-																		hx-swap="morph:innerHTML show:top transition:true"
+																		hx-swap="innerMorph show:top transition:true"
 																		hx-trigger="click"
 																		hx-push-url="true"
 																		_="on click halt the event's bubbling"
@@ -490,7 +488,7 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 	<button
 		hx-get="/subscription/add"
 		hx-target={ ContentID.Target() }
-		hx-swap="morph:innerHTML show:top transition:true"
+		hx-swap="innerMorph show:top transition:true"
 		class="btn border-neutral/15 btn-outline btn-sm hidden sm:flex"
 	>
 		@tableroutline.Plus(templ.Attributes{"class": "size-5  stroke-base-content/80", "aria-hidden": "true"})
@@ -629,7 +627,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									hx-indicator="#suggestions-loading"
 									hx-include="[name='suggestion_source']"
 									_="
-									on htmx:beforeRequest set #subscription-suggestions.innerHTML to ''
+									on htmx:before:request set #subscription-suggestions.innerHTML to ''
 									on keydown[key=='Enter'] halt the event
 									"
 								/>
@@ -732,7 +730,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									<button
 										hx-post="/user/settings/subscriptionemail"
 										hx-target="#subscription-email"
-										hx-swap="morph:innerHTML transition:true"
+										hx-swap="innerMorph transition:true"
 										class="btn btn-primary"
 									>
 										<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -788,7 +786,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			}
 			hx-swap="none"
 			hx-encoding="multipart/form-data"
-			hx-disabled-elt="find button[type='submit']"
+			hx-disable="find button[type='submit']"
 			class="group"
 		>
 			// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -879,7 +877,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 						hx-get={ prev.Path + prev.Fragment }
 					}
 					hx-target={ ContentID.Target() }
-					hx-swap="morph:innerHTML transition:true"
+					hx-swap="innerMorph transition:true"
 					hx-push-url="true"
 				>
 					Back
@@ -972,7 +970,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						}
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
-						hx-disabled-elt="find button[type='submit']"
+						hx-disable="find button[type='submit']"
 						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1144,7 +1142,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML transition:true"
+								hx-swap="innerMorph transition:true"
 								hx-push-url="true"
 							>
 								Back
@@ -1206,8 +1204,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						}
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
-						hx-params="not suggestion_text,suggestions,category"
-						hx-disabled-elt="find button[type='submit']"
+						hx-disable="find button[type='submit']"
 						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1297,7 +1294,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										hx-trigger="click, subscriptionSuggestionSelected from:body"
 										type="button"
 										class="join-item btn btn-secondary"
-										_="on htmx:afterRequest set #subscription-suggestion.value to ''"
+										_="on htmx:after:request set #subscription-suggestion.value to ''"
 										aria-label="Add subscription to group"
 									>
 										@tableroutline.Plus(templ.Attributes{"aria-hidden": "true"})
@@ -1334,7 +1331,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									hx-get={ prev.Path + prev.Fragment }
 								}
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML transition:true"
+								hx-swap="innerMorph transition:true"
 								hx-push-url="true"
 							>
 								Back
@@ -1387,7 +1384,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 					hx-post={ "/subscriptions/" + string(request.SubscriptionID) + "/edit" }
 					hx-swap="none"
 					hx-encoding="multipart/form-data"
-					hx-disabled-elt="find button[type='submit']"
+					hx-disable="find button[type='submit']"
 					class="group"
 				>
 					// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -1450,7 +1447,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 								hx-get={ prev.Path + prev.Fragment }
 							}
 							hx-target={ ContentID.Target() }
-							hx-swap="morph:innerHTML transition:true"
+							hx-swap="innerMorph transition:true"
 							hx-push-url="true"
 						>
 							Back
@@ -1493,10 +1490,10 @@ templ RemoveSubscriptionModal(subscription *models.Subscription, options ...elem
 			<form
 				hx-get={ "/subscriptions/" + string(subscription.GetID()) + "/remove" }
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
-				hx-disabled-elt="find button[type='submit']"
+				hx-disable="find button[type='submit']"
 				{ props.Attributes()... }
 				class="flex"
-				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
 				<button
 					type="submit"
@@ -1564,12 +1561,12 @@ templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.Properties
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post={ "/subscriptions/" + string(mark) }
-				hx-disabled-elt="find button[type='submit']"
+				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
 				{ props.Attributes()... }
 				class="flex"
-				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
 				<button
 					type="submit"
@@ -1607,12 +1604,12 @@ templ BulkRemoveSubscriptionsModal(options ...element.PropertiesOption) {
 		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post="/subscriptions/remove"
-				hx-disabled-elt="find button[type='submit']"
+				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include="[name='selected_subscriptions']"
 				{ props.Attributes()... }
 				class="flex"
-				_="on htmx:afterRequest(successful) remove @open from  the closest <el-dialog/>"
+				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
 				<button
 					type="submit"
@@ -1667,7 +1664,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 	return htmx.NewAttributes(
 		htmx.WithHXMethod(http.MethodGet, path),
 		htmx.WithHXTarget(ContentID.Target()),
-		htmx.WithHXSwap("morph:innerHTML show:top transition:true"),
+		htmx.WithHXSwap("innerMorph show:top transition:true"),
 		htmx.WithHXPushURL(path),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),

@@ -156,7 +156,7 @@ func Search() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keydown[key=='Enter'] consume\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Search\" _=\"\n\t\t\t\t\ton toggle from #search-advanced-popover\n       \t\t\t\t\tif event.newState is 'open'\n       \t\t\t\t\t  set me.disabled to true\n       \t\t\t\t\telse\n       \t\t\t\t\t  set me.disabled to false\n       \t\t\t\t\tend\n\t\t\t\t\ton change set #search-text's value to my value\n\t\t\t\t\ton htmx:afterRequest\n\t\t\t\t\t  wait 500ms\n\t\t\t\t\t  set window._searchSubmitted to false\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown[key=='Enter']\n\t\t\t\t\t  set window._searchSubmitted to true\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus me\n  \t\t\t\t\"><button hx-post=\"/search/suggestions\" hx-target=\"#search-suggestions-popover\" hx-include=\"#search-filters,[id='timezone'],[id='global-search']\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed from:#global-search\" hx-on::after-request=\"if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()\" hx-sync=\"this:replace\" popovertarget=\"search-suggestions-popover\" type=\"button\" aria-label=\"Search suggestions\" class=\"focus:outline-primary\"><span class=\"sr-only\">Show/hide suggestions</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keydown[key=='Enter'] consume\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" aria-label=\"Search\" _=\"\n\t\t\t\t\ton toggle from #search-advanced-popover\n       \t\t\t\t\tif event.newState is 'open'\n       \t\t\t\t\t  set me.disabled to true\n       \t\t\t\t\telse\n       \t\t\t\t\t  set me.disabled to false\n       \t\t\t\t\tend\n\t\t\t\t\ton change set #search-text's value to my value\n\t\t\t\t\ton htmx:after:request\n\t\t\t\t\t  wait 500ms\n\t\t\t\t\t  set window._searchSubmitted to false\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown[key=='Enter']\n\t\t\t\t\t  set window._searchSubmitted to true\n\t\t\t\t\t  call #search-suggestions-popover.hidePopover()\n\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus me\n  \t\t\t\t\"><button hx-post=\"/search/suggestions\" hx-target=\"#search-suggestions-popover\" hx-include=\"#search-filters,[id='timezone'],[id='global-search']\" hx-trigger=\"keyup[key!='Enter'] delay:500ms changed from:#global-search\" hx-on::after-request=\"if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()\" hx-sync=\"this:replace\" popovertarget=\"search-suggestions-popover\" type=\"button\" aria-label=\"Search suggestions\" class=\"focus:outline-primary\"><span class=\"sr-only\">Show/hide suggestions</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -223,7 +223,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-include=\"#search-filters,[id='timezone']\" hx-sync=\"#search-suggestions-popover:drop\" hx-on::before-request=\"document.getElementById('search-suggestions-popover').hidePopover()\" _=\"on htmx:beforeRequest set #global-search.value to #suggestion-text.value\" class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden\"><input type=\"hidden\" id=\"suggestion-text\" name=\"suggestion_text\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-include=\"#search-filters,[id='timezone']\" hx-sync=\"#search-suggestions-popover:drop\" hx-on::before-request=\"document.getElementById('search-suggestions-popover').hidePopover()\" _=\"on htmx:before:request set #global-search.value to #suggestion-text.value\" class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden\"><input type=\"hidden\" id=\"suggestion-text\" name=\"suggestion_text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1147,7 +1147,7 @@ func SearchControls(results *models.SearchResults) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-trigger=\"click consume\" class=\"group/item flex items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" hx-swap=\"innerMorph show:top transition:true\" hx-trigger=\"click consume\" class=\"group/item flex items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1270,7 +1270,7 @@ func SearchControls(results *models.SearchResults) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-swap=\"morph:innerHTML show:top transition:true\" hx-trigger=\"click consume\" class=\"btn border-neutral/15 btn-outline btn-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-swap=\"innerMorph show:top transition:true\" hx-trigger=\"click consume\" class=\"btn border-neutral/15 btn-outline btn-sm\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1352,7 +1352,7 @@ func SearchPaginationControl(search *models.SearchRequest, options ...element.Pr
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "\" hx-trigger=\"intersect once\" hx-target=\"#grid-objects\" hx-swap=\"beforeend transition:false\" hx-indicator=\"#loading-items\" _=\"\n\t\ton htmx:historyRestore from body\n\t\t\ttoggle .hidden on me until gridLayoutComplete from body\n\t\ton htmx:beforeRequest from <[hx-push-url]/>\n\t\t\ttoggle .hidden on me until gridLayoutComplete from body\n\t\t\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "\" hx-trigger=\"revealed delay:100ms\" hx-target=\"#grid-objects\" hx-swap=\"append\" hx-indicator=\"#loading-items\" _=\"\n\t\ton htmx:before:history:restore from body\n\t\t\ttoggle .hidden on me until gridLayoutComplete from body\n\t\ton htmx:before:request from <[hx-push-url]/>\n\t\t\ttoggle .hidden on me until gridLayoutComplete from body\n\t\t\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1662,7 +1662,7 @@ func AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\" hx-include=\"[id='timezone'],#search-filters\" hx-params=\"not subscription-text,#global-search\" hx-disabled-elt=\"find button[type='submit']\" _=\"on htmx:beforeRequest call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-primary btn-sm\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle btn-ghost text-info btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\" hx-include=\"[id='timezone'],#search-filters\" hx-disable=\"find button[type='submit']\" _=\"on htmx:before:request call #search-advanced-popover.hidePopover()\"><button type=\"submit\" class=\"btn btn-primary btn-sm\">Apply</button></form></div><div class=\"absolute top-2 right-2\"><button id=\"filter-operators-help-button\" popovertarget=\"filter-operators-help\" type=\"button\" class=\"btn btn-circle btn-ghost text-info btn-md\" aria-label=\"Search filters help\"><span class=\"sr-only\">Show help</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1707,20 +1707,20 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			var templ_7745c5c3_Var64 string
 			templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 836, Col: 132}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 835, Col: 132}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var64)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "\" hx-params=\"subscription_id,subscription_name,subscriptions-input-name\" _=\"on htmx:afterRequest(successful) remove me\" aria-label=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "\" _=\"on htmx:after:request(successful) remove me\" aria-label=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var65 string
 			templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.ResolveAttributeValue("Add subscription filter for " + subscription.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 839, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 837, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var65)
 			if templ_7745c5c3_Err != nil {
@@ -1733,7 +1733,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			var templ_7745c5c3_Var66 string
 			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 842, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 840, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 			if templ_7745c5c3_Err != nil {
@@ -1780,7 +1780,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var68 string
 		templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.ResolveAttributeValue("Remove subscription filter " + filter.SubscriptionName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 855, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 853, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var68)
 		if templ_7745c5c3_Err != nil {
@@ -1793,7 +1793,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var69 string
 		templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.ResolveAttributeValue(filter.InputName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 857, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 855, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var69)
 		if templ_7745c5c3_Err != nil {
@@ -1806,7 +1806,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var70 string
 		templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.ResolveAttributeValue(filter.SubscriptionID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 857, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 855, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var70)
 		if templ_7745c5c3_Err != nil {
@@ -1819,7 +1819,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 		var templ_7745c5c3_Var71 string
 		templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(filter.SubscriptionName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 858, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 856, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 		if templ_7745c5c3_Err != nil {

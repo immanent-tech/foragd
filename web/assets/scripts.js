@@ -4,10 +4,8 @@
  */
 
 // HTMX
-import 'htmx-ext-head-support'
-import htmx from 'htmx.org/dist/htmx.esm'
-import 'idiomorph/htmx'
-window.htmx = htmx
+import 'htmx.org'
+import 'htmx.org/dist/ext/hx-head'
 
 // Hyperscript
 import 'hyperscript.org'
@@ -31,20 +29,17 @@ window.addEventListener('pageshow', (event) => {
   }
 })
 
-// // Log all HTMX events
-// htmx.logAll()
-
 // // Or specific event debugging
-// document.body.addEventListener('htmx:afterSettle', function (e) {
+// document.body.addEventListener('htmx:after:swap', function (e) {
 //   console.log('Request config:', e.detail)
 // })
 
 // // Visual event indicators
-// document.body.addEventListener('htmx:beforeRequest', function (e) {
+// document.body.addEventListener('htmx:before:request', function (e) {
 //   e.target.style.outline = '2px solid blue'
 // })
 
-// document.body.addEventListener('htmx:afterSwap', function (e) {
+// document.body.addEventListener('htmx:after:swap', function (e) {
 //   e.target.style.outline = '2px solid green'
 //   setTimeout(() => (e.target.style.outline = ''), 1000)
 // })

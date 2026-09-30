@@ -60,7 +60,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 						hx-trigger="click, categorySuggestionSelected from:body"
 						type="button"
 						class="btn btn-square btn-primary"
-						_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
+						_="on htmx:after:request if event.detail.successful then set #category-suggestion.value to ''"
 					>
 						<span class="sr-only">Add category</span>
 						@tableroutline.Plus(templ.Attributes{"aria-hidden": "true"})
@@ -162,7 +162,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="morph:innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions"
 		>
@@ -185,7 +185,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 			hx-get={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="morph:innerHTML transition:true"
+			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions,categories"
 		>

@@ -40,7 +40,7 @@ templ Discover(request *models.SuggestFeedsRequest) {
 						hx-indicator="#discover-loading"
 						hx-include="#category-suggestions"
 						_="
-						on htmx:beforeRequest set #discover-suggestions.innerHTML to ''
+						on htmx:before:request set #discover-suggestions.innerHTML to ''
 						on keydown[key=='Enter'] halt the event
 						"
 					/>
@@ -163,10 +163,10 @@ templ feedSuggestion(feed *models.Feed, items models.Items) {
 					class="group btn btn-primary"
 					hx-post="/subscription/add/feed"
 					hx-swap="none"
-					hx-disabled-elt="this"
+					hx-disable="this"
 					hx-encoding="multipart/form-data"
 					data-suggestionid={ "#suggestion-" + feed.GetID() }
-					_="on htmx:afterRequest(successful) remove me"
+					_="on htmx:after:request(successful) remove me"
 				>
 					<span class="hidden items-center group-[.htmx-request]:inline-flex">
 						<span class="loading mr-3 loading-spinner text-primary"></span>

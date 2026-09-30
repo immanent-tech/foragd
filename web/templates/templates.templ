@@ -214,25 +214,9 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<meta
 				name="htmx-config"
 				content={ templ.JSONString(htmx.Config{
-				ResponseHandling: []*htmx.ResponseHandling{
-					// Don't swap on no content.
-					{Code: "204",Swap: false},
-					// Swap all ok responses.
-					{Code:"[23]..",Swap: true},
-					// Swap for unprocessable inputs.
-					{Code:"422",Swap: true},
-					// Swap on errors.
-					{Code: "[45]..",Swap: true,Error: true},
-					// All other status should not swap.
-					{Code:"...",Swap: false},
-				},
-				InlineStyleNonce: templ.GetNonce(ctx),
 				InlineScriptNonce: templ.GetNonce(ctx),
-				IncludeIndicatorStyles: new(false),
-				HistoryRestoreAsHxRequest: new(false),
-				GlobalViewTransitions: new(false),
-				HistoryCacheSize: 0,
-				DisableInheritance: new(true),
+                IncludeIndicatorCSS: new(false),
+                LogAll: new(true),
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
@@ -262,10 +246,9 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			}
 		</head>
 		<body
-			hx-ext="morph,head-support"
 			class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased"
 			_="
-			on htmx:historyCacheMiss
+			on htmx:before:history:restore
 				log 'historyCacheMiss'
 				js sessionStorage.setItem('foragd-history-miss', '1') end
 			end
