@@ -20,6 +20,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
+
+	httpclient "github.com/immanent-tech/go-base/client"
 )
 
 // Session key constants used to store values in the SCS session.
@@ -55,9 +57,10 @@ type TokenResponse struct {
 type Authenticator struct {
 	*oidc.Provider
 	oauth2.Config
+	httpClient *resty.Client
 }
 
-// initAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will
+// LoadAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will
 // only perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
 var LoadAuthenticator = sync.OnceValues(func() (*Authenticator, error) {
 	err := loadConfigOnce()
@@ -80,22 +83,37 @@ var LoadAuthenticator = sync.OnceValues(func() (*Authenticator, error) {
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
 	}
+
+	httpClient := httpclient.New().
+		SetTransport(&http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           httpclient.SecureDialer.DialContext,
+			ForceAttemptHTTP2:     true,
+			TLSHandshakeTimeout:   5 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+			IdleConnTimeout:       90 * time.Second,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   20,
+		}).
+		SetTimeout(15 * time.Second).
+		SetDebug(false)
+
 	return &Authenticator{
-		Provider: provider,
-		Config:   conf,
+		Provider:   provider,
+		Config:     conf,
+		httpClient: httpClient,
 	}, nil
 })
 
 // postToken sends a POST request to the Auth0 token endpoint and decodes the response.
 func (a *Authenticator) postToken(
 	ctx context.Context,
-	httpClient *resty.Client,
 	form url.Values,
 ) (*TokenResponse, error) {
 	var token TokenResponse
 	var errResult authentication.Error
 
-	switch resp, err := httpClient.R().
+	switch resp, err := a.httpClient.R().
 		SetContext(ctx).
 		SetFormDataFromValues(form).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
@@ -149,7 +167,6 @@ func (a *Authenticator) PerformExchange(
 // RefreshTokens exchanges a refresh token for a new set of tokens.
 func (a *Authenticator) RefreshTokens(
 	ctx context.Context,
-	httpClient *resty.Client,
 	refreshToken string,
 ) (*TokenResponse, error) {
 	form := url.Values{}
@@ -158,7 +175,7 @@ func (a *Authenticator) RefreshTokens(
 	form.Set("client_secret", a.Config.ClientSecret)
 	form.Set("refresh_token", refreshToken)
 
-	return a.postToken(ctx, httpClient, form)
+	return a.postToken(ctx, form)
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.

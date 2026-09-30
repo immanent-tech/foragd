@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -32,7 +31,6 @@ func ExtractUserFromSession(
 	users UserService,
 	auth *auth0.Authenticator,
 	session handlers.SessionManager,
-	httpClient *resty.Client,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -74,7 +72,7 @@ func ExtractUserFromSession(
 				}
 
 				slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
-				token, err := auth.RefreshTokens(req.Context(), httpClient, refreshToken)
+				token, err := auth.RefreshTokens(req.Context(), refreshToken)
 				if err != nil {
 					slogctx.Warn(req.Context(), "Token refresh failed.",
 						slog.Any("error", err),

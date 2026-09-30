@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -264,7 +263,6 @@ func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.
 func (m *Manager) HandleRefreshToken(
-	httpclient *resty.Client,
 	authenticator *auth0.Authenticator,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -289,7 +287,7 @@ func (m *Manager) HandleRefreshToken(
 		// If token will expire soon, refresh it.
 		const refreshGracePeriod = time.Hour
 		if expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
-			token, err := authenticator.RefreshTokens(req.Context(), httpclient, tkn)
+			token, err := authenticator.RefreshTokens(req.Context(), tkn)
 			if err != nil {
 				authenticator.ClearAuth(req.Context(), m.SessionMgr)
 				http.Redirect(res, req, "/login", http.StatusSeeOther)

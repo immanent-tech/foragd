@@ -285,7 +285,7 @@ func Start() error {
 		// Web payment routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
-				middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager, httpClient),
+				middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager),
 			)
 			r.Route("/checkout", func(r chi.Router) {
 				r.Get("/", handlerMgr.HandleChooseSubscription())
@@ -304,14 +304,14 @@ func Start() error {
 	router.Group(func(r chi.Router) {
 		r.Use(
 			breadcrumbs.Recorder,
-			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager, httpClient),
+			middlewares.ExtractUserFromSession(userSvc, authenticator, sessionManager),
 			middlewares.RequireValidUser,
 			handlerMgr.ValidateSubscriptionLimits(userSvc, subscriptionSvc),
 			middlewares.NoCache,
 			handlerMgr.CustomisationCtx,
 		)
 		// Manual login refresh.
-		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(httpClient, authenticator))
+		r.Get("/login/refresh", handlerMgr.HandleRefreshToken(authenticator))
 		r.With(handlerMgr.AllSubscriptionsCtx(subscriptionSvc)).
 			Get("/home", handlerMgr.HandleHome(&service.Home{}))
 		// Searching.
