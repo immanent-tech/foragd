@@ -5,7 +5,9 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -82,7 +84,10 @@ func (s *Store) Delete(token string) error {
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
 	session, err := elastic.GetDoc[string, UserSession](ctx, s.backend.GetIndexRO(service.SessionsIndex), token)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
+		if errors.Is(err, elastic.ErrNotFound) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("get doc: %w", err)
 	}
 
 	// Check for expired session.
@@ -142,7 +147,7 @@ func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
 
 	data := make(map[string][]byte, len(sessions))
 
-	for _, session := range sessions {
+	for session := range slices.Values(sessions) {
 		data[session.Token] = session.Data
 	}
 
