@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package partials
+
+import "github.com/immanent-tech/foragd/web/templates/element"
+
+templ LoadingIndicator(id, label string, options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div id={ id } class={ "group mx-auto flex w-full justify-center", props.Classes() } { props.Attributes()... }>
+		<div class="hidden text-center group-[.htmx-request]:inline-flex">
+			<span class="loading mr-3 loading-xl loading-bars"></span>
+			<p class="text-lg/loose font-semibold">{ label }</p>
+		</div>
+	</div>
+}

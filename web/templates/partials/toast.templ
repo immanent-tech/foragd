@@ -5,6 +5,7 @@ package partials
 
 import (
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
@@ -33,4 +34,18 @@ templ UpdatesToast(options ...element.PropertiesOption) {
 			</button>
 		</div>
 	</div>
+}
+
+// UpdatesPoller renders an element that will poll the given path (with the given filters) for updates.
+templ UpdatesPoller(path string, filters *models.ListFilters) {
+	<div
+		id="updates"
+		class="toast toast-center z-10"
+		hx-post={ path }
+		if filters != nil {
+			hx-vals={ templ.JSONString(filters) }
+		}
+		hx-trigger="every 5m"
+		hx-target="#updates"
+	></div>
 }

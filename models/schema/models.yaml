@@ -1043,6 +1043,7 @@ components:
         - user_id
         - type
         - settings
+        - customisation
       properties:
         created_at:
           $ref: "#/components/schemas/CreatedAt"

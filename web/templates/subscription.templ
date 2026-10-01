@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package templates
 
@@ -12,7 +15,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmx"
-	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"slices"
 	"strconv"
@@ -340,11 +342,6 @@ templ SubscriptionCategoryBadges(subscription *models.Subscription) {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	{{
-		var span trace.Span
-		ctx, span = tracer.Start(ctx, "render")
-		defer span.End()
-	}}
 	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
 			@partials.BackToTopButton()
@@ -361,105 +358,112 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					WithListActions(listSubscriptionsActions(response)),
 				)
 				<section id="subscriptions-list" class="ptr-content pt-4">
-					<div id="refreshing" class="group mx-auto flex w-full justify-center">
-						<div class="hidden py-4 text-center group-[.htmx-request]:inline-flex">
-							<span class="loading mr-3 loading-xl loading-bars"></span>
-							<p class="text-lg/loose font-semibold">Refreshing...</p>
-						</div>
-					</div>
+					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Subscriptions) > 0 {
-						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/list/subscriptions', storageKey: 'subscriptionsList')">
-							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
-								element.WithAttribute("_", "install MasonryGrid"),
-								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-								element.WithHXTarget(ContentID.Target()),
-								element.WithHXTrigger("refresh"),
-								element.WithHXIndicator("#refreshing"),
-							) {
-								@templ.Fragment(PaginateFragment) {
-									for idx, subscription := range response.Subscriptions {
-										@SubscriptionCard(idx, "/list/subscriptions", subscription, response.Filters.View) {
-											if len(subscription.Articles) > 0 {
-												<div class="mt-auto h-full">
-													<ul class="latest-items menu">
-														for item := range slices.Values(subscription.Articles) {
-															<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-																<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
-																	<a
-																		hx-get={ "/articles/" + item.GetID() }
-																		hx-target={ ContentID.Target() }
-																		hx-swap="innerMorph show:top transition:true"
-																		hx-trigger="click"
-																		hx-push-url="true"
-																		_="on click halt the event's bubbling"
-																		class="line-clamp-2 font-serif text-base"
-																	>
-																		{ item.GetTitle() }
-																	</a>
-																</div>
-															</li>
-														}
-													</ul>
-												</div>
-											}
-										}
-									}
-								}
-							}
-							@ListPaginationControl("/subscriptions/paginate", &response.Filters)
-							<div id="loading-items" class="group mx-auto mt-4 flex w-full justify-center">
-								<div class="hidden text-center group-[.htmx-request]:inline-flex">
-									<span class="loading mr-3 loading-xl loading-bars"></span>
-									<p class="text-lg/loose font-semibold">Loading content...</p>
-								</div>
-							</div>
-							// Show some actions at the bottom of the list.
-							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-								// Mark all subscriptions action.
-								<li>
-									<button
-										class="group btn border-neutral/15 btn-outline"
-										if response.Filters.GetView() == models.ViewUnread {
-											hx-post={ "/subscriptions/" + string(models.MarkRead) }
-										} else {
-											hx-post={ "/subscriptions/" + string(models.MarkUnread) }
-										}
-										hx-target={ ModalContainerID.Target() }
-										hx-include="article > input"
-									>
-										<span class="hidden items-center group-[.htmx-request]:inline-flex">
-											<span class="loading mr-3 loading-spinner"></span>
-											<span class="text-sm/6">Loading</span>
-										</span>
-										<span class="inline-flex items-center group-[.htmx-request]:hidden">
-											if response.Filters.GetView() == models.ViewUnread {
-												@tableroutline.MailOpened(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
-												<span class="text-sm/6">Mark All Read</span>
-											} else {
-												@tableroutline.Mail(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
-												<span class="text-sm/6">Mark All Unread</span>
-											}
-										</span>
-									</button>
-								</li>
-							</ul>
-						</div>
+						@listSubscriptionsGrid(response)
 					} else {
 						@partials.NoContent()
 					}
 				</section>
 			}
 			// Watch for updates.
-			<div
-				id="updates"
-				class="toast toast-center z-10"
-				hx-post="/subscriptions/updates"
-				hx-vals={ templ.JSONString(response.Filters) }
-				hx-trigger="every 5m"
-				hx-target="#updates"
-			></div>
+			@partials.UpdatesPoller(string(routeSubscriptionsUpdates), &response.Filters)
 		}
 	}
+}
+
+templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
+	<div _={ components.ScrollRestoreScript(string(routeSubscriptionsList), "subscriptionsList") }>
+		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
+			element.WithAttribute("_", "install MasonryGrid"),
+			element.WithHXMethod(http.MethodGet, string(routeSubscriptionsList)),
+			element.WithHXTarget(ContentID.Target()),
+			element.WithHXTrigger("refresh"),
+			element.WithHXIndicator("#refreshing"),
+		) {
+			@templ.Fragment(PaginateFragment) {
+				for idx, sub := range response.Subscriptions {
+					@SubscriptionCard(idx, string(routeSubscriptionsList), sub, response.Filters.View) {
+						@SubscriptionLatestArticles(sub.Articles)
+					}
+				}
+			}
+		}
+		@ListPaginationControl(routeSubscriptionsPaginate, &response.Filters)
+		@partials.LoadingIndicator("loading-items", "Loading content...", element.WithClasses("mt-4"))
+		<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
+			<li>
+				@ListMarkAllSubscriptionsButton(NewMarkAction("/subscriptions", "Mark all", response.Filters.GetView()))
+			</li>
+		</ul>
+	</div>
+}
+
+// subscriptionLatestArticles renders a list of latest article summaries for a subscription.
+templ SubscriptionLatestArticles(articles []*models.Article) {
+	if len(articles) > 0 {
+		<div class="mt-auto h-full">
+			<ul class="latest-items menu">
+				for _, item := range articles {
+					@latestArticleItem(item)
+				}
+			</ul>
+		</div>
+	}
+}
+
+// latestArticleItem renders details about a latest article for a subscription.
+templ latestArticleItem(item *models.Article) {
+	<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
+		<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
+			<a
+				hx-get={ articleURL(item.GetID()) }
+				hx-target={ ContentID.Target() }
+				hx-swap="innerMorph show:top transition:true"
+				hx-trigger="click"
+				hx-push-url="true"
+				_="on click halt the event's bubbling"
+				class="line-clamp-2 font-serif text-base"
+			>
+				{ item.GetTitle() }
+			</a>
+		</div>
+	</li>
+}
+
+templ ListMarkAllSubscriptionsButton(a MarkAction) {
+	<button class="group btn border-neutral/15 btn-outline" hx-post={ a.Path } hx-target={ ModalContainerID.Target() } hx-include="article > input">
+		<span class="hidden items-center group-[.htmx-request]:inline-flex">
+			<span class="loading mr-3 loading-spinner"></span>
+			<span class="text-sm/6">Loading</span>
+		</span>
+		<span class="inline-flex items-center group-[.htmx-request]:hidden">
+			if a.Read {
+				@tableroutline.MailOpened(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
+			} else {
+				@tableroutline.Mail(templ.Attributes{"class": "mr-3 size-5 stroke-base-content/80", "aria-hidden": "true"})
+			}
+			<span class="text-sm/6">{ a.Label }</span>
+		</span>
+	</button>
+}
+
+templ ListMarkSubscriptionButton(a MarkAction) {
+	<button class="group btn border-neutral/15 btn-outline" hx-post={ a.Path } hx-target={ ModalContainerID.Target() }>
+		<span class="hidden items-center group-[.htmx-request]:inline-flex">
+			<span class="loading mr-3 loading-spinner"></span>
+			Loading
+		</span>
+		<span class="inline-flex items-center gap-1 group-[.htmx-request]:hidden">
+			if a.Read {
+				@tableroutline.MailOpened(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+				<span class="text-sm/6">{ a.Label }</span>
+			} else {
+				@tableroutline.Mail(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
+				<span class="text-sm/6">{ a.Label }</span>
+			}
+		</span>
+	</button>
 }
 
 templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {

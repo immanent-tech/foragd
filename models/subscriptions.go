@@ -209,10 +209,8 @@ func (s *Subscription) GetCategories(maxCount int) Categories {
 
 // GetImage retrieves the image that represents the subscription, or nil if no image is available.
 func (s *Subscription) GetImage() URL {
-	if s.Customisation != nil {
-		if s.Customisation.ImageURL != nil {
-			return *s.Customisation.ImageURL
-		}
+	if s.Customisation.ImageURL != nil {
+		return *s.Customisation.ImageURL
 	}
 	return ""
 }

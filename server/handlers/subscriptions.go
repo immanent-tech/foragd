@@ -622,7 +622,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			// Convert metadata into edit request data.
 			request := &models.FeedSubscriptionRequest{
 				SubscriptionID: subscription.GetID(),
-				Customisation:  subscription.Customisation,
+				Customisation:  &subscription.Customisation,
 				Settings:       &subscription.Settings,
 				ArticleFilters: subscription.FeedData.ArticleFilters,
 			}
@@ -642,7 +642,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
-				Customisation: subscription.Customisation,
+				Customisation: &subscription.Customisation,
 				Settings:      &subscription.Settings,
 				Search:        subscription.SearchData.Search,
 			}
@@ -690,7 +690,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			}
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
-				Customisation:  subscription.Customisation,
+				Customisation:  &subscription.Customisation,
 				Settings:       new(subscription.Settings),
 				Subscriptions:  make(map[models.SubscriptionID]string),
 				SubscriptionID: new(subscription.GetID()),
@@ -720,7 +720,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
-				Customisation:  subscription.Customisation,
+				Customisation:  &subscription.Customisation,
 				Settings:       new(subscription.Settings),
 				SubscriptionID: subscription.GetID(),
 			}

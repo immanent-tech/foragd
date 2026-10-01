@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package templates
 
@@ -304,7 +306,7 @@ templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
 
 // ListPaginationControl renders a sentinel element for controlling pagination of a list. It should be added as an OOB
 // swap to the page whenever pagination needs to be updated (i.e., after loading the latest set of items).
-templ ListPaginationControl(path string, filters *models.ListFilters, options ...element.PropertiesOption) {
+templ ListPaginationControl(path Route, filters *models.ListFilters, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="pagination-sentinel-wrapper"

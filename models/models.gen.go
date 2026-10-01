@@ -1065,7 +1065,7 @@ type Subscription struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user.
-	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
+	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation"`
 
 	// EmailData is a subscription to an email newsletter source.
 	EmailData *EmailSubscription `json:"email_data,omitempty" validate:"omitempty"`
@@ -1128,7 +1128,7 @@ type SubscriptionMetadata struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user.
-	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
+	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`

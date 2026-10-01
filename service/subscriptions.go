@@ -1280,7 +1280,7 @@ func EditFeedSubscription(
 	edits *models.FeedSubscriptionRequest,
 ) error {
 	// Update customisation.
-	subscription.Customisation = edits.Customisation
+	subscription.Customisation = *edits.Customisation
 	// Update settings.
 	if edits.Settings != nil {
 		subscription.Settings = *edits.Settings
@@ -1340,7 +1340,7 @@ func EditGroupSubscription(
 	edits *models.GroupSubscriptionRequest,
 ) error {
 	// Update customisation.
-	subscription.Customisation = edits.Customisation
+	subscription.Customisation = *edits.Customisation
 	// Update settings.
 	if edits.Settings != nil {
 		subscription.Settings = *edits.Settings
@@ -1405,7 +1405,7 @@ func EditSearchSubscription(
 	edits *models.SearchSubscriptionRequest,
 ) error {
 	// Update customisation.
-	subscription.Customisation = edits.Customisation
+	subscription.Customisation = *edits.Customisation
 	// Update settings.
 	if edits.Settings != nil {
 		subscription.Settings = *edits.Settings
@@ -1459,7 +1459,7 @@ func EditEmailSubscription(
 	edits *models.EditEmailSubscriptionRequest,
 ) error {
 	// Update customisation.
-	subscription.Customisation = edits.Customisation
+	subscription.Customisation = *edits.Customisation
 	// Update settings.
 	if edits.Settings != nil {
 		subscription.Settings = *edits.Settings
@@ -1485,7 +1485,7 @@ func newBaseSubscription(
 		UpdatedAt:      &ts,
 		CreatedAt:      ts,
 		MarkedReadAt:   &maxHistory,
-		Customisation:  &customisation,
+		Customisation:  customisation,
 		Settings:       models.SubscriptionSettings{},
 		Favorite:       false,
 	}

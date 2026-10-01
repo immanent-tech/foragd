@@ -27,6 +27,18 @@ const (
 // Navigation reflects what navigation marker the current page should be placed under.
 type Navigation string
 
+const (
+	routeSubscriptionsList     Route = "/list/subscriptions"
+	routeSubscriptionsPaginate Route = "/subscriptions/paginate"
+	routeSubscriptionsUpdates  Route = "/subscriptions/updates"
+	routeArticlesList          Route = "/list/articles"
+	routeArticlesPaginate      Route = "/articles/paginate"
+	routeArticlesUpdates       Route = "/articles/updates"
+)
+
+// Route represents a route from which a page is served.
+type Route string
+
 func FragmentKeysToCtx(ctx context.Context, keys ...templFragmentKey) context.Context {
 	if len(keys) > 0 {
 		return context.WithValue(ctx, fragmentsCtxKey, keys)
