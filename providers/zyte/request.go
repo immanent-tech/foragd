@@ -132,8 +132,10 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 
-	result := &Response{}
-	errResult := &ResponseError{}
+	var (
+		resp    Response
+		errResp ResponseError
+	)
 
 	httpClient := loadHTTPClient()
 	switch resp, err := httpClient.
@@ -141,15 +143,15 @@ func Proxy(ctx context.Context, rawURL string, options ...RequestOption) (*Respo
 		SetContext(ctx).
 		SetBasicAuth(cfg.APIKey, "").
 		SetBody(req).
-		SetError(errResult).
+		SetError(&errResp).
 		// SetDebug(true).
-		SetResult(result).
+		SetResult(&resp).
 		Post(extractEndpoint); {
 	case err != nil:
 		return nil, fmt.Errorf("proxy request: %w", &ResponseError{Title: err.Error(), Status: resp.StatusCode()})
 	case resp.IsError():
-		return nil, fmt.Errorf("proxy request: %w", errResult)
+		return nil, fmt.Errorf("proxy request: %w", &errResp)
 	}
 
-	return result, nil
+	return &resp, nil
 }
