@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
@@ -24,6 +25,9 @@ import (
 const updateFeedJobTimeout = 15 * time.Minute
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
+
+// TODO: this should be in the backing store for distributed checks.
+var feedsInFlight sync.Map // feedID -> struct{}.
 
 // NewUpdateFeedJob creates a job for updating a feed.
 func NewUpdateFeedJob(ctx context.Context, feedSvc FeedsAPI, id models.FeedID) (*SerializedJob, error) {
@@ -56,22 +60,30 @@ func NewUpdateFeedJob(ctx context.Context, feedSvc FeedsAPI, id models.FeedID) (
 
 // ExecuteUpdateFeed will execute a job that attempts to find new items for a feed and index them into the data backend.
 func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
+	// Get the feed job data.
 	data, err := job.JobData.AsUpdateFeedJob()
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal job data: %w", err)
 	}
-
 	if err := validation.Validate.Struct(data); err != nil {
 		return fmt.Errorf("validate job data: %w", err)
 	}
 
+	// Skip if this feed job has been manually blocked.
 	if data.Blocked {
-		slogctx.Warn(ctx, "Not running blocked update feed job.",
-			slog.String("feed_id", data.FeedID),
-			slog.String("reason", *data.BlockedReason),
-		)
+		reason := "unspecified"
+		if data.BlockedReason != nil {
+			reason = *data.BlockedReason
+		}
+		slogctx.Warn(ctx, "Skipping blocked feed.", slog.String("reason", reason))
 		return nil
 	}
+
+	// Skip if there is an active job for this feed.
+	if _, loaded := feedsInFlight.LoadOrStore(data.FeedID, struct{}{}); loaded {
+		return nil
+	}
+	defer feedsInFlight.Delete(data.FeedID)
 
 	services := ServicesFromCtx(ctx)
 	if services == nil {
@@ -90,6 +102,9 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	details, err := services.Feeds.GetFeed(ctx, data.FeedID)
 	switch {
 	case err != nil && errors.Is(err, elastic.ErrNotFound):
+		if err := services.Scheduler.DeleteJob(job.getJobKey()); err != nil {
+			slogctx.FromCtx(ctx).Error("Cannot remove job for missing feed", slog.Any("error", err))
+		} // adapt to your job type
 		return fmt.Errorf("cannot execute: %s: no feed found", data.FeedID)
 	case err != nil:
 		return fmt.Errorf("get feed doc: %s: %w", data.FeedID, err)
@@ -123,8 +138,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	if err := services.Feeds.ApplyFeedUpdates(ctx, services.ItemsCache, details, feed); err != nil {
-		slogctx.Error(ctx, "Could not apply feed updates.",
-			slog.Any("error", err))
+		return fmt.Errorf("apply feed updates: %w", err)
 	}
 
 	slogctx.Info(ctx, "Finished update feed job.",
