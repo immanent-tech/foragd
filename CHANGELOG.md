@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.240.0](https://github.com/immanent-tech/foragd/compare/v0.239.2...v0.240.0) (2026-10-01)
+
+
+### Features
+
+* ♻️ migrate to htmx4 ([303625b](https://github.com/immanent-tech/foragd/commit/303625bc52789a3a5ba9ff2a4c167d6eccb5a892))
+
+
+### Bug Fixes
+
+* **scheduler:** 🔧 load job services if needed ([e9645ed](https://github.com/immanent-tech/foragd/commit/e9645ed46c8f7ad2634ddc076caa6d856cd7ef65))
+* **server/session:** 🔧 fix logic for fetching a session from the store ([98e6aa6](https://github.com/immanent-tech/foragd/commit/98e6aa653162cda83bde7284456d6eb4d6acecab))
+
+
+### Performance Improvements
+
+* **providers/zyte:** ⚡ improved retry handling ([0a10960](https://github.com/immanent-tech/foragd/commit/0a109604735cf664d97f8c6f0a0c35d062bb9e72))
+
 ## [0.239.2](https://github.com/immanent-tech/foragd/compare/v0.239.1...v0.239.2) (2026-09-29)
 
 
