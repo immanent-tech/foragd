@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.241.0](https://github.com/immanent-tech/foragd/compare/v0.240.0...v0.241.0) (2026-10-02)
+
+
+### Features
+
+* **templates/subscriptions:** ✨ improved subscription card layout ([b7b6a31](https://github.com/immanent-tech/foragd/commit/b7b6a316752c85da7605f63213e1669310addca2))
+
+
+### Bug Fixes
+
+* **scheduler/jobs:** 🔧 get new feed job fixes ([c876e04](https://github.com/immanent-tech/foragd/commit/c876e048abe82fdb9eabc3c762d718ec159831f5))
+* **scheduler/jobs:** 🔧 update feed job fixes ([2eac32d](https://github.com/immanent-tech/foragd/commit/2eac32de22f46362a5643f5df585ff14714bfb1c))
+* **templates/subscriptions:** 🔧 fix language filters for subscriptions ([ebc2a01](https://github.com/immanent-tech/foragd/commit/ebc2a012006dae07df768ed0c32efc69505aa68f))
+* **templates/subscriptions:** 🔧 subscription card adjustments ([48edb2d](https://github.com/immanent-tech/foragd/commit/48edb2de859394c4ce33cda9d9175dde0fde310d))
+
 ## [0.240.0](https://github.com/immanent-tech/foragd/compare/v0.239.2...v0.240.0) (2026-10-01)
 
 
