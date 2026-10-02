@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package service
 
@@ -96,7 +98,7 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 	}
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
-			MaximumSize:      10_000,
+			MaximumSize:      30_000,
 			ExpiryCalculator: &feedCacheExpiryCalculator{},
 		}),
 		store: svc,

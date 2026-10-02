@@ -17,7 +17,6 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
 )
 
@@ -90,256 +89,6 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 	</div>
 }
 
-// SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
-// list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
-// grid/list (and is used for CSS-based animations).
-templ SubscriptionCard(idx int, path string, subscription *models.Subscription, view models.View) {
-	@partials.Card(element.WithAttribute("id", subscription.GetID()),
-		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
-		element.WithHXIndicator("this"),
-	) {
-		// Show unread count in badge at top right if user wants stats shown.
-		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-			<div class="absolute top-0 right-0">
-				<span class="mt-2 mr-2 badge badge-sm badge-primary">
-					if subscription.GetStats().UnreadTotal() >= 100 {
-						99+
-					} else {
-						{ subscription.GetStats().UnreadTotal() }
-					}
-				</span>
-			</div>
-		}
-		<input type="hidden" name="selected_subscriptions" value={ subscription.GetID() }/>
-		// Card header.
-		@partials.CardHeader() {
-			<div
-				class="group flex cursor-pointer touch-manipulation items-center"
-				{ generateSubscriptionViewAttributes(subscription)... }
-			>
-				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
-					if subscription.GetImage() == "" {
-						@subscriptionThumbnail(nil, subscription.GetTitle())
-					} else {
-						@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
-					}
-				</div>
-				<h2 class="card-title flex-1 font-serif text-lg text-balance transition-colors group-hover:text-primary group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none">
-					{ subscription.GetTitle() }
-				</h2>
-				<div class="gap-1">
-					// Add an icon to indicate whether article filtering is being applied.
-					if articleFilters := subscription.GetArticleFilters(); !articleFilters.IsEmpty() {
-						<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
-							<button
-								hx-get={ "/subscriptions/" + subscription.GetID() + "/edit#article-filtering" }
-								hx-target={ ContentID.Target() }
-								hx-swap="innerMorph show:top transition:true"
-								hx-trigger="click consume"
-								class="btn btn-sm btn-ghost btn-square"
-							>
-								<span class="sr-only">Article filtering applied</span>
-								@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
-							</button>
-						</div>
-					}
-					// Add an icon to map articles if the subscription has articles with geo info.
-					if subscription.HasGeoInfo() {
-						<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
-							<button
-								hx-get="/map"
-								hx-target={ ContentID.Target() }
-								hx-swap="innerMorph show:top transition:true"
-								hx-trigger="click consume"
-								hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
-								class="btn btn-sm btn-ghost btn-square"
-							>
-								<span class="sr-only">Show articles on map</span>
-								@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
-							</button>
-						</div>
-					}
-				</div>
-			</div>
-		}
-		// Card body.
-		@partials.CardBody(element.WithClasses("flex-1")) {
-			// Display up to 5 of the subscription categories.
-			@SubscriptionCategoryBadges(subscription)
-			// Any custom body.
-			if templ.GetChildren(ctx) != nil {
-				{ children... }
-			}
-		}
-		// Card footer.
-		@partials.CardFooter(element.WithClasses("items-center")) {
-			<div class="flex items-center justify-between border-t border-neutral/20 pt-3">
-				<div class="flex min-w-0 flex-col gap-1">
-					// Show stats if user has requested them.
-					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-						<span class="badge justify-start badge-sm tabular-nums">
-							<relative-time
-								datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-							>
-								{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-							</relative-time>
-						</span>
-						if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
-							<span class="badge justify-start badge-sm tabular-nums">
-								{ subscription.GetStats().UpdateFrequency() }
-							</span>
-						}
-					} else {
-						<span class="badge badge-sm tabular-nums">
-							<relative-time
-								datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-							>
-								{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-							</relative-time>
-						</span>
-					}
-				</div>
-				<div class="flex shrink-0 items-center">
-					// Favorite action.
-					@SubscriptionFavoriteToggle(subscription)
-					// Mark action.
-					@SubscriptionMarkToggle(subscription)
-					// Separator.
-					<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
-					// Context menu actions.
-					<div class="tooltip tooltip-top tooltip-end" data-tip="Subscription actions">
-						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
-							<button
-								id={ "btn-" + subscription.GetID() + "-actions" }
-								class="btn btn-ghost btn-sm"
-							>
-								<span class="sr-only">{ subscription.GetTitle() + " Actions" }</span>
-								@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
-							</button>
-							@partials.Menu(element.WithAttribute("id", "menu-"+subscription.GetID()+"-actions")) {
-								// View action.
-								if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed && subscription.GetLink() != "" {
-									@partials.MenuItem() {
-										<a
-											href={ subscription.GetLink() }
-											rel="noopener"
-											target="_blank"
-											_="on click halt the event's bubbling"
-										>
-											@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
-											Feed Website
-										</a>
-									}
-								}
-								if subscription.HasGeoInfo() {
-									@partials.MenuItem() {
-										<a
-											hx-get="/map"
-											hx-target={ ContentID.Target() }
-											hx-swap="innerMorph show:top transition:true"
-											hx-trigger="click consume"
-											hx-vals={ templ.JSONString(map[string]string{"subscriptions": subscription.GetID()}) }
-										>
-											@tableroutline.Map2(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
-											Map articles
-										</a>
-									}
-								}
-								// Edit action.
-								@partials.MenuItem() {
-									<a
-										hx-get={ "/subscriptions/" + subscription.GetID() + "/edit" }
-										hx-target={ ContentID.Target() }
-										hx-swap="innerMorph show:top transition:true"
-										hx-trigger="click consume"
-									>
-										@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
-										Edit Subscription
-									</a>
-								}
-								// Unsubscribe action.
-								@partials.MenuItem() {
-									<a
-										hx-get={ "/subscriptions/" + subscription.GetID() + "/remove" }
-										hx-target={ ModalContainerID.Target() }
-										hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
-										hx-trigger="click consume"
-									>
-										@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
-										Remove Subscription
-									</a>
-								}
-								// Report issue action.
-								@partials.MenuItem() {
-									<a
-										hx-get="/issue"
-										hx-target={ ContentID.Target() }
-										hx-replace-url="true"
-										hx-vals={ templ.JSONString(map[string]string{"object_id": subscription.GetID()}) }
-										hx-trigger="click consume"
-									>
-										@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
-										Report an Issue
-									</a>
-								}
-							}
-						</el-dropdown>
-					</div>
-				</div>
-			</div>
-		}
-	}
-}
-
-templ SubscriptionCategoryBadges(subscription *models.Subscription) {
-	{{ categoryLimit := 10 }}
-	{{ categories := subscription.GetCategories(categoryLimit) }}
-	// Category Badges (up to 10).
-	if len(categories) > 0 {
-		<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
-			for idx, category := range categories {
-				{{
-					filters := models.NewListFilters()
-					filters.Category = &category
-					var extraClasses string
-					// Only show the first three categories, hide all others behind a button toggle.
-					if idx >= 3 {
-						extraClasses = "hidden"
-					}
-				}}
-				@CategoryBadge(category,
-					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
-					element.WithHXTarget(ContentID.Target()),
-					element.WithHXValues(filters),
-					element.WithClasses(extraClasses),
-					element.WithAttribute("_", "on click halt the event's bubbling"),
-				)
-			}
-			// Add a button to reveal all categories when clicked.
-			if len(categories) > 3 {
-				<button
-					class="toggle-categories-btn btn btn-outline btn-xs"
-					_="
-							on click
-							  halt the event's bubbling
-          					  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
-							  for tag in :tags
-							   remove .hidden from tag
-							  end
-							  remove me
-							end
-							"
-				>
-					{ fmt.Sprintf("+ %d more",len(categories)-3) }
-				</button>
-			}
-		</div>
-	}
-}
-
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
@@ -383,7 +132,7 @@ templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
 		) {
 			@templ.Fragment(PaginateFragment) {
 				for idx, sub := range response.Subscriptions {
-					@SubscriptionCard(idx, string(routeSubscriptionsList), sub, response.Filters.View) {
+					@SubscriptionCard(idx, sub) {
 						@SubscriptionLatestArticles(sub.Articles)
 					}
 				}
@@ -403,17 +152,19 @@ templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
 templ SubscriptionLatestArticles(articles []*models.Article) {
 	if len(articles) > 0 {
 		<div class="mt-auto h-full">
-			<ul class="latest-items menu">
+			<ul class="latest-items menu menu-vertical">
 				for _, item := range articles {
-					@latestArticleItem(item)
+					@latestArticleSummary(item)
 				}
 			</ul>
 		</div>
+	} else {
+		<p class="m-0 italic text-base-content">No entries.</p>
 	}
 }
 
-// latestArticleItem renders details about a latest article for a subscription.
-templ latestArticleItem(item *models.Article) {
+// latestArticleSummary renders details about a latest article for a subscription.
+templ latestArticleSummary(item *models.Article) {
 	<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
 		<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
 			<a
@@ -423,9 +174,17 @@ templ latestArticleItem(item *models.Article) {
 				hx-trigger="click"
 				hx-push-url="true"
 				_="on click halt the event's bubbling"
-				class="line-clamp-2 font-serif text-base"
 			>
-				{ item.GetTitle() }
+				<span class="line-clamp-2 font-serif font-semibold text-sm/6">
+					{ item.GetTitle() }
+				</span>
+				<relative-time
+					datetime={ item.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+					format="relative"
+					class="shrink-0 text-xs/4 text-base-content capitalize tabular-nums"
+				>
+					{ item.GetUpdatedDate().Format("Jan _2, 2006") }
+				</relative-time>
 			</a>
 		</div>
 	</li>
@@ -819,9 +578,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					<span class="label">Thumbnail</span>
 					<div class="flex items-center gap-4">
 						if request.Customisation != nil && request.Customisation.ImageURL != nil {
-							@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, *request.Customisation.Nickname)
+							@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
 						} else {
-							@subscriptionThumbnail(nil, *request.Customisation.Nickname)
+							@thumbnail("", *request.Customisation.Nickname)
 						}
 						<input
 							id="thumbnail"
@@ -1002,9 +761,9 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
+										@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
 									} else {
-										@subscriptionThumbnail(nil, "")
+										@thumbnail("", *request.Customisation.Nickname)
 									}
 									<input
 										id="thumbnail"
@@ -1237,9 +996,9 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
+										@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
 									} else {
-										@subscriptionThumbnail(nil, "")
+										@thumbnail("", *request.Customisation.Nickname)
 									}
 									<input
 										id="thumbnail"
@@ -1418,9 +1177,9 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<div class="col-span-full mt-2 flex items-center gap-x-2">
 											if request.Customisation != nil && request.Customisation.ImageURL != nil {
-												@subscriptionThumbnail(&models.RemoteImage{URL: *request.Customisation.ImageURL}, "")
+												@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
 											} else {
-												@subscriptionThumbnail(nil, "")
+												@thumbnail("", *request.Customisation.Nickname)
 											}
 											<input
 												id="thumbnail"
@@ -1510,36 +1269,6 @@ templ RemoveSubscriptionModal(subscription *models.Subscription, options ...elem
 				commandfor={ id }
 				class="btn btn-secondary hover:btn-error"
 			>Cancel</button>
-		</div>
-	}
-}
-
-templ subscriptionThumbnail(img *models.RemoteImage, name string) {
-	if img != nil {
-		// If the source has an image, use that as the avatar.
-		<div class="avatar" aria-hidden="true">
-			// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
-			// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-			// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-			// sm:1 - strip metadata
-			// kcr:1 - keep copyright
-			// scp:1 - convert color profile to sRGB
-			@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
-				element.WithAttribute("width", "48"),
-				element.WithAttribute("height", "48"),
-				element.WithClasses("mask mask-squircle size-12", "ring-1", "ring-neutral-content/25"),
-			)
-		</div>
-	} else {
-		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
-		<div class="avatar avatar-placeholder" aria-hidden="true">
-			<div class="mask w-12 bg-neutral mask-squircle text-neutral-content ring-1 ring-neutral-content/25">
-				if name != "" {
-					<span class="text-3xl font-serif capitalize">{ name[0:1] }</span>
-				} else {
-					<span class="text-3xl font-serif capitalize">S</span>
-				}
-			</div>
 		</div>
 	}
 }
@@ -1673,4 +1402,81 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),
 	).GetAttributes()
+}
+
+templ subscriptionCategoryBadges(subscription *models.Subscription) {
+	{{ categoryLimit := 10 }}
+	{{ categories := subscription.GetCategories(categoryLimit) }}
+	// Category Badges (up to 10).
+	if len(categories) > 0 {
+		<div class="mb-2.5 flex flex-wrap gap-1.5 self-start">
+			for idx, category := range categories {
+				{{
+					filters := models.NewListFilters()
+					filters.Category = &category
+					var extraClasses string
+					// Only show the first three categories, hide all others behind a button toggle.
+					if idx >= 3 {
+						extraClasses = "hidden"
+					}
+				}}
+				@CategoryBadge(category,
+					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					element.WithHXTarget(ContentID.Target()),
+					element.WithHXValues(filters),
+					element.WithClasses(extraClasses),
+					element.WithAttribute("_", "on click halt the event's bubbling"),
+				)
+			}
+			// Add a button to reveal all categories when clicked.
+			if len(categories) > 3 {
+				<button
+					class="toggle-categories-btn btn btn-outline btn-xs"
+					_="
+							on click
+							  halt the event's bubbling
+          					  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
+							  for tag in :tags
+							   remove .hidden from tag
+							  end
+							  remove me
+							end
+							"
+				>
+					{ fmt.Sprintf("+ %d more",len(categories)-3) }
+				</button>
+			}
+		</div>
+	}
+}
+
+// thumbnail generates a thumbnail image. If the image URL is given, it uses that image. Else, it will use a placeholder
+// constructed from the first letter of the alt text.
+templ thumbnail(imgURL, altText string) {
+	<div class="relative flex-none">
+		if imgURL != "" {
+			{{ img := models.NewRemoteImage(imgURL, altText) }}
+			// If the source has an image, use that as the avatar.
+			<span class="avatar" aria-hidden="true">
+				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+				// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+				// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+				// sm:1 - strip metadata
+				// kcr:1 - keep copyright
+				// scp:1 - convert color profile to sRGB
+				@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
+					element.WithAttribute("width", "48"),
+					element.WithAttribute("height", "48"),
+					element.WithClasses("mask mask-squircle size-12", "ring-1", "ring-neutral-content/25"),
+				)
+			</span>
+		} else {
+			// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
+			<span class="avatar avatar-placeholder" aria-hidden="true">
+				<div class="mask w-12 text-accent-content bg-accent mask-squircle ring-1 ring-neutral-content/25">
+					{ initialLetter(altText) }
+				</div>
+			</span>
+		}
+	</div>
 }

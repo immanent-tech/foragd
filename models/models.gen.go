@@ -1073,6 +1073,9 @@ type Subscription struct {
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`
 
+	// Feed is the feed associated with the subscription.
+	Feed *Feed `form:"-" json:"-"`
+
 	// FeedData represents a feed a user has subscribed to.
 	FeedData *FeedSubscription `json:"feed_data,omitempty" validate:"omitempty"`
 

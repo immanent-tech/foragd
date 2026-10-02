@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package templates
 
@@ -102,29 +105,7 @@ templ UserHome(data *HomeData) {
 											hx-indicator="this"
 											{ generateSubscriptionViewAttributes(subscription)... }
 										>
-											<div class="flex">
-												<div class="mr-4 shrink-0 self-center">
-													<div class="ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.05]">
-														if subscription.GetImage() == "" {
-															@subscriptionThumbnail(nil, subscription.GetTitle())
-														} else {
-															@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
-														}
-													</div>
-												</div>
-												<div class="flex flex-1 flex-col">
-													<h2 class="font-xl flex-1 font-serif text-lg font-bold text-balance">{ subscription.GetTitle() }</h2>
-													<span class="mt-1 text-sm/6 tabular-nums">
-														Updated&nbsp;
-														<relative-time
-															datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-															format="relative"
-														>
-															{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
-														</relative-time>
-													</span>
-												</div>
-											</div>
+											@subscriptionCardHeader(subscription)
 										</li>
 									}
 								</ul>

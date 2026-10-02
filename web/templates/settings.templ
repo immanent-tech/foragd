@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package templates
 
@@ -1170,11 +1173,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										// Subscription thumbnail and title.
 										<div class="flex items-center gap-3">
 											<div>
-												if subscription.GetImage() == "" {
-													@subscriptionThumbnail(nil, subscription.GetTitle())
-												} else {
-													@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
-												}
+												@thumbnail(subscription.GetImage(), subscription.GetTitle())
 											</div>
 											<a class="link link-hover" { generateSubscriptionViewAttributes(subscription)... }>
 												<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>

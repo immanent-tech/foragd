@@ -1202,6 +1202,12 @@ components:
               x-oapi-codegen-extra-tags:
                 form: "-"
                 json: "-"
+            feed:
+              description: is the feed associated with the subscription.
+              $ref: "#/components/schemas/Feed"
+              x-oapi-codegen-extra-tags:
+                form: "-"
+                json: "-"
     SearchSubscriptionRequest:
       description: >
         represents a request to create a search subscription.

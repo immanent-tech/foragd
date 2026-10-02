@@ -113,6 +113,12 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
+
+	feedSvc, err := LoadFeedService()
+	if err != nil {
+		return nil, fmt.Errorf("load feed service: %w", err)
+	}
+
 	return &SubscriptionService{
 		Cache: otter.Must(
 			&otter.Options[models.UserID, *UserSubscriptions]{
@@ -152,8 +158,10 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 					return nil, otter.ErrNotFound
 				}
 
-				for subscription := range slices.Values(subscriptions) {
-					userSubscriptionsCache.Set(subscription.GetID(), subscription)
+				// Get the feeds associated with the subscriptions.
+				feeds, err := feedSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
+				if err != nil {
+					return nil, fmt.Errorf("get feeds for subscriptions: %w", err)
 				}
 
 				// Load grouped subscriptions into parent.
@@ -170,6 +178,13 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 							grouped,
 						)
 					}
+				}
+
+				for subscription := range slices.Values(subscriptions) {
+					// Associated the underlying feed with the subscription.
+					subscription.Feed = feeds.FindByID(subscription.GetFeedID())
+					// Load into cache.
+					userSubscriptionsCache.Set(subscription.GetID(), subscription)
 				}
 
 				slogctx.Debug(ctx, "Created subscriptions cache for user.",
@@ -191,6 +206,14 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 							if errors.Is(err, elastic.ErrNotFound) {
 								return nil, otter.ErrNotFound
 							}
+
+							// Get and set the feed associated with the subscriptions.
+							feed, err := feedSvc.GetFeed(ctx, subscription.GetFeedID())
+							if err != nil {
+								return nil, fmt.Errorf("get feed for subscriptions: %w", err)
+							}
+							subscription.Feed = feed
+
 							// For group subscriptions, load the grouped subscriptions.
 							if subscription.Type == models.SubscriptionTypeGroup {
 								grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
@@ -210,7 +233,11 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 							ctx context.Context,
 							ids []models.SubscriptionID,
 						) (map[models.SubscriptionID]*models.Subscription, error) {
-							subscriptions, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](
+							var (
+								subscriptions models.Subscriptions
+								err           error
+							)
+							subscriptions, err = elastic.GetDocs[models.SubscriptionID, *models.Subscription](
 								ctx,
 								svc.GetIndexRO(SubscriptionsIndex),
 								ids...,
@@ -219,9 +246,17 @@ var LoadSubscriptionService = sync.OnceValues(func() (*SubscriptionService, erro
 								return nil, fmt.Errorf("get subscriptions: %w", ElasticsearchToAPIError(err))
 							}
 
+							// Get the feeds associated with the subscriptions.
+							feeds, err := feedSvc.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
+							if err != nil {
+								return nil, fmt.Errorf("get feed for subscriptions: %w", err)
+							}
+
 							results := make(map[models.SubscriptionID]*models.Subscription, len(subscriptions))
 
 							for subscription := range slices.Values(subscriptions) {
+								// Associated the feed with the subscription.
+								subscription.Feed = feeds.FindByID(subscription.GetFeedID())
 								// For group subscriptions, load the grouped subscriptions.
 								if subscription.Type == models.SubscriptionTypeGroup {
 									grouped, err := elastic.GetDocs[models.SubscriptionID, *models.Subscription](

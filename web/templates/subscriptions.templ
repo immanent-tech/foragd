@@ -1,0 +1,261 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package templates
+
+import (
+	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"strconv"
+)
+
+// SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
+// list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
+// grid/list (and is used for CSS-based animations).
+templ SubscriptionCard(idx int, sub *models.Subscription) {
+	@partials.Card(element.WithAttribute("id", sub.GetID()),
+		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
+		element.WithHXIndicator("this"),
+	) {
+		// Show unread count in badge at top right if user wants stats shown.
+		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+			<div class="absolute top-0 right-0">
+				<span class="mt-2 mr-2 badge badge-sm badge-primary">
+					if sub.GetStats().UnreadTotal() >= 100 {
+						99+
+					} else {
+						{ sub.GetStats().UnreadTotal() }
+					}
+				</span>
+			</div>
+		}
+		// Main card content.
+		<div class="cursor-pointer touch-manipulation" { generateSubscriptionViewAttributes(sub)... }>
+			@partials.CardHeader() {
+				@subscriptionCardHeader(sub)
+			}
+			@partials.CardBody(element.WithClasses("flex-1")) {
+				if templ.GetChildren(ctx) != nil {
+					{ children... }
+				}
+			}
+			@partials.CardFooter(element.WithClasses("mt-auto")) {
+				@subscriptionCardFooter(sub)
+			}
+		</div>
+	}
+}
+
+templ subscriptionCardHeader(sub *models.Subscription) {
+	// Thumbnail and title.
+	@subscriptionCardTitle(sub)
+	if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
+		<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
+			<p class="mt-2 text-sm/6 line-clamp-2">{ feed.GetDescription() }</p>
+		</div>
+	}
+	// List of categories (if any).
+	if len(sub.GetCategories(0)) > 0 {
+		<div class="mt-2">
+			@subscriptionCategoryBadges(sub)
+		</div>
+	}
+}
+
+// subscriptionCardTitle renders a thumbnail and title for the description.
+templ subscriptionCardTitle(sub *models.Subscription) {
+	<div class="flex">
+		<div class="mr-4 shrink-0">
+			@thumbnail(sub.GetImage(), sub.GetTitle())
+		</div>
+		<div>
+			<h3 id={ "sub-title-" + sub.GetID() } class="card-title m-0 text-lg font-serif text-balance line-clamp-2">{ sub.GetTitle() }</h3>
+			<div class="gap-1">
+				// Add an icon to indicate whether article filtering is being applied.
+				if articleFilters := sub.GetArticleFilters(); !articleFilters.IsEmpty() {
+					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
+						<button
+							hx-get={ "/subscriptions/" + sub.GetID() + "/edit#article-filtering" }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerMorph show:top transition:true"
+							hx-trigger="click consume"
+							class="btn btn-sm btn-ghost btn-square"
+						>
+							<span class="sr-only">Article filtering applied</span>
+							@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
+						</button>
+					</div>
+				}
+				// Add an icon to map articles if the subscription has articles with geo info.
+				if sub.HasGeoInfo() {
+					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
+						<button
+							hx-get="/map"
+							hx-target={ ContentID.Target() }
+							hx-swap="innerMorph show:top transition:true"
+							hx-trigger="click consume"
+							hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+							class="btn btn-sm btn-ghost btn-square"
+						>
+							<span class="sr-only">Show articles on map</span>
+							@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
+						</button>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+// subscriptionFeedMetadata renders additional details from the source feed.
+templ subscriptionFeedMetadata(feed *models.Feed) {
+	// Display some additional details from the source.
+	if feed.GetLink() != "" {
+		<p class="mt-2 text-center flex-separated">
+			if feed.SourceType != "" {
+				<span class="badge badge-xs badge-info badge-soft">{ feed.SourceType }</span>
+			}
+			<a
+				class="text-xs"
+				href={ feed.GetLink() }
+				rel="noopener"
+				target="_blank"
+				_="on click halt the event's bubbling"
+			>
+				if feed.Domain != "" {
+					{ feed.Domain }
+				} else {
+					Website
+				}
+			</a>
+			if feed.GetLanguage() != "" {
+				<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
+			}
+		</p>
+	}
+}
+
+templ subscriptionCardFooter(sub *models.Subscription) {
+	<div class="border-t border-neutral/20 pt-1">
+		// Additional metadata from the feed if available.
+		if feed := sub.Feed; feed != nil {
+			@subscriptionFeedMetadata(feed)
+		}
+		<div class="flex items-center justify-between">
+			// Last updated relative timestamp.
+			<p class="mt-2 text-xs/4 tabular-nums text-center">
+				Updated
+				<relative-time
+					datetime={ sub.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+					format="relative"
+					class="font-semibold"
+				>
+					{ sub.GetUpdatedDate().Format("Jan _2, 2006") }
+				</relative-time>
+			</p>
+			@subscriptionCardActions(sub)
+		</div>
+	</div>
+}
+
+// subscriptionCardActions renders various actions to perform on a subscription.
+templ subscriptionCardActions(sub *models.Subscription) {
+	<div class="flex shrink-0 ml-auto items-center">
+		// Favorite action.
+		@SubscriptionFavoriteToggle(sub)
+		// Mark action.
+		@SubscriptionMarkToggle(sub)
+		// Separator.
+		<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
+		@subscriptionActionsMenu(sub)
+	</div>
+}
+
+// subscriptionActionsMenu contains miscellaneous actions to perform on a subscription in a drop-down menu.
+templ subscriptionActionsMenu(sub *models.Subscription) {
+	// Context menu actions.
+	<div class="tooltip tooltip-top tooltip-end" data-tip="Subscription actions">
+		<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
+			<button
+				id={ "btn-" + sub.GetID() + "-actions" }
+				class="btn btn-ghost btn-sm"
+			>
+				<span class="sr-only">{ sub.GetTitle() + " Actions" }</span>
+				@tableroutline.Menu2(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})
+			</button>
+			@partials.Menu(element.WithAttribute("id", "menu-"+sub.GetID()+"-actions")) {
+				// View action.
+				if sub.GetSubscriptionType() == models.SubscriptionTypeFeed && sub.GetLink() != "" {
+					@partials.MenuItem() {
+						<a
+							href={ sub.GetLink() }
+							rel="noopener"
+							target="_blank"
+							_="on click halt the event's bubbling"
+						>
+							@tableroutline.ExternalLink(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
+							Feed Website
+						</a>
+					}
+				}
+				if sub.HasGeoInfo() {
+					@partials.MenuItem() {
+						<a
+							hx-get="/map"
+							hx-target={ ContentID.Target() }
+							hx-swap="innerMorph show:top transition:true"
+							hx-trigger="click consume"
+							hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+						>
+							@tableroutline.Map2(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
+							Map articles
+						</a>
+					}
+				}
+				// Edit action.
+				@partials.MenuItem() {
+					<a
+						hx-get={ "/subscriptions/" + sub.GetID() + "/edit" }
+						hx-target={ ContentID.Target() }
+						hx-swap="innerMorph show:top transition:true"
+						hx-trigger="click consume"
+					>
+						@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
+						Edit Subscription
+					</a>
+				}
+				// Unsubscribe action.
+				@partials.MenuItem() {
+					<a
+						hx-get={ "/subscriptions/" + sub.GetID() + "/remove" }
+						hx-target={ ModalContainerID.Target() }
+						hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
+						hx-trigger="click consume"
+					>
+						@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
+						Remove Subscription
+					</a>
+				}
+				// Report issue action.
+				@partials.MenuItem() {
+					<a
+						hx-get="/issue"
+						hx-target={ ContentID.Target() }
+						hx-replace-url="true"
+						hx-vals={ templ.JSONString(map[string]string{"object_id": sub.GetID()}) }
+						hx-trigger="click consume"
+					>
+						@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
+						Report an Issue
+					</a>
+				}
+			}
+		</el-dropdown>
+	</div>
+}

@@ -329,7 +329,7 @@
   }
 
   .flex-separated > * + *::before {
-    @apply mx-2;
+    @apply mx-1;
     content: '·';
   }
 
