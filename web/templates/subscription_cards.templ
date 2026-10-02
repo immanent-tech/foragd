@@ -114,15 +114,15 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 }
 
 // subscriptionFeedMetadata renders additional details from the source feed.
-templ subscriptionFeedMetadata(feed *models.Feed) {
+templ subscriptionCardFeedMetadata(feed *models.Feed) {
 	// Display some additional details from the source.
 	if feed.GetLink() != "" {
-		<p class="mt-2 text-center flex-separated">
+		<p class="mt-2 text-center">
 			if feed.SourceType != "" {
 				<span class="badge badge-xs badge-info badge-soft">{ feed.SourceType }</span>
 			}
-			<a
-				class="text-xs"
+			<button
+				class="inline-flex btn btn-xs btn-ghost items-center"
 				href={ feed.GetLink() }
 				rel="noopener"
 				target="_blank"
@@ -133,10 +133,11 @@ templ subscriptionFeedMetadata(feed *models.Feed) {
 				} else {
 					Website
 				}
-			</a>
-			if feed.GetLanguage() != "" {
-				<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
-			}
+				@tableroutline.ExternalLink(templ.Attributes{"class": "size-3"})
+			</button>
+			// if feed.GetLanguage() != "" {
+			// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
+			// }
 		</p>
 	}
 }
@@ -145,7 +146,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 	<div class="border-t border-neutral/20 pt-1">
 		// Additional metadata from the feed if available.
 		if feed := sub.Feed; feed != nil {
-			@subscriptionFeedMetadata(feed)
+			@subscriptionCardFeedMetadata(feed)
 		}
 		<div class="flex items-center justify-between">
 			// Last updated relative timestamp.
@@ -173,12 +174,12 @@ templ subscriptionCardActions(sub *models.Subscription) {
 		@SubscriptionMarkToggle(sub)
 		// Separator.
 		<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
-		@subscriptionActionsMenu(sub)
+		@subscriptionCardMiscActionsMenu(sub)
 	</div>
 }
 
 // subscriptionActionsMenu contains miscellaneous actions to perform on a subscription in a drop-down menu.
-templ subscriptionActionsMenu(sub *models.Subscription) {
+templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 	// Context menu actions.
 	<div class="tooltip tooltip-top tooltip-end" data-tip="Subscription actions">
 		<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
