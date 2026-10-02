@@ -1284,7 +1284,7 @@ func UpdateListLanguageFilters(path string, filters models.ListFilters, language
 			templ_7745c5c3_Var56 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div id=\"mobile-category-filters\" hx-swap-oob=\"beforeend\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div id=\"mobile-language-filters\" hx-swap-oob=\"beforeend\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1292,7 +1292,7 @@ func UpdateListLanguageFilters(path string, filters models.ListFilters, language
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</div><div id=\"desktop-category-filters\" hx-swap-oob=\"beforeend\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</div><div id=\"desktop-language-filters\" hx-swap-oob=\"beforeend\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1434,7 +1434,7 @@ func languageFilterOption(lang models.Language, path string, filters models.List
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var63 = []any{"font-normal text-base-content", templ.KV("font-semibold", lang == currentLanguage)}
+		var templ_7745c5c3_Var63 = []any{"font-normal text-base-content", templ.KV("font-semibold", currentLanguage != nil && lang == *currentLanguage)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var63...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1469,7 +1469,7 @@ func languageFilterOption(lang models.Language, path string, filters models.List
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var66 = []any{templ.KV("hidden", lang != currentLanguage)}
+		var templ_7745c5c3_Var66 = []any{templ.KV("hidden", currentLanguage == nil || lang != *currentLanguage)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var66...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

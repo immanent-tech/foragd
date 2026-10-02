@@ -156,6 +156,7 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 		subscriptions, pagination = subscriptions.
 			FilterByView(request.Filters.GetView()).
 			FilterByCategories(request.Filters.GetCategories()...).
+			FilterByLanguage(request.Filters.GetLanguage()).
 			FilterByIDs(request.Filters.GetSubscriptions()...).
 			Sort(request.Filters.GetSort()).
 			Paginate(&request.Filters)
@@ -203,6 +204,14 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 					"/list/subscriptions",
 					response.Filters,
 					response.Subscriptions.GetCategories(),
+				),
+			}).ServeHTTP(res, req)
+			// Render new language filters.
+			RenderPartial(&PartialTemplate{
+				template: templates.UpdateListLanguageFilters(
+					"/list/subscriptions",
+					response.Filters,
+					response.Subscriptions.GetLanguageCounts(),
 				),
 			}).ServeHTTP(res, req)
 			// Update pagination control element.

@@ -464,6 +464,17 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+// GetLanguageCounts returns a count of the occurrence of a [Language] across all the Subscriptions.
+func (s Subscriptions) GetLanguageCounts() map[Language]int64 {
+	languages := make(map[Language]int64)
+	for sub := range slices.Values(s) {
+		if feed := sub.Feed; feed != nil && feed.GetLanguage() != "" {
+			languages[feed.GetLanguage()]++
+		}
+	}
+	return languages
+}
+
 // GetByID will return the subscription that matches the given ID, if any.
 func (s Subscriptions) GetByID(id SubscriptionID) *Subscription {
 	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
@@ -551,6 +562,20 @@ func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions 
 	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
 		for category := range slices.Values(categories) {
 			return slices.Contains(subscription.GetCategories(0), category)
+		}
+		return false
+	}))
+}
+
+// FilterByLanguage returns a new [Subscriptions] slice containing subscriptions which have a language that matches any
+// of the given language tags.
+func (s Subscriptions) FilterByLanguage(lang *Language) Subscriptions {
+	if lang == nil {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		if feed := subscription.Feed; feed != nil {
+			return feed.GetLanguage() == *lang
 		}
 		return false
 	}))

@@ -399,10 +399,10 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 // UpdateListLanguageFilters can be be used to perform an OOB swap that will add additional category filters to the
 // mobile and desktop category filter lists.
 templ UpdateListLanguageFilters(path string, filters models.ListFilters, languages map[string]int64) {
-	<div id="mobile-category-filters" hx-swap-oob="beforeend">
+	<div id="mobile-language-filters" hx-swap-oob="beforeend">
 		@ListLanguageFilters(path, filters, languages)
 	</div>
-	<div id="desktop-category-filters" hx-swap-oob="beforeend">
+	<div id="desktop-language-filters" hx-swap-oob="beforeend">
 		@ListLanguageFilters(path, filters, languages)
 	</div>
 }
@@ -435,10 +435,10 @@ templ languageFilterOption(lang models.Language, path string, filters models.Lis
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>
-			<span class={ "font-normal text-base-content", templ.KV("font-semibold",lang == currentLanguage) }>
+			<span class={ "font-normal text-base-content", templ.KV("font-semibold",currentLanguage != nil && lang == *currentLanguage) }>
 				{ lang }
 			</span>
-			<span aria-hidden="true" class={ templ.KV("hidden", lang != currentLanguage) }>
+			<span aria-hidden="true" class={ templ.KV("hidden", currentLanguage == nil || lang != *currentLanguage) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
 			</span>
 		</a>

@@ -123,11 +123,11 @@ func (f ListFilters) GetSort() Sort {
 	return f.Sort
 }
 
-func (f ListFilters) GetLanguage() Language {
+func (f ListFilters) GetLanguage() *Language {
 	if f.Language != nil {
-		return *f.Language
+		return f.Language
 	}
-	return ""
+	return nil
 }
 
 func (f ListFilters) GetCategories() Categories {
