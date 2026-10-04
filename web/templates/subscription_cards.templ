@@ -7,7 +7,6 @@ package templates
 
 import (
 	"fmt"
-	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -25,20 +24,20 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 		element.WithHXIndicator("this"),
 	) {
 		// Show unread count in badge at top right if user wants stats shown.
-		if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
-			<div class="absolute top-0 right-0">
-				<span class="mt-2 mr-2 badge badge-sm badge-primary">
+		<div class="absolute right-2 top-2">
+			if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
+				<span class="badge badge-sm badge-primary">
 					if sub.GetStats().UnreadTotal() >= 100 {
-						99+
+						99+ Unread
 					} else {
-						{ sub.GetStats().UnreadTotal() }
+						{ sub.GetStats().UnreadTotal() } Unread
 					}
 				</span>
-			</div>
-		}
+			}
+		</div>
 		// Main card content.
 		<div class="cursor-pointer touch-manipulation" { generateSubscriptionViewAttributes(sub)... }>
-			@partials.CardHeader() {
+			@partials.CardHeader(element.WithClasses("pt-12")) {
 				@subscriptionCardHeader(sub)
 			}
 			@partials.CardBody(element.WithClasses("flex-1")) {
@@ -56,11 +55,6 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 templ subscriptionCardHeader(sub *models.Subscription) {
 	// Thumbnail and title.
 	@subscriptionCardTitle(sub)
-	if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
-		<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
-			<p class="mt-2 text-sm/6 line-clamp-2 font-serif">{ feed.GetDescription() }</p>
-		</div>
-	}
 	// List of categories (if any).
 	if len(sub.GetCategories(0)) > 0 {
 		<div class="mt-2">
@@ -76,40 +70,14 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 			@thumbnail(sub.GetImage(), sub.GetTitle())
 		</div>
 		<div>
+			// Title.
 			<h3 id={ "sub-title-" + sub.GetID() } class="card-title m-0 text-lg font-serif text-balance line-clamp-2">{ sub.GetTitle() }</h3>
-			<div class="gap-1">
-				// Add an icon to indicate whether article filtering is being applied.
-				if articleFilters := sub.GetArticleFilters(); !articleFilters.IsEmpty() {
-					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
-						<button
-							hx-get={ "/subscriptions/" + sub.GetID() + "/edit#article-filtering" }
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph show:top transition:true"
-							hx-trigger="click consume"
-							class="btn btn-sm btn-ghost btn-square"
-						>
-							<span class="sr-only">Article filtering applied</span>
-							@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
-						</button>
-					</div>
-				}
-				// Add an icon to map articles if the subscription has articles with geo info.
-				if sub.HasGeoInfo() {
-					<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
-						<button
-							hx-get="/map"
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph show:top transition:true"
-							hx-trigger="click consume"
-							hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
-							class="btn btn-sm btn-ghost btn-square"
-						>
-							<span class="sr-only">Show articles on map</span>
-							@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
-						</button>
-					</div>
-				}
-			</div>
+			// Description (if any).
+			if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
+				<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
+					<p class="mt-2 text-sm/6 line-clamp-2 font-serif">{ feed.GetDescription() }</p>
+				</div>
+			}
 		</div>
 	</div>
 }
@@ -118,7 +86,7 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 templ subscriptionCardFeedMetadata(feed *models.Feed) {
 	// Display some additional details from the source.
 	if feed.GetLink() != "" {
-		<p class="mt-2 text-center">
+		<p>
 			if feed.SourceType != "" {
 				<span class="badge badge-sm badge-info badge-soft">{ feed.SourceType }</span>
 			}
@@ -145,10 +113,43 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 
 templ subscriptionCardFooter(sub *models.Subscription) {
 	<div class="border-t border-neutral/20 pt-1">
-		// Additional metadata from the feed if available.
-		if feed := sub.Feed; feed != nil {
-			@subscriptionCardFeedMetadata(feed)
-		}
+		<div class="mt-2 flex items-center justify-center">
+			// Add an icon to indicate whether article filtering is being applied.
+			if articleFilters := sub.GetArticleFilters(); !articleFilters.IsEmpty() {
+				<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
+					<button
+						hx-get={ "/subscriptions/" + sub.GetID() + "/edit#article-filtering" }
+						hx-target={ ContentID.Target() }
+						hx-swap="innerMorph show:top transition:true"
+						hx-trigger="click consume"
+						class="btn btn-sm btn-ghost btn-square"
+					>
+						<span class="sr-only">Article filtering applied</span>
+						@tableroutline.Filter(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
+					</button>
+				</div>
+			}
+			// Add an icon to map articles if the subscription has articles with geo info.
+			if sub.HasGeoInfo() {
+				<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
+					<button
+						hx-get="/map"
+						hx-target={ ContentID.Target() }
+						hx-swap="innerMorph show:top transition:true"
+						hx-trigger="click consume"
+						hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+						class="btn btn-sm btn-ghost btn-square"
+					>
+						<span class="sr-only">Show articles on map</span>
+						@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
+					</button>
+				</div>
+			}
+			// Additional metadata from the feed if available.
+			if feed := sub.Feed; feed != nil {
+				@subscriptionCardFeedMetadata(feed)
+			}
+		</div>
 		<div class="flex items-center justify-between">
 			// Last updated relative timestamp.
 			<p class="mt-2 text-sm/6 tabular-nums text-center">
