@@ -269,13 +269,21 @@ func (q *TermQuery) SetName(name string) {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func Term(field string, value any, options ...func(*TermQuery)) Option {
 	return func(query *types.Query) {
-		// Ignore nil values.
-		if value == nil {
-			return
-		}
-		// Ignore empty strings.
-		if v, ok := value.(string); ok && v == "" {
-			return
+		switch v := value.(type) {
+		// Ignore nil [*string] and [*int] values
+		case *string:
+			if v == nil {
+				return
+			}
+		case *int:
+			if v == nil {
+				return
+			}
+		// Ignore empty strings
+		case string:
+			if v == "" {
+				return
+			}
 		}
 		// Create term query clause.
 		termQueryClause := &TermQuery{
