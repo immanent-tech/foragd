@@ -7391,10 +7391,6 @@
       height: var(--size);
     }
   }
-  .size-3 {
-    width: calc(var(--spacing) * 3);
-    height: calc(var(--spacing) * 3);
-  }
   .size-4 {
     width: calc(var(--spacing) * 4);
     height: calc(var(--spacing) * 4);
@@ -8965,10 +8961,6 @@
     .badge-sm {
       --size: calc(var(--size-selector, 0.25rem) * 5);
       font-size: 0.75rem;
-    }
-    .badge-xs {
-      --size: calc(var(--size-selector, 0.25rem) * 4);
-      font-size: 0.625rem;
     }
   }
   .text-\[11px\] {

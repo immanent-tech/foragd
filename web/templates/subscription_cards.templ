@@ -58,7 +58,7 @@ templ subscriptionCardHeader(sub *models.Subscription) {
 	@subscriptionCardTitle(sub)
 	if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
 		<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
-			<p class="mt-2 text-sm/6 line-clamp-2">{ feed.GetDescription() }</p>
+			<p class="mt-2 text-sm/6 line-clamp-2 font-serif">{ feed.GetDescription() }</p>
 		</div>
 	}
 	// List of categories (if any).
@@ -120,10 +120,10 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 	if feed.GetLink() != "" {
 		<p class="mt-2 text-center">
 			if feed.SourceType != "" {
-				<span class="badge badge-xs badge-info badge-soft">{ feed.SourceType }</span>
+				<span class="badge badge-sm badge-info badge-soft">{ feed.SourceType }</span>
 			}
 			<button
-				class="inline-flex btn btn-xs btn-ghost items-center"
+				class="inline-flex btn btn-sm btn-ghost items-center"
 				href={ feed.GetLink() }
 				rel="noopener"
 				target="_blank"
@@ -134,7 +134,7 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 				} else {
 					Website
 				}
-				@tableroutline.ExternalLink(templ.Attributes{"class": "size-3"})
+				@tableroutline.ExternalLink(templ.Attributes{"class": "size-4"})
 			</button>
 			// if feed.GetLanguage() != "" {
 			// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
@@ -151,7 +151,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 		}
 		<div class="flex items-center justify-between">
 			// Last updated relative timestamp.
-			<p class="mt-2 text-xs/4 tabular-nums text-center">
+			<p class="mt-2 text-sm/6 tabular-nums text-center">
 				Updated
 				<relative-time
 					datetime={ sub.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }

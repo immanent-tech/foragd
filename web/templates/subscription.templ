@@ -176,13 +176,13 @@ templ latestArticleSummary(item *models.Article) {
 				hx-push-url="true"
 				_="on click halt the event's bubbling"
 			>
-				<span class="line-clamp-2 font-serif font-semibold text-sm/6">
+				<span class="line-clamp-2 font-serif font-semibold text-base/7">
 					{ item.GetTitle() }
 				</span>
 				<relative-time
 					datetime={ item.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 					format="relative"
-					class="shrink-0 text-xs/4 text-base-content capitalize tabular-nums"
+					class="shrink-0 text-sm/6 text-base-content capitalize tabular-nums"
 				>
 					{ item.GetUpdatedDate().Format("Jan _2, 2006") }
 				</relative-time>
