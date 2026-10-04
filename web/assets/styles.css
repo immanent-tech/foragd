@@ -474,3 +474,7 @@
 @utility content-hidden {
   content-visibility: hidden;
 }
+
+@utility accent-hue-rotate {
+  @apply hue-rotate-[140] bg-accent text-accent-content;
+}
