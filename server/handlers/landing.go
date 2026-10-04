@@ -19,7 +19,7 @@ var sameAs = []string{
 var orgJsonLd = schemaorg.NewOrganization(
 	"Immanent Tech",
 	"https://immanent.tech",
-	"https://immanent.tech/content/immanent-tech-icon-dark.svg",
+	"https://immanent.tech/images/immanent-tech-icon-dark.svg",
 	nil,
 	sameAs,
 )
@@ -36,7 +36,7 @@ func (m *Manager) HandleLanding() http.HandlerFunc {
 		},
 		Description: "Foragd is a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place.",
 		Path:        "/",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {

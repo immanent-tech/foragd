@@ -79,7 +79,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				},
 				Description: "Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
 				Path:        "/linter",
-				ImagePath:   "/content/logo-vertical-light.webp",
+				ImagePath:   "/images/logo-vertical-light.webp",
 				baseURL:     m.AppConfig.GetBaseURL(),
 				svc:         m.NewPageServices(),
 			}).ServeHTTP(res, req)

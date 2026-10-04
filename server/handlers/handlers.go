@@ -370,7 +370,7 @@ func generateSiteOG(baseURL *url.URL) *opengraph.WebSite {
 		"Foragd",
 		baseURL.String(),
 		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
-		baseURL.Clone().JoinPath("/content/logo-vertical-light.webp").String(),
+		baseURL.Clone().JoinPath("/images/logo-vertical-light.webp").String(),
 	)
 }
 

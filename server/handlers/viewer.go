@@ -70,7 +70,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 		},
 		Description: "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
 		Path:        "/viewer",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {

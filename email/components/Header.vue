@@ -7,8 +7,8 @@
         <Column class="w-1/2">
             <Link href="https://foragd.app">
             <Img
-                src="https://foragd.app/content/icons/icon-light-1024.png"
-                dark-src="https://foragd.app/content/icons/icon-dark-1024.png"
+                src="https://foragd.app/images/icons/icon-light-1024.png"
+                dark-src="https://foragd.app/images/icons/icon-dark-1024.png"
                 width="60"
                 alt="Foragd Logo"
             />

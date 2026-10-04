@@ -6,15 +6,32 @@
 package templates_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-func TestNewMarkAllAction(t *testing.T) {
-	got := templates.NewMarkAction("/subscriptions", "Mark all", models.ViewUnread)
-	if got.Path != "/subscriptions/"+string(models.MarkRead) || !got.Read {
-		t.Fatalf("unexpected action: %+v", got)
+func TestNewListControls_Render(t *testing.T) {
+	ctx := context.Background()
+	// Test basic rendering
+	c := templates.NewListControls("/test/path", models.ListFilters{}, nil)
+	doc := render(t, ctx, c)
+
+	// Verify basic structure exists
+	if doc.Find("el-dialog").Length() == 0 {
+		t.Error("Expected el-dialog for mobile controls, but not found")
+	}
+	if doc.Find("desktop-sort-filters").Length() == 0 {
+		t.Error("Expected desktop-sort-filters, but not found")
+	}
+
+	// Verify specific labels
+	if doc.Find("View").Length() == 0 {
+		t.Error("Expected 'View' label in mobile filters")
+	}
+	if doc.Find("Sort").Length() == 0 {
+		t.Error("Expected 'Sort' label in mobile filters")
 	}
 }

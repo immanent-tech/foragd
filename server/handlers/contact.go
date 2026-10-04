@@ -31,7 +31,7 @@ func (m *Manager) HandleContact() http.HandlerFunc {
 		},
 		Description: "Contact the developers of Foragd.",
 		Path:        "/contact",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 	}
 	return RenderExternalPage(&Contact{

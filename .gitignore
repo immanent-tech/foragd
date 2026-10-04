@@ -20,6 +20,8 @@ web/content/*.css
 web/content/*.css.map
 web/content/*.js
 web/content/*.js.map
+web/files/dist
+web/files/meta.json
 
 # Node modules.
 node_modules/

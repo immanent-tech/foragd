@@ -45,7 +45,7 @@ func (m *Manager) HandleForgetMe() http.HandlerFunc {
 		},
 		Description: "Request deletion of your account and personal data.",
 		Path:        "/forget-me",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 		svc:         m.NewPageServices(),
 	})

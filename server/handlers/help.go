@@ -56,9 +56,10 @@ func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
 
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
 func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
+	const docPrefix = "files/docs/help"
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", "index.md"))
+		contents, err := web.Files.ReadFile(filepath.Join(docPrefix, "index.md"))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
 			slogctx.FromCtx(req.Context()).Error("Could not read document.",
@@ -85,7 +86,7 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 			},
 			Description: "Get help and review documentation for using Foragd.",
 			Path:        path,
-			ImagePath:   "/content/logo-vertical-light.webp",
+			ImagePath:   "/images/logo-vertical-light.webp",
 			baseURL:     m.AppConfig.GetBaseURL(),
 		}
 

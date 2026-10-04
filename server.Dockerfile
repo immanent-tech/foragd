@@ -35,7 +35,8 @@ COPY . .
 
 # install and build/bundle frontend assets
 RUN npm clean-install && \
-    npx npm-run-all --parallel prod:css prod:js && \
+    npm run prod:tailwind && \
+    npm run prod:esbuild && \
     npm version patch
 
 # Set necessary environment variables and build your project.

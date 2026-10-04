@@ -22,8 +22,8 @@ import (
 )
 
 var getComparisons = sync.OnceValues(func() ([]*markdownx.File, error) {
-	var postsPath = "assets/docs/comparisons"
-	return markdownx.ReadDir(web.DocsFS, postsPath)
+	var postsPath = "files/docs/comparisons"
+	return markdownx.ReadDir(web.Files, postsPath)
 })
 
 type ComparisonPage struct {
@@ -94,7 +94,7 @@ func (m *Manager) HandleComparison() http.HandlerFunc {
 					text.Frontmatter.Slug,
 				) + " covering pricing, features, and which is best for different use cases.",
 				Path:      text.Frontmatter.Slug,
-				ImagePath: "/content/logo-vertical-light.webp",
+				ImagePath: "/images/logo-vertical-light.webp",
 				baseURL:   m.AppConfig.GetBaseURL(),
 			},
 			appCfg:     m.AppConfig,

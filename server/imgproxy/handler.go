@@ -276,7 +276,7 @@ func proxyFetchRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buf
 
 // getPlaceholderImage fetches the placeholder image and writes it into the image buffer.
 func getPlaceholderImage(buf *bytes.Buffer) error {
-	placeholder, err := web.StaticContentFS.ReadFile("content/images/placeholder.webp")
+	placeholder, err := web.Files.ReadFile("files/images/placeholder.webp")
 	if err != nil {
 		return fmt.Errorf("read placeholder: %w", err)
 	}

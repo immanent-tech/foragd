@@ -22,8 +22,8 @@ import (
 )
 
 var getPolicyDocs = sync.OnceValues(func() ([]*markdownx.File, error) {
-	var policiesPath = "assets/docs/policies"
-	return markdownx.ReadDir(web.DocsFS, policiesPath)
+	var policiesPath = "files/docs/policies"
+	return markdownx.ReadDir(web.Files, policiesPath)
 })
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
@@ -59,7 +59,7 @@ func (m *Manager) PolicyDocsHandler() http.HandlerFunc {
 			title.String(),
 			m.AppConfig.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String(),
 			policyFile.Frontmatter.Description,
-			m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+			m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
 			policyFile.Frontmatter.GetCreatedDate().String(),
 			policyFile.Frontmatter.GetUpdatedDate().String(),
 			"",

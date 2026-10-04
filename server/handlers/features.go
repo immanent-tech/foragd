@@ -24,7 +24,7 @@ func (m *Manager) HandleFeatures() http.HandlerFunc {
 		},
 		Description: "Discover Foragd's features: subscribe to any RSS feed, YouTube channel, newsletter or subreddit, organise with smart folders, and read distraction-free. No ads, no algorithms.",
 		Path:        "/features",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 		svc:         m.NewPageServices(),
 	})
@@ -59,7 +59,7 @@ func (m *Manager) HandleFeaturesCollect() http.HandlerFunc {
 		},
 		Description: "Discover Foragd's features focused around collection: add any website, blog, YouTube channel, Reddit subreddit, or email newsletter easily.",
 		Path:        "/features/collect",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 		svc:         m.NewPageServices(),
 	})
@@ -94,7 +94,7 @@ func (m *Manager) HandleFeaturesCurate() http.HandlerFunc {
 		},
 		Description: "Discover Foragd's features focused around curation: group subscriptions, save searches as subscriptions and filter articles easily.",
 		Path:        "/features/curate",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 		svc:         m.NewPageServices(),
 	})
@@ -129,7 +129,7 @@ func (m *Manager) HandleFeaturesConsume() http.HandlerFunc {
 		},
 		Description: "Discover Foragd's features focused around consumption: fetch content directly from the source, customise the UI and more.",
 		Path:        "features/consume",
-		ImagePath:   "/content/logo-vertical-light.webp",
+		ImagePath:   "/images/logo-vertical-light.webp",
 		baseURL:     m.AppConfig.GetBaseURL(),
 		svc:         m.NewPageServices(),
 	})

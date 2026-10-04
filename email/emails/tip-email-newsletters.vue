@@ -62,7 +62,7 @@
           <Row class="flex flex-row sm:flex-col items-center justify-center gap-2">
             <Column class="bg-base-200 rounded-sm p-1 text-center h-64">
               <Img
-                src="/content/icons/shield-lock-filled.png"
+                src="/images/icons/shield-lock-filled.png"
                 alt="Shield with lock"
                 width="64"
                 height="64"
@@ -76,7 +76,7 @@
             </Column>
             <Column class="bg-base-200 rounded-sm p-1 text-center h-64">
               <Img
-                src="/content/icons/category-filled.png"
+                src="/images/icons/category-filled.png"
                 alt="Categories icon"
                 width="64"
                 height="64"
@@ -90,7 +90,7 @@
             </Column>
             <Column class="bg-base-200 rounded-sm p-1 text-center h-64">
               <Img
-                src="/content/icons/filter-filled.png"
+                src="/images/icons/filter-filled.png"
                 alt="Filter icon"
                 width="64"
                 height="64"

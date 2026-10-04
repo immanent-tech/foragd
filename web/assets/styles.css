@@ -2,27 +2,8 @@
  * Copyright (c) 2026 Immanent Tech
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-
-@import '@fontsource-variable/alegreya/wght.css';
-@import '@fontsource-variable/alegreya/wght-italic.css';
-@import '@fontsource/alegreya-sans/100.css';
-@import '@fontsource/alegreya-sans/300.css';
-@import '@fontsource/alegreya-sans/400.css';
-@import '@fontsource/alegreya-sans/500.css';
-@import '@fontsource/alegreya-sans/700.css';
-@import '@fontsource/alegreya-sans/800.css';
-@import '@fontsource/alegreya-sans/900.css';
-@import '@fontsource/alegreya-sans/100-italic.css';
-@import '@fontsource/alegreya-sans/300-italic.css';
-@import '@fontsource/alegreya-sans/400-italic.css';
-@import '@fontsource/alegreya-sans/500-italic.css';
-@import '@fontsource/alegreya-sans/700-italic.css';
-@import '@fontsource/alegreya-sans/800-italic.css';
-@import '@fontsource/alegreya-sans/900-italic.css';
-@import '@fontsource-variable/nunito/wght.css';
-@import '@fontsource/monaspace-neon';
-
-@import 'tailwindcss' source('../templates/**/*.{html,templ}');
+@import 'tailwindcss' source(none);
+@source '../templates/**/*.{html,templ}';
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui';
@@ -102,9 +83,17 @@
   --text-7xl: calc(4.5rem * var(--font-scale, 1));
   --text-7xl--line-height: 1; */
 
-  --sidebar-width: var(--w-sm);
+  --sidebar-width: var(--container-sm);
 
   --animate-fadeinup: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer base {
+  /* For debugging overflow issues. Disable in production. */
+  /* * {
+    outline: 1px solid red;
+  } */
 
   @keyframes fadeInUp {
     from {
@@ -127,6 +116,7 @@
       transform: translateY(-6px);
     }
   }
+
   @keyframes tab-fade-in {
     from {
       opacity: 0;
@@ -137,6 +127,7 @@
       transform: translateY(0);
     }
   }
+
   @keyframes dim {
     from {
       filter: brightness(1);
@@ -145,6 +136,7 @@
       filter: brightness(0.9);
     }
   }
+
   @keyframes brighten {
     from {
       filter: brightness(0.9);
@@ -153,34 +145,24 @@
       filter: brightness(1);
     }
   }
+
   @keyframes anchor-flash {
-    0% {
-      background-color: var(--color-accent) / 30%;
+    from {
+      background-color: color-mix(in oklab, var(--color-accent) 30%, transparent);
     }
-    100% {
+    to {
       background-color: transparent;
     }
   }
-}
-
-@layer base {
-  /* For debugging overflow issues. Disable in production. */
-  /* * {
-    outline: 1px solid red;
-  } */
 
   /* Default font settings. */
-  @supports (font-variation-settings: normal) {
-    body {
-      font-family: var(--font-sans);
-      font-weight: var(--font-weight-normal);
-      font-style: normal;
-      font-optical-sizing: auto;
-      font-kerning: normal;
-      font-variant-ligatures: common-ligatures contextual;
-      font-variant-numeric: oldstyle-nums proportional-nums;
-      text-rendering: optimizeLegibility;
-    }
+  body {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-normal);
+    font-style: normal;
+    font-optical-sizing: auto;
+    font-variant-numeric: proportional-nums;
+    font-size-adjust: 0.5;
   }
 
   h1,
@@ -188,28 +170,19 @@
   h3 {
     @apply font-display;
     font-feature-settings:
-      'kern' 1,
       'liga' 1,
-      'clig' 1,
-      'lnum' 1,
-      'pnum' 1;
-  }
-
-  table,
-  .tabular {
-    font-feature-settings:
-      'tnum' 1,
-      'kern' 1;
+      'clig' 1;
   }
 
   body,
   .prose {
     font-feature-settings:
-      'kern' 1,
       'liga' 1,
-      'clig' 1,
-      'onum' 1,
-      'pnum' 1;
+      'clig' 1;
+  }
+
+  table {
+    font-variant-numeric: lining-nums tabular-nums;
   }
 
   pre,
@@ -217,7 +190,6 @@
     @apply font-mono;
     font-feature-settings:
       'calt' 1,
-      'liga' 1,
       'ss01' 1,
       'ss08' 1;
   }
@@ -232,6 +204,11 @@
       transition-duration: 0.001ms !important; /* 0.001ms over 0 for htmx */
       scroll-behavior: auto !important;
     }
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
   }
 
   header#page-header,
@@ -244,10 +221,7 @@
     @apply overscroll-contain transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
   }
 
-  el-menu {
-    @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-  }
-
+  el-menu,
   el-options {
     @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
   }
@@ -274,12 +248,9 @@
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
   /* Required functionality to reduce Cumulative Layout Shift (CLS) for MasonryGrid hyperscript behaviour. */
-  .masonry-grid {
-    .masonry-item {
+  @media (scripting: enabled) {
+    .masonry-grid .masonry-item:not(.masonry-positioned) {
       visibility: hidden;
-    }
-    .masonry-item.masonry-positioned {
-      visibility: visible;
     }
   }
 
@@ -295,10 +266,6 @@
         translate: 0 10px;
       }
     }
-  }
-
-  & > .alert {
-    view-transition-name: notification;
   }
 
   ::view-transition-old(notification) {
@@ -320,17 +287,19 @@
 
   /* The outgoing tab panel */
   ::view-transition-old(tab-content) {
-    animation: 180ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-out;
+    animation: 180ms var(--ease-emphasized) both tab-fade-out;
+    animation-duration: 150ms;
   }
 
   /* The incoming tab panel */
   ::view-transition-new(tab-content) {
-    animation: 220ms cubic-bezier(0.2, 0, 0, 1) both tab-fade-in;
+    animation: 220ms var(--ease-emphasized) both tab-fade-in;
+    animation-duration: 150ms;
   }
 
   .flex-separated > * + *::before {
     @apply mx-1;
-    content: '·';
+    content: '·' / '';
   }
 
   .brightness-dim {
@@ -355,12 +324,24 @@
       @apply fill-secondary;
     }
   }
+
+  /* Override some settings for DaisyUI label style. */
+  .label {
+    @apply font-normal text-base-content;
+  }
+
+  .fieldset {
+    @apply text-base;
+  }
 }
 
 /* For formatting article content. */
 @utility prose-article {
-  @apply prose mt-4 ugc-remove-trackers max-w-none overflow-x-auto px-2 font-serif wrap-break-word text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
+  @apply prose mt-4 ugc-remove-trackers max-w-none overflow-x-clip px-2 font-serif wrap-break-word hyphens-auto text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-headings:text-balance prose-table:font-sans prose-img:rounded-box prose-img:outline prose-img:outline-neutral;
 
+  p {
+    @apply text-pretty;
+  }
   /* Forced fixed width for pre and scrollable elements. */
   pre {
     @apply overflow-x-auto font-mono;
@@ -377,13 +358,8 @@
     @apply text-sm/6;
   }
 
-  /* Hide duplicate images (usually just different sizes). */
-  img + img {
-    @apply hidden;
-  }
-
   iframe {
-    @apply w-full!;
+    @apply aspect-video w-full!;
   }
 
   /* Remove empty elements. */
@@ -406,7 +382,7 @@
 
 /* For formatting help and policy documents. */
 @utility prose-document {
-  @apply prose font-serif sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-table:font-sans prose-img:shadow-md;
+  @apply prose font-serif hyphens-auto sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-balance prose-a:link prose-a:link-hover prose-table:font-sans prose-img:shadow-md;
 }
 
 @utility ugc-remove-trackers {
@@ -490,15 +466,6 @@
 @utility animation-delay-* {
   animation-delay: --value([*]);
   animation-delay: calc(--value(integer) * 1ms);
-}
-
-/* Override some settings for DaisyUI label style. */
-@utility label {
-  @apply font-normal text-base-content;
-}
-
-@utility fieldset {
-  @apply text-base;
 }
 
 @utility content-auto {

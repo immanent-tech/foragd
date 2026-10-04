@@ -69,6 +69,7 @@ func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) 
 }
 
 func (m *Manager) HandleChangelog() http.HandlerFunc {
+	const docPrefix = "files/docs"
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -83,8 +84,8 @@ func (m *Manager) HandleChangelog() http.HandlerFunc {
 		}
 
 		if _, err := toml.DecodeFS(
-			web.DocsFS,
-			filepath.Join("assets", "docs", "changelog.toml"),
+			web.Files,
+			filepath.Join(docPrefix, "changelog.toml"),
 			changelog,
 		); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not decode changelog toml.",
@@ -102,6 +103,7 @@ func (m *Manager) HandleChangelog() http.HandlerFunc {
 }
 
 func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
+	const docPrefix = "files/docs"
 	return func(res http.ResponseWriter, req *http.Request) {
 		changelog := &Changelog{
 			title: templates.PageTitle{
@@ -113,8 +115,8 @@ func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 		}
 
 		if _, err := toml.DecodeFS(
-			web.DocsFS,
-			filepath.Join("assets", "docs", "changelog.toml"),
+			web.Files,
+			filepath.Join(docPrefix, "changelog.toml"),
 			changelog,
 		); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not decode changelog toml.",
@@ -139,7 +141,7 @@ func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
 				Link:  m.AppConfig.GetBaseURL().String(),
-				URL:   m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+				URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("daily"),

@@ -12,6 +12,7 @@ import (
 	"github.com/immanent-tech/go-base/pkg/templx"
 	"github.com/immanent-tech/go-base/server/handlers/assets"
 	"go.opentelemetry.io/otel"
+	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -172,7 +173,8 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			// Indicate light/dark theme support.
 			<meta name="color-scheme" content="light dark"/>
 			// Load style bundles from embedded FS.
-			<link rel="stylesheet" href={ "/assets/" + assets.GetAssetPath(ctx, "styles.css") }/>
+			<link rel="stylesheet" href={ filepath.Join("/assets/", assets.AssetPath("web/assets/fonts.css")) }/>
+			<link rel="stylesheet" href={ filepath.Join("/assets/", assets.AssetPath("web/assets/styles.processed.css")) }/>
 			if p.OpenGraph != nil {
 				@p.OpenGraph.ToMetaTags()
 			}
@@ -188,11 +190,11 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			//  Chrome Android Full screen.
 			<meta name="mobile-web-app-capable" content="yes"/>
 			//  Web app manifest.
-			<link rel="manifest" href="/content/manifest.json"/>
+			<link rel="manifest" href="/manifest.json"/>
 			// Favicons.
-			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
-			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
-			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
+			<link rel="apple-touch-icon" href="/images/apple-touch-icon.png"/>
+			<link rel="icon" href="/images/favicon.svg" type="image/svg+xml"/>
+			<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon"/>
 			// RSS feed.
 			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href={ appCfg.GetBaseURL().JoinPath("/feed").String() }/>
 			// Performance.
@@ -202,7 +204,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			// Leaflet.
 			@components.LeafletAssets()
 			// Load script bundles from embedded FS.
-			<script src={ "/assets/" + assets.GetAssetPath(ctx, "scripts.js") } type="module"></script>
+			<script src={ filepath.Join("/assets/", assets.AssetPath("web/assets/scripts.js")) } type="module"></script>
 			// Load Tailwind Elements.
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
 			if appCfg.IsProduction() {
@@ -216,6 +218,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				content={ templ.JSONString(htmx.Config{
 				InlineScriptNonce: templ.GetNonce(ctx),
                 IncludeIndicatorCSS: new(false),
+                Transitions: new(true),
                 LogAll: new(true),
 			}) }
 			/>

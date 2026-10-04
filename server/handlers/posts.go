@@ -35,8 +35,8 @@ import (
 )
 
 var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
-	var postsPath = "assets/docs/blog"
-	return markdownx.ReadDir(web.DocsFS, postsPath)
+	var postsPath = "files/docs/blog"
+	return markdownx.ReadDir(web.Files, postsPath)
 })
 
 // PostsIndex is the index of all posts.
@@ -158,7 +158,7 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 					},
 					Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
 					Path:        "/blog",
-					ImagePath:   "/content/logo-vertical-light.webp",
+					ImagePath:   "/images/logo-vertical-light.webp",
 					baseURL:     m.AppConfig.GetBaseURL(),
 				},
 				data: templates.PostsData{
@@ -224,7 +224,7 @@ func (m *Manager) HandlePostsFeed() http.HandlerFunc {
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
 				Link:  m.AppConfig.GetBaseURL().String(),
-				URL:   m.AppConfig.GetBaseURL().JoinPath("/content/logo-vertical-light.webp").String(),
+				URL:   m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
 				Title: "Posts from the Foragd Team",
 			}),
 			rss.WithUpdatePeriod("monthly"),

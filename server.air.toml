@@ -2,8 +2,8 @@
 
 # Working directory
 # . or absolute path, please note that the directories following must be under root.
-root      = "."
-tmp_dir   = "tmp"
+root = "."
+tmp_dir = "tmp"
 env_files = [".devcontainer/.env", ".env.development"]
 
 [build]
@@ -28,9 +28,9 @@ exclude_dir = [
   "tmp",
   "test",
   "pkg/go-syndication/test",
-  "web/content",
   "scheduler",
   "oneshots",
+  "web/files",
 ]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]
@@ -58,7 +58,8 @@ include_ext = [
 log = "server.air.log"
 # Array of commands to run before each build
 pre_cmd = [
-  "npx npm-run-all --parallel dev:css dev:js",
+  "npm run dev:tailwind",
+  "npm run dev:esbuild",
   "npm run templ:generate",
 ]
 # Array of commands to run after ^C
@@ -94,10 +95,10 @@ silent = false
 
 [color]
 # Customize each part's color. If no color found, use the raw app log.
-main    = "magenta"
+main = "magenta"
 watcher = "cyan"
-build   = "yellow"
-runner  = "green"
+build = "yellow"
+runner = "green"
 
 [misc]
 # Delete tmp directory on exit
@@ -105,10 +106,10 @@ clean_on_exit = true
 
 [screen]
 clear_on_rebuild = false
-keep_scroll      = true
+keep_scroll = true
 
 [proxy]
 # Enable live-reloading on the browser.
-enabled    = false
+enabled = false
 proxy_port = 8090
-app_port   = 8080
+app_port = 8080

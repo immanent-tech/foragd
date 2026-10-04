@@ -1,0 +1,137 @@
++++
+title = "RSS & Atom vs Social Media"
+page_title = "RSS & Atom vs Social Media: Freedom, Control and Privacy"
+description = "Social Media dominates where we source our content from. But unlike Facebook, X, or LinkedIn, RSS and Atom feeds give you complete control over what you see without algorithms or promoted posts controlling what you see, just the sources you choose."
+created_at = "2026-01-27"
+updated_at = "2026-04-28"
+image = "/images/blog/raphaels-school-of-athens.webp"
+author = "Joshua Rich"
+slug = "feeds-vs-social-media"
++++
+
+RSS and Atom feeds differ from social media in one fundamental way: you choose every source you see, and no algorithm,
+advertiser, or platform decides what appears in your feed. Social media centralizes content under corporate control,
+filtering, and promoting based on engagement and revenue. RSS and Atom are distributed, open standards; meaning any
+website can publish one, any feed reader can consume it, and the content arrives in the order it was published, unranked
+and unfiltered.
+
+<figure>
+  <img
+    src="/images/blog/raphaels-school-of-athens.webp"
+    alt="Raphael's School of Athens painting — depicting scholars gathering and sharing knowledge freely, symbolising the open web" />
+  <figcaption>
+    Raphael's School of Athens (1508–11).
+  </figcaption>
+</figure>
+
+## Are RSS and Atom Feeds Dead?
+
+Most of us spend a lot of time on Social Media services like Facebook, X/Twitter, Reddit, and others. You might not spend
+much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom predate most
+Social Media. But their usage and interest has declined over time as the web moved to be dominated by Social Media.
+[Google Trends](https://trends.google.com.au/trends/explore?date=all&q=%2Fm%2F0n5tx,%2Fm%2F0fch0p&hl=en-AU) doesn’t lie:
+
+<img src="/images/blog/rss-atom-social-media-trends.webp" alt="Screenshot from Google Trends of the keywords RSS and Social Media"/>
+
+While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that
+these feeds are dead or dying are greatly exaggerated. What is likelier, is that the information we see is driven by
+market forces that favor Social Media platforms
+[1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639).
+Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and
+compare that to Social Media.
+
+## What Is RSS and Atom?
+
+There are a lot of similarities between RSS, Atom, and Social Media. Both are based on posts of content from different
+people. Those posts are usually some kind of list (the “feed”), with recent posts at the top. With extensions, RSS, and
+Atom can provide some similar features to Social Media, such as easy commenting and sharing.
+
+RSS and Atom are essentially files that contain the list of articles/posts in a machine-readable format. You put the
+file up on your website, then special software reads the file and formats it into something a human can view. When a new
+article or post is created, you edit the file and upload it again. [Here is an
+example](https://feeds.arstechnica.com/arstechnica/index). When you click on that, without a proper feed viewer, it’ll
+probably look pretty ugly. A feed viewer on the other hand, can turn all that code into a beautiful list of articles. In
+fact, you can take that file and choose from a number of different feed viewers depending on your taste.
+
+Social Media is usually accessed through an app or website. There is no file so you are forced to access and view the
+content via the layout and design of the company behind the service. For some services, you do have a choice of
+different clients to access it, [but that could change at any
+time](https://en.wikipedia.org/wiki/Reddit_API_controversy).
+
+## Finding Content
+
+The biggest difference comes from how the content is curated or found. With Social Media services, you are restricted to
+only following the people and topics within service, such as specific forum, topic, handle, or accounts. With RSS and
+Atom, there is no central control, its completely distributed; and you pick and decide the content to follow from all
+over the web. RSS and Atom have no central repository, they are sourced directly from the publisher or producer of the
+content. One disadvantage of this is it can be hard to find RSS/Atom feeds without a central search functionality as
+offered on most Social Media services. However, websites with feeds usually advertise their RSS/Atom feeds visibly and,
+most good feed viewers can find a feed for a website for you.
+
+Additionally, RSS and Atom aren’t just for blog posts, witty observations or cat pictures. These formats are extendable
+and adaptable to any kind of content, generated by both a human or machine. There are RSS and Atom feeds for weather
+updates, software releases, and even emergency incidents, including precise geographical coordinates of where such
+events are happening.
+
+ℹ️ **See our post [Finding Feeds](/blog/finding-feeds) for ways and places to find feeds.**
+
+## Promoted Content and Recommendations
+
+Further to this point, Social Media services may also promote content based on an algorithm that decides what stuff you
+might like to see. While this can be useful, it can be used for deceptive practices such as showing content designed to
+sell or promote products and services. RSS and Atom, being distributed, have no such algorithm. You only see what you
+hand-picked yourself. Rarely, the feeds themselves might contain promoted content. In any case, this won’t be targeted
+as these formats do not gather and store a profile of what you view.
+
+## Filters and Controls
+
+Social Media services often have controls that may allow some degree of filtering of content. Usually however, this will
+only allow the user-generated content to be filtered, not the promoted content. Most good feed readers, like
+[Foragd](/), provide controls that allow you to filter **any** content, promoted or otherwise.
+
+## Centralization
+
+The most popular Social Media services are run by companies and companies don’t like working together. As such, Social
+Media is fractured, and you likely have multiple accounts across different services to track all the content you
+are interested in.
+
+Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, it’s much
+easier to gather and group the content, and view it all in one place, without needing to switch apps or websites. You
+get a consistent and familiar interface for all content.
+
+## Portability
+
+If you decide to switch or ditch a particular Social Media service, it can be nigh impossible to export your
+subscriptions and data and import it elsewhere. With RSS and Atom feeds, there is an open and portable file format
+called OPML that is used to export and import across different feed viewers. This makes it much easier to move between
+viewers as needs arise, without manual copying of data or potentially even losing access to certain sources.
+
+## Why Use RSS and Atom?
+
+Probably the biggest argument for using RSS and Atom feeds is **freedom**:
+
+- **Freedom to choose sources you see**: you subscribe only to what you want, with no suggested or promoted content from
+  an algorithm.
+- **Freedom to filter which bits of the content you see and don’t see**: most feed readers let you filter by keyword,
+  category, or source, including any promoted content within feeds.
+- **Freedom to control how that content is displayed**: behind the scenes, feeds are just text, meaning you can easily
+  change how they are displayed.
+- **Freedom to manage your subscriptions wherever**: using the OPML format; an open standard that all major feed readers
+  support.
+- **Freedom to save and archive the content (within copyright and other laws)**: as you get the content directly through
+  the feed, you can store that content easily. Of course this does not change any copyright or other legal protections
+  on the content.
+
+## Conclusion
+
+RSS and Atom have a lot of similar functionality to Social Media services, so have a lot to offer even today. Further,
+as we observe more control and tighter restrictions on the content available on most Social Media platforms, the freedom
+inherently provided with RSS and Atom is extremely compelling to ensure that diverse content can be heard.
+
+For anyone who wants to read the web on their own terms — without ads, without algorithms, and without a corporation
+deciding what's relevant — RSS and Atom remain the most powerful tools available.
+
+If you want to try out using RSS and Atom feeds, you can start a free trial of [Foragd](/?utm_source=blog) and start
+gathering your own collection of topics, news, and opinions!
+
+License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

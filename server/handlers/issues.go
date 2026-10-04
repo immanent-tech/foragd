@@ -78,7 +78,7 @@ func (m *Manager) HandleReportIssue() http.HandlerFunc {
 				},
 				Description: "Report issues and problems with the site",
 				Path:        "/issue",
-				ImagePath:   "/content/logo-vertical-light.webp",
+				ImagePath:   "/images/logo-vertical-light.webp",
 				baseURL:     m.AppConfig.GetBaseURL(),
 			},
 			template: templates.ReportIssue(

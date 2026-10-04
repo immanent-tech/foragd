@@ -63,6 +63,11 @@ func Start() error {
 
 	ctx = slogctx.NewCtx(ctx, logger)
 
+	// Generate asset maps
+	if err := assets.GenerateAssetMap(web.Files, "files/meta.json"); err != nil {
+		return fmt.Errorf("generate asset map: %w", err)
+	}
+
 	// Load the app config.
 	appCfg, err := config.LoadAppConfig()
 	if err != nil {
@@ -126,11 +131,6 @@ func Start() error {
 	// Load the server config.
 	if err := loadConfigOnce(); err != nil {
 		return fmt.Errorf("unable to load server config: %w", err)
-	}
-
-	// Set up assets storage.
-	if err := assets.New(web.StaticContentFS, "content"); err != nil {
-		return fmt.Errorf("load assets: %w", err)
 	}
 
 	// Load the session manager.
@@ -210,11 +210,13 @@ func Start() error {
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlerMgr.HandleSitemap())
 	// Static content.
-	router.Handle("/assets/files/*", assets.HandleFiles("/assets/", "/content"))
-	router.Handle("/assets/*", assets.HandleAssets("/assets/")) // hashed filenames.
-	router.Handle("/content/*", assets.HandleFiles("", ""))
-	router.Handle("/.well-known/*", assets.HandleFiles("", "/content"))
-	router.Handle("/favicon.ico", assets.HandleFiles("", "/content"))
+	router.Handle("/robots.txt", assets.ServeFiles(web.Files, "files"))
+	router.Handle("/manifest.json", assets.ServeFiles(web.Files, "files"))
+	router.Handle("/favicon.ico", assets.ServeFiles(web.Files, "files/images"))
+	router.Handle("/.well-known/*", assets.ServeFiles(web.Files, "files/.well-known"))
+	router.Handle("/assets/*", assets.ServeFiles(web.Files, ""))
+	router.Handle("/files/fonts/*", assets.ServeFiles(web.Files, "files/dist/fonts"))
+	router.Handle("/images/*", assets.ServeFiles(web.Files, "files/images"))
 
 	// Image proxy.
 	router.Get("/img-proxy/*", imgproxy.HandleImage(imgCache))
