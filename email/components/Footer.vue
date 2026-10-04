@@ -5,8 +5,8 @@
 <template>
     <Section class="px-6 py-11">
         <Img
-            src="https://foragd.app/content/logo-horizontal-light.png"
-            dark-src="https://foragd.app/content/logo-horizontal-dark.png"
+            src="https://foragd.app/images/logo-horizontal-light.png"
+            dark-src="https://foragd.app/images/logo-horizontal-dark.png"
             width="106"
             alt="Foragd Logo"
         />
