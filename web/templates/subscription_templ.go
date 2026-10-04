@@ -3768,7 +3768,7 @@ func thumbnail(imgURL, altText string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 239, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 text-accent-content bg-accent mask-squircle ring-1 ring-neutral-content/25\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 239, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 text-accent-content bg-accent mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
