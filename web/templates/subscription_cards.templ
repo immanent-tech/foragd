@@ -6,20 +6,21 @@
 package templates
 
 import (
+	"fmt"
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"strconv"
 )
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, sub *models.Subscription) {
+	{{ styleAttr := fmt.Sprintf("--i: %d; --hue: %d", idx, hueFromText(sub.GetTitle()+sub.GetLink())) }}
 	@partials.Card(element.WithAttribute("id", sub.GetID()),
-		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+		element.WithAttribute("style", styleAttr),
 		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
 		element.WithHXIndicator("this"),
 	) {

@@ -20,12 +20,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"strconv"
 )
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a
@@ -52,6 +52,7 @@ func SubscriptionCard(idx int, sub *models.Subscription) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		styleAttr := fmt.Sprintf("--i: %d; --hue: %d", idx, hueFromText(sub.GetTitle()+sub.GetLink()))
 		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -82,7 +83,7 @@ func SubscriptionCard(idx int, sub *models.Subscription) templ.Component {
 					var templ_7745c5c3_Var3 string
 					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(sub.GetStats().UnreadTotal())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 33, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 34, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 					if templ_7745c5c3_Err != nil {
@@ -181,7 +182,7 @@ func SubscriptionCard(idx int, sub *models.Subscription) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = partials.Card(element.WithAttribute("id", sub.GetID()),
-			element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+			element.WithAttribute("style", styleAttr),
 			element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
 			element.WithHXIndicator("this"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
@@ -225,7 +226,7 @@ func subscriptionCardHeader(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(feed.GetDescription())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 59, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 60, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {
@@ -238,7 +239,7 @@ func subscriptionCardHeader(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(feed.GetDescription())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 60, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 61, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -304,7 +305,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue("sub-title-" + sub.GetID())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 78, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 79, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
@@ -317,7 +318,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(sub.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 78, Col: 125}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 79, Col: 125}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -335,7 +336,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscriptions/" + sub.GetID() + "/edit#article-filtering")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 84, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 85, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 			if templ_7745c5c3_Err != nil {
@@ -348,7 +349,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 85, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 86, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 			if templ_7745c5c3_Err != nil {
@@ -375,7 +376,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 100, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 101, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 			if templ_7745c5c3_Err != nil {
@@ -388,7 +389,7 @@ func subscriptionCardTitle(sub *models.Subscription) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"subscriptions": sub.GetID()}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 103, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 104, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 			if templ_7745c5c3_Err != nil {
@@ -450,7 +451,7 @@ func subscriptionCardFeedMetadata(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(feed.SourceType)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 122, Col: 72}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 123, Col: 72}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -468,7 +469,7 @@ func subscriptionCardFeedMetadata(feed *models.Feed) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.ResolveAttributeValue(feed.GetLink())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 126, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 127, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 			if templ_7745c5c3_Err != nil {
@@ -482,7 +483,7 @@ func subscriptionCardFeedMetadata(feed *models.Feed) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(feed.Domain)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 132, Col: 18}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 133, Col: 18}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -545,7 +546,7 @@ func subscriptionCardFooter(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.ResolveAttributeValue(sub.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 156, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 157, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
 		if templ_7745c5c3_Err != nil {
@@ -558,7 +559,7 @@ func subscriptionCardFooter(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(sub.GetUpdatedDate().Format("Jan _2, 2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 160, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 161, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -659,7 +660,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.ResolveAttributeValue("btn-" + sub.GetID() + "-actions")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 187, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 188, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
 		if templ_7745c5c3_Err != nil {
@@ -672,7 +673,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(sub.GetTitle() + " Actions")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 190, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 191, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -726,7 +727,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 					var templ_7745c5c3_Var30 templ.SafeURL
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinURLErrs(sub.GetLink())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 198, Col: 27}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 199, Col: 27}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
@@ -775,7 +776,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 					var templ_7745c5c3_Var32 string
 					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 212, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 213, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var32)
 					if templ_7745c5c3_Err != nil {
@@ -788,7 +789,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"subscriptions": sub.GetID()}))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 215, Col: 82}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 216, Col: 82}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var33)
 					if templ_7745c5c3_Err != nil {
@@ -836,7 +837,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscriptions/" + sub.GetID() + "/edit")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 225, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 226, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 				if templ_7745c5c3_Err != nil {
@@ -849,7 +850,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var36 string
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 226, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 227, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 				if templ_7745c5c3_Err != nil {
@@ -896,7 +897,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.ResolveAttributeValue("/subscriptions/" + sub.GetID() + "/remove")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 237, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 238, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38)
 				if templ_7745c5c3_Err != nil {
@@ -909,7 +910,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.ResolveAttributeValue(ModalContainerID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 238, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 239, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
 				if templ_7745c5c3_Err != nil {
@@ -922,7 +923,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"confirmed": "false"}))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 239, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 240, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 				if templ_7745c5c3_Err != nil {
@@ -969,7 +970,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 250, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 251, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var42)
 				if templ_7745c5c3_Err != nil {
@@ -982,7 +983,7 @@ func subscriptionCardMiscActionsMenu(sub *models.Subscription) templ.Component {
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(map[string]string{"object_id": sub.GetID()}))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 252, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 253, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var43)
 				if templ_7745c5c3_Err != nil {
