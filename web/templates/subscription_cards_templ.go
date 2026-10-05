@@ -367,14 +367,14 @@ func subscriptionCardFeedMetadata(feed *models.Feed) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if feed.SourceType != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"badge badge-sm badge-info badge-soft\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"badge badge-sm badge-info badge-soft uppercase\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(feed.SourceType)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 91, Col: 72}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription_cards.templ`, Line: 91, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {

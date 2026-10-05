@@ -88,7 +88,7 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 	if feed.GetLink() != "" {
 		<p>
 			if feed.SourceType != "" {
-				<span class="badge badge-sm badge-info badge-soft">{ feed.SourceType }</span>
+				<span class="badge badge-sm badge-info badge-soft uppercase">{ feed.SourceType }</span>
 			}
 			<button
 				class="inline-flex btn btn-sm btn-ghost items-center"
