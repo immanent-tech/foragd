@@ -1,8 +1,23 @@
 [[releases]]
+version = "v0.241"
+date = "Oct 5, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Subscription and article cards have been reworked and display more details.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Language filtering on subscriptions should work correctly.
+"""
+
+[[releases]]
 version = "v0.239"
 date = "Sep 29, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
