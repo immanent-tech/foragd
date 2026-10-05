@@ -29,7 +29,6 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -118,29 +117,21 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 }
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
-func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) http.HandlerFunc {
+func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
-		subscriptions := models.SubscriptionsFromCtx(req.Context())
-
-		// Generate request object.
-		request := &models.ListRequest{
-			Filters: *ListFiltersFromCtx(req.Context()),
-		}
-		if err := request.Validate(); err != nil {
+		user, subscriptions, err := m.getAuthenticatedUserAndSubscriptions(req)
+		if err != nil {
+			if err.Error() == "unauthorized" {
+				http.Redirect(res, req, "/login", http.StatusSeeOther)
+				return
+			}
 			m.HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("validate request: %w", err),
+				http.StatusInternalServerError,
+				fmt.Errorf("get auth context: %w", err),
 			).ServeHTTP(res, req)
 			return
 		}
+		filters := ListFiltersFromCtx(req.Context())
 
 		// If the user has requested to hide grouped subscriptions, filter those out.
 		hiddenSubscriptions := make([]models.SubscriptionID, 0)
@@ -154,26 +145,26 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 		// Get subscriptions with filters applied.
 		var pagination models.Pagination
 		subscriptions, pagination = subscriptions.
-			FilterByView(request.Filters.GetView()).
-			FilterByCategories(request.Filters.GetCategories()...).
-			FilterByLanguage(request.Filters.GetLanguage()).
-			FilterByIDs(request.Filters.GetSubscriptions()...).
-			Sort(request.Filters.GetSort()).
-			Paginate(&request.Filters)
+			FilterByView(filters.GetView()).
+			FilterByCategories(filters.GetCategories()...).
+			FilterByLanguage(filters.GetLanguage()).
+			FilterByIDs(filters.GetSubscriptions()...).
+			Sort(filters.GetSort()).
+			Paginate(filters)
 
 		// Get latest articles for subscriptions.
 		if len(subscriptions) > 0 {
-			subscriptionSvc.GetLatestArticles(req.Context(), request.Filters.GetView(), subscriptions)
+			subSvc.GetLatestArticles(req.Context(), filters.GetView(), subscriptions)
 		}
 
 		// Create response object
 		response := &models.ListSubscriptionsResponse{
-			Filters:       request.Filters,
+			Filters:       *filters,
 			Subscriptions: subscriptions,
 		}
 		// Update filters in response.
 		response.Filters.From = pagination.From
-		if request.Filters.UpTo != nil {
+		if filters.UpTo != nil {
 			response.Filters.UpTo = nil
 		}
 
@@ -243,16 +234,6 @@ func (m *Manager) HandleListSubscriptionsUpdates(itemSvc ItemService) http.Handl
 			return
 		}
 
-		// Get user details.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to get user data.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-
 		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 		if allSubscriptions == nil {
 			slogctx.FromCtx(req.Context()).Error("Get all subscriptions failed.",
@@ -272,29 +253,12 @@ func (m *Manager) HandleListSubscriptionsUpdates(itemSvc ItemService) http.Handl
 			return
 		}
 
-		updatesQuery := query.Bool(
-			query.WithBoolQueryName("list_subscriptions_updates_"+user.GetID()),
-			query.Filter(
-				// Published/updated within the last 5 minutes.
-				query.Bool(
-					query.Should(
-						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
-						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
-					),
-				),
-				// Must match any of the given feed IDs.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-				// Must match any of the given categories.
-				query.Terms("categories.raw", filters.GetCategories()),
-				// And should match one feed clause.
-				query.Bool(
-					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
-				),
-			),
-		)
+		// Reset filters fields for searching items.
+		filters.Category = nil
+		filters.Language = nil
 
 		// Count items matching.
-		updateCount, err := itemSvc.CountItems(req.Context(), updatesQuery)
+		updateCount, err := itemSvc.CountArticles(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

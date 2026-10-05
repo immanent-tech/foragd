@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
@@ -16,8 +15,6 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -55,80 +52,10 @@ func (p *MapArticles) PartialResponse(res http.ResponseWriter, req *http.Request
 
 func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
-		// Build request object.
-		request := &models.ListRequest{
-			Filters: *ListFiltersFromCtx(req.Context()),
-		}
-		if err := request.Validate(); err != nil {
-			m.HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("parse query values: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-
-		var (
-			articles     models.Articles
-			subscription *models.Subscription
-			err          error
-		)
-
-		// Get the subscription details if the list is for a specific subscription.
-		var subscriptionID models.SubscriptionID
-		if len(request.Filters.GetSubscriptions()) == 1 {
-			subscriptionID = request.Filters.GetSubscriptions()[0]
-		} else if req.FormValue("subscription_id") != "" {
-			subscriptionID = req.FormValue("subscription_id")
-		}
-		if subscriptionID != "" {
-			// Get user subscriptions.
-			allSubscriptions := models.SubscriptionsFromCtx(req.Context())
-			if allSubscriptions == nil {
-				m.HandleInternalError(
-					http.StatusInternalServerError,
-					fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound),
-				).ServeHTTP(res, req)
-				return
-			}
-			// Filter by ID.
-			subscription = allSubscriptions.GetByID(subscriptionID)
-			if subscription == nil {
-				m.HandleInternalError(
-					http.StatusNotFound,
-					fmt.Errorf("get subscription details: %w", err),
-				).ServeHTTP(res, req)
-				return
-			}
-			request.Query = query.Bool(
-				// Filter to items with geo data.
-				query.Filter(
-					query.Exists("geo"),
-				),
-				// Must match subscription article filters.
-				service.ArticleFiltersQueryClause(subscription.GetArticleFilters()),
-			)
-		} else {
-			request.Query = query.Bool(
-				// Filter to items with geo data.
-				query.Filter(
-					query.Exists("geo"),
-				),
-			)
-		}
+		filters := ListFiltersFromCtx(req.Context())
 
 		// Get articles matching filters.
-		var next models.Pagination
-		// TODO: Currently hard-coded last 50 articles with geo coords. Decide how to expose as user control.
-		request.Filters.Count = 50
-		articles, next, err = itemSvc.FilterArticles(req.Context(), request)
+		articles, subscriptions, next, err := itemSvc.FilterGeoArticles(req.Context(), filters)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			m.HandleInternalError(
 				http.StatusInternalServerError,
@@ -137,11 +64,17 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			return
 		}
 
+		// If the results are from a single subscription, save that subscription's details
+		var subscription *models.Subscription
+		if len(subscriptions) == 1 {
+			subscription = subscriptions[0]
+		}
+
 		// Create response.
 		response := &models.ListArticlesResponse{
 			Subscription: subscription,
 			Articles:     articles,
-			Filters:      request.Filters,
+			Filters:      *filters,
 		}
 		// Update response filters.
 		response.Filters.SearchAfter = next.SearchAfter
@@ -197,57 +130,8 @@ func (m *Manager) HandleMapUpdates(itemSvc ItemService) http.HandlerFunc {
 			return
 		}
 
-		// Retrieve the user object.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", models.ErrCtxValueNotFound))
-			http.Redirect(res, req, "/login", http.StatusSeeOther)
-			return
-		}
-
-		// Retreive subscription details.
-		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
-		if allSubscriptions == nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to get user subscriptions.",
-				slog.Any("error", models.ErrCtxValueNotFound),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-		// Filter subscriptions.
-		subscriptions := allSubscriptions.
-			FilterByView(filters.GetView()).
-			FilterByIDs(filters.GetSubscriptions()...)
-		if len(subscriptions) == 0 {
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		// Generate a query to find updates.
-		updatesQuery := query.Bool(
-			query.Filter(
-				query.Exists("geo"),
-				// Published/updated within the last 5 minutes.
-				query.Bool(
-					query.Should(
-						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
-						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
-					),
-				),
-				// Must match any of the given feed IDs.
-				query.Terms("feed_id", subscriptions.GetFeedIDs()),
-				// Must match any of the given categories.
-				query.Terms("categories.raw", filters.GetCategories()),
-				// And should match one feed clause.
-				query.Bool(
-					query.Filter(service.BuildItemQueries(user, filters.GetView(), subscriptions)...),
-				),
-			),
-		)
-
 		// Count items matching.
-		updateCount, err := itemSvc.CountItems(req.Context(), updatesQuery)
+		updateCount, err := itemSvc.CountGeoArticles(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to get updates.",
 				slog.Any("error", err),

@@ -2039,8 +2039,17 @@ var _ handlers.ArticleService = &MoqArticleService{}
 //			ArchiveArticleFunc: func(ctx context.Context, article *models.ArticleArchive) error {
 //				panic("mock out the ArchiveArticle method")
 //			},
-//			FilterArticlesFunc: func(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error) {
+//			CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+//				panic("mock out the CountArticles method")
+//			},
+//			CountGeoArticlesFunc: func(ctx context.Context, filters *models.ListFilters) (int64, error) {
+//				panic("mock out the CountGeoArticles method")
+//			},
+//			FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
 //				panic("mock out the FilterArticles method")
+//			},
+//			FilterGeoArticlesFunc: func(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error) {
+//				panic("mock out the FilterGeoArticles method")
 //			},
 //			FindSimilarArticlesFunc: func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error) {
 //				panic("mock out the FindSimilarArticles method")
@@ -2064,8 +2073,17 @@ type MoqArticleService struct {
 	// ArchiveArticleFunc mocks the ArchiveArticle method.
 	ArchiveArticleFunc func(ctx context.Context, article *models.ArticleArchive) error
 
+	// CountArticlesFunc mocks the CountArticles method.
+	CountArticlesFunc func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error)
+
+	// CountGeoArticlesFunc mocks the CountGeoArticles method.
+	CountGeoArticlesFunc func(ctx context.Context, filters *models.ListFilters) (int64, error)
+
 	// FilterArticlesFunc mocks the FilterArticles method.
-	FilterArticlesFunc func(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error)
+	FilterArticlesFunc func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error)
+
+	// FilterGeoArticlesFunc mocks the FilterGeoArticles method.
+	FilterGeoArticlesFunc func(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error)
 
 	// FindSimilarArticlesFunc mocks the FindSimilarArticles method.
 	FindSimilarArticlesFunc func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error)
@@ -2088,12 +2106,37 @@ type MoqArticleService struct {
 			// Article is the article argument value.
 			Article *models.ArticleArchive
 		}
+		// CountArticles holds details about calls to the CountArticles method.
+		CountArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+			// ExtraQueries is the extraQueries argument value.
+			ExtraQueries []query.Option
+		}
+		// CountGeoArticles holds details about calls to the CountGeoArticles method.
+		CountGeoArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+		}
 		// FilterArticles holds details about calls to the FilterArticles method.
 		FilterArticles []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Request is the request argument value.
-			Request *models.ListRequest
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+			// ExtraQueries is the extraQueries argument value.
+			ExtraQueries []query.Option
+		}
+		// FilterGeoArticles holds details about calls to the FilterGeoArticles method.
+		FilterGeoArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
 		}
 		// FindSimilarArticles holds details about calls to the FindSimilarArticles method.
 		FindSimilarArticles []struct {
@@ -2137,7 +2180,10 @@ type MoqArticleService struct {
 		}
 	}
 	lockArchiveArticle      sync.RWMutex
+	lockCountArticles       sync.RWMutex
+	lockCountGeoArticles    sync.RWMutex
 	lockFilterArticles      sync.RWMutex
+	lockFilterGeoArticles   sync.RWMutex
 	lockFindSimilarArticles sync.RWMutex
 	lockGetArticles         sync.RWMutex
 	lockGetNextArticle      sync.RWMutex
@@ -2180,22 +2226,100 @@ func (mock *MoqArticleService) ArchiveArticleCalls() []struct {
 	return calls
 }
 
+// CountArticles calls CountArticlesFunc.
+func (mock *MoqArticleService) CountArticles(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+	if mock.CountArticlesFunc == nil {
+		panic("MoqArticleService.CountArticlesFunc: method is nil but ArticleService.CountArticles was just called")
+	}
+	callInfo := struct {
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
+	}{
+		Ctx:          ctx,
+		Filters:      filters,
+		ExtraQueries: extraQueries,
+	}
+	mock.lockCountArticles.Lock()
+	mock.calls.CountArticles = append(mock.calls.CountArticles, callInfo)
+	mock.lockCountArticles.Unlock()
+	return mock.CountArticlesFunc(ctx, filters, extraQueries...)
+}
+
+// CountArticlesCalls gets all the calls that were made to CountArticles.
+// Check the length with:
+//
+//	len(mockedArticleService.CountArticlesCalls())
+func (mock *MoqArticleService) CountArticlesCalls() []struct {
+	Ctx          context.Context
+	Filters      *models.ListFilters
+	ExtraQueries []query.Option
+} {
+	var calls []struct {
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
+	}
+	mock.lockCountArticles.RLock()
+	calls = mock.calls.CountArticles
+	mock.lockCountArticles.RUnlock()
+	return calls
+}
+
+// CountGeoArticles calls CountGeoArticlesFunc.
+func (mock *MoqArticleService) CountGeoArticles(ctx context.Context, filters *models.ListFilters) (int64, error) {
+	if mock.CountGeoArticlesFunc == nil {
+		panic("MoqArticleService.CountGeoArticlesFunc: method is nil but ArticleService.CountGeoArticles was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}{
+		Ctx:     ctx,
+		Filters: filters,
+	}
+	mock.lockCountGeoArticles.Lock()
+	mock.calls.CountGeoArticles = append(mock.calls.CountGeoArticles, callInfo)
+	mock.lockCountGeoArticles.Unlock()
+	return mock.CountGeoArticlesFunc(ctx, filters)
+}
+
+// CountGeoArticlesCalls gets all the calls that were made to CountGeoArticles.
+// Check the length with:
+//
+//	len(mockedArticleService.CountGeoArticlesCalls())
+func (mock *MoqArticleService) CountGeoArticlesCalls() []struct {
+	Ctx     context.Context
+	Filters *models.ListFilters
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}
+	mock.lockCountGeoArticles.RLock()
+	calls = mock.calls.CountGeoArticles
+	mock.lockCountGeoArticles.RUnlock()
+	return calls
+}
+
 // FilterArticles calls FilterArticlesFunc.
-func (mock *MoqArticleService) FilterArticles(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error) {
+func (mock *MoqArticleService) FilterArticles(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
 	if mock.FilterArticlesFunc == nil {
 		panic("MoqArticleService.FilterArticlesFunc: method is nil but ArticleService.FilterArticles was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Request *models.ListRequest
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
 	}{
-		Ctx:     ctx,
-		Request: request,
+		Ctx:          ctx,
+		Filters:      filters,
+		ExtraQueries: extraQueries,
 	}
 	mock.lockFilterArticles.Lock()
 	mock.calls.FilterArticles = append(mock.calls.FilterArticles, callInfo)
 	mock.lockFilterArticles.Unlock()
-	return mock.FilterArticlesFunc(ctx, request)
+	return mock.FilterArticlesFunc(ctx, filters, extraQueries...)
 }
 
 // FilterArticlesCalls gets all the calls that were made to FilterArticles.
@@ -2203,16 +2327,54 @@ func (mock *MoqArticleService) FilterArticles(ctx context.Context, request *mode
 //
 //	len(mockedArticleService.FilterArticlesCalls())
 func (mock *MoqArticleService) FilterArticlesCalls() []struct {
-	Ctx     context.Context
-	Request *models.ListRequest
+	Ctx          context.Context
+	Filters      *models.ListFilters
+	ExtraQueries []query.Option
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Request *models.ListRequest
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
 	}
 	mock.lockFilterArticles.RLock()
 	calls = mock.calls.FilterArticles
 	mock.lockFilterArticles.RUnlock()
+	return calls
+}
+
+// FilterGeoArticles calls FilterGeoArticlesFunc.
+func (mock *MoqArticleService) FilterGeoArticles(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error) {
+	if mock.FilterGeoArticlesFunc == nil {
+		panic("MoqArticleService.FilterGeoArticlesFunc: method is nil but ArticleService.FilterGeoArticles was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}{
+		Ctx:     ctx,
+		Filters: filters,
+	}
+	mock.lockFilterGeoArticles.Lock()
+	mock.calls.FilterGeoArticles = append(mock.calls.FilterGeoArticles, callInfo)
+	mock.lockFilterGeoArticles.Unlock()
+	return mock.FilterGeoArticlesFunc(ctx, filters)
+}
+
+// FilterGeoArticlesCalls gets all the calls that were made to FilterGeoArticles.
+// Check the length with:
+//
+//	len(mockedArticleService.FilterGeoArticlesCalls())
+func (mock *MoqArticleService) FilterGeoArticlesCalls() []struct {
+	Ctx     context.Context
+	Filters *models.ListFilters
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}
+	mock.lockFilterGeoArticles.RLock()
+	calls = mock.calls.FilterGeoArticles
+	mock.lockFilterGeoArticles.RUnlock()
 	return calls
 }
 
@@ -2400,14 +2562,23 @@ var _ handlers.ItemService = &MoqItemService{}
 //			ArchiveArticleFunc: func(ctx context.Context, article *models.ArticleArchive) error {
 //				panic("mock out the ArchiveArticle method")
 //			},
+//			CountArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+//				panic("mock out the CountArticles method")
+//			},
+//			CountGeoArticlesFunc: func(ctx context.Context, filters *models.ListFilters) (int64, error) {
+//				panic("mock out the CountGeoArticles method")
+//			},
 //			CountItemsFunc: func(ctx context.Context, query1 query.Option) (int64, error) {
 //				panic("mock out the CountItems method")
 //			},
 //			CountSearchResultsFunc: func(ctx context.Context, request *models.SearchRequest) (int64, error) {
 //				panic("mock out the CountSearchResults method")
 //			},
-//			FilterArticlesFunc: func(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error) {
+//			FilterArticlesFunc: func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
 //				panic("mock out the FilterArticles method")
+//			},
+//			FilterGeoArticlesFunc: func(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error) {
+//				panic("mock out the FilterGeoArticles method")
 //			},
 //			FindSimilarArticlesFunc: func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error) {
 //				panic("mock out the FindSimilarArticles method")
@@ -2449,6 +2620,12 @@ type MoqItemService struct {
 	// ArchiveArticleFunc mocks the ArchiveArticle method.
 	ArchiveArticleFunc func(ctx context.Context, article *models.ArticleArchive) error
 
+	// CountArticlesFunc mocks the CountArticles method.
+	CountArticlesFunc func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error)
+
+	// CountGeoArticlesFunc mocks the CountGeoArticles method.
+	CountGeoArticlesFunc func(ctx context.Context, filters *models.ListFilters) (int64, error)
+
 	// CountItemsFunc mocks the CountItems method.
 	CountItemsFunc func(ctx context.Context, query1 query.Option) (int64, error)
 
@@ -2456,7 +2633,10 @@ type MoqItemService struct {
 	CountSearchResultsFunc func(ctx context.Context, request *models.SearchRequest) (int64, error)
 
 	// FilterArticlesFunc mocks the FilterArticles method.
-	FilterArticlesFunc func(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error)
+	FilterArticlesFunc func(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error)
+
+	// FilterGeoArticlesFunc mocks the FilterGeoArticles method.
+	FilterGeoArticlesFunc func(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error)
 
 	// FindSimilarArticlesFunc mocks the FindSimilarArticles method.
 	FindSimilarArticlesFunc func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error)
@@ -2501,6 +2681,22 @@ type MoqItemService struct {
 			// Article is the article argument value.
 			Article *models.ArticleArchive
 		}
+		// CountArticles holds details about calls to the CountArticles method.
+		CountArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+			// ExtraQueries is the extraQueries argument value.
+			ExtraQueries []query.Option
+		}
+		// CountGeoArticles holds details about calls to the CountGeoArticles method.
+		CountGeoArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+		}
 		// CountItems holds details about calls to the CountItems method.
 		CountItems []struct {
 			// Ctx is the ctx argument value.
@@ -2519,8 +2715,17 @@ type MoqItemService struct {
 		FilterArticles []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
-			// Request is the request argument value.
-			Request *models.ListRequest
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
+			// ExtraQueries is the extraQueries argument value.
+			ExtraQueries []query.Option
+		}
+		// FilterGeoArticles holds details about calls to the FilterGeoArticles method.
+		FilterGeoArticles []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Filters is the filters argument value.
+			Filters *models.ListFilters
 		}
 		// FindSimilarArticles holds details about calls to the FindSimilarArticles method.
 		FindSimilarArticles []struct {
@@ -2600,9 +2805,12 @@ type MoqItemService struct {
 	}
 	lockAddItems                             sync.RWMutex
 	lockArchiveArticle                       sync.RWMutex
+	lockCountArticles                        sync.RWMutex
+	lockCountGeoArticles                     sync.RWMutex
 	lockCountItems                           sync.RWMutex
 	lockCountSearchResults                   sync.RWMutex
 	lockFilterArticles                       sync.RWMutex
+	lockFilterGeoArticles                    sync.RWMutex
 	lockFindSimilarArticles                  sync.RWMutex
 	lockGetArticles                          sync.RWMutex
 	lockGetNextArticle                       sync.RWMutex
@@ -2686,6 +2894,82 @@ func (mock *MoqItemService) ArchiveArticleCalls() []struct {
 	return calls
 }
 
+// CountArticles calls CountArticlesFunc.
+func (mock *MoqItemService) CountArticles(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (int64, error) {
+	if mock.CountArticlesFunc == nil {
+		panic("MoqItemService.CountArticlesFunc: method is nil but ItemService.CountArticles was just called")
+	}
+	callInfo := struct {
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
+	}{
+		Ctx:          ctx,
+		Filters:      filters,
+		ExtraQueries: extraQueries,
+	}
+	mock.lockCountArticles.Lock()
+	mock.calls.CountArticles = append(mock.calls.CountArticles, callInfo)
+	mock.lockCountArticles.Unlock()
+	return mock.CountArticlesFunc(ctx, filters, extraQueries...)
+}
+
+// CountArticlesCalls gets all the calls that were made to CountArticles.
+// Check the length with:
+//
+//	len(mockedItemService.CountArticlesCalls())
+func (mock *MoqItemService) CountArticlesCalls() []struct {
+	Ctx          context.Context
+	Filters      *models.ListFilters
+	ExtraQueries []query.Option
+} {
+	var calls []struct {
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
+	}
+	mock.lockCountArticles.RLock()
+	calls = mock.calls.CountArticles
+	mock.lockCountArticles.RUnlock()
+	return calls
+}
+
+// CountGeoArticles calls CountGeoArticlesFunc.
+func (mock *MoqItemService) CountGeoArticles(ctx context.Context, filters *models.ListFilters) (int64, error) {
+	if mock.CountGeoArticlesFunc == nil {
+		panic("MoqItemService.CountGeoArticlesFunc: method is nil but ItemService.CountGeoArticles was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}{
+		Ctx:     ctx,
+		Filters: filters,
+	}
+	mock.lockCountGeoArticles.Lock()
+	mock.calls.CountGeoArticles = append(mock.calls.CountGeoArticles, callInfo)
+	mock.lockCountGeoArticles.Unlock()
+	return mock.CountGeoArticlesFunc(ctx, filters)
+}
+
+// CountGeoArticlesCalls gets all the calls that were made to CountGeoArticles.
+// Check the length with:
+//
+//	len(mockedItemService.CountGeoArticlesCalls())
+func (mock *MoqItemService) CountGeoArticlesCalls() []struct {
+	Ctx     context.Context
+	Filters *models.ListFilters
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}
+	mock.lockCountGeoArticles.RLock()
+	calls = mock.calls.CountGeoArticles
+	mock.lockCountGeoArticles.RUnlock()
+	return calls
+}
+
 // CountItems calls CountItemsFunc.
 func (mock *MoqItemService) CountItems(ctx context.Context, query1 query.Option) (int64, error) {
 	if mock.CountItemsFunc == nil {
@@ -2759,21 +3043,23 @@ func (mock *MoqItemService) CountSearchResultsCalls() []struct {
 }
 
 // FilterArticles calls FilterArticlesFunc.
-func (mock *MoqItemService) FilterArticles(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error) {
+func (mock *MoqItemService) FilterArticles(ctx context.Context, filters *models.ListFilters, extraQueries ...query.Option) (models.Articles, models.Subscriptions, models.Pagination, error) {
 	if mock.FilterArticlesFunc == nil {
 		panic("MoqItemService.FilterArticlesFunc: method is nil but ItemService.FilterArticles was just called")
 	}
 	callInfo := struct {
-		Ctx     context.Context
-		Request *models.ListRequest
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
 	}{
-		Ctx:     ctx,
-		Request: request,
+		Ctx:          ctx,
+		Filters:      filters,
+		ExtraQueries: extraQueries,
 	}
 	mock.lockFilterArticles.Lock()
 	mock.calls.FilterArticles = append(mock.calls.FilterArticles, callInfo)
 	mock.lockFilterArticles.Unlock()
-	return mock.FilterArticlesFunc(ctx, request)
+	return mock.FilterArticlesFunc(ctx, filters, extraQueries...)
 }
 
 // FilterArticlesCalls gets all the calls that were made to FilterArticles.
@@ -2781,16 +3067,54 @@ func (mock *MoqItemService) FilterArticles(ctx context.Context, request *models.
 //
 //	len(mockedItemService.FilterArticlesCalls())
 func (mock *MoqItemService) FilterArticlesCalls() []struct {
-	Ctx     context.Context
-	Request *models.ListRequest
+	Ctx          context.Context
+	Filters      *models.ListFilters
+	ExtraQueries []query.Option
 } {
 	var calls []struct {
-		Ctx     context.Context
-		Request *models.ListRequest
+		Ctx          context.Context
+		Filters      *models.ListFilters
+		ExtraQueries []query.Option
 	}
 	mock.lockFilterArticles.RLock()
 	calls = mock.calls.FilterArticles
 	mock.lockFilterArticles.RUnlock()
+	return calls
+}
+
+// FilterGeoArticles calls FilterGeoArticlesFunc.
+func (mock *MoqItemService) FilterGeoArticles(ctx context.Context, filters *models.ListFilters) (models.Articles, models.Subscriptions, models.Pagination, error) {
+	if mock.FilterGeoArticlesFunc == nil {
+		panic("MoqItemService.FilterGeoArticlesFunc: method is nil but ItemService.FilterGeoArticles was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}{
+		Ctx:     ctx,
+		Filters: filters,
+	}
+	mock.lockFilterGeoArticles.Lock()
+	mock.calls.FilterGeoArticles = append(mock.calls.FilterGeoArticles, callInfo)
+	mock.lockFilterGeoArticles.Unlock()
+	return mock.FilterGeoArticlesFunc(ctx, filters)
+}
+
+// FilterGeoArticlesCalls gets all the calls that were made to FilterGeoArticles.
+// Check the length with:
+//
+//	len(mockedItemService.FilterGeoArticlesCalls())
+func (mock *MoqItemService) FilterGeoArticlesCalls() []struct {
+	Ctx     context.Context
+	Filters *models.ListFilters
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Filters *models.ListFilters
+	}
+	mock.lockFilterGeoArticles.RLock()
+	calls = mock.calls.FilterGeoArticles
+	mock.lockFilterGeoArticles.RUnlock()
 	return calls
 }
 

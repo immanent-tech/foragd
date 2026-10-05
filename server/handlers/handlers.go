@@ -107,7 +107,24 @@ type SubscriptionsService interface {
 }
 
 type ArticleService interface {
-	FilterArticles(ctx context.Context, request *models.ListRequest) (models.Articles, models.Pagination, error)
+	FilterArticles(
+		ctx context.Context,
+		filters *models.ListFilters,
+		extraQueries ...query.Option,
+	) (models.Articles, models.Subscriptions, models.Pagination, error)
+	FilterGeoArticles(
+		ctx context.Context,
+		filters *models.ListFilters,
+	) (models.Articles, models.Subscriptions, models.Pagination, error)
+	CountArticles(
+		ctx context.Context,
+		filters *models.ListFilters,
+		extraQueries ...query.Option,
+	) (int64, error)
+	CountGeoArticles(
+		ctx context.Context,
+		filters *models.ListFilters,
+	) (int64, error)
 	FindSimilarArticles(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error)
 	GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
 	GetNextArticle(
@@ -128,7 +145,6 @@ type ItemService interface {
 	RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.Items, models.Pagination, error)
 	GetTopItemCategoriesForSearchResults(ctx context.Context, request *models.SearchRequest) (models.Categories, error)
 	CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error)
-	CountItems(ctx context.Context, query query.Option) (int64, error)
 	SuggestItems(ctx context.Context, request *models.SearchRequest) (models.Items, error)
 	GetTopCategoriesForItems(ctx context.Context, itemsQuery query.Option) (models.CategoryCounts, error)
 	GetTopLanguageCountsForItems(ctx context.Context, itemsQuery query.Option) (map[string]int64, error)
@@ -205,6 +221,20 @@ func (m *Manager) NewPageServices() pageServices {
 		sessionMgr:  m.SessionMgr,
 		breadcrumbs: m.Breadcrumbs,
 	}
+}
+
+// getAuthenticatedUserAndSubscriptions retrieves the user and their subscriptions from the context. It returns an error
+// if the user is not logged in or subscriptions are missing.
+func (m *Manager) getAuthenticatedUserAndSubscriptions(req *http.Request) (*models.User, models.Subscriptions, error) {
+	user := models.UserFromCtx(req.Context())
+	if user == nil {
+		return nil, nil, errors.New("unauthorized")
+	}
+	subs := models.SubscriptionsFromCtx(req.Context())
+	if subs == nil {
+		return nil, nil, errors.New("subscriptions not found")
+	}
+	return user, subs, nil
 }
 
 var (

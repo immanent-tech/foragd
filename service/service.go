@@ -5,6 +5,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -17,6 +18,8 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"go.opentelemetry.io/otel"
+
+	"github.com/immanent-tech/foragd/models"
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/service")
@@ -80,3 +83,22 @@ var newHTTPClient = sync.OnceValue(func() *resty.Client {
 		})
 	return httpClient
 })
+
+var (
+	ErrNoUserInCtx = errors.New("no user in context")
+	ErrNoSubsInCtx = errors.New("no subscriptions in context")
+)
+
+// getAuthenticatedUserAndSubscriptions retrieves the user and their subscriptions from the context. It returns an error
+// if the user is not logged in or subscriptions are missing.
+func getUserAndSubscriptions(ctx context.Context) (*models.User, models.Subscriptions, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, nil, ErrNoUserInCtx
+	}
+	subs := models.SubscriptionsFromCtx(ctx)
+	if subs == nil {
+		return nil, nil, ErrNoSubsInCtx
+	}
+	return user, subs, nil
+}

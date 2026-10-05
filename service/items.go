@@ -67,7 +67,7 @@ type ItemService struct {
 	httpClient *resty.Client
 }
 
-// LoadItemService loads a service that can manipulate item objects in the backend store.
+// LoadItemService loads a service that can manipulate [models.Item] objects in the backend store.
 var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 	svc, err := LoadElasticService()
 	if err != nil {
@@ -83,7 +83,7 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 	}, nil
 })
 
-// GetItems retrieves the Items matching the given ItemIDs.
+// GetItems returns a [models.Items] slice containing the items matching the given [models.ItemID].
 func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
 	var (
 		items       models.Items
@@ -115,18 +115,8 @@ func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (model
 	return items, nil
 }
 
-// CountItems returns a count of items that match the given query.
-func (s *ItemService) CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, s.store.GetIndexRO(ItemsIndex), query)
-	if err != nil {
-		return 0, fmt.Errorf("count items: %w", err)
-	}
-
-	return count, nil
-}
-
-// AddItems will add the given items to the database. It returns a map divided into "updated" and "new" items, to
-// indicate items that existed and were updated vs. items that were added as new.
+// AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
+// to indicate items that existed and were updated vs. items that were added as new.
 func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
 	existingItems, err := s.GetItems(ctx, items.GetIDs()...)
 	if err != nil {
@@ -207,8 +197,8 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 	return results, nil
 }
 
-// EnrichItem checks the item data if it is missing certain values, flags it, then tries to enrich the item to fill
-// missing data from the item source.
+// EnrichItem checks the data of the given [models.Item]. If it is missing certain values, it tries to "enrich" the item
+// to fill missing data from the item source.
 func (s *ItemService) EnrichItem(
 	ctx context.Context,
 	itemPageCache cache.ObjectCache,

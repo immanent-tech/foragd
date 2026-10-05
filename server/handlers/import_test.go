@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/immanent-tech/go-base/pkg/htmx"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/handlers"
 )
@@ -76,7 +78,7 @@ func TestManager_HandleStartImport(t *testing.T) {
 					return "test", nil
 				},
 			},
-			want: http.StatusSeeOther,
+			want: http.StatusOK,
 			ctxSetup: func(ctx context.Context) context.Context {
 				return models.UserToCtx(ctx, &models.User{})
 			},
@@ -111,6 +113,8 @@ func TestManager_HandleStartImport(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/import", body)
 			req.Header.Set("Content-Type", writer.FormDataContentType())
+			req.Header.Set(htmx.HeaderRequest, "true")
+
 			rec := httptest.NewRecorder()
 
 			mgr.HandleStartImport(tt.importSvc)(rec, req.WithContext(ctx))

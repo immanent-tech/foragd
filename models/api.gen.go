@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/oapi-codegen/runtime"
 )
@@ -316,15 +315,6 @@ type ListArticlesResponse struct {
 type ListFavoritesResponse struct {
 	Articles      Articles      `json:"articles,omitempty"`
 	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
-}
-
-// ListRequest contains the parameters needed for listing subscriptions or articles.
-type ListRequest struct {
-	// Filters contains filters for altering the display of a list of subscriptions or articles.
-	Filters ListFilters `json:"filters" validate:"required"`
-
-	// Query is an additional query to apply for this request.
-	Query query.Option `json:"query,omitempty"`
 }
 
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.

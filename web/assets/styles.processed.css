@@ -3330,6 +3330,26 @@
       right: auto;
       inset-inline: auto var(--tt-tail-off);
     }
+    .tooltip-start {
+      --tt-trans: 0;
+      --tt-inset: 0 auto;
+      --tt-tail-inset: var(--tt-tail-off) auto;
+    }
+    .tooltip-start > .tooltip-content {
+      left: auto;
+      right: auto;
+      inset-inline: 0 auto;
+    }
+    .tooltip-start[data-tip]:before {
+      left: auto;
+      right: auto;
+      inset-inline: 0 auto;
+    }
+    .tooltip-start:after {
+      left: auto;
+      right: auto;
+      inset-inline: var(--tt-tail-off) auto;
+    }
   }
   .inset-x-0 {
     inset-inline: 0px;

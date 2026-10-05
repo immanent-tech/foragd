@@ -121,75 +121,157 @@ func (s *ItemService) GetNextArticle(
 	return articles[0], nil
 }
 
-// FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
+// FilterArticles returns a [models.Articles] slice (and a [models.Subscriptions] slice) of articles that match the
+// given [models.ListFilters]. An additional array of [query.Option] can be passed to further filter items matched.
 func (s *ItemService) FilterArticles(
 	ctx context.Context,
-	request *models.ListRequest,
-) (models.Articles, models.Pagination, error) {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, models.Pagination{}, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	filters *models.ListFilters,
+	extraQueries ...query.Option,
+) (models.Articles, models.Subscriptions, models.Pagination, error) {
+	user, subscriptions, err := getUserAndSubscriptions(ctx)
+	if err != nil {
+		return nil, nil, models.Pagination{}, models.NewAPIError(
+			http.StatusInternalServerError,
+			fmt.Errorf("get user and subscriptions: %w", err),
+		)
 	}
 
-	subscriptions := models.SubscriptionsFromCtx(ctx)
-	if len(subscriptions) == 0 {
-		return nil, models.Pagination{}, models.ErrNotFound
-	}
-	if len(request.Filters.GetSubscriptions()) > 0 {
-		subscriptions = subscriptions.FilterByIDs(request.Filters.GetSubscriptions()...)
+	if len(filters.GetSubscriptions()) > 0 {
+		subscriptions = subscriptions.FilterByIDs(filters.GetSubscriptions()...)
 	}
 
+	// Set sorting of results.
+	sort := filters.GetSort()
+
+	// Set number of items to fetch.
+	var count int
+	if filters.UpTo != nil {
+		count = *filters.UpTo
+	} else {
+		count = filters.Count
+	}
+
+	// Find items matching filters.
+	items, pagination, err := s.QueryItems(
+		ctx,
+		generateArticlesQuery(user, subscriptions, filters, extraQueries...),
+		count,
+		&sort,
+		filters.SearchAfter,
+	)
+	if err != nil {
+		return nil, nil, models.Pagination{}, fmt.Errorf("could not retrieve filtered items: %w", err)
+	}
+
+	// Generate articles.
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, nil, models.Pagination{}, fmt.Errorf("could not generate articles from items: %w", err)
+	}
+
+	return articles, subscriptions, models.Pagination{SearchAfter: &pagination}, nil
+}
+
+// FilterGeoArticles executes FilterArticles with an additional filter clause to only match articles with geo data.
+func (s *ItemService) FilterGeoArticles(
+	ctx context.Context,
+	filters *models.ListFilters,
+) (models.Articles, models.Subscriptions, models.Pagination, error) {
+	// Filter to items with geo data.
+	return s.FilterArticles(ctx, filters, query.Bool(
+		query.Filter(
+			query.Exists("geo"),
+		),
+	))
+}
+
+// CountArticles returns a count of items that match the given [models.ListFilters]. An additional array of
+// [query.Option] can be passed to further filter items matched.
+func (s *ItemService) CountArticles(
+	ctx context.Context,
+	filters *models.ListFilters,
+	extraQueries ...query.Option,
+) (int64, error) {
+	user, subscriptions, err := getUserAndSubscriptions(ctx)
+	if err != nil {
+		return 0, models.NewAPIError(
+			http.StatusInternalServerError,
+			fmt.Errorf("get user and subscriptions: %w", err),
+		)
+	}
+
+	if len(filters.GetSubscriptions()) > 0 {
+		subscriptions = subscriptions.FilterByIDs(filters.GetSubscriptions()...)
+	}
+
+	count, err := elastic.Count(
+		ctx,
+		s.store.GetIndexRO(ItemsIndex),
+		generateArticlesQuery(
+			user,
+			subscriptions,
+			filters,
+			slices.Concat([]query.Option{
+				query.Bool(
+					query.Should(
+						query.Since("published", time.Now().UTC().Add(-5*time.Minute)),
+						query.Since("updated", time.Now().UTC().Add(-5*time.Minute)),
+					),
+				),
+			},
+				extraQueries,
+			)...,
+		),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("count items: %w", err)
+	}
+
+	return count, nil
+}
+
+// CountGeoArticles executes CountArticles with an additional filter clause to only match articles with geo data.
+func (s *ItemService) CountGeoArticles(
+	ctx context.Context,
+	filters *models.ListFilters,
+) (int64, error) {
+	return s.CountArticles(ctx, filters, query.Bool(
+		query.Filter(
+			query.Exists("geo"),
+		),
+	))
+}
+
+// generateArticlesQuery creates the base query for finding articles matching the given [models.ListFilters]. An
+// additional list of [query.Option] can be passed, which will be added to the filter clause of the overall bool query.
+func generateArticlesQuery(
+	user *models.User,
+	subscriptions models.Subscriptions,
+	filters *models.ListFilters,
+	extraQueries ...query.Option,
+) query.Option {
 	// Build article query.
-	articleQuery := query.Bool(
+	return query.Bool(
 		query.Filter(
 			slices.Concat(
 				[]query.Option{
 					// Must match these feed IDs.
 					query.Terms("feed_id", subscriptions.GetFeedIDs()),
 					// Must match these categories.
-					query.Terms("categories.raw", request.Filters.GetCategories()),
+					query.Terms("categories.raw", filters.GetCategories()),
 					// Must have matching language.
-					query.Term("language", request.Filters.GetLanguage()),
+					query.Term("language", filters.GetLanguage()),
 					// Must match these global article filters.
 					query.Bool(ArticleFiltersQueryClause(user.GetSettings().GlobalFilters)),
 					// Must match this additional query.
-					request.Query,
 				},
 				// Must match one of the subscription filter clauses.
-				BuildItemQueries(user, request.Filters.GetView(), subscriptions))...,
+				BuildItemQueries(user, filters.GetView(), subscriptions),
+				// Any additional queries passed in.
+				extraQueries,
+			)...,
 		),
 	)
-
-	// Set sorting of results.
-	sort := request.Filters.GetSort()
-
-	// Set number of items to fetch.
-	var count int
-	if request.Filters.UpTo != nil {
-		count = *request.Filters.UpTo
-	} else {
-		count = request.Filters.Count
-	}
-
-	// Find items matching filters.
-	items, pagination, err := s.QueryItems(
-		ctx,
-		articleQuery,
-		count,
-		&sort,
-		request.Filters.SearchAfter,
-	)
-	if err != nil {
-		return nil, models.Pagination{}, fmt.Errorf("could not retrieve filtered items: %w", err)
-	}
-
-	// Generate articles.
-	articles, err := GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, models.Pagination{}, fmt.Errorf("could not generate articles from items: %w", err)
-	}
-
-	return articles, models.Pagination{SearchAfter: &pagination}, nil
 }
 
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the

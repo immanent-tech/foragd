@@ -728,17 +728,6 @@ func GetCategoryCounts(subscriptions ...*Subscription) CategoryCounts {
 	return counts
 }
 
-// Valid will return an error if the request object does not pass validation.
-func (r *ListRequest) Validate() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("validate list subscription request: %w", err)
-	}
-	if err := r.Filters.Validate(); err != nil {
-		return fmt.Errorf("validate filters: %w", err)
-	}
-	return nil
-}
-
 // AddSubscriptionResult represents the result of creating a new subscription.
 type AddSubscriptionResult struct {
 	Subscription *FeedSubscription
