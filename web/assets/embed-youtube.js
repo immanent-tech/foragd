@@ -24,10 +24,14 @@ class EmbedYoutube extends HTMLElement {
   connectedCallback() {
     this._render()
     this._loadAPI()
-    window.htmx = htmx
-    htmx.process(root)
+    htmx.process(this)
   }
 
+  /**
+   * @param {any} name
+   * @param {any} oldVal
+   * @param {any} newVal
+   */
   attributeChangedCallback(name, oldVal, newVal) {
     if (oldVal !== newVal && this.shadowRoot) {
       this._render()
@@ -142,23 +146,19 @@ class EmbedYoutube extends HTMLElement {
         origin: this.origin,
       },
       events: {
-        onReady: (event) => {
-          this.dispatchEvent(
-            new CustomEvent('yt-ready', { detail: { player: event.target } })
-          )
+        onReady: (/** @type {{ target: { playVideo: () => void; }; }} */ event) => {
+          this.dispatchEvent(new CustomEvent('yt-ready', { detail: { player: event.target } }))
           if (this.autoplay) event.target.playVideo()
         },
-        onStateChange: (event) => {
+        onStateChange: (/** @type {{ data: any; }} */ event) => {
           this.dispatchEvent(
             new CustomEvent('yt-state-change', {
               detail: { state: event.data },
             })
           )
         },
-        onError: (event) => {
-          this.dispatchEvent(
-            new CustomEvent('yt-error', { detail: { code: event.data } })
-          )
+        onError: (/** @type {{ data: any; }} */ event) => {
+          this.dispatchEvent(new CustomEvent('yt-error', { detail: { code: event.data } }))
         },
       },
     })
@@ -180,6 +180,9 @@ class EmbedYoutube extends HTMLElement {
   unmute() {
     this.player?.unMute()
   }
+  /**
+   * @param {any} seconds
+   */
   seekTo(seconds) {
     this.player?.seekTo(seconds, true)
   }
