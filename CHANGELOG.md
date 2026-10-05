@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.241.2](https://github.com/immanent-tech/foragd/compare/v0.241.1...v0.241.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **templates:** 🔧 fix button and link bubbling ([d89c8bf](https://github.com/immanent-tech/foragd/commit/d89c8bf6f0640f23c665d854c3efce69ca087de0))
+
 ## [0.241.1](https://github.com/immanent-tech/foragd/compare/v0.241.0...v0.241.1) (2026-10-05)
 
 
