@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.241.0](https://github.com/immanent-tech/foragd/compare/v0.240.0...v0.241.0) (2026-10-05)
+
+
+### Features
+
+* **templates/articles:** 🎨 improved article card layout ([8879a9b](https://github.com/immanent-tech/foragd/commit/8879a9b567e55c401d139e6ee1f84de6b26794c9))
+* **templates/subscriptions:** ✨ improved subscription card layout ([b7b6a31](https://github.com/immanent-tech/foragd/commit/b7b6a316752c85da7605f63213e1669310addca2))
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 don't update languages/categories if there are no new options ([8fd3bf8](https://github.com/immanent-tech/foragd/commit/8fd3bf856950cf23e623d2cde635b0a202286d62))
+* **providers/elastic:** 🔧 fix handling of nil values and empty strings for term query clause construction ([5077a4a](https://github.com/immanent-tech/foragd/commit/5077a4a498fb1b417574f407922f14c792d604a1))
+* **scheduler/jobs:** 🔧 get new feed job fixes ([c876e04](https://github.com/immanent-tech/foragd/commit/c876e048abe82fdb9eabc3c762d718ec159831f5))
+* **scheduler/jobs:** 🔧 update feed job fixes ([2eac32d](https://github.com/immanent-tech/foragd/commit/2eac32de22f46362a5643f5df585ff14714bfb1c))
+* **templates/subscriptions:** 🔧 fix language filters for subscriptions ([ebc2a01](https://github.com/immanent-tech/foragd/commit/ebc2a012006dae07df768ed0c32efc69505aa68f))
+* **templates/subscriptions:** 🔧 subscription card adjustments ([48edb2d](https://github.com/immanent-tech/foragd/commit/48edb2de859394c4ce33cda9d9175dde0fde310d))
+
+
+### Performance Improvements
+
+* **templates:** ⚡ preload fonts ([0279335](https://github.com/immanent-tech/foragd/commit/0279335234dcbe9b488ad4795dd12d3d40b2a0f2))
+
 ## [0.240.0](https://github.com/immanent-tech/foragd/compare/v0.239.2...v0.240.0) (2026-10-01)
 
 
