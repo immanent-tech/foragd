@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.241.1](https://github.com/immanent-tech/foragd/compare/v0.241.0...v0.241.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **server:** 🔧 fix path to esbuild metadata file ([aca33fe](https://github.com/immanent-tech/foragd/commit/aca33fe2af51e1a9f0bba6d48d2391b7ad95673d))
+
 ## [0.241.0](https://github.com/immanent-tech/foragd/compare/v0.240.0...v0.241.0) (2026-10-05)
 
 
