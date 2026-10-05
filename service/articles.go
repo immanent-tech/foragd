@@ -17,6 +17,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-syndication/sanitization"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -456,7 +458,7 @@ func GetArticleRemoteContent(
 		}
 
 		// Set the article content to the extracted content.
-		article.Content = new(articleBuf.String())
+		article.Content = new(sanitization.SanitizeString(articleBuf.String()))
 	}
 
 	return nil
