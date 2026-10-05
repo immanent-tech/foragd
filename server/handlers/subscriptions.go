@@ -199,21 +199,25 @@ func (m *Manager) HandleListSubscriptions(subscriptionSvc SubscriptionsService) 
 			// Render new subscription cards.
 			RenderPartial(page).ServeHTTP(res, req)
 			// Render new category filters.
-			RenderPartial(&PartialTemplate{
-				template: templates.UpdateListCategoryFilters(
-					"/list/subscriptions",
-					response.Filters,
-					response.Subscriptions.GetCategories(),
-				),
-			}).ServeHTTP(res, req)
+			if len(response.Subscriptions.GetCategories()) > 0 {
+				RenderPartial(&PartialTemplate{
+					template: templates.UpdateListCategoryFilters(
+						"/list/subscriptions",
+						response.Filters,
+						response.Subscriptions.GetCategories(),
+					),
+				}).ServeHTTP(res, req)
+			}
 			// Render new language filters.
-			RenderPartial(&PartialTemplate{
-				template: templates.UpdateListLanguageFilters(
-					"/list/subscriptions",
-					response.Filters,
-					response.Subscriptions.GetLanguageCounts(),
-				),
-			}).ServeHTTP(res, req)
+			if len(response.Subscriptions.GetLanguageCounts()) > 0 {
+				RenderPartial(&PartialTemplate{
+					template: templates.UpdateListLanguageFilters(
+						"/list/subscriptions",
+						response.Filters,
+						response.Subscriptions.GetLanguageCounts(),
+					),
+				}).ServeHTTP(res, req)
+			}
 			// Update pagination control element.
 			if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{

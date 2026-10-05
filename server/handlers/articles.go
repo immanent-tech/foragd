@@ -208,21 +208,25 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			// POST: render cards only.
 			RenderPartial(page).ServeHTTP(res, req)
 			// Update category filters.
-			RenderPartial(&PartialTemplate{
-				template: templates.UpdateListCategoryFilters(
-					"/list/articles",
-					response.Filters,
-					response.Articles.GetCategoryCounts().GetCategories(),
-				),
-			}).ServeHTTP(res, req)
+			if len(response.Articles.GetCategoryCounts()) > 0 {
+				RenderPartial(&PartialTemplate{
+					template: templates.UpdateListCategoryFilters(
+						"/list/articles",
+						response.Filters,
+						response.Articles.GetCategoryCounts().GetCategories(),
+					),
+				}).ServeHTTP(res, req)
+			}
 			// Update language filters.
-			RenderPartial(&PartialTemplate{
-				template: templates.UpdateListLanguageFilters(
-					"/list/articles",
-					response.Filters,
-					response.Articles.GetLanguageCounts(),
-				),
-			}).ServeHTTP(res, req)
+			if len(response.Articles.GetLanguageCounts()) > 0 {
+				RenderPartial(&PartialTemplate{
+					template: templates.UpdateListLanguageFilters(
+						"/list/articles",
+						response.Filters,
+						response.Articles.GetLanguageCounts(),
+					),
+				}).ServeHTTP(res, req)
+			}
 			// Update pagination control element.
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
 				RenderPartial(&PartialTemplate{
