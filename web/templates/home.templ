@@ -105,7 +105,17 @@ templ UserHome(data *HomeData) {
 											hx-indicator="this"
 											{ generateSubscriptionViewAttributes(subscription)... }
 										>
-											@subscriptionCardHeader(subscription)
+											@subscriptionCardTitle(subscription)
+											<p class="mt-2 text-sm/6 tabular-nums text-center">
+												Updated
+												<relative-time
+													datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+													format="relative"
+													class="font-semibold"
+												>
+													{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
+												</relative-time>
+											</p>
 										</li>
 									}
 								</ul>
