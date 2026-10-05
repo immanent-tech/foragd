@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
@@ -143,7 +142,8 @@ func (c *ImageCache) SaveScreenshot(ctx context.Context, id string, data []byte)
 // HandleImage handles fetching and displaying an image from one of the image caches.
 func HandleImage(cache *ImageCache) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		key := chi.URLParam(req, "*")
+		imgType := chi.URLParam(req, "imgType")
+		imgKey := chi.URLParam(req, "*")
 
 		imgBuf, ok := bufPool.Get().(*bytes.Buffer)
 		if !ok {
@@ -155,13 +155,13 @@ func HandleImage(cache *ImageCache) http.HandlerFunc {
 		defer bufPool.Put(imgBuf)
 
 		var err error
-		switch {
-		case strings.HasPrefix(req.URL.Path, "/img/avatar"):
-			err = cache.GetAvatar(req.Context(), key, imgBuf)
-		case strings.HasPrefix(req.URL.Path, "/img/subscription"):
-			err = cache.GetThumbnail(req.Context(), key, imgBuf)
-		case strings.HasPrefix(req.URL.Path, "/img/screenshot"):
-			err = cache.GetScreenshot(req.Context(), key, imgBuf)
+		switch imgType {
+		case "avatar":
+			err = cache.GetAvatar(req.Context(), imgKey, imgBuf)
+		case "subscription":
+			err = cache.GetThumbnail(req.Context(), imgKey, imgBuf)
+		case "screenshot":
+			err = cache.GetScreenshot(req.Context(), imgKey, imgBuf)
 		default:
 			res.WriteHeader(http.StatusUnprocessableEntity)
 			slogctx.FromCtx(req.Context()).Error("Invalid image cache.")

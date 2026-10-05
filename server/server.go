@@ -220,12 +220,7 @@ func Start() error {
 
 	// Image proxy.
 	router.Get("/img-proxy/*", imgproxy.HandleImage(imgCache))
-	// Avatars
-	router.Get("/img/avatar/*", cache.HandleImage(imgCache))
-	// User custom subscription images.
-	router.Get("/img/subscription/*", cache.HandleImage(imgCache))
-	// User uploaded screenshots.
-	router.Get("/img/screenshots/*", cache.HandleImage(imgCache))
+	router.Get("/img/{imgType}/*", cache.HandleImage(imgCache))
 
 	// Handle incoming webhooks from Resend
 	router.Post("/mail/webhooks", handlers.HandleResendWebhook(resendVerifier, resendProcesser))
