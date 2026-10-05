@@ -1,5 +1,8 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package components
 
@@ -172,7 +175,7 @@ behavior MasonryGrid
     call resetLayout()
   end
 
-  on DOMContentLoaded or load or htmx:after:swap from document
+  on DOMContentLoaded or load or "htmx:after:swap" from document
     call resetLayout()
   end
 
@@ -182,11 +185,11 @@ behavior MasonryGrid
     end
   end
 
-  on htmx:after:swap from document
+  on "htmx:after:swap" from document
     wait 1ms then call layout()
   end
 
-  on htmx:after:request from me
+  on "htmx:after:request" from me
     wait 1ms then call layout()
   end
 

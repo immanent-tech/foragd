@@ -221,8 +221,6 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				content={ templ.JSONString(htmx.Config{
 				InlineScriptNonce: templ.GetNonce(ctx),
                 IncludeIndicatorCSS: new(false),
-                Transitions: new(true),
-                LogAll: new(true),
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
