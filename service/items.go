@@ -215,6 +215,14 @@ func (s *ItemService) EnrichItem(
 	feed *models.Feed,
 	item *models.Item,
 ) error {
+	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
+		return fmt.Errorf("cannot enrich item: %w", err)
+	}
+
 	ctx = slogctx.With(ctx,
 		slog.String("feed_id", item.GetFeedID()),
 		slog.String("item_id", item.GetID()),

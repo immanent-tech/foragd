@@ -430,6 +430,14 @@ func (s *FeedService) UpdateFeedItems(
 func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed) error {
+	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
+		return fmt.Errorf("cannot apply feed updates: %w", err)
+	}
+
 	// Add any new or update existing items.
 	lastFetched, err := s.UpdateFeedItems(ctx, itemPageCache, oldData, newData)
 	if err != nil {
