@@ -90,7 +90,7 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 			if feed.SourceType != "" {
 				<span class="badge badge-sm badge-info badge-soft uppercase">{ feed.SourceType }</span>
 			}
-			<button
+			<a
 				class="inline-flex btn btn-sm btn-ghost items-center"
 				href={ feed.GetLink() }
 				rel="noopener"
@@ -103,7 +103,7 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 					Website
 				}
 				@tableroutline.ExternalLink(templ.Attributes{"class": "size-4"})
-			</button>
+			</a>
 			// if feed.GetLanguage() != "" {
 			// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
 			// }
@@ -116,7 +116,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 		<div class="mt-2 flex items-center justify-center">
 			// Add an icon to indicate whether article filtering is being applied.
 			if articleFilters := sub.GetArticleFilters(); !articleFilters.IsEmpty() {
-				<div class="tooltip tooltip-bottom tooltip-end" data-tip="Article filtering applied">
+				<div class="tooltip tooltip-top tooltip-start" data-tip="Article filtering applied">
 					<button
 						hx-get={ "/subscriptions/" + sub.GetID() + "/edit#article-filtering" }
 						hx-target={ ContentID.Target() }
@@ -131,7 +131,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 			}
 			// Add an icon to map articles if the subscription has articles with geo info.
 			if sub.HasGeoInfo() {
-				<div class="tooltip tooltip-bottom tooltip-end" data-tip="Map articles">
+				<div class="tooltip tooltip-top tooltip-start" data-tip="Map articles">
 					<button
 						hx-get="/map"
 						hx-target={ ContentID.Target() }

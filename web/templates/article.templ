@@ -351,7 +351,6 @@ templ articleActionsMenu(article *models.Article) {
 	</div>
 }
 
-
 templ ArticleMapPopup(article *models.Article) {
 	<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 	<div>
@@ -475,8 +474,6 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 									"count": a.Filters.GetCount(),
 									"sort": a.Filters.GetSort(),
 									"subscriptions": article.GetSubscriptionID(),
-									"subscription_name": article.GetFeedTitle(),
-									"subscription_id": article.GetSubscriptionID(),
 								}) }
 							class="flex link link-hover"
 						>

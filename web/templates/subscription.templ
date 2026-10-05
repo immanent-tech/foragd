@@ -42,6 +42,7 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription, options ...e
 			class="btn btn-square btn-ghost btn-md"
 			hx-post={ "/subscriptions/" + subscription.GetID() + "/favorite" }
 			hx-swap="none"
+			hx-trigger="click consume"
 		>
 			switch subscription.IsFavorite() {
 				case true:
@@ -78,6 +79,7 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 			class="btn btn-square btn-ghost btn-md"
 			hx-post={ "/subscriptions/" + subscription.GetID() + "/" + string(mark) }
 			hx-swap="none"
+			hx-trigger="click consume"
 		>
 			switch mark {
 				case models.MarkRead:
