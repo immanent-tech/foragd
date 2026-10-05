@@ -64,7 +64,7 @@ func Start() error {
 	ctx = slogctx.NewCtx(ctx, logger)
 
 	// Generate asset maps
-	if err := assets.GenerateAssetMap(web.Files, "files/meta.json"); err != nil {
+	if err := assets.GenerateAssetMap(web.Files, "files/dist/meta.json"); err != nil {
 		return fmt.Errorf("generate asset map: %w", err)
 	}
 
