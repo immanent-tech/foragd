@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 # https://hub.docker.com/_/alpine/
-ARG ALPINE_VERSION=3.24.1@sha256:79ff19e9084a00eece421b2523fb93e22d730e2c0e525905de047e848e56d95f
+ARG ALPINE_VERSION=3.24.2@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
 # https://hub.docker.com/_/golang
-ARG GO_VERSION=1.26.6-alpine3.24@sha256:1a9c10cf505a9e6b1e96ea77ebdbfe79a0f10380181faf88bc3b51d7e4315fae
+ARG GO_VERSION=1.27.1-alpine3.24@sha256:cd9a32216aee5667f957a62d13a10032a63fd58e14b3f3d9cc8c2122f501e95e
 
 FROM --platform=$BUILDPLATFORM docker.io/golang:${GO_VERSION} AS golang
 FROM --platform=$BUILDPLATFORM docker.io/alpine:${ALPINE_VERSION} AS builder
