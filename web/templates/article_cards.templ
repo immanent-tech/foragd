@@ -215,11 +215,12 @@ templ articleCardActions(article *models.Article) {
 
 templ articleSource(article *models.Article) {
 	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(article.Subscription.GetTitle()+article.Subscription.GetLink())) }}
-	<a
+	<div
 		style={ styleAttr }
-		class="rounded-field cursor-pointer touch-manipulation items-center gap-1 accent-hue-rotate p-1"
-		{ generateSubscriptionViewAttributes(&article.Subscription)... }
+		class="rounded-field cursor-pointer w-fit touch-manipulation items-center gap-1 accent-hue-rotate p-1 line-clamp-1 text-sm hover:underline"
 	>
-		<span class="line-clamp-1 text-sm hover:underline">{ article.Subscription.GetTitle() }</span>
-	</a>
+		<a { generateSubscriptionViewAttributes(&article.Subscription)... }>
+			{ article.Subscription.GetTitle() }
+		</a>
+	</div>
 }
