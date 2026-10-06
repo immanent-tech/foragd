@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.242.0](https://github.com/immanent-tech/foragd/compare/v0.241.4...v0.242.0) (2026-10-06)
+
+
+### Features
+
+* **templates:** 🔧 card improvements ([485de52](https://github.com/immanent-tech/foragd/commit/485de52d453915986ccd92687e418c71d4e64905))
+
+
+### Bug Fixes
+
+* **templates/articles:** 🔧 fix display of subscription name ([c77ea3b](https://github.com/immanent-tech/foragd/commit/c77ea3b25ef1ffb32962523b2ed1cdbc47434a30))
+
 ## [0.241.4](https://github.com/immanent-tech/foragd/compare/v0.241.3...v0.241.4) (2026-10-06)
 
 
