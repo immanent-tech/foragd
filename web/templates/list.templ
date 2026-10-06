@@ -89,172 +89,206 @@ templ NewListControls(path string, filters models.ListFilters, options ...listCo
 		controls.filters.SearchAfter = nil
 	}}
 	<div class="p-2">
-		// Mobile screen dialog containing filters, sorting and custom actions.
-		<el-dialog>
-			<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
-				<el-dialog-backdrop></el-dialog-backdrop>
-				<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
-					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-200 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
-						<div class="flex justify-end">
-							<button type="button" command="close" commandfor={ mobilePanelID } class="btn btn-square btn-ghost">
-								<span class="sr-only">Close menu</span>
-								@tableroutline.X(templ.Attributes{"class": "size-6 ", "aria-hidden": true})
-							</button>
-						</div>
-						<ul class="menu">
-							if !controls.disableSort {
-								// Mobile View Filters.
-								<li class="menu-title">View</li>
-								<ul id="mobile-view-filters">
-									@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
-									@viewFilterOption(controls.path, models.ViewRead, controls.filters)
-									@viewFilterOption(controls.path, models.ViewAll, controls.filters)
-									@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
-								</ul>
-							}
-							if !controls.disableView {
-								// Mobile Sort Filters.
-								<li class="menu-title">Sort</li>
-								<ul id="mobile-sort-filters">
-									@sortOption(controls.path, models.SortNewestFirst, controls.filters)
-									@sortOption(controls.path, models.SortOldestFirst, controls.filters)
-									if controls.path == "/list/subscriptions" {
-										@sortOption(controls.path, models.SortMostUnread, controls.filters)
-										@sortOption(controls.path, models.SortLeastUnread, controls.filters)
-									}
-								</ul>
-							}
-							// Categories.
-							<li class="menu-title">Categories</li>
-							<ul id="mobile-category-filters">
-								@ListCategoryFilters(controls.path, controls.filters, controls.categories)
-							</ul>
-							// Languages.
-							<li class="menu-title">Language</li>
-							<ul id="mobile-language-filter">
-								@ListLanguageFilters(controls.path, controls.filters, controls.languages)
-							</ul>
-							if len(controls.extraActions) > 0 {
-								// Extra Actions.
-								@templ.Join(controls.extraActions...)
-							}
-						</ul>
-					</el-dialog-panel>
-				</div>
-			</dialog>
-		</el-dialog>
+		@mobileFilterDialog(controls, mobilePanelID, currentSort)
 		<div class="flex items-center justify-between">
-			// Button for toggling mobile filters dialog. Only shown on mobile.
-			<button
-				type="button"
-				command="show-modal"
-				commandfor={ mobilePanelID }
-				class="btn items-center border-neutral/15 btn-outline btn-sm sm:hidden"
-			>
-				@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": true})
-				Options
-			</button>
-			// Desktop menu containing sorting and filtering.
-			<div class="hidden sm:flex sm:items-center gap-2">
-				// Desktop Sort Filters.
-				<div
-					id="desktop-sort-filters"
-					_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
-					hx-get={ controls.path }
-					hx-include="#sort-hidden,#view-hidden,#count-hidden"
-					hx-replace-url="true"
-					hx-swap="innerMorph transition:true"
-					hx-target={ ContentID.Target() }
-					hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
-					hx-trigger="triggerMe"
-				>
-					<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
-					<input id="view-hidden" name="view" type="hidden" value={ string(controls.filters.GetView()) }/>
-					<input id="count-hidden" name="count" type="hidden" value={ controls.filters.GetCount() }/>
-					if !controls.disableSort {
-						<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="block">
-							<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
-								<el-selectedcontent class="truncate">
-									{ currentSort.String() }
-								</el-selectedcontent>
-								@tableroutline.ChevronDown(templ.Attributes{
-									"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-									"aria-hidden": "true"})
-							</button>
-							<el-options
-								class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-								anchor="bottom start"
-								popover
-							>
-								<div class="menu">
-									<el-option value={ string(models.SortNewestFirst) }>
-										@sortOption(controls.path, models.SortNewestFirst, controls.filters)
-									</el-option>
-									<el-option value={ string(models.SortOldestFirst) }>
-										@sortOption(controls.path, models.SortOldestFirst, controls.filters)
-									</el-option>
-									if controls.path == "/list/subscriptions" {
-										<el-option value={ string(models.SortMostUnread) }>
-											@sortOption(controls.path, models.SortMostUnread, controls.filters)
-										</el-option>
-										<el-option value={ string(models.SortLeastUnread) }>
-											@sortOption(controls.path, models.SortLeastUnread, controls.filters)
-										</el-option>
-									}
-								</div>
-							</el-options>
-						</el-select>
+			<div class="sm:hidden">
+				@mobileFilterToggle(mobilePanelID)
+			</div>
+			<div class="hidden sm:flex sm:items-center justify-between">
+				<div class="flex-1 gap-2">
+					@desktopSortDropdown(controls.path, currentSort, controls.filters, !controls.disableSort)
+					@desktopCategoryDropdown(controls.path, controls.filters, controls.categories)
+					@desktopLanguageDropdown(controls.path, controls.filters, controls.languages)
+					if !controls.disableView {
+						@desktopViewFilters(controls.path, controls.filters)
 					}
 				</div>
-				// Desktop Category Filters.
-				<el-dropdown>
-					<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
-						Category
-						@tableroutline.ChevronDown(templ.Attributes{
-							"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-							"aria-hidden": "true"})
-					</button>
-					<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
-						<ul class="menu">
-							<ul id="desktop-category-filters">
-								@ListCategoryFilters(controls.path, controls.filters, controls.categories)
-							</ul>
-						</ul>
-					</el-menu>
-				</el-dropdown>
-				<el-dropdown>
-					<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
-						Language
-						@tableroutline.ChevronDown(templ.Attributes{
-							"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-							"aria-hidden": "true"})
-					</button>
-					<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
-						<ul class="menu">
-							<ul id="desktop-language-filters">
-								@ListLanguageFilters(controls.path, controls.filters, controls.languages)
-							</ul>
-						</ul>
-					</el-menu>
-				</el-dropdown>
-				if !controls.disableView {
-					// Desktop View Filters.
-					<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
-						@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
-						@viewFilterOption(controls.path, models.ViewRead, controls.filters)
-						@viewFilterOption(controls.path, models.ViewAll, controls.filters)
-						@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
-					</ul>
-				}
 			</div>
-			// Custom button actions.
-			if len(controls.extraButtons) > 0 {
-				<div class="flex flex-1 justify-end gap-2">
-					@templ.Join(controls.extraButtons...)
-				</div>
-			}
+			@customButtonsContainer(controls.extraButtons)
 		</div>
 	</div>
+}
+
+// mobileFilterDialog renders the mobile filter dialog containing filters, sorting, and custom actions.
+templ mobileFilterDialog(controls *listControls, mobilePanelID string, currentSort models.Sort) {
+	<el-dialog>
+		<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
+			<el-dialog-backdrop></el-dialog-backdrop>
+			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
+				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-200 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
+					<div class="flex justify-end">
+						<button type="button" command="close" commandfor={ mobilePanelID } class="btn btn-square btn-ghost">
+							<span class="sr-only">Close menu</span>
+							@tableroutline.X(templ.Attributes{"class": "size-6 ", "aria-hidden": true})
+						</button>
+					</div>
+					<ul class="menu">
+						if !controls.disableSort {
+							// Mobile View Filters.
+							<li class="menu-title">View</li>
+							<ul id="mobile-view-filters">
+								@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
+								@viewFilterOption(controls.path, models.ViewRead, controls.filters)
+								@viewFilterOption(controls.path, models.ViewAll, controls.filters)
+								@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
+							</ul>
+						}
+						if !controls.disableView {
+							// Mobile Sort Filters.
+							<li class="menu-title">Sort</li>
+							<ul id="mobile-sort-filters">
+								@sortOption(controls.path, models.SortNewestFirst, controls.filters)
+								@sortOption(controls.path, models.SortOldestFirst, controls.filters)
+								if controls.path == "/list/subscriptions" {
+									@sortOption(controls.path, models.SortMostUnread, controls.filters)
+									@sortOption(controls.path, models.SortLeastUnread, controls.filters)
+								}
+							</ul>
+						}
+						// Categories.
+						<li class="menu-title">Categories</li>
+						<ul id="mobile-category-filters">
+							@ListCategoryFilters(controls.path, controls.filters, controls.categories)
+						</ul>
+						// Languages.
+						<li class="menu-title">Language</li>
+						<ul id="mobile-language-filter">
+							@ListLanguageFilters(controls.path, controls.filters, controls.languages)
+						</ul>
+						if len(controls.extraActions) > 0 {
+							// Extra Actions.
+							@templ.Join(controls.extraActions...)
+						}
+					</ul>
+				</el-dialog-panel>
+			</div>
+		</dialog>
+	</el-dialog>
+}
+
+// mobileFilterToggle renders the button for toggling the mobile filters dialog.
+templ mobileFilterToggle(mobilePanelID string) {
+	<button
+		type="button"
+		command="show-modal"
+		commandfor={ mobilePanelID }
+		class="btn items-center border-neutral/15 btn-outline btn-sm"
+	>
+		@tableroutline.Menu2(templ.Attributes{"class": "size-4", "aria-hidden": true})
+		Options
+	</button>
+}
+
+// desktopSortDropdown renders the desktop sort dropdown.
+templ desktopSortDropdown(path string, currentSort models.Sort, filters models.ListFilters, show bool) {
+	if !show {
+		return
+	}
+	<div
+		id="desktop-sort-filters"
+		_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
+		hx-get={ path }
+		hx-include="#sort-hidden,#view-hidden,#count-hidden"
+		hx-replace-url="true"
+		hx-swap="innerMorph transition:true"
+		hx-target={ ContentID.Target() }
+		hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+		hx-trigger="triggerMe"
+		class="inline-block"
+	>
+		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
+		<input id="view-hidden" name="view" type="hidden" value={ string(filters.GetView()) }/>
+		<input id="count-hidden" name="count" type="hidden" value={ filters.GetCount() }/>
+		<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="inline-block">
+			<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
+				<el-selectedcontent class="truncate">
+					{ currentSort.String() }
+				</el-selectedcontent>
+				@tableroutline.ChevronDown(templ.Attributes{
+					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"aria-hidden": "true"})
+			</button>
+			<el-options
+				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+				anchor="bottom start"
+				popover
+			>
+				<div class="menu">
+					<el-option value={ string(models.SortNewestFirst) }>
+						@sortOption(path, models.SortNewestFirst, filters)
+					</el-option>
+					<el-option value={ string(models.SortOldestFirst) }>
+						@sortOption(path, models.SortOldestFirst, filters)
+					</el-option>
+					if path == "/list/subscriptions" {
+						<el-option value={ string(models.SortMostUnread) }>
+							@sortOption(path, models.SortMostUnread, filters)
+						</el-option>
+						<el-option value={ string(models.SortLeastUnread) }>
+							@sortOption(path, models.SortLeastUnread, filters)
+						</el-option>
+					}
+				</div>
+			</el-options>
+		</el-select>
+	</div>
+}
+
+// desktopCategoryDropdown renders the desktop category dropdown.
+templ desktopCategoryDropdown(path string, filters models.ListFilters, categories models.Categories) {
+	<el-dropdown>
+		<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
+			Category
+			@tableroutline.ChevronDown(templ.Attributes{
+				"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+				"aria-hidden": "true"})
+		</button>
+		<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
+			<ul class="menu">
+				<ul id="desktop-category-filters">
+					@ListCategoryFilters(path, filters, categories)
+				</ul>
+			</ul>
+		</el-menu>
+	</el-dropdown>
+}
+
+// desktopLanguageDropdown renders the desktop language dropdown.
+templ desktopLanguageDropdown(path string, filters models.ListFilters, languages map[string]int64) {
+	<el-dropdown>
+		<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
+			Language
+			@tableroutline.ChevronDown(templ.Attributes{
+				"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+				"aria-hidden": "true"})
+		</button>
+		<el-menu anchor="bottom start" popover class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]">
+			<ul class="menu">
+				<ul id="desktop-language-filters">
+					@ListLanguageFilters(path, filters, languages)
+				</ul>
+			</ul>
+		</el-menu>
+	</el-dropdown>
+}
+
+// desktopViewFilters renders the desktop view filters.
+templ desktopViewFilters(path string, filters models.ListFilters) {
+	<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
+		@viewFilterOption(path, models.ViewUnread, filters)
+		@viewFilterOption(path, models.ViewRead, filters)
+		@viewFilterOption(path, models.ViewAll, filters)
+		@viewFilterOption(path, models.ViewFavorites, filters)
+	</ul>
+}
+
+// customButtonsContainer renders custom button actions.
+templ customButtonsContainer(buttons []templ.Component) {
+	if len(buttons) > 0 {
+		<div class="flex flex-1 justify-end gap-2">
+			@templ.Join(buttons...)
+		</div>
+	}
 }
 
 templ viewFilterOption(path string, view models.View, filters models.ListFilters) {
