@@ -31,7 +31,7 @@ behavior ScrollRestore(gridSelector, cardSelector, endpoint, storageKey)
   // normal load / reload: fresh document, but sessionStorage survives
   // (sessionStorage is per-tab and persists across normal navigation/reload,
   // it's only cleared when the tab closes)
-  init
+  on load from me
     js
       const missFlag = sessionStorage.getItem('foragd-history-miss');
       sessionStorage.removeItem('foragd-history-miss');
@@ -49,6 +49,16 @@ behavior ScrollRestore(gridSelector, cardSelector, endpoint, storageKey)
     if event.persisted
       call doRestore()
     end
+  end
+
+  -- htmx4 history mode: page restored via htmx after back button
+  on "htmx:after:load" from document
+    call doRestore()
+  end
+
+  -- Also handle after htmx swap completes
+  on "htmx:after:swap" from document
+    call doRestore()
   end
 
 

@@ -242,22 +242,12 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			if fontStyle, ok := session.Get(ctx,"font-style").(string); ok {
 				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", fontStyle) }}
 				@templ.Raw(style)
-				// @SetFontStyle(fontStyle)
 			} else {
 				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", "--font-oldstyle") }}
 				@templ.Raw(style)
-				// @SetFontStyle("--font-oldstyle")
 			}
 		</head>
-		<body
-			class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased"
-			_="
-			on htmx:before:history:restore
-				log 'historyCacheMiss'
-				js sessionStorage.setItem('foragd-history-miss', '1') end
-			end
-			"
-		>
+		<body class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased">
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>

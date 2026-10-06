@@ -175,8 +175,20 @@ behavior MasonryGrid
     call resetLayout()
   end
 
-  on DOMContentLoaded or load or "htmx:after:swap" from document
-    call resetLayout()
+  -- Use htmx4's load event for initial load, not DOMContentLoaded
+  on load from me
+    call layout()
+  end
+
+  -- Only re-layout after successful htmx swaps, not every request
+  on "htmx:after:swap" from document
+    -- Wait for the hyperscript to be ready before re-layout
+    wait 5ms then call layout()
+  end
+
+  -- Handle back-button navigations and non-HTMX loads
+  on "htmx:after:load" from document
+    call layout()
   end
 
   on pageshow from window
@@ -185,16 +197,9 @@ behavior MasonryGrid
     end
   end
 
-  on "htmx:after:swap" from document
-    wait 1ms then call layout()
-  end
-
-  on "htmx:after:request" from me
-    wait 1ms then call layout()
-  end
-
   on mutation of childList from me
-    call layout()
+    -- Wait a tiny bit for the mutation to settle before re-layout
+    wait 2ms then call layout()
   end
 
 end
