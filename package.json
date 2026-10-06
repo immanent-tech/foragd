@@ -33,7 +33,7 @@
     "server:run": "go tool air -c server.air.toml",
     "scheduler:run": "go tool air -c scheduler.air.toml",
     "dev:tailwind": "tailwindcss -i ./web/assets/styles.css -o ./web/assets/styles.processed.css",
-    "dev:esbuild": "rm web/files/dist/*.js web/files/dist/*.css && esbuild ./web/assets/fonts.css ./web/assets/styles.processed.css ./web/assets/scripts.js --bundle --loader:.woff2=file --loader:.woff=file --entry-names=[name]-[hash]  --asset-names=fonts/[name]-[hash] --public-path=/files --outdir=web/files/dist --metafile=web/files/dist/meta.json",
+    "dev:esbuild": "rm web/files/dist/*.js web/files/dist/*.css || esbuild ./web/assets/fonts.css ./web/assets/styles.processed.css ./web/assets/scripts.js --bundle --loader:.woff2=file --loader:.woff=file --entry-names=[name]-[hash]  --asset-names=fonts/[name]-[hash] --public-path=/files --outdir=web/files/dist --metafile=web/files/dist/meta.json",
     "prod:tailwind": "tailwindcss -i ./web/assets/styles.css -o ./web/assets/styles.processed.css --minify",
     "prod:esbuild": "esbuild ./web/assets/fonts.css ./web/assets/styles.processed.css ./web/assets/scripts.js --bundle --minify --loader:.woff2=file --loader:.woff=file --entry-names=[name]-[hash]  --asset-names=fonts/[name]-[hash] --public-path=/files --outdir=web/files/dist --metafile=web/files/dist/meta.json",
     "templ:generate": "go tool templ generate -path web"
