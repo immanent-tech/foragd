@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.241.3](https://github.com/immanent-tech/foragd/compare/v0.241.2...v0.241.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* **assets:** 🔧 fix embed youtube code for htmx4 ([c76247a](https://github.com/immanent-tech/foragd/commit/c76247a3df7a6c122aae3e80bbe8a08a5b7cc505))
+* **handlers:** 🔧 fix list routes ([2130e02](https://github.com/immanent-tech/foragd/commit/2130e023cf396d068876f8f36f726d1e08e43637))
+* **service/articles:** 🔧 sanitize after fetching remote content ([466faa4](https://github.com/immanent-tech/foragd/commit/466faa4175a9121e3731ad58604d98d84796828f))
+
 ## [0.241.2](https://github.com/immanent-tech/foragd/compare/v0.241.1...v0.241.2) (2026-10-05)
 
 
