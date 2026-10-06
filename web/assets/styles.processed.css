@@ -9131,9 +9131,6 @@
   .text-accent {
     color: var(--color-accent);
   }
-  .text-accent-content {
-    color: var(--color-accent-content);
-  }
   .text-accent\/80 {
     color: var(--color-accent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -9856,9 +9853,6 @@
     outline-color: var(--color-primary);
   }
   @media (hover: hover) {
-    .hover\:scale-\[1\.1\]:hover {
-      scale: 1.1;
-    }
     .hover\:animate-bounce:hover {
       animation: var(--animate-bounce);
     }
@@ -9979,12 +9973,6 @@
   }
   .active\:scale-\[0\.98\]:active {
     scale: 0.98;
-  }
-  .active\:bg-secondary:active {
-    background-color: var(--color-secondary);
-  }
-  .active\:text-secondary-content:active {
-    color: var(--color-secondary-content);
   }
   :where([aria-expanded="true"]) .in-aria-expanded\:hidden {
     display: none;
