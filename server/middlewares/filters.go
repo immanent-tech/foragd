@@ -89,10 +89,12 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 				if err != nil || filters == nil {
 					// Try to restore filters from session.
 					filters = handlers.ListFiltersFromSession(spanCtx, session, path)
-					slogctx.FromCtx(spanCtx).Warn("Unable to decode list filters. Using filters from session.",
-						slog.Any("error", err),
-						slog.Any("filters", filters),
-					)
+					if err != nil {
+						slogctx.FromCtx(spanCtx).Warn("Unable to decode list filters. Using filters from session.",
+							slog.Any("error", err),
+							slog.Any("filters", filters),
+						)
+					}
 				}
 				// For pagination requests, update count in session.
 				if strings.HasSuffix(req.URL.Path, "paginate") {
