@@ -351,11 +351,8 @@ type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
 	Content *string `json:"content,omitempty"`
 
-	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
-	Favorite bool `json:"-"`
-
 	// Item represents an individual item (e.g., an individual feed item).
-	Item Item `json:"item"`
+	Item Item `json:"item" validate:"required"`
 
 	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
 	MarkArticleReadOnView bool `json:"mark_article_read_on_view"`
@@ -363,14 +360,11 @@ type Article struct {
 	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
 	ShowFullContent bool `json:"show_full_content"`
 
-	// SourceType indicates what type of source the object came from.
-	SourceType SourceType `json:"source_type"`
-
 	// State tracks the state of an article.
-	State ArticleState `json:"state"`
+	State *ArticleState `json:"state,omitempty"`
 
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	// Subscription represents any kind of subscription.
+	Subscription Subscription `json:"subscription" validate:"required"`
 }
 
 // ArticleArchive represents an item that has been archived to avoid deletion (i.e. favorited by a user).
@@ -464,14 +458,14 @@ type ArticleFilters struct {
 
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
-	// SourceType indicates what type of source the object came from.
-	SourceType SourceType `json:"source_type"`
+	// Item represents an individual item (e.g., an individual feed item).
+	Item Item `json:"item" validate:"required"`
 
 	// State tracks the state of an article.
-	State ArticleState `json:"state"`
+	State *ArticleState `json:"state,omitempty"`
 
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	// Subscription represents any kind of subscription.
+	Subscription Subscription `json:"subscription" validate:"required"`
 }
 
 // ArticleSettings contains settings related to the display of the article.
@@ -485,6 +479,9 @@ type ArticleSettings struct {
 
 // ArticleState tracks the state of an article.
 type ArticleState struct {
+	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
+	Favorite bool `json:"-"`
+
 	// Read indicates whether the object has been read (true) or is unread (false).
 	Read bool `json:"read"`
 
@@ -724,7 +721,7 @@ type FeedSubscription struct {
 	ArticleFilters *ArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
+	ArticleStates map[ItemID]ArticleState `json:"article_states"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`

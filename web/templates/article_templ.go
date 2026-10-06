@@ -1559,7 +1559,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if article.SourceType != models.SourceTypeEmail {
+					if article.Item.SourceType != models.SourceTypeEmail {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "<a href=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -1613,7 +1613,7 @@ func ArticleContent(a *models.ShowArticleResponse) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if article.SourceType != models.SourceTypeEmail {
+					if article.Item.SourceType != models.SourceTypeEmail {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, " ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err

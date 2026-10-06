@@ -510,7 +510,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 					}
 					// Article title.
 					<div class="flex flex-1 pb-2">
-						if article.SourceType != models.SourceTypeEmail {
+						if article.Item.SourceType != models.SourceTypeEmail {
 							<a
 								href={ article.GetLink() }
 								target="_blank"
@@ -526,7 +526,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 					// Byline and actions.
 					<div class="flex items-center justify-between border-b border-neutral/20 p-1">
 						<div class="shrink items-center">
-							if article.SourceType != models.SourceTypeEmail {
+							if article.Item.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
 								if len(article.GetAuthors()) > 0 {
 									{{

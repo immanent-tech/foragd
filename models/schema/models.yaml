@@ -1093,8 +1093,6 @@ components:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.
           x-go-type: "map[ItemID]ArticleState"
-          x-oapi-codegen-extra-tags:
-            validate: "required"
         article_filters:
           $ref: "#/components/schemas/ArticleFilters"
       x-oapi-codegen-extra-tags:
@@ -1285,16 +1283,19 @@ components:
         contains the stored data that represents an article.
       type: object
       required:
-        - state
-        - subscription_id
-        - source_type
+        - subscription
+        - item
       properties:
-        subscription_id:
-          $ref: "#/components/schemas/SubscriptionID"
+        subscription:
+          $ref: "#/components/schemas/Subscription"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        item:
+          $ref: "#/components/schemas/Item"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
         state:
           $ref: "#/components/schemas/ArticleState"
-        source_type:
-          $ref: "#/components/schemas/SourceType"
     ArticleSettings:
       description: >
         contains settings related to the display of the article.
@@ -1327,6 +1328,15 @@ components:
           description: >
             indicates whether the object has been read (true) or is unread (false).
           type: boolean
+        favorite:
+          description: >
+            indicates whether this subscription has been marked as a Favorite by the user.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: "-"
+          x-go-type-skip-optional-pointer: true
+          x-omit-zero: false
+          x-omitempty: false
         updated_at:
           $ref: "#/components/schemas/UpdatedAt"
     Article:
@@ -1338,20 +1348,7 @@ components:
         - $ref: "#/components/schemas/ArticleMetadata"
         - $ref: "#/components/schemas/ArticleSettings"
         - type: object
-          required:
-            - item
           properties:
-            item:
-              $ref: "#/components/schemas/Item"
-            favorite:
-              description: >
-                indicates whether this subscription has been marked as a Favorite by the user.
-              type: boolean
-              x-oapi-codegen-extra-tags:
-                json: "-"
-              x-go-type-skip-optional-pointer: true
-              x-omit-zero: false
-              x-omitempty: false
             content:
               description: >
                 contains the full article content, when it has been fetched from the origin link.

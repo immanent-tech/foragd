@@ -394,14 +394,13 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 			continue
 		}
 		article := &models.Article{
-			Item:           *item,
-			SubscriptionID: subscription.GetID(),
-			State:          *subscription.GetItemState(item.GetID()),
-			SourceType:     item.SourceType,
+			Item:         *item,
+			Subscription: *subscription,
+			State:        subscription.GetItemState(item.GetID()),
 		}
 		// If there is favorite data, mark article as a favorite.
 		if slices.Contains(user.ItemFavorites, item.GetID()) {
-			article.Favorite = true
+			article.State.Favorite = true
 		}
 		// Add any appropriate feed customisation data.
 		article.Item.FeedTitle = subscription.GetTitle()

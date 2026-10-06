@@ -110,7 +110,7 @@ func (a *Article) GetID() string {
 
 // GetSubscriptionID returns the ID of the user subscription the article belongs to.
 func (a *Article) GetSubscriptionID() SubscriptionID {
-	return a.SubscriptionID
+	return a.Subscription.GetID()
 }
 
 // GetFeedID returns the ID of the feed the article belongs to.
@@ -147,7 +147,7 @@ func (a *Article) AsYoutubeVideo() (*ItemExtensionYoutube, error) {
 }
 
 func (a *Article) IsEmail() bool {
-	return a.SourceType == SourceTypeEmail
+	return a.Item.SourceType == SourceTypeEmail
 }
 
 // GetContent returns the main content of the article. This will be either the full content fetched remotely (if
@@ -181,7 +181,7 @@ func (a *Article) formatContent() string {
 			return content
 		}
 		return sanitized
-	case a.SourceType == SourceTypeEmail:
+	case a.Item.SourceType == SourceTypeEmail:
 		sanitized, err := htmlx.Sanitize(
 			content,
 			htmlx.UnwrapLayoutTables,
@@ -262,7 +262,7 @@ func (a *Article) IsUnread() bool {
 
 // IsFavorite returns a boolean indicating whether the article has been favorited.
 func (a *Article) IsFavorite() bool {
-	return a.Favorite
+	return a.State.Favorite
 }
 
 // GetObjectType returns the type of the object, in this case, "article".

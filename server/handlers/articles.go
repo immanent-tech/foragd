@@ -595,7 +595,7 @@ func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService
 		}
 
 		// Update toggle.
-		article.Favorite = favorite
+		article.State.Favorite = favorite
 		RenderPartial(&PartialTemplate{
 			template: templates.ArticleFavoriteToggle(article,
 				element.WithHXSwapOOB("true"),
