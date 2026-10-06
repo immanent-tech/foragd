@@ -17,7 +17,7 @@ import (
 // list/grid. The idx argument is used to indicate the position of this subscription card relative to others in a
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, sub *models.Subscription) {
-	{{ styleAttr := fmt.Sprintf("--i: %d; --hue: %d", idx, hueFromText(sub.GetTitle()+sub.GetLink())) }}
+	{{ styleAttr := fmt.Sprintf("--i: %d; --hue: %ddeg", idx, hueFromText(sub.GetTitle()+sub.GetLink())) }}
 	@partials.Card(element.WithAttribute("id", sub.GetID()),
 		element.WithAttribute("style", styleAttr),
 		element.WithClasses(
@@ -78,7 +78,7 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 		</div>
 		<div>
 			// Title.
-			<h3 id={ "sub-title-" + sub.GetID() } class="card-title m-0 text-lg font-serif text-balance line-clamp-2">{ sub.GetTitle() }</h3>
+			<h3 id={ "sub-title-" + sub.GetID() } class="card-title group-hover:underline  m-0 text-lg font-serif text-balance line-clamp-2">{ sub.GetTitle() }</h3>
 			// Description (if any).
 			if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
 				<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>

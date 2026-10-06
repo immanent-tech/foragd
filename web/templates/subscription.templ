@@ -1428,23 +1428,23 @@ templ subscriptionCategoryBadges(subscription *models.Subscription) {
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
-					element.WithAttribute("_", "on click halt the event's bubbling"),
+					element.WithHXTrigger("click consume"),
 				)
 			}
 			// Add a button to reveal all categories when clicked.
 			if len(categories) > 3 {
 				<button
-					class="toggle-categories-btn btn btn-outline btn-xs"
+					class="toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center"
 					_="
-							on click
-							  halt the event's bubbling
-          					  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
-							  for tag in :tags
-							   remove .hidden from tag
-							  end
-							  remove me
-							end
-							"
+					on click
+					  halt the event's bubbling
+          			  set :tags to <span/> in the closest parent <div/> where it matches .category-badge
+					  for tag in :tags
+					   remove .hidden from tag
+					  end
+					  remove me
+					end
+					"
 				>
 					{ fmt.Sprintf("+ %d more",len(categories)-3) }
 				</button>
@@ -1476,7 +1476,7 @@ templ thumbnail(imgURL, altText string) {
 		} else {
 			// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 			<span class="avatar avatar-placeholder" aria-hidden="true">
-				<div class="mask w-12 text-accent-content bg-accent mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold">
+				<div class="mask w-12 accent-hue-rotate mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold">
 					{ initialLetter(altText) }
 				</div>
 			</span>

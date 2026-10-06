@@ -164,7 +164,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 							if len(response.Articles) > 0 {
 								@partials.Grid(element.WithClasses("relative", "mt-4")) {
 									for idx, article := range response.Articles {
-										@ArticleCard(idx, article, models.ViewAll)
+										@ArticleCard(idx, article)
 									}
 								}
 							} else {

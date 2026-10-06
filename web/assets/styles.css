@@ -476,5 +476,5 @@
 }
 
 @utility accent-hue-rotate {
-  @apply hue-rotate-[140] bg-accent text-accent-content;
+  @apply bg-accent text-accent-content hue-rotate-(--hue);
 }

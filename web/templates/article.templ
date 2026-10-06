@@ -12,13 +12,11 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmx"
-	"github.com/immanent-tech/go-base/pkg/textx"
 	"go.opentelemetry.io/otel/trace"
 	"html"
 	"net/http"
 	"slices"
 	"strings"
-	"time"
 )
 
 // ArticleFavoriteToggle renders an icon-only button for toggling the favorite status of an article.
@@ -60,7 +58,7 @@ func markValueID(article *models.Article) htmx.ID {
 }
 
 // articleMarkToggle renders a button toggle for toggling the read status of an article.
-templ articleMarkToggle(article *models.Article, view models.View) {
+templ articleMarkToggle(article *models.Article) {
 	{{
 		var mark models.Mark
 		if article.IsUnread() {
@@ -439,250 +437,6 @@ templ ArticleMapPopup(article *models.Article) {
 	</div>
 }
 
-// ArticleContent renders the complete content of an article.
-templ ArticleContent(a *models.ShowArticleResponse) {
-	{{ article := &a.Article }}
-	@LayoutInternal(NavArticles, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
-		@templ.Fragment(ContentFragment) {
-			// Show a subtle reading progress bar across the top of the article.
-			<div
-				id="progress-bar"
-				class="fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear"
-				_="
-				on scroll from the window debounced at 20ms
-          			set my.style.width to
-            			((document.documentElement.scrollTop /
-             			(document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
-        			end
-			    on load
-          			trigger scroll on the window
-        		end"
-			></div>
-			@partials.BackToTopButton()
-			@container() {
-				// Add the subscription ID as a hidden input that htmx can use for actions.
-				<input type="hidden" name="subscriptions" value={ article.GetSubscriptionID() }/>
-				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
-					// Subscription and timestamp.
-					<div class="my-4 flex items-center text-sm/6 text-neutral">
-						<a
-							hx-get="/list/articles"
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph show:top transition:true"
-							hx-vals={ templ.JSONString(map[string]any{
-									"view": a.Filters.GetView(),
-									"count": a.Filters.GetCount(),
-									"sort": a.Filters.GetSort(),
-									"subscriptions": article.GetSubscriptionID(),
-								}) }
-							class="flex link link-hover"
-						>
-							{  article.GetFeedTitle() }
-						</a>
-						<span class="flex-none px-4">·</span>
-						<span class="flex-none capitalize">
-							<relative-time
-								datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-								format="relative"
-								class="tabular-nums"
-							>
-								{ article.GetUpdatedDate().Format("Jan _2, 2006") }
-							</relative-time>
-						</span>
-					</div>
-					// Categories.
-					if len(article.GetCategories(0)) > 0 {
-						<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
-							for category := range slices.Values(article.GetCategories(5)) {
-								{{
-									filters := models.NewListFilters()
-									filters.Category = &category
-								}}
-								@CategoryBadge(category,
-									element.WithHXMethod(http.MethodGet, "/list/articles"),
-									element.WithHXTarget(ContentID.Target()),
-									element.WithHXValues(a.Filters),
-									element.WithHXParams("not subscription_id"),
-									element.WithAttribute("_", "on click halt the event's bubbling"),
-								)
-							}
-						</div>
-					}
-					// Article title.
-					<div class="flex flex-1 pb-2">
-						if article.Item.SourceType != models.SourceTypeEmail {
-							<a
-								href={ article.GetLink() }
-								target="_blank"
-								rel="noopener"
-								class="link link-hover focus:text-primary focus:outline-hidden"
-							>
-								<h1 class="mt-4 mb-2 scroll-mt-16 font-serif text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
-							</a>
-						} else {
-							<h1 class="mt-4 mb-2 scroll-mt-16 font-serif text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
-						}
-					</div>
-					// Byline and actions.
-					<div class="flex items-center justify-between border-b border-neutral/20 p-1">
-						<div class="shrink items-center">
-							if article.Item.SourceType != models.SourceTypeEmail {
-								// Show authors if found.
-								if len(article.GetAuthors()) > 0 {
-									{{
-										authors := make([]string, 0)
-										for author := range slices.Values(article.GetAuthors()) {
-											authors = append(authors, author.String())
-										}
-									}}
-									<div class="truncate text-sm/6">
-										{ strings.Join(authors,",") }
-									</div>
-								}
-							}
-						</div>
-						// Actions.
-						<div class="ml-auto content-end items-center">
-							// Toggle favorite action.
-							@ArticleFavoriteToggle(article)
-							// Toggle mark action.
-							@articleMarkToggle(article, models.ViewAll)
-							// Actions menu.
-							@articleActionsMenu(article)
-						</div>
-					</div>
-					// Show reading time if content length is greater than around two paragraphs of text...
-					if textx.CountWords(article.GetContent()) > 160 {
-						<div class="ml-auto flex flex-1 justify-end p-1">
-							<span class="text-sm/6 text-neutral">
-								Reading time:
-								{ strings.ReplaceAll(textx.ReadingTime(string(article.GetContent())).Round(time.Minute).String(),"0s","") }
-							</span>
-						</div>
-					}
-					// Content.
-					switch  {
-						case article.IsEmail():
-							// Article from email newsletter.
-							<div
-								class="prose-article"
-								data-disable-scripting
-								hx-ignore
-							>
-								@templ.Raw(article.GetContent())
-							</div>
-						case article.IsYoutubeVideo():
-							// Youtube video.
-							if youtubeData, err := article.AsYoutubeVideo(); err == nil {
-								<div class="relative aspect-video h-auto max-w-full overflow-hidden p-8">
-									<embed-youtube
-										video-id={ youtubeData.VideoId }
-										width={ *youtubeData.Width }
-										height={ *youtubeData.Height }
-										origin={ a.BaseURL.String() }
-										credentialless
-									></embed-youtube>
-								</div>
-							}
-							if article.GetDescription() != "" {
-								<div
-									data-disable-scripting
-									hx-ignore
-									class="prose-article"
-								>
-									@templ.Raw(article.GetDescription())
-								</div>
-							}
-							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-								<li>
-									@articleShareButton(article)
-								</li>
-							</ul>
-						default:
-							// Try to display content or description.
-							if content := article.GetContent(); content != "" {
-								<div
-									data-disable-scripting
-									hx-ignore
-									class="prose-article"
-								>
-									@templ.Raw(content)
-								</div>
-								if rights := article.Item.GetRights(); rights != "" {
-									<p class="italic pt-4">{ rights }</p>
-								}
-							}
-							<div class="mt-8 w-full border-t border-neutral/20"></div>
-							@showNextPrevActions(a)
-							<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-								// Show a toggle for fetching full content where it appears the feed content is only a summary
-								if !article.IsRemoteContent() {
-									<li>
-										@articleShowRemoteContentButton(article)
-									</li>
-								} else {
-									<li>
-										@articleShowFeedContentButton(article)
-									</li>
-								}
-								// View original article action.
-								<li>
-									@articleViewOriginalButton(article)
-								</li>
-								// Share article.
-								<li>
-									@articleShareButton(article)
-								</li>
-							</ul>
-					}
-				</article>
-				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
-				// read and mark it so (when the user has set this option).
-				if article.IsUnread() && article.MarkArticleReadOnView {
-					<div
-						id="auto-mark-read"
-						hx-target="#auto-mark-read"
-						hx-post={ "/articles/" + article.GetID() + "/read" }
-						hx-swap="delete transition:false"
-						hx-trigger="revealed,load delay:5s"
-						aria-hidden="true"
-						_={ "on htmx:after:request(successful) toggle @checked on <input[type='checkbox']/> in #" + article.GetID() + "-mark-toggle" }
-					></div>
-				}
-			}
-		}
-	}
-}
-
-templ showNextPrevActions(resp *models.ShowArticleResponse) {
-	<div class="mt-4 flex w-full items-center justify-between">
-		<div class="tooltip tooltip-right" data-tip="Previous Article">
-			<button
-				class="btn btn-square btn-ghost"
-				hx-get={ "/articles/" + resp.Article.GetID() + "/prev" }
-				hx-target={ ContentID.Target() }
-				hx-swap="innerMorph transition:true show:top"
-				hx-push-url={ "/articles/" + resp.Article.GetID() }
-			>
-				@tableroutline.ArrowNarrowLeft()
-				<span class="sr-only">Previous Article</span>
-			</button>
-		</div>
-		<div class="tooltip tooltip-left" data-tip="Next Article">
-			<button
-				class="btn btn-square btn-ghost"
-				hx-get={ "/articles/" + resp.Article.GetID() + "/next" }
-				hx-target={ ContentID.Target() }
-				hx-swap="innerMorph transition:true show:top"
-				hx-push-url={ "/articles/" + resp.Article.GetID() }
-			>
-				@tableroutline.ArrowNarrowRight()
-				<span class="sr-only">Next Article</span>
-			</button>
-		</div>
-	</div>
-}
-
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
 	{{
@@ -783,8 +537,14 @@ templ listArticlesGrid(response *models.ListArticlesResponse) {
 			element.WithHXIndicator("#refreshing"),
 		) {
 			@templ.Fragment(PaginateFragment) {
+				{{
+					var showSubscription bool
+					if len(response.Filters.GetSubscriptions()) == 0 {
+						showSubscription = true
+					}
+				}}
 				for idx, article := range response.Articles {
-					@ArticleCard(idx, article, response.Filters.View)
+					@ArticleCard(idx, article, ShowSubscriptionDetail(showSubscription))
 				}
 			}
 		}

@@ -341,7 +341,7 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 							}
 							ctx = templ.InitializeContext(ctx)
 							for idx, article := range response.Articles {
-								templ_7745c5c3_Err = ArticleCard(idx, article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = ArticleCard(idx, article).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

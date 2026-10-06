@@ -947,7 +947,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
-									templ_7745c5c3_Err = ArticleCard(idx, article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
+									templ_7745c5c3_Err = ArticleCard(idx, article).Render(ctx, templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
@@ -1938,7 +1938,7 @@ func SimilarArticles(articles models.Articles) templ.Component {
 							}
 							ctx = templ.InitializeContext(ctx)
 							for idx, article := range articles {
-								templ_7745c5c3_Err = ArticleCard(idx, article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = ArticleCard(idx, article).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

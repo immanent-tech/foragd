@@ -1,8 +1,23 @@
 [[releases]]
+version = "v0.242"
+date = "Oct 6, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "new"
+description = """
+Each subscription now has a unique color assigned to it that is used in various places in the interface.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Grid layout and scroll restore improvements.
+"""
+
+[[releases]]
 version = "v0.241"
 date = "Oct 5, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """

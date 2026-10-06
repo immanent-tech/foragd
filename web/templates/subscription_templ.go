@@ -3688,14 +3688,14 @@ func subscriptionCategoryBadges(subscription *models.Subscription) templ.Compone
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
-					element.WithAttribute("_", "on click halt the event's bubbling"),
+					element.WithHXTrigger("click consume"),
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if len(categories) > 3 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 233, "<button class=\"toggle-categories-btn btn btn-outline btn-xs\" _=\"\n\t\t\t\t\t\t\ton click\n\t\t\t\t\t\t\t  halt the event's bubbling\n          \t\t\t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t\t\t  end\n\t\t\t\t\t\t\t  remove me\n\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 233, "<button class=\"toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center\" _=\"\n\t\t\t\t\ton click\n\t\t\t\t\t  halt the event's bubbling\n          \t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t  end\n\t\t\t\t\t  remove me\n\t\t\t\t\tend\n\t\t\t\t\t\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -3768,7 +3768,7 @@ func thumbnail(imgURL, altText string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 239, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 text-accent-content bg-accent mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 239, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 accent-hue-rotate mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -7,6 +7,7 @@ import (
 	"context"
 	"hash/fnv"
 	"net/url"
+	"path/filepath"
 	"slices"
 	"strings"
 	"unicode"
@@ -38,12 +39,21 @@ const (
 	routeSubscriptionsPaginate Route = "/subscriptions/paginate"
 	routeSubscriptionsUpdates  Route = "/subscriptions/updates"
 	routeArticlesList          Route = "/list/articles"
+	routeArticles              Route = "/articles"
 	routeArticlesPaginate      Route = "/articles/paginate"
 	routeArticlesUpdates       Route = "/articles/updates"
 )
 
 // Route represents a route from which a page is served.
 type Route string
+
+func (r Route) String() string {
+	return string(r)
+}
+
+func (r Route) Join(path string) Route {
+	return Route(filepath.Join(r.String(), path))
+}
 
 type AppConfig interface {
 	GetAppID() string
@@ -104,4 +114,4 @@ func authorNames(authors []models.Author) string {
 	return strings.Join(names, ",")
 }
 
-func articleURL(id string) string { return "/articles/" + id }
+func articleURL(id string) string { return routeArticles.Join(id).String() }

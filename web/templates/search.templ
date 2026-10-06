@@ -459,7 +459,7 @@ templ SearchResults(results *models.SearchResults) {
 								@templ.Fragment(PaginateFragment) {
 									for idx, article := range results.Articles {
 										<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-										@ArticleCard(idx, article, models.ViewAll)
+										@ArticleCard(idx, article)
 									}
 								}
 							}
@@ -890,7 +890,7 @@ templ SimilarArticles(articles models.Articles) {
 					<section class="mt-4">
 						@partials.Grid() {
 							for idx, article := range articles {
-								@ArticleCard(idx, article, models.ViewAll)
+								@ArticleCard(idx, article)
 							}
 						}
 					</section>

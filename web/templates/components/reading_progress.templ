@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package components
+
+// ReadingProgress renders a subtle bar along the top of the element indicating how far down the page the user has
+// scrolled (i.e., reading progress).
+templ ReadingProgress() {
+	<div
+		id="reading-progress"
+		class="fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear"
+		_="
+		on scroll from the window debounced at 20ms
+    		set my.style.width to ((document.documentElement.scrollTop / (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'
+      	end
+	    on load
+        	trigger scroll on the window
+      	end"
+	></div>
+}

@@ -11,11 +11,30 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
+type articleCardOptions struct {
+	showSubscriptionDetail bool
+}
+
+func ShowSubscriptionDetail(value bool) func(*articleCardOptions) {
+	return func(aco *articleCardOptions) {
+		aco.showSubscriptionDetail = value
+	}
+}
+
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(idx int, article *models.Article, view models.View) {
+templ ArticleCard(idx int, article *models.Article, options ...func(*articleCardOptions)) {
+	{{
+		opts := &articleCardOptions{
+			showSubscriptionDetail: true,
+		}
+		for option := range slices.Values(options) {
+			option(opts)
+		}
+	}}
 	@partials.Card(element.WithAttribute("id", article.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
@@ -49,11 +68,17 @@ templ ArticleCard(idx int, article *models.Article, view models.View) {
 			}
 		}}
 		@partials.CardBody(element.WithClasses(bodyClasses)) {
+			if opts.showSubscriptionDetail {
+				// Subscription details.
+				<div class="flex-1 mb-2">
+					@articleSource(article)
+				</div>
+			}
 			@articleCardBody(article)
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div class="border-t border-neutral/20 pt-1">
-				@articleCardFooter(article, view)
+				@articleCardFooter(article)
 			</div>
 		}
 	}
@@ -88,13 +113,7 @@ templ articleCardImage(idx int, article *models.Article) {
 	</div>
 }
 
-// <div class="absolute top-2.5 left-2.5 btn btn-ghost btn-sm line-clamp-1 truncate">{ article.Item.FeedTitle }</div>
 templ articleCardBody(article *models.Article) {
-	// <button class="btn btn-ghost btn-xs">
-	// 	<span class="uppercase tracking-wide line-clamp-2 p-1">{ article.GetFeedTitle() }</span>
-	// </button>
-	// Subscription name.
-	<p class="mb-1 text-center text-xs uppercase tracking-wide text-base-content/60 text-balance line-clamp-2">{ article.GetFeedTitle() }</p>
 	// Title.
 	{{
 		var title string
@@ -105,7 +124,7 @@ templ articleCardBody(article *models.Article) {
 		}
 	}}
 	<div class="tooltip tooltip-bottom" data-tip={ title }>
-		<h3 class="card-title m-0 text-lg font-serif text-balance line-clamp-2">
+		<h3 class="card-title group-hover:underline m-0 text-lg font-serif text-balance line-clamp-2">
 			{ title }
 		</h3>
 	</div>
@@ -144,8 +163,8 @@ templ articleCardBody(article *models.Article) {
 			}
 			// Add a button to reveal all categories when clicked.
 			if len(article.GetCategories(categoryLimit)) > 3 {
-				<button
-					class="toggle-categories-btn btn btn-outline btn-xs"
+				<span
+					class="toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center"
 					_="
 					on click
 					  halt the event's bubbling
@@ -158,13 +177,13 @@ templ articleCardBody(article *models.Article) {
 					"
 				>
 					{ fmt.Sprintf("+ %d more",len(article.GetCategories(categoryLimit))-3) }
-				</button>
+				</span>
 			}
 		</div>
 	}
 }
 
-templ articleCardFooter(article *models.Article, view models.View) {
+templ articleCardFooter(article *models.Article) {
 	<div class="flex items-center justify-between">
 		// Last updated relative timestamp.
 		<p class="mt-2 text-sm/6 tabular-nums text-center">
@@ -177,19 +196,30 @@ templ articleCardFooter(article *models.Article, view models.View) {
 				{ article.GetUpdatedDate().Format("Jan _2, 2006") }
 			</relative-time>
 		</p>
-		@articleCardActions(article, view)
+		@articleCardActions(article)
 	</div>
 }
 
-templ articleCardActions(article *models.Article, view models.View) {
+templ articleCardActions(article *models.Article) {
 	<div class="flex shrink-0 ml-auto items-center">
 		// Toggle favorite action.
 		@ArticleFavoriteToggle(article)
 		// Toggle mark action.
-		@articleMarkToggle(article, view)
+		@articleMarkToggle(article)
 		// Separator.
 		<div aria-hidden="true" class="mx-1 h-4 w-px bg-neutral/20"></div>
 		// Actions menu.
 		@articleActionsMenu(article)
 	</div>
+}
+
+templ articleSource(article *models.Article) {
+	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(article.Subscription.GetTitle()+article.Subscription.GetLink())) }}
+	<a
+		style={ styleAttr }
+		class="rounded-field cursor-pointer touch-manipulation items-center gap-1 accent-hue-rotate p-1"
+		{ generateSubscriptionViewAttributes(&article.Subscription)... }
+	>
+		<span class="line-clamp-1 text-sm hover:underline">{ article.Subscription.GetTitle() }</span>
+	</a>
 }
