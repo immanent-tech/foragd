@@ -53,7 +53,6 @@ func loadSitemapXML(baseURL *url.URL) ([]byte, error) {
 			),
 		)
 		idx++
-
 	}
 
 	sitemap := schemaorg.NewSiteNavigationElementList("main", links)

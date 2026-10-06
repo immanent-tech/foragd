@@ -35,7 +35,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-// SubscriptionCtx retrieves the subscription matching the URL param and stores it in the context.
+// AllSubscriptionsCtx retrieves the subscription matching the URL param and stores it in the context.
 func (m *Manager) AllSubscriptionsCtx(svc SubscriptionsService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -552,7 +552,6 @@ func (m *Manager) HandleBulkRemoveSubscriptions(svc SubscriptionsService) http.H
 		}
 
 		res.WriteHeader(http.StatusOK)
-
 	}
 }
 

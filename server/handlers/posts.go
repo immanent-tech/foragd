@@ -67,6 +67,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 // Post is an individual post.
 type Post struct {
 	*markdownx.File
+
 	svc pageServices
 }
 

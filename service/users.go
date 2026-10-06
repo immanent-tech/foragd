@@ -88,7 +88,7 @@ func (s *UserService) GetUser(ctx context.Context, id models.UserID) (*models.Us
 	return user, nil
 }
 
-// GetUser retrieves the user doc with the given id.
+// GetAllUsers retrieves a slice of [models.User] for all users in the backend.
 func (s *UserService) GetAllUsers(ctx context.Context) ([]*models.User, error) {
 	ctx, span := tracer.Start(ctx, "GetUser")
 	defer span.End()
@@ -186,7 +186,7 @@ func (s *UserService) GetUserBySubscriptionID(ctx context.Context, id string) (*
 	}
 }
 
-// getUserByPurchaseToken retrieves the user associated with the given purchase token.
+// GetUserByPurchaseToken retrieves the [models.User] associated with the given purchase token.
 func (s *UserService) GetUserByPurchaseToken(ctx context.Context, token string) (*models.User, error) {
 	// Retrieve the user associated with the customer ID.
 	switch resp, err := elastic.Search[*models.User](

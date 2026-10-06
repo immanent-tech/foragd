@@ -332,7 +332,7 @@ func (s *ItemService) FindSimilarArticles(
 	return articles, nil
 }
 
-// archiveArticle will index the given article content to the article archive for permanent storage.
+// ArchiveArticle will index the given article content to the article archive for permanent storage.
 func (s *ItemService) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
 	if err := elastic.CreateDoc(
 		ctx,
@@ -345,7 +345,7 @@ func (s *ItemService) ArchiveArticle(ctx context.Context, article *models.Articl
 	return nil
 }
 
-// unarchiveArticle will delete an article from the archive.
+// UnarchiveArticle will delete an article from the archive.
 func (s *ItemService) UnarchiveArticle(
 	ctx context.Context,
 	userID models.UserID,

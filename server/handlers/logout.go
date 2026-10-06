@@ -11,7 +11,8 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmx"
 )
 
-// Logout handles logout requests.
+// HandleLogout handles logout requests. It will clear the session, and redirect the user to the appropriate URL for
+// logging them out of the auth backend.
 func (m *Manager) HandleLogout(authenticator Authenticator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Delete the m.SessionMgr cookie.

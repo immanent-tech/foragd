@@ -125,8 +125,8 @@ func searchSuggestionsClause(search *models.SearchRequest) query.Option {
 	)
 }
 
-// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
-// optional.
+// QueryItems will search the items index for items matching the given [query.Option]. coutn, [models.Sort] and
+// [models.Pagination] values are optional.
 func (s *ItemService) QueryItems(
 	ctx context.Context,
 	query query.Option,

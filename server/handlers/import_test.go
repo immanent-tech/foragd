@@ -193,7 +193,6 @@ func TestManager_HandleImportStatus(t *testing.T) {
 			if rec.Code != tt.want {
 				t.Fatalf("got status %d, want %d", rec.Code, tt.want)
 			}
-
 		})
 	}
 }

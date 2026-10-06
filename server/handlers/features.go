@@ -13,6 +13,7 @@ import (
 
 type Features struct {
 	pageMetadata
+
 	svc pageServices
 }
 
@@ -48,6 +49,7 @@ func (p *Features) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 type FeaturesCollect struct {
 	pageMetadata
+
 	svc pageServices
 }
 
@@ -83,6 +85,7 @@ func (p *FeaturesCollect) FullResponse(res http.ResponseWriter, req *http.Reques
 
 type FeaturesCurate struct {
 	pageMetadata
+
 	svc pageServices
 }
 
@@ -118,6 +121,7 @@ func (p *FeaturesCurate) FullResponse(res http.ResponseWriter, req *http.Request
 
 type FeaturesConsume struct {
 	pageMetadata
+
 	svc pageServices
 }
 

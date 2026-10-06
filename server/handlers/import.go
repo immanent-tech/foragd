@@ -207,6 +207,5 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 			page.template = templates.ImportList(imports, nil)
 			RenderInternalPage(page).ServeHTTP(res, req)
 		}
-
 	}
 }

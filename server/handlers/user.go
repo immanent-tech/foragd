@@ -258,8 +258,6 @@ func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc 
 }
 
 // HandleSaveAccountSettings handles processing and saving new account settings.
-//
-//nolint:funlen
 func (m *Manager) HandleSaveAccountSettings(
 	userSvc UserService,
 	authMgr AuthManager,

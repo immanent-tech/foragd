@@ -28,6 +28,7 @@ import (
 
 type Linter struct {
 	pageMetadata
+
 	svc pageServices
 }
 

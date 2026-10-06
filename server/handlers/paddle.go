@@ -20,7 +20,6 @@ import (
 // HandlePaddleWebhook handles incoming webhooks from paddle.
 func HandlePaddleWebhook(userSvc UserService, emailSender EmailSender) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-
 		verifier, err := paddle.NewWebhookClient()
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not create paddle webhook client.",

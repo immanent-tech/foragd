@@ -18,6 +18,7 @@ import (
 
 type ForgetMe struct {
 	pageMetadata
+
 	svc pageServices
 }
 
