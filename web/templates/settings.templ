@@ -204,7 +204,7 @@ templ AccountSettings(user *models.User) {
 							<p>
 								Trial, ending:
 								<relative-time
-									datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod) }
+									datetime={ user.CreatedAt.Add(models.DefaultTrialPeriod).Format("2006-01-02T15:04:05-0700") }
 									format="relative"
 									class="tabular-nums"
 								>

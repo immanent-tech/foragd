@@ -76,11 +76,11 @@ templ paddlePreCheckout(request *models.CheckoutRequest, checksFailed bool) {
 				</div>
 			</div>
 			{{ checksFailed = true }}
-		} else if data.TransactionID != nil && *data.TransactionID != "" {
+		} else if transactionID := data.TransactionID; transactionID != nil {
 			// Non-nil TransactionID, display Paddle checkout immediately.
 			<div
 				id="txn-auto-open"
-				data-txn-id={ data.TransactionID }
+				data-txn-id={ *transactionID }
 				data-success-url={ "/checkout/success" }
 				_="on load
 					set txnId to my @data-txn-id
@@ -129,15 +129,16 @@ templ showPaddleSubscriptionDetails(user *models.User) {
 		<p class="mt-1 text-sm/6">
 			{ subscription.SubscriptionName } ({ subscription.PriceName })
 		</p>
-		<p class="mt-1 text-sm/6">
-			Next billing date:
-			<relative-time
-				datetime={ subscription.CurrentPeriodEnd }
-				format="relative"
-				class="tabular-nums"
-			>
-				{ subscription.CurrentPeriodEnd.Format("Jan _2, 2006") }
-			</relative-time>
-		</p>
+		if billingPeriodEnd := subscription.CurrentPeriodEnd; billingPeriodEnd != nil {
+			<p class="mt-1 text-sm/6 tabular-nums">
+				Next billing date:
+				<relative-time
+					datetime={ billingPeriodEnd.Format("2006-01-02T15:04:05-0700") }
+					format="relative"
+				>
+					{ billingPeriodEnd.Format("Jan _2, 2006") }
+				</relative-time>
+			</p>
+		}
 	}
 }
