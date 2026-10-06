@@ -81,11 +81,10 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 			if status == 0 {
 				status = http.StatusInternalServerError
 			}
-			apiErr = &models.APIError{
-				StatusCode:    status,
-				InternalError: err,
-				UserMessage:   opts.UserMessage,
+			if status >= 500 {
+				gerror.ReportError(req.Context(), apiErr)
 			}
+			apiErr = models.NewAPIError(status, err, models.WithUserMessage(opts.UserMessage))
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &InternalError{
