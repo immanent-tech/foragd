@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.241.4](https://github.com/immanent-tech/foragd/compare/v0.241.3...v0.241.4) (2026-10-06)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 always report status code &gt;= 500 to google error reporting ([5768f5c](https://github.com/immanent-tech/foragd/commit/5768f5c0c3678a7ee028b862a28dc65e380df1ab))
+* **templates/components:** 🔧 fix components for htmx4 ([402f1dc](https://github.com/immanent-tech/foragd/commit/402f1dc1a3ed448c47ef8e1e6b75edf12d890bcb))
+
 ## [0.241.3](https://github.com/immanent-tech/foragd/compare/v0.241.2...v0.241.3) (2026-10-05)
 
 
