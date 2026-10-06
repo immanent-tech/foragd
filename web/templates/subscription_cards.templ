@@ -20,7 +20,14 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 	{{ styleAttr := fmt.Sprintf("--i: %d; --hue: %d", idx, hueFromText(sub.GetTitle()+sub.GetLink())) }}
 	@partials.Card(element.WithAttribute("id", sub.GetID()),
 		element.WithAttribute("style", styleAttr),
-		element.WithClasses("group", "relative", "transition-opacity", "animate-fadeinup", "animation-delay-[calc(min(var(--i),15)*80ms)]", "masonry-item"),
+		element.WithClasses(
+			"group",
+			"group-active:scale-[0.96]",
+			"relative",
+			"transition-opacity",
+			"animate-fadeinup",
+			"animation-delay-[calc(min(var(--i),15)*80ms)]",
+			"masonry-item"),
 		element.WithHXIndicator("this"),
 	) {
 		// Show unread count in badge at top right if user wants stats shown.
