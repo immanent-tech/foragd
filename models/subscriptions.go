@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -16,7 +18,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 )
 
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// Validate returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s FeedSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
@@ -50,7 +52,7 @@ func (f *AddFeedSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// Validate returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s SearchSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
@@ -78,7 +80,7 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// Validate returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s GroupSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
@@ -117,7 +119,7 @@ func (r *GroupSubscriptionSuggestionRequest) Sanitise() error {
 	return nil
 }
 
-// Valid returns a non-nil error if the EmailSubscription contains invalid data.
+// Validate returns a non-nil error if the EmailSubscription contains invalid data.
 func (s EmailSubscription) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("email subscription is invalid: %w", err)
@@ -125,7 +127,7 @@ func (s EmailSubscription) Validate() error {
 	return nil
 }
 
-// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
+// Validate returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r EditEmailSubscriptionRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
@@ -142,7 +144,7 @@ func (r *EditEmailSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// Validate returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s Subscription) Validate() error {
 	// Subscriptions require a nickname set.
@@ -540,7 +542,7 @@ func (s Subscriptions) ExcludeIDs(ids ...SubscriptionID) Subscriptions {
 	}))
 }
 
-// HideGrouped will exclude subscriptions that are part of a group subscription.
+// ExcludeGrouped will exclude subscriptions that are part of a group subscription.
 func (s Subscriptions) ExcludeGrouped(exclude bool) Subscriptions {
 	if !exclude {
 		return s

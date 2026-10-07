@@ -14,7 +14,7 @@ import (
 // ErrFileTooLarge can be used to indicate a file upload had a size greater than a set limit.
 var ErrFileTooLarge = errors.New("file is too large")
 
-// Valid will return a non-nill error containing details of any validation issues with the file upload data. Otherwise,
+// Validate will return a non-nill error containing details of any validation issues with the file upload data. Otherwise,
 // a nil error is returned if the data is valid.
 func (f *FileUpload) Validate() error {
 	if f.Header == nil || f.Data == nil {

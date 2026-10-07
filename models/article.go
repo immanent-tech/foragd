@@ -94,7 +94,7 @@ func (a Articles) FilterByView(view View) Articles {
 	}
 }
 
-// Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
+// Validate returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (a *Article) Validate() error {
 	if err := validation.Validate.Struct(a); err != nil {

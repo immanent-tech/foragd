@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -25,7 +27,7 @@ func NewOPMLFile(file *FileUpload) *OPMLFile {
 	return &OPMLFile{FileUpload: file}
 }
 
-// Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
+// Validate returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
 // will contain details about validation failures.
 func (f *OPMLFile) Validate() (bool, error) {
 	mediaType, err := f.ParseMimetype()
@@ -116,7 +118,7 @@ func flatten(outlines []opml.Outline, parents []string) []OPMLFeedEntry {
 	return feeds
 }
 
-// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
+// Validate returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *AddFeedsetRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {

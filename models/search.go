@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package models
 
@@ -164,7 +166,7 @@ func (r SearchRequest) Pivot() string {
 	}
 }
 
-// Valid returns a boolean indicating whether the search request data is valid.
+// Validate returns a boolean indicating whether the search request data is valid.
 func (r *SearchRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("search request is invalid: %w", err)
@@ -237,7 +239,7 @@ func (r *SearchRequest) Encode() string {
 	return params.Encode()
 }
 
-// Valid returns a boolean indicating whether the add subscription search filter data is valid.
+// Validate returns a boolean indicating whether the add subscription search filter data is valid.
 func (r *AddSubscriptionSearchFilterRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription search filer is invalid: %w", err)
