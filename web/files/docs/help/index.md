@@ -66,7 +66,7 @@ Watch the quickstart video showing how to sign-up and add the curated feed sets 
 ### Navigating Around the Interface
 
 Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the [Home](/home),
-[Subscriptions](/list/subscriptions), [Articles](/list/articles), or [Favorites](/favorites) pages.
+[Subscriptions](/subscriptions), [Articles](/articles), or [Favorites](/favorites) pages.
 
 ### Adding Sources
 
@@ -79,7 +79,7 @@ Foragd supports adding subscriptions from a number of sources:
 
 To add a subscription:
 
-- Click the *Add a subscription* button at the top of the [subscriptions list page](/list/subscriptions).
+- Click the *Add a subscription* button at the top of the [subscriptions list page](/subscriptions).
   - Or on mobile, in the actions section of the Options popover on mobile)
 - Click the **Add a subscription** button at the bottom of the latest subscriptions on the homepage.
 - Type *Add* in the search bar and choose the **Add a subscription** option shown.
@@ -179,7 +179,7 @@ Subscription, use the provided search input to filter your existing subscription
 To add a Group Subscription:
 
 - Search for _Add_ in the global search and choose the **Add A Group Subscription** action.
-- On the [Subscriptions](/list/subscriptions) page, select **Add A Group Subscription** from the _Actions_ menu.
+- On the [Subscriptions](/subscriptions) page, select **Add A Group Subscription** from the _Actions_ menu.
 
 ### Search Subscriptions
 
@@ -189,7 +189,7 @@ keeping track of particular keywords or content across any number of your feed s
 To add a Group Subscription:
 
 - Search for _Add_ in the global search and select the **Add A Search Subscription** action.
-- On the [Subscriptions](/list/subscriptions) page, select **Add A Search Subscription** from the _Actions_ menu.
+- On the [Subscriptions](/subscriptions) page, select **Add A Search Subscription** from the _Actions_ menu.
 
 ![Screenshot of creating a Search Subscription](/images/screenshots/screenshot-add-search-subscription.png)
 
@@ -293,13 +293,13 @@ Watch a video showing examples of article filtering:
 
 The following shortcut keys are available on desktop:
 
-| Key Combo | Action                                            |
-| --------- | ------------------------------------------------- |
-| `Alt+k`   | Activates the global search input                 |
-| `Alt+h`   | Navigates to [Home](/home)                        |
-| `Alt+s`   | Navigates to [Subscriptions](/list/subscriptions) |
-| `Alt+a`   | Navigates to [Articles](/list/articles)           |
-| `Alt+f`   | Navigates to [Favorites](/favorites)              |
+| Key Combo | Action                                       |
+| --------- | -------------------------------------------- |
+| `Alt+k`   | Activates the global search input            |
+| `Alt+h`   | Navigates to [Home](/home)                   |
+| `Alt+s`   | Navigates to [Subscriptions](/subscriptions) |
+| `Alt+a`   | Navigates to [Articles](/articles)           |
+| `Alt+f`   | Navigates to [Favorites](/favorites)         |
 
 ## Policies and Terms of Service
 

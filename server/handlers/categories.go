@@ -24,7 +24,7 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters := ListFiltersFromCtx(req.Context())
 		switch {
-		case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
+		case strings.HasPrefix(req.URL.Path, "/subscriptions"):
 			// Parse the list of displayed subscriptions.
 			request, err := forms.DecodeForm[*models.ListSubscriptionCategoriesRequest](req)
 			if err != nil {
@@ -45,12 +45,12 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 				template: templates.CategoryFilters(
 					&models.CategoryFilters{
 						Categories: counts,
-						Path:       "/list/subscriptions",
+						Path:       "/subscriptions",
 						Filters:    *filters,
 					},
 				),
 			}).ServeHTTP(res, req)
-		case strings.HasPrefix(req.URL.Path, "/list/articles"):
+		case strings.HasPrefix(req.URL.Path, "/articles"):
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
 				slogctx.FromCtx(req.Context()).Warn("Could not get user data.")
@@ -103,7 +103,7 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 				template: templates.CategoryFilters(
 					&models.CategoryFilters{
 						Categories: counts,
-						Path:       "/list/articles",
+						Path:       "/articles",
 						Filters:    *filters,
 					},
 				),

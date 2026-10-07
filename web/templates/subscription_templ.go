@@ -358,7 +358,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = NewListControls("/list/subscriptions", response.Filters,
+					templ_7745c5c3_Err = NewListControls("/subscriptions", response.Filters,
 						WithListCategories(response.Subscriptions.GetCategories()),
 						WithListButtons(listSubscriptionsButtons(response)),
 						WithListActions(listSubscriptionsActions(response)),
@@ -446,9 +446,9 @@ func listSubscriptionsGrid(response *models.ListSubscriptionsResponse) templ.Com
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var17 string
-		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(components.ScrollRestoreScript(string(routeSubscriptionsList), "subscriptionsList"))
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(components.ScrollRestoreScript(string(routeSubscriptions), "subscriptionsList"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 128, Col: 93}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 128, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 		if templ_7745c5c3_Err != nil {
@@ -516,7 +516,7 @@ func listSubscriptionsGrid(response *models.ListSubscriptionsResponse) templ.Com
 		})
 		templ_7745c5c3_Err = partials.Grid(element.WithClasses("masonry-grid", "relative"),
 			element.WithAttribute("_", "install MasonryGrid"),
-			element.WithHXMethod(http.MethodGet, string(routeSubscriptionsList)),
+			element.WithHXMethod(http.MethodGet, string(routeSubscriptions)),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXTrigger("refresh"),
 			element.WithHXIndicator("#refreshing"),
@@ -586,7 +586,7 @@ func SubscriptionLatestArticles(articles []*models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<p class=\"m-0 italic text-base-content\">No entries.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<p class=\"m-0 text-base-content italic\">No entries.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -656,7 +656,7 @@ func latestArticleSummary(item *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-swap=\"innerMorph show:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\"><span class=\"line-clamp-2 font-serif font-semibold text-base/7\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-swap=\"innerMorph show:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\"><span class=\"line-clamp-2 font-serif text-base/7 font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -979,7 +979,7 @@ func listSubscriptionsButtons(response *models.ListSubscriptionsResponse) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" hx-swap=\"innerMorph show:top transition:true\" class=\"btn border-neutral/15 btn-outline btn-sm hidden sm:flex\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" hx-swap=\"innerMorph show:top transition:true\" class=\"btn hidden border-neutral/15 btn-outline btn-sm sm:flex\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1387,7 +1387,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div class=\"card-title text-secondary\">Add a Search Subscription</div></div><p>Search for articles and combine results into a single feed.</p></div><div class=\"col-span-full card-body justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md\"><div class=\"flex flex-row items-center gap-x-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div class=\"card-title text-secondary\">Add a Search Subscription</div></div><p>Search for articles and combine results into a single feed.</p></div><div class=\"card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md\"><div class=\"flex flex-row items-center gap-x-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2170,7 +2170,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2210,7 +2210,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2238,7 +2238,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "\" class=\"textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2673,7 +2673,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<input id=\"thumbnail\" type=\"file\" class=\"file-input flex bg-base-content/10 file-input-primary\" name=\"customisation.thumbnail\" accept=\".jpg,.png,.webp\"></div><p>Customize the subscription thumbnail</p></label></fieldset><fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Subscriptions</legend> <label class=\"fieldset\"><span class=\"label\">Add Subscriptions</span><div class=\"mt-2 sm:mt-0 join\"><el-autocomplete id=\"suggestions\" class=\"join\"><input id=\"subscription-suggestion\" name=\"suggestion_text\" class=\"input input-primary join-item bg-base-300 brightness-95\" placeholder=\"Subscription...\" _=\"on keydown[key=='Enter'] send subscriptionSuggestionSelected then halt the event\"> <button type=\"button\" class=\"btn btn-primary join-item\" aria-label=\"Show subscription suggestions\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<input id=\"thumbnail\" type=\"file\" class=\"file-input flex bg-base-content/10 file-input-primary\" name=\"customisation.thumbnail\" accept=\".jpg,.png,.webp\"></div><p>Customize the subscription thumbnail</p></label></fieldset><fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Subscriptions</legend> <label class=\"fieldset\"><span class=\"label\">Add Subscriptions</span><div class=\"join mt-2 sm:mt-0\"><el-autocomplete id=\"suggestions\" class=\"join\"><input id=\"subscription-suggestion\" name=\"suggestion_text\" class=\"input join-item bg-base-300 brightness-95 input-primary\" placeholder=\"Subscription...\" _=\"on keydown[key=='Enter'] send subscriptionSuggestionSelected then halt the event\"> <button type=\"button\" class=\"btn join-item btn-primary\" aria-label=\"Show subscription suggestions\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2743,7 +2743,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "</ul></el-options></el-autocomplete> <button hx-post=\"/subscription/group/add\" hx-target=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-include=\"#suggestions,#subscriptions\" hx-swap=\"beforeend\" hx-trigger=\"click, subscriptionSuggestionSelected from:body\" type=\"button\" class=\"join-item btn btn-secondary\" _=\"on htmx:after:request set #subscription-suggestion.value to ''\" aria-label=\"Add subscription to group\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "</ul></el-options></el-autocomplete> <button hx-post=\"/subscription/group/add\" hx-target=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-include=\"#suggestions,#subscriptions\" hx-swap=\"beforeend\" hx-trigger=\"click, subscriptionSuggestionSelected from:body\" type=\"button\" class=\"btn join-item btn-secondary\" _=\"on htmx:after:request set #subscription-suggestion.value to ''\" aria-label=\"Add subscription to group\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2886,7 +2886,7 @@ func AddSubscriptionToGroup(id, name string) templ.Component {
 			templ_7745c5c3_Var117 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<button class=\"btn btn-sm btn-outline hover:btn-error\" _=\"on click remove me\" aria-label=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<button class=\"btn btn-outline btn-sm hover:btn-error\" _=\"on click remove me\" aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -3600,7 +3600,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		}
 		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
 		vals = filters
-		path = "/list/articles"
+		path = routeArticles.String()
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
@@ -3611,7 +3611,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		}
 		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
 		vals = filters
-		path = "/list/articles"
+		path = routeArticles.String()
 	case models.SubscriptionTypeSearch:
 		s.SearchData.Search.SubscriptionID = new(s.GetID())
 		vals = s.SearchData.Search
@@ -3664,7 +3664,7 @@ func subscriptionCategoryBadges(subscription *models.Subscription) templ.Compone
 					extraClasses = "hidden"
 				}
 				templ_7745c5c3_Err = CategoryBadge(category,
-					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					element.WithHXMethod(http.MethodGet, "/subscriptions"),
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
@@ -3675,7 +3675,7 @@ func subscriptionCategoryBadges(subscription *models.Subscription) templ.Compone
 				}
 			}
 			if len(categories) > 3 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 228, "<button class=\"toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center\" _=\"\n\t\t\t\t\ton click\n\t\t\t\t\t  halt the event's bubbling\n          \t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t  end\n\t\t\t\t\t  remove me\n\t\t\t\t\tend\n\t\t\t\t\t\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 228, "<button class=\"toggle-categories-btn badge items-center badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content\" _=\"\n\t\t\t\t\ton click\n\t\t\t\t\t  halt the event's bubbling\n          \t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t  end\n\t\t\t\t\t  remove me\n\t\t\t\t\tend\n\t\t\t\t\t\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -3748,7 +3748,7 @@ func thumbnail(imgURL, altText string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 234, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 accent-hue-rotate mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 234, " <span class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 accent-hue-rotate mask-squircle font-serif text-lg font-semibold ring-1 ring-neutral-content/25\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

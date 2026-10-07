@@ -111,7 +111,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 			// Update category filters.
 			RenderPartial(&PartialTemplate{
 				template: templates.UpdateListCategoryFilters(
-					"/list/articles",
+					"/articles",
 					response.Filters,
 					response.Articles.GetCategoryCounts().GetCategories(),
 				),

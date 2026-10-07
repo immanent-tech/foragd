@@ -152,7 +152,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 							hx-swap="innerMorph"
 						}
 					>
-						<p class="font-semibold text-lg py-4">Status: { string(status.Status) }...</p>
+						<p class="py-4 text-lg font-semibold">Status: { string(status.Status) }...</p>
 						switch status.Status {
 							case "pending":
 								<p>
@@ -166,7 +166,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 								</p>
 						}
 						// Import results summary.
-						<div class="stats stats-vertical sm:stats-horizontal shadow">
+						<div class="stats stats-vertical shadow sm:stats-horizontal">
 							if len(successfulResults) > 0 {
 								<a href="#successful">
 									<div class="stat">
@@ -204,7 +204,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 						<div class="py-4">
 							{{ filters := models.NewListFilters() }}
 							<button
-								hx-get="/list/subscriptions"
+								hx-get="/subscriptions"
 								hx-target={ ContentID.Target() }
 								hx-vals={ templ.JSONString(filters) }
 								class="btn btn-primary"

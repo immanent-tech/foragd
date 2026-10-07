@@ -27,10 +27,10 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 			// Set a canonical path, used for context/session key suffixes.
 			var path string
 			switch {
-			case strings.HasPrefix(req.URL.Path, "/list/subscriptions") || strings.HasPrefix(req.URL.Path, "/subscriptions"):
-				path = "/list/subscriptions"
-			case strings.HasPrefix(req.URL.Path, "/list/articles") || strings.HasPrefix(req.URL.Path, "/articles"):
-				path = "/list/articles"
+			case strings.HasPrefix(req.URL.Path, "/subscriptions"):
+				path = "/subscriptions"
+			case strings.HasPrefix(req.URL.Path, "/articles"):
+				path = "/articles"
 			case strings.HasPrefix(req.URL.Path, "/map"):
 				path = "/map"
 			}

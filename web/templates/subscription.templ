@@ -103,7 +103,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					@pageTitle("Subscriptions")
 				}
 				// List actions.
-				@NewListControls("/list/subscriptions", response.Filters,
+				@NewListControls("/subscriptions", response.Filters,
 					WithListCategories(response.Subscriptions.GetCategories()),
 					WithListButtons(listSubscriptionsButtons(response)),
 					WithListActions(listSubscriptionsActions(response)),
@@ -125,10 +125,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 }
 
 templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
-	<div _={ components.ScrollRestoreScript(string(routeSubscriptionsList), "subscriptionsList") }>
+	<div _={ components.ScrollRestoreScript(string(routeSubscriptions), "subscriptionsList") }>
 		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 			element.WithAttribute("_", "install MasonryGrid"),
-			element.WithHXMethod(http.MethodGet, string(routeSubscriptionsList)),
+			element.WithHXMethod(http.MethodGet, string(routeSubscriptions)),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXTrigger("refresh"),
 			element.WithHXIndicator("#refreshing"),
@@ -162,7 +162,7 @@ templ SubscriptionLatestArticles(articles []*models.Article) {
 			</ul>
 		</div>
 	} else {
-		<p class="m-0 italic text-base-content">No entries.</p>
+		<p class="m-0 text-base-content italic">No entries.</p>
 	}
 }
 
@@ -178,7 +178,7 @@ templ latestArticleSummary(item *models.Article) {
 				hx-push-url="true"
 				_="on click halt the event's bubbling"
 			>
-				<span class="line-clamp-2 font-serif font-semibold text-base/7">
+				<span class="line-clamp-2 font-serif text-base/7 font-semibold">
 					{ item.GetTitle() }
 				</span>
 				<relative-time
@@ -255,7 +255,7 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		hx-get="/subscription/add"
 		hx-target={ ContentID.Target() }
 		hx-swap="innerMorph show:top transition:true"
-		class="btn border-neutral/15 btn-outline btn-sm hidden sm:flex"
+		class="btn hidden border-neutral/15 btn-outline btn-sm sm:flex"
 	>
 		@tableroutline.Plus(templ.Attributes{"class": "size-5  stroke-base-content/80", "aria-hidden": "true"})
 		Add a subscription
@@ -484,7 +484,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							</div>
 							<p>Search for articles and combine results into a single feed.</p>
 						</div>
-						<div class="col-span-full card-body justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
+						<div class="card-body col-span-full justify-self-center rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md">
 							<div class="flex flex-row items-center gap-x-3">
 								@tableroutline.Mailbox(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
 								<div class="card-title text-secondary">Subscribe to email newsletters</div>
@@ -790,7 +790,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									type="text"
 									name="search.text"
 									placeholder={ `+keyword -"some phrase"` }
-									class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
+									class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 								>
 									if request.Search.Text != "" {
 										{ request.Search.Text }
@@ -818,7 +818,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											type="text"
 											name="search.categories"
 											placeholder={ `+keyword -"some phrase"` }
-											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
+											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Categories != nil {
 												{ *request.Search.Categories }
@@ -834,7 +834,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											type="text"
 											name="search.authors"
 											placeholder={ `+keyword -"some phrase"` }
-											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-sm textarea-primary"
+											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Authors != nil {
 												{ *request.Search.Authors }
@@ -1018,18 +1018,18 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							<legend class="text-lg font-medium">Subscriptions</legend>
 							<label class="fieldset">
 								<span class="label">Add Subscriptions</span>
-								<div class="mt-2 sm:mt-0 join">
+								<div class="join mt-2 sm:mt-0">
 									<el-autocomplete id="suggestions" class="join">
 										<input
 											id="subscription-suggestion"
 											name="suggestion_text"
-											class="input input-primary join-item bg-base-300 brightness-95"
+											class="input join-item bg-base-300 brightness-95 input-primary"
 											placeholder="Subscription..."
 											_="on keydown[key=='Enter'] send subscriptionSuggestionSelected then halt the event"
 										/>
 										<button
 											type="button"
-											class="btn btn-primary join-item"
+											class="btn join-item btn-primary"
 											aria-label="Show subscription suggestions"
 										>
 											@tableroutline.ChevronDown(templ.Attributes{"class": "transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
@@ -1059,7 +1059,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										hx-swap="beforeend"
 										hx-trigger="click, subscriptionSuggestionSelected from:body"
 										type="button"
-										class="join-item btn btn-secondary"
+										class="btn join-item btn-secondary"
 										_="on htmx:after:request set #subscription-suggestion.value to ''"
 										aria-label="Add subscription to group"
 									>
@@ -1128,7 +1128,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 // button removes it from the group.
 templ AddSubscriptionToGroup(id, name string) {
 	<button
-		class="btn btn-sm btn-outline hover:btn-error"
+		class="btn btn-outline btn-sm hover:btn-error"
 		_="on click remove me"
 		aria-label={ "Remove " + name + " from group" }
 	>
@@ -1380,7 +1380,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		}
 		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
 		vals = filters
-		path = "/list/articles"
+		path = routeArticles.String()
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
@@ -1391,7 +1391,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		}
 		filters.Subscriptions = []models.SubscriptionID{s.GetID()}
 		vals = filters
-		path = "/list/articles"
+		path = routeArticles.String()
 	case models.SubscriptionTypeSearch:
 		s.SearchData.Search.SubscriptionID = new(s.GetID())
 		vals = s.SearchData.Search
@@ -1424,7 +1424,7 @@ templ subscriptionCategoryBadges(subscription *models.Subscription) {
 					}
 				}}
 				@CategoryBadge(category,
-					element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					element.WithHXMethod(http.MethodGet, "/subscriptions"),
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
@@ -1434,7 +1434,7 @@ templ subscriptionCategoryBadges(subscription *models.Subscription) {
 			// Add a button to reveal all categories when clicked.
 			if len(categories) > 3 {
 				<button
-					class="toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center"
+					class="toggle-categories-btn badge items-center badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content"
 					_="
 					on click
 					  halt the event's bubbling
@@ -1476,7 +1476,7 @@ templ thumbnail(imgURL, altText string) {
 		} else {
 			// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 			<span class="avatar avatar-placeholder" aria-hidden="true">
-				<div class="mask w-12 accent-hue-rotate mask-squircle ring-1 ring-neutral-content/25 font-serif text-lg font-semibold">
+				<div class="mask w-12 accent-hue-rotate mask-squircle font-serif text-lg font-semibold ring-1 ring-neutral-content/25">
 					{ initialLetter(altText) }
 				</div>
 			</span>

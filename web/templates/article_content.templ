@@ -34,7 +34,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 					// Subscription and timestamp.
 					<div class="my-4 flex items-center text-sm/6 text-neutral">
 						<a
-							hx-get="/list/articles"
+							hx-get={ routeArticles.String() }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-vals={ templ.JSONString(map[string]any{
@@ -45,7 +45,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 								}) }
 							class="flex link link-hover"
 						>
-							{  article.GetFeedTitle() }
+							{ article.GetFeedTitle() }
 						</a>
 						<span class="flex-none px-4">·</span>
 						<span class="flex-none capitalize tabular-nums">
@@ -66,7 +66,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 									filters.Category = &category
 								}}
 								@CategoryBadge(category,
-									element.WithHXMethod(http.MethodGet, "/list/articles"),
+									element.WithHXMethod(http.MethodGet, routeArticles.String()),
 									element.WithHXTarget(ContentID.Target()),
 									element.WithHXValues(a.Filters),
 									element.WithHXParams("not subscription_id"),
@@ -178,7 +178,7 @@ templ ArticleContent(a *models.ShowArticleResponse) {
 							}
 							<div class="mt-8 w-full border-t border-neutral/20"></div>
 							if rights := article.Item.GetRights(); rights != "" {
-								<p class="italic pt-4">{ rights }</p>
+								<p class="pt-4 italic">{ rights }</p>
 							}
 							<div class="mt-8 w-full border-t border-neutral/20"></div>
 							@showNextPrevActions(a)

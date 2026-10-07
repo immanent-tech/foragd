@@ -94,7 +94,7 @@ templ NewListControls(path string, filters models.ListFilters, options ...listCo
 			<div class="sm:hidden">
 				@mobileFilterToggle(mobilePanelID)
 			</div>
-			<div class="hidden sm:flex sm:items-center justify-between">
+			<div class="hidden justify-between sm:flex sm:items-center">
 				<div class="flex-1 gap-2">
 					@desktopSortDropdown(controls.path, currentSort, controls.filters, !controls.disableSort)
 					@desktopCategoryDropdown(controls.path, controls.filters, controls.categories)
@@ -139,7 +139,7 @@ templ mobileFilterDialog(controls *listControls, mobilePanelID string, currentSo
 							<ul id="mobile-sort-filters">
 								@sortOption(controls.path, models.SortNewestFirst, controls.filters)
 								@sortOption(controls.path, models.SortOldestFirst, controls.filters)
-								if controls.path == "/list/subscriptions" {
+								if controls.path == "/subscriptions" {
 									@sortOption(controls.path, models.SortMostUnread, controls.filters)
 									@sortOption(controls.path, models.SortLeastUnread, controls.filters)
 								}
@@ -220,7 +220,7 @@ templ desktopSortDropdown(path string, currentSort models.Sort, filters models.L
 					<el-option value={ string(models.SortOldestFirst) }>
 						@sortOption(path, models.SortOldestFirst, filters)
 					</el-option>
-					if path == "/list/subscriptions" {
+					if path == "/subscriptions" {
 						<el-option value={ string(models.SortMostUnread) }>
 							@sortOption(path, models.SortMostUnread, filters)
 						</el-option>
@@ -423,7 +423,7 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 			<span class="font-normal text-base-content">
 				Clear
 			</span>
-			<span aria-hidden="true" class="text-accent ">
+			<span aria-hidden="true" class="text-accent">
 				@tableroutline.X(templ.Attributes{"class": "size-5"})
 			</span>
 		</a>
@@ -493,7 +493,7 @@ templ clearLanguageFilterOption(path string, filters models.ListFilters) {
 			<span class="font-normal text-base-content">
 				Clear
 			</span>
-			<span aria-hidden="true" class="text-accent ">
+			<span aria-hidden="true" class="text-accent">
 				@tableroutline.X(templ.Attributes{"class": "size-5"})
 			</span>
 		</a>

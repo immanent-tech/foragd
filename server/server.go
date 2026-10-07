@@ -346,15 +346,11 @@ func Start() error {
 			r.With(htmx.RequireHTMX).Post("/suggest", handlerMgr.HandleDiscoverSuggestions(feedSvc))
 		})
 		// Subscription specific.
-		r.Route("/list/subscriptions", func(r chi.Router) {
+		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
 			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleListSubscriptions(subscriptionSvc))
 			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
-		})
-		r.Route("/subscriptions", func(r chi.Router) {
-			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
@@ -428,18 +424,14 @@ func Start() error {
 		})
 
 		// Article specific.
-		r.Route("/list/articles", func(r chi.Router) {
-			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
-			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-			r.Get("/", handlerMgr.HandleListArticles(itemSvc))
-			r.Post("/updates", handlerMgr.HandleListArticlesUpdates(itemSvc))
-			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
-		})
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
 			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
+			r.Get("/", handlerMgr.HandleListArticles(itemSvc))
+			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
+				r.Post("/updates", handlerMgr.HandleListArticlesUpdates(itemSvc))
 				r.Post("/paginate", handlerMgr.HandleListArticles(itemSvc))
 				r.Post("/read", handlerMgr.HandleBulkMarkArticles(subscriptionSvc, models.MarkRead))
 				r.Post("/unread", handlerMgr.HandleBulkMarkArticles(subscriptionSvc, models.MarkRead))
@@ -537,6 +529,8 @@ func Start() error {
 
 		// Moved routes.
 		r.Get("/list/favorites", handlers.RedirectTo("/favorites", http.StatusMovedPermanently))
+		r.Get("/list/subscriptions", handlers.RedirectTo("/subscriptions", http.StatusMovedPermanently))
+		r.Get("/list/articles", handlers.RedirectTo("/articles", http.StatusMovedPermanently))
 		r.Get("/posts", handlers.RedirectTo("/blog", http.StatusMovedPermanently))
 		r.Get("/posts/*", handlers.RedirectParam("*", "blog/%s", http.StatusMovedPermanently))
 		r.Get("/view/article/{item_id}", handlers.RedirectParam("item_id", "/articles/%s", http.StatusMovedPermanently))

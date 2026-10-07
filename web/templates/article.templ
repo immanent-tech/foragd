@@ -178,7 +178,7 @@ templ articleShareButton(article *models.Article) {
 	// Mobile share action via navigator API.
 	<a
 		role="button"
-		class="hidden btn btn-outline border-neutral/15"
+		class="btn hidden border-neutral/15 btn-outline"
 		data-title={ article.GetTitle() }
 		data-url={ article.GetLink() }
 		_="init if navigator.share remove .hidden from me end
@@ -195,7 +195,7 @@ templ articleShareButton(article *models.Article) {
 	// Desktop share action with modal and options.
 	<a
 		role="button"
-		class="hidden btn btn-outline border-neutral/15"
+		class="btn hidden border-neutral/15 btn-outline"
 		_="init if not navigator.share remove .hidden from me"
 		hx-post={ "/articles/" + article.GetID() + "/share" }
 		hx-target={ ModalContainerID.Target() }
@@ -212,7 +212,7 @@ templ articleShareButton(article *models.Article) {
 templ articleViewOriginalButton(article *models.Article) {
 	<a
 		role="button"
-		class="btn btn-outline border-neutral/15"
+		class="btn border-neutral/15 btn-outline"
 		href={ article.GetLink() }
 		target="_blank"
 		rel="noopener"
@@ -230,13 +230,13 @@ templ articleShowRemoteContentButton(article *models.Article) {
 	<button
 		role="button"
 		id="show-remote-content-button"
-		class="group btn btn-outline border-neutral/15"
+		class="group btn border-neutral/15 btn-outline"
 		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="innerMorph transition:true show:top"
 		hx-trigger="click consume"
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=true" }
-		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true, "from": "/list/articles"}) }
+		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true}) }
 		hx-disable="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -255,13 +255,13 @@ templ articleShowFeedContentButton(article *models.Article) {
 	<a
 		role="button"
 		id="show-feed-content-button"
-		class="group btn btn-outline border-neutral/15"
+		class="group btn border-neutral/15 btn-outline"
 		hx-get={ "/articles/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="innerMorph transition:true show:top"
 		hx-trigger="click consume"
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=false" }
-		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false, "from": "/list/articles"}) }
+		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false}) }
 		hx-disable="this"
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -298,7 +298,6 @@ templ articleActionsMenu(article *models.Article) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph transition:true"
 						hx-trigger="click consume"
-						hx-vals={ templ.JSONString(map[string]string{"from": "/list/articles"}) }
 					>
 						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Find Similar...</span>
@@ -374,7 +373,7 @@ templ ArticleMapPopup(article *models.Article) {
 			</figure>
 		} else {
 			// Show the feed name at the top left.
-			<span class="mt-2.5 ml-2.5 badge badge-sm line-clamp-1 truncate">{ article.Item.FeedTitle }</span>
+			<span class="mt-2.5 ml-2.5 badge line-clamp-1 truncate badge-sm">{ article.Item.FeedTitle }</span>
 		}
 	</div>
 	<div class="px-2 pt-5 pb-2">
@@ -395,7 +394,7 @@ templ ArticleMapPopup(article *models.Article) {
 			</h3>
 		</div>
 	</div>
-	<div class="flex items-center justify-between pt-3 px-2 pb-2">
+	<div class="flex items-center justify-between px-2 pt-3 pb-2">
 		<div class="flex-separated flex min-w-0 items-center">
 			if len(article.GetAuthors()) > 0 {
 				{{
@@ -429,10 +428,10 @@ templ ArticleMapPopup(article *models.Article) {
 	// Show subscription name/link.
 	<div class="border-t border-neutral/20 pt-3">
 		<a
-			hx-get="/list/articles"
+			hx-get={ routeArticles.String() }
 			hx-target={ ContentID.Target() }
 			hx-values={ templ.JSONString(map[string]string{"subscriptions": article.GetSubscriptionID()}) }
-			class="link link-hover line-clamp-1 truncate"
+			class="line-clamp-1 link truncate link-hover"
 		>{ article.Item.FeedTitle }</a>
 	</div>
 }
@@ -479,7 +478,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
-										class="btn btn-sm btn-ghost btn-square"
+										class="btn btn-square btn-ghost btn-sm"
 									>
 										<span class="sr-only">Article filtering applied</span>
 										@tablerfilled.Filter(templ.Attributes{"class": "size-4 fill-primary", "aria-hidden": "true"})
@@ -496,7 +495,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									hx-swap="innerMorph show:top transition:true"
 									hx-trigger="click consume"
 									hx-vals={ templ.JSONString(map[string]string{"subscriptions": response.Subscription.GetID()}) }
-									class="btn btn-sm btn-ghost btn-square"
+									class="btn btn-square btn-ghost btn-sm"
 								>
 									<span class="sr-only">Show articles on map</span>
 									@tableroutline.Map2(templ.Attributes{"class": "size-4 stroke-primary", "aria-hidden": "true"})
@@ -506,7 +505,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					</div>
 				}
 				// List actions.
-				@NewListControls("/list/articles", response.Filters,
+				@NewListControls(routeArticles.String(), response.Filters,
 					WithListCategories(response.Articles.GetCategoryCounts().GetCategories()),
 					WithListLanguages(response.Articles.GetLanguageCounts()),
 					WithListActions(listArticlesActions(response)),
@@ -528,10 +527,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 }
 
 templ listArticlesGrid(response *models.ListArticlesResponse) {
-	<div _={ components.ScrollRestoreScript(string(routeArticlesList), "articlesList") }>
+	<div _={ components.ScrollRestoreScript(string(routeArticles), "articlesList") }>
 		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 			element.WithAttribute("_", "install MasonryGrid"),
-			element.WithHXMethod(http.MethodGet, string(routeArticlesList)),
+			element.WithHXMethod(http.MethodGet, string(routeArticles)),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXTrigger("refresh"),
 			element.WithHXIndicator("#refreshing"),

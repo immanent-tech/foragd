@@ -105,7 +105,7 @@ func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Requ
 // paginating, just the list of subscriptions.
 func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
-	case "/list/subscriptions":
+	case "/subscriptions":
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
@@ -193,7 +193,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			if len(response.Subscriptions.GetCategories()) > 0 {
 				RenderPartial(&PartialTemplate{
 					template: templates.UpdateListCategoryFilters(
-						"/list/subscriptions",
+						"/subscriptions",
 						response.Filters,
 						response.Subscriptions.GetCategories(),
 					),
@@ -203,7 +203,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			if len(response.Subscriptions.GetLanguageCounts()) > 0 {
 				RenderPartial(&PartialTemplate{
 					template: templates.UpdateListLanguageFilters(
-						"/list/subscriptions",
+						"/subscriptions",
 						response.Filters,
 						response.Subscriptions.GetLanguageCounts(),
 					),
@@ -274,7 +274,7 @@ func (m *Manager) HandleListSubscriptionsUpdates(itemSvc ItemService) http.Handl
 				filters.From = nil
 			}
 			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
-				element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+				element.WithHXMethod(http.MethodGet, "/subscriptions"),
 				element.WithHXTarget(templates.ContentID.Target()),
 				element.WithHXSwap("innerMorph scroll:top transition:true"),
 				element.WithHXValues(filters),
@@ -318,8 +318,8 @@ func (m *Manager) HandleMarkSubscription(
 
 		// Perform post handling hooks.
 		var postMarkHooks = map[string]PostHandlerHook{
-			"/list/subscriptions": postMarkSubscriptionList,
-			"/list/articles":      postMarkSubscriptionArticles(m.SessionMgr),
+			"/subscriptions": postMarkSubscriptionList,
+			"/articles":      postMarkSubscriptionArticles(m.SessionMgr),
 		}
 
 		prev, found := m.Breadcrumbs.Previous(req.Context())
@@ -364,13 +364,13 @@ func postMarkSubscriptionArticles(session SessionManager) PostHandlerHook {
 			return fmt.Errorf("no subscription in context")
 		}
 		htmx.LocationResponse(
-			htmx.WithLocationPath("/list/subscriptions"),
+			htmx.WithLocationPath("/subscriptions"),
 			htmx.WithLocationTarget(templates.ContentID.Target()),
 			htmx.WithLocationSwap("innerMorph transition:true"),
 			htmx.WithLocationHeaders(map[string]string{
 				models.ActionHeader: "mark-subscription",
 			}),
-			htmx.WithLocationValues(ListFiltersFromSession(req.Context(), session, "/list/subscriptions")),
+			htmx.WithLocationValues(ListFiltersFromSession(req.Context(), session, "/subscriptions")),
 		).ServeHTTP(res, req)
 		return nil
 	}
@@ -474,15 +474,15 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 
 		switch request.Confirmed {
 		case false:
-			if strings.Contains(req.Referer(), "/list/subscriptions") {
-				// On "/list/subscriptions", remove the subscription card.
+			if strings.Contains(req.Referer(), "/subscriptions") {
+				// On "/subscriptions", remove the subscription card.
 				RenderPartial(&Modal{
 					template: templates.RemoveSubscriptionModal(subscription,
 						element.WithHXTarget("#"+subscription.GetID()),
 						element.WithHXSwap("delete transition:true"),
 					)}).ServeHTTP(res, req)
 			} else {
-				// On "/list/articles", don't do anything to the page (a redirect will be triggered).
+				// On "/articles", don't do anything to the page (a redirect will be triggered).
 				RenderPartial(&Modal{
 					template: templates.RemoveSubscriptionModal(subscription,
 						element.WithHXSwap("none"),
@@ -497,9 +497,9 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 				return
 			}
 			switch {
-			case strings.Contains(req.Referer(), "/list/articles"):
-				// When the current page is "/list/articles", redirect the user to "/list/subscriptions".
-				res.Header().Add(htmx.HeaderRedirect, "/list/subscriptions")
+			case strings.Contains(req.Referer(), "/articles"):
+				// When the current page is "/articles", redirect the user to "/subscriptions".
+				res.Header().Add(htmx.HeaderRedirect, "/subscriptions")
 			case strings.Contains(req.Referer(), "/user/settings"):
 				// When on the subscriptions settings page, remove the subscription from the table.
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")

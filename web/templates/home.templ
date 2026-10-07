@@ -70,7 +70,7 @@ templ UserHome(data *HomeData) {
 									@sectionTitle("Latest Articles")
 									@sectionActions() {
 										<a
-											hx-get="/list/articles"
+											hx-get={ routeArticles.String() }
 											hx-target={ ContentID.Target() }
 											hx-swap="innerMorph show:top transition:true"
 											class="link text-sm text-secondary link-hover"
@@ -93,7 +93,7 @@ templ UserHome(data *HomeData) {
 								@sectionHeading(element.WithClasses("pt-2 px-4")) {
 									@sectionTitle("Latest Updated Feeds")
 									@sectionActions() {
-										<a class="link text-sm text-secondary link-hover" hx-get="/list/subscriptions" hx-target={ ContentID.Target() }>All</a>
+										<a class="link text-sm text-secondary link-hover" hx-get="/subscriptions" hx-target={ ContentID.Target() }>All</a>
 									}
 								}
 								<ul role="list" class="scrollbar-thin divide-y divide-neutral/15 overflow-y-auto">
@@ -107,7 +107,7 @@ templ UserHome(data *HomeData) {
 											{ generateSubscriptionViewAttributes(subscription)... }
 										>
 											@subscriptionCardTitle(subscription)
-											<p class="mt-2 text-sm/6 tabular-nums text-center">
+											<p class="mt-2 text-center text-sm/6 tabular-nums">
 												Updated
 												<relative-time
 													datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
@@ -159,7 +159,7 @@ templ UserHome(data *HomeData) {
 												filters.Category = &category.Category
 											}}
 											@CategoryBadge(category.Category,
-												element.WithHXMethod(http.MethodGet, "/list/articles"),
+												element.WithHXMethod(http.MethodGet, routeArticles.String()),
 												element.WithHXTarget(ContentID.Target()),
 												element.WithHXValues(filters),
 												element.WithHXIndicator("this"),
@@ -178,7 +178,7 @@ templ UserHome(data *HomeData) {
 			<div
 				id="updates"
 				class="toast toast-center z-10"
-				hx-post="/list/articles/updates"
+				hx-post={ routeArticlesUpdates.String() }
 				hx-vals={ templ.JSONString(filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"

@@ -35,10 +35,10 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only">Home</span>
+			<span class="not-sr-only dock-label">Home</span>
 		</a>
 		<a
-			hx-get="/list/subscriptions"
+			hx-get="/subscriptions"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
@@ -54,10 +54,10 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only">Subscriptions</span>
+			<span class="not-sr-only dock-label">Subscriptions</span>
 		</a>
 		<a
-			hx-get="/list/articles"
+			hx-get="/articles"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
@@ -74,7 +74,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only">Articles</span>
+			<span class="not-sr-only dock-label">Articles</span>
 		</a>
 		<a
 			hx-get="/favorites"
@@ -92,7 +92,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 fill-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only">Favorites</span>
+			<span class="not-sr-only dock-label">Favorites</span>
 		</a>
 		<a
 			hx-get="/discover"
@@ -110,7 +110,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 					"class":       "size-6 shrink-0 text-base-content transition-transform duration-150 ease-in-out group-hover:scale-[1.05] group-active:scale-[0.9]",
 					"aria-hidden": "true"})
 			</span>
-			<span class="dock-label not-sr-only">Discover</span>
+			<span class="not-sr-only dock-label">Discover</span>
 		</a>
 	</footer>
 }

@@ -117,7 +117,7 @@ func SideBar(nav Navigation, options ...element.PropertiesOption) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><a hx-trigger=\"click,globalShortcutSubscriptions\" hx-get=\"/list/subscriptions\" hx-vals=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><a hx-trigger=\"click,globalShortcutSubscriptions\" hx-get=\"/subscriptions\" hx-vals=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -175,7 +175,7 @@ func SideBar(nav Navigation, options ...element.PropertiesOption) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><a hx-trigger=\"click,globalShortcutArticles\" hx-get=\"/list/articles\" hx-vals=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><a hx-trigger=\"click,globalShortcutArticles\" hx-get=\"/articles\" hx-vals=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

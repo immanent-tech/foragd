@@ -70,7 +70,7 @@ templ ArticleCard(idx int, article *models.Article, options ...func(*articleCard
 		@partials.CardBody(element.WithClasses(bodyClasses)) {
 			if opts.showSubscriptionDetail {
 				// Subscription details.
-				<div class="flex-1 mb-2">
+				<div class="mb-2 flex-1">
 					@articleSource(article)
 				</div>
 			}
@@ -124,7 +124,7 @@ templ articleCardBody(article *models.Article) {
 		}
 	}}
 	<div class="tooltip tooltip-bottom" data-tip={ title }>
-		<h3 class="card-title group-hover:underline m-0 text-lg font-serif text-balance line-clamp-2">
+		<h3 class="m-0 card-title line-clamp-2 font-serif text-lg text-balance group-hover:underline">
 			{ title }
 		</h3>
 	</div>
@@ -154,7 +154,7 @@ templ articleCardBody(article *models.Article) {
 					}
 				}}
 				@CategoryBadge(category,
-					element.WithHXMethod(http.MethodGet, "/list/articles"),
+					element.WithHXMethod(http.MethodGet, routeArticles.String()),
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
@@ -164,7 +164,7 @@ templ articleCardBody(article *models.Article) {
 			// Add a button to reveal all categories when clicked.
 			if len(article.GetCategories(categoryLimit)) > 3 {
 				<span
-					class="toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center"
+					class="toggle-categories-btn badge items-center badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content"
 					_="
 					on click
 					  halt the event's bubbling
@@ -186,7 +186,7 @@ templ articleCardBody(article *models.Article) {
 templ articleCardFooter(article *models.Article) {
 	<div class="flex items-center justify-between">
 		// Last updated relative timestamp.
-		<p class="mt-2 text-sm/6 tabular-nums text-center">
+		<p class="mt-2 text-center text-sm/6 tabular-nums">
 			Updated
 			<relative-time
 				datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
@@ -201,7 +201,7 @@ templ articleCardFooter(article *models.Article) {
 }
 
 templ articleCardActions(article *models.Article) {
-	<div class="flex shrink-0 ml-auto items-center">
+	<div class="ml-auto flex shrink-0 items-center">
 		// Toggle favorite action.
 		@ArticleFavoriteToggle(article)
 		// Toggle mark action.
@@ -217,7 +217,7 @@ templ articleSource(article *models.Article) {
 	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(article.Subscription.GetTitle()+article.Subscription.GetLink())) }}
 	<div
 		style={ styleAttr }
-		class="rounded-field cursor-pointer w-fit touch-manipulation items-center gap-1 accent-hue-rotate p-1 line-clamp-1 text-sm hover:underline"
+		class="line-clamp-1 w-fit cursor-pointer touch-manipulation items-center gap-1 rounded-field accent-hue-rotate p-1 text-sm hover:underline"
 	>
 		<a { generateSubscriptionViewAttributes(&article.Subscription)... }>
 			{ article.Subscription.GetTitle() }

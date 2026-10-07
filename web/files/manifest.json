@@ -189,7 +189,7 @@
         }
       ],
       "name": "Go to Subscriptions",
-      "url": "/list/subscriptions"
+      "url": "/subscriptions"
     },
     {
       "description": "View all articles",
@@ -202,7 +202,7 @@
         }
       ],
       "name": "Go to Articles",
-      "url": "/list/articles"
+      "url": "/articles"
     },
     {
       "description": "View your list of favorites",

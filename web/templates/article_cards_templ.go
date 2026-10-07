@@ -136,7 +136,7 @@ func ArticleCard(idx int, article *models.Article, options ...func(*articleCardO
 				}
 				ctx = templ.InitializeContext(ctx)
 				if opts.showSubscriptionDetail {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " <div class=\"flex-1 mb-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " <div class=\"mb-2 flex-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -320,7 +320,7 @@ func articleCardBody(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><h3 class=\"card-title group-hover:underline m-0 text-lg font-serif text-balance line-clamp-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><h3 class=\"m-0 card-title line-clamp-2 font-serif text-lg text-balance group-hover:underline\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -404,7 +404,7 @@ func articleCardBody(article *models.Article) templ.Component {
 					extraClasses = "hidden"
 				}
 				templ_7745c5c3_Err = CategoryBadge(category,
-					element.WithHXMethod(http.MethodGet, "/list/articles"),
+					element.WithHXMethod(http.MethodGet, routeArticles.String()),
 					element.WithHXTarget(ContentID.Target()),
 					element.WithHXValues(filters),
 					element.WithClasses(extraClasses),
@@ -415,7 +415,7 @@ func articleCardBody(article *models.Article) templ.Component {
 				}
 			}
 			if len(article.GetCategories(categoryLimit)) > 3 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"toggle-categories-btn badge badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content items-center\" _=\"\n\t\t\t\t\ton click\n\t\t\t\t\t  halt the event's bubbling\n          \t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t  end\n\t\t\t\t\t  remove me\n\t\t\t\t\tend\n\t\t\t\t\t\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"toggle-categories-btn badge items-center badge-outline badge-neutral hover:bg-secondary hover:text-secondary-content\" _=\"\n\t\t\t\t\ton click\n\t\t\t\t\t  halt the event's bubbling\n          \t\t\t  set :tags to <span/> in the closest parent <div/> where it matches .category-badge\n\t\t\t\t\t  for tag in :tags\n\t\t\t\t\t   remove .hidden from tag\n\t\t\t\t\t  end\n\t\t\t\t\t  remove me\n\t\t\t\t\tend\n\t\t\t\t\t\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -463,7 +463,7 @@ func articleCardFooter(article *models.Article) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"flex items-center justify-between\"><p class=\"mt-2 text-sm/6 tabular-nums text-center\">Updated <relative-time datetime=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"flex items-center justify-between\"><p class=\"mt-2 text-center text-sm/6 tabular-nums\">Updated <relative-time datetime=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -526,7 +526,7 @@ func articleCardActions(article *models.Article) templ.Component {
 			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"flex shrink-0 ml-auto items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"ml-auto flex shrink-0 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -589,7 +589,7 @@ func articleSource(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"rounded-field cursor-pointer w-fit touch-manipulation items-center gap-1 accent-hue-rotate p-1 line-clamp-1 text-sm hover:underline\"><a")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"line-clamp-1 w-fit cursor-pointer touch-manipulation items-center gap-1 rounded-field accent-hue-rotate p-1 text-sm hover:underline\"><a")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

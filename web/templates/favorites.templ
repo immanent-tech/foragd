@@ -17,27 +17,27 @@ import (
 templ ListFavorites(response *models.ListFavoritesResponse) {
 	@LayoutInternal(NavFavorites, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		<script type="module">
-  const tabGroup = document.getElementById('favorites-tabs');
+			const tabGroup = document.getElementById('favorites-tabs')
 
-  // Map hash → tab index
-  const tabMap = {
-    '#subscriptions': 0,
-    '#articles': 1,
-  };
+			// Map hash → tab index
+			const tabMap = {
+				'#subscriptions': 0,
+				'#articles': 1,
+			}
 
-  function activateTabFromHash() {
-    const index = tabMap[window.location.hash];
-    if (index !== undefined) {
-      tabGroup.setActiveTab(index);
-    }
-  }
+			function activateTabFromHash() {
+				const index = tabMap[window.location.hash]
+				if (index !== undefined) {
+					tabGroup.setActiveTab(index)
+				}
+			}
 
-  // Activate on initial load
-  activateTabFromHash();
+			// Activate on initial load
+			activateTabFromHash()
 
-  // Also handle back/forward navigation
-  window.addEventListener('hashchange', activateTabFromHash);
-</script>
+			// Also handle back/forward navigation
+			window.addEventListener('hashchange', activateTabFromHash)
+		</script>
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				<el-tab-group
@@ -147,7 +147,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 									</p>
 									<button
 										type="button"
-										hx-get="/list/subscriptions"
+										hx-get="/subscriptions"
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
 										class="btn mt-6 btn-primary"
@@ -176,7 +176,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 									</p>
 									<button
 										type="button"
-										hx-get="/list/articles"
+										hx-get={ routeArticles.String() }
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
 										class="btn mt-6 btn-primary"

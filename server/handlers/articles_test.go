@@ -95,7 +95,7 @@ func TestManager_HandleListArticlesGet(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/list/articles", nil)
+			req := httptest.NewRequest(http.MethodGet, "/articles", nil)
 
 			mgr.HandleListArticles(tt.itemSvc)(rec, req.WithContext(ctx))
 
@@ -182,7 +182,7 @@ func TestManager_HandleListArticlesPost(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodPost, "/list/articles", nil)
+			req := httptest.NewRequest(http.MethodPost, "/articles", nil)
 			req.Header.Set(htmx.HeaderRequest, "true")
 
 			mgr.HandleListArticles(tt.itemSvc)(rec, req.WithContext(ctx))
@@ -261,7 +261,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/list/articles/updates", nil)
+			req := httptest.NewRequest(http.MethodGet, "/articles/updates", nil)
 			req.Header.Set(htmx.HeaderRequest, "true")
 
 			mgr.HandleListArticlesUpdates(tt.itemSvc)(rec, req.WithContext(ctx))

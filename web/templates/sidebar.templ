@@ -47,7 +47,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 					<li class={ "w-full flex justify-center", templ.KV("bg-primary/25 rounded-lg border-l-4 border-primary", nav == NavSubscriptions) }>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
-							hx-get="/list/subscriptions"
+							hx-get="/subscriptions"
 							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
@@ -72,7 +72,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 					>
 						<a
 							hx-trigger="click,globalShortcutArticles"
-							hx-get="/list/articles"
+							hx-get="/articles"
 							hx-vals={ templ.JSONString(filters) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"

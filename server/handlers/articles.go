@@ -76,7 +76,7 @@ func (p *ListArticles) FullResponse(res http.ResponseWriter, req *http.Request) 
 // paginating, just the list of articles.
 func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
-	case "/list/articles":
+	case "/articles":
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
@@ -150,7 +150,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			if len(response.Articles.GetCategoryCounts()) > 0 {
 				RenderPartial(&PartialTemplate{
 					template: templates.UpdateListCategoryFilters(
-						"/list/articles",
+						"/articles",
 						response.Filters,
 						response.Articles.GetCategoryCounts().GetCategories(),
 					),
@@ -160,7 +160,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			if len(response.Articles.GetLanguageCounts()) > 0 {
 				RenderPartial(&PartialTemplate{
 					template: templates.UpdateListLanguageFilters(
-						"/list/articles",
+						"/articles",
 						response.Filters,
 						response.Articles.GetLanguageCounts(),
 					),
@@ -208,7 +208,7 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 			case strings.Contains(req.Referer(), "/home"):
 				route = "/home"
 			default:
-				route = "/list/articles"
+				route = "/articles"
 			}
 			// Reset from count.
 			if filters.From != nil {
@@ -386,7 +386,7 @@ func (m *Manager) HandleViewArticle(
 			},
 			template: templates.ArticleContent(&models.ShowArticleResponse{
 				Article: *article,
-				Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/list/articles"),
+				Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/articles"),
 				BaseURL: m.AppConfig.GetBaseURL(),
 				// Filters: filters,
 			}),
@@ -493,7 +493,7 @@ func (m *Manager) HandleMarkArticle(
 			m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
-		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/list/articles") {
+		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/articles") {
 			filters := ListFiltersFromCtx(req.Context())
 			// Remove the article card.
 			if filters.GetView() != models.ViewAll {

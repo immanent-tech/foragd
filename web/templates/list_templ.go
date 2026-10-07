@@ -136,7 +136,7 @@ func NewListControls(path string, filters models.ListFilters, options ...listCon
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"hidden sm:flex sm:items-center justify-between\"><div class=\"flex-1 gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"hidden justify-between sm:flex sm:items-center\"><div class=\"flex-1 gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,7 +273,7 @@ func mobileFilterDialog(controls *listControls, mobilePanelID string, currentSor
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if controls.path == "/list/subscriptions" {
+			if controls.path == "/subscriptions" {
 				templ_7745c5c3_Err = sortOption(controls.path, models.SortMostUnread, controls.filters).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -552,7 +552,7 @@ func desktopSortDropdown(path string, currentSort models.Sort, filters models.Li
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if path == "/list/subscriptions" {
+		if path == "/subscriptions" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<el-option value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

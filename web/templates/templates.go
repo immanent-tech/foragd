@@ -35,13 +35,13 @@ const (
 type Navigation string
 
 const (
-	routeSubscriptionsList     Route = "/list/subscriptions"
+	routeSubscriptions         Route = "/subscriptions"
 	routeSubscriptionsPaginate Route = "/subscriptions/paginate"
 	routeSubscriptionsUpdates  Route = "/subscriptions/updates"
-	routeArticlesList          Route = "/list/articles"
 	routeArticles              Route = "/articles"
 	routeArticlesPaginate      Route = "/articles/paginate"
 	routeArticlesUpdates       Route = "/articles/updates"
+	routeSearch                Route = "/search"
 )
 
 // Route represents a route from which a page is served.

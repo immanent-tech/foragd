@@ -58,7 +58,7 @@ func TestManager_HandleListSubscriptionsGet(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/list/subscriptions", nil)
+			req := httptest.NewRequest(http.MethodGet, "/subscriptions", nil)
 
 			mgr.HandleListSubscriptions(tt.subSvc)(rec, req.WithContext(ctx))
 
@@ -110,7 +110,7 @@ func TestManager_HandleListSubscriptionsPost(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodPost, "/list/subscriptions", nil)
+			req := httptest.NewRequest(http.MethodPost, "/subscriptions", nil)
 			req.Header.Set(htmx.HeaderRequest, "true")
 
 			mgr.HandleListSubscriptions(tt.subSvc)(rec, req.WithContext(ctx))
