@@ -554,6 +554,7 @@ func Start() error {
 	svr.Protocols.SetHTTP2(false)           // Explicitly disable encrypted HTTP/2 (HTTPS)
 
 	// And we serve HTTP until the world ends.
+	errCh := make(chan error, 1)
 	go func() {
 		var err error
 		if cfg.CertFile != "" && cfg.KeyFile != "" {
@@ -566,11 +567,10 @@ func Start() error {
 			logger.Debug("Using http.")
 			err = svr.ListenAndServe()
 		}
-		if err != nil && err != http.ErrServerClosed {
-			logger.Error("Could not listen.",
-				slog.Any("error", err),
-			)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err
 		}
+		close(errCh)
 	}()
 
 	logger.Info("Server started...",
@@ -579,7 +579,15 @@ func Start() error {
 		slog.Time("start_time", time.Now().UTC()),
 	)
 
-	<-ctx.Done()
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server failed: %v", err)
+	case <-ctx.Done():
+		slog.Info("Shutting down server")
+	}
+
+	// Stop catching signals so a second Ctrl-C force-kills the process.
+	cancelFunc()
 
 	// Create shutdown context with 30-second timeout
 	shutdownCtx, cancel := context.WithTimeoutCause(
