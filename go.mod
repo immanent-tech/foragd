@@ -51,6 +51,7 @@ require (
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
 	github.com/samber/slog-chi v1.19.1
+	github.com/stretchr/testify v1.12.1
 	github.com/veqryn/slog-context v0.9.0
 	github.com/zeebo/xxh3 v1.1.0
 	go.opentelemetry.io/contrib/exporters/autoexport v0.72.0
@@ -188,7 +189,6 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/vektra/mockery/v3 v3.8.0 // indirect
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
