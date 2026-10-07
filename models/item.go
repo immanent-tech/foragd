@@ -187,26 +187,35 @@ func NewEmailItem(email Email, subscription *Subscription) *Item {
 	return item
 }
 
+// addYoutubeExtension extracts and adds additional information for YouTube feeds.
 func addYoutubeExtension(source *feeds.Item, item *Item) {
-	// Extract and add additional information for youtube feeds.
-	if strings.Contains(item.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
-		if entry, isValidEntry := source.ItemSource.(*atom.Entry); isValidEntry {
-			if len(entry.MediaGroup.Content) > 0 {
-				width := entry.MediaGroup.Content[0].Width
-				height := entry.MediaGroup.Content[0].Height
-				if videoID, isValidVideoID := strings.CutPrefix(source.GetID(), "yt:video:"); isValidVideoID {
-					item.ExtensionType = new(ItemExtensionTypeYoutube)
-					item.ExtensionData = &Item_ExtensionData{}
-					item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{
-						VideoId: videoID,
-						Width:   width,
-						Height:  height,
-					})
-				}
-			}
-
-		}
+	if sourceNeedsYoutubeExtension(source) {
+		extractYoutubeData(source, item)
 	}
+}
+
+// sourceNeedsYoutubeExtension checks if a source meets all criteria for YouTube extension.
+func sourceNeedsYoutubeExtension(source *feeds.Item) bool {
+	if strings.Contains(source.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
+		if entry, ok := source.ItemSource.(*atom.Entry); ok {
+			return len(entry.MediaGroup.Content) > 0
+		}
+		return false
+	}
+	return false
+}
+
+// extractYoutubeData extracts YouTube metadata and populates item extension fields.
+func extractYoutubeData(source *feeds.Item, item *Item) {
+	entry := source.ItemSource.(*atom.Entry)
+	videoID := strings.TrimPrefix(source.GetID(), "yt:video:")
+	media := entry.MediaGroup.Content[0]
+
+	item.ExtensionType = new(ItemExtensionTypeYoutube)
+	item.ExtensionData = &Item_ExtensionData{}
+	item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{
+		VideoId: videoID, Width: media.Width, Height: media.Height,
+	})
 }
 
 // GetID returns the item ID.
