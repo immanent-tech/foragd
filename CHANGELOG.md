@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.243.0](https://github.com/immanent-tech/foragd/compare/v0.242.0...v0.243.0) (2026-10-07)
+
+
+### Features
+
+* **templates/discover:** 🎨 use new card format on discover page ([de6868c](https://github.com/immanent-tech/foragd/commit/de6868c967e2adde771df83ca5b784a9f685a084))
+
 ## [0.242.0](https://github.com/immanent-tech/foragd/compare/v0.241.4...v0.242.0) (2026-10-06)
 
 
