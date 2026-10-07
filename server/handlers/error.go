@@ -62,7 +62,7 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 			apiErr.WriteLog(req.Context())
 			// For 500+ errors, log to GCP error console.
 			if apiErr.HTTPStatus() >= 500 {
-				gerror.ReportError(req.Context(), apiErr)
+				gerror.ReportError(apiErr)
 			}
 			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())
@@ -82,7 +82,7 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 				status = http.StatusInternalServerError
 			}
 			if status >= 500 {
-				gerror.ReportError(req.Context(), apiErr)
+				gerror.ReportError(apiErr)
 			}
 			apiErr = models.NewAPIError(status, err, models.WithUserMessage(opts.UserMessage))
 			apiErr.WriteLog(req.Context())
@@ -138,7 +138,7 @@ func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 			apiErr.WriteLog(req.Context())
 			// For 500+ errors, log to GCP error console.
 			if apiErr.HTTPStatus() >= 500 {
-				gerror.ReportError(req.Context(), apiErr)
+				gerror.ReportError(apiErr)
 			}
 			// Write response.
 			res.WriteHeader(apiErr.HTTPStatus())

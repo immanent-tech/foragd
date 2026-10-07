@@ -148,9 +148,9 @@ func safeExecute(
 			// Log to GCP error console.
 			switch v := rvr.(type) {
 			case error:
-				gerror.ReportError(ctx, v)
+				gerror.ReportError(v)
 			default:
-				gerror.ReportError(ctx, fmt.Errorf("panic: %v", v))
+				gerror.ReportError(fmt.Errorf("panic: %v", v))
 			}
 		}
 	}()

@@ -28,9 +28,9 @@ func Recoverer(next http.Handler) http.Handler {
 				// Log to GCP error console.
 				switch v := rvr.(type) {
 				case error:
-					gerror.ReportError(req.Context(), v)
+					gerror.ReportError(v)
 				default:
-					gerror.ReportError(req.Context(), fmt.Errorf("panic: %v", v))
+					gerror.ReportError(fmt.Errorf("panic: %v", v))
 				}
 
 				logEntry := middleware.GetLogEntry(req)

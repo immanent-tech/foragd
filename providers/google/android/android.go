@@ -135,7 +135,7 @@ func VerifyAndAcknowledgeSubscription(
 		Context(ctx).
 		Do()
 	if err != nil {
-		gerror.ReportError(ctx, err)
+		gerror.ReportError(err)
 		return nil, gcp.APIError("verify subscription", err)
 	}
 
@@ -194,7 +194,7 @@ func acknowledgeSubscriptionPurchase(ctx context.Context, pkg, sku, token string
 		pkg, sku, token,
 		&androidpublisher.SubscriptionPurchasesAcknowledgeRequest{},
 	).Context(ctx).Do(); err != nil {
-		gerror.ReportError(ctx, err)
+		gerror.ReportError(err)
 		return gcp.APIError("acknowledge subscription purchase", err)
 	}
 

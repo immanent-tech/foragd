@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/immanent-tech/foragd/models"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
@@ -228,7 +229,7 @@ func sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *model
 					slog.Any("error", err),
 				)
 			}
-			log.Warn("Scheduled user email.",
+			log.Info("Scheduled user email.",
 				slog.String("email", id),
 				slog.Time("scheduled_at", time.Now().UTC().Add(delay)),
 			)
@@ -267,12 +268,17 @@ func redirectAfterLogin(
 // HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password
 // reset links.
 func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
+	clientID := req.URL.Query().Get("client_id")
+	errCode := req.URL.Query().Get("error")
+	errDesc := req.URL.Query().Get("error_description")
+	tracking := req.URL.Query().Get("tracking")
 	slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
-		slog.String("client_id", req.URL.Query().Get("client_id")),
-		slog.String("error_code", req.URL.Query().Get("error")),
-		slog.String("error_description", req.URL.Query().Get("error_description")),
-		slog.String("tracking", req.URL.Query().Get("tracking")),
+		slog.String("client_id", clientID),
+		slog.String("error_code", errCode),
+		slog.String("error_description", errDesc),
+		slog.String("tracking", tracking),
 	)
+	gerror.ReportError(fmt.Errorf("%s: %s (tracking: %s)", errCode, errDesc, tracking))
 	RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
 }
 
