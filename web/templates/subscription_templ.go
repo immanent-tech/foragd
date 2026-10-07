@@ -575,8 +575,8 @@ func SubscriptionLatestArticles(articles []*models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for _, item := range articles {
-				templ_7745c5c3_Err = latestArticleSummary(item).Render(ctx, templ_7745c5c3_Buffer)
+			for article := range slices.Values(articles) {
+				templ_7745c5c3_Err = latestItemSummary(&article.Item).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -596,7 +596,7 @@ func SubscriptionLatestArticles(articles []*models.Article) templ.Component {
 }
 
 // latestArticleSummary renders details about a latest article for a subscription.
-func latestArticleSummary(item *models.Article) templ.Component {
+func latestItemSummary(item *models.Item) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -674,9 +674,9 @@ func latestArticleSummary(item *models.Article) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.GetTimestamp().Format("2006-01-02T15:04:05-0700"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 185, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 185, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var27)
 		if templ_7745c5c3_Err != nil {
@@ -687,9 +687,9 @@ func latestArticleSummary(item *models.Article) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
-		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetUpdatedDate().Format("Jan _2, 2006"))
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTimestamp().Format("Jan _2, 2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 189, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 189, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -1672,12 +1672,12 @@ func manageFeedSubscription(action string, request *models.FeedSubscriptionReque
 			return templ_7745c5c3_Err
 		}
 		if request.Customisation != nil && request.Customisation.ImageURL != nil {
-			templ_7745c5c3_Err = thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = thumbnail("", *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = thumbnail(nil, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2147,12 +2147,12 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						return templ_7745c5c3_Err
 					}
 					if request.Customisation != nil && request.Customisation.ImageURL != nil {
-						templ_7745c5c3_Err = thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = thumbnail("", *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = thumbnail(nil, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2663,12 +2663,12 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						return templ_7745c5c3_Err
 					}
 					if request.Customisation != nil && request.Customisation.ImageURL != nil {
-						templ_7745c5c3_Err = thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = thumbnail("", *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = thumbnail(nil, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -3146,12 +3146,12 @@ func EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadcr
 								return templ_7745c5c3_Err
 							}
 							if request.Customisation != nil && request.Customisation.ImageURL != nil {
-								templ_7745c5c3_Err = thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 							} else {
-								templ_7745c5c3_Err = thumbnail("", *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = thumbnail(nil, *request.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -3704,7 +3704,7 @@ func subscriptionCategoryBadges(subscription *models.Subscription) templ.Compone
 
 // thumbnail generates a thumbnail image. If the image URL is given, it uses that image. Else, it will use a placeholder
 // constructed from the first letter of the alt text.
-func thumbnail(imgURL, altText string) templ.Component {
+func thumbnail(img *models.RemoteImage, altText string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -3729,8 +3729,7 @@ func thumbnail(imgURL, altText string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if imgURL != "" {
-			img := models.NewRemoteImage(imgURL, altText)
+		if img != nil {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 232, " <span class=\"avatar\" aria-hidden=\"true\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -3755,7 +3754,7 @@ func thumbnail(imgURL, altText string) templ.Component {
 			var templ_7745c5c3_Var155 string
 			templ_7745c5c3_Var155, templ_7745c5c3_Err = templ.JoinStringErrs(initialLetter(altText))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1480, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1479, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var155))
 			if templ_7745c5c3_Err != nil {

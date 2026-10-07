@@ -26,28 +26,28 @@ templ UserSettings() {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
 				<script type="module">
-  const tabGroup = document.getElementById('settings-tabs');
+					const tabGroup = document.getElementById('settings-tabs')
 
-  // Map hash → tab index
-  const tabMap = {
-    '#display': 0,
-    '#account': 1,
-	'#subscriptions': 2,
-  };
+					// Map hash → tab index
+					const tabMap = {
+						'#display': 0,
+						'#account': 1,
+						'#subscriptions': 2,
+					}
 
-  function activateTabFromHash() {
-    const index = tabMap[window.location.hash];
-    if (index !== undefined) {
-      tabGroup.setActiveTab(index);
-    }
-  }
+					function activateTabFromHash() {
+						const index = tabMap[window.location.hash]
+						if (index !== undefined) {
+							tabGroup.setActiveTab(index)
+						}
+					}
 
-  // Activate on initial load
-  activateTabFromHash();
+					// Activate on initial load
+					activateTabFromHash()
 
-  // Also handle back/forward navigation
-  window.addEventListener('hashchange', activateTabFromHash);
-</script>
+					// Also handle back/forward navigation
+					window.addEventListener('hashchange', activateTabFromHash)
+				</script>
 				<el-tab-group
 					id="settings-tabs"
 					data-script="
@@ -119,7 +119,7 @@ templ UserSettings() {
 						   end
 						"
 							style="--vt-name: tab-content-display"
-							class="content-auto [view-transition-name:var(--vt-name)]"
+							class="[view-transition-name:var(--vt-name)] content-auto"
 						></div>
 						<div
 							id="account"
@@ -150,7 +150,7 @@ templ UserSettings() {
 						   end
                              "
 							style="--vt-name: tab-content-account"
-							class="content-auto [view-transition-name:var(--vt-name)]"
+							class="[view-transition-name:var(--vt-name)] content-auto"
 						></div>
 						<div
 							id="subscriptions"
@@ -181,7 +181,7 @@ templ UserSettings() {
 						   end
                              "
 							style="--vt-name: tab-content-subscriptions"
-							class="group content-auto [view-transition-name:var(--vt-name)]"
+							class="group [view-transition-name:var(--vt-name)] content-auto"
 						></div>
 					</el-tab-panels>
 				</el-tab-group>
@@ -376,7 +376,7 @@ templ AccountSettings(user *models.User) {
 												element.WithAttribute("height", "48"),
 												element.WithAttribute("id", "preview-img"),
 											)
-											<p id="preview-meta" style="font-size:0.85rem; color:#666;"></p>
+											<p id="preview-meta" style="font-size: 0.85rem; color: #666"></p>
 										</div>
 										<span id="file-name" class="block max-w-full truncate"></span>
 										<div class="mt-4 flex flex-wrap items-center justify-center text-sm/6">
@@ -396,7 +396,7 @@ templ AccountSettings(user *models.User) {
 									</div>
 								</div>
 							</label>
-							<label class="fieldset mt-2">
+							<label class="mt-2 fieldset">
 								<div class="flex items-center">
 									<span class="label">Promotional Emails</span>
 									<input
@@ -406,7 +406,7 @@ templ AccountSettings(user *models.User) {
 										if user.Metadata.PromotionalEmail {
 											checked
 										}
-										class="ml-3 toggle toggle-primary toggle-sm"
+										class="toggle ml-3 toggle-primary toggle-sm"
 									/>
 								</div>
 								<p>
@@ -1173,7 +1173,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 										// Subscription thumbnail and title.
 										<div class="flex items-center gap-3">
 											<div>
-												@thumbnail(subscription.GetImage(), subscription.GetTitle())
+												@thumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 											</div>
 											<a class="link link-hover" { generateSubscriptionViewAttributes(subscription)... }>
 												<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>

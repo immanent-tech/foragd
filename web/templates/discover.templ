@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"fmt"
 	tablerfilled "github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
@@ -20,7 +21,7 @@ templ Discover(request *models.SuggestFeedsRequest) {
 				@pageHeading() {
 					@pageTitle("Discover Feeds")
 				}
-				<label class="input w-full mt-4 p-2 input-primary sm:w-2/3 sm:p-0">
+				<label class="input mt-4 w-full p-2 input-primary sm:w-2/3 sm:p-0">
 					<span class="label">
 						@tableroutline.Search(templ.Attributes{"class": "sm:ml-1 stroke-primary"})
 					</span>
@@ -61,7 +62,7 @@ templ Discover(request *models.SuggestFeedsRequest) {
 							/>
 						}
 						<input
-							class="btn btn-sm btn-square"
+							class="btn btn-square btn-sm"
 							type="reset"
 							value="×"
 							_="on change send categorySuggestions to #discover"
@@ -118,65 +119,81 @@ templ DiscoverSuggestions(suggestions models.SuggestFeedsResults) {
 }
 
 templ feedSuggestion(feed *models.Feed, items models.Items) {
-	@partials.Card() {
+	{{ styleAttr := fmt.Sprintf("--hue: %ddeg", hueFromText(feed.GetTitle()+feed.GetLink())) }}
+	@partials.Card(element.WithAttribute("style", styleAttr),
+		element.WithClasses("group", "group-active:scale-[0.96]", "relative")) {
 		// Header: feed title, thumbnail and description (if any).
-		@partials.CardHeader(element.WithClasses("min-w-0")) {
-			<div class="flex min-w-0">
+		@partials.CardHeader(element.WithClasses()) {
+			<div class="flex">
 				<div class="mr-4 shrink-0">
-					@feedThumbnail(feed)
+					@thumbnail(feed.GetImage(), feed.GetTitle())
 				</div>
 				<div>
-					<h4 class="text-lg font-bold">{ feed.GetTitle() }</h4>
-					if feed.GetDescription() != "" && feed.SourceType != models.SourceTypeYoutube {
-						<div class="tooltip tooltip-bottom" data-tip={ feed.GetDescription() }>
-							<div class="mt-1 text-sm/6 text-neutral text-pretty wrap-break-word line-clamp-2">{ feed.GetDescription() } </div>
+					// Title.
+					<h3 id={ "feed-title-" + feed.GetID() } class="m-0 card-title line-clamp-2 font-serif text-lg text-balance group-hover:underline">{ feed.GetTitle() }</h3>
+					// Description (if any).
+					if  desc := feed.GetDescription(); desc != "" {
+						<div class="tooltip tooltip-bottom tooltip-end" data-tip={ desc }>
+							<p class="mt-2 line-clamp-2 font-serif text-sm/6">{ desc }</p>
 						</div>
 					}
 				</div>
 			</div>
 		}
 		// Body: item previews.
-		@partials.CardBody() {
+		@partials.CardBody(element.WithClasses("flex-1")) {
 			if len(items) > 0 {
 				<div class="mt-auto h-full">
 					<ul class="latest-items">
 						for item := range slices.Values(items) {
-							<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
-								<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
-									<a class="line-clamp-2 font-serif text-base">
-										{ item.GetTitle() }
-									</a>
-								</div>
-							</li>
+							@latestItemSummary(item)
 						}
 					</ul>
 				</div>
 			}
 		}
 		// Footer: subscribe button.
-		@partials.CardFooter(element.WithClasses("flex justify-end")) {
-			<form>
-				<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
-				<input type="hidden" name="feed_id" value={ feed.GetID() }/>
-				<button
-					type="submit"
-					class="group btn btn-primary"
-					hx-post="/subscription/add/feed"
-					hx-swap="none"
-					hx-disable="this"
-					hx-encoding="multipart/form-data"
-					data-suggestionid={ "#suggestion-" + feed.GetID() }
-					_="on htmx:after:request(successful) remove me"
-				>
-					<span class="hidden items-center group-[.htmx-request]:inline-flex">
-						<span class="loading mr-3 loading-spinner text-primary"></span>
-						Subscribing
-					</span>
-					<span class="inline-flex items-center group-[.htmx-request]:hidden">
-						Subscribe
-					</span>
-				</button>
-			</form>
+		@partials.CardFooter(element.WithClasses("mt-auto")) {
+			<div class="border-t border-neutral/20 pt-1">
+				<div class="mt-2 flex items-center justify-center">
+					@subscriptionCardFeedMetadata(feed)
+				</div>
+				<div class="flex items-center justify-between">
+					// Last updated relative timestamp.
+					<p class="mt-2 text-center text-sm/6 tabular-nums">
+						Updated
+						<relative-time
+							datetime={ feed.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
+							format="relative"
+							class="font-semibold"
+						>
+							{ feed.GetTimestamp().Format("Jan _2, 2006") }
+						</relative-time>
+					</p>
+					<form>
+						<input type="hidden" name="url" value={ feed.GetSourceURLs()[0] }/>
+						<input type="hidden" name="feed_id" value={ feed.GetID() }/>
+						<button
+							type="submit"
+							class="group btn btn-primary"
+							hx-post="/subscription/add/feed"
+							hx-swap="none"
+							hx-disable="this"
+							hx-encoding="multipart/form-data"
+							data-suggestionid={ "#suggestion-" + feed.GetID() }
+							_="on htmx:after:request(successful) remove me"
+						>
+							<span class="hidden items-center group-[.htmx-request]:inline-flex">
+								<span class="loading mr-3 loading-spinner text-primary"></span>
+								Subscribing
+							</span>
+							<span class="inline-flex items-center group-[.htmx-request]:hidden">
+								Subscribe
+							</span>
+						</button>
+					</form>
+				</div>
+			</div>
 		}
 	}
 }

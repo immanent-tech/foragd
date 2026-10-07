@@ -9045,9 +9045,6 @@
   .text-wrap {
     text-wrap: wrap;
   }
-  .wrap-break-word {
-    overflow-wrap: break-word;
-  }
   @layer daisyui.l1.l2 {
     .file-input-primary {
       --btn-color: var(--color-primary);

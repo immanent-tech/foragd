@@ -156,8 +156,8 @@ templ SubscriptionLatestArticles(articles []*models.Article) {
 	if len(articles) > 0 {
 		<div class="mt-auto h-full">
 			<ul class="latest-items menu menu-vertical">
-				for _, item := range articles {
-					@latestArticleSummary(item)
+				for article := range slices.Values(articles) {
+					@latestItemSummary(&article.Item)
 				}
 			</ul>
 		</div>
@@ -167,7 +167,7 @@ templ SubscriptionLatestArticles(articles []*models.Article) {
 }
 
 // latestArticleSummary renders details about a latest article for a subscription.
-templ latestArticleSummary(item *models.Article) {
+templ latestItemSummary(item *models.Item) {
 	<li class="my-1 border-l-2 border-accent/40 pl-3 text-base">
 		<div class="tooltip tooltip-bottom" data-tip={ item.GetTitle() }>
 			<a
@@ -182,11 +182,11 @@ templ latestArticleSummary(item *models.Article) {
 					{ item.GetTitle() }
 				</span>
 				<relative-time
-					datetime={ item.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+					datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
 					format="relative"
 					class="shrink-0 text-sm/6 text-base-content capitalize tabular-nums"
 				>
-					{ item.GetUpdatedDate().Format("Jan _2, 2006") }
+					{ item.GetTimestamp().Format("Jan _2, 2006") }
 				</relative-time>
 			</a>
 		</div>
@@ -581,9 +581,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					<span class="label">Thumbnail</span>
 					<div class="flex items-center gap-4">
 						if request.Customisation != nil && request.Customisation.ImageURL != nil {
-							@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
+							@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
 						} else {
-							@thumbnail("", *request.Customisation.Nickname)
+							@thumbnail(nil, *request.Customisation.Nickname)
 						}
 						<input
 							id="thumbnail"
@@ -764,9 +764,9 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
+										@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
 									} else {
-										@thumbnail("", *request.Customisation.Nickname)
+										@thumbnail(nil, *request.Customisation.Nickname)
 									}
 									<input
 										id="thumbnail"
@@ -999,9 +999,9 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								<span class="label">Thumbnail</span>
 								<div class="flex items-center gap-4">
 									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
+										@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
 									} else {
-										@thumbnail("", *request.Customisation.Nickname)
+										@thumbnail(nil, *request.Customisation.Nickname)
 									}
 									<input
 										id="thumbnail"
@@ -1180,9 +1180,9 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<div class="col-span-full mt-2 flex items-center gap-x-2">
 											if request.Customisation != nil && request.Customisation.ImageURL != nil {
-												@thumbnail(*request.Customisation.ImageURL, *request.Customisation.Nickname)
+												@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
 											} else {
-												@thumbnail("", *request.Customisation.Nickname)
+												@thumbnail(nil, *request.Customisation.Nickname)
 											}
 											<input
 												id="thumbnail"
@@ -1455,10 +1455,9 @@ templ subscriptionCategoryBadges(subscription *models.Subscription) {
 
 // thumbnail generates a thumbnail image. If the image URL is given, it uses that image. Else, it will use a placeholder
 // constructed from the first letter of the alt text.
-templ thumbnail(imgURL, altText string) {
+templ thumbnail(img *models.RemoteImage, altText string) {
 	<div class="relative flex-none">
-		if imgURL != "" {
-			{{ img := models.NewRemoteImage(imgURL, altText) }}
+		if img != nil {
 			// If the source has an image, use that as the avatar.
 			<span class="avatar" aria-hidden="true">
 				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
