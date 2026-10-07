@@ -108,7 +108,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					WithListButtons(listSubscriptionsButtons(response)),
 					WithListActions(listSubscriptionsActions(response)),
 					WithListLanguages(response.Subscriptions.GetLanguageCounts()),
-				)
+				).Template()
 				<section id="subscriptions-list" class="ptr-content pt-4">
 					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Subscriptions) > 0 {
@@ -1457,7 +1457,7 @@ templ subscriptionCategoryBadges(subscription *models.Subscription) {
 // constructed from the first letter of the alt text.
 templ thumbnail(img *models.RemoteImage, altText string) {
 	<div class="relative flex-none">
-		if img != nil {
+		if img != nil && img.GetURL() != "" {
 			// If the source has an image, use that as the avatar.
 			<span class="avatar" aria-hidden="true">
 				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize

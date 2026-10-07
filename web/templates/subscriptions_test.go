@@ -21,10 +21,9 @@ import (
 )
 
 func TestLatestArticles_Empty(t *testing.T) {
-	var buf bytes.Buffer
-	_ = templates.SubscriptionLatestArticles(nil).Render(context.Background(), &buf)
-	if buf.Len() != 0 {
-		t.Fatal("expected no output for empty list")
+	doc := render(t, t.Context(), templates.SubscriptionLatestArticles(nil))
+	if doc.Find("p").Text() != "No entries." {
+		t.Fatal("invalid output")
 	}
 }
 
@@ -136,7 +135,7 @@ func TestListSubscriptions(t *testing.T) {
 				if n := doc.Find("button[hx-post^='/subscriptions/mark']").Length(); n != 0 {
 					t.Errorf("unexpected bulk button (%d)", n)
 				}
-			} else if doc.Find(`button[hx-post="`+tc.wantMarkPath+`"]`).Length() != 1 {
+			} else if doc.Find(`button[hx-post="`+tc.wantMarkPath+`"]`).Length() != 2 {
 				t.Errorf("missing bulk button posting to %s", tc.wantMarkPath)
 			}
 

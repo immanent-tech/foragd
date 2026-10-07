@@ -56,7 +56,7 @@ templ MapArticles(response *models.ListArticlesResponse) {
 					WithoutListSorting(),
 					WithListActions(listArticlesActions(response)),
 					WithListButtons(listArticlesButtons(response)),
-				)
+				).Template()
 				<section id="articles" class="pt-4">
 					if len(response.Articles) > 0 {
 						@components.LeafletMap() {

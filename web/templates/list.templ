@@ -12,105 +12,34 @@ import (
 	"slices"
 )
 
-type listControls struct {
-	path         string
-	filters      models.ListFilters
-	categories   models.Categories
-	languages    map[string]int64
-	extraActions []templ.Component
-	extraButtons []templ.Component
-	disableSort  bool
-	disableView  bool
-}
-
-type listControlOption func(*listControls)
-
-// WithListActions option adds additional actions to the mobile menu.
-func WithListActions(actions ...templ.Component) listControlOption {
-	return func(lc *listControls) {
-		lc.extraActions = append(lc.extraActions, actions...)
-	}
-}
-
-// WithListButtons option adds additional buttons at the top of the list.
-func WithListButtons(buttons ...templ.Component) listControlOption {
-	return func(lc *listControls) {
-		lc.extraButtons = append(lc.extraButtons, buttons...)
-	}
-}
-
-// WithListCategories option sets category filters for the list.
-func WithListCategories(categories models.Categories) listControlOption {
-	return func(lc *listControls) {
-		if len(categories) > 0 {
-			lc.categories = categories
-		}
-	}
-}
-
-// WithListLanguages option sets language filters for the list.
-func WithListLanguages(langs map[string]int64) listControlOption {
-	return func(lc *listControls) {
-		if len(langs) > 0 {
-			lc.languages = langs
-		}
-	}
-}
-
-// WithoutListSorting option will disable showing the sort menu.
-func WithoutListSorting() listControlOption {
-	return func(lc *listControls) {
-		lc.disableSort = true
-	}
-}
-
-// WithoutListView option will disable showing the view menu.
-func WithoutListView() listControlOption {
-	return func(lc *listControls) {
-		lc.disableView = true
-	}
-}
-
-// NewListControls renders an element containing controls (filtering, sorting, view) for a list.
-templ NewListControls(path string, filters models.ListFilters, options ...listControlOption) {
+templ (c *ListControls) Template() {
 	{{
-		controls := &listControls{
-			path:    path,
-			filters: filters,
-		}
-		for option := range slices.Values(options) {
-			option(controls)
-		}
 		mobilePanelID := "mobile-options"
-		currentSort := controls.filters.GetSort()
-		// Reset any pagination for controls.
-		controls.filters.From = nil
-		controls.filters.UpTo = nil
-		controls.filters.SearchAfter = nil
+		currentSort := c.Filters.GetSort()
 	}}
 	<div class="p-2">
-		@mobileFilterDialog(controls, mobilePanelID, currentSort)
+		@mobileFilterDialog(c, mobilePanelID, currentSort)
 		<div class="flex items-center justify-between">
 			<div class="sm:hidden">
 				@mobileFilterToggle(mobilePanelID)
 			</div>
 			<div class="hidden justify-between sm:flex sm:items-center">
 				<div class="flex-1 gap-2">
-					@desktopSortDropdown(controls.path, currentSort, controls.filters, !controls.disableSort)
-					@desktopCategoryDropdown(controls.path, controls.filters, controls.categories)
-					@desktopLanguageDropdown(controls.path, controls.filters, controls.languages)
-					if !controls.disableView {
-						@desktopViewFilters(controls.path, controls.filters)
+					@desktopSortDropdown(c.Path, currentSort, c.Filters, !c.DisableSort)
+					@desktopCategoryDropdown(c.Path, c.Filters, c.Categories)
+					@desktopLanguageDropdown(c.Path, c.Filters, c.Languages)
+					if !c.DisableView {
+						@desktopViewFilters(c.Path, c.Filters)
 					}
 				</div>
 			</div>
-			@customButtonsContainer(controls.extraButtons)
+			@customButtonsContainer(c.ExtraButtons)
 		</div>
 	</div>
 }
 
 // mobileFilterDialog renders the mobile filter dialog containing filters, sorting, and custom actions.
-templ mobileFilterDialog(controls *listControls, mobilePanelID string, currentSort models.Sort) {
+templ mobileFilterDialog(controls *ListControls, mobilePanelID string, currentSort models.Sort) {
 	<el-dialog>
 		<dialog id={ mobilePanelID } class="overflow-hidden backdrop:bg-transparent sm:hidden">
 			<el-dialog-backdrop></el-dialog-backdrop>
@@ -123,41 +52,41 @@ templ mobileFilterDialog(controls *listControls, mobilePanelID string, currentSo
 						</button>
 					</div>
 					<ul class="menu">
-						if !controls.disableSort {
+						if !controls.DisableSort {
 							// Mobile View Filters.
 							<li class="menu-title">View</li>
 							<ul id="mobile-view-filters">
-								@viewFilterOption(controls.path, models.ViewUnread, controls.filters)
-								@viewFilterOption(controls.path, models.ViewRead, controls.filters)
-								@viewFilterOption(controls.path, models.ViewAll, controls.filters)
-								@viewFilterOption(controls.path, models.ViewFavorites, controls.filters)
+								@viewFilterOption(controls.Path, models.ViewUnread, controls.Filters)
+								@viewFilterOption(controls.Path, models.ViewRead, controls.Filters)
+								@viewFilterOption(controls.Path, models.ViewAll, controls.Filters)
+								@viewFilterOption(controls.Path, models.ViewFavorites, controls.Filters)
 							</ul>
 						}
-						if !controls.disableView {
+						if !controls.DisableView {
 							// Mobile Sort Filters.
 							<li class="menu-title">Sort</li>
 							<ul id="mobile-sort-filters">
-								@sortOption(controls.path, models.SortNewestFirst, controls.filters)
-								@sortOption(controls.path, models.SortOldestFirst, controls.filters)
-								if controls.path == "/subscriptions" {
-									@sortOption(controls.path, models.SortMostUnread, controls.filters)
-									@sortOption(controls.path, models.SortLeastUnread, controls.filters)
+								@sortOption(controls.Path, models.SortNewestFirst, controls.Filters)
+								@sortOption(controls.Path, models.SortOldestFirst, controls.Filters)
+								if controls.Path == "/subscriptions" {
+									@sortOption(controls.Path, models.SortMostUnread, controls.Filters)
+									@sortOption(controls.Path, models.SortLeastUnread, controls.Filters)
 								}
 							</ul>
 						}
 						// Categories.
 						<li class="menu-title">Categories</li>
 						<ul id="mobile-category-filters">
-							@ListCategoryFilters(controls.path, controls.filters, controls.categories)
+							@ListCategoryFilters(controls.Path, controls.Filters, controls.Categories)
 						</ul>
 						// Languages.
 						<li class="menu-title">Language</li>
 						<ul id="mobile-language-filter">
-							@ListLanguageFilters(controls.path, controls.filters, controls.languages)
+							@ListLanguageFilters(controls.Path, controls.Filters, controls.Languages)
 						</ul>
-						if len(controls.extraActions) > 0 {
+						if len(controls.ExtraActions) > 0 {
 							// Extra Actions.
-							@templ.Join(controls.extraActions...)
+							@templ.Join(controls.ExtraActions...)
 						}
 					</ul>
 				</el-dialog-panel>

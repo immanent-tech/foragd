@@ -54,6 +54,7 @@ func TestListArticles(t *testing.T) {
 					ItemID: title,
 					Title:  title,
 				},
+				State: &models.ArticleState{},
 			})
 		}
 		return articles

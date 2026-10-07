@@ -18,7 +18,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PaddleHQ/paddle-go-sdk/v5 v5.2.0
 	github.com/PuerkitoBio/goquery v1.13.0
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1071-0.20261005144501-e421fbe2b502
 	github.com/alecthomas/kong v1.16.1
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/auth0/go-auth0/v2 v2.14.0

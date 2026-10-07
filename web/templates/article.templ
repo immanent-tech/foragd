@@ -510,7 +510,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					WithListLanguages(response.Articles.GetLanguageCounts()),
 					WithListActions(listArticlesActions(response)),
 					WithListButtons(listArticlesButtons(response)),
-				)
+				).Template()
 				<section id="articles-list" class="ptr-content pt-4">
 					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Articles) > 0 {
