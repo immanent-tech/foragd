@@ -14,6 +14,8 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/providers/resend"
 )
 
@@ -71,6 +73,8 @@ func HandleResendWebhook(verifier WebhookVerifier, processor EmailReceiver) http
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		envelope.Type = validation.SanitizeString(envelope.Type)
+		envelope.Data = validation.SanitizeBytes(envelope.Data)
 
 		// Act accordingly based on type.
 		switch envelope.Type {
