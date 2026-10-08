@@ -7,7 +7,7 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 replace github.com/immanent-tech/go-base v0.0.0 => ./base
 
 require (
-	cloud.google.com/go/auth v0.24.0
+	cloud.google.com/go/auth v0.24.1-0.20261001053825-dbc26066f70a
 	cloud.google.com/go/billing v1.27.0
 	cloud.google.com/go/errorreporting v0.10.0
 	cloud.google.com/go/language v1.19.0
@@ -67,7 +67,7 @@ require (
 	golang.org/x/sync v0.23.0
 	golang.org/x/text v0.42.0
 	golang.org/x/time v0.16.0
-	google.golang.org/api v0.300.0
+	google.golang.org/api v0.301.0
 	google.golang.org/genproto v0.0.0-20261005182115-fad411399dd8
 	google.golang.org/grpc v1.84.0
 )
@@ -129,7 +129,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
-	github.com/google/s2a-go v0.1.10 // indirect
+	github.com/google/s2a-go v0.1.11 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
