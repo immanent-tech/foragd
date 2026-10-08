@@ -90,22 +90,31 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 }
 
 // subscriptionFeedMetadata renders additional details from the source feed.
-templ subscriptionCardFeedMetadata(feed *models.Feed) {
+templ subscriptionCardFeedMetadata(subscription *models.Subscription) {
 	// Display some additional details from the source.
-	if feed.GetLink() != "" {
-		<p>
-			if feed.SourceType != "" {
-				<span class="badge badge-soft badge-sm uppercase badge-info">{ feed.SourceType }</span>
-			}
+	<p>
+		switch  {
+			case subscription.Type == models.SubscriptionTypeGroup:
+				<span class="badge badge-soft badge-sm badge-info">Group</span>
+			case subscription.Type == models.SubscriptionTypeSearch:
+				<span class="badge badge-soft badge-sm badge-info">Search</span>
+			case subscription.Type == models.SubscriptionTypeEmail:
+				<span class="badge badge-soft badge-sm badge-info">Email Newsletter</span>
+			default:
+				if feedType := subscription.Feed.SourceType; feedType != "" {
+					<span class="badge badge-soft badge-sm capitalize badge-info">{ feedType }</span>
+				}
+		}
+		if link := subscription.Feed.GetLink(); link != "" {
 			<a
 				class="btn inline-flex items-center btn-ghost btn-sm"
-				href={ feed.GetLink() }
+				href={ link }
 				rel="noopener"
 				target="_blank"
 				_="on click halt the event's bubbling"
 			>
-				if feed.Domain != "" {
-					{ feed.Domain }
+				if domain := subscription.Feed.Domain; domain != "" {
+					{ domain }
 				} else {
 					Website
 				}
@@ -114,8 +123,8 @@ templ subscriptionCardFeedMetadata(feed *models.Feed) {
 			// if feed.GetLanguage() != "" {
 			// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
 			// }
-		</p>
-	}
+		}
+	</p>
 }
 
 templ subscriptionCardFooter(sub *models.Subscription) {
@@ -153,9 +162,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 				</div>
 			}
 			// Additional metadata from the feed if available.
-			if feed := sub.Feed; feed != nil {
-				@subscriptionCardFeedMetadata(feed)
-			}
+			@subscriptionCardFeedMetadata(sub)
 		</div>
 		<div class="flex items-center justify-between">
 			// Last updated relative timestamp.

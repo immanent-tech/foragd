@@ -156,7 +156,28 @@ templ feedSuggestion(feed *models.Feed, items models.Items) {
 		@partials.CardFooter(element.WithClasses("mt-auto")) {
 			<div class="border-t border-neutral/20 pt-1">
 				<div class="mt-2 flex items-center justify-center">
-					@subscriptionCardFeedMetadata(feed)
+					// Display some additional details from the source.
+					<p>
+						if feedType := feed.SourceType; feedType != "" {
+							<span class="badge badge-soft badge-sm capitalize badge-info">{ feedType }</span>
+						}
+						if link := feed.GetLink(); link != "" {
+							<a
+								class="btn inline-flex items-center btn-ghost btn-sm"
+								href={ link }
+								rel="noopener"
+								target="_blank"
+								_="on click halt the event's bubbling"
+							>
+								if domain := feed.Domain; domain != "" {
+									{ domain }
+								} else {
+									Website
+								}
+								@tableroutline.ExternalLink(templ.Attributes{"class": "size-4"})
+							</a>
+						}
+					</p>
 				</div>
 				<div class="flex items-center justify-between">
 					// Last updated relative timestamp.
