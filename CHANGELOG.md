@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.244.2](https://github.com/immanent-tech/foragd/compare/v0.244.1...v0.244.2) (2026-10-08)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 assume email body (after verification) is safe ([4033c9f](https://github.com/immanent-tech/foragd/commit/4033c9fad9f3fcdc15550adae6d7323238baabc6))
+* **handlers:** 🔧 fix auto mark read action returning blank page when viewing article ([90b642a](https://github.com/immanent-tech/foragd/commit/90b642af5d67415ad94af15b443c5e3cde97b078))
+* **models:** 🔧 add nil pointer guards for some article methods ([2560e2b](https://github.com/immanent-tech/foragd/commit/2560e2b56901540aaa48edb2ec261ca7bca5f3be))
+* **providers/google:** ♻️ provide a close method for safely shutting down error client ([85e4516](https://github.com/immanent-tech/foragd/commit/85e45166b927f8547c83151d08534f6c42fbac68))
+* **scheduler/jobs:** 🔧 fix naming to avoid conflict with inbuilt type ([e9c9800](https://github.com/immanent-tech/foragd/commit/e9c9800d57514725fc305e4ea4870d5a8d6bda51))
+
+
+### Performance Improvements
+
+* **server:** ⚡ improved scheduler start/stop ([edcd49d](https://github.com/immanent-tech/foragd/commit/edcd49da87db7a9f50b60e224fde7d35d5a95723))
+* **server:** ⚡ improved server start/stop ([8a9fbbb](https://github.com/immanent-tech/foragd/commit/8a9fbbbd72cff44d46c1432c22ad076b4283db20))
+
 ## [0.244.1](https://github.com/immanent-tech/foragd/compare/v0.244.0...v0.244.1) (2026-10-08)
 
 
