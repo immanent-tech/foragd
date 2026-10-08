@@ -46,7 +46,7 @@ type FeedsAPI interface {
 	GetFeed(ctx context.Context, feedID models.FeedID) (*models.Feed, error)
 	FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
 	FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
-	ApplyFeedUpdates(ctx context.Context, old, new *models.Feed) error
+	ApplyFeedUpdates(ctx context.Context, oldData, newData *models.Feed) error
 	UpdateFeed(ctx context.Context, feed *models.Feed) error
 }
 
