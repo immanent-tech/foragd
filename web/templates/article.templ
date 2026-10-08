@@ -527,7 +527,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 }
 
 templ listArticlesGrid(response *models.ListArticlesResponse) {
-	<div _={ components.ScrollRestoreScript(string(routeArticles), "articlesList") }>
+	<div _={ components.ScrollRestoreScript(string(routeArticles) + strings.Join(response.Filters.GetSubscriptions(), "-")) }>
 		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 			element.WithAttribute("_", "install MasonryGrid"),
 			element.WithHXMethod(http.MethodGet, string(routeArticles)),
