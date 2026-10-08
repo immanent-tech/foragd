@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.244.0](https://github.com/immanent-tech/foragd/compare/v0.243.0...v0.244.0) (2026-10-08)
+
+
+### Features
+
+* **templates:** ✨ include whether subscription is group/search or email newsletter as well as feed source type ([e99d0ad](https://github.com/immanent-tech/foragd/commit/e99d0ad78eb29d37008d9f2387980a240116405f))
+
+
+### Bug Fixes
+
+* **models:** 🔧 more robust setting of domain field for feeds ([b72f136](https://github.com/immanent-tech/foragd/commit/b72f136c01564c93c6ae177f50360706da35c2ce))
+* **templates/article:** 🔧 fix showing rights when available ([eb4cfeb](https://github.com/immanent-tech/foragd/commit/eb4cfebc1a83e380538aac298d789a7e63b8fe3e))
+* **templates/components:** 🔧 scroll restoration should be per subscription on list articles page ([ecec0fb](https://github.com/immanent-tech/foragd/commit/ecec0fb36f84d94e4e60e94b754a400bf092c17a))
+
 ## [0.243.0](https://github.com/immanent-tech/foragd/compare/v0.242.0...v0.243.0) (2026-10-07)
 
 
