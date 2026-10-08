@@ -16,7 +16,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/reugn/go-quartz/quartz"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -63,13 +62,13 @@ type JobQueue struct {
 var _ quartz.JobQueue = (*JobQueue)(nil)
 
 // NewJobQueue initializes and returns an empty jobQueue.
-func NewJobQueue(ctx context.Context) (*JobQueue, error) {
+func NewJobQueue(logger *slog.Logger) (*JobQueue, error) {
 	store, err := service.LoadElasticService()
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
 	return &JobQueue{
-		logger:  slogctx.FromCtx(ctx),
+		logger:  logger,
 		backend: store,
 	}, nil
 }

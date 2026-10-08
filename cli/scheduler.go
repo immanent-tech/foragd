@@ -8,6 +8,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"slices"
@@ -15,8 +16,6 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/service"
@@ -35,17 +34,12 @@ type SchedulerCmd struct {
 type RunSchedulerCmd struct{}
 
 func (c *RunSchedulerCmd) Run() error {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-	ctx = slogctx.NewCtx(ctx, logging.New())
-
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
 
-	if err := manager.Run(ctx); err != nil {
+	if err := manager.Run(); err != nil {
 		return fmt.Errorf("run scheduler: %w", err)
 	}
 	return nil
@@ -55,11 +49,7 @@ func (c *RunSchedulerCmd) Run() error {
 type ClearSchedulerCmd struct{}
 
 func (c *ClearSchedulerCmd) Run() error {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
@@ -68,7 +58,7 @@ func (c *ClearSchedulerCmd) Run() error {
 	if err := manager.Clear(); err != nil {
 		return fmt.Errorf("could not clear job queue: %w", err)
 	}
-	slogctx.FromCtx(ctx).Info("Job queue cleared.")
+	slog.Info("Job queue cleared.")
 	return nil
 }
 
@@ -87,7 +77,7 @@ func (c *InitSchedulerCmd) Run() error {
 	}
 
 	// Set up and create scheduler instance.
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
@@ -109,11 +99,7 @@ func (c *InitSchedulerCmd) Run() error {
 type ListJobsSchedulerCmd struct{}
 
 func (c *ListJobsSchedulerCmd) Run() error {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
@@ -139,11 +125,7 @@ type DeleteJobSchedulerCmd struct {
 
 // Run runs the delete-job scheduler command.
 func (c *DeleteJobSchedulerCmd) Run() error {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}

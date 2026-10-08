@@ -17,18 +17,23 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
-	"github.com/reugn/go-quartz/logger"
+	quartzlogger "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/matcher"
 	"github.com/reugn/go-quartz/quartz"
+
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-base/logging"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
@@ -49,10 +54,12 @@ type Manager struct {
 	store *service.ElasticService
 }
 
-// NewManager will create a new manager object containing the scheduler and job queue.
-func NewManager(ctx context.Context) (*Manager, error) {
+// New will create a [Manager] containing the scheduler and job queue. New does not start the scheduler; call
+// Run() to start it. The returned [Manager] can however be used to manage jobs (schedule/delete/query jobs).
+func New() (*Manager, error) {
+	logger := logging.New()
 	// Create distributed queue instance.
-	jobQueue, err := queue.NewJobQueue(ctx)
+	jobQueue, err := queue.NewJobQueue(logger)
 	if err != nil {
 		return nil, fmt.Errorf("new job queue: %w", err)
 	}
@@ -63,7 +70,7 @@ func NewManager(ctx context.Context) (*Manager, error) {
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithRetryInterval(time.Second),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
-		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
+		quartz.WithLogger(quartzlogger.NewSlogLogger(context.Background(), logger)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("new scheduler: %w", err)
@@ -82,8 +89,14 @@ func NewManager(ctx context.Context) (*Manager, error) {
 	}, nil
 }
 
-// Run starts the scheduler manager.
-func (m *Manager) Run(ctx context.Context) error {
+// Run starts the scheduler, including setting up background services, loading context for job queue and initialising
+// admin jobs.
+func (m *Manager) Run() error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer cancelFunc()
+	ctx = slogctx.NewCtx(ctx, logging.New())
+
 	// Store various objects in the context for access by jobs:
 	jobServices, err := m.generateJobServices(ctx)
 	if err != nil {
@@ -98,6 +111,7 @@ func (m *Manager) Run(ctx context.Context) error {
 
 	// Start scheduling jobs.
 	m.Start(ctx)
+
 	slogctx.Info(ctx, "Scheduler started.",
 		slog.Time("start_time", time.Now()),
 	)
@@ -106,30 +120,47 @@ func (m *Manager) Run(ctx context.Context) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-	// Create shutdown context with 30-second timeout
+	m.Shutdown()
+
+	return nil
+}
+
+// Shutdown performs shutdown logic for the scheduler, including safe shutdown of background services used by the
+// scheduler and jobs.
+func (m *Manager) Shutdown() {
 	shutdownCtx, cancel := context.WithTimeoutCause(
 		context.Background(),
 		gracefulShutdownTimeout,
 		errors.New("graceful shutdown timeout"),
 	)
+	shutdownCtx = slogctx.NewCtx(shutdownCtx, logging.New())
 	defer cancel()
 
-	if err := bulk.Shutdown(shutdownCtx); err != nil {
-		slogctx.FromCtx(shutdownCtx).Error("Failed to shut down indexer gracefully.",
-			slog.Any("error", err))
+	shutdownTasks, tasksCtx := errgroup.WithContext(shutdownCtx)
+	defer tasksCtx.Done()
+
+	shutdownTasks.Go(func() error {
+		return bulk.Shutdown(tasksCtx)
+	})
+
+	shutdownTasks.Go(func() error {
+		return elastic.Shutdown(shutdownCtx)
+	})
+
+	shutdownTasks.Go(func() error {
+		gerror.CloseClient()
+		return nil
+	})
+
+	if err := shutdownTasks.Wait(); err != nil {
+		slogctx.Warn(shutdownCtx, "Error occurred during scheduler shutdown.", slog.Any("error", err))
 	}
-	if err := elastic.Shutdown(shutdownCtx); err != nil {
-		slogctx.FromCtx(shutdownCtx).Error("Elasticsearch failed to shutdown gracefully.",
-			slog.Any("error", err),
-		)
-	}
+
 	m.Stop()
 
 	slogctx.FromCtx(shutdownCtx).Debug("Scheduler stopped.",
 		slog.Time("stop_time", time.Now()),
 	)
-
-	return nil
 }
 
 // InitAdminJobs loads the listed jobs into the scheduler. These are administrative jobs that should always be
@@ -188,6 +219,7 @@ func (m *Manager) InitAdminJobs(ctx context.Context) error {
 	return nil
 }
 
+// LoadUpdateFeedJobs will ensure that all feeds have an update job scheduled.
 func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedService) error {
 	// Gather all current feed jobs.
 	jobKeys, err := m.GetJobKeys(matcher.NewJobGroup(&matcher.StringEquals, "update_feed"))
@@ -225,17 +257,19 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 
 	for feed := range slices.Values(joblessFeeds) {
 		// Add additional feed details to logs.
-		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
-		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
+		feedCtx := slogctx.With(ctx,
+			"feed_id", feed.GetID(),
+			"feed_name", feed.GetTitle(),
+		)
 		if slices.ContainsFunc(jobKeys, func(e *quartz.JobKey) bool {
 			return e.Name() == feed.GetID()
 		}) {
-			slogctx.Warn(ctx, "Existing job found.")
+			slogctx.Warn(feedCtx, "Existing job found.")
 			continue
 		}
 		wg.Go(func() {
-			if err := jobs.AddFeedJob(ctx, m, feedSvc, feed); err != nil {
-				slogctx.Error(ctx, "Could not add job for feed.",
+			if err := jobs.AddFeedJob(feedCtx, m, feedSvc, feed); err != nil {
+				slogctx.Error(feedCtx, "Could not add job for feed.",
 					slog.Any("error", err),
 				)
 			}
@@ -248,48 +282,49 @@ func (m *Manager) LoadUpdateFeedJobs(ctx context.Context, feedSvc *service.FeedS
 }
 
 func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, error) {
-	// Store various objects in the context for access by jobs:
-	// Bulk indexer.
-	indexer, err := bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
-	if err != nil {
-		return nil, fmt.Errorf("create indexer: %w", err)
-	}
-	// HTTP client.
+	// Load all independent components concurrently. Many of these do network I/O (OIDC discovery, management tokens,
+	// Elasticsearch, etc.), so doing them serially is the main startup cost.
+	g, _ := errgroup.WithContext(ctx)
 
-	// Item cache.
-	itemsCache, err := cache.NewItemsCache()
-	if err != nil {
-		return nil, fmt.Errorf("load items cache: %w", err)
-	}
-	// User service.
-	userSvc, err := service.LoadUserService()
-	if err != nil {
-		return nil, fmt.Errorf("load user service: %w", err)
-	}
-	// Feed service.
-	feedSvc, err := service.LoadFeedService()
-	if err != nil {
-		return nil, fmt.Errorf("load feed service: %w", err)
-	}
-	// Import service
-	importSvc, err := service.NewImportService()
-	if err != nil {
-		return nil, fmt.Errorf("load import service: %w", err)
-	}
+	bulkIndexerF := loadAsync(g, "bulk indexer", func() (*bulk.Indexer, error) {
+		return bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
+	})
+	itemsCacheF := loadAsync(g, "items cache", cache.NewItemsCache)
+	feedSvcF := loadAsync(g, "feed service", service.LoadFeedService)
+	userSvcF := loadAsync(g, "user service", service.LoadUserService)
+	importSvcF := loadAsync(g, "import service", service.NewImportService)
+	emailSenderF := loadAsync(g, "email sender", resend.NewSender)
 
-	emailSender, err := resend.NewSender()
-	if err != nil {
-		return nil, fmt.Errorf("load email sender service: %w", err)
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("load services: %w", err)
 	}
 
 	return &jobs.Services{
 		Scheduler:   m,
 		Elastic:     m.store,
-		Feeds:       feedSvc,
-		Imports:     importSvc,
-		Users:       userSvc,
-		ItemsCache:  itemsCache,
-		Indexer:     indexer,
-		EmailSender: emailSender,
+		Feeds:       feedSvcF(),
+		Imports:     importSvcF(),
+		Users:       userSvcF(),
+		ItemsCache:  itemsCacheF(),
+		Indexer:     bulkIndexerF(),
+		EmailSender: emailSenderF(),
 	}, nil
+}
+
+// loadAsync runs fn in the errgroup and returns a getter for the result. The getter must only be called after g.Wait()
+// has returned nil. The type is inferred, so no explicit service types are needed at the call site. It also logs how
+// long each step took, which shows what dominates startup.
+func loadAsync[T any](g *errgroup.Group, name string, fn func() (T, error)) func() T {
+	var v T
+	g.Go(func() error {
+		start := time.Now()
+		res, err := fn()
+		if err != nil {
+			return fmt.Errorf("load %s: %w", name, err)
+		}
+		v = res
+		slog.Debug("Loaded component.", slog.String("component", name), slog.Duration("took", time.Since(start)))
+		return nil
+	})
+	return func() T { return v }
 }

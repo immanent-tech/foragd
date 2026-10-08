@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		panic(err)
 	}

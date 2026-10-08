@@ -201,7 +201,7 @@ func sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *model
 		return fmt.Errorf("send welcome email: %w", err)
 	}
 	// Load the scheduler (but don't start it).
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		log.Warn("Could not load scheduler, cannot schedule new user jobs.",
 			slog.Any("error", err),

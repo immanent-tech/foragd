@@ -183,7 +183,7 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	slogctx.FromCtx(ctx).Info("Feed last_fetched reset.")
 
 	// Delete scheduled job for feed.
-	manager, err := scheduler.NewManager(ctx)
+	manager, err := scheduler.New()
 	if err != nil {
 		return fmt.Errorf("could not run scheduler: %w", err)
 	}
@@ -236,7 +236,7 @@ func (c *UpdateFeedCmd) Run() error {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Delete scheduled job for feed.
-		manager, err := scheduler.NewManager(ctx)
+		manager, err := scheduler.New()
 		if err != nil {
 			return fmt.Errorf("could not run scheduler: %w", err)
 		}
