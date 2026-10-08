@@ -24,7 +24,6 @@ require (
 	github.com/auth0/go-auth0/v2 v2.14.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/coreos/go-oidc/v3 v3.21.0
-	github.com/didip/tollbooth/v8 v8.0.1
 	github.com/dimmerz92/go-icons v0.68.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/go-elasticsearch/v9 v9.5.2
@@ -46,7 +45,6 @@ require (
 	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/oapi-codegen/runtime v1.7.0
-	github.com/realclientip/realclientip-go v1.0.0
 	github.com/resend/resend-go/v3 v3.17.0
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.3
@@ -114,7 +112,6 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v1.0.1 // indirect
-	github.com/go-pkgz/expirable-cache/v3 v3.1.0 // indirect
 	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -189,6 +186,7 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/vektra/mockery/v3 v3.8.0 // indirect
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
