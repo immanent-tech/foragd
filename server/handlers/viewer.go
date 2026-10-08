@@ -12,6 +12,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -86,7 +88,8 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			feedURL, err := models.NormalizeFeedURL(chi.URLParam(req, "*"))
+			rawURL := validation.SanitizeString(chi.URLParam(req, "*"))
+			feedURL, err := models.NormalizeFeedURL(rawURL)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),

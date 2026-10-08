@@ -20,6 +20,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/validation"
 	"github.com/immanent-tech/go-syndication/linter"
 
 	"github.com/immanent-tech/foragd/models"
@@ -85,9 +86,11 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				svc:         m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
-			feedData, err := fetchFeedData(httpClient, req.FormValue("url"))
+			rawURL := validation.SanitizeString(req.FormValue("url"))
+			feedData, err := fetchFeedData(httpClient, rawURL)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",
+					slog.String("url", rawURL),
 					slog.Any("error", err),
 				)
 				RenderPartial(&LinterError{
