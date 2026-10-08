@@ -12,6 +12,8 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-base/validation"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/paddle"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -86,9 +88,9 @@ func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerF
 
 		// If ?_ptxn=txn_01... is present, this will be passed so the Paddle overlay is opened automatically for that
 		// transaction.
-		transactionID := req.FormValue("_ptxn")
+		transactionID := validation.SanitizeString(req.FormValue("_ptxn"))
 		var planID string
-		if frequency := req.FormValue("frequency"); frequency != "" {
+		if frequency := validation.SanitizeString(req.FormValue("frequency")); frequency != "" {
 			var err error
 			planID, err = paddle.GetPriceID(frequency)
 			if err != nil {
