@@ -257,12 +257,18 @@ func (a *Article) GetFeedTitle() string {
 
 // IsUnread returns a boolean indicating whether the user has not read this article.
 func (a *Article) IsUnread() bool {
-	return !a.State.Read
+	if a.State != nil {
+		return !a.State.Read
+	}
+	return true
 }
 
 // IsFavorite returns a boolean indicating whether the article has been favorited.
 func (a *Article) IsFavorite() bool {
-	return a.State.Favorite
+	if a.State != nil {
+		return a.State.Favorite
+	}
+	return false
 }
 
 // GetObjectType returns the type of the object, in this case, "article".
