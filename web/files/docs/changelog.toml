@@ -56,7 +56,7 @@ type = "major"
 [[releases.changes]]
 type = "new"
 description = """
-You can now bulk unsubscribe from the <a href="/user/settings#subscriptions" class="link">subscriptions settings</a> page.
+You can now bulk unsubscribe from the <a href="/settings#subscriptions" class="link">subscriptions settings</a> page.
 """
 [[releases.changes]]
 type = "improved"
@@ -780,5 +780,5 @@ type = "major"
 [[releases.changes]]
 type = "new"
 description = """
-There is now a <a class="link" href="/user/settings#subscriptions">dedicated page</a> for bulk and individual management of all your subscriptions.
+There is now a <a class="link" href="/settings#subscriptions">dedicated page</a> for bulk and individual management of all your subscriptions.
 """

@@ -283,7 +283,7 @@ templ NewUserHome() {
 						</div>
 						<div class="mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 2">
 							<button
-								hx-post="/user/feedset"
+								hx-post="/subscriptions/add/feedset"
 								hx-swap="none"
 								hx-disable="this"
 								type="submit"

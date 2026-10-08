@@ -399,7 +399,7 @@ func (m *Manager) HandleBulkMarkSubscriptions(svc SubscriptionsService, mark mod
 			// Determine actions to apply based on which route this handler was called from.
 			ctx := req.Context()
 			switch {
-			case strings.Contains(req.Referer(), "/user/settings"):
+			case strings.Contains(req.Referer(), "/settings"):
 				ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
 				res.Header().Set(htmx.HeaderRefresh, "true")
 			default:
@@ -500,7 +500,7 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 			case strings.Contains(req.Referer(), "/articles"):
 				// When the current page is "/articles", redirect the user to "/subscriptions".
 				res.Header().Add(htmx.HeaderRedirect, "/subscriptions")
-			case strings.Contains(req.Referer(), "/user/settings"):
+			case strings.Contains(req.Referer(), "/settings"):
 				// When on the subscriptions settings page, remove the subscription from the table.
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true swap:300ms")
 				res.Header().Set(htmx.HeaderRetarget, "#"+subscription.GetID())
@@ -535,7 +535,7 @@ func (m *Manager) HandleBulkRemoveSubscriptions(svc SubscriptionsService) http.H
 			// Determine actions to apply based on which route this handler was called from.
 			ctx := req.Context()
 			switch {
-			case strings.Contains(req.Referer(), "/user/settings"):
+			case strings.Contains(req.Referer(), "/settings"):
 				ctx = templates.FragmentKeysToCtx(req.Context(), templates.SubscriptionsTable)
 				res.Header().Set(htmx.HeaderRefresh, "true")
 			default:

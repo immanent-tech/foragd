@@ -354,6 +354,7 @@ func Start() error {
 			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
+				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(itemSvc))
 				r.Post("/paginate", handlerMgr.HandleListSubscriptions(subscriptionSvc))
 				r.Post("/read", handlerMgr.HandleBulkMarkSubscriptions(subscriptionSvc, models.MarkRead))
 				r.Post(
@@ -361,7 +362,9 @@ func Start() error {
 					handlerMgr.HandleBulkMarkSubscriptions(subscriptionSvc, models.MarkRead),
 				)
 				r.Post("/remove", handlerMgr.HandleBulkRemoveSubscriptions(subscriptionSvc))
-				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(itemSvc))
+				r.Route("/add", func(r chi.Router) {
+					r.Post("/feedset", handlerMgr.HandleAddFeedset(feedSvc, subscriptionSvc))
+				})
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlerMgr.SubscriptionCtx(subscriptionSvc))
@@ -473,15 +476,34 @@ func Start() error {
 		})
 		// Help/Documentation.
 		r.Get("/docs", handlerMgr.DocumentationHandler("/docs"))
-
+		// Settings.
 		r.Route("/settings", func(r chi.Router) {
+			r.Get("/", handlerMgr.ShowSettings())
 			r.Route("/display", func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
+				r.Get("/", handlerMgr.HandleShowDisplaySettings())
+				r.Post("/", handlerMgr.HandleSaveDisplaySettings(userSvc))
 				r.Post("/font", handlerMgr.HandleSaveFontSettings(userSvc))
 				r.Post("/theme", handlerMgr.HandleSaveThemeSettings(userSvc))
 			})
+			r.Route("/account", func(r chi.Router) {
+				r.Use(htmx.RequireHTMX)
+				r.Get("/", handlerMgr.HandleShowAccountSettings())
+				r.Post("/", handlerMgr.HandleSaveAccountSettings(userSvc, authMgr, imgCache))
+				r.Post("/password", handlerMgr.HandleChangePassword(authMgr))
+				r.Post("/newsletters", handlerMgr.HandleGenerateSubscriptionEmail(userSvc))
+				r.Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authMgr, auth, emailSender))
+			})
+			r.Route("/subscriptions", func(r chi.Router) {
+				r.Use(htmx.RequireHTMX)
+				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
+				r.Get("/", handlerMgr.HandleShowSubscriptionsSettings())
+				r.Post("/", handlerMgr.HandleSaveSubscriptionsSettings(userSvc))
+			})
+			// TODO: check if still used?
+			r.Get("/subscription", handlerMgr.HandleManageAccountSubscription())
 		})
-		// Import
+		// Import.
 		r.Route("/import", func(r chi.Router) {
 			r.Get("/", handlerMgr.HandleSetupImport(subscriptionSvc, userSvc, emailSender))
 			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleStartImport(importSvc))
@@ -492,39 +514,11 @@ func Start() error {
 				r.Get("/{jobID}", handlerMgr.HandleImportStatus(importSvc, subscriptionSvc))
 			})
 		})
-
-		// User routes.
-		r.Route("/user", func(r chi.Router) {
-			r.Post(
-				"/feedset",
-				handlerMgr.HandleAddFeedset(feedSvc, subscriptionSvc),
-			)
-			// Import/export.
-			r.Group(func(r chi.Router) {
-				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-				r.Get("/export", handlerMgr.HandleExportSubscriptions(feedSvc))
-				r.Post("/export", handlerMgr.HandleExportSubscriptions(feedSvc))
-			})
-			// Settings.
-			r.Route("/settings", func(r chi.Router) {
-				r.Get("/", handlerMgr.ShowSettings())
-				r.With(htmx.RequireHTMX).Get("/display", handlerMgr.HandleShowDisplaySettings())
-				r.With(htmx.RequireHTMX).Post("/display", handlerMgr.HandleSaveDisplaySettings(userSvc))
-				r.With(htmx.RequireHTMX).Get("/account", handlerMgr.HandleShowAccountSettings())
-				r.With(htmx.RequireHTMX).
-					Post("/account", handlerMgr.HandleSaveAccountSettings(userSvc, authMgr, imgCache))
-				r.Group(func(r chi.Router) {
-					r.Use(htmx.RequireHTMX)
-					r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-					r.Get("/subscriptions", handlerMgr.HandleShowSubscriptionsSettings())
-					r.Post("/subscriptions", handlerMgr.HandleSaveSubscriptionsSettings(userSvc))
-				})
-				r.Get("/subscription", handlerMgr.HandleManageAccountSubscription())
-				r.With(htmx.RequireHTMX).Post("/password", handlerMgr.HandleChangePassword(authMgr))
-				r.With(htmx.RequireHTMX).Post("/subscriptionemail", handlerMgr.HandleGenerateSubscriptionEmail(userSvc))
-			})
-			r.With(htmx.RequireHTMX).
-				Post("/deactivate", handlerMgr.HandleDeactivateAccount(userSvc, authMgr, auth, emailSender))
+		// Export.
+		r.Route("/export", func(r chi.Router) {
+			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
+			r.Get("/", handlerMgr.HandleExportSubscriptions(feedSvc))
+			r.Post("/", handlerMgr.HandleExportSubscriptions(feedSvc))
 		})
 
 		// Moved routes.
@@ -535,6 +529,8 @@ func Start() error {
 		r.Get("/posts/*", handlers.RedirectParam("*", "blog/%s", http.StatusMovedPermanently))
 		r.Get("/view/article/{item_id}", handlers.RedirectParam("item_id", "/articles/%s", http.StatusMovedPermanently))
 		r.Get("/user/import", handlers.RedirectTo("/import", http.StatusMovedPermanently))
+		r.Get("/user/export", handlers.RedirectTo("/export", http.StatusMovedPermanently))
+		r.Get("/user/settings", handlers.RedirectTo("/settings", http.StatusMovedPermanently))
 	})
 
 	svr := &http.Server{

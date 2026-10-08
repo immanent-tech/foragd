@@ -238,7 +238,7 @@ func Checkout(user *models.User, request *models.CheckoutRequest) templ.Componen
 					return templ_7745c5c3_Err
 				}
 				if !user.InTrial() && user.HasValidSubscription() {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">You already have an active plan.</h1></div><div class=\"my-16 gap-x-8 text-center\"><a role=\"button\" href=\"/user/settings#account\" class=\"btn btn-primary\">Account Settings</a> <a role=\"button\" href=\"/home\" class=\"btn btn-primary\">Home</a></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " <div class=\"mx-auto mt-8 text-center\"><h1 id=\"pricing\" class=\"text-2xl font-semibold text-primary sm:text-3xl/8\">You already have an active plan.</h1></div><div class=\"my-16 gap-x-8 text-center\"><a role=\"button\" href=\"/settings#account\" class=\"btn btn-primary\">Account Settings</a> <a role=\"button\" href=\"/home\" class=\"btn btn-primary\">Home</a></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -348,7 +348,7 @@ func PurchaseSubscriptionSuccess(transactionID string) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value: 10\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

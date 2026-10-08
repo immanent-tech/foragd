@@ -65,7 +65,7 @@
 
                 <Section class="bg-base-300 px-6 py-16 text-center">
                     <Button
-                        href="/user/settings#subscriptions?utm_medium=email&utm_source=notification"
+                        href="/settings#subscriptions?utm_medium=email&utm_source=notification"
                         class="rounded-lg bg-primary px-7 py-3 text-sm font-bold text-primary-content"
                     >
                         Manage your subscriptions

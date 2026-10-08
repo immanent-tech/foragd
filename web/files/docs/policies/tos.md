@@ -237,7 +237,7 @@ change at the end of a payment term.
   monthly billing date.
 - If you upgrade to a higher level of service, we will bill you for the upgraded plan immediately.
 - You may change your level of service at any time by going into your [Billing
-  settings](https://foragd.app/user/settings). If you choose to downgrade your Account, you may lose access to Content,
+  settings](https://foragd.app/settings). If you choose to downgrade your Account, you may lose access to Content,
   features, or capacity of your Account. Please see our section on [Cancellation](#cancellation-and-termination) for
   information on getting a copy of that Content.
 

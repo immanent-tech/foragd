@@ -117,7 +117,7 @@
                 Go to your
                 <a
                   class="text-accent hover:text-primary"
-                  href="/user/settings?utm_medium=email&utm_source=notification"
+                  href="/settings?utm_medium=email&utm_source=notification"
                 >Settings</a>->Account tab.
               </li>
               <li>

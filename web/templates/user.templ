@@ -63,7 +63,7 @@ templ DeactivateAccountModal() {
 				</button>
 				<button
 					type="submit"
-					hx-post="/user/deactivate"
+					hx-post="/settings/account/deactivate"
 					hx-swap="none"
 					hx-vals={ templ.JSONString(map[string]any{"confirmed": true}) }
 					hx-disable="this"
@@ -169,7 +169,7 @@ templ DeactivateResult(user *models.User, timeLeft *time.Time) {
 				<div>
 					<span class="countdown font-mono text-4xl">
 						<span
-							style="--value:10;"
+							style="--value: 10"
 							aria-live="polite"
 							aria-label="10"
 							_="on load

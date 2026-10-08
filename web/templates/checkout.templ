@@ -176,7 +176,7 @@ templ Checkout(user *models.User, request *models.CheckoutRequest) {
 					<div class="my-16 gap-x-8 text-center">
 						<a
 							role="button"
-							href="/user/settings#account"
+							href="/settings#account"
 							class="btn btn-primary"
 						>
 							Account Settings
@@ -224,7 +224,7 @@ templ PurchaseSubscriptionSuccess(transactionID string) {
 					<div>
 						<span class="countdown font-mono text-4xl">
 							<span
-								style="--value:10;"
+								style="--value: 10"
 								aria-live="polite"
 								aria-label="10"
 								_="on load

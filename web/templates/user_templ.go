@@ -134,7 +134,7 @@ func DeactivateAccountModal() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mt-5 justify-center gap-x-2 sm:mt-4 sm:flex sm:justify-end\"><button type=\"button\" _=\"on click remove @open from  the closest <el-dialog/>\" class=\"btn btn-ghost\"><span class=\"text-sm/6\">No</span></button> <button type=\"submit\" hx-post=\"/user/deactivate\" hx-swap=\"none\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mt-5 justify-center gap-x-2 sm:mt-4 sm:flex sm:justify-end\"><button type=\"button\" _=\"on click remove @open from  the closest <el-dialog/>\" class=\"btn btn-ghost\"><span class=\"text-sm/6\">No</span></button> <button type=\"submit\" hx-post=\"/settings/account/deactivate\" hx-swap=\"none\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -246,7 +246,7 @@ func DeactivateResult(user *models.User, timeLeft *time.Time) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value:10;\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"redirect-wrap text-center\"><p class=\"redirect-hint\">Redirecting in:</p><div><span class=\"countdown font-mono text-4xl\"><span style=\"--value: 10\" aria-live=\"polite\" aria-label=\"10\" _=\"on load\n\t\t\t\t\t\t\t\tset :secs to 10\n\t\t\t\t\t\t\t\trepeat until :secs < 0\n\t\t\t\t\t\t\t\t\tset my @aria-label to :secs\n\t\t\t\t\t\t\t\t\tset my @style to '--value:'+:secs+';'\n\t\t\t\t\t\t\t\t\twait 1s\n\t\t\t\t\t\t\t\t\tdecrement :secs\n\t\t\t\t\t\t\t\tend\n\t\t\t\t\t\t\t\">10</span></span> sec</div><a role=\"button\" class=\"btn btn-primary\" hx-get=\"/home\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

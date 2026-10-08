@@ -494,7 +494,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 								if user.Settings.SubscriptionEmail == nil {
 									<p>Generate an email for subscribing to email newsletters.</p>
 									<button
-										hx-post="/user/settings/subscriptionemail"
+										hx-post="/settings/account/newsletters"
 										hx-target="#subscription-email"
 										hx-swap="innerMorph transition:true"
 										class="btn btn-primary"

@@ -104,7 +104,7 @@ to any feed shown and see the latest articles from the feed.
 ### Importing via OPML
 
 If you have an OPML file from another feed application or service, you can import it by navigating to the
-[Settings->Subscriptions](/user/settings/#subscriptions) tab and clicking import (or [go directly to the import
+[Settings->Subscriptions](/settings/#subscriptions) tab and clicking import (or [go directly to the import
 page](/import)).
 
 Upload or drag and drop your OPML file and you'll be redirected to a page showing the status of the import. The import
@@ -210,13 +210,13 @@ nickname, or even filter received emails) as with any other subscription.
 
 ### Bulk Subscription Management
 
-You can manage your subscriptions at [Settings->Subscriptions](/user/settings#subscriptions). This page provides a way
+You can manage your subscriptions at [Settings->Subscriptions](/settings#subscriptions). This page provides a way
 to edit, mark, and manage subscriptions both individually and in bulk. It also shows how many subscriptions you have in
 total (and what your account limits on subscriptions are).
 
 ### Exporting Your Subscriptions
 
-You can export your subscriptions by navigating to [Settings->Subscriptions](/user/settings#subscriptions) and
+You can export your subscriptions by navigating to [Settings->Subscriptions](/settings#subscriptions) and
 clicking the **Export** button (or [go direct to the export page](/export). Your subscriptions are exported as a
 standard `OPML` file that all good feed readers support importing from.
 
@@ -245,7 +245,7 @@ kept indefinitely. Foragd makes a copy of the article and stores it specially fo
 
 ## Accounts
 
-- You can manage your account at [Settings->Account](/user/settings#account).
+- You can manage your account at [Settings->Account](/settings#account).
 - You can change your plan level or cancel anytime.
 - Canceling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also
   reverse a cancellation during this period if you change your mind.
