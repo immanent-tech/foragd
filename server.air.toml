@@ -19,7 +19,7 @@ pre_cmd = [
 # Just plain old shell command. You could use `make` as well.
 cmd = 'go build -o ./tmp/foragd .'
 # Array of commands to run after ^C
-post_cmd = ["echo 'hello air' > post_cmd.txt"]
+# post_cmd = ["echo 'hello air' > post_cmd.txt"]
 # Binary file yields from 'cmd', will be deprecated soon, recommend using entrypoint.
 # bin = "tmp/foragd"
 # Entrypoint binary relative to root. First item is the executable, more items are default arguments.
