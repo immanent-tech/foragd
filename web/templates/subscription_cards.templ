@@ -105,24 +105,26 @@ templ subscriptionCardFeedMetadata(subscription *models.Subscription) {
 					<span class="badge badge-soft badge-sm capitalize badge-info">{ feedType }</span>
 				}
 		}
-		if link := subscription.Feed.GetLink(); link != "" {
-			<a
-				class="btn inline-flex items-center btn-ghost btn-sm"
-				href={ link }
-				rel="noopener"
-				target="_blank"
-				_="on click halt the event's bubbling"
-			>
-				if domain := subscription.Feed.Domain; domain != "" {
-					{ domain }
-				} else {
-					Website
-				}
-				@tableroutline.ExternalLink(templ.Attributes{"class": "size-4"})
-			</a>
-			// if feed.GetLanguage() != "" {
-			// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
-			// }
+		if subscription.Feed != nil {
+			if link := subscription.Feed.GetLink(); link != "" {
+				<a
+					class="btn inline-flex items-center btn-ghost btn-sm"
+					href={ link }
+					rel="noopener"
+					target="_blank"
+					_="on click halt the event's bubbling"
+				>
+					if domain := subscription.Feed.Domain; domain != "" {
+						{ domain }
+					} else {
+						Website
+					}
+					@tableroutline.ExternalLink(templ.Attributes{"class": "size-4"})
+				</a>
+				// if feed.GetLanguage() != "" {
+				// 	<span class="text-xs" lang={ feed.GetLanguage() }>{ feed.GetLanguage() }</span>
+				// }
+			}
 		}
 	</p>
 }
