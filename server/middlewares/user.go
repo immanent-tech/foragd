@@ -37,122 +37,201 @@ func ExtractUserFromSession(
 			log := slogctx.FromCtx(req.Context())
 
 			// Ignore updates route.
-			if strings.HasPrefix(req.URL.Path, "/updates") {
-				next.ServeHTTP(res, req)
+			if SkipUpdatesRoute(next)(res, req) {
 				return
 			}
 
-			// If user isn't authenticated, redirect to authenticate.
-			if !auth.IsAuthenticated(req.Context()) {
-				log.Warn("Unauthenticated; redirecting to login.")
-				auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-				if htmx.IsHTMX(req) {
-					res.Header().Add(htmx.HeaderRedirect, "/login")
-					res.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				http.Redirect(res, req, "/login", http.StatusFound)
+			if handleUnauthenticated(log, auth, req, res) {
 				return
 			}
 
-			if auth.IsAccessTokenExpired(req.Context()) {
-				refreshToken, err := auth.GetRefreshToken(req.Context())
-				if err != nil || refreshToken == "" {
-					log.Warn("Access token expired and no refresh token; redirecting to login.",
-						slog.Any("error", err),
-					)
-					auth.ClearAuth(req.Context())
-					auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-					if htmx.IsHTMX(req) {
-						res.Header().Add(htmx.HeaderRedirect, "/login")
-						res.WriteHeader(http.StatusUnauthorized)
-						return
-					}
-					http.Redirect(res, req, "/login", http.StatusFound)
-					return
-				}
-
-				slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
-				if err := auth.RefreshTokens(req.Context(), refreshToken); err != nil {
-					log.Warn("Token refresh failed.",
-						slog.Any("error", err),
-					)
-					auth.ClearAuth(req.Context())
-					auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-					if htmx.IsHTMX(req) {
-						res.Header().Add(htmx.HeaderRedirect, "/login")
-						res.WriteHeader(http.StatusUnauthorized)
-						return
-					}
-					http.Redirect(res, req, "/login", http.StatusFound)
-					return
-				}
-
-				// Rotate tokens in session.
-				log.Debug("Token refresh successful.")
+			if handleTokenExpiry(log, auth, req, res) {
+				return
 			}
 
-			var externalUserID string
-			var blocked bool
-			switch profile := session.Get(req.Context(), "profile").(type) {
-			case auth0.UserProfile:
-				// TODO: remove this block after a while.
-				externalUserID = profile.GetID()
-				blocked = profile.Blocked
-			case models.UserProfileResponse:
-				externalUserID = profile.GetID()
-				if profile.Blocked != nil {
-					blocked = *profile.Blocked
-				} else {
-					blocked = false
-				}
-			default:
-				log.Warn("Unable to retrieve profile from session.")
-				auth.ClearAuth(req.Context())
-				auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-				if htmx.IsHTMX(req) {
-					res.Header().Add(htmx.HeaderRedirect, "/login")
-					res.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				http.Redirect(res, req, "/login", http.StatusFound)
+			// Extract and validate user profile from session.
+			externalUserID, blocked := extractUserProfile(session, req, log, auth, res)
+			if externalUserID == "" {
 				return
 			}
 
 			if blocked {
-				log.Error("Attempted access from blocked user. Redirecting to account issue page.",
-					slog.String("external_user_id", externalUserID),
-				)
-				if htmx.IsHTMX(req) {
-					res.Header().Set(htmx.HeaderRedirect, "/account-issue")
-				} else {
-					http.Redirect(res, req, "/account-issue", http.StatusTemporaryRedirect)
-				}
+				handleBlockedUser(log, res, req, "/account-issue", externalUserID)
 				return
 			}
 
 			// Fetch the user from the user management API.
-			user, err := users.GetUserByExternalID(req.Context(), externalUserID)
+			user, err := fetchUserFromAPI(log, users, req, externalUserID)
 			if err != nil {
-				log.Error("Get local user data failed.",
-					slog.String("external_user_id", externalUserID),
-					slog.Any("error", err))
-				if htmx.IsHTMX(req) {
-					res.Header().Set(htmx.HeaderRedirect, "/")
-				} else {
-					http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
-				}
 				return
 			}
 
 			// Add context values.
-			ctx := models.UserToCtx(req.Context(), user)
-			ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
+			ctx := enrichContext(req, user)
 
 			// Pass to next request.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
+}
+
+// SkipUpdatesRoute skips the ExtractUserFromSession middleware for /updates routes.
+func SkipUpdatesRoute(next http.Handler) func(res http.ResponseWriter, req *http.Request) bool {
+	return func(res http.ResponseWriter, req *http.Request) bool {
+		if strings.HasPrefix(req.URL.Path, "/updates") {
+			res.WriteHeader(http.StatusOK)
+			return true
+		}
+		res.WriteHeader(http.StatusContinue)
+		return false
+	}
+}
+
+// handleUnauthenticated handles redirecting unauthenticated users.
+func handleUnauthenticated(
+	log *slog.Logger,
+	auth handlers.Authenticator,
+	req *http.Request,
+	res http.ResponseWriter,
+) bool {
+	if !auth.IsAuthenticated(req.Context()) {
+		log.Warn("Unauthenticated; redirecting to login.")
+		auth.PutReturnTo(req.Context(), req.URL.RequestURI())
+		if htmx.IsHTMX(req) {
+			res.Header().Add(htmx.HeaderRedirect, "/login")
+			res.WriteHeader(http.StatusUnauthorized)
+		} else {
+			http.Redirect(res, req, "/login", http.StatusFound)
+		}
+		return true
+	}
+	return false
+}
+
+// handleTokenExpiry handles token refresh and redirect on failure.
+func handleTokenExpiry(
+	log *slog.Logger,
+	auth handlers.Authenticator,
+	req *http.Request,
+	res http.ResponseWriter,
+) bool {
+	if auth.IsAccessTokenExpired(req.Context()) {
+		refreshToken, err := auth.GetRefreshToken(req.Context())
+		if err != nil || refreshToken == "" {
+			log.Warn("Access token expired and no refresh token; redirecting to login.",
+				slog.Any("error", err),
+			)
+			auth.ClearAuth(req.Context())
+			auth.PutReturnTo(req.Context(), req.URL.RequestURI())
+			if htmx.IsHTMX(req) {
+				res.Header().Add(htmx.HeaderRedirect, "/login")
+				res.WriteHeader(http.StatusUnauthorized)
+			} else {
+				http.Redirect(res, req, "/login", http.StatusFound)
+			}
+			return true
+		}
+
+		slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
+		if err := auth.RefreshTokens(req.Context(), refreshToken); err != nil {
+			log.Warn("Token refresh failed.",
+				slog.Any("error", err),
+			)
+			auth.ClearAuth(req.Context())
+			auth.PutReturnTo(req.Context(), req.URL.RequestURI())
+			if htmx.IsHTMX(req) {
+				res.Header().Add(htmx.HeaderRedirect, "/login")
+				res.WriteHeader(http.StatusUnauthorized)
+			} else {
+				http.Redirect(res, req, "/login", http.StatusFound)
+			}
+			return true
+		}
+
+		// Rotate tokens in session.
+		log.Debug("Token refresh successful.")
+		return false
+	}
+	return false
+}
+
+// extractUserProfile extracts the external user ID and blocked status from the session profile.
+func extractUserProfile(
+	session handlers.SessionManager,
+	req *http.Request,
+	log *slog.Logger,
+	auth handlers.Authenticator,
+	res http.ResponseWriter,
+) (string, bool) {
+	var externalUserID string
+	var blocked bool
+	switch profile := session.Get(req.Context(), "profile").(type) {
+	case auth0.UserProfile:
+		// TODO: remove this block after a while.
+		externalUserID = profile.GetID()
+		blocked = profile.Blocked
+	case models.UserProfileResponse:
+		externalUserID = profile.GetID()
+		if profile.Blocked != nil {
+			blocked = *profile.Blocked
+		} else {
+			blocked = false
+		}
+	default:
+		log.Warn("Unable to retrieve profile from session.")
+		auth.ClearAuth(req.Context())
+		auth.PutReturnTo(req.Context(), req.URL.RequestURI())
+		if htmx.IsHTMX(req) {
+			res.Header().Add(htmx.HeaderRedirect, "/login")
+			res.WriteHeader(http.StatusUnauthorized)
+		} else {
+			http.Redirect(res, req, "/login", http.StatusFound)
+		}
+		return "", false
+	}
+	return externalUserID, blocked
+}
+
+// handleBlockedUser handles redirecting blocked users.
+func handleBlockedUser(
+	log *slog.Logger,
+	res http.ResponseWriter,
+	req *http.Request,
+	redirectPath string,
+	externalUserID string,
+) {
+	log.Error("Attempted access from blocked user. Redirecting to account issue page.",
+		slog.String("external_user_id", externalUserID),
+	)
+	if htmx.IsHTMX(req) {
+		res.Header().Set(htmx.HeaderRedirect, redirectPath)
+	} else {
+		http.Redirect(res, req, redirectPath, http.StatusTemporaryRedirect)
+	}
+}
+
+// fetchUserFromAPI fetches and validates the user from the backend API.
+func fetchUserFromAPI(
+	log *slog.Logger,
+	users UserService,
+	req *http.Request,
+	externalUserID string,
+) (*models.User, error) {
+	user, err := users.GetUserByExternalID(req.Context(), externalUserID)
+	if err != nil {
+		log.Error("Get local user data failed.",
+			slog.String("external_user_id", externalUserID),
+			slog.Any("error", err))
+		return nil, err
+	}
+	return user, nil
+}
+
+// enrichContext adds user data to the request context.
+func enrichContext(req *http.Request, user *models.User) context.Context {
+	ctx := models.UserToCtx(req.Context(), user)
+	ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
+	return ctx
 }
 
 // RequireValidUser will ensure that protected routes have a valid user status before continuing.
@@ -244,7 +323,7 @@ func validatePaddleSubscription(next http.Handler) http.Handler {
 			return
 
 		case paddle.IsCancelled(&userSubscription):
-			// User subscription is canceled.
+			// User has cancelled account.
 			slogctx.Error(req.Context(), "User has cancelled account.")
 			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
 			return
