@@ -7,9 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"cloud.google.com/go/errorreporting"
@@ -33,10 +31,7 @@ var initClient = sync.OnceValue(func() error {
 		return fmt.Errorf("load app config: %w", err)
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	errorClient, err = errorreporting.NewClient(ctx, cfg.ProjectID, errorreporting.Config{
+	errorClient, err = errorreporting.NewClient(context.Background(), cfg.ProjectID, errorreporting.Config{
 		ServiceName:    cfg.Service,
 		ServiceVersion: appCfg.Version,
 		OnError: func(err error) {
@@ -46,16 +41,6 @@ var initClient = sync.OnceValue(func() error {
 	if err != nil {
 		return fmt.Errorf("load error reporting client: %w", err)
 	}
-
-	go func() {
-		<-ctx.Done()
-		_, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		if err := errorClient.Close(); err != nil {
-			slog.Error("Error client graceful shutdown failed.", slog.Any("error", err))
-		}
-		slog.Info("GCP error client shutdown.")
-	}()
 
 	slog.Info("GCP error client created.")
 	return nil
@@ -72,4 +57,24 @@ func ReportError(rawErr error) {
 	errorClient.Report(errorreporting.Entry{
 		Error: rawErr,
 	})
+}
+
+func CloseClient() {
+	if errorClient == nil {
+		// Not initialised/used.
+		return
+	}
+	done := make(chan error, 1)
+	go func() { done <- errorClient.Close() }()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			slog.Error("Error client graceful shutdown failed.", slog.Any("error", err))
+			return
+		}
+		slog.Info("GCP error client shutdown.")
+	case <-time.After(15 * time.Second):
+		slog.Error("Error client shutdown timed out.")
+	}
 }
