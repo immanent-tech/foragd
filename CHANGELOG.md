@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.244.1](https://github.com/immanent-tech/foragd/compare/v0.244.0...v0.244.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **templates/subscriptions:** 🔧 fix generating status line ([92dde82](https://github.com/immanent-tech/foragd/commit/92dde829c5910eee02ecd5a90cc579d7bec48e62))
+* **templates/subscriptions:** 🔧 get writing feed info for feed present ([f84a25a](https://github.com/immanent-tech/foragd/commit/f84a25a10d3eb6e8636c4f967ac286349670f808))
+
+
+### Performance Improvements
+
+* **service/feeds:** ⚡ increase concurrency for enrichment ([f896e7b](https://github.com/immanent-tech/foragd/commit/f896e7b74f49243f649224fafe2fe96b3ae2e0b0))
+
 ## [0.244.0](https://github.com/immanent-tech/foragd/compare/v0.243.0...v0.244.0) (2026-10-08)
 
 
