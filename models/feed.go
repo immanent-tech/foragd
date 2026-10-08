@@ -99,8 +99,12 @@ func NewFeed(sourceURL string, id FeedID, source *feeds.Feed) *Feed {
 	}
 
 	// Extract the hostname from the link into the domain field.
-	if link, err := url.Parse(source.GetLink()); err == nil {
+	if link, err := url.Parse(source.GetLink()); err == nil && link.Hostname() != "" {
 		feed.Domain = link.Hostname()
+	} else {
+		if link, err := url.Parse(source.GetSourceURL()); err != nil {
+			feed.Domain = link.Hostname()
+		}
 	}
 
 	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
@@ -168,7 +172,7 @@ func (f *Feed) GetSourceURLs() []URL {
 
 // GetLink returns the URL of the website that publishes and/or is the owner the feed.
 func (f *Feed) GetLink() URL {
-	return f.URL
+	return strings.TrimSpace(f.URL)
 }
 
 // GetTitle returns the feed title.

@@ -12,6 +12,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/service"
 )
@@ -45,22 +46,25 @@ func main() {
 			continue
 		}
 		link, err := url.Parse(feed.GetLink())
-		if err != nil {
-			slogctx.Warn(ctx, "Failed to parse feed link.",
-				slog.String("link", feed.GetLink()),
-				slog.Any("error", err))
-			continue
+		if err == nil && (link.Hostname() != "" && link.IsAbs()) {
+			feed.Domain = link.Hostname()
+		} else {
+			link, err := url.Parse(feed.GetSourceURLs()[0])
+			if err != nil {
+				slogctx.Warn(ctx, "Failed to parse feed link.",
+					slog.String("link", feed.GetLink()),
+					slog.Any("error", err))
+				continue
+			}
+			feed.Domain = link.Hostname()
 		}
-		feed.Domain = link.Hostname()
 		slogctx.Info(ctx, "Added domain to feed.",
 			slog.String("feed_id", feed.GetID()),
 			slog.String("feed_title", feed.GetTitle()),
 			slog.String("domain", feed.Domain))
 	}
 
-	// results, err := elastic.BulkUpdate(ctx, schema.FeedsIndexRW(), feeds...)
-	// if err != nil {
-	// 	godump.Dump(results)
-	// 	panic(err)
-	// }
+	if err := bulk.IndexDocuments(ctx, elasticSvc.GetIndexRW(service.FeedsIndex), feeds...); err != nil {
+		panic(err)
+	}
 }
