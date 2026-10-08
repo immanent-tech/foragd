@@ -14,7 +14,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -23,8 +22,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -310,8 +307,6 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 // HandleViewArticle handles showing an article's content.
 func (m *Manager) HandleViewArticle(
 	itemSvc ItemService,
-	httpClient *resty.Client,
-	itemsCache cache.ObjectCache,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
@@ -356,7 +351,7 @@ func (m *Manager) HandleViewArticle(
 
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			if err := service.GetArticleRemoteContent(req.Context(), httpClient, itemsCache, article); err != nil {
+			if err := itemSvc.GetArticleRemoteContent(req.Context(), article); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to get remote content for article.",
 					slog.String("item_id", article.GetID()),
 					slog.String("item_url", article.GetLink()),

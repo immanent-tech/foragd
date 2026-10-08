@@ -2568,9 +2568,6 @@ var _ handlers.ItemService = &MoqItemService{}
 //			CountGeoArticlesFunc: func(ctx context.Context, filters *models.ListFilters) (int64, error) {
 //				panic("mock out the CountGeoArticles method")
 //			},
-//			CountItemsFunc: func(ctx context.Context, query1 query.Option) (int64, error) {
-//				panic("mock out the CountItems method")
-//			},
 //			CountSearchResultsFunc: func(ctx context.Context, request *models.SearchRequest) (int64, error) {
 //				panic("mock out the CountSearchResults method")
 //			},
@@ -2582,6 +2579,9 @@ var _ handlers.ItemService = &MoqItemService{}
 //			},
 //			FindSimilarArticlesFunc: func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error) {
 //				panic("mock out the FindSimilarArticles method")
+//			},
+//			GetArticleRemoteContentFunc: func(ctx context.Context, article *models.Article) error {
+//				panic("mock out the GetArticleRemoteContent method")
 //			},
 //			GetArticlesFunc: func(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
 //				panic("mock out the GetArticles method")
@@ -2626,9 +2626,6 @@ type MoqItemService struct {
 	// CountGeoArticlesFunc mocks the CountGeoArticles method.
 	CountGeoArticlesFunc func(ctx context.Context, filters *models.ListFilters) (int64, error)
 
-	// CountItemsFunc mocks the CountItems method.
-	CountItemsFunc func(ctx context.Context, query1 query.Option) (int64, error)
-
 	// CountSearchResultsFunc mocks the CountSearchResults method.
 	CountSearchResultsFunc func(ctx context.Context, request *models.SearchRequest) (int64, error)
 
@@ -2640,6 +2637,9 @@ type MoqItemService struct {
 
 	// FindSimilarArticlesFunc mocks the FindSimilarArticles method.
 	FindSimilarArticlesFunc func(ctx context.Context, count int, itemIDs ...models.ItemID) (models.Articles, error)
+
+	// GetArticleRemoteContentFunc mocks the GetArticleRemoteContent method.
+	GetArticleRemoteContentFunc func(ctx context.Context, article *models.Article) error
 
 	// GetArticlesFunc mocks the GetArticles method.
 	GetArticlesFunc func(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
@@ -2697,13 +2697,6 @@ type MoqItemService struct {
 			// Filters is the filters argument value.
 			Filters *models.ListFilters
 		}
-		// CountItems holds details about calls to the CountItems method.
-		CountItems []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// Query1 is the query1 argument value.
-			Query1 query.Option
-		}
 		// CountSearchResults holds details about calls to the CountSearchResults method.
 		CountSearchResults []struct {
 			// Ctx is the ctx argument value.
@@ -2735,6 +2728,13 @@ type MoqItemService struct {
 			Count int
 			// ItemIDs is the itemIDs argument value.
 			ItemIDs []models.ItemID
+		}
+		// GetArticleRemoteContent holds details about calls to the GetArticleRemoteContent method.
+		GetArticleRemoteContent []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Article is the article argument value.
+			Article *models.Article
 		}
 		// GetArticles holds details about calls to the GetArticles method.
 		GetArticles []struct {
@@ -2807,11 +2807,11 @@ type MoqItemService struct {
 	lockArchiveArticle                       sync.RWMutex
 	lockCountArticles                        sync.RWMutex
 	lockCountGeoArticles                     sync.RWMutex
-	lockCountItems                           sync.RWMutex
 	lockCountSearchResults                   sync.RWMutex
 	lockFilterArticles                       sync.RWMutex
 	lockFilterGeoArticles                    sync.RWMutex
 	lockFindSimilarArticles                  sync.RWMutex
+	lockGetArticleRemoteContent              sync.RWMutex
 	lockGetArticles                          sync.RWMutex
 	lockGetNextArticle                       sync.RWMutex
 	lockGetTopCategoriesForItems             sync.RWMutex
@@ -2970,42 +2970,6 @@ func (mock *MoqItemService) CountGeoArticlesCalls() []struct {
 	return calls
 }
 
-// CountItems calls CountItemsFunc.
-func (mock *MoqItemService) CountItems(ctx context.Context, query1 query.Option) (int64, error) {
-	if mock.CountItemsFunc == nil {
-		panic("MoqItemService.CountItemsFunc: method is nil but ItemService.CountItems was just called")
-	}
-	callInfo := struct {
-		Ctx    context.Context
-		Query1 query.Option
-	}{
-		Ctx:    ctx,
-		Query1: query1,
-	}
-	mock.lockCountItems.Lock()
-	mock.calls.CountItems = append(mock.calls.CountItems, callInfo)
-	mock.lockCountItems.Unlock()
-	return mock.CountItemsFunc(ctx, query1)
-}
-
-// CountItemsCalls gets all the calls that were made to CountItems.
-// Check the length with:
-//
-//	len(mockedItemService.CountItemsCalls())
-func (mock *MoqItemService) CountItemsCalls() []struct {
-	Ctx    context.Context
-	Query1 query.Option
-} {
-	var calls []struct {
-		Ctx    context.Context
-		Query1 query.Option
-	}
-	mock.lockCountItems.RLock()
-	calls = mock.calls.CountItems
-	mock.lockCountItems.RUnlock()
-	return calls
-}
-
 // CountSearchResults calls CountSearchResultsFunc.
 func (mock *MoqItemService) CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error) {
 	if mock.CountSearchResultsFunc == nil {
@@ -3155,6 +3119,42 @@ func (mock *MoqItemService) FindSimilarArticlesCalls() []struct {
 	mock.lockFindSimilarArticles.RLock()
 	calls = mock.calls.FindSimilarArticles
 	mock.lockFindSimilarArticles.RUnlock()
+	return calls
+}
+
+// GetArticleRemoteContent calls GetArticleRemoteContentFunc.
+func (mock *MoqItemService) GetArticleRemoteContent(ctx context.Context, article *models.Article) error {
+	if mock.GetArticleRemoteContentFunc == nil {
+		panic("MoqItemService.GetArticleRemoteContentFunc: method is nil but ItemService.GetArticleRemoteContent was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		Article *models.Article
+	}{
+		Ctx:     ctx,
+		Article: article,
+	}
+	mock.lockGetArticleRemoteContent.Lock()
+	mock.calls.GetArticleRemoteContent = append(mock.calls.GetArticleRemoteContent, callInfo)
+	mock.lockGetArticleRemoteContent.Unlock()
+	return mock.GetArticleRemoteContentFunc(ctx, article)
+}
+
+// GetArticleRemoteContentCalls gets all the calls that were made to GetArticleRemoteContent.
+// Check the length with:
+//
+//	len(mockedItemService.GetArticleRemoteContentCalls())
+func (mock *MoqItemService) GetArticleRemoteContentCalls() []struct {
+	Ctx     context.Context
+	Article *models.Article
+} {
+	var calls []struct {
+		Ctx     context.Context
+		Article *models.Article
+	}
+	mock.lockGetArticleRemoteContent.RLock()
+	calls = mock.calls.GetArticleRemoteContent
+	mock.lockGetArticleRemoteContent.RUnlock()
 	return calls
 }
 

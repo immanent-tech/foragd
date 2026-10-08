@@ -27,7 +27,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -85,12 +84,6 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("load item service: %w", err)
 	}
 
-	// Load the articles cache.
-	itemsCache, err := cache.NewItemsCache()
-	if err != nil {
-		return fmt.Errorf("load articles cache: %w", err)
-	}
-
 	var (
 		details *models.Feed
 		feed    *models.Feed
@@ -133,7 +126,7 @@ func (c *FetchFeedCmd) Run() error {
 			var wg sync.WaitGroup
 			for item := range slices.Values(newItems) {
 				wg.Go(func() {
-					if err := itemSvc.EnrichItem(ctx, itemsCache, details, item); err != nil {
+					if err := itemSvc.EnrichItem(ctx, details, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)

@@ -37,7 +37,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -289,7 +288,6 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 	bulkIndexerF := loadAsync(g, "bulk indexer", func() (*bulk.Indexer, error) {
 		return bulk.NewIndexer(ctx, bulk.WithFlushInterval(time.Minute, 5*time.Second))
 	})
-	itemsCacheF := loadAsync(g, "items cache", cache.NewItemsCache)
 	feedSvcF := loadAsync(g, "feed service", service.LoadFeedService)
 	userSvcF := loadAsync(g, "user service", service.LoadUserService)
 	importSvcF := loadAsync(g, "import service", service.NewImportService)
@@ -305,7 +303,6 @@ func (m *Manager) generateJobServices(ctx context.Context) (*jobs.Services, erro
 		Feeds:       feedSvcF(),
 		Imports:     importSvcF(),
 		Users:       userSvcF(),
-		ItemsCache:  itemsCacheF(),
 		Indexer:     bulkIndexerF(),
 		EmailSender: emailSenderF(),
 	}, nil

@@ -15,7 +15,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/resend"
-	"github.com/immanent-tech/foragd/server/cache"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -23,7 +22,6 @@ const (
 	schedulerAPICtxKey contextKey = "scheduler_api"
 	indexerCtxKey      contextKey = "indexer"
 	httpClientCtxKey   contextKey = "http_client"
-	itemCacheCtxKey    contextKey = "item_cache"
 	elasticCtxKey      contextKey = "elastic"
 	userSvcCtxKey      contextKey = "user_svc"
 	feedSvcCtxKey      contextKey = "feed_svc"
@@ -48,7 +46,7 @@ type FeedsAPI interface {
 	GetFeed(ctx context.Context, feedID models.FeedID) (*models.Feed, error)
 	FetchFeedUpdates(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
 	FetchFeedUpdatesAsArticles(ctx context.Context, details *models.Feed) (*models.Feed, models.URL, error)
-	ApplyFeedUpdates(ctx context.Context, itemsCache cache.ObjectCache, old, new *models.Feed) error
+	ApplyFeedUpdates(ctx context.Context, old, new *models.Feed) error
 	UpdateFeed(ctx context.Context, feed *models.Feed) error
 }
 
@@ -76,7 +74,6 @@ type Services struct {
 	Imports     ImportAPI
 	Users       UserAPI
 	Elastic     ElasticAPI
-	ItemsCache  cache.ObjectCache
 	EmailSender EmailSender
 	Indexer     *bulk.Indexer
 }

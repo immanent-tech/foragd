@@ -137,7 +137,7 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	// Record the feed URL used in the logs.
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
-	if err := services.Feeds.ApplyFeedUpdates(ctx, services.ItemsCache, details, feed); err != nil {
+	if err := services.Feeds.ApplyFeedUpdates(ctx, details, feed); err != nil {
 		return fmt.Errorf("apply feed updates: %w", err)
 	}
 

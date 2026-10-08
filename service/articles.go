@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/sanitization"
@@ -22,7 +21,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/cache"
 )
 
 // GetArticles generates Article objects from the Items with the given IDs.
@@ -426,10 +424,8 @@ func GenerateArticles(ctx context.Context, items models.Items) (models.Articles,
 }
 
 // GetArticleRemoteContent populates the article content with the item source.
-func GetArticleRemoteContent(
+func (s *ItemService) GetArticleRemoteContent(
 	ctx context.Context,
-	httpClient *resty.Client,
-	itemPageCache cache.ObjectCache,
 	article *models.Article,
 ) error {
 	// Get the complete item HTML source, either from the cache or fetch fresh.
@@ -438,7 +434,7 @@ func GetArticleRemoteContent(
 		return models.NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("parse article URL: %w", err))
 	}
 
-	itemPageBuf, err := getItemContent(ctx, httpClient, itemPageCache, article.GetID(), sourceURL)
+	itemPageBuf, err := s.getItemContent(ctx, article.GetID(), sourceURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}

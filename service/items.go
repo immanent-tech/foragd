@@ -63,7 +63,7 @@ type ItemService struct {
 	*otter.Cache[models.ItemID, *models.Item]
 
 	store      *ElasticService
-	cache      cache.ObjectCache
+	dataCache  cache.ObjectCache
 	httpClient *resty.Client
 }
 
@@ -73,11 +73,18 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
+
+	itemsCache, err := cache.NewItemsCache()
+	if err != nil {
+		return nil, fmt.Errorf("load items cache: %w", err)
+	}
+
 	return &ItemService{
 		Cache: otter.Must(&otter.Options[models.ItemID, *models.Item]{
 			MaximumSize:      10_000,
 			ExpiryCalculator: &itemCacheexpiryCalculator{},
 		}),
+		dataCache:  itemsCache,
 		store:      svc,
 		httpClient: newHTTPClient(),
 	}, nil
@@ -201,7 +208,6 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 // to fill missing data from the item source.
 func (s *ItemService) EnrichItem(
 	ctx context.Context,
-	itemPageCache cache.ObjectCache,
 	feed *models.Feed,
 	item *models.Item,
 ) error {
@@ -264,7 +270,7 @@ func (s *ItemService) EnrichItem(
 	}
 
 	// Get the item content, either from the cache or fetch fresh.
-	itemContentBuf, err := getItemContent(ctx, s.httpClient, itemPageCache, item.GetID(), itemURL)
+	itemContentBuf, err := s.getItemContent(ctx, item.GetID(), itemURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
@@ -755,10 +761,8 @@ func NewItemSortCombinations(sort *models.Sort) []estypes.SortCombinations {
 	return opts
 }
 
-func getItemContent(
+func (s *ItemService) getItemContent(
 	ctx context.Context,
-	httpClient *resty.Client,
-	itemPageCache cache.ObjectCache,
 	id models.ItemID,
 	itemURL *url.URL,
 ) (*bytes.Buffer, error) {
@@ -771,7 +775,7 @@ func getItemContent(
 	defer bufPool.Put(itemContentBuf)
 
 	// Try to load content from the article cache.
-	if err := itemPageCache.Copy(ctx, id, itemContentBuf); err != nil {
+	if err := s.dataCache.Copy(ctx, id, itemContentBuf); err != nil {
 		if apiErr, isAPIErr := errors.AsType[*models.APIError](err); isAPIErr {
 			if apiErr.StatusCode != http.StatusNotFound {
 				slogctx.FromCtx(ctx).Warn("Unable to copy article data from cache.",
@@ -783,7 +787,7 @@ func getItemContent(
 	// If no item content cached, fetch from remote.
 	if itemContentBuf.Len() == 0 {
 		// Fetch the item's HTML source, used for enrichment.
-		source, err := fetchItemContentDirect(ctx, httpClient, itemURL)
+		source, err := fetchItemContentDirect(ctx, s.httpClient, itemURL)
 		if err != nil {
 			return nil, fmt.Errorf("fetch item: %w", err)
 		}

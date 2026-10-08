@@ -139,7 +139,6 @@ func Start() error {
 	})
 
 	imgCacheF := loadAsync(g, "image cache", cache.NewCache)
-	itemsCacheF := loadAsync(g, "articles cache", cache.NewItemsCache)
 	subscriptionSvcF := loadAsync(g, "subscription service", service.LoadSubscriptionService)
 	feedSvcF := loadAsync(g, "feed service", service.LoadFeedService)
 	userSvcF := loadAsync(g, "user service", service.LoadUserService)
@@ -168,7 +167,6 @@ func Start() error {
 	}
 
 	imgCache := imgCacheF()
-	itemsCache := itemsCacheF()
 	subscriptionSvc := subscriptionSvcF()
 	feedSvc := feedSvcF()
 	userSvc := userSvcF()
@@ -480,7 +478,7 @@ func Start() error {
 				r.Use(handlerMgr.ArticleCtx(itemSvc))
 				r.Get(
 					"/",
-					handlerMgr.HandleViewArticle(itemSvc, httpClient, itemsCache),
+					handlerMgr.HandleViewArticle(itemSvc),
 				)
 				r.Get("/similar", handlerMgr.HandleFindSimilarArticles(itemSvc))
 				r.Group(func(r chi.Router) {

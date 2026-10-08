@@ -57,7 +57,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/providers/zyte"
-	"github.com/immanent-tech/foragd/server/cache"
 )
 
 // feedCacheExpiryCalculator is a custom expiry calculator for the feed cache.
@@ -344,7 +343,6 @@ func (r *diffReporter) PopStep() {
 // new item's timestamp.
 func (s *FeedService) UpdateFeedItems(
 	ctx context.Context,
-	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed,
 ) (time.Time, error) {
 	itemSvc, err := LoadItemService()
@@ -370,7 +368,7 @@ func (s *FeedService) UpdateFeedItems(
 			// Try to enrich item with additional data if possible.
 			wg.Go(func() {
 				for item := range enrichJobCh {
-					if err := itemSvc.EnrichItem(ctx, itemPageCache, oldData, item); err != nil {
+					if err := itemSvc.EnrichItem(ctx, oldData, item); err != nil {
 						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
 							slog.Any("error", err),
 						)
@@ -428,7 +426,6 @@ func (s *FeedService) UpdateFeedItems(
 // writes the updated feed back to the database. It will add/update both any new/updated items and any updates to the
 // feed metadata.
 func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
-	itemPageCache cache.ObjectCache,
 	oldData, newData *models.Feed) error {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
@@ -439,7 +436,7 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	}
 
 	// Add any new or update existing items.
-	lastFetched, err := s.UpdateFeedItems(ctx, itemPageCache, oldData, newData)
+	lastFetched, err := s.UpdateFeedItems(ctx, oldData, newData)
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))
