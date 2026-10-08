@@ -9,7 +9,29 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+
+	"github.com/immanent-tech/go-base/validation"
 )
+
+// Error is an error returned from Auth0 during user authorization.
+type Error struct {
+	ClientID string `form:"client_id"         json:"client_id"`
+	Code     string `form:"error"             json:"error"`
+	Message  string `form:"error_description" json:"error_description"`
+	Tracking string `form:"tracking"          json:"tracking"`
+}
+
+func (e Error) Validate() error {
+	return nil
+}
+
+func (s *Error) Sanitise() error {
+	s.ClientID = validation.SanitizeString(s.ClientID)
+	s.Code = validation.SanitizeString(s.Code)
+	s.Message = validation.SanitizeString(s.Message)
+	s.Tracking = validation.SanitizeString(s.Tracking)
+	return nil
+}
 
 // generateCodeVerifier creates a cryptographically random PKCE code verifier.
 func generateCodeVerifier() (string, error) {

@@ -20,7 +20,10 @@ import (
 	"github.com/zeebo/xxh3"
 	"go.opentelemetry.io/otel/codes"
 
+	"github.com/immanent-tech/go-base/server/forms"
+
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/auth0"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/scheduler"
@@ -268,17 +271,19 @@ func redirectAfterLogin(
 // HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password
 // reset links.
 func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
-	clientID := req.URL.Query().Get("client_id")
-	errCode := req.URL.Query().Get("error")
-	errDesc := req.URL.Query().Get("error_description")
-	tracking := req.URL.Query().Get("tracking")
-	slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
-		slog.String("client_id", clientID),
-		slog.String("error_code", errCode),
-		slog.String("error_description", errDesc),
-		slog.String("tracking", tracking),
-	)
-	gerror.ReportError(fmt.Errorf("%s: %s (tracking: %s)", errCode, errDesc, tracking))
+	auth0Err, err := forms.DecodeForm[*auth0.Error](req)
+	if err != nil {
+		slogctx.Error(req.Context(), "Could not decode Auth0 error response.", slog.Any("error", err))
+		gerror.ReportError(err)
+	} else {
+		gerror.ReportError(fmt.Errorf("%s: %s (tracking: %s)", auth0Err.Code, auth0Err.Message, auth0Err.Tracking))
+		slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
+			slog.String("client_id", auth0Err.ClientID),
+			slog.String("error_code", auth0Err.Code),
+			slog.String("error_description", auth0Err.Message),
+			slog.String("tracking", auth0Err.Tracking),
+		)
+	}
 	RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
 }
 
