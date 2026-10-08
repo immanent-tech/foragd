@@ -100,7 +100,7 @@ templ subscriptionCardFeedMetadata(subscription *models.Subscription) {
 				<span class="badge badge-soft badge-sm badge-info">Search</span>
 			case subscription.Type == models.SubscriptionTypeEmail:
 				<span class="badge badge-soft badge-sm badge-info">Email Newsletter</span>
-			default:
+			case subscription.Feed != nil:
 				if feedType := subscription.Feed.SourceType; feedType != "" {
 					<span class="badge badge-soft badge-sm capitalize badge-info">{ feedType }</span>
 				}

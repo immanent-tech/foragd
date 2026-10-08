@@ -388,7 +388,7 @@ func subscriptionCardFeedMetadata(subscription *models.Subscription) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		default:
+		case subscription.Feed != nil:
 			if feedType := subscription.Feed.SourceType; feedType != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"badge badge-soft badge-sm capitalize badge-info\">")
 				if templ_7745c5c3_Err != nil {
