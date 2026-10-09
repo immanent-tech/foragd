@@ -64,11 +64,11 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
 ## 📷 Screenshots
 
 <p align="center">
-  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/images/screenshots/home-desktop.webp" alt="Foragd home page on desktop" width="1440" height="900">
+  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/images/screenshots/screenshot-home-desktop.webp" alt="Foragd home page on desktop" width="1440" height="900">
 </p>
 
 <p align="center">
-  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/images/screenshots/home-mobile.webp" alt="Foragd home page on mobile" width="645" height=1398>
+  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/images/screenshots/screenshot-home-mobile.webp" alt="Foragd home page on mobile" width="645" height=1398>
 </p>
 
 ## 👾 Tech Stack
