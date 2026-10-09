@@ -8211,6 +8211,10 @@
     border-top-left-radius: inherit;
     border-top-right-radius: inherit;
   }
+  .rounded-t-box {
+    border-top-left-radius: var(--radius-box);
+    border-top-right-radius: var(--radius-box);
+  }
   .rounded-b-2xl {
     border-bottom-right-radius: var(--radius-2xl);
     border-bottom-left-radius: var(--radius-2xl);
