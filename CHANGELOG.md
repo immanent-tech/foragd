@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.244.4](https://github.com/immanent-tech/foragd/compare/v0.244.3...v0.244.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **blog:** 🔧 fix path to indie web opml ([15752df](https://github.com/immanent-tech/foragd/commit/15752dfe54ea3b2b1438d98fe22e556cdb7e9b59))
+* **providers/resend:** 🔧 add fetched user to context for usage during processing received email ([fb277e2](https://github.com/immanent-tech/foragd/commit/fb277e20c5ef9f505b1af2ef6f6b984664f69cd3))
+* **templates/articles:** 🎨 fix rounded corners on article cards ([87471ba](https://github.com/immanent-tech/foragd/commit/87471ba9baf29f16367a71f6286ce34a7111326c))
+
 ## [0.244.3](https://github.com/immanent-tech/foragd/compare/v0.244.2...v0.244.3) (2026-10-09)
 
 
