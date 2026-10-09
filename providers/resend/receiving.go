@@ -199,6 +199,7 @@ func NewReceiver(
 // Process processes the received email. It forwards admin emails or handles adding articles/creating subscriptions for
 // a user.
 func (p *Receiver) Process(ctx context.Context, details EmailRecieved) error {
+	// Fetch user by to address.
 	user, err := p.users.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
@@ -206,6 +207,8 @@ func (p *Receiver) Process(ctx context.Context, details EmailRecieved) error {
 		}
 		return fmt.Errorf("get user by subscription email: %w", err)
 	}
+	// Add user to context.
+	ctx = models.UserToCtx(ctx, user)
 
 	if user.Metadata.NewsletterLimit != nil && user.Metadata.NewsletterLimit.Exceeded {
 		return models.ErrEmailNewsletterLimitExceeded
