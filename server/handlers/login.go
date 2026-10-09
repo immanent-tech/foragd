@@ -100,76 +100,74 @@ func (m *Manager) HandleLoginCallback(
 	emailSender EmailSender,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		log := slogctx.FromCtx(req.Context())
-		// Check for errors returned by Auth0.
-		if errCode := req.FormValue("error"); errCode != "" {
-			errDesc := req.FormValue("error_description")
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc),
-				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
+		if err := m.processLoginCallback(res, req, userSvc, authMgr, auth, emailSender); err != nil {
+			m.HandleExternalError(err).ServeHTTP(res, req)
 		}
-
-		// Validate state value.
-		if err := auth.ValidateState(req.Context(), req.FormValue("state")); err != nil {
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("restore state: %w", err),
-				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Verify and exchange authorization code to retrieve user profile.
-		profile, err := auth.PerformExchange(req.Context(), req.FormValue("code"))
-		if err != nil {
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("exchange auth token: %w", err),
-				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Save profile to session.
-		m.SessionMgr.Put(req.Context(), "profile", profile)
-
-		// Retrieve the local user associated with the profile.
-		var user *models.User
-		user, err = userSvc.GetUserByExternalID(req.Context(), profile.GetID())
-		switch {
-		case err != nil && models.HTTPStatus(err) != http.StatusNotFound: // Backend error.
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", err),
-				StatusCode:    http.StatusForbidden,
-			}).ServeHTTP(res, req)
-			return
-		case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
-			// Create a new local account for the user
-			newUser, err := createUserFromProfileData(req.Context(), userSvc, authMgr, profile)
-			if err != nil {
-				m.HandleExternalError(&models.APIError{
-					InternalError: fmt.Errorf("create user from profile: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-				}).ServeHTTP(res, req)
-				return
-			}
-			user = newUser
-			if err := sendNewUserEmails(req.Context(), emailSender, user); err != nil {
-				log.Warn("Could not send welcome emails.",
-					slog.Any("error", err))
-			}
-
-		default: // Existing user.
-			// Sync user data from the backend.
-			syncUser(req.Context(), userSvc, authMgr, user)
-		}
-
-		redirectAfterLogin(res, req, auth, user)
 	}
 }
 
-func sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *models.User) error {
+// processLoginCallback processes the login callback and returns an error if something goes wrong.
+// This separates HTTP concerns from business logic to make unit testing easier.
+func (m *Manager) processLoginCallback(
+	res http.ResponseWriter,
+	req *http.Request,
+	userSvc UserService,
+	authMgr AuthManager,
+	auth Authenticator,
+	emailSender EmailSender,
+) error {
+	ctx := req.Context()
 	log := slogctx.FromCtx(ctx)
+
+	// Check for errors returned by Auth0.
+	if errCode := req.FormValue("error"); errCode != "" {
+		errDesc := req.FormValue("error_description")
+		return fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc)
+	}
+
+	// Validate state value.
+	if err := auth.ValidateState(ctx, req.FormValue("state")); err != nil {
+		return fmt.Errorf("restore state: %w", err)
+	}
+
+	// Verify and exchange authorization code to retrieve user profile.
+	profile, err := auth.PerformExchange(ctx, req.FormValue("code"))
+	if err != nil {
+		return fmt.Errorf("exchange auth token: %w", err)
+	}
+
+	// Save profile to session.
+	m.SessionMgr.Put(ctx, "profile", profile)
+
+	// Retrieve the local user associated with the profile.
+	var user *models.User
+	var errCreate error
+	user, errCreate = userSvc.GetUserByExternalID(ctx, profile.GetID())
+	switch {
+	case errCreate != nil && models.HTTPStatus(errCreate) != http.StatusNotFound: // Backend error.
+		return fmt.Errorf("get user: %w", errCreate)
+	case errCreate != nil && models.HTTPStatus(errCreate) == http.StatusNotFound: // No local user.
+		// Create a new local account for the user
+		user, errCreate = createUserFromProfileData(ctx, userSvc, authMgr, profile)
+		if errCreate != nil {
+			return fmt.Errorf("create user from profile: %w", errCreate)
+		}
+		if err := m.sendNewUserEmails(ctx, emailSender, user); err != nil {
+			log.Warn("Could not send welcome emails.", slog.Any("error", err))
+		}
+
+	default: // Existing user.
+		// Sync user data from the backend.
+		if err := m.syncUser(ctx, userSvc, authMgr, user); err != nil {
+			return fmt.Errorf("sync user: %w", err)
+		}
+	}
+
+	m.redirectAfterLogin(res, req, auth, user)
+	return nil
+}
+
+func (m *Manager) sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *models.User) error {
 	// Create and send a welcome email.
 	email, err := resend.NewTemplatedEmail(
 		"new-user",
@@ -186,68 +184,74 @@ func sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *model
 	if err := emailSender.Send(ctx, resend.WithExistingEmail(email)); err != nil {
 		return fmt.Errorf("send welcome email: %w", err)
 	}
-	// Load the scheduler (but don't start it).
+	// Schedule follow-up email jobs.
+	return m.scheduleNewUserEmailJobs(ctx, user)
+}
+
+// scheduleNewUserEmailJobs schedules follow-up email jobs for new users.
+// This separates the scheduling concern from email sending to make testing easier.
+func (m *Manager) scheduleNewUserEmailJobs(ctx context.Context, user *models.User) error {
 	manager, err := scheduler.New()
 	if err != nil {
+		log := slogctx.FromCtx(ctx)
 		log.Warn("Could not load scheduler, cannot schedule new user jobs.",
-			slog.Any("error", err),
-		)
-	} else {
-		var scheduledEmails = map[models.EmailTemplateID]time.Duration{
-			// Send 1st tip: email newsletters after 1 day.
-			"tip-email-newsletters": 24 * time.Hour,
-			// Check and send inactive ping after 5 days if not active.
-			"new-inactive-user": 5 * 24 * time.Hour,
-			// Send check-in after 7 days.
-			"trial-checkin": models.DefaultTrialPeriod - 15*24*time.Hour,
-			// Send expiry reminder in two days of expiry.
-			"trial-expiring": models.DefaultTrialPeriod - 48*time.Hour,
-		}
+			slog.Any("error", err))
+		return nil
+	}
 
-		for id, delay := range scheduledEmails {
-			job, err := jobs.NewUserEmailJob(user.GetID(), id, delay)
-			if err != nil {
-				log.Warn("Could not create user tips job.",
-					slog.String("email", id),
-					slog.Any("error", err),
-				)
-			}
-			if err := manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-				log.Warn("Unable to schedule user tip job.",
-					slog.String("email", id),
-					slog.Any("error", err),
-				)
-			}
-			log.Info("Scheduled user email.",
+	var scheduledEmails = map[models.EmailTemplateID]time.Duration{
+		// Send 1st tip: email newsletters after 1 day.
+		"tip-email-newsletters": 24 * time.Hour,
+		// Check and send inactive ping after 5 days if not active.
+		"new-inactive-user": 5 * 24 * time.Hour,
+		// Send check-in after 7 days.
+		"trial-checkin": models.DefaultTrialPeriod - 15*24*time.Hour,
+		// Send expiry reminder in two days of expiry.
+		"trial-expiring": models.DefaultTrialPeriod - 48*time.Hour,
+	}
+
+	for id, delay := range scheduledEmails {
+		job, err := jobs.NewUserEmailJob(user.GetID(), id, delay)
+		if err != nil {
+			log := slogctx.FromCtx(ctx)
+			log.Warn("Could not create user tips job.",
 				slog.String("email", id),
-				slog.Time("scheduled_at", time.Now().UTC().Add(delay)),
-			)
+				slog.Any("error", err))
+			continue
 		}
+		if err := manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+			log := slogctx.FromCtx(ctx)
+			log.Warn("Unable to schedule user tip job.",
+				slog.String("email", id),
+				slog.Any("error", err))
+			continue
+		}
+		log := slogctx.FromCtx(ctx)
+		log.Info("Scheduled user email.",
+			slog.String("email", id),
+			slog.Time("scheduled_at", time.Now().UTC().Add(delay)))
 	}
 
 	return nil
 }
 
-func redirectAfterLogin(
+// redirectAfterLogin redirects the user after a successful login.
+func (m *Manager) redirectAfterLogin(
 	res http.ResponseWriter,
 	req *http.Request,
-	authenticator Authenticator,
+	auth Authenticator,
 	user *models.User,
 ) {
 	log := slogctx.FromCtx(req.Context())
 	ctx := models.UserToCtx(req.Context(), user)
 
-	log.Info("User logged in.",
-		slog.String("user_id", user.GetID()),
-	)
+	log.Info("User logged in.", slog.String("user_id", user.GetID()))
 
-	if returnTo, err := authenticator.ConsumeReturnTo(req.Context()); err != nil {
+	if returnTo, err := auth.ConsumeReturnTo(req.Context()); err != nil {
 		log.Debug("Redirecting home.")
 		http.Redirect(res, req.WithContext(ctx), "/home", http.StatusFound)
 	} else {
-		log.Debug("Returning to previous page.",
-			slog.String("return_to", returnTo),
-		)
+		log.Debug("Returning to previous page.", slog.String("return_to", returnTo))
 		http.Redirect(res, req.WithContext(ctx), returnTo, http.StatusFound)
 	}
 }
@@ -316,7 +320,6 @@ func createUserFromProfileData(
 		Email:          auth0User.GetUserResponseContent.GetEmail(),
 		UserID:         id,
 		AvatarURL:      new(auth0User.GetUserResponseContent.GetPicture()),
-		LoginCount:     *auth0User.GetUserResponseContent.LoginsCount,
 		LastLogin:      lastLogin,
 		Metadata: models.UserMetadata{
 			EmailVerified:    auth0User.GetUserResponseContent.GetEmailVerified(),
@@ -328,6 +331,10 @@ func createUserFromProfileData(
 			MarkArticleReadOnView: true,
 		},
 	}
+	if loginCount := auth0User.GetUserResponseContent.LoginsCount; loginCount != nil {
+		user.LoginCount = *loginCount
+	}
+
 	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok {
 		user.Metadata.PoliciesAccepted = accepted
 	}
@@ -340,7 +347,7 @@ func createUserFromProfileData(
 }
 
 // syncUser tries to sync relevant user data from the auth backend to the local data.
-func syncUser(ctx context.Context, userSvc UserService, authMgr AuthManager, user *models.User) {
+func (m *Manager) syncUser(ctx context.Context, userSvc UserService, authMgr AuthManager, user *models.User) error {
 	ctx, span := tracer.Start(ctx, "SyncUser")
 	defer span.End()
 	log := slogctx.FromCtx(ctx)
@@ -352,7 +359,7 @@ func syncUser(ctx context.Context, userSvc UserService, authMgr AuthManager, use
 		log.Error("Could not sync user data.",
 			slog.String("user_id", user.GetID()),
 			slog.Any("error", err))
-		return
+		return err
 	}
 
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
@@ -399,7 +406,8 @@ func syncUser(ctx context.Context, userSvc UserService, authMgr AuthManager, use
 			slogctx.Error(ctx, "Could not sync user data.",
 				slog.String("user_id", user.GetID()),
 				slog.Any("error", err))
-			return
+			return err
 		}
 	}
+	return nil
 }
