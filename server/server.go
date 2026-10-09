@@ -251,6 +251,7 @@ func Start() error {
 	router.Handle("/.well-known/*", assets.ServeFiles(web.Files, "files/.well-known"))
 	router.Handle("/assets/*", assets.ServeFiles(web.Files, ""))
 	router.Handle("/files/fonts/*", assets.ServeFiles(web.Files, "files/dist/fonts"))
+	router.Handle("/files/misc/*", assets.ServeFiles(web.Files, "files/misc"))
 	router.Handle("/images/*", assets.ServeFiles(web.Files, "files/images"))
 
 	// Image proxy.

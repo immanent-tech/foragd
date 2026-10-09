@@ -99,6 +99,6 @@ than any platform's timeline. You just need a map.
 Foragd is free to try for 30 days — no commitment needed. [Sign up](/signup?utm_source=blog).
 
 *Using a different feed reader? Download an OPML file you can use to import all the feeds above
-[here](/rediscovering-the-indie-web-foragd.opml).*
+[here](/files/misc/rediscovering-the-indie-web-foragd.opml).*
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
