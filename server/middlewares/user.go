@@ -7,9 +7,10 @@ package middlewares
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
-	"strings"
+	"net/url"
 
 	slogctx "github.com/veqryn/slog-context"
 
@@ -18,40 +19,57 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/paddle"
-	"github.com/immanent-tech/foragd/server/handlers"
 )
 
 type UserService interface {
 	GetUserByExternalID(ctx context.Context, externalID string) (*models.User, error)
 }
 
-// ExtractUserFromSession will extract the user data from the session, retrieve the user details from the backend and
-// then store the user object in the context for use by later handlers.
+type SessionManager interface {
+	Get(ctx context.Context, key string) any
+	Put(ctx context.Context, key string, value any)
+	Remove(ctx context.Context, key string)
+	RenewToken(ctx context.Context) error
+	Clear(ctx context.Context) error
+}
+
+type Authenticator interface {
+	IsAuthenticated(ctx context.Context) bool
+	GenerateAuthURL(signup bool) (*auth0.AuthURLResult, error)
+	StoreAuthRequest(ctx context.Context, r *auth0.AuthURLResult)
+	ValidateState(ctx context.Context, got string) error
+	PerformExchange(ctx context.Context, code string) (*models.UserProfileResponse, error)
+	EnsureFresh(ctx context.Context) error
+	PutReturnTo(ctx context.Context, path string)
+	ConsumeReturnTo(ctx context.Context) (string, error)
+	GenerateLogoutURL() (*url.URL, error)
+	ClearAuth(ctx context.Context)
+}
+
+// ExtractUserFromSession will make sure the session has a usable access token (refreshing it if needed), extract the
+// user data from the session, retrieve the user details from the backend and then store the user object in the context
+// for use by later handlers.
+//
+// NOTE: the old SkipUpdatesRoute step was removed. It never called next (so matching routes got an empty 200) and it
+// wrote a "100 Continue" header on every other request. If some routes must bypass authentication, mount them outside
+// the router group that uses this middleware.
 func ExtractUserFromSession(
 	users UserService,
-	auth handlers.Authenticator,
-	session handlers.SessionManager,
+	auth Authenticator,
+	session SessionManager,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			log := slogctx.FromCtx(req.Context())
 
-			// Ignore updates route.
-			if SkipUpdatesRoute(next)(res, req) {
-				return
-			}
-
-			if handleUnauthenticated(log, auth, req, res) {
-				return
-			}
-
-			if handleTokenExpiry(log, auth, req, res) {
+			// Make sure there is a valid (or refreshable) session. This also covers the "not authenticated" case.
+			if !ensureAuthenticated(log, auth, res, req) {
 				return
 			}
 
 			// Extract and validate user profile from session.
-			externalUserID, blocked := extractUserProfile(session, req, log, auth, res)
-			if externalUserID == "" {
+			externalUserID, blocked, ok := extractUserProfile(session, req, log, auth, res)
+			if !ok {
 				return
 			}
 
@@ -63,6 +81,7 @@ func ExtractUserFromSession(
 			// Fetch the user from the user management API.
 			user, err := fetchUserFromAPI(log, users, req, externalUserID)
 			if err != nil {
+				handleUserLookupError(auth, res, req, err)
 				return
 			}
 
@@ -75,96 +94,58 @@ func ExtractUserFromSession(
 	}
 }
 
-// SkipUpdatesRoute skips the ExtractUserFromSession middleware for /updates routes.
-func SkipUpdatesRoute(next http.Handler) func(res http.ResponseWriter, req *http.Request) bool {
-	return func(res http.ResponseWriter, req *http.Request) bool {
-		if strings.HasPrefix(req.URL.Path, "/updates") {
-			res.WriteHeader(http.StatusOK)
-			return true
-		}
-		res.WriteHeader(http.StatusContinue)
-		return false
+// redirectToLogin sends the client to the login page. htmx requests get an HX-Redirect so the whole page navigates.
+func redirectToLogin(res http.ResponseWriter, req *http.Request) {
+	if htmx.IsHTMX(req) {
+		res.Header().Set(htmx.HeaderRedirect, "/login")
+		res.WriteHeader(http.StatusUnauthorized)
+		return
 	}
+	http.Redirect(res, req, "/login", http.StatusFound)
 }
 
-// handleUnauthenticated handles redirecting unauthenticated users.
-func handleUnauthenticated(
+// ensureAuthenticated makes sure the session holds a usable access token, refreshing it if necessary. It returns true
+// if the request may continue. Otherwise a response has already been written and the caller must stop.
+func ensureAuthenticated(
 	log *slog.Logger,
-	auth handlers.Authenticator,
-	req *http.Request,
+	auth Authenticator,
 	res http.ResponseWriter,
+	req *http.Request,
 ) bool {
-	if !auth.IsAuthenticated(req.Context()) {
-		log.Warn("Unauthenticated; redirecting to login.")
-		auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-		if htmx.IsHTMX(req) {
-			res.Header().Add(htmx.HeaderRedirect, "/login")
-			res.WriteHeader(http.StatusUnauthorized)
-		} else {
-			http.Redirect(res, req, "/login", http.StatusFound)
-		}
+	err := auth.EnsureFresh(req.Context())
+	switch {
+	case err == nil:
 		return true
+
+	case errors.Is(err, auth0.ErrSessionExpired):
+		// Not logged in, or the refresh token is gone/revoked. The user has to log in again.
+		log.Warn("Not authenticated or session expired; redirecting to login.",
+			slog.Any("error", err),
+		)
+		auth.PutReturnTo(req.Context(), req.URL.RequestURI())
+		redirectToLogin(res, req)
+
+	default:
+		// Transient failure talking to the auth provider (network, 5xx). The session is intact, so do NOT log the
+		// user out: tell the client to retry.
+		log.Error("Could not refresh access token.",
+			slog.Any("error", err),
+		)
+		res.Header().Set("Retry-After", "5")
+		http.Error(res, "authentication service unavailable", http.StatusServiceUnavailable)
 	}
 	return false
 }
 
-// handleTokenExpiry handles token refresh and redirect on failure.
-func handleTokenExpiry(
-	log *slog.Logger,
-	auth handlers.Authenticator,
-	req *http.Request,
-	res http.ResponseWriter,
-) bool {
-	if auth.IsAccessTokenExpired(req.Context()) {
-		refreshToken, err := auth.GetRefreshToken(req.Context())
-		if err != nil || refreshToken == "" {
-			log.Warn("Access token expired and no refresh token; redirecting to login.",
-				slog.Any("error", err),
-			)
-			auth.ClearAuth(req.Context())
-			auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-			if htmx.IsHTMX(req) {
-				res.Header().Add(htmx.HeaderRedirect, "/login")
-				res.WriteHeader(http.StatusUnauthorized)
-			} else {
-				http.Redirect(res, req, "/login", http.StatusFound)
-			}
-			return true
-		}
-
-		slogctx.Debug(req.Context(), "Access token expired; attempting refresh.")
-		if err := auth.RefreshTokens(req.Context(), refreshToken); err != nil {
-			log.Warn("Token refresh failed.",
-				slog.Any("error", err),
-			)
-			auth.ClearAuth(req.Context())
-			auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-			if htmx.IsHTMX(req) {
-				res.Header().Add(htmx.HeaderRedirect, "/login")
-				res.WriteHeader(http.StatusUnauthorized)
-			} else {
-				http.Redirect(res, req, "/login", http.StatusFound)
-			}
-			return true
-		}
-
-		// Rotate tokens in session.
-		log.Debug("Token refresh successful.")
-		return false
-	}
-	return false
-}
-
-// extractUserProfile extracts the external user ID and blocked status from the session profile.
+// extractUserProfile extracts the external user ID and blocked status from the session profile. ok is false if a
+// response has already been written (the profile was missing or invalid) and the caller must stop.
 func extractUserProfile(
-	session handlers.SessionManager,
+	session SessionManager,
 	req *http.Request,
 	log *slog.Logger,
-	auth handlers.Authenticator,
+	auth Authenticator,
 	res http.ResponseWriter,
-) (string, bool) {
-	var externalUserID string
-	var blocked bool
+) (externalUserID string, blocked, ok bool) {
 	switch profile := session.Get(req.Context(), "profile").(type) {
 	case auth0.UserProfile:
 		// TODO: remove this block after a while.
@@ -172,24 +153,22 @@ func extractUserProfile(
 		blocked = profile.Blocked
 	case models.UserProfileResponse:
 		externalUserID = profile.GetID()
-		if profile.Blocked != nil {
-			blocked = *profile.Blocked
-		} else {
-			blocked = false
+		blocked = profile.Blocked != nil && *profile.Blocked
+	case *models.UserProfileResponse:
+		if profile != nil {
+			externalUserID = profile.GetID()
+			blocked = profile.Blocked != nil && *profile.Blocked
 		}
-	default:
+	}
+
+	if externalUserID == "" {
 		log.Warn("Unable to retrieve profile from session.")
 		auth.ClearAuth(req.Context())
 		auth.PutReturnTo(req.Context(), req.URL.RequestURI())
-		if htmx.IsHTMX(req) {
-			res.Header().Add(htmx.HeaderRedirect, "/login")
-			res.WriteHeader(http.StatusUnauthorized)
-		} else {
-			http.Redirect(res, req, "/login", http.StatusFound)
-		}
-		return "", false
+		redirectToLogin(res, req)
+		return "", false, false
 	}
-	return externalUserID, blocked
+	return externalUserID, blocked, true
 }
 
 // handleBlockedUser handles redirecting blocked users.
@@ -208,6 +187,19 @@ func handleBlockedUser(
 	} else {
 		http.Redirect(res, req, redirectPath, http.StatusTemporaryRedirect)
 	}
+}
+
+// handleUserLookupError writes a response for a failed local user lookup, so the request never ends with an empty 200.
+func handleUserLookupError(auth Authenticator, res http.ResponseWriter, req *http.Request, err error) {
+	if models.HTTPStatus(err) == http.StatusNotFound {
+		// The session refers to a user we no longer have locally. Force a fresh login: the login callback recreates
+		// the local account from the auth provider's profile.
+		auth.ClearAuth(req.Context())
+		redirectToLogin(res, req)
+		return
+	}
+	res.Header().Set("Retry-After", "5")
+	http.Error(res, "unable to load user", http.StatusServiceUnavailable)
 }
 
 // fetchUserFromAPI fetches and validates the user from the backend API.
@@ -285,7 +277,11 @@ func RequireValidUser(next http.Handler) http.Handler {
 
 		default:
 			// Unknown or unhandled user. Display a warning to contact support.
-			http.Redirect(res, req, "/account-issue", http.StatusSeeOther)
+			if htmx.IsHTMX(req) {
+				res.Header().Set(htmx.HeaderRedirect, "/account-issue")
+			} else {
+				http.Redirect(res, req, "/account-issue", http.StatusTemporaryRedirect)
+			}
 			return
 		}
 	})

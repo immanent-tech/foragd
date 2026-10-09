@@ -171,21 +171,15 @@ type SessionManager interface {
 
 type Authenticator interface {
 	IsAuthenticated(ctx context.Context) bool
-	GenerateAuthURL(req *http.Request) (*auth0.AuthURLResult, error)
-	GenerateLogoutURL(req *http.Request) (*url.URL, error)
-	PutState(ctx context.Context, state string)
-	GetState(ctx context.Context) (string, error)
-	PutCodeVerifier(ctx context.Context, verifier string)
-	GetCodeVerifier(ctx context.Context) (string, error)
+	GenerateAuthURL(signup bool) (*auth0.AuthURLResult, error)
+	StoreAuthRequest(ctx context.Context, r *auth0.AuthURLResult)
+	ValidateState(ctx context.Context, got string) error
+	PerformExchange(ctx context.Context, code string) (*models.UserProfileResponse, error)
+	EnsureFresh(ctx context.Context) error
 	PutReturnTo(ctx context.Context, path string)
-	PerformExchange(ctx context.Context, code, verifier string) (*models.UserProfileResponse, error)
-	GetRefreshToken(ctx context.Context) (string, error)
-	GetTokenExpiry(ctx context.Context) (time.Time, error)
-	RefreshTokens(ctx context.Context, token string) error
+	ConsumeReturnTo(ctx context.Context) (string, error)
+	GenerateLogoutURL() (*url.URL, error)
 	ClearAuth(ctx context.Context)
-	ClearState(ctx context.Context)
-	GetReturnTo(ctx context.Context) (string, error)
-	IsAccessTokenExpired(ctx context.Context) bool
 }
 
 type AuthManager interface {

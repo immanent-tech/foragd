@@ -7,15 +7,16 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"go.opentelemetry.io/otel/codes"
@@ -52,8 +53,19 @@ func (m *Manager) HandleLogin(authenticator Authenticator) http.HandlerFunc {
 			return
 		}
 
-		// Generate state, verification and authentication URL.
-		result, err := authenticator.GenerateAuthURL(req)
+		planID := req.URL.Query().Get("subscription_plan")
+		m.SessionMgr.Put(req.Context(), "subscription_plan", planID)
+
+		// Redirect the user appropriately.
+		var signup bool
+		route := chi.RouteContext(req.Context()).RoutePattern()
+		switch {
+		case strings.HasSuffix(route, "/signup"):
+			signup = true
+		case strings.HasSuffix(route, "/login"):
+			signup = false
+		}
+		result, err := authenticator.GenerateAuthURL(signup)
 		if err != nil {
 			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("generate auth url: %w", err),
@@ -61,8 +73,6 @@ func (m *Manager) HandleLogin(authenticator Authenticator) http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-		planID := req.URL.Query().Get("subscription_plan")
-		m.SessionMgr.Put(req.Context(), "subscription_plan", planID)
 
 		// Renew session token before writing to prevent session fixation.
 		if err := m.SessionMgr.RenewToken(req.Context()); err != nil {
@@ -74,13 +84,10 @@ func (m *Manager) HandleLogin(authenticator Authenticator) http.HandlerFunc {
 		}
 
 		// Store data required for verification.
-		authenticator.PutState(req.Context(), result.GetState())
-		authenticator.PutCodeVerifier(req.Context(), result.GetCodeVerifier())
+		authenticator.StoreAuthRequest(req.Context(), result)
 
 		// Redirect for authentication.
-		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-			slog.String("url", result.GetURL()),
-		)
+		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.")
 		http.Redirect(res, req, result.GetURL(), http.StatusFound)
 	}
 }
@@ -104,9 +111,8 @@ func (m *Manager) HandleLoginCallback(
 			return
 		}
 
-		// Validate state to prevent CSRF.
-		if state, err := auth.GetState(req.Context()); err != nil ||
-			req.FormValue("state") != state {
+		// Validate state value.
+		if err := auth.ValidateState(req.Context(), req.FormValue("state")); err != nil {
 			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("restore state: %w", err),
 				StatusCode:    http.StatusBadRequest,
@@ -114,32 +120,12 @@ func (m *Manager) HandleLoginCallback(
 			return
 		}
 
-		// Exchange an authorization code for a token.
-		code := req.FormValue("code")
-		verifier, err := auth.GetCodeVerifier(req.Context())
-		if err != nil {
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("restore verifier: %w", err),
-				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
-		}
-
 		// Verify and exchange authorization code to retrieve user profile.
-		profile, err := auth.PerformExchange(req.Context(), code, verifier)
+		profile, err := auth.PerformExchange(req.Context(), req.FormValue("code"))
 		if err != nil {
 			m.HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("exchange auth token: %w", err),
 				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Renew session token before writing to prevent session fixation.
-		if err := m.SessionMgr.RenewToken(req.Context()); err != nil {
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("renew m.SessionMgr token: %w", err),
-				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
 		}
@@ -178,7 +164,7 @@ func (m *Manager) HandleLoginCallback(
 			syncUser(req.Context(), userSvc, authMgr, user)
 		}
 
-		redirectAfterLogin(res, req, m.SessionMgr, auth, user)
+		redirectAfterLogin(res, req, auth, user)
 	}
 }
 
@@ -245,7 +231,6 @@ func sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *model
 func redirectAfterLogin(
 	res http.ResponseWriter,
 	req *http.Request,
-	session SessionManager,
 	authenticator Authenticator,
 	user *models.User,
 ) {
@@ -255,9 +240,8 @@ func redirectAfterLogin(
 	log.Info("User logged in.",
 		slog.String("user_id", user.GetID()),
 	)
-	authenticator.ClearState(req.Context())
 
-	if returnTo, err := authenticator.GetReturnTo(req.Context()); err != nil {
+	if returnTo, err := authenticator.ConsumeReturnTo(req.Context()); err != nil {
 		log.Debug("Redirecting home.")
 		http.Redirect(res, req.WithContext(ctx), "/home", http.StatusFound)
 	} else {
@@ -288,46 +272,20 @@ func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
 }
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.
-func (m *Manager) HandleRefreshToken(
-	authenticator Authenticator,
-) http.HandlerFunc {
+func (m *Manager) HandleRefreshToken(auth Authenticator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve the refresh token and expiry from the session.
-		tkn, err := authenticator.GetRefreshToken(req.Context())
-		if err != nil {
+		err := auth.EnsureFresh(req.Context())
+		switch {
+		case err == nil:
+			res.WriteHeader(http.StatusNoContent)
+		case errors.Is(err, auth0.ErrSessionExpired):
+			res.Header().Set("HX-Redirect", "/login")
+			res.WriteHeader(http.StatusUnauthorized)
+		default:
 			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get refresh token from m.SessionMgr: %w", err),
-				StatusCode:    http.StatusBadRequest,
+				InternalError: fmt.Errorf("refresh tokens: %w", err),
+				StatusCode:    http.StatusServiceUnavailable,
 			}).ServeHTTP(res, req)
-			return
-		}
-		expiry, err := authenticator.GetTokenExpiry(req.Context())
-		if err != nil {
-			m.HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get token expiry from m.SessionMgr: %w", err),
-				StatusCode:    http.StatusBadRequest,
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// If token will expire soon, refresh it.
-		const refreshGracePeriod = time.Hour
-		if expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
-			if err := authenticator.RefreshTokens(req.Context(), tkn); err != nil {
-				authenticator.ClearAuth(req.Context())
-				http.Redirect(res, req, "/login", http.StatusSeeOther)
-				return
-			}
-
-			// Redirect back to the referrer or home (same-origin only).
-			ref := req.Referer()
-			if ref == "" {
-				ref = "/home"
-			}
-			if u, err := url.Parse(ref); err != nil || (u.Host != "" && u.Host != req.Host) {
-				ref = "/home"
-			}
-			http.Redirect(res, req, ref, http.StatusFound)
 		}
 	}
 }

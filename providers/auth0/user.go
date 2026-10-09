@@ -94,7 +94,8 @@ type Manager struct {
 
 // LoadManager loads a connection to the Auth0 management API.
 var LoadManager = sync.OnceValues(func() (*Manager, error) {
-	if err := loadConfigOnce(); err != nil {
+	cfg, err := loadConfigOnce()
+	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 

@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package auth0
 
@@ -9,7 +11,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net/http"
+	"time"
 
+	httpclient "github.com/immanent-tech/go-base/client"
 	"github.com/immanent-tech/go-base/validation"
 )
 
@@ -55,4 +60,21 @@ func generateState() (string, error) {
 		return "", fmt.Errorf("generating state: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func newHTTPClient() *http.Client {
+	return httpclient.New().
+		SetTransport(&http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           httpclient.SecureDialer.DialContext,
+			ForceAttemptHTTP2:     true,
+			TLSHandshakeTimeout:   5 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+			IdleConnTimeout:       90 * time.Second,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   20,
+		}).
+		SetTimeout(15 * time.Second).
+		SetDebug(false).
+		GetClient()
 }

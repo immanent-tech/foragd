@@ -7,3 +7,10 @@ packages:
       pkgname: "{{.SrcPackageName}}_test"
       structname: "Moq{{.InterfaceName}}"
       all: true
+  github.com/immanent-tech/foragd/server/middlewares:
+    config:
+      dir: "{{.InterfaceDir}}"
+      filename: "middlewares_mocks_test.go"
+      pkgname: "{{.SrcPackageName}}_test"
+      structname: "Moq{{.InterfaceName}}"
+      all: true

@@ -21,7 +21,7 @@ func (m *Manager) HandleLogout(authenticator Authenticator) http.HandlerFunc {
 			return
 		}
 		// Generate logout URL.
-		logoutURL, err := authenticator.GenerateLogoutURL(req)
+		logoutURL, err := authenticator.GenerateLogoutURL()
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
