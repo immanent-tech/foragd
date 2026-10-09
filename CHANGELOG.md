@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.244.3](https://github.com/immanent-tech/foragd/compare/v0.244.2...v0.244.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* **providers/auth0:** 🔧 authentication improvements ([8ea00c7](https://github.com/immanent-tech/foragd/commit/8ea00c764b42ffc5dfa3196d3079fc63993b761d))
+
 ## [0.244.2](https://github.com/immanent-tech/foragd/compare/v0.244.1...v0.244.2) (2026-10-08)
 
 
