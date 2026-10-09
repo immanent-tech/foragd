@@ -82,6 +82,11 @@ jobs:
 
       - name: Test
         run: go test -race -coverprofile=coverage.out ./...
+        env:
+          APP_ENVIRONMENT: development
+          APP_NAME: Foragd
+          APP_ID: app.foragd
+          APP_BASEURL: https://test.foragd.app
 
       - name: Upload Coverage
         id: upload_coverage
