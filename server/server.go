@@ -545,7 +545,6 @@ func Start() error {
 			r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleStartImport(importSvc))
 			r.Route("/status", func(r chi.Router) {
 				r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-				r.Use(htmx.RequireHTMX)
 				r.Get("/", handlerMgr.HandleImportStatus(importSvc, subscriptionSvc))
 				r.Get("/{jobID}", handlerMgr.HandleImportStatus(importSvc, subscriptionSvc))
 			})
