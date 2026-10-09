@@ -558,15 +558,15 @@ func TestNewListControls_Render(t *testing.T) {
 	if doc.Find("el-dialog").Length() == 0 {
 		t.Error("Expected el-dialog for mobile controls, but not found")
 	}
-	if doc.Find("desktop-sort-filters").Length() == 0 {
+	if doc.Find("[id='desktop-sort-filters']").Length() == 0 {
 		t.Error("Expected desktop-sort-filters, but not found")
 	}
 
 	// Verify specific labels
-	if doc.Find("View").Length() == 0 {
+	if doc.Find("li[.menu-title]").Text() == "View" {
 		t.Error("Expected 'View' label in mobile filters")
 	}
-	if doc.Find("Sort").Length() == 0 {
+	if doc.Find("li[.menu-title]").Text() == "Sort" {
 		t.Error("Expected 'Sort' label in mobile filters")
 	}
 }
