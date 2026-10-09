@@ -16,10 +16,6 @@ go.work
 # Don't include local server configuration.
 server.toml
 # Don't include generated files.
-web/content/*.css
-web/content/*.css.map
-web/content/*.js
-web/content/*.js.map
 web/files/dist
 web/files/meta.json
 
