@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://foragd.app">
-    <img src="https://github.com/immanent-tech/foragd/raw/main/web/assets/play-feature-image.webp" alt="Foragd hero image" width="1024" height="500">
+    <img src="https://github.com/immanent-tech/foragd/raw/main/web/assets/images/play-feature-image.webp" alt="Foragd hero image" width="1024" height="500">
   </a>
 </p>
 
@@ -31,9 +31,12 @@
 - [📔 Table of Contents](#-table-of-contents)
 - [🌟 About the Project](#-about-the-project)
   - [What Makes Foragd Different?](#what-makes-foragd-different)
-  - [📷 Screenshots](#-screenshots)
-  - [👾 Tech Stack](#-tech-stack)
-  - [🎯 Features](#-features)
+- [📷 Screenshots](#-screenshots)
+- [👾 Tech Stack](#-tech-stack)
+  - [Server](#server)
+  - [Data store](#data-store)
+  - [Backend services](#backend-services)
+- [🎯 Features](#-features)
 - [🧰 Getting Started](#-getting-started)
   - [‼️ Prerequisites](#️-prerequisites)
   - [⚙️ Installation](#️-installation)
@@ -58,15 +61,19 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
 - **Easy filtering.** Filter articles within a subscription by keyword, phrase, category, or author, using simple `+/-` operators — no complex filter builder required. For example:
   `alcoholic drinks + -"rum based" +daiquiri`
 
-### 📷 Screenshots
+## 📷 Screenshots
 
 <p align="center">
-  <img src="https://github.com/immanent-tech/foragd/raw/main/web/content/screenshots/main.webp" alt="Foragd home page on desktop and mobile" width="800">
+  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/screenshots/home-desktop.webp" alt="Foragd home page on desktop" width="1440" height="900">
 </p>
 
-### 👾 Tech Stack
+<p align="center">
+  <img src="https://github.com/immanent-tech/foragd/raw/main/web/files/screenshots/home-mobile.webp" alt="Foragd home page on mobile" width="645" height=1398>
+</p>
 
-**Server**
+## 👾 Tech Stack
+
+### Server
 
 - [Go](https://go.dev/)
 - [Chi](https://go-chi.io/)
@@ -75,17 +82,17 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Daisy UI](https://daisyui.com/)
 
-**Data store**
+### Data store
 
 - [Elasticsearch](https://www.elastic.co/)
 
-**Backend services**
+### Backend services
 
 - [Auth0](https://auth0.com/) — authentication
 - [Stripe](https://stripe.com/) — billing
 - [Resend](https://resend.com/) — transactional email
 
-### 🎯 Features
+## 🎯 Features
 
 - **Mobile and desktop friendly.** Foragd is a web based app that works in any modern browser, on any device.
 - **Article filtering.** Filter articles in a subscription by text/phrase, category, or author with simple, powerful operators.
