@@ -488,7 +488,7 @@ func (m *Manager) HandleMarkArticle(
 			m.HandleInternalError(http.StatusInternalServerError, err).ServeHTTP(res, req)
 			return
 		}
-		if currentURL, found := htmx.GetCurrentURL(req); found && !strings.Contains(currentURL, article.GetID()) {
+		if currentURL, found := htmx.GetCurrentURL(req); found && !strings.Contains(currentURL, "/articles/item_") {
 			filters := ListFiltersFromCtx(req.Context())
 			// Remove the article card.
 			if filters.GetView() != models.ViewAll {
