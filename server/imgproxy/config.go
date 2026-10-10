@@ -22,29 +22,30 @@ type Config struct {
 	Prefix string `koanf:"prefix" validate:"required,url"`
 }
 
-var cfg *Config
-
-var loadConfig = sync.OnceValue(func() error {
+var loadConfig = sync.OnceValues(func() (*Config, error) {
+	var cfg *Config
 	// Load server config.
 	if err := config.Load(configEnvPrefix, &cfg); err != nil {
-		return fmt.Errorf("load environment: %w", err)
+		return nil, fmt.Errorf("load environment: %w", err)
 	}
 
 	if err := validation.Validate.Struct(cfg); err != nil {
-		return fmt.Errorf("validate config: %w", err)
+		return nil, fmt.Errorf("validate config: %w", err)
 	}
-	return nil
+	return cfg, nil
 })
 
 func GetKey() (string, error) {
-	if err := loadConfig(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 	return cfg.Key, nil
 }
 
 func GetSalt() (string, error) {
-	if err := loadConfig(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 	return cfg.Salt, nil
