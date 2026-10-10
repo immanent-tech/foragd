@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.244.5](https://github.com/immanent-tech/foragd/compare/v0.244.4...v0.244.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* **handlers:** 🔧 fix prev/next article buttons causing blank page ([0b692dc](https://github.com/immanent-tech/foragd/commit/0b692dcb3725c226fd3f218d9881773d45814ba6))
+* **server:** 🔧 don't require htmx to view import status ([cbb024e](https://github.com/immanent-tech/foragd/commit/cbb024eeab383db3f0387ad3dc0baa5f27625a6a))
+
 ## [0.244.4](https://github.com/immanent-tech/foragd/compare/v0.244.3...v0.244.4) (2026-10-09)
 
 
