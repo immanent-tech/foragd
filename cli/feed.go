@@ -13,7 +13,6 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -52,16 +51,17 @@ type ZyteFetchArgs struct {
 type FeedCmd struct {
 	Fetch        FetchFeedCmd        `cmd:"" help:"fetch a feed (by either URL or ID)"`
 	ResetUpdates ResetFeedUpdatesCmd `cmd:"" help:"reset the feed updates job"`
-	Update       UpdateFeedCmd       `cmd:"" help:"update the feed"`
+	Edit         EditFeedCmd         `cmd:"" help:"edit the feed"`
 	Add          AddFeedCmd          `cmd:"" help:"add a feed"`
 	Classify     ClassifyFeedCmd     `cmd:"" help:"classify a feed"`
 }
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
 type FetchFeedCmd struct {
-	FeedID   *models.FeedID `help:"ID of feed"        validate:"omitempty,required_without=FeedURL,startswith=feed_"`
-	FeedURL  *string        `help:"URL of feed"       validate:"omitempty,required_without=FeedID,omitempty,url"`
-	Validate bool           `help:"validate the feed"                                                                default:"false"`
+	FeedID       *models.FeedID `help:"ID of feed"                        validate:"omitempty,required_without=FeedURL,startswith=feed_"`
+	FeedURL      *string        `help:"URL of feed"                       validate:"omitempty,required_without=FeedID,omitempty,url"`
+	ApplyUpdates bool           `help:"Whether to write updates to store" validate:"omitempty"`
+	Validate     bool           `help:"validate the feed"                                                                                default:"false"`
 }
 
 // Run performs the operations for fetching feed details.
@@ -77,11 +77,6 @@ func (c *FetchFeedCmd) Run() error {
 	feedSvc, err := service.LoadFeedService()
 	if err != nil {
 		return fmt.Errorf("load feed service: %w", err)
-	}
-
-	itemSvc, err := service.LoadItemService()
-	if err != nil {
-		return fmt.Errorf("load item service: %w", err)
 	}
 
 	var (
@@ -117,23 +112,9 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("fetch feed: %w", err)
 	}
 
-	if details != nil {
-		if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-			slogctx.FromCtx(ctx).Info("Feed has new items.",
-				slog.Int("count", len(newItems)),
-			)
-			// Try to enrich item with additional data if possible.
-			var wg sync.WaitGroup
-			for item := range slices.Values(newItems) {
-				wg.Go(func() {
-					if err := itemSvc.EnrichItem(ctx, details, item); err != nil {
-						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
-							slog.Any("error", err),
-						)
-					}
-				})
-			}
-			wg.Wait()
+	if details != nil && c.ApplyUpdates {
+		if err := feedSvc.ApplyFeedUpdates(ctx, details, feed); err != nil {
+			return fmt.Errorf("apply feed updates: %w", err)
 		}
 	}
 
@@ -190,15 +171,15 @@ func (c *ResetFeedUpdatesCmd) Run() error {
 	return nil
 }
 
-// UpdateFeedCmd performs updates on a feed.
-type UpdateFeedCmd struct {
+// EditFeedCmd performs updates on a feed.
+type EditFeedCmd struct {
 	FeedArgs `embed:""`
 
 	FeedID models.FeedID `help:"ID of feed" required:"" validate:"required,startswith=feed_"`
 }
 
 // Run performs the operations for resetting feed updates.
-func (c *UpdateFeedCmd) Run() error {
+func (c *EditFeedCmd) Run() error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -217,29 +198,131 @@ func (c *UpdateFeedCmd) Run() error {
 		return fmt.Errorf("get feed: %w", err)
 	}
 
-	// Process required updates.
-	if c.UpdateInterval != nil {
-		interval, err := time.ParseDuration(*c.UpdateInterval)
+	// Apply any update interval change
+	if err := editUpateInterval(c.FeedArgs, feed); err != nil {
+		return fmt.Errorf("edit update interval: %w", err)
+	}
+
+	// Apply any display changes.
+	if err := editDisplay(c.FeedArgs, feed); err != nil {
+		return fmt.Errorf("edit display: %w", err)
+	}
+
+	// Apply any fetch method change.
+	if err := editFetchMethod(c.FeedArgs, feed); err != nil {
+		return fmt.Errorf("edit fetch method: %w", err)
+	}
+
+	// Update feed.
+	if err := updateFeed(ctx, c.FeedArgs, feedSvc, feed); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+
+	return nil
+}
+
+func editUpateInterval(edits FeedArgs, feed *models.Feed) error {
+	// Edit update interval.
+	if interval := edits.UpdateInterval; interval != nil {
+		interval, err := time.ParseDuration(*interval)
 		if err != nil {
 			return fmt.Errorf("parse interval: %w", err)
 		}
 		feed.UpdateInterval = int64(interval)
-		// Update the feed.
-		if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
-			return fmt.Errorf("update feed: %w", err)
+	}
+	return nil
+}
+
+func editDisplay(edits FeedArgs, feed *models.Feed) error {
+	// Edit name/description/categories.
+	if edits.Name != nil {
+		if feed.Customisation == nil {
+			feed.Customisation = &models.FeedCustomisation{}
 		}
+		feed.Customisation.Title = edits.Name
+	}
+	if edits.Description != nil {
+		if feed.Customisation == nil {
+			feed.Customisation = &models.FeedCustomisation{}
+		}
+		feed.Customisation.Description = edits.Description
+	}
+	if edits.Categories != nil {
+		categories := strings.Split(*edits.Categories, ",")
+		feed.Categories = categories
+	}
+	return nil
+}
+
+func editFetchMethod(edits FeedArgs, feed *models.Feed) error {
+	// Edit fetch method.
+	switch feed.FetchMethod {
+	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
+		if feed.FetchOptions != nil {
+			// Compare and update fetch options if needed.
+			currentFetchOptions, err := feed.FetchOptions.AsFetchDirectOptions()
+			if err != nil {
+				return fmt.Errorf("extract fetch options: %w", err)
+			}
+			if edits.DirectFetchArgs.FetchItemSummaries != currentFetchOptions.FetchItemSummaries {
+				newFetchOptions := models.Feed_FetchOptions{}
+				if err := newFetchOptions.FromFetchDirectOptions(edits.DirectFetchArgs.FetchDirectOptions); err != nil {
+					return fmt.Errorf("update direct fetch options: %w", err)
+				}
+				feed.FetchOptions = &newFetchOptions
+			}
+		} else {
+			// Add new fetch options.
+			newFetchOptions := models.Feed_FetchOptions{}
+			if err := newFetchOptions.FromFetchDirectOptions(edits.DirectFetchArgs.FetchDirectOptions); err != nil {
+				return fmt.Errorf("update direct fetch options: %w", err)
+			}
+			feed.FetchOptions = &newFetchOptions
+		}
+	case models.FeedFetchMethodZyteArticles:
+		currentFetchOptions, err := feed.FetchOptions.AsFetchZyteOptions()
+		if err != nil {
+			return fmt.Errorf("extract fetch options: %w", err)
+		}
+		var changed bool
+		if currentFetchOptions.ExtractFrom != nil && edits.ZyteFetchArgs.ExtractFrom != nil {
+			if *currentFetchOptions.ExtractFrom != *edits.ZyteFetchArgs.ExtractFrom {
+				currentFetchOptions.ExtractFrom = edits.ZyteFetchArgs.ExtractFrom
+				changed = true
+			}
+		} else if edits.ZyteFetchArgs.ExtractFrom != nil {
+			currentFetchOptions = edits.ZyteFetchArgs.FetchZyteOptions
+			changed = true
+		}
+		if changed {
+			newFetchOptions := models.Feed_FetchOptions{}
+			if err := newFetchOptions.FromFetchZyteOptions(currentFetchOptions); err != nil {
+				return fmt.Errorf("update zyte fetch options: %w", err)
+			}
+			feed.FetchOptions = &newFetchOptions
+		}
+	}
+	return nil
+}
+
+func updateFeed(ctx context.Context, edits FeedArgs, feedSvc *service.FeedService, feed *models.Feed) error {
+	// Update the feed.
+	if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+	if edits.UpdateInterval != nil {
 		// Delete scheduled job for feed.
 		manager, err := scheduler.New()
 		if err != nil {
 			return fmt.Errorf("could not run scheduler: %w", err)
 		}
 		if err := manager.DeleteJob(
-			quartz.NewJobKeyWithGroup(c.FeedID, string(jobs.JobTypeUpdateFeed)),
+			quartz.NewJobKeyWithGroup(feed.GetID(), string(jobs.JobTypeUpdateFeed)),
 		); err != nil {
 			return fmt.Errorf("delete feed job: %w", err)
 		}
 		// Create a new job for the feed.
-		newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, c.FeedID)
+		newJob, err := jobs.NewUpdateFeedJob(ctx, feedSvc, feed.GetID())
 		if err != nil {
 			return fmt.Errorf("create new feed job: %w", err)
 		}
@@ -253,81 +336,13 @@ func (c *UpdateFeedCmd) Run() error {
 		)
 	}
 
-	if c.Name != nil {
-		if feed.Customisation == nil {
-			feed.Customisation = &models.FeedCustomisation{}
-		}
-		feed.Customisation.Title = c.Name
-	}
-	if c.Description != nil {
-		if feed.Customisation == nil {
-			feed.Customisation = &models.FeedCustomisation{}
-		}
-		feed.Customisation.Description = c.Description
-	}
-	if c.Categories != nil {
-		categories := strings.Split(*c.Categories, ",")
-		feed.Categories = categories
-	}
-
-	switch feed.FetchMethod {
-	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
-		if feed.FetchOptions != nil {
-			// Compare and update fetch options if needed.
-			currentFetchOptions, err := feed.FetchOptions.AsFetchDirectOptions()
-			if err != nil {
-				return fmt.Errorf("extract fetch options: %w", err)
-			}
-			if c.DirectFetchArgs.FetchItemSummaries != currentFetchOptions.FetchItemSummaries {
-				newFetchOptions := models.Feed_FetchOptions{}
-				if err := newFetchOptions.FromFetchDirectOptions(c.DirectFetchArgs.FetchDirectOptions); err != nil {
-					return fmt.Errorf("update direct fetch options: %w", err)
-				}
-				feed.FetchOptions = &newFetchOptions
-			}
-		} else {
-			// Add new fetch options.
-			newFetchOptions := models.Feed_FetchOptions{}
-			if err := newFetchOptions.FromFetchDirectOptions(c.DirectFetchArgs.FetchDirectOptions); err != nil {
-				return fmt.Errorf("update direct fetch options: %w", err)
-			}
-			feed.FetchOptions = &newFetchOptions
-		}
-	case models.FeedFetchMethodZyteArticles:
-		currentFetchOptions, err := feed.FetchOptions.AsFetchZyteOptions()
-		if err != nil {
-			return fmt.Errorf("extract fetch options: %w", err)
-		}
-		var changed bool
-		if currentFetchOptions.ExtractFrom != nil && c.ZyteFetchArgs.ExtractFrom != nil {
-			if *currentFetchOptions.ExtractFrom != *c.ZyteFetchArgs.ExtractFrom {
-				currentFetchOptions.ExtractFrom = c.ZyteFetchArgs.ExtractFrom
-				changed = true
-			}
-		} else if c.ZyteFetchArgs.ExtractFrom != nil {
-			currentFetchOptions = c.ZyteFetchArgs.FetchZyteOptions
-			changed = true
-		}
-		if changed {
-			newFetchOptions := models.Feed_FetchOptions{}
-			if err := newFetchOptions.FromFetchZyteOptions(currentFetchOptions); err != nil {
-				return fmt.Errorf("update zyte fetch options: %w", err)
-			}
-			feed.FetchOptions = &newFetchOptions
-		}
-	}
-
-	if err := feedSvc.UpdateFeed(ctx, feed); err != nil {
-		return fmt.Errorf("update feed: %w", err)
-	}
-
 	if err := bulk.Flush(ctx); err != nil {
 		slogctx.Warn(ctx, "Unable to flush updates.",
 			slog.Any("error", err))
 	}
 
 	slogctx.FromCtx(ctx).Info("Feed updated.",
-		slog.String("feed_id", c.FeedID))
+		slog.String("feed_id", feed.GetID()))
 
 	return nil
 }
@@ -477,6 +492,7 @@ func (c *AddFeedCmd) Run() error {
 	return nil
 }
 
+//nolint:funlen
 func showFeedDetails(feed *models.Feed) {
 	var str strings.Builder
 
