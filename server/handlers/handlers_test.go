@@ -8,7 +8,7 @@ package handlers_test
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/url"
 	"os"
 	"testing"
@@ -20,10 +20,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	log.Println("running main")
 	if err := godotenv.Load("../../.env.development"); err != nil {
 		// Not fatal — CI often sets real env vars instead of a .env file
-		log.Println("no .env file found, using existing environment")
+		slog.Warn("no .env file found, using existing environment")
 	}
 	os.Exit(m.Run())
 }
