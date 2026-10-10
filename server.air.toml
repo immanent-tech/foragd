@@ -56,6 +56,7 @@ exclude_dir = [
   "test",
   "tmp",
   "web/files/dist",
+  "pkg/go-syndication/test/",
 ]
 # Watch these directories if you specified.
 include_dir = []
