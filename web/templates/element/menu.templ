@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package element
+
+import (
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
+	"slices"
+)
+
+type MenuItem struct {
+	text       string
+	isSelected bool
+	props      *Properties
+}
+
+func NewMenuItem(text string, options ...MenuItemOption) *MenuItem {
+	item := &MenuItem{text: text}
+	for option := range slices.Values(options) {
+		option(item)
+	}
+	return item
+}
+
+type MenuItemOption func(*MenuItem)
+
+func WithMenuItemSelected(value bool) MenuItemOption {
+	return func(e *MenuItem) {
+		e.isSelected = value
+	}
+}
+
+func WithMenuItemProperties(options ...PropertiesOption) MenuItemOption {
+	return func(e *MenuItem) {
+		e.props = NewProperties(options...)
+	}
+}
+
+templ (i *MenuItem) Template() {
+	<li
+		role="menuitem"
+		class={ "group/option relative block cursor-default py-2 pr-9 pl-3 select-none hover:bg-neutral/60 hover:text-neutral-content focus:bg-neutral/60 focus:text-neutral-content focus:outline-hidden rounded-selector", i.props.GetClasses(), templ.KV("bg-neutral/60 text-neutral-content",i.isSelected) }
+		{ i.props.GetAllAttributes()... }
+	>
+		<span class={ "block truncate pr-1 text-sm font-normal", templ.KV("font-semibold",i.isSelected) }>{ i.text }</span>
+		<span class={ "absolute inset-y-0 right-0 flex items-center pr-4", templ.KV("hidden",!i.isSelected) }>
+			@tableroutline.Check(templ.Attributes{"class": "size-4 stroke-accent", "aria-hidden": "true", "data-slot": "icon"})
+		</span>
+	</li>
+}
