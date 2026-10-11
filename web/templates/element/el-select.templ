@@ -1,0 +1,130 @@
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+package element
+
+import (
+	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
+	"slices"
+)
+
+type ELSelect struct {
+	id      string
+	name    string
+	label   string
+	options []*ELOption
+}
+
+func NewELSelect(id, name string, options ...ELSelectOption) *ELSelect {
+	elSelect := &ELSelect{
+		id:   id,
+		name: name,
+	}
+	for option := range slices.Values(options) {
+		option(elSelect)
+	}
+	return elSelect
+}
+
+func (s *ELSelect) GetSelected() *ELOption {
+	idx := slices.IndexFunc(s.options, func(o *ELOption) bool {
+		return o.isSelected
+	})
+	if idx != -1 {
+		return s.options[idx]
+	}
+	return nil
+}
+
+type ELSelectOption func(*ELSelect)
+
+func WithELSelectLabel(label string) ELSelectOption {
+	return func(e *ELSelect) {
+		e.label = label
+	}
+}
+
+func WithELSelectOptions(options ...*ELOption) ELSelectOption {
+	return func(e *ELSelect) {
+		e.options = options
+	}
+}
+
+templ (s *ELSelect) Template() {
+	<el-select
+		id={ s.id }
+		name={ s.name }
+		class="block"
+		if s.GetSelected() != nil {
+			value={ s.GetSelected().value }
+		}
+	>
+		<button type="button" class="btn border-neutral/15 btn-outline btn-sm">
+			if option := s.GetSelected(); option != nil {
+				<el-selectedcontent class="col-start-1 row-start-1 truncate pr-6 text-sm">{ option.display }</el-selectedcontent>
+			} else {
+				<el-selectedcontent class="col-start-1 row-start-1 truncate pr-6 text-sm italic">{ s.label }</el-selectedcontent>
+			}
+			@tableroutline.ChevronDown(templ.Attributes{
+				"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+				"aria-hidden": "true"})
+		</button>
+		<el-options
+			popover
+			anchor="bottom start"
+			class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 py-1 popover-transitions shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+		>
+			for option := range slices.Values(s.options) {
+				@option.Template()
+			}
+		</el-options>
+	</el-select>
+}
+
+type ELOption struct {
+	isSelected bool
+	display    string
+	value      string
+	props      *Properties
+}
+
+func NewELOption(display, value string, options ...ELOptionOption) *ELOption {
+	elOption := &ELOption{
+		display: display,
+		value:   value,
+	}
+	for option := range slices.Values(options) {
+		option(elOption)
+	}
+	return elOption
+}
+
+type ELOptionOption func(*ELOption)
+
+func WithELOptionSelected(value bool) ELOptionOption {
+	return func(e *ELOption) {
+		e.isSelected = value
+	}
+}
+
+func WithELOptionProperties(options ...PropertiesOption) ELOptionOption {
+	return func(e *ELOption) {
+		e.props = NewProperties(options...)
+	}
+}
+
+templ (o *ELOption) Template() {
+	<el-option
+		value={ o.value }
+		class={ "group/option relative block cursor-default py-2 pr-9 pl-3 select-none hover:bg-neutral/60 hover:text-neutral-content focus:bg-neutral/60 focus:text-neutral-content focus:outline-hidden", o.props.GetClasses() }
+		{ o.props.GetAllAttributes()... }
+	>
+		<span class="block truncate pr-1 text-sm font-normal group-aria-selected/option:font-semibold">{ o.display }</span>
+		<span class="absolute inset-y-0 right-0 flex items-center pr-4 group-not-aria-selected/option:hidden in-[el-selectedcontent]:hidden">
+			@tableroutline.Check(templ.Attributes{"class": "size-4 stroke-accent", "aria-hidden": "true", "data-slot": "icon"})
+		</span>
+	</el-option>
+}
