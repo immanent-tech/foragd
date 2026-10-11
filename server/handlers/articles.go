@@ -305,13 +305,9 @@ func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Requ
 }
 
 // HandleViewArticle handles showing an article's content.
-func (m *Manager) HandleViewArticle(
-	itemSvc ItemService,
-) http.HandlerFunc {
+func (m *Manager) HandleViewArticle(itemSvc ItemService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Extract request parameters.
-		itemID := chi.URLParam(req, "articleID")
-		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
+		if err := extractValidation(req); err != nil {
 			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
 				fmt.Errorf("decode request: %w", err),
@@ -319,8 +315,7 @@ func (m *Manager) HandleViewArticle(
 			return
 		}
 
-		// Fetch article.
-		articles, err := itemSvc.GetArticles(req.Context(), itemID)
+		articles, err := fetchArticle(req.Context(), itemSvc, chi.URLParam(req, "articleID"))
 		if err != nil {
 			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -328,52 +323,10 @@ func (m *Manager) HandleViewArticle(
 			).ServeHTTP(res, req)
 			return
 		}
-		if len(articles) == 0 {
-			slogctx.Warn(req.Context(), "Unable to fetch article details.", slog.Any("error", err))
-			res.WriteHeader(http.StatusNotFound)
-			m.HandleNotFound().ServeHTTP(res, req)
-			return
-		}
 		article := articles[0]
 
-		// Get the "show_full_content" value and override the article value.
-		request, err := parseForm[*models.ViewArticleRequest](req)
-		if err != nil {
-			m.HandleInternalError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("parse request params: %w", err),
-			).ServeHTTP(res, req)
-			return
-		}
-		if request != nil && request.ShowFullContent != nil {
-			article.ShowFullContent = *request.ShowFullContent
-		}
+		processRemoteContent(req.Context(), req, itemSvc, article, res)
 
-		// Fetch and set remote content if required.
-		if article.ShowFullContent {
-			if err := itemSvc.GetArticleRemoteContent(req.Context(), article); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to get remote content for article.",
-					slog.String("item_id", article.GetID()),
-					slog.String("item_url", article.GetLink()),
-					slog.Any("error", err),
-				)
-				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-					res.WriteHeader(apiErr.HTTPStatus())
-				}
-				res.Header().Set(htmx.HeaderReswap, "none")
-				res.Header().Set(htmx.HeaderReplaceUrl, "false")
-				RenderPartial(&Notification{
-					msg: models.NewErrorMessage(
-						"Unable to fetch remote content",
-						"An error occurred fetching the article remote content.",
-					),
-				}).ServeHTTP(res, req)
-				article.ShowFullContent = false
-				return
-			}
-		}
-
-		// Render article content.
 		RenderInternalPage(&ArticleContent{
 			title: templates.PageTitle{
 				Summary:     article.GetTitle(),
@@ -388,6 +341,58 @@ func (m *Manager) HandleViewArticle(
 			appCfg:     m.AppConfig,
 			sessionMgr: m.SessionMgr,
 		}).ServeHTTP(res, req)
+	}
+}
+
+// extractValidation extracts and validates the article itemID from the request.
+func extractValidation(req *http.Request) error {
+	itemID := chi.URLParam(req, "articleID")
+	if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// fetchArticle retrieves articles from the service and handles the not-found case.
+func fetchArticle(ctx context.Context, svc ItemService, id string) (models.Articles, error) {
+	articles, err := svc.GetArticles(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get article content: %w", err)
+	}
+	if len(articles) == 0 {
+		return nil, models.ErrNotFound
+	}
+	return articles, nil
+}
+
+// processRemoteContent handles fetching remote content if ShowFullContent is requested,
+// and serves the remote content failure response.
+func processRemoteContent(reqCtx context.Context, req *http.Request, svc ItemService, article *models.Article, res http.ResponseWriter) {
+	// Skip if no remote content needed
+	if !article.ShowFullContent {
+		return
+	}
+
+	// Fetch remote content if needed
+	if err := svc.GetArticleRemoteContent(reqCtx, article); err != nil {
+		slogctx.FromCtx(reqCtx).Warn("Unable to get remote content for article.",
+			slog.String("item_id", article.GetID()),
+			slog.String("item_url", article.GetLink()),
+			slog.Any("error", err))
+
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+			res.WriteHeader(apiErr.HTTPStatus())
+		}
+		res.Header().Set(htmx.HeaderReswap, "none")
+		res.Header().Set(htmx.HeaderReplaceUrl, "false")
+		RenderPartial(&Notification{
+			msg: models.NewErrorMessage(
+				"Unable to fetch remote content",
+				"An error occurred fetching the article remote content.",
+			),
+		}).ServeHTTP(res, req)
+		article.ShowFullContent = false
+		return
 	}
 }
 
