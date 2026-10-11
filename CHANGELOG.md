@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.245.0](https://github.com/immanent-tech/foragd/compare/v0.244.5...v0.245.0) (2026-10-11)
+
+
+### Features
+
+* **imgproxy:** ⚡ improved image proxying and caching ([7571dd4](https://github.com/immanent-tech/foragd/commit/7571dd4dd418cf8e1a0c0e8e22222a2b1ef34ad1))
+
+
+### Performance Improvements
+
+* **service/feeds:** ⚡ increase parallel item updates ([57ce7cc](https://github.com/immanent-tech/foragd/commit/57ce7cc76da88691be85cf47efd24c5f255b205d))
+
 ## [0.244.5](https://github.com/immanent-tech/foragd/compare/v0.244.4...v0.244.5) (2026-10-10)
 
 
