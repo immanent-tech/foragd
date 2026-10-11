@@ -8447,6 +8447,12 @@
       background-color: color-mix(in oklab, var(--color-neutral) 20%, transparent);
     }
   }
+  .bg-neutral\/60 {
+    background-color: var(--color-neutral);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-neutral) 60%, transparent);
+    }
+  }
   .bg-primary {
     background-color: var(--color-primary);
   }
@@ -8822,8 +8828,17 @@
     padding-right: var(--twsa-safe-area-inset-right);
     padding-left: var(--twsa-safe-area-inset-left);
   }
+  .pr-1 {
+    padding-right: var(--spacing);
+  }
   .pr-4 {
     padding-right: calc(var(--spacing) * 4);
+  }
+  .pr-6 {
+    padding-right: calc(var(--spacing) * 6);
+  }
+  .pr-9 {
+    padding-right: calc(var(--spacing) * 9);
   }
   .pr-12 {
     padding-right: calc(var(--spacing) * 12);
@@ -9285,6 +9300,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  .popover-transitions[data-leave] {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+    transition-behavior: allow-discrete;
+    --tw-duration: 100ms;
+    transition-duration: 100ms;
+    --tw-ease: var(--ease-in);
+    transition-timing-function: var(--ease-in);
+  }
+  .popover-transitions[data-closed][data-leave] {
+    opacity: 0%;
+  }
   .opacity-0 {
     opacity: 0%;
   }
@@ -9728,6 +9756,9 @@
   .group-not-has-\[\[name\=frequency\]\[value\=monthly\]\:checked\]\/tiers\:hidden:is(:where(.group\/tiers):not(:has(:is([name=frequency][value=monthly]:checked))) *) {
     display: none;
   }
+  .group-not-aria-selected\/option\:hidden:is(:where(.group\/option):not([aria-selected="true"]) *) {
+    display: none;
+  }
   @media (hover: hover) {
     .group-hover\:inline:is(:where(.group):hover *) {
       display: inline;
@@ -9786,6 +9817,10 @@
   }
   .group-aria-selected\:text-primary-content:is(:where(.group)[aria-selected="true"] *) {
     color: var(--color-primary-content);
+  }
+  .group-aria-selected\/option\:font-semibold:is(:where(.group\/option)[aria-selected="true"] *) {
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
   }
   .group-\[\.htmx-request\]\:hidden:is(:where(.group):is(.htmx-request) *) {
     display: none;
@@ -9891,11 +9926,22 @@
         border-color: color-mix(in oklab, var(--color-secondary) 50%, transparent);
       }
     }
+    .hover\:bg-neutral\/60:hover {
+      background-color: var(--color-neutral);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-neutral\/60:hover {
+        background-color: color-mix(in oklab, var(--color-neutral) 60%, transparent);
+      }
+    }
     .hover\:bg-primary:hover {
       background-color: var(--color-primary);
     }
     .hover\:bg-secondary:hover {
       background-color: var(--color-secondary);
+    }
+    .hover\:text-neutral-content:hover {
+      color: var(--color-neutral-content);
     }
     .hover\:text-primary:hover {
       color: var(--color-primary);
@@ -9937,8 +9983,17 @@
       }
     }
   }
+  .focus\:bg-neutral\/60:focus {
+    background-color: var(--color-neutral);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-neutral) 60%, transparent);
+    }
+  }
   .focus\:bg-primary:focus {
     background-color: var(--color-primary);
+  }
+  .focus\:text-neutral-content:focus {
+    color: var(--color-neutral-content);
   }
   .focus\:text-primary:focus {
     color: var(--color-primary);
@@ -9982,6 +10037,9 @@
     rotate: calc(180deg * -1);
   }
   :where([data-copied]) .in-data-copied\:hidden {
+    display: none;
+  }
+  :where(:is(el-selectedcontent)) .in-\[el-selectedcontent\]\:hidden {
     display: none;
   }
   .has-checked\:bg-primary:has(:checked) {
@@ -11899,6 +11957,14 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ease {
+  syntax: "*";
+  inherits: false;
+}
 @property --tw-backdrop-blur {
   syntax: "*";
   inherits: false;
@@ -11932,14 +11998,6 @@
   inherits: false;
 }
 @property --tw-backdrop-sepia {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-duration {
-  syntax: "*";
-  inherits: false;
-}
-@property --tw-ease {
   syntax: "*";
   inherits: false;
 }
@@ -12036,6 +12094,8 @@
       --tw-numeric-figure: initial;
       --tw-numeric-spacing: initial;
       --tw-numeric-fraction: initial;
+      --tw-duration: initial;
+      --tw-ease: initial;
       --tw-backdrop-blur: initial;
       --tw-backdrop-brightness: initial;
       --tw-backdrop-contrast: initial;
@@ -12045,8 +12105,6 @@
       --tw-backdrop-opacity: initial;
       --tw-backdrop-saturate: initial;
       --tw-backdrop-sepia: initial;
-      --tw-duration: initial;
-      --tw-ease: initial;
       --tw-scale-x: 1;
       --tw-scale-y: 1;
       --tw-scale-z: 1;

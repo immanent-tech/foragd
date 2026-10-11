@@ -35,7 +35,7 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription, options ...e
 		id={ subscription.GetID() + "-toggle-favorite" }
 		data-tip={ label }
 		class="tooltip tooltip-top tooltip-end"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<button
 			aria-label={ label }
@@ -72,7 +72,7 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 		id={ subscription.GetID() + "-toggle-mark" }
 		class="tooltip tooltip-top tooltip-end"
 		data-tip={ "Mark " + string(mark) }
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<button
 			aria-label={ "Toggle mark status for " + subscription.GetTitle() }
@@ -1257,7 +1257,7 @@ templ RemoveSubscriptionModal(subscription *models.Subscription, options ...elem
 				hx-get={ "/subscriptions/" + string(subscription.GetID()) + "/remove" }
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-disable="find button[type='submit']"
-				{ props.Attributes()... }
+				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
@@ -1300,7 +1300,7 @@ templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.Properties
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
-				{ props.Attributes()... }
+				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>
@@ -1343,7 +1343,7 @@ templ BulkRemoveSubscriptionsModal(options ...element.PropertiesOption) {
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include="[name='selected_subscriptions']"
-				{ props.Attributes()... }
+				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>

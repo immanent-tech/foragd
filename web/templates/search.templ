@@ -562,7 +562,7 @@ templ SearchPaginationControl(search *models.SearchRequest, options ...element.P
 		on htmx:before:request from <[hx-push-url]/>
 			toggle .hidden on me until gridLayoutComplete from body
 		"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	></div>
 }
 

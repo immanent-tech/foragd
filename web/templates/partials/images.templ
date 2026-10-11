@@ -27,13 +27,13 @@ templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.
 		{{ elem.SetAttribute("decoding", "async") }}
 	}
 	<img
-		if elem.ID() != "" {
-			id={ elem.ID() }
+		if elem.GetID() != "" {
+			id={ elem.GetID() }
 		}
 		src={ imgproxy.GenerateImageProxyURL(ctx, img.GetURL(), props) }
 		alt={ img.GetTitle() }
-		class={ elem.Classes() }
-		{ elem.Attributes()... }
+		class={ elem.GetClasses() }
+		{ elem.GetAllAttributes()... }
 	/>
 }
 

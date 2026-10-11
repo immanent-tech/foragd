@@ -16,7 +16,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 		aria-label="Footer Navigation"
 		id="page-dock"
 		class="dock border-t border-neutral/20 bg-base-200 px-safe text-base-content shadow-sm lg:hidden"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<a
 			hx-get="/home"

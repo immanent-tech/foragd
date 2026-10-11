@@ -19,7 +19,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 		<label class="fieldset">
 			<span class="label">Add category</span>
 			<div class="flex flex-col items-center gap-2 sm:flex-row">
-				<div class="mt-2 sm:mt-0 gap-2 flex">
+				<div class="mt-2 flex gap-2 sm:mt-0">
 					<el-autocomplete class="input input-primary">
 						<input
 							id="category-suggestion"
@@ -98,7 +98,7 @@ templ AddCategory(category models.Category) {
 		type="button"
 		aria-label={ "Remove category " + category }
 		_="on click remove me"
-		class="btn btn-sm btn-outline hover:btn-error"
+		class="btn btn-outline btn-sm hover:btn-error"
 	>
 		{ category }
 		<input type="hidden" name={ models.ParamCustomisationCategories } value={ category }/>
@@ -112,8 +112,8 @@ templ AddCategory(category models.Category) {
 templ CategoryBadge(category models.Category, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<span
-		class={ "category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.Classes() }
-		{ props.Attributes()... }
+		class={ "category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.GetClasses() }
+		{ props.GetAllAttributes()... }
 	>
 		{ category }
 		{ children... }

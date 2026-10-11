@@ -59,7 +59,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		if !elem.HasAttribute("decoding") {
 			elem.SetAttribute("decoding", "async")
 		}
-		var templ_7745c5c3_Var2 = []any{elem.Classes()}
+		var templ_7745c5c3_Var2 = []any{elem.GetClasses()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -68,15 +68,15 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if elem.ID() != "" {
+		if elem.GetID() != "" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(elem.ID())
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 31, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 31, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -130,7 +130,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.P
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, elem.Attributes())
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, elem.GetAllAttributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

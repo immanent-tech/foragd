@@ -34,7 +34,7 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 		id={ article.GetID() + "-toggle-favorite" }
 		class="tooltip tooltip-top tooltip-end"
 		data-tip={ label }
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<button
 			aria-label={ label }
@@ -768,7 +768,7 @@ templ BulkMarkArticlesModal(mark models.Mark, options ...element.PropertiesOptio
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
-				{ props.Attributes()... }
+				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
 			>

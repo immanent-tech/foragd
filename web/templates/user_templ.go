@@ -299,7 +299,7 @@ func UserAvatar(user *models.User, attributes templ.Attributes) templ.Component 
 			element.WithClasses("mask mask-squircle inset-ring-1 inset-ring-neutral"),
 			element.WithAttribute("width", "32"),
 			element.WithAttribute("height", "32"),
-			element.MergeAttributes(attributes),
+			element.WithAttributes(attributes),
 		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

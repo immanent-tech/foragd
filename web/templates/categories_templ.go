@@ -43,7 +43,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Categories</legend> <label class=\"fieldset\"><span class=\"label\">Add category</span><div class=\"flex flex-col items-center gap-2 sm:flex-row\"><div class=\"mt-2 sm:mt-0 gap-2 flex\"><el-autocomplete class=\"input input-primary\"><input id=\"category-suggestion\" name=\"category\" placeholder=\"Category...\" _=\"on keydown[key=='Enter'] send categorySuggestionSelected then halt the event\"> <button type=\"button\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<fieldset class=\"fieldset min-w-0 py-8\"><legend class=\"text-lg font-medium\">Categories</legend> <label class=\"fieldset\"><span class=\"label\">Add category</span><div class=\"flex flex-col items-center gap-2 sm:flex-row\"><div class=\"mt-2 flex gap-2 sm:mt-0\"><el-autocomplete class=\"input input-primary\"><input id=\"category-suggestion\" name=\"category\" placeholder=\"Category...\" _=\"on keydown[key=='Enter'] send categorySuggestionSelected then halt the event\"> <button type=\"button\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -198,7 +198,7 @@ func AddCategory(category models.Category) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" _=\"on click remove me\" class=\"btn btn-sm btn-outline hover:btn-error\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" _=\"on click remove me\" class=\"btn btn-outline btn-sm hover:btn-error\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -290,7 +290,7 @@ func CategoryBadge(category models.Category, options ...element.PropertiesOption
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var13 = []any{"category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.Classes()}
+		var templ_7745c5c3_Var13 = []any{"category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.GetClasses()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -312,7 +312,7 @@ func CategoryBadge(category models.Category, options ...element.PropertiesOption
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.Attributes())
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.GetAllAttributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -8,6 +8,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -16,7 +17,6 @@ import (
 // Properties represents properties of an element, including its attributes and classes.
 type Properties struct {
 	attributes templ.Attributes
-	classes    []string
 	mu         sync.Mutex
 }
 
@@ -24,7 +24,6 @@ type Properties struct {
 func NewProperties(options ...PropertiesOption) *Properties {
 	props := &Properties{
 		attributes: make(templ.Attributes),
-		classes:    make([]string, 0),
 	}
 	for option := range slices.Values(options) {
 		if option == nil {
@@ -33,15 +32,6 @@ func NewProperties(options ...PropertiesOption) *Properties {
 		option(props)
 	}
 	return props
-}
-
-func (p *Properties) setAttribute(key string, value any) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.attributes == nil {
-		p.attributes = make(templ.Attributes)
-	}
-	p.attributes[key] = value
 }
 
 func (p *Properties) mergeAttributes(attributes templ.Attributes) {
@@ -53,44 +43,59 @@ func (p *Properties) mergeAttributes(attributes templ.Attributes) {
 	maps.Copy(p.attributes, attributes)
 }
 
-func (p *Properties) setClasses(class ...string) {
-	p.classes = append(p.classes, class...)
-	p.classes = slices.Compact(p.classes)
-}
-
-// Attributes returns the attributes as a templ.Attributes.
-func (p *Properties) Attributes() templ.Attributes {
-	return p.attributes
-}
-
 // HasAttribute returns a boolean indicating whether there is an attribute with the given key.
 func (p *Properties) HasAttribute(key string) bool {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	_, ok := p.attributes[key]
-	return ok
+	_, found := p.attributes[key]
+	return found
 }
 
 // SetAttribute sets an attribute with the given key to the given value.  Any existing value is overridden.
 func (p *Properties) SetAttribute(key string, value any) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if p.attributes == nil {
+		p.attributes = make(templ.Attributes)
+	}
 	p.attributes[key] = value
 }
 
-// ID returns the value of the "id" attribute. If there is no id attribute, an empty string is returned.
-func (p *Properties) ID() string {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if id, ok := p.attributes["id"].(string); ok {
-		return id
+func (p *Properties) SetClasses(classes ...string) {
+	newClasses := strings.Join(classes, " ")
+	if currentClasses, ok := p.attributes["class"].(string); ok {
+		p.SetAttribute("class", currentClasses+" "+newClasses)
+	} else {
+		p.SetAttribute("class", newClasses)
+	}
+}
+
+// GetAllAttributes returns the attributes as a templ.Attributes.
+func (p *Properties) GetAllAttributes() templ.Attributes {
+	if p == nil {
+		return nil
+	}
+	attrs := maps.Clone(p.attributes)
+	// Delete the class key-value pair. It is handled separately.
+	delete(attrs, "class")
+	return attrs
+}
+
+// GetID returns the value of the "id" attribute. If there is no id attribute, an empty string is returned.
+func (p *Properties) GetID() string {
+	if id, found := p.attributes["id"]; found {
+		return id.(string)
 	}
 	return ""
 }
 
-// Classes returns the classes as a []string.
-func (p *Properties) Classes() []string {
-	return p.classes
+// GetClasses returns the classes as a string.
+func (p *Properties) GetClasses() string {
+	if p == nil {
+		return ""
+	}
+	if classes, found := p.attributes["class"]; found {
+		return classes.(string)
+	}
+	return ""
 }
 
 // PropertiesOption is a functional option to set Properties.
@@ -99,7 +104,14 @@ type PropertiesOption func(*Properties)
 // WithAttribute option sets a key-value attribute on the properties. Any existing value is overridden.
 func WithAttribute(key string, value any) PropertiesOption {
 	return func(p *Properties) {
-		p.setAttribute(key, value)
+		p.SetAttribute(key, value)
+	}
+}
+
+// WithAttributes option merges the given attributes with any existing attributes.
+func WithAttributes(attributes templ.Attributes) PropertiesOption {
+	return func(p *Properties) {
+		p.mergeAttributes(attributes)
 	}
 }
 
@@ -107,14 +119,7 @@ func WithAttribute(key string, value any) PropertiesOption {
 // removed.
 func WithClasses(classes ...string) PropertiesOption {
 	return func(p *Properties) {
-		p.setClasses(classes...)
-	}
-}
-
-// MergeAttributes option merges the given attributes with any existing attributes.
-func MergeAttributes(attributes templ.Attributes) PropertiesOption {
-	return func(p *Properties) {
-		p.mergeAttributes(attributes)
+		p.SetClasses(classes...)
 	}
 }
 
@@ -163,21 +168,21 @@ func WithHXTarget(target string) PropertiesOption {
 // WithHXTrigger sets a "hx-trigger" attribute.
 func WithHXTrigger(trigger string) PropertiesOption {
 	return func(p *Properties) {
-		p.setAttribute("hx-trigger", trigger)
+		p.SetAttribute("hx-trigger", trigger)
 	}
 }
 
 // WithHXSwap sets a "hx-swap" attribute.
 func WithHXSwap(swap string) PropertiesOption {
 	return func(p *Properties) {
-		p.setAttribute("hx-swap", swap)
+		p.SetAttribute("hx-swap", swap)
 	}
 }
 
 // WithHXSwapOOB sets a "hx-swap-oob" attribute.
 func WithHXSwapOOB(swap string) PropertiesOption {
 	return func(p *Properties) {
-		p.setAttribute("hx-swap-oob", swap)
+		p.SetAttribute("hx-swap-oob", swap)
 	}
 }
 
@@ -186,9 +191,21 @@ func WithHXPushURL(value bool) PropertiesOption {
 	return func(p *Properties) {
 		switch value {
 		case true:
-			p.setAttribute("hx-push-url", "true")
+			p.SetAttribute("hx-push-url", "true")
 		case false:
-			p.setAttribute("hx-push-url", "false")
+			p.SetAttribute("hx-push-url", "false")
+		}
+	}
+}
+
+// WithHXReplaceURL sets a "hx-replace-url" attribute.
+func WithHXReplaceURL(value bool) PropertiesOption {
+	return func(p *Properties) {
+		switch value {
+		case true:
+			p.SetAttribute("hx-replace-url", "true")
+		case false:
+			p.SetAttribute("hx-replace-url", "false")
 		}
 	}
 }
@@ -196,6 +213,6 @@ func WithHXPushURL(value bool) PropertiesOption {
 // WithHXIndicator sets a "hx-indicator" attribute.
 func WithHXIndicator(indicator string) PropertiesOption {
 	return func(p *Properties) {
-		p.setAttribute("hx-indicator", indicator)
+		p.SetAttribute("hx-indicator", indicator)
 	}
 }

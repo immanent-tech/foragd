@@ -478,3 +478,7 @@
 @utility accent-hue-rotate {
   @apply bg-accent text-accent-content hue-rotate-(--hue);
 }
+
+@utility popover-transitions {
+  @apply data-leave:transition data-leave:transition-discrete data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0;
+}

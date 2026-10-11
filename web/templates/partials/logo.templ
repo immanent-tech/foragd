@@ -15,8 +15,8 @@ templ Logo(options ...element.PropertiesOption) {
 		id="svg1"
 		xmlns="http://www.w3.org/2000/svg"
 		xmlns:svg="http://www.w3.org/2000/svg"
-		class={ "flex", props.Classes() }
-		{ props.Attributes()... }
+		class={ "flex", props.GetClasses() }
+		{ props.GetAllAttributes()... }
 	>
 		<defs id="defs1"></defs>
 		<g id="layer1">

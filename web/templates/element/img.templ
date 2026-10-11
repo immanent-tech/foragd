@@ -27,7 +27,7 @@ templ (i *Img) Template() {
 		height={ i.Height }
 		src={ i.Src }
 		alt={ i.Alt }
-		class={ i.props.Classes() }
-		{ i.props.Attributes()... }
+		class={ i.props.GetClasses() }
+		{ i.props.GetAllAttributes()... }
 	/>
 }

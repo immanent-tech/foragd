@@ -9,6 +9,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"net/http"
 	"slices"
 )
 
@@ -51,7 +52,7 @@ templ mobileFilterDialog(controls *ListControls, mobilePanelID string, currentSo
 							@tableroutline.X(templ.Attributes{"class": "size-6 ", "aria-hidden": true})
 						</button>
 					</div>
-					<ul class="menu">
+					<ul class="menu w-full">
 						if !controls.DisableSort {
 							// Mobile View Filters.
 							<li class="menu-title">View</li>
@@ -66,11 +67,11 @@ templ mobileFilterDialog(controls *ListControls, mobilePanelID string, currentSo
 							// Mobile Sort Filters.
 							<li class="menu-title">Sort</li>
 							<ul id="mobile-sort-filters">
-								@sortOption(controls.Path, models.SortNewestFirst, controls.Filters)
-								@sortOption(controls.Path, models.SortOldestFirst, controls.Filters)
+								@mobileSortOption(controls.Path, models.SortNewestFirst, controls.Filters)
+								@mobileSortOption(controls.Path, models.SortOldestFirst, controls.Filters)
 								if controls.Path == "/subscriptions" {
-									@sortOption(controls.Path, models.SortMostUnread, controls.Filters)
-									@sortOption(controls.Path, models.SortLeastUnread, controls.Filters)
+									@mobileSortOption(controls.Path, models.SortMostUnread, controls.Filters)
+									@mobileSortOption(controls.Path, models.SortLeastUnread, controls.Filters)
 								}
 							</ul>
 						}
@@ -113,22 +114,26 @@ templ desktopSortDropdown(path string, currentSort models.Sort, filters models.L
 	if !show {
 		return
 	}
+	// {{
+	// 	var sortOptions = []*element.ELOption{
+	// 		desktopSortOption(path, models.SortNewestFirst, filters),
+	// 		desktopSortOption(path, models.SortOldestFirst, filters),
+	// 	}
+	// 	if path == routeSubscriptions.String() {
+	// 		sortOptions = append(sortOptions,
+	// 			desktopSortOption(path, models.SortMostUnread, filters),
+	// 			desktopSortOption(path, models.SortLeastUnread, filters),
+	// 		)
+	// 	}
+	// }}
+	// @element.NewELSelect("desktop-sort-filters-new", "sort",
+	// 	element.WithELSelectOptions(sortOptions...),
+	// ).Template()
 	<div
 		id="desktop-sort-filters"
-		_="on sortChanged(sort) set #sort-hidden.value to sort then send triggerMe"
-		hx-get={ path }
-		hx-include="#sort-hidden,#view-hidden,#count-hidden"
-		hx-replace-url="true"
-		hx-swap="innerMorph transition:true"
-		hx-target={ ContentID.Target() }
-		hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
-		hx-trigger="triggerMe"
 		class="inline-block"
 	>
-		<input id="sort-hidden" name="sort" type="hidden" value={ string(currentSort) }/>
-		<input id="view-hidden" name="view" type="hidden" value={ string(filters.GetView()) }/>
-		<input id="count-hidden" name="count" type="hidden" value={ filters.GetCount() }/>
-		<el-select id="select-sort" _="on change send sortChanged(sort: my value)" class="inline-block">
+		<el-select id="select-sort" class="inline-block">
 			<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
 				<el-selectedcontent class="truncate">
 					{ currentSort.String() }
@@ -144,23 +149,74 @@ templ desktopSortDropdown(path string, currentSort models.Sort, filters models.L
 			>
 				<div class="menu">
 					<el-option value={ string(models.SortNewestFirst) }>
-						@sortOption(path, models.SortNewestFirst, filters)
+						@mobileSortOption(path, models.SortNewestFirst, filters)
 					</el-option>
 					<el-option value={ string(models.SortOldestFirst) }>
-						@sortOption(path, models.SortOldestFirst, filters)
+						@mobileSortOption(path, models.SortOldestFirst, filters)
 					</el-option>
 					if path == "/subscriptions" {
 						<el-option value={ string(models.SortMostUnread) }>
-							@sortOption(path, models.SortMostUnread, filters)
+							@mobileSortOption(path, models.SortMostUnread, filters)
 						</el-option>
 						<el-option value={ string(models.SortLeastUnread) }>
-							@sortOption(path, models.SortLeastUnread, filters)
+							@mobileSortOption(path, models.SortLeastUnread, filters)
 						</el-option>
 					}
 				</div>
 			</el-options>
 		</el-select>
 	</div>
+}
+
+func desktopSortOption(path string, sort models.Sort, filters models.ListFilters) *element.ELOption {
+	isCurrent := isCurrentSort(sort, filters)
+	filters.Sort = sort
+	return element.NewELOption(sort.String(),
+		string(sort),
+		element.WithELOptionSelected(isCurrent),
+		element.WithELOptionProperties(
+			element.WithHXMethod(http.MethodGet, path),
+			element.WithHXValues(filters),
+			element.WithHXSwap("innerMorph transition:true"),
+			element.WithHXReplaceURL(true),
+			element.WithHXTarget(ContentID.Target()),
+		),
+	)
+}
+
+templ mobileSortOption(path string, sort models.Sort, filters models.ListFilters) {
+	// {{ isCurrent := isCurrentSort(sort, filters) }}
+	// {{ filters.Sort = sort }}
+	// @element.NewMenuItem(sort.String(),
+	// 	element.WithMenuItemSelected(isCurrent),
+	// 	element.WithMenuItemProperties(
+	// 		element.WithHXMethod(http.MethodGet, path),
+	// 		element.WithHXValues(filters),
+	// 		element.WithHXSwap("innerMorph transition:true"),
+	// 		element.WithHXReplaceURL(true),
+	// 		element.WithHXTarget(ContentID.Target()),
+	// 	),
+	// ).Template()
+	<li class="flex justify-between gap-2">
+		<a
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerMorph transition:true"
+			hx-vals={ templ.JSONString(filters) }
+			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			class="flex justify-between gap-2"
+		>
+			<span class={ "font-normal text-base-content", templ.KV("font-semibold",isCurrentSort(sort,filters)) }>{ sort.String() }</span>
+			<span aria-hidden="true" class={ "text-accent ", templ.KV("hidden",!isCurrentSort(sort,filters)) }>
+				@tableroutline.Check(templ.Attributes{"class": "size-5"})
+			</span>
+		</a>
+	</li>
+}
+
+func isCurrentSort(sort models.Sort, filters models.ListFilters) bool {
+	return sort == filters.GetSort()
 }
 
 // desktopCategoryDropdown renders the desktop category dropdown.
@@ -246,27 +302,6 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 	</li>
 }
 
-templ sortOption(path string, sort models.Sort, filters models.ListFilters) {
-	{{ current := filters.GetSort() }}
-	{{ filters.Sort = sort }}
-	<li class="flex justify-between gap-2">
-		<a
-			hx-get={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerMorph transition:true"
-			hx-vals={ templ.JSONString(filters) }
-			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
-			class="flex justify-between gap-2"
-		>
-			<span class={ "font-normal text-base-content", templ.KV("font-semibold",sort == current) }>{ sort.String() }</span>
-			<span aria-hidden="true" class={ "text-accent ", templ.KV("hidden",sort != current) }>
-				@tableroutline.Check(templ.Attributes{"class": "size-5"})
-			</span>
-		</a>
-	</li>
-}
-
 // ListPaginationControl renders a sentinel element for controlling pagination of a list. It should be added as an OOB
 // swap to the page whenever pagination needs to be updated (i.e., after loading the latest set of items).
 templ ListPaginationControl(path Route, filters *models.ListFilters, options ...element.PropertiesOption) {
@@ -285,7 +320,7 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 		on htmx:before:request from <[hx-push-url]/>
 			toggle .hidden on me until gridLayoutComplete from body
 		"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	></div>
 }
 

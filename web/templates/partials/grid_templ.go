@@ -36,7 +36,7 @@ func Grid(options ...element.PropertiesOption) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		props := element.NewProperties(options...)
-		var templ_7745c5c3_Var2 = []any{"grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 xl:gap-8 p-2", props.Classes()}
+		var templ_7745c5c3_Var2 = []any{"grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 xl:gap-8 p-2", props.GetClasses()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -58,7 +58,7 @@ func Grid(options ...element.PropertiesOption) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.Attributes())
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.GetAllAttributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

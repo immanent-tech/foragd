@@ -10,8 +10,8 @@ templ pageHeading(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-heading"
-		class={ "md:flex md:items-center md:justify-between", props.Classes() }
-		{ props.Attributes()... }
+		class={ "md:flex md:items-center md:justify-between", props.GetClasses() }
+		{ props.GetAllAttributes()... }
 	>
 		{ children... }
 	</div>
@@ -31,8 +31,8 @@ templ pageActions(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="page-actions"
-		class={ "mt-4 flex md:mt-0 md:ml-4", props.Classes() }
-		{ props.Attributes()... }
+		class={ "mt-4 flex md:mt-0 md:ml-4", props.GetClasses() }
+		{ props.GetAllAttributes()... }
 	>
 		{ children... }
 	</div>
@@ -42,8 +42,8 @@ templ pageActions(options ...element.PropertiesOption) {
 templ sectionHeading(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "border-b border-neutral/15 pb-2 sm:flex sm:items-center sm:justify-between", props.Classes() }
-		{ props.Attributes()... }
+		class={ "border-b border-neutral/15 pb-2 sm:flex sm:items-center sm:justify-between", props.GetClasses() }
+		{ props.GetAllAttributes()... }
 	>
 		{ children... }
 	</div>

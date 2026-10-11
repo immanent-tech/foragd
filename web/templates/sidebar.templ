@@ -16,7 +16,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 		aria-label="Sidebar Navigation"
 		id="page-sidebar"
 		class="mx-4 mt-20 mb-4 hidden rounded-box border border-neutral/20 bg-base-200 shadow-[inset_-1px_0_0_rgba(0,0,0,0.06)] transition-shadow duration-250 ease-in-out hover:shadow-lg lg:fixed lg:inset-y-safe-or-0 lg:z-50 lg:flex lg:w-36 lg:flex-col lg:pl-safe"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
 			<div class="flex flex-1 flex-col place-items-center">

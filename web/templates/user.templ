@@ -204,7 +204,7 @@ templ UserAvatar(user *models.User, attributes templ.Attributes) {
 		element.WithClasses("mask mask-squircle inset-ring-1 inset-ring-neutral"),
 		element.WithAttribute("width", "32"),
 		element.WithAttribute("height", "32"),
-		element.MergeAttributes(attributes),
+		element.WithAttributes(attributes),
 	)
 }
 

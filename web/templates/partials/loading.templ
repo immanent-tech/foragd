@@ -9,7 +9,7 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 
 templ LoadingIndicator(id, label string, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
-	<div id={ id } class={ "group mx-auto flex w-full justify-center", props.Classes() } { props.Attributes()... }>
+	<div id={ id } class={ "group mx-auto flex w-full justify-center", props.GetClasses() } { props.GetAllAttributes()... }>
 		<div class="hidden text-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-xl loading-bars"></span>
 			<p class="text-lg/loose font-semibold">{ label }</p>

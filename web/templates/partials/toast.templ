@@ -21,7 +21,7 @@ templ UpdatesToast(options ...element.PropertiesOption) {
 		<div>
 			<button
 				class="group btn btn-square btn-soft btn-info btn-sm"
-				{ props.Attributes()... }
+				{ props.GetAllAttributes()... }
 				_="on click scroll to top of #content smoothly"
 			>
 				<span class="sr-only">Refresh</span>

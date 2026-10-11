@@ -15,16 +15,16 @@ templ LeafletAssets() {
 	@leafletOnce.Once() {
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 		<script type="importmap">
-  {
-    "imports": {
-      "leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
-      "leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
-    }
-  }
-</script>
+			{
+				"imports": {
+					"leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
+					"leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
+				}
+			}
+		</script>
 		<script type="module">
-  import "leaflet-html";
-</script>
+			import 'leaflet-html'
+		</script>
 	}
 }
 
@@ -36,7 +36,7 @@ templ LeafletMap(options ...element.PropertiesOption) {
 		id="map"
 		center="[39.73, 39.99]"
 		zoom="4"
-		class={ "block isolate h-[calc(100vh-256px)] w-full z-1 rounded-box", props.Classes() }
+		class={ "block isolate h-[calc(100vh-256px)] w-full z-1 rounded-box", props.GetClasses() }
 		_="on load
   		     if sessionStorage.mapView is not null
   		       set view to JSON.parse(sessionStorage.mapView)
@@ -64,7 +64,7 @@ templ LeafletMap(options ...element.PropertiesOption) {
 		on="popupopen moveend zoomend"
 		attribution-control="true"
 		zoom-control="true"
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		<l-tile-layer
 			url-template="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -77,11 +77,11 @@ templ LeafletMap(options ...element.PropertiesOption) {
 		</div>
 	</l-map>
 	<script>
-  document.getElementById("map").addEventListener("popupopen", (ev) => {
-    const popupEl = ev.detail.popup.getElement();
-    htmx.process(popupEl);
-  });
-</script>
+		document.getElementById('map').addEventListener('popupopen', (ev) => {
+			const popupEl = ev.detail.popup.getElement()
+			htmx.process(popupEl)
+		})
+	</script>
 }
 
 // MapMarker renders a marker at the given lat/long coordinates, with any optional attributes/classes and child
@@ -90,7 +90,7 @@ templ MapMarker(lat, long float64, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<l-marker
 		lat-lng={ templ.JSONString([]float64{lat, long}) }
-		{ props.Attributes()... }
+		{ props.GetAllAttributes()... }
 	>
 		{ children... }
 	</l-marker>
