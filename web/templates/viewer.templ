@@ -7,6 +7,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	tabler "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/imgproxy"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmlx"
@@ -306,12 +307,12 @@ templ ViewerResults(feed *models.Feed) {
 			</div>
 		</div>
 		// Show some feed stats/details.
-		<div class="flex sm:flex-separated gap-8 justify-center p-6">
+		<div class="sm:flex-separated flex justify-center gap-8 p-6">
 			<div class="text-center font-medium">
 				<span>{ len(feed.GetItems()) }</span>
 				<span>Items</span>
 			</div>
-			<div class="font-medium text-center">
+			<div class="text-center font-medium">
 				if !feed.GetTimestamp().Equal(models.UnixEpoch) {
 					Last Updated:&nbsp;
 					<relative-time
@@ -353,7 +354,7 @@ templ ViewerResults(feed *models.Feed) {
 		</div>
 	}
 	if feed.GetRights() != "" {
-		<p class="text-sm mt-4">{ feed.GetRights() }</p>
+		<p class="mt-4 text-sm">{ feed.GetRights() }</p>
 	}
 }
 
@@ -387,7 +388,7 @@ templ viewerItemCard(item *models.Item) {
 				<img
 					src={ img.GetURL() }
 					alt={ img.GetTitle() }
-					srcset={ partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+					srcset={ imgproxy.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + imgproxy.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
 					sizes="(max-width: 480px) 100vw, 600px"
 					decoding="async"
 					loading="lazy"

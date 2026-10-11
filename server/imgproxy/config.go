@@ -4,10 +4,17 @@
 package imgproxy
 
 import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/immanent-tech/go-base/config"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/validation"
 )
@@ -35,7 +42,7 @@ var loadConfig = sync.OnceValues(func() (*Config, error) {
 	return cfg, nil
 })
 
-func GetKey() (string, error) {
+func getKey() (string, error) {
 	cfg, err := loadConfig()
 	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
@@ -43,10 +50,50 @@ func GetKey() (string, error) {
 	return cfg.Key, nil
 }
 
-func GetSalt() (string, error) {
+func getSalt() (string, error) {
 	cfg, err := loadConfig()
 	if err != nil {
 		return "", fmt.Errorf("load config: %w", err)
 	}
 	return cfg.Salt, nil
+}
+
+// GenerateImageProxyURL generates an image proxy URL for the given remote image URL. If a proxy URL cannot be
+// generated, the original remote image URL is returned.
+func GenerateImageProxyURL(ctx context.Context, url, props string) string {
+	var keyBin, saltBin []byte
+	var err error
+
+	// Extract the key.
+	key, err := getKey()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy key failed",
+			slog.Any("error", err))
+		return url
+	}
+	if keyBin, err = hex.DecodeString(key); err != nil {
+		return url
+	}
+
+	// Extract the salt.
+	salt, err := getSalt()
+	if err != nil {
+		slogctx.Error(ctx, "Get image proxy salt failed",
+			slog.Any("error", err))
+		return url
+	}
+	if saltBin, err = hex.DecodeString(salt); err != nil {
+		return url
+	}
+
+	encodedImageURL := base64.RawURLEncoding.EncodeToString([]byte(url))
+
+	path := "/" + props + "/" + encodedImageURL
+
+	mac := hmac.New(sha256.New, keyBin)
+	mac.Write(saltBin)
+	mac.Write([]byte(path))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	return "/img-proxy/" + signature + path
 }
