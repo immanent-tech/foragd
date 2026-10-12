@@ -20,6 +20,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"go.opentelemetry.io/otel/codes"
+	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/go-base/server/forms"
 
@@ -100,71 +101,114 @@ func (m *Manager) HandleLoginCallback(
 	emailSender EmailSender,
 ) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		if err := m.processLoginCallback(res, req, userSvc, authMgr, auth, emailSender); err != nil {
-			m.HandleExternalError(err).ServeHTTP(res, req)
+		ctx := req.Context()
+		log := slogctx.FromCtx(ctx)
+
+		// Validate state value.
+		if err := auth.ValidateState(ctx, req.FormValue("state")); err != nil {
+			m.HandleExternalError(models.NewAPIError(http.StatusBadRequest, fmt.Errorf("validate state: %w", err))).
+				ServeHTTP(res, req)
+			return
 		}
+
+		// Check for errors returned by Auth0.
+		if errCode := req.FormValue("error"); errCode != "" {
+			errDesc := req.FormValue("error_description")
+			m.HandleExternalError(generateAuthError(errCode, errDesc)).ServeHTTP(res, req)
+			return
+		}
+
+		// Verify and exchange authorization code to retrieve user profile.
+		profile, err := auth.PerformExchange(ctx, req.FormValue("code"))
+		if err != nil {
+			var re *oauth2.RetrieveError
+			if errors.As(err, &re) {
+				if re.Response.StatusCode == http.StatusTooManyRequests {
+					retryAfter := parseRetryAfter(re.Response.Header)
+					slogctx.Warn(ctx, "auth0 rate limited",
+						"retry_after", retryAfter,
+						"limit", re.Response.Header.Get("X-RateLimit-Limit"),
+						"remaining", re.Response.Header.Get("X-RateLimit-Remaining"))
+					if retryAfter > 0 {
+						res.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+					}
+					m.HandleExternalError(models.NewAPIError(http.StatusTooManyRequests, err)).ServeHTTP(res, req)
+					return
+				}
+
+				// Other OAuth errors (invalid_grant, invalid_client, etc.)
+				slog.Error("token exchange failed",
+					"status", re.Response.StatusCode,
+					"error", re.ErrorCode, // newer x/oauth2 versions
+					"description", re.ErrorDescription,
+					"body", string(re.Body))
+				m.HandleExternalError(models.NewAPIError(http.StatusBadGateway, err)).ServeHTTP(res, req)
+				return
+			}
+		}
+
+		// Save profile to session.
+		m.SessionMgr.Put(ctx, "profile", profile)
+
+		// Retrieve the local user associated with the profile.
+		var user *models.User
+		var errCreate error
+		user, errCreate = userSvc.GetUserByExternalID(ctx, profile.GetID())
+		switch {
+		case errCreate != nil && models.HTTPStatus(errCreate) != http.StatusNotFound:
+			// Backend error.
+			m.HandleExternalError(errCreate).ServeHTTP(res, req)
+			return
+		case errCreate != nil && models.HTTPStatus(errCreate) == http.StatusNotFound: // No local user.
+			// Create a new local account for the user
+			user, errCreate = createUserFromProfileData(ctx, userSvc, authMgr, profile)
+			if errCreate != nil {
+				m.HandleExternalError(errCreate).ServeHTTP(res, req)
+				return
+			}
+			if err := m.sendNewUserEmails(ctx, emailSender, user); err != nil {
+				log.Warn("Could not send welcome emails.", slog.Any("error", err))
+			}
+
+		default: // Existing user.
+			// Sync user data from the backend.
+			if err := m.syncUser(ctx, userSvc, authMgr, user); err != nil {
+				m.HandleExternalError(err).ServeHTTP(res, req)
+				return
+			}
+		}
+
+		m.redirectAfterLogin(res, req, auth, user)
 	}
 }
 
-// processLoginCallback processes the login callback and returns an error if something goes wrong.
-// This separates HTTP concerns from business logic to make unit testing easier.
-func (m *Manager) processLoginCallback(
-	res http.ResponseWriter,
-	req *http.Request,
-	userSvc UserService,
-	authMgr AuthManager,
-	auth Authenticator,
-	emailSender EmailSender,
-) error {
-	ctx := req.Context()
-	log := slogctx.FromCtx(ctx)
-
-	// Check for errors returned by Auth0.
-	if errCode := req.FormValue("error"); errCode != "" {
-		errDesc := req.FormValue("error_description")
-		return fmt.Errorf("auth0 returned an error: %s: %s", errCode, errDesc)
-	}
-
-	// Validate state value.
-	if err := auth.ValidateState(ctx, req.FormValue("state")); err != nil {
-		return fmt.Errorf("restore state: %w", err)
-	}
-
-	// Verify and exchange authorization code to retrieve user profile.
-	profile, err := auth.PerformExchange(ctx, req.FormValue("code"))
-	if err != nil {
-		return fmt.Errorf("exchange auth token: %w", err)
-	}
-
-	// Save profile to session.
-	m.SessionMgr.Put(ctx, "profile", profile)
-
-	// Retrieve the local user associated with the profile.
-	var user *models.User
-	var errCreate error
-	user, errCreate = userSvc.GetUserByExternalID(ctx, profile.GetID())
-	switch {
-	case errCreate != nil && models.HTTPStatus(errCreate) != http.StatusNotFound: // Backend error.
-		return fmt.Errorf("get user: %w", errCreate)
-	case errCreate != nil && models.HTTPStatus(errCreate) == http.StatusNotFound: // No local user.
-		// Create a new local account for the user
-		user, errCreate = createUserFromProfileData(ctx, userSvc, authMgr, profile)
-		if errCreate != nil {
-			return fmt.Errorf("create user from profile: %w", errCreate)
-		}
-		if err := m.sendNewUserEmails(ctx, emailSender, user); err != nil {
-			log.Warn("Could not send welcome emails.", slog.Any("error", err))
-		}
-
-	default: // Existing user.
-		// Sync user data from the backend.
-		if err := m.syncUser(ctx, userSvc, authMgr, user); err != nil {
-			return fmt.Errorf("sync user: %w", err)
+func parseRetryAfter(h http.Header) time.Duration {
+	if v := h.Get("Retry-After"); v != "" {
+		if secs, err := strconv.Atoi(v); err == nil {
+			return time.Duration(secs) * time.Second
 		}
 	}
+	// Auth0 also sends X-RateLimit-Reset as a Unix epoch timestamp
+	if v := h.Get("X-RateLimit-Reset"); v != "" {
+		if epoch, err := strconv.ParseInt(v, 10, 64); err == nil {
+			if d := time.Until(time.Unix(epoch, 0)); d > 0 {
+				return d
+			}
+		}
+	}
+	return 0
+}
 
-	m.redirectAfterLogin(res, req, auth, user)
-	return nil
+func generateAuthError(code, desc string) *models.APIError {
+	switch code {
+	case "access_denied":
+		// User declined, or a Rule/Action denied access (desc often has your custom message)
+		return models.NewAPIError(http.StatusForbidden, fmt.Errorf("%s: %s", code, desc))
+	case "temporarily_unavailable", "server_error":
+		return models.NewAPIError(http.StatusServiceUnavailable, fmt.Errorf("%s: %s", code, desc))
+	default:
+		return models.NewAPIError(http.StatusBadRequest, fmt.Errorf("%s: %s", code, desc))
+	}
 }
 
 func (m *Manager) sendNewUserEmails(ctx context.Context, emailSender EmailSender, user *models.User) error {
