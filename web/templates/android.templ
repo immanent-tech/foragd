@@ -34,148 +34,149 @@ templ androidCheckoutButton(frequency string) {
 templ androidPurchaseScript() {
 	<script id="android-purchase" nonce={ templ.GetNonce(ctx) }>
 		async function purchaseAndroidSKU(skuID) {
-		// Only available inside TWA
-		if (!('getDigitalGoodsService' in window)) {
-			alert('In-app purchases are only available in the Foragd Android app.');
-			return;
-		}
+			// Only available inside TWA
+			if (!('getDigitalGoodsService' in window)) {
+				alert('In-app purchases are only available in the Foragd Android app.')
+				return
+			}
 
-		let service;
-		try {
-			service = await window.getDigitalGoodsService('https://play.google.com/billing');
-		} catch (e) {
-			console.error('getDigitalGoodsService failed:', e);
-			return;
-		}
+			let service
+			try {
+				service = await window.getDigitalGoodsService('https://play.google.com/billing')
+			} catch (e) {
+				console.error('getDigitalGoodsService failed:', e)
+				return
+			}
 
-		const paymentMethod = {
-			supportedMethods: 'https://play.google.com/billing',
-			data: { sku: skuID },
-		};
+			const paymentMethod = {
+				supportedMethods: 'https://play.google.com/billing',
+				data: { sku: skuID },
+			}
 
-		// The Payment Request API's spec requires a total parameter even when the actual payment method (Play Billing, in this
-		// case) doesn't use it — it's a generic web payments API designed to work across many payment methods, some of which do
-		// need a client-specified total (e.g. a custom checkout). Play Billing isn't one of them, so it discards yours.
-		const request = new PaymentRequest([paymentMethod], {
-			total: { label: 'Total', amount: { currency: 'USD', value: '0' } },
-		});
+			// The Payment Request API's spec requires a total parameter even when the actual payment method (Play Billing, in this
+			// case) doesn't use it — it's a generic web payments API designed to work across many payment methods, some of which do
+			// need a client-specified total (e.g. a custom checkout). Play Billing isn't one of them, so it discards yours.
+			const request = new PaymentRequest([paymentMethod], {
+				total: { label: 'Total', amount: { currency: 'USD', value: '0' } },
+			})
 
-		let response;
-		try {
-			response = await request.show();
-		} catch (e) {
-			// User cancelled
-			return;
-		}
+			let response
+			try {
+				response = await request.show()
+			} catch (e) {
+				// User cancelled
+				return
+			}
 
-		const { purchaseToken } = response.details;
-		const subscriptionType = "android";
+			const { purchaseToken } = response.details
+			const subscriptionType = 'android'
 
-		let res;
-	    try {
-	        res = await fetch('/checkout', {
-	            method: 'POST',
-	            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type=${encodeURIComponent(subscriptionType)}`,
-	            redirect: 'follow', // default, but explicit here
-	        });
-	    } catch (e) {
-	        // Network failure — tell Play Billing it failed, don't redirect
-			console.error('checkout fetch failed:', e);
-	        await response.complete('fail');
-	        return;
-	    }
+			let res
+			try {
+				res = await fetch('/checkout', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: `sku=${encodeURIComponent(skuID)}&purchaseToken=${encodeURIComponent(purchaseToken)}&subscription_type=${encodeURIComponent(subscriptionType)}`,
+					redirect: 'follow', // default, but explicit here
+				})
+			} catch (e) {
+				// Network failure — tell Play Billing it failed, don't redirect
+				console.error('checkout fetch failed:', e)
+				await response.complete('fail')
+				return
+			}
 
-	    // fetch() follows redirects transparently and res.ok reflects the FINAL response
-	    await response.complete(res.ok ? 'success' : 'fail');
-    	if (res.ok) {
-    	    window.location.href = res.url;
-    	} else {
-    	    console.error('checkout verification failed, status:', res.status);
-			const html = await res.text();
-    		htmx.swap("#content", html, { swapStyle: 'none' });
-    	}
+			// fetch() follows redirects transparently and res.ok reflects the FINAL response
+			await response.complete(res.ok ? 'success' : 'fail')
+			if (res.ok) {
+				window.location.href = res.url
+			} else {
+				console.error('checkout verification failed, status:', res.status)
+				const html = await res.text()
+				htmx.swap('#content', html, { swapStyle: 'none' })
+			}
 		}
 	</script>
 }
 
 templ androidRestorePurchaseScript() {
 	<script id="restore-android-purchase" nonce={ templ.GetNonce(ctx) }>
-	async function restoreAndroidPurchases() {
-	const statusEl = document.getElementById('restore-status');
+		async function restoreAndroidPurchases() {
+			const statusEl = document.getElementById('restore-status')
 
-	if (!('getDigitalGoodsService' in window)) {
-		statusEl.textContent = 'Restore is only available in the Android app.';
-		return;
-	}
-
-	statusEl.textContent = 'Checking for purchases…';
-
-	let service;
-	try {
-		service = await window.getDigitalGoodsService('https://play.google.com/billing');
-	} catch (e) {
-		console.error('getDigitalGoodsService failed:', e);
-		statusEl.textContent = 'Could not connect to Play Billing.';
-		return;
-	}
-
-	let purchases;
-	try {
-		purchases = await service.listPurchases();
-	} catch (e) {
-		console.error('listPurchases failed:', e);
-		statusEl.textContent = 'Could not retrieve purchase history.';
-		return;
-	}
-
-	if (!purchases || purchases.length === 0) {
-		statusEl.textContent = 'No purchases found for this Google account.';
-		return;
-	}
-
-	statusEl.textContent = `Found ${purchases.length} purchase(s). Restoring…`;
-
-	let restoredAny = false;
-
-	for (const purchase of purchases) {
-		// purchase.itemId is the SKU, purchase.purchaseToken / purchase.token
-		// is the token — the Digital Goods API names this `purchaseToken`
-		const sku = purchase.itemId;
-		const token = purchase.purchaseToken;
-
-		try {
-			const res = await fetch('/checkout', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: `sku=${encodeURIComponent(sku)}&purchaseToken=${encodeURIComponent(token)}&subscription_type=android`,
-				redirect: 'follow',
-			});
-
-			if (res.ok) {
-				restoredAny = true;
-			} else {
-				console.warn('restore failed for sku', sku, 'status', res.status);
-				const html = await res.text();
-    			htmx.swap("#content", html, { swapStyle: 'none' });
+			if (!('getDigitalGoodsService' in window)) {
+				statusEl.textContent = 'Restore is only available in the Android app.'
+				return
 			}
-		} catch (e) {
-			console.error('restore request failed for sku', sku, e);
-			const html = await res.text();
-   			htmx.swap("#content", html, { swapStyle: 'none' });
-		}
-	}
 
-	if (restoredAny) {
-		statusEl.textContent = 'Purchases restored. Reloading…';
-		window.location.reload();
-	} else {
-		statusEl.textContent = 'No purchases could be restored. Contact support if this seems wrong.';
-		const html = await res.text()
-		htmx.swap("#content", html, { swapStyle: 'innerHTML' });
-	}
-}
-</script>
+			statusEl.textContent = 'Checking for purchases…'
+
+			let service
+			try {
+				service = await window.getDigitalGoodsService('https://play.google.com/billing')
+			} catch (e) {
+				console.error('getDigitalGoodsService failed:', e)
+				statusEl.textContent = 'Could not connect to Play Billing.'
+				return
+			}
+
+			let purchases
+			try {
+				purchases = await service.listPurchases()
+			} catch (e) {
+				console.error('listPurchases failed:', e)
+				statusEl.textContent = 'Could not retrieve purchase history.'
+				return
+			}
+
+			if (!purchases || purchases.length === 0) {
+				statusEl.textContent = 'No purchases found for this Google account.'
+				return
+			}
+
+			statusEl.textContent = `Found ${purchases.length} purchase(s). Restoring…`
+
+			let restoredAny = false
+
+			for (const purchase of purchases) {
+				// purchase.itemId is the SKU, purchase.purchaseToken / purchase.token
+				// is the token — the Digital Goods API names this `purchaseToken`
+				const sku = purchase.itemId
+				const token = purchase.purchaseToken
+
+				try {
+					const res = await fetch('/checkout', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+						body: `sku=${encodeURIComponent(sku)}&purchaseToken=${encodeURIComponent(token)}&subscription_type=android`,
+						redirect: 'follow',
+					})
+
+					if (res.ok) {
+						restoredAny = true
+					} else {
+						console.warn('restore failed for sku', sku, 'status', res.status)
+						const html = await res.text()
+						htmx.swap('#content', html, { swapStyle: 'none' })
+					}
+				} catch (e) {
+					console.error('restore request failed for sku', sku, e)
+					const html = await res.text()
+					htmx.swap('#content', html, { swapStyle: 'none' })
+				}
+			}
+
+			if (restoredAny) {
+				statusEl.textContent = 'Purchases restored. Reloading…'
+				window.location.reload()
+			} else {
+				statusEl.textContent =
+					'No purchases could be restored. Contact support if this seems wrong.'
+				const html = await res.text()
+				htmx.swap('#content', html, { swapStyle: 'innerHTML' })
+			}
+		}
+	</script>
 }
 
 templ androidPreCheckout() {

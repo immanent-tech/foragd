@@ -116,10 +116,10 @@ templ ChangelogPage(releases []Release) {
 				</p>
 			</div>
 			// Subscribe.
-			<div class="alert bg-base-200 border border-neutral/20 mb-8 py-3">
+			<div class="mb-8 alert border border-neutral/20 bg-base-200 py-3">
 				@tableroutline.Rss(templ.Attributes{"class": "size-5 shrink-0 text-base-content/50", "aria-hidden": "true"})
-				<span class="text-sm text-base-content/70 flex-1">Get notified when we ship something new.</span>
-				<a href="/changelog/feed" class="link link-primary text-sm font-medium">Subscribe to updates</a>
+				<span class="flex-1 text-sm text-base-content/70">Get notified when we ship something new.</span>
+				<a href="/changelog/feed" class="link text-sm font-medium link-primary">Subscribe to updates</a>
 			</div>
 			// Timeline.
 			<ul class="timeline timeline-vertical timeline-compact">
@@ -141,20 +141,20 @@ templ releaseItem(r Release, isLast bool) {
 	// Timeline middle dot.
 	<div class="timeline-middle">
 		if r.IsLatest {
-			<div class="w-3 h-3 rounded-full bg-success ring-2 ring-success/30"></div>
+			<div class="h-3 w-3 rounded-full bg-success ring-2 ring-success/30"></div>
 		} else {
-			<div class="w-3 h-3 rounded-full bg-base-300 ring-2 ring-base-200"></div>
+			<div class="h-3 w-3 rounded-full bg-base-300 ring-2 ring-base-200"></div>
 		}
 	</div>
 	// Release details.
-	<div class="timeline-end timeline-box w-full bg-base-100 border border-neutral/20 shadow-none mb-6 ml-2">
+	<div class="timeline-end mb-6 ml-2 w-full timeline-box border border-neutral/20 bg-base-100 shadow-none">
 		// Header.
-		<div class="flex flex-wrap items-center gap-2 mb-4">
-			<span id={ r.Version } class="font-semibold text-base text-base-content">{ r.Version }</span>
+		<div class="mb-4 flex flex-wrap items-center gap-2">
+			<span id={ r.Version } class="text-base font-semibold text-base-content">{ r.Version }</span>
 			<span class="text-xs text-base-content/50">{ r.Date }</span>
 			<span class={ versionBadgeClasses(r.Type) }>{ versionBadgeLabel(r.Type) }</span>
 			if r.IsLatest {
-				<span class="badge badge-success badge-sm">Latest</span>
+				<span class="badge badge-sm badge-success">Latest</span>
 			}
 		</div>
 		// Changes.

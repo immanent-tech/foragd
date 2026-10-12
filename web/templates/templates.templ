@@ -245,7 +245,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				@templ.Raw(style)
 			}
 		</head>
-		<body class="bg-base-100 flex min-h-dvh flex-col overscroll-y-none antialiased">
+		<body class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased">
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
@@ -256,8 +256,8 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				@p.Component
 			}
 			// Notifications.
-			<div aria-live="assertive" class="inset-safe-or-0 sm:items-start pointer-events-none fixed z-999 flex items-end">
-				<div id="notifications" class="m-4 space-y-4 sm:items-end flex w-full flex-col items-center"></div>
+			<div aria-live="assertive" class="pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start">
+				<div id="notifications" class="m-4 flex w-full flex-col items-center space-y-4 sm:items-end"></div>
 			</div>
 		</body>
 	</html>

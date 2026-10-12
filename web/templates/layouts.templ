@@ -20,7 +20,7 @@ templ LayoutInternal(nav Navigation, props *InternalLayoutProps, content ...temp
 	<main
 		aria-label="Main Content"
 		id={ ContentID.String() }
-		class="flex-1 scroll-mt-16 scroll-mb-20 pt-16 px-safe pb-20 lg:pl-36 overflow-y-scroll"
+		class="flex-1 scroll-mt-16 scroll-mb-20 overflow-y-scroll pt-16 px-safe pb-20 lg:pl-36"
 	>
 		if len(content) > 0 {
 			@templ.Join(content...)

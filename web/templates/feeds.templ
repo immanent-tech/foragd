@@ -30,9 +30,9 @@ templ feedThumbnail(feed *models.Feed) {
 		<div class="avatar avatar-placeholder" aria-hidden="true">
 			<div class="mask w-12 bg-neutral mask-squircle text-neutral-content ring-1 ring-neutral-content/25">
 				if feed.GetTitle() != "" {
-					<span class="text-3xl font-serif capitalize">{ feed.GetTitle()[0:1] }</span>
+					<span class="font-serif text-3xl capitalize">{ feed.GetTitle()[0:1] }</span>
 				} else {
-					<span class="text-3xl font-serif capitalize">?</span>
+					<span class="font-serif text-3xl capitalize">?</span>
 				}
 			</div>
 		</div>

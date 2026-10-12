@@ -27,7 +27,7 @@ templ PostsIndex(posts PostsData) {
 			@pageHeading() {
 				@pageTitle("The Foragd Blog. RSS Feed Reader Guides, Tips and Comparisons")
 			}
-			<p class="mt-2 font-serif font-medium text-base">
+			<p class="mt-2 font-serif text-base font-medium">
 				The Foragd blog covers RSS and Atom feed readers, guides to finding and managing feeds, comparisons
 				with other feed readers, and practical strategies for taking back control of your reading in an era
 				of algorithmic content. Whether you're new to RSS or switching from Feedly or Inoreader, you'll find
@@ -69,7 +69,7 @@ templ PostsIndex(posts PostsData) {
 											}
 											width="400"
 											height="300"
-											class="w-full aspect-4/3 object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
+											class="aspect-4/3 w-full object-cover transition-transform duration-400 ease-in-out group-hover:scale-[1.04]"
 										/>
 									</figure>
 								}
@@ -85,7 +85,7 @@ templ PostsIndex(posts PostsData) {
 								if post.Frontmatter.Author != nil {
 									<span class="text-sm text-neutral">{ *post.Frontmatter.Author }</span>
 								}
-								<p class="mt-4 prose-summary">{ post.Frontmatter.Description }</p>
+								<p class="prose-summary mt-4">{ post.Frontmatter.Description }</p>
 							}
 							@partials.CardFooter() {
 								<div class="card-actions justify-end">
@@ -147,7 +147,7 @@ templ Post(post *markdownx.File) {
 		// Show a subtle reading progress bar across the top of the article.
 		<div
 			id="progress-bar"
-			class="fixed top-0 left-0 h-1 w-0 bg-accent z-9999 transition-[width] duration-50 ease-linear"
+			class="fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear"
 			_="on scroll from the window debounced at 20ms
           set my.style.width to
             ((document.documentElement.scrollTop /
@@ -167,7 +167,7 @@ templ Post(post *markdownx.File) {
 			// 	</ul>
 			// </div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
-				<div class="flex flex-1 flex-separated items-center justify-self-end">
+				<div class="flex-separated flex flex-1 items-center justify-self-end">
 					<span class="text-xs/4 text-neutral capitalize tabular-nums">
 						Created
 						<relative-time
@@ -198,8 +198,8 @@ templ Post(post *markdownx.File) {
 					>
 						{ post.Frontmatter.Title }
 					</h1>
-					<p class="font-medium font-serif">{ post.Frontmatter.Description }</p>
-					<div class="mb-4 flex font-sans items-center justify-between border-t border-b border-neutral/20 p-1">
+					<p class="font-serif font-medium">{ post.Frontmatter.Description }</p>
+					<div class="mb-4 flex items-center justify-between border-t border-b border-neutral/20 p-1 font-sans">
 						// Author.
 						if post.Frontmatter.Author != nil {
 							<strong

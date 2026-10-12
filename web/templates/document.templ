@@ -10,7 +10,7 @@ import "github.com/immanent-tech/foragd/web/templates/partials"
 templ Document(data []byte) {
 	@templ.Fragment(ContentFragment) {
 		@partials.BackToTopButton()
-		<article class="mt-12 mx-auto p-4 prose-document">
+		<article class="mx-auto prose-document mt-12 p-4">
 			@templ.Raw(string(data))
 		</article>
 	}

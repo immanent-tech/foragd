@@ -10,15 +10,15 @@ templ ObfuscateEmail(email, label string) {
 		class="w-fit"
 	>
 		<style>
-text {
-	dominant-baseline: middle;
-	fill: #000;
-    font-size: 6px;
-	font-family: 'Inter';
-	text-anchor: middle;
-}
-</style>
-		<a class="link link-hover w-fit" href={ "mailto:" + email }>
+			text {
+				dominant-baseline: middle;
+				fill: #000;
+				font-size: 6px;
+				font-family: 'Inter';
+				text-anchor: middle;
+			}
+		</style>
+		<a class="w-fit link link-hover" href={ "mailto:" + email }>
 			<text x="50%" y="50%">{ label }</text>
 		</a>
 	</svg>

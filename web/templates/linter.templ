@@ -70,8 +70,8 @@ templ Linter() {
 								</button>
 							</div>
 						</div>
-						<div class="hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl mt-12">
-							<span class="mx-auto loading loading-bars loading-xl"></span>
+						<div class="mt-12 hidden w-full group-[.htmx-request]:inline-flex sm:max-w-5xl">
+							<span class="loading mx-auto loading-xl loading-bars"></span>
 						</div>
 					</form>
 				</section>
@@ -96,7 +96,7 @@ templ LinterResults(linterResults map[string][]linter.Result) {
 					<dl class="flex flex-col">
 						<div class="flex">
 							<div class="flex-auto pt-6 pl-6">
-								<dt class="text-base/7 font-semibold ">Rule: { result.ID }</dt>
+								<dt class="text-base/7 font-semibold">Rule: { result.ID }</dt>
 								<dd class="mt-1 text-sm/6">{ result.Description } </dd>
 							</div>
 							<div class="flex-none self-end px-6 pt-4">
@@ -105,7 +105,7 @@ templ LinterResults(linterResults map[string][]linter.Result) {
 							</div>
 						</div>
 						if result.Message != nil {
-							<div class="flex-auto pt-6 pl-6 ml-4">
+							<div class="ml-4 flex-auto pt-6 pl-6">
 								<dt class="text-base/7 font-semibold">Reason(s):</dt>
 								<dd class="mt-1 text-sm/6">
 									<ul>
