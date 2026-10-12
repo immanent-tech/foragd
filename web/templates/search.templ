@@ -622,48 +622,41 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 		</div>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			// View filter.
-			<div class="fieldset">
+			<fieldset class="fieldset">
 				<span class="col-span-full label">View:</span>
-				<label class="fieldset flex">
+				<div class="join my-2">
 					<input
-						id="search-view-unread"
+						class="btn join-item btn-sm"
 						type="radio"
 						name="view"
 						value="unread"
+						aria-label="Unread"
 						if request.View == models.ViewUnread {
 							checked
 						}
-						class="radio shrink radio-sm radio-primary"
 					/>
-					<span class="label flex-1">Unread</span>
-				</label>
-				<label class="fieldset flex">
 					<input
-						id="search-view-unread"
+						class="btn join-item btn-sm"
 						type="radio"
 						name="view"
 						value="read"
+						aria-label="Read"
 						if request.View == models.ViewRead {
 							checked
 						}
-						class="radio shrink radio-sm radio-primary"
 					/>
-					<span class="label flex-1">Read</span>
-				</label>
-				<label class="fieldset flex">
 					<input
-						id="search-view-unread"
+						class="btn join-item btn-sm"
 						type="radio"
 						name="view"
 						value="all"
+						aria-label="All"
 						if request.View == models.ViewAll {
 							checked
 						}
-						class="radio shrink radio-sm radio-primary"
 					/>
-					<span class="label flex-1">All</span>
-				</label>
-			</div>
+				</div>
+			</fieldset>
 			// Date range filter.
 			<label class="fieldset">
 				<span class="col-span-full label">Published within:</span>
