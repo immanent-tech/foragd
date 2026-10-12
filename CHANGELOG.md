@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.246.1](https://github.com/immanent-tech/foragd/compare/v0.246.0...v0.246.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **models:** 🔧 domain field in Feed is not required ([bfc1b9e](https://github.com/immanent-tech/foragd/commit/bfc1b9e7d8e9078a3dfbac580eb4f2a1e1f8f3e1))
+* **templates:** 🗑️ remove unused hyperscript ([27bc3dd](https://github.com/immanent-tech/foragd/commit/27bc3dd8efba897e79cbe3d3f6a367510d5e03b2))
+
+
+### Performance Improvements
+
+* **handlers/login:** 🔧 try to handle different auth0 errors appropriately ([be49abe](https://github.com/immanent-tech/foragd/commit/be49abe61f5afd9798c2e942f8957ee6800d61a5))
+
 ## [0.246.0](https://github.com/immanent-tech/foragd/compare/v0.245.0...v0.246.0) (2026-10-12)
 
 
