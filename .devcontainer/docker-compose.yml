@@ -6,10 +6,12 @@ services:
       context: .
       dockerfile: ../base/.devcontainer/alpine.Dockerfile
     volumes:
-      - ..:/workspace:cached
-      - /etc/localtime:/etc/localtime:ro,cached
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:rw
+      - ..:/workspace
       - foragd-datahome:/datahome
+      - node_modules:/workspace/node_modules
+      - go-mod-cache:/home/vscode/go/pkg/mod
+      - go-build-cache:/home/vscode/.cache/go-build
+      - tmp-build:/workspace/tmp
     command: -c 'sleep infinity'
     user: vscode
     init: true
@@ -44,6 +46,8 @@ services:
   ollama:
     env_file:
       - .env
+    environment:
+      OLLAMA_KEEP_ALIVE: 5m
     build:
       context: .
       dockerfile: ../ollama.Dockerfile
@@ -58,3 +62,7 @@ services:
 
 volumes:
   foragd-datahome:
+  node_modules:
+  go-mod-cache:
+  go-build-cache:
+  tmp-build:

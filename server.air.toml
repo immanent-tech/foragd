@@ -17,18 +17,18 @@ pre_cmd = [
   "npm run templ:generate",
 ]
 # Just plain old shell command. You could use `make` as well.
-cmd = 'go build -o ./tmp/foragd .'
+cmd = 'go build -o ./tmp/server/foragd .'
 # Array of commands to run after ^C
 # post_cmd = ["echo 'hello air' > post_cmd.txt"]
 # Binary file yields from 'cmd', will be deprecated soon, recommend using entrypoint.
 # bin = "tmp/foragd"
 # Entrypoint binary relative to root. First item is the executable, more items are default arguments.
-entrypoint = ["./tmp/foragd"]
+entrypoint = ["./tmp/server/foragd"]
 # Customize binary, can setup environment variables when run your app.
 # full_bin = "./tmp/foragd"
 # Add additional arguments when running binary (bin/full_bin). Will run './tmp/main hello world'.
 args_bin = [
-  "--profile='heapprofile=.devcontainer/data/server-heap.prof;cpuprofile=.devcontainer/data/server-cpu.prof;webui=true'",
+  "--profile='heapprofile=/workspace/tmp/server-heap.prof;cpuprofile=/workspace/tmp/server-cpu.prof;webui=true'",
   "serve",
 ]
 # Watch these filename extensions. Use ["*"] to watch all file extensions.

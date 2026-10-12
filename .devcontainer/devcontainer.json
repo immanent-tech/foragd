@@ -2,7 +2,14 @@
   "name": "foragd",
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
-  "postCreateCommand": "bash .devcontainer/postcreate.sh",
+  "postCreateCommand": {
+    "fix-permissions": "bash .devcontainer/postcreate.sh",
+    "oh-my-posh": "bash base/.devcontainer/postcreate.scripts.d/oh-my-posh.sh",
+    "zyte": "bash base/.devcontainer/postcreate.scripts.d/zyte.sh",
+    "frontend": "bash base/.devcontainer/postcreate.scripts.d/frontend.sh",
+    "go": "bash base/.devcontainer/postcreate.scripts.d/go.sh",
+    "google-cloud": "bash base/.devcontainer/postcreate.scripts.d/gcloud.sh"
+  },
   "containerUser": "vscode",
   "containerEnv": {
     "HOME": "/home/vscode"
@@ -12,8 +19,7 @@
     "PODMAN_COMPOSE_WARNING_LOGS": "false",
     "DOCKER_SOCK": "/run/user/1000/podman/podman.sock",
     "TZ": "${localEnv:TZ:Australia/Brisbane}",
-    "EDITOR": "micro",
-    "BUILDX_BUILDER": "default-rootless"
+    "EDITOR": "micro"
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "/workspace",
@@ -22,27 +28,13 @@
     "vscode": {
       "extensions": [
         "golang.go",
-        "ymotongpoo.licenser",
-        "tamasfe.even-better-toml",
-        "redhat.vscode-yaml",
-        "esbenp.prettier-vscode",
         "a-h.templ",
         "bradlc.vscode-tailwindcss",
-        "yzhang.markdown-all-in-one",
-        "DavidAnson.vscode-markdownlint",
-        "dnut.rewrap-revived",
         "dz4k.vscode-hyperscript-org",
-        "redhat.vscode-xml",
         "cossssmin.posthtml",
-        "ms-azuretools.vscode-containers",
         "csstools.postcss",
-        "oderwat.indent-rainbow",
-        "adam-bender.commit-message-editor",
-        "kamikillerto.vscode-colorize",
-        "elijah-potter.harper",
-        "psioniq.psi-header",
-        "usernamehw.errorlens",
-        "Vue.volar"
+        "Vue.volar",
+        "SimonSiefke.svg-preview"
       ]
     }
   }

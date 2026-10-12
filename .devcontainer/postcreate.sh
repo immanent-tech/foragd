@@ -2,19 +2,7 @@
 
 set -x
 
-cd /workspace
-
-# Oh My Posh.
-source base/.devcontainer/postcreate.scripts.d/oh-my-posh.sh
-
-# Zyte.
-source base/.devcontainer/postcreate.scripts.d/zyte.sh
-
-# Frontend.
-source base/.devcontainer/postcreate.scripts.d/frontend.sh
-
-# Go.
-source base/.devcontainer/postcreate.scripts.d/go.sh
-
-# Google Cloud.
-source base/.devcontainer/postcreate.scripts.d/gcloud.sh
+sudo chown -R vscode:vscode /workspace/node_modules \
+    /home/vscode/go \
+    /home/vscode/.cache \
+    /workspace/tmp
