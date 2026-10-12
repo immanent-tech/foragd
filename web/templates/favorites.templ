@@ -13,32 +13,36 @@ import (
 	"slices"
 )
 
+templ scriptFavoritesTabHandler() {
+	<script type="module">
+		const tabGroup = document.getElementById('favorites-tabs')
+
+		// Map hash → tab index
+		const tabMap = {
+			'#subscriptions': 0,
+			'#articles': 1,
+		}
+
+		function activateTabFromHash() {
+			const index = tabMap[window.location.hash]
+			if (index !== undefined) {
+				tabGroup.setActiveTab(index)
+			}
+		}
+
+		// Activate on initial load
+		activateTabFromHash()
+
+		// Also handle back/forward navigation
+		window.addEventListener('hashchange', activateTabFromHash)
+	</script>
+}
+
 // ListFavorites renders subscription and article favorites in a grid layout.
 templ ListFavorites(response *models.ListFavoritesResponse) {
 	@LayoutInternal(NavFavorites, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
-		<script type="module">
-			const tabGroup = document.getElementById('favorites-tabs')
-
-			// Map hash → tab index
-			const tabMap = {
-				'#subscriptions': 0,
-				'#articles': 1,
-			}
-
-			function activateTabFromHash() {
-				const index = tabMap[window.location.hash]
-				if (index !== undefined) {
-					tabGroup.setActiveTab(index)
-				}
-			}
-
-			// Activate on initial load
-			activateTabFromHash()
-
-			// Also handle back/forward navigation
-			window.addEventListener('hashchange', activateTabFromHash)
-		</script>
 		@templ.Fragment(ContentFragment) {
+			@scriptFavoritesTabHandler()
 			@container(element.WithClasses("pt-4")) {
 				<el-tab-group
 					id="favorites-tabs"
@@ -110,7 +114,9 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Subscriptions")
 							}
 							if len(response.Subscriptions) > 0 {
-								@partials.Grid(element.WithClasses("relative", "mt-4")) {
+								@partials.Grid(element.WithClasses("relative", "mt-4", "masonry-grid"),
+									element.WithAttribute("_", "install MasonryGrid"),
+								) {
 									for idx, subscription := range response.Subscriptions {
 										@SubscriptionCard(idx, subscription) {
 											if len(subscription.Articles) > 0 {
@@ -162,7 +168,9 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Articles")
 							}
 							if len(response.Articles) > 0 {
-								@partials.Grid(element.WithClasses("relative", "mt-4")) {
+								@partials.Grid(element.WithClasses("relative", "mt-4", "masonry-grid"),
+									element.WithAttribute("_", "install MasonryGrid"),
+								) {
 									for idx, article := range response.Articles {
 										@ArticleCard(idx, article)
 									}
