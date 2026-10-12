@@ -208,8 +208,6 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			@components.LeafletAssets()
 			// Load script bundles from embedded FS.
 			<script src={ filepath.Join("/assets/", assets.AssetPath("web/assets/scripts.js")) } type="module"></script>
-			// Load Tailwind Elements.
-			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" integrity="sha384-E7dy6eN+cKffMM/2+QF5MMP1q8KS0AT4IlmT4v3mG2mNZ7ISeLRPdlHrlWJK/8yx" type="module" crossorigin="anonymous"></script>
 			if appCfg.IsProduction() {
 				// Load Umami.
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
@@ -247,7 +245,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				@templ.Raw(style)
 			}
 		</head>
-		<body class="flex min-h-dvh flex-col overscroll-y-none bg-base-100 antialiased">
+		<body class="bg-base-100 flex min-h-dvh flex-col overscroll-y-none antialiased">
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
@@ -258,8 +256,8 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 				@p.Component
 			}
 			// Notifications.
-			<div aria-live="assertive" class="pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start">
-				<div id="notifications" class="m-4 flex w-full flex-col items-center space-y-4 sm:items-end"></div>
+			<div aria-live="assertive" class="inset-safe-or-0 sm:items-start pointer-events-none fixed z-999 flex items-end">
+				<div id="notifications" class="m-4 space-y-4 sm:items-end flex w-full flex-col items-center"></div>
 			</div>
 		</body>
 	</html>

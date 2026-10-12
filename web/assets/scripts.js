@@ -10,6 +10,10 @@ import 'htmx.org/dist/ext/hx-head'
 // Hyperscript
 import 'hyperscript.org'
 
+import '@webcomponents/webcomponentsjs/webcomponents-bundle.js'
+
+import '@tailwindplus/elements'
+
 // Relative time custom element.
 import '@github/relative-time-element'
 
