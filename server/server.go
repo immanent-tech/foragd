@@ -400,6 +400,7 @@ func Start() error {
 				r.Post("/remove", handlerMgr.HandleBulkRemoveSubscriptions(subscriptionSvc))
 				r.Route("/add", func(r chi.Router) {
 					r.Post("/feedset", handlerMgr.HandleAddFeedset(feedSvc, subscriptionSvc))
+					r.Post("/category", handlerMgr.HandleSubscriptionCategories())
 				})
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
@@ -455,10 +456,6 @@ func Start() error {
 				r.With(htmx.RequireHTMX).
 					Post("/suggest", handlerMgr.HandleSuggestSubscriptionForSearch(subscriptionSvc))
 				r.With(htmx.RequireHTMX).Post("/add", handlerMgr.HandleAddSubscriptionToSearch())
-			})
-			// Subscription category management.
-			r.Route("/category", func(r chi.Router) {
-				r.With(htmx.RequireHTMX).Post("/", handlerMgr.HandleSubscriptionCategories())
 			})
 		})
 

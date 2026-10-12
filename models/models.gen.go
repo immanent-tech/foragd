@@ -559,9 +559,6 @@ type EditEmailSubscriptionRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // EditUserRequest contains details for editing a user account.
@@ -1039,9 +1036,6 @@ type SearchSubscriptionRequest struct {
 
 	// Settings contains options that control how the subscription is stored/displayed.
 	Settings *SubscriptionSettings `form:"settings" json:"settings,omitempty"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // Sort is how a list of objects is sorted.
@@ -1117,6 +1111,9 @@ type SubscriptionCustomisation struct {
 
 	// Nickname is an optional alias or label for an object.
 	Nickname *string `form:"nickname" json:"nickname,omitempty" validate:"omitempty"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // SubscriptionID is the unique ID of a subscription.

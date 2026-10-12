@@ -14,3 +14,10 @@ packages:
       pkgname: "{{.SrcPackageName}}_test"
       structname: "Moq{{.InterfaceName}}"
       all: true
+  github.com/immanent-tech/foragd/web/templates:
+    config:
+      dir: "{{.InterfaceDir}}"
+      filename: "templates_mocks_test.go"
+      pkgname: "{{.SrcPackageName}}_test"
+      structname: "Moq{{.InterfaceName}}"
+      all: true

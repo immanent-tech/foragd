@@ -11,6 +11,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -289,76 +290,6 @@ templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
 	</ul>
 }
 
-templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
-	<fieldset class="fieldset min-w-0 py-8">
-		<legend id="article-filtering" class="flex items-center gap-2 text-lg font-medium">
-			Article Filtering
-			<button popovertarget="article-filtering-help" type="button">
-				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
-			</button>
-			<el-popover popover id="article-filtering-help" anchor="bottom" class="[--anchor-gap:4px]">
-				<div class="card-body block rounded-box bg-base-300 font-light shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-					<p>
-						The following operators can be used for more refined searches:
-					</p>
-					<ul class="mt-1">
-						<li>| signifies OR operation (i.e., food OR beverages). This is the default.</li>
-						<li>+ signifies AND operation (i.e., food AND beverages).</li>
-						<li>- negates the word (i.e., NOT samsung)</li>
-						<li>"" represents an exact phrase match (i.e., "galaxy watch").</li>
-						<li>\* at the end of a word indicates a prefix match (i.e., bird\* will match bird, birding and birds).</li>
-					</ul>
-				</div>
-			</el-popover>
-		</legend>
-		<label class="fieldset">
-			<span class="label">Text</span>
-			<textarea
-				rows="2"
-				id="article-text-filters"
-				name="article_filters.text"
-				placeholder={ `keyword -"some phrase"` }
-				class="textarea w-full bg-base-content/10 textarea-primary"
-				spellcheck="false"
-			>
-				if filters != nil && filters.Text != nil {
-					{ *filters.Text }
-				}
-			</textarea>
-		</label>
-		<label class="fieldset">
-			<span class="label">Categories</span>
-			<textarea
-				rows="2"
-				id="article-category-filters"
-				name="article_filters.categories"
-				placeholder={ `keyword -"some phrase"` }
-				class="textarea w-full bg-base-content/10 textarea-primary"
-				spellcheck="false"
-			>
-				if filters != nil && filters.Categories != nil {
-					{ *filters.Categories }
-				}
-			</textarea>
-		</label>
-		<label class="fieldset">
-			<span class="label">Authors</span>
-			<textarea
-				rows="2"
-				id="article-author-filters"
-				name="article_filters.authors"
-				placeholder={ `keyword -"some phrase"` }
-				class="textarea w-full bg-base-content/10 textarea-primary"
-				spellcheck="false"
-			>
-				if filters != nil && filters.Authors != nil {
-					{ *filters.Authors }
-				}
-			</textarea>
-		</label>
-	</fieldset>
-}
-
 // AddFeedSubscription is a page for adding a new subscription to a feed.
 templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@LayoutInternal(NavSubscriptions, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
@@ -547,7 +478,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 		<form
 			id="add-subscription"
 			if action == "add" {
-				hx-post="/subscription/add"
+				hx-post="/subscriptions/add"
 			} else {
 				hx-post={ "/subscriptions/" + request.SubscriptionID + "/edit" }
 			}
@@ -561,48 +492,10 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 				<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 			}
-			// Customisation.
-			<fieldset class="fieldset min-w-0 py-8">
-				<legend class="text-lg font-medium">Customisation</legend>
-				<label class="fieldset">
-					<span class="label">Nickname</span>
-					<input
-						id="nickname"
-						type="text"
-						name="customisation.nickname"
-						if request.Customisation != nil && request.Customisation.GetNickname() != "" {
-							value={ request.Customisation.GetNickname() }
-						}
-						placeholder="My cool subscription…"
-						class="input w-full bg-base-content/10 input-primary"
-					/>
-					<p>Add a nickname for the subscription.</p>
-				</label>
-				<label class="fieldset">
-					<span class="label">Thumbnail</span>
-					<div class="flex items-center gap-4">
-						if request.Customisation != nil && request.Customisation.ImageURL != nil {
-							@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
-						} else {
-							@thumbnail(nil, *request.Customisation.Nickname)
-						}
-						<input
-							id="thumbnail"
-							type="file"
-							class="file-input flex bg-base-content/10 file-input-primary"
-							name="customisation.thumbnail"
-							accept=".jpg,.png,.webp"
-						/>
-					</div>
-					<p>Customize the subscription thumbnail</p>
-				</label>
-			</fieldset>
+			// Customization.
+			@subscriptionCustomisationFields(request.Customisation)
 			// Categories.
-			if request.Customisation != nil {
-				@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
-			} else {
-				@CategoryManagement(request.SuggestedCategories, nil)
-			}
+			@subscriptionCategoryManagement(request.Customisation.SuggestedCategories, request.Customisation.GetCategories())
 			// Article Filters.
 			@subscriptionArticleFiltersFields(request.ArticleFilters)
 			// Additional Options for Existing Subscriptions.
@@ -634,36 +527,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 					</label>
 				</fieldset>
 			}
-			<div class="mt-4 flex w-full justify-end gap-4">
-				<button
-					type="button"
-					class="btn btn-secondary hover:btn-error"
-					if prev, found := breadcrumbs.Previous(ctx); !found {
-						hx-get="/home"
-					} else {
-						hx-get={ prev.Path + prev.Fragment }
-					}
-					hx-target={ ContentID.Target() }
-					hx-swap="innerMorph transition:true"
-					hx-push-url="true"
-				>
-					Back
-				</button>
-				<button type="submit" class="group btn btn-primary">
-					<span class="hidden items-center group-[.htmx-request]:inline-flex">
-						<span class="loading mr-3 loading-spinner"></span>
-						<span class="text-sm/6">Processing</span>
-					</span>
-					<span class="inline-flex items-center group-[.htmx-request]:hidden">
-						switch action {
-							case "add":
-								<span class="text-sm/6">Add</span>
-							case "edit":
-								<span class="text-sm/6">Save</span>
-						}
-					</span>
-				</button>
-			</div>
+			@editSubscriptionFormButtons(action, breadcrumbs)
 		</form>
 	</div>
 }
@@ -748,41 +612,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							<input type="hidden" name="subscription_id" value={ string(*request.Search.SubscriptionID) }/>
 							<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 						}
-						<fieldset class="fieldset min-w-0 py-8">
-							<legend class="text-lg font-medium">Customisation</legend>
-							<label class="fieldset">
-								<span class="label">Nickname</span>
-								<input
-									id="nickname"
-									type="text"
-									if request.Customisation != nil && request.Customisation.GetNickname() != "" {
-										value={ request.Customisation.GetNickname() }
-									}
-									name="customisation.nickname"
-									placeholder="My cool subscription…"
-									class="input w-full bg-base-content/10 input-primary"
-								/>
-								<p>Add a nickname for the subscription.</p>
-							</label>
-							<label class="fieldset">
-								<span class="label">Thumbnail</span>
-								<div class="flex items-center gap-4">
-									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
-									} else {
-										@thumbnail(nil, "")
-									}
-									<input
-										id="thumbnail"
-										type="file"
-										class="file-input flex bg-base-content/10 file-input-primary"
-										name="customisation.thumbnail"
-										accept=".jpg,.png,.webp"
-									/>
-								</div>
-								<p>Customize the subscription thumbnail</p>
-							</label>
-						</fieldset>
+						@subscriptionCustomisationFields(request.Customisation)
 						<fieldset class="fieldset min-w-0 py-8">
 							<legend class="text-lg font-medium">Search Filters</legend>
 							// Search Text.
@@ -897,41 +727,8 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							</div>
 						</fieldset>
 						// Categories.
-						if request.Customisation != nil {
-							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
-						} else {
-							@CategoryManagement(request.SuggestedCategories, nil)
-						}
-						<div class="mt-4 flex w-full justify-end gap-4">
-							<button
-								type="button"
-								class="btn btn-secondary hover:btn-error"
-								if prev, found := breadcrumbs.Previous(ctx); !found {
-									hx-get="/home"
-								} else {
-									hx-get={ prev.Path + prev.Fragment }
-								}
-								hx-target={ ContentID.Target() }
-								hx-swap="innerMorph transition:true"
-								hx-push-url="true"
-							>
-								Back
-							</button>
-							<button type="submit" class="group btn btn-primary">
-								<span class="hidden items-center group-[.htmx-request]:inline-flex">
-									<span class="loading mr-3 loading-spinner"></span>
-									<span class="text-sm/6">Processing</span>
-								</span>
-								<span class="inline-flex items-center group-[.htmx-request]:hidden">
-									switch action {
-										case "add":
-											<span class="text-sm/6">Add</span>
-										case "edit":
-											<span class="text-sm/6">Save</span>
-									}
-								</span>
-							</button>
-						</div>
+						@subscriptionCategoryManagement(request.Customisation.SuggestedCategories, request.Customisation.GetCategories())
+						@editSubscriptionFormButtons(action, breadcrumbs)
 					</form>
 				</div>
 			}
@@ -983,41 +780,8 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 							<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
 						}
 						// Customisation.
-						<fieldset class="fieldset min-w-0 py-8">
-							<legend class="text-lg font-medium">Customisation</legend>
-							<label class="fieldset">
-								<span class="label">Nickname</span>
-								<input
-									id="nickname"
-									type="text"
-									name="customisation.nickname"
-									if request.Customisation != nil && request.Customisation.GetNickname() != "" {
-										value={ request.Customisation.GetNickname() }
-									}
-									placeholder="My cool subscription…"
-									class="input w-full bg-base-content/10 input-primary"
-								/>
-								<p>Add a nickname for the subscription.</p>
-							</label>
-							<label class="fieldset">
-								<span class="label">Thumbnail</span>
-								<div class="flex items-center gap-4">
-									if request.Customisation != nil && request.Customisation.ImageURL != nil {
-										@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
-									} else {
-										@thumbnail(nil, "")
-									}
-									<input
-										id="thumbnail"
-										type="file"
-										class="file-input flex bg-base-content/10 file-input-primary"
-										name="customisation.thumbnail"
-										accept=".jpg,.png,.webp"
-									/>
-								</div>
-								<p>Customize the subscription thumbnail</p>
-							</label>
-						</fieldset>
+						@subscriptionCustomisationFields(request.Customisation)
+						// Child subscriptions.
 						<fieldset class="fieldset min-w-0 py-8">
 							<legend class="text-lg font-medium">Subscriptions</legend>
 							<label class="fieldset">
@@ -1083,44 +847,11 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								</div>
 							</div>
 						</fieldset>
-						// Categories.
-						if request.Customisation != nil {
-							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
-						} else {
-							@CategoryManagement(request.SuggestedCategories, nil)
-						}
 						// Article Filters.
 						@subscriptionArticleFiltersFields(request.ArticleFilters)
-						<div class="mt-4 flex w-full justify-end gap-4">
-							<button
-								type="button"
-								class="btn btn-secondary hover:btn-error"
-								if prev, found := breadcrumbs.Previous(ctx); !found {
-									hx-get="/home"
-								} else {
-									hx-get={ prev.Path + prev.Fragment }
-								}
-								hx-target={ ContentID.Target() }
-								hx-swap="innerMorph transition:true"
-								hx-push-url="true"
-							>
-								Back
-							</button>
-							<button type="submit" class="group btn btn-primary">
-								<span class="hidden items-center group-[.htmx-request]:inline-flex">
-									<span class="loading mr-3 loading-spinner"></span>
-									<span class="text-sm/6">Processing</span>
-								</span>
-								<span class="inline-flex items-center group-[.htmx-request]:hidden">
-									switch action {
-										case "add":
-											<span class="text-sm/6">Add</span>
-										case "edit":
-											<span class="text-sm/6">Save</span>
-									}
-								</span>
-							</button>
-						</div>
+						// Categories.
+						@subscriptionCategoryManagement(request.Customisation.SuggestedCategories, request.Customisation.GetCategories())
+						@editSubscriptionFormButtons(action, breadcrumbs)
 					</form>
 				</div>
 			}
@@ -1161,81 +892,237 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 					<input type="hidden" name="subscription_id" value={ string(request.SubscriptionID) }/>
 					<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
 					<div class="space-y-12 sm:space-y-16">
-						// Subscription name, suggestions and existing subscriptions.
-						<div>
-							@partials.FormSection() {
-								@partials.FormField() {
-									<label for="nickname" class="block font-medium text-base-content sm:pt-1.5">Nickname</label>
-									<div class="mt-2 sm:col-span-2 sm:mt-0">
-										<input
-											id="nickname"
-											type="text"
-											name="customisation.nickname"
-											if request.Customisation != nil && request.Customisation.GetNickname() != "" {
-												value={ request.Customisation.GetNickname() }
-											}
-											placeholder="My cool subscription…"
-											class="input bg-base-300 brightness-95 input-primary"
-										/>
-									</div>
-								}
-								@partials.FormField() {
-									<label for="thumbnail" class="block font-medium text-base-content sm:pt-1.5">Thumbnail</label>
-									<div class="mt-2 sm:col-span-2 sm:mt-0">
-										<div class="col-span-full mt-2 flex items-center gap-x-2">
-											if request.Customisation != nil && request.Customisation.ImageURL != nil {
-												@thumbnail(models.NewRemoteImage(*request.Customisation.ImageURL, *request.Customisation.Nickname), *request.Customisation.Nickname)
-											} else {
-												@thumbnail(nil, *request.Customisation.Nickname)
-											}
-											<input
-												id="thumbnail"
-												type="file"
-												class="file-input flex bg-base-content/10 file-input-primary"
-												name="customisation.thumbnail"
-												accept=".jpg,.png,.webp"
-											/>
-										</div>
-									</div>
-								}
-							}
-						</div>
-						// Subscription category management.
-						if request.Customisation != nil {
-							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
-						} else {
-							@CategoryManagement(request.SuggestedCategories, nil)
-						}
+						@subscriptionCustomisationFields(request.Customisation)
+						// Categories.
+						@subscriptionCategoryManagement(request.Customisation.SuggestedCategories, request.Customisation.GetCategories())
 					</div>
-					<div class="mt-4 flex w-full justify-end gap-4">
-						<button
-							type="button"
-							class="btn btn-secondary hover:btn-error"
-							if prev, found := breadcrumbs.Previous(ctx); !found {
-								hx-get="/home"
-							} else {
-								hx-get={ prev.Path + prev.Fragment }
-							}
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph transition:true"
-							hx-push-url="true"
-						>
-							Back
-						</button>
-						<button type="submit" class="group btn btn-primary">
-							<span class="hidden items-center group-[.htmx-request]:inline-flex">
-								<span class="loading mr-3 loading-spinner"></span>
-								<span class="text-sm/6">Processing</span>
-							</span>
-							<span class="inline-flex items-center group-[.htmx-request]:hidden">
-								<span class="text-sm/6">Save</span>
-							</span>
-						</button>
-					</div>
+					@editSubscriptionFormButtons("edit", breadcrumbs)
 				</form>
 			}
 		}
 	}
+}
+
+// subscriptionCustomisationFields renders the fields of [models.SubscriptionCustomisation] for editing.
+templ subscriptionCustomisationFields(customisation *models.SubscriptionCustomisation) {
+	if customisation == nil {
+		return
+	}
+	<fieldset class="fieldset min-w-0 py-8">
+		<legend class="text-lg font-medium">Customization</legend>
+		// Nickname.
+		<label class="fieldset">
+			<span class="label">Nickname</span>
+			<input
+				type="text"
+				name="customisation.nickname"
+				if customisation.GetNickname() != "" {
+					value={ customisation.GetNickname() }
+				}
+				placeholder="My cool subscription…"
+				class="input w-full bg-base-content/10 input-primary"
+			/>
+			<p class="text-sm">Add a nickname for the subscription.</p>
+		</label>
+		// Thumbnail.
+		<label class="fieldset">
+			<span class="label">Thumbnail</span>
+			<div class="flex items-center gap-4">
+				if customisation.ImageURL != nil {
+					@thumbnail(models.NewRemoteImage(*customisation.ImageURL, customisation.GetNickname()), customisation.GetNickname())
+				} else {
+					@thumbnail(nil, customisation.GetNickname())
+				}
+				<input
+					type="file"
+					class="file-input flex bg-base-content/10 file-input-primary"
+					name="customisation.thumbnail"
+					accept=".jpg,.png,.webp"
+				/>
+			</div>
+			<p class="text-sm">Customize the subscription thumbnail</p>
+		</label>
+	</fieldset>
+}
+
+// subscriptionCategoryManagement renders fields and inputs for managing subscription categories.
+templ subscriptionCategoryManagement(suggested []models.Category, existing []models.Category) {
+	<fieldset class="fieldset min-w-0 py-8">
+		<div class="">
+			<button
+				command="--toggle"
+				commandfor="category-management"
+				type="button"
+				class="flex w-full items-start justify-between text-left"
+			>
+				<legend class="text-lg font-medium">Categories</legend>
+				@tableroutline.ChevronDown(templ.Attributes{
+					"class":       "-mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+					"aria-hidden": "true"})
+			</button>
+		</div>
+		<el-disclosure hidden id="category-management" class="transition transition-discrete duration-1000 data-closed:opacity-0">
+			<div id="categories" class="filter gap-1">
+				// Standard categories
+				for category := range slices.Values(ollama.IABTier1Categories) {
+					@AddCategoryToSubscription(category.Label, slices.Contains(existing, category.Label))
+				}
+				// Suggested categories.
+				for category := range slices.Values(suggested) {
+					if !slices.ContainsFunc(ollama.IABTier1Categories, func(e ollama.CategoryEmbedding) bool {
+                    return e.Label == category
+                }) {
+						@AddCategoryToSubscription(category, true)
+					}
+				}
+				// Existing custom categories.
+				for category := range slices.Values(existing) {
+					if !slices.ContainsFunc(ollama.IABTier1Categories, func(e ollama.CategoryEmbedding) bool {
+                    return e.Label == category
+                }) {
+						@AddCategoryToSubscription(category, true)
+					}
+				}
+			</div>
+			// Add custom categories.
+			<label class="fieldset">
+				<span class="label">Add custom category</span>
+				<div class="join">
+					<input type="text" name="new_category" value="" class="input join-item" placeholder="My category"/>
+					<button
+						class="btn join-item btn-square"
+						hx-post="/subscriptions/add/category"
+						hx-include="[name='category'],[name='new_category']"
+						hx-target="#categories"
+						hx-swap="beforeend transition:true"
+						_="on htmx:after:request if event.detail.successful then set value to '' in the closest <input/>"
+					>
+						@tableroutline.Plus(templ.Attributes{"class": "size-4"})
+					</button>
+				</div>
+			</label>
+		</el-disclosure>
+	</fieldset>
+}
+
+// AddCategoryToSubscription renders a new category item to the list of categories of a subscription.
+templ AddCategoryToSubscription(category models.Category, checked bool) {
+	<input
+		class="btn btn-sm"
+		type="checkbox"
+		name="category"
+		aria-label={ category }
+		value={ category }
+		if checked {
+			checked
+		}
+	/>
+}
+
+// subscriptionArticleFiltersFields renders the fields of [models.ArticleFilters] for editing.
+templ subscriptionArticleFiltersFields(filters *models.ArticleFilters) {
+	<fieldset class="fieldset min-w-0 py-8">
+		<legend id="article-filtering" class="flex w-full items-start justify-between text-left">
+			<span class="text-lg font-medium">Article Filtering</span>
+			<button popovertarget="article-filtering-help" type="button">
+				@tableroutline.InfoCircle(templ.Attributes{"class": "size-6 text-info", "aria-hidden": "true"})
+			</button>
+			<el-popover popover id="article-filtering-help" anchor="bottom" class="[--anchor-gap:4px]">
+				<div class="card-body block rounded-box bg-base-300 font-light shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+					<p>
+						The following operators can be used for more refined searches:
+					</p>
+					<ul class="mt-1">
+						<li>| signifies OR operation (i.e., food OR beverages). This is the default.</li>
+						<li>+ signifies AND operation (i.e., food AND beverages).</li>
+						<li>- negates the word (i.e., NOT samsung)</li>
+						<li>"" represents an exact phrase match (i.e., "galaxy watch").</li>
+						<li>\* at the end of a word indicates a prefix match (i.e., bird\* will match bird, birding and birds).</li>
+					</ul>
+				</div>
+			</el-popover>
+		</legend>
+		<label class="fieldset">
+			<span class="label">Text</span>
+			<textarea
+				rows="2"
+				id="article-text-filters"
+				name="article_filters.text"
+				placeholder={ `keyword -"some phrase"` }
+				class="textarea w-full bg-base-content/10 textarea-primary"
+				spellcheck="false"
+			>
+				if filters != nil && filters.Text != nil {
+					{ *filters.Text }
+				}
+			</textarea>
+		</label>
+		<label class="fieldset">
+			<span class="label">Categories</span>
+			<textarea
+				rows="2"
+				id="article-category-filters"
+				name="article_filters.categories"
+				placeholder={ `keyword -"some phrase"` }
+				class="textarea w-full bg-base-content/10 textarea-primary"
+				spellcheck="false"
+			>
+				if filters != nil && filters.Categories != nil {
+					{ *filters.Categories }
+				}
+			</textarea>
+		</label>
+		<label class="fieldset">
+			<span class="label">Authors</span>
+			<textarea
+				rows="2"
+				id="article-author-filters"
+				name="article_filters.authors"
+				placeholder={ `keyword -"some phrase"` }
+				class="textarea w-full bg-base-content/10 textarea-primary"
+				spellcheck="false"
+			>
+				if filters != nil && filters.Authors != nil {
+					{ *filters.Authors }
+				}
+			</textarea>
+		</label>
+	</fieldset>
+}
+
+// editSubscriptionFormButtons renders buttons on the bottom of an edit subscription form for saving/adding and going back.
+templ editSubscriptionFormButtons(action string, breadcrumbs Breadcrumbs) {
+	<div class="mt-4 flex w-full justify-end gap-4">
+		<button
+			id="back-button"
+			type="button"
+			class="btn btn-secondary hover:btn-error"
+			if prev, found := breadcrumbs.Previous(ctx); !found {
+				hx-get="/home"
+			} else {
+				hx-get={ prev.Path + prev.Fragment }
+			}
+			hx-target={ ContentID.Target() }
+			hx-swap="innerMorph transition:true"
+			hx-push-url="true"
+		>
+			Back
+		</button>
+		<button type="submit" class="group btn btn-primary">
+			<span class="hidden items-center group-[.htmx-request]:inline-flex">
+				<span class="loading mr-3 loading-spinner"></span>
+				<span class="text-sm/6">Processing</span>
+			</span>
+			<span class="inline-flex items-center group-[.htmx-request]:hidden">
+				switch action {
+					case "add":
+						<span class="text-sm/6">Add</span>
+					case "edit":
+						<span class="text-sm/6">Save</span>
+				}
+			</span>
+		</button>
+	</div>
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.

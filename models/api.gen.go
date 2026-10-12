@@ -84,11 +84,11 @@ type APIError struct {
 
 // AddCategoryToSubscriptionRequest is a request to add a new category to a subscription.
 type AddCategoryToSubscriptionRequest struct {
-	// Category represents a taxonomy applied to an object.
-	Category Category `form:"category" json:"category"`
-
 	// ExistingCategories is a list of categories already assigned to the subscription.
-	ExistingCategories []Category `form:"customisation.categories" json:"existing_categories,omitempty"`
+	ExistingCategories []Category `form:"category" json:"existing_categories,omitempty"`
+
+	// NewCategory represents a taxonomy applied to an object.
+	NewCategory Category `form:"new_category" json:"new_category"`
 }
 
 // AddFeedSubscriptionRequest contains request data for adding a new feed subscription.
@@ -201,9 +201,6 @@ type FeedSubscriptionRequest struct {
 
 	// SubscriptionID is the existing subscription ID. Will be empty when adding a new feed subscription.
 	SubscriptionID string `form:"subscription_id" json:"subscription_id" validate:"required_without=URL,omitempty,startswith=sub_"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // FeedSubscriptionResult is the result of adding a feed subscription.
@@ -233,9 +230,6 @@ type GroupSubscriptionRequest struct {
 
 	// Subscriptions contains details of the subscriptions in the group.
 	Subscriptions map[SubscriptionID]string `form:"subscriptions" json:"subscriptions" validate:"required"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
 
 	// SuggestedSubscriptions is a list of suggested subscriptions for the subscription.
 	SuggestedSubscriptions Subscriptions `form:"-" json:"-"`

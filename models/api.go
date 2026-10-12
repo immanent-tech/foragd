@@ -41,7 +41,7 @@ func (r *AddCategoryToSubscriptionRequest) Validate() error {
 }
 
 func (r *AddCategoryToSubscriptionRequest) Sanitise() error {
-	r.Category = validation.SanitizeString(r.Category)
+	r.NewCategory = validation.SanitizeString(r.NewCategory)
 	for idx := range r.ExistingCategories {
 		r.ExistingCategories[idx] = validation.SanitizeString(r.ExistingCategories[idx])
 	}
@@ -73,10 +73,11 @@ func NewGroupSubscriptionRequest(
 	suggestedCategories []Category,
 ) *GroupSubscriptionRequest {
 	return &GroupSubscriptionRequest{
-		Customisation:          &SubscriptionCustomisation{},
+		Customisation: &SubscriptionCustomisation{
+			SuggestedCategories: suggestedCategories,
+		},
 		Settings:               &SubscriptionSettings{},
 		SuggestedSubscriptions: suggestedSubscriptions,
-		SuggestedCategories:    suggestedCategories,
 	}
 }
 

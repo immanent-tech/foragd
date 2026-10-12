@@ -29,6 +29,7 @@ import (
 	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
@@ -604,7 +605,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			request.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
+			request.Customisation.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				[]models.FeedID{subscription.FeedData.GetFeedID()},
 				subscription.Customisation.Categories,
@@ -623,7 +624,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 				Search:        subscription.SearchData.Search,
 			}
 			// Get suggested categories from existing subscriptions.
-			request.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
+			request.Customisation.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
 
 			request.Search.SubscriptionID = new(subscription.GetID())
 			// // Get any extra subscription info for subscription filters.
@@ -678,7 +679,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
-			request.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
+			request.Customisation.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				groupedSubscriptions.GetFeedIDs(),
 				groupedSubscriptions.GetCategories(),
@@ -701,7 +702,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 				SubscriptionID: subscription.GetID(),
 			}
 			// Get suggested categories from existing subscriptions.
-			request.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
+			request.Customisation.SuggestedCategories = getCategorySuggestions(ctx).Limit(10).GetCategories()
 			// Create template.
 			template = templates.EditEmailSubscription(request, m.Breadcrumbs)
 			pageTitle = templates.PageTitle{
@@ -885,7 +886,9 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 
 		request := &models.FeedSubscriptionRequest{
 			// Get suggested categories from existing subscriptions.
-			SuggestedCategories: getCategorySuggestions(req.Context()).Limit(10).GetCategories(),
+			Customisation: &models.SubscriptionCustomisation{
+				SuggestedCategories: getCategorySuggestions(req.Context()).Limit(10).GetCategories(),
+			},
 		}
 		if givenURL != nil {
 			request.URL = givenURL.String()
@@ -1096,12 +1099,10 @@ func (m *Manager) HandleAddSearchSubscription(
 					},
 					template: templates.AddSearchSubscription(
 						&models.SearchSubscriptionRequest{
-							Search:        *request,
-							Customisation: &models.SubscriptionCustomisation{},
-							SuggestedCategories: getCategorySuggestions(
-								req.Context(),
-							).Limit(10).
-								GetCategories(),
+							Search: *request,
+							Customisation: &models.SubscriptionCustomisation{
+								SuggestedCategories: getCategorySuggestions(req.Context()).Limit(10).GetCategories(),
+							},
 						},
 						m.Breadcrumbs,
 					),
@@ -1397,29 +1398,31 @@ func (m *Manager) HandleExportSubscriptions(feedSvc FeedService) http.HandlerFun
 	}
 }
 
-// HandleSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
-// adding.
+// HandleSubscriptionCategories handles adding new categories to a subscription.
 func (m *Manager) HandleSubscriptionCategories() http.HandlerFunc {
+	// Create a list of standard categories.
+	standardCategories := make(models.Categories, 0, len(ollama.IABTier1Categories))
+	for category := range slices.Values(ollama.IABTier1Categories) {
+		standardCategories = append(standardCategories, category.Label)
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Get the new category and any existing categories.
 		request, err := parseForm[*models.AddCategoryToSubscriptionRequest](req)
 		if err != nil {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
 
-		categories := strings.Split(request.Category, ",")
-		if len(categories) == 0 {
+		// Ignore if the new category is an existing one.
+		if slices.Contains(slices.Concat(standardCategories, request.ExistingCategories), request.NewCategory) {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		for category := range slices.Values(categories) {
-			if slices.Contains(request.ExistingCategories, request.Category) {
-				// Ignore existing categories.
-				continue
-			}
-			RenderPartial(&PartialTemplate{template: templates.AddCategory(category)}).ServeHTTP(res, req)
-		}
+		// Add the new category.
+		RenderPartial(
+			&PartialTemplate{template: templates.AddCategoryToSubscription(request.NewCategory, true)},
+		).ServeHTTP(res, req)
 	}
 }
 

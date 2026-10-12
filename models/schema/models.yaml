@@ -949,6 +949,16 @@ components:
             form: "categories"
             validate: "omitempty,unique"
           x-go-type-skip-optional-pointer: true
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            form: "-"
+            json: "-"
+          x-go-type-skip-optional-pointer: true
         image_url:
           description: >
             is a custom image to represent the object.
@@ -1219,16 +1229,6 @@ components:
           $ref: "#/components/schemas/SubscriptionCustomisation"
         settings:
           $ref: "#/components/schemas/SubscriptionSettings"
-        suggestedCategories:
-          description: >
-            is a list of suggested categories for the subscription.
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          x-oapi-codegen-extra-tags:
-            form: "-"
-            json: "-"
-          x-go-type-skip-optional-pointer: true
     GroupSubscriptionSuggestionRequest:
       description: >
         contains details for suggesting a subscription to add to a group.
@@ -1268,16 +1268,6 @@ components:
             - $ref: "#/components/schemas/SubscriptionSettings"
           x-oapi-codegen-extra-tags:
             form: "settings"
-        suggestedCategories:
-          description: >
-            is a list of suggested categories for the subscription.
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          x-oapi-codegen-extra-tags:
-            form: "-"
-            json: "-"
-          x-go-type-skip-optional-pointer: true
     ArticleMetadata:
       description: >
         contains the stored data that represents an article.

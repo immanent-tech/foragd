@@ -9,12 +9,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/url"
 	"reflect"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -155,6 +157,109 @@ func TestListSubscriptions(t *testing.T) {
 			if !reflect.DeepEqual(got, want) {
 				t.Errorf("hx-vals mismatch:\n got %v\nwant %v", got, want)
 			}
+		})
+	}
+}
+
+func TestEditFeedSubscription(t *testing.T) {
+	tests := []struct {
+		name        string
+		request     *models.FeedSubscriptionRequest
+		breadcrumbs templates.Breadcrumbs
+		setupCtx    func() context.Context
+		tests       func(t *testing.T, doc *goquery.Document)
+	}{
+		{
+			name: "just nickname",
+			request: &models.FeedSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{
+					Nickname: new("Test"),
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
+				assert.Equal(t, doc.Find("input[value^='Test']").Length(), 1)
+			},
+		},
+		{
+			name: "with article filtering",
+			request: &models.FeedSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{
+					Nickname: new("Test"),
+				},
+				ArticleFilters: &models.ArticleFilters{
+					Text: new(`-foo "bar baz"`),
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
+				assert.Equal(t, doc.Find("input[value^='Test']").Length(), 1)
+				assert.True(t, doc.Find("#article-text-filters").Text() == `-foo "bar baz"`)
+			},
+		},
+		{
+			name: "with categories",
+			request: &models.FeedSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{
+					Nickname:            new("Test"),
+					Categories:          []models.Category{"Pop Culture", "Events", "Custom"},
+					SuggestedCategories: []models.Category{"Suggested1"},
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
+				assert.Equal(t, doc.Find("input[value^='Test']").Length(), 1)
+				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Pop Culture"][checked]`).Length(), 1)
+				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Events"][checked]`).Length(), 1)
+				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Custom"][checked]`).Length(), 1)
+				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Suggested1"][checked]`).Length(), 1)
+			},
+		},
+		{
+			name: "with back navigation",
+			request: &models.FeedSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{
+					Nickname: new("Test"),
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) {
+					prevURL, _ := url.Parse("/custom/back")
+					return prevURL, true
+				},
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.Equal(t, doc.Find("button[hx-get^='/custom/back']").Length(), 1)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := tc.setupCtx()
+			doc := render(t, ctx, templates.EditFeedSubscription(tc.request, tc.breadcrumbs))
+			tc.tests(t, doc)
 		})
 	}
 }
