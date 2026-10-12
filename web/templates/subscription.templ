@@ -15,6 +15,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"html"
 	"net/http"
 	"slices"
 	"strings"
@@ -737,8 +738,11 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
 						hx-disable="find button[type='submit']"
+						hx-vals={ templ.JSONString(request.Search) }
 						class="group"
 					>
+						// Add hidden inputs for non-editable search parameters.
+						<input type="hidden" name="count" value={ request.Search.GetCount() }/>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
 						if action == "edit" {
 							<input type="hidden" name="subscription_id" value={ string(*request.Search.SubscriptionID) }/>
@@ -793,7 +797,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 								>
 									if request.Search.Text != "" {
-										{ request.Search.Text }
+										{ html.UnescapeString(request.Search.Text) }
 									}
 								</textarea>
 							</label>
@@ -821,7 +825,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Categories != nil {
-												{ *request.Search.Categories }
+												{ html.UnescapeString(*request.Search.Categories) }
 											}
 										</textarea>
 									</label>
@@ -837,7 +841,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Authors != nil {
-												{ *request.Search.Authors }
+												{ html.UnescapeString(*request.Search.Authors) }
 											}
 										</textarea>
 									</label>

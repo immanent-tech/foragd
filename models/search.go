@@ -80,6 +80,13 @@ func NewSearchRequest() *SearchRequest {
 	}
 }
 
+func (r SearchRequest) GetCount() int {
+	if r.Count > 0 {
+		return r.Count
+	}
+	return defaultCount
+}
+
 // GetPagination generates a [Pagination] value from the request.
 func (r SearchRequest) GetPagination() *Pagination {
 	return &Pagination{From: r.From}
@@ -211,6 +218,9 @@ func (r *SearchRequest) Sanitise() error {
 	// Default sort is most relevant.
 	if r.Sort == "" {
 		r.Sort = DefaultSearchSort
+	}
+	if r.Count < 1 {
+		r.Count = defaultCount
 	}
 	return nil
 }
