@@ -8911,6 +8911,17 @@
   .font-transitional {
     font-family: var(--font-transitional);
   }
+  .label {
+    font-size: var(--text-base);
+    line-height: var(--tw-leading, var(--text-base--line-height));
+    --tw-font-weight: var(--font-weight-normal);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-base-content);
+  }
+  .fieldset {
+    font-size: var(--text-base);
+    line-height: var(--tw-leading, var(--text-base--line-height));
+  }
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -9496,6 +9507,10 @@
   .duration-800 {
     --tw-duration: 800ms;
     transition-duration: 800ms;
+  }
+  .duration-1000 {
+    --tw-duration: 1000ms;
+    transition-duration: 1000ms;
   }
   .ease-in-out {
     --tw-ease: var(--ease-in-out);
@@ -10598,9 +10613,6 @@
     .sm\:py-32 {
       padding-block: calc(var(--spacing) * 32);
     }
-    .sm\:pt-1\.5 {
-      padding-top: calc(var(--spacing) * 1.5);
-    }
     .sm\:pt-8 {
       padding-top: calc(var(--spacing) * 8);
     }
@@ -11123,15 +11135,6 @@
   }
   .placeholder-image #mountain {
     fill: var(--color-secondary);
-  }
-  .label {
-    --tw-font-weight: var(--font-weight-normal);
-    font-weight: var(--font-weight-normal);
-    color: var(--color-base-content);
-  }
-  .fieldset {
-    font-size: var(--text-base);
-    line-height: var(--tw-leading, var(--text-base--line-height));
   }
 }
 @layer base {

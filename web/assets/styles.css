@@ -324,15 +324,6 @@
       @apply fill-secondary;
     }
   }
-
-  /* Override some settings for DaisyUI label style. */
-  .label {
-    @apply font-normal text-base-content;
-  }
-
-  .fieldset {
-    @apply text-base;
-  }
 }
 
 /* For formatting article content. */
@@ -481,4 +472,13 @@
 
 @utility popover-transitions {
   @apply data-leave:transition data-leave:transition-discrete data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0;
+}
+
+/* Override some settings for DaisyUI label style. */
+@utility label {
+  @apply text-base font-normal text-base-content;
+}
+
+@utility fieldset {
+  @apply text-base;
 }
