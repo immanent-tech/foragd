@@ -4176,11 +4176,6 @@
   .row-span-3 {
     grid-row: span 3 / span 3;
   }
-  @layer daisyui.l1 {
-    .list-col-wrap {
-      grid-row-start: 2;
-    }
-  }
   .row-start-1 {
     grid-row-start: 1;
   }
@@ -8223,6 +8218,10 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
+  .border-2 {
+    border-style: var(--tw-border-style);
+    border-width: 2px;
+  }
   .border-8 {
     border-style: var(--tw-border-style);
     border-width: 8px;
@@ -8355,6 +8354,12 @@
     border-color: var(--color-primary);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-primary) 20%, transparent);
+    }
+  }
+  .border-primary\/30 {
+    border-color: var(--color-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
     }
   }
   .border-primary\/40 {
@@ -8666,12 +8671,6 @@
   @layer daisyui.l1.l2 {
     .checkbox-sm {
       padding: 0.1875rem;
-      --size: calc(var(--size-selector, 0.25rem) * 5);
-    }
-    .radio-sm {
-      padding: 0.1875rem;
-    }
-    .radio-sm:is([type="radio"]) {
       --size: calc(var(--size-selector, 0.25rem) * 5);
     }
   }
@@ -9724,16 +9723,6 @@
     .aura:has( > .btn,  > .input,  > .select) {
       --aura-radius: var(--radius-field);
     }
-  }
-  @layer daisyui.l1.l2 {
-    .radio-primary {
-      --input-color: var(--color-primary);
-    }
-  }
-  @layer daisyui.l1.l2.l3 {
-    .aura:has( > .btn,  > .input,  > .select) {
-      --aura-radius: var(--radius-field);
-    }
     .aura:has( > .checkbox,  > .toggle,  > .badge) {
       --aura-radius: var(--radius-selector);
     }
@@ -9763,6 +9752,12 @@
     .group-hover\:inline:is(:where(.group):hover *) {
       display: inline;
     }
+    .group-hover\:scale-110:is(:where(.group):hover *) {
+      --tw-scale-x: 110%;
+      --tw-scale-y: 110%;
+      --tw-scale-z: 110%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
     .group-hover\:scale-\[1\.04\]:is(:where(.group):hover *) {
       scale: 1.04;
     }
@@ -9778,6 +9773,12 @@
     .group-hover\:underline:is(:where(.group):hover *) {
       text-decoration-line: underline;
     }
+  }
+  .group-active\:scale-95:is(:where(.group):active *) {
+    --tw-scale-x: 95%;
+    --tw-scale-y: 95%;
+    --tw-scale-z: 95%;
+    scale: var(--tw-scale-x) var(--tw-scale-y);
   }
   .group-active\:scale-\[0\.9\]:is(:where(.group):active *) {
     scale: 0.9;
@@ -9889,6 +9890,12 @@
     outline-color: var(--color-primary);
   }
   @media (hover: hover) {
+    .hover\:scale-110:hover {
+      --tw-scale-x: 110%;
+      --tw-scale-y: 110%;
+      --tw-scale-z: 110%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
     .hover\:animate-bounce:hover {
       animation: var(--animate-bounce);
     }
@@ -9926,6 +9933,9 @@
         border-color: color-mix(in oklab, var(--color-secondary) 50%, transparent);
       }
     }
+    .hover\:bg-base-100:hover {
+      background-color: var(--color-base-100);
+    }
     .hover\:bg-neutral\/60:hover {
       background-color: var(--color-neutral);
     }
@@ -9939,6 +9949,9 @@
     }
     .hover\:bg-secondary:hover {
       background-color: var(--color-secondary);
+    }
+    .hover\:text-base-content:hover {
+      color: var(--color-base-content);
     }
     .hover\:text-neutral-content:hover {
       color: var(--color-neutral-content);
@@ -10026,6 +10039,12 @@
   .focus\:outline-none:focus {
     --tw-outline-style: none;
     outline-style: none;
+  }
+  .active\:scale-95:active {
+    --tw-scale-x: 95%;
+    --tw-scale-y: 95%;
+    --tw-scale-z: 95%;
+    scale: var(--tw-scale-x) var(--tw-scale-y);
   }
   .active\:scale-\[0\.98\]:active {
     scale: 0.98;

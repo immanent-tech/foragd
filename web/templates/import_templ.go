@@ -106,15 +106,15 @@ func ImportSubscriptions() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<p class=\"mt-4 text-sm/6\">You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p><fieldset class=\"fieldset min-w-0 py-8\"><form id=\"import-subscriptions-form\" hx-encoding=\"multipart/form-data\" hx-post=\"/import\" hx-target=\"#import-results\" hx-indicator=\"#import-button\" hx-push-url=\"false\"><div id=\"drop-zone\" class=\"group mt-2 flex max-w-full justify-center rounded-lg border border-dashed border-neutral/20 px-6 py-10 sm:max-w-lg\" _=\"\n                            on dragover\n                              halt the event\n                              add .bg-base-300 .border-accent to me\n                            end\n\n                            on dragleave\n                              remove .bg-base-300 .border-accent from me\n                            end\n\n                            on drop\n                              halt the event\n                              remove .bg-base-300 .border-accent from me\n                              set files to event.dataTransfer.files\n                              set #opml-upload's files to files\n                              set #file-name's textContent to files[0].name\n                            end\n                            \"><div class=\"text-center\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<p class=\"text-wrap:balance mt-4 text-sm/6 leading-relaxed\">You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p><fieldset class=\"fieldset min-w-0 py-8\"><form id=\"import-subscriptions-form\" hx-encoding=\"multipart/form-data\" hx-post=\"/import\" hx-target=\"#import-results\" hx-indicator=\"#import-button\" hx-push-url=\"false\"><div id=\"drop-zone\" class=\"group mt-2 flex max-w-full justify-center rounded-2xl border-2 border-dashed border-primary/30 px-6 py-10 hover:shadow-md sm:max-w-lg\" _=\"\n                            on dragover\n                              halt the event\n                              add .bg-base-300 .border-accent to me\n                            end\n\n                            on dragleave\n                              remove .bg-base-300 .border-accent from me\n                            end\n\n                            on drop\n                              halt the event\n                              remove .bg-base-300 .border-accent from me\n                              set files to event.dataTransfer.files\n                              set #opml-upload's files to files\n                              set #file-name's textContent to files[0].name\n                            end\n                            \"><div class=\"text-center\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = tablerfilled.FileRss(templ.Attributes{"class": "mx-auto size-12 group-hover:fill-primary group-active:fill-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = tablerfilled.FileRss(templ.Attributes{"class": "mx-auto size-12 group-hover:fill-primary group-active:fill-primary group-hover:scale-110 group-active:scale-95 transition-transform duration-150"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"opml-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn btn-outline btn-neutral\">Upload a file</span> <input id=\"opml-upload\" type=\"file\" name=\"source\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">.opml up to 10MB</p></div></div><div class=\"mt-4 flex w-full justify-end\"><button id=\"import-button\" type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Import</span></span></button></div></form></fieldset><div id=\"import-results\"></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span id=\"file-name\" class=\"block max-w-full truncate\"></span><div class=\"mt-4 flex flex-wrap items-center justify-center text-sm/6\"><label for=\"opml-upload\" class=\"relative cursor-pointer rounded-md bg-transparent font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary hover:text-primary\"><span class=\"btn transition-transform btn-neutral hover:bg-base-100 hover:text-base-content active:scale-95\">Upload a file</span> <input id=\"opml-upload\" type=\"file\" name=\"source\" class=\"sr-only\" _=\"on change set #file-name's textContent to my files[0].name\"></label><p class=\"pl-1\">or drag and drop</p></div><p class=\"text-xs/5\">.opml up to 10MB</p></div></div><div class=\"relative mt-4 flex w-full justify-end\"><button id=\"import-button\" type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center transition-opacity duration-150 group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center transition-opacity duration-150 group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Import</span></span></button></div></form></fieldset><div id=\"import-results\"></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -370,7 +370,7 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"stats stats-vertical shadow sm:stats-horizontal\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"stats- stats stats-vertical gap-4 shadow-lg sm:stats-horizontal\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -379,18 +379,18 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-10 text-success", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.CircleCheck(templ.Attributes{"class": "stroke-2 size-10 text-success hover:scale-110", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"stat-title\">Successful</div><div class=\"stat-value text-success\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"stat-title\">Successful</div><div class=\"stat-value text-success tabular-nums\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var16 string
 							templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(successfulResults)))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 177, Col: 85}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 177, Col: 98}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 							if templ_7745c5c3_Err != nil {
@@ -406,18 +406,18 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-10 text-error", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.ExclamationCircle(templ.Attributes{"class": "stroke-2 size-10 text-error hover:scale-110", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div><div class=\"stat-title\">Failed</div><div class=\"stat-value text-error\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div><div class=\"stat-title\">Failed</div><div class=\"stat-value text-error tabular-nums\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var17 string
 							templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(failedResults)))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 188, Col: 79}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 188, Col: 92}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 							if templ_7745c5c3_Err != nil {
@@ -433,18 +433,18 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-10 text-warning", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = tableroutline.AlertTriangle(templ.Attributes{"class": "stroke-2 size-10 text-warning hover:scale-110", "aria-hidden": "true"}).Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div><div class=\"stat-title\">Warnings</div><div class=\"stat-value text-warning\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div><div class=\"stat-title\">Warnings</div><div class=\"stat-value text-warning tabular-nums\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var18 string
 							templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(warningResults)))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 199, Col: 82}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 199, Col: 95}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 							if templ_7745c5c3_Err != nil {
@@ -492,7 +492,7 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 						}
 						for result := range slices.Values(successfulResults) {
 							if subscription := allSubscriptions.GetByID(*result.SubscriptionID); subscription != nil {
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<li class=\"list-row items-center\"><div class=\"flex items-center gap-4\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -500,7 +500,7 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"space-y-2\"><p>Subscription Created:</p><p>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div><p class=\"text-base font-semibold\">Subscription Created:</p><p>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -528,7 +528,7 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							return templ_7745c5c3_Err
 						}
 						for result := range slices.Values(failedResults) {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<li class=\"list-row items-center\"><div class=\"flex items-center gap-4\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -536,25 +536,25 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"space-y-2\"><div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div><p class=\"text-base leading-relaxed font-semibold text-pretty\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var22 string
 							templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(result.Error.Summary)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 244, Col: 40}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 244, Col: 98}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</p>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							if result.Error.HasDetails() {
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<p class=\"list-col-wrap text-xs\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<p class=\"text-sm leading-relaxed text-pretty\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -582,7 +582,7 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							return templ_7745c5c3_Err
 						}
 						for result := range slices.Values(warningResults) {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<li class=\"list-row items-center\"><div class=\"flex items-center gap-4\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -590,25 +590,25 @@ func ImportStatus(status *models.ImportStatus, results []*models.ImportResult, m
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"space-y-2\"><div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div><p class=\"text-base leading-relaxed font-semibold text-pretty\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var24 string
 							templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(result.Error.Summary)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 261, Col: 40}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/import.templ`, Line: 261, Col: 98}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</p>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							if result.Error.HasDetails() {
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<p class=\"list-col-wrap text-xs\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<p class=\"text-sm leading-relaxed text-pretty\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
