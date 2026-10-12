@@ -59,11 +59,6 @@
   "harper-ls": {
     "excludePatterns": ["**/*.go", "**/*_templ.go"]
   },
-  "js/ts.updateImportsOnFileMove.enabled": "always",
-  "js/ts.preferences.importModuleSpecifier": "relative",
-  "js/ts.suggest.autoImports": true,
-  "js/ts.suggest.completeFunctionCalls": true,
-  "js/ts.format.semicolons": "insert",
   "psi-header.config": {
     "forceToTop": true,
     "creation": "new",

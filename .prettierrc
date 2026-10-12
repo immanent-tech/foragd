@@ -4,15 +4,9 @@
   "useTabs": false,
   "semi": false,
   "singleQuote": true,
-  "quoteProps": "as-needed",
   "trailingComma": "es5",
   "bracketSameLine": true,
   "htmlWhitespaceSensitivity": "css",
-  "embeddedLanguageFormatting": "auto",
-  "plugins": [
-    "prettier-plugin-organize-imports",
-    "@prettier/plugin-xml",
-    "prettier-plugin-tailwindcss"
-  ],
+  "plugins": ["@prettier/plugin-xml", "prettier-plugin-tailwindcss"],
   "tailwindStylesheet": "./web/assets/styles.css"
 }
