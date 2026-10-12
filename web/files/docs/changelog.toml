@@ -1,8 +1,28 @@
 [[releases]]
+version = "v0.247"
+date = "Oct 13, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+When adding/editing subscriptions, you can now choose categories from a list of standard categories, as well as adding your own custom ones.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Images should load faster and there should be less occurences of the image not loading and a placeholder being substituted.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+On subscription cards, group, search and email subscriptions should be marked with their own badges.
+"""
+
+[[releases]]
 version = "v0.242"
 date = "Oct 6, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "new"
 description = """
