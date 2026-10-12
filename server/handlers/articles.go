@@ -325,6 +325,19 @@ func (m *Manager) HandleViewArticle(itemSvc ItemService) http.HandlerFunc {
 		}
 		article := articles[0]
 
+		// Get the "show_full_content" value and override the article value.
+		request, err := parseForm[*models.ViewArticleRequest](req)
+		if err != nil {
+			m.HandleInternalError(
+				http.StatusUnprocessableEntity,
+				fmt.Errorf("parse request params: %w", err),
+			).ServeHTTP(res, req)
+			return
+		}
+		if request != nil && request.ShowFullContent != nil {
+			article.ShowFullContent = *request.ShowFullContent
+		}
+
 		processRemoteContent(req.Context(), req, itemSvc, article, res)
 
 		RenderInternalPage(&ArticleContent{
@@ -367,7 +380,13 @@ func fetchArticle(ctx context.Context, svc ItemService, id string) (models.Artic
 
 // processRemoteContent handles fetching remote content if ShowFullContent is requested,
 // and serves the remote content failure response.
-func processRemoteContent(reqCtx context.Context, req *http.Request, svc ItemService, article *models.Article, res http.ResponseWriter) {
+func processRemoteContent(
+	reqCtx context.Context,
+	req *http.Request,
+	svc ItemService,
+	article *models.Article,
+	res http.ResponseWriter,
+) {
 	// Skip if no remote content needed
 	if !article.ShowFullContent {
 		return
