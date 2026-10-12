@@ -141,10 +141,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 	<!DOCTYPE html>
 	<html
 		lang="en"
-		_="on load
-  			 if localStorage.fontSize
-  			   call document.documentElement.style.setProperty('--font-scale', localStorage.fontSize)
-  			 end
+		_="
   		   on mutation of @data-theme
 		    set theme to @data-theme
   			then send themeChanged(theme:theme)
