@@ -691,7 +691,7 @@ components:
               description: is the domain name for the feed link
               type: string
               x-oapi-codegen-extra-tags:
-                validate: required,fqdn
+                validate: omitempty,fqdn
             source_urls:
               description: >
                 is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the

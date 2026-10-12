@@ -612,7 +612,7 @@ type Feed struct {
 	Description *string `json:"description,omitempty"`
 
 	// Domain is the domain name for the feed link
-	Domain string `json:"domain" validate:"required,fqdn"`
+	Domain string `json:"domain" validate:"omitempty,fqdn"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
