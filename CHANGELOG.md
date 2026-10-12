@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.246.2](https://github.com/immanent-tech/foragd/compare/v0.246.1...v0.246.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* **handlers/articles:** 🔧 fix broken fetch full article content ([c02e9d4](https://github.com/immanent-tech/foragd/commit/c02e9d4876b1faf118968b09f1bdb5669aa09867))
+
 ## [0.246.1](https://github.com/immanent-tech/foragd/compare/v0.246.0...v0.246.1) (2026-10-12)
 
 
