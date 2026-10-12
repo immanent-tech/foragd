@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package templates
 
@@ -377,12 +379,11 @@ templ FeaturesPageCollect(baseURL *url.URL) {
 		// Feature: Email Newsletters.
 		@featurePanel("explore") {
 			<div class="order-1 md:order-2">
-				<img
-					src="/images/screenshots/screenshot-explore.webp"
-					alt="Screenshot of Foragd showing the explore page with a category selected and results shown"
-					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-					loading="lazy"
-				/>
+				@screenshot("screenshot-discover",
+					"/images/screenshots/screenshot-discover.webp",
+					"View of the discover page with results shown for some categories selected and a search term entered",
+					"You can browse existing feeds by category, and/or by a text or phrase search.",
+				)
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Explore existing feeds")
@@ -437,12 +438,11 @@ templ FeaturesPageCollect(baseURL *url.URL) {
 				</div>
 			</div>
 			<div class="order-2 md:order-1">
-				<img
-					src="/images/screenshots/screenshot-feature-import.webp"
-					alt="OPML import results showing subscriptions migrated from another feed reader into Foragd"
-					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-					loading="lazy"
-				/>
+				@screenshot("screenshot-import",
+					"/images/screenshots/screenshot-feature-import.webp",
+					"Screenshot of OPML import results showing subscriptions migrated from another feed reader into Foragd",
+					"Import your subscriptions from any other feed reader. The import can detect duplicates and broken feed links.",
+				)
 			</div>
 		}
 		// Feature: Cloud sync.
@@ -455,36 +455,15 @@ templ FeaturesPageCollect(baseURL *url.URL) {
 				<ul class="mt-5 list-disc space-y-3 pl-3 font-serif text-pretty text-base-content/70 marker:text-primary">
 					<li>Subscribe and manage your subscriptions centrally.</li>
 					<li>Where you are up to and what you've saved are kept in sync no matter which device you use.</li>
+					<li>Your theme and font preferences follow you across devices.</li>
 				</ul>
 			</div>
 			<div class="order-1 md:order-2">
-				<div>
-					<button command="show-modal" commandfor="show-screenshot-cloud-sync" type="button" class="cursor-pointer">
-						@components.BrowserWindow("https://foragd.app") {
-							<img
-								src="/images/screenshots/screenshot-controls-desktop.webp"
-								alt="View of a subscription showing read state and action buttons"
-								class="block w-full p-2"
-								loading="lazy"
-							/>
-						}
-					</button>
-					<el-dialog>
-						<dialog id="show-screenshot-cloud-sync" class="mx-auto my-auto max-w-280">
-							<el-dialog-backdrop></el-dialog-backdrop>
-							<el-dialog-panel>
-								@components.BrowserWindow("https://foragd.app") {
-									<img
-										src="/images/screenshots/screenshot-controls-desktop.webp"
-										alt="View of a subscription showing read state and action buttons"
-										class="block w-full p-2"
-										loading="lazy"
-									/>
-								}
-							</el-dialog-panel>
-						</dialog>
-					</el-dialog>
-				</div>
+				@screenshot("screenshot-article-states",
+					"/images/screenshots/screenshot-article-states.webp",
+					"View of a subscription showing articles with different states (unread/read/favorited)",
+					"What you've read, not read and favorited is kept in sync across devices.",
+				)
 			</div>
 		}
 		// Navigation to other feature group pages.
@@ -940,12 +919,11 @@ templ FeaturesPageConsume(baseURL *url.URL) {
 		// Feature: Favorites.
 		@featurePanel("favorites") {
 			<div class="order-2 md:order-1">
-				<img
-					src="/images/screenshots/screenshot-feature-favorites.webp"
-					alt="Favorites page in Foragd showing saved subscriptions and articles"
-					class="box h-auto w-full overflow-hidden rounded border border-base-300 shadow-xl"
-					loading="lazy"
-				/>
+				@screenshot("screenshot-favorites",
+					"/images/screenshots/screenshot-feature-favorites.webp",
+					"View of the subscription favorites page",
+					"Favorite subscriptions and articles. When searching, results from favorites have a slight priority in results. Favorite article content is kept forever, even if it is removed from the source feed.",
+				)
 			</div>
 			<div class="order-1 md:order-2">
 				@featureTitle("Save Favorite Subscriptions and Articles")
@@ -1092,6 +1070,7 @@ templ themePreviewFilter(value string) {
 	/>
 }
 
+// demoArticleCard is a mockup of an article card
 templ demoArticleCard() {
 	@partials.Card(element.WithAttribute("id", "theme-previewer-card"),
 		element.WithAttribute("data-theme", "greenhouse"),
@@ -1209,4 +1188,41 @@ templ demoArticleCard() {
 			</div>
 		}
 	}
+}
+
+// screenshot renders a screenshot of the app in a mock browser. Clicking the screenshot will open a larger version,
+// also in a mock browser interface.
+templ screenshot(id, imgURL, altText, caption string) {
+	<div>
+		<button command="show-modal" commandfor={ id } type="button" class="cursor-pointer">
+			@components.BrowserWindow("https://foragd.app") {
+				<img
+					src={ imgURL }
+					alt={ altText }
+					class="block w-full p-2"
+					loading="lazy"
+				/>
+			}
+		</button>
+		<el-dialog>
+			<dialog id={ id } class="mx-auto my-auto max-w-280">
+				<el-dialog-backdrop></el-dialog-backdrop>
+				<el-dialog-panel>
+					<figure>
+						@components.BrowserWindow("https://foragd.app") {
+							<img
+								src={ imgURL }
+								alt={ altText }
+								class="block w-full p-2"
+								loading="lazy"
+							/>
+						}
+						if caption != "" {
+							<figcaption class="mt-2 text-center text-neutral">{ caption }</figcaption>
+						}
+					</figure>
+				</el-dialog-panel>
+			</dialog>
+		</el-dialog>
+	</div>
 }
