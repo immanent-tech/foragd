@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.246.0](https://github.com/immanent-tech/foragd/compare/v0.245.0...v0.246.0) (2026-10-12)
+
+
+### Features
+
+* **templates:** ➕ add elselect and eloption templates ([f0b59d4](https://github.com/immanent-tech/foragd/commit/f0b59d4bd18530ff97f5690c7985ebb66dd9ab9b))
+* **templates:** ➕ add menu item template ([3764ac4](https://github.com/immanent-tech/foragd/commit/3764ac46b2487df6e9b72b2d2a4fd29b752508f0))
+
+
+### Bug Fixes
+
+* **templates/favorites:** 🔧 use masonrygrid on favorites page ([f2aaf69](https://github.com/immanent-tech/foragd/commit/f2aaf69c35baa56439da63cde6bb50f35798d305))
+* **templates/search:** 🔧 fix showing search suggestions when suggestions are available ([1213212](https://github.com/immanent-tech/foragd/commit/12132122b6f8dc1bf108bea734f0423912ded1fb))
+* **templates/subscription:** 🔧 fix editing search subscription ([2e94eae](https://github.com/immanent-tech/foragd/commit/2e94eaebc6977130f8fecd0c280e138768b7a155))
+* **templates/subscriptions:** 🔧 fix display of adding new search or group subscription ([6c8bafd](https://github.com/immanent-tech/foragd/commit/6c8bafd74752cef12b9d24d1a9eb7da6b00599b5))
+
 ## [0.245.0](https://github.com/immanent-tech/foragd/compare/v0.244.5...v0.245.0) (2026-10-11)
 
 
