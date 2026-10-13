@@ -135,11 +135,15 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Categories:   source.GetCategories(),
 		FeedTitle:    feed.GetTitle(),
 	}
+	if commentsURL := source.GetCommentRSS(); commentsURL != "" {
+		item.CommentsURL = &commentsURL
+	}
 	if geo := source.GetGeoInfo(); geo != nil && !geo.IsZero() {
 		item.Geo = geo
 	}
 	if content := source.GetContent(); content != nil {
-		item.Content = new(validation.SanitizeString(*content))
+		safeContent := validation.SanitizeString(*content)
+		item.Content = &safeContent
 	}
 	if pubDate := source.GetPublishedDate(); pubDate != nil {
 		item.Published = pubDate.UTC()
@@ -353,4 +357,11 @@ func (i *Item) WasUpdated() bool {
 // published after the given time and before now (to ignore potentially incorrect dates in the future).
 func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
+}
+
+func (i *Item) GetCommentsURL() string {
+	if i.CommentsURL != nil {
+		return *i.CommentsURL
+	}
+	return ""
 }

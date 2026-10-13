@@ -148,6 +148,8 @@ var (
 						templates.WithObjectMapping("geo",
 							templates.WithGeoPointMapping("point"),
 						),
+						templates.WithKeywordMapping("comments_url"),
+						templates.WithKeywordMapping("comments_endpoint"),
 					),
 				),
 				templates.WithTemplateSettings(

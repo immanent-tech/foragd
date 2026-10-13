@@ -378,6 +378,12 @@ type ArticleArchive struct {
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
+	// CommentsEndpoint is an endpoint that accepts a POST request for commenting on an item.
+	CommentsEndpoint *string `json:"comments_endpoint,omitempty" validate:"omitempty,url"`
+
+	// CommentsURL is a URL to the comments submitted against an item.
+	CommentsURL *string `json:"comments_url,omitempty" validate:"omitempty,url"`
+
 	// Content contains the item content.
 	Content *string `json:"content,omitempty"`
 
@@ -402,7 +408,7 @@ type ArticleArchive struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Geo contains geographic information related to an item.
+	// Geo contains geo-related information for the item.
 	Geo *ItemGeo `json:"geo,omitempty,omitzero"`
 
 	// Image represents a remote image.
@@ -792,6 +798,12 @@ type Item struct {
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
+	// CommentsEndpoint is an endpoint that accepts a POST request for commenting on an item.
+	CommentsEndpoint *string `json:"comments_endpoint,omitempty" validate:"omitempty,url"`
+
+	// CommentsURL is a URL to the comments submitted against an item.
+	CommentsURL *string `json:"comments_url,omitempty" validate:"omitempty,url"`
+
 	// Content contains the item content.
 	Content *string `json:"content,omitempty"`
 
@@ -816,7 +828,7 @@ type Item struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Geo contains geographic information related to an item.
+	// Geo contains geo-related information for the item.
 	Geo *ItemGeo `json:"geo,omitempty,omitzero"`
 
 	// Image represents a remote image.

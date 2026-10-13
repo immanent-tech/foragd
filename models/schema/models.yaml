@@ -869,9 +869,21 @@ components:
                 contains the item content.
               type: string
             geo:
+              description: contains geo-related information for the item.
               $ref: "#/components/schemas/ItemGeo"
               x-oapi-codegen-extra-tags:
                 json: "geo,omitempty,omitzero"
+            comments_url:
+              description: is a URL to the comments submitted against an item.
+              type: string
+              x-go-name: CommentsURL
+              x-oapi-codegen-extra-tags:
+                validate: "omitempty,url"
+            comments_endpoint:
+              description: is an endpoint that accepts a POST request for commenting on an item.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: "omitempty,url"
     ItemGeo:
       description: contains geographic information related to an item.
       type: object
