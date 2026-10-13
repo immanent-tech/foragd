@@ -125,7 +125,7 @@ templ UserHome(data *HomeData) {
 									<button
 										class="btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm"
 										aria-label="Add a new feed"
-										hx-get="/subscription/add"
+										hx-get="/subscriptions/add"
 										hx-target={ ContentID.Target() }
 										hx-push-url="true"
 										hx-indicator="this"
@@ -204,7 +204,7 @@ templ NewUserHome() {
 					<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
 						<a
 							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
-							hx-get="/subscription/add"
+							hx-get="/subscriptions/add"
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-push-url="true"

@@ -756,7 +756,7 @@ type = "major"
 [[releases.changes]]
 type = "new"
 description = """
-You can now add Google News RSS feeds easily. On the <a class="link" href="/subscription/add">Add Subscription</a> page, switch the source to 'Google News' and enter a search query to generate a feed for that query.
+You can now add Google News RSS feeds easily. On the <a class="link" href="/subscriptions/add">Add Subscription</a> page, switch the source to 'Google News' and enter a search query to generate a feed for that query.
 """
 
 [[releases]]

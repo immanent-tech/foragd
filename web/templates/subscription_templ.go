@@ -968,7 +968,7 @@ func listSubscriptionsButtons(response *models.ListSubscriptionsResponse) templ.
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</button> <button hx-get=\"/subscription/add\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</button> <button hx-get=\"/subscriptions/add\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1018,7 +1018,7 @@ func listSubscriptionsActions(response *models.ListSubscriptionsResponse) templ.
 			templ_7745c5c3_Var42 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<li class=\"menu-title\">Actions</li><ul><li><a hx-get=\"/subscription/add\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<li class=\"menu-title\">Actions</li><ul><li><a hx-get=\"/subscriptions/add\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1179,7 +1179,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" hx-post=\"/subscription/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup changed delay:500ms, search[this.value != ''], load[this.value != '']\" hx-sync=\"this:replace\" hx-indicator=\"#suggestions-loading\" hx-include=\"[name='suggestion_source']\" _=\"\n\t\t\t\t\t\t\t\t\ton htmx:before:request set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\t\t\t\"></label> <label class=\"select join-item w-full select-primary sm:w-1/3\"><span class=\"label\">Source:</span> <select id=\"suggestion-source\" name=\"suggestion_source\" class=\"shrink\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\" selected>Web</option> <option value=\"youtube\">Youtube</option> <option value=\"gnews\">Google News</option></select></label></div><ul class=\"mt-4 block list-inside list-disc text-neutral\"><div _=\"on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></div><div _=\"on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me\" hidden><li>Enter <span class=\"italic\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, " autocomplete=\"off\" placeholder=\"Text, phrase or URL...\" hx-post=\"/subscriptions/add/suggestions\" hx-target=\"#subscription-suggestions\" hx-trigger=\"keyup changed delay:500ms, search[this.value != ''], load[this.value != '']\" hx-sync=\"this:replace\" hx-indicator=\"#suggestions-loading\" hx-include=\"[name='suggestion_source']\" _=\"\n\t\t\t\t\t\t\t\t\ton htmx:before:request set #subscription-suggestions.innerHTML to ''\n\t\t\t\t\t\t\t\t\ton keydown[key=='Enter'] halt the event\n\t\t\t\t\t\t\t\t\t\"></label> <label class=\"select join-item w-full select-primary sm:w-1/3\"><span class=\"label\">Source:</span> <select id=\"suggestion-source\" name=\"suggestion_source\" class=\"shrink\" _=\"\n\t\t\t\t\t\t\t\t\ton change if my.value is 'web' set #add-subscription-search.placeholder to 'Text, phrase or URL...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'youtube' set #add-subscription-search.placeholder to 'Channel name, text or phrase...' end\n\t\t\t\t\t\t\t\t\ton change if my.value is 'gnews' set #add-subscription-search.placeholder to 'Search keywords...' end\n\t\t\t\t\t\t\t\t\t\"><option value=\"web\" selected>Web</option> <option value=\"youtube\">Youtube</option> <option value=\"gnews\">Google News</option></select></label></div><ul class=\"mt-4 block list-inside list-disc text-neutral\"><div _=\"on change from #suggestion-source if its value is 'web' remove @hidden from me else add @hidden to me\"><li>Enter text or a phrase to search feed titles, descriptions and categories in the Foragd database.</li><li>Enter a URL to fetch and parse the website for a suitable feed.</li></div><div _=\"on change from #suggestion-source if its value is 'youtube' remove @hidden from me else add @hidden to me\" hidden><li>Enter <span class=\"italic\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1226,7 +1226,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</div></div></div><div id=\"subscription-suggestions\" class=\"mt-8 overflow-x-auto\"></div></fieldset><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscription/add/group\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</div></div></div><div id=\"subscription-suggestions\" class=\"mt-8 overflow-x-auto\"></div></fieldset><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscriptions/add/group\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1247,7 +1247,7 @@ func AddFeedSubscription(request *models.FeedSubscriptionRequest) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<div class=\"card-title text-secondary\">Add a Group Subscription</div></div><p>Combine muliple feed subscriptions into one. Filter across all articles.</p></div><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscription/add/search\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<div class=\"card-title text-secondary\">Add a Group Subscription</div></div><p>Combine muliple feed subscriptions into one. Filter across all articles.</p></div><div class=\"card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscriptions/add/search\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1843,7 +1843,7 @@ func manageSearchSubscription(action string, request *models.SearchSubscriptionR
 						return templ_7745c5c3_Err
 					}
 					if action == "add" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, " hx-post=\"/subscription/add/search\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, " hx-post=\"/subscriptions/add/search\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2291,7 +2291,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 						return templ_7745c5c3_Err
 					}
 					if action == "add" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, " hx-post=\"/subscription/add/group\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, " hx-post=\"/subscriptions/add/group\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2424,7 +2424,7 @@ func manageGroupSubscription(action string, request *models.GroupSubscriptionReq
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</ul></el-options></el-autocomplete> <button hx-post=\"/subscription/group/add\" hx-target=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-include=\"#suggestions,#subscriptions\" hx-swap=\"beforeend\" hx-trigger=\"click, subscriptionSuggestionSelected from:body\" type=\"button\" class=\"btn join-item btn-secondary\" _=\"on htmx:after:request set #subscription-suggestion.value to ''\" aria-label=\"Add subscription to group\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</ul></el-options></el-autocomplete> <button hx-post=\"/subscriptions/group/add\" hx-target=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-include=\"#suggestions,#subscriptions\" hx-swap=\"beforeend\" hx-trigger=\"click, subscriptionSuggestionSelected from:body\" type=\"button\" class=\"btn join-item btn-secondary\" _=\"on htmx:after:request set #subscription-suggestion.value to ''\" aria-label=\"Add subscription to group\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

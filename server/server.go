@@ -386,10 +386,9 @@ func Start() error {
 			r.Use(middlewares.CanonicalizeListFilters(sessionManager))
 			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
 			r.Get("/", handlerMgr.HandleListSubscriptions(subscriptionSvc))
-			r.With(htmx.RequireHTMX).Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
-			// r.Get("/", handlers.HandleListSubscriptions()) // ?sort=&status=&category=&page=&per_page=
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
+				r.Get("/categories", handlerMgr.ListCategories(subscriptionSvc, itemSvc))
 				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(itemSvc))
 				r.Post("/paginate", handlerMgr.HandleListSubscriptions(subscriptionSvc))
 				r.Post("/read", handlerMgr.HandleBulkMarkSubscriptions(subscriptionSvc, models.MarkRead))
@@ -398,10 +397,25 @@ func Start() error {
 					handlerMgr.HandleBulkMarkSubscriptions(subscriptionSvc, models.MarkUnread),
 				)
 				r.Post("/remove", handlerMgr.HandleBulkRemoveSubscriptions(subscriptionSvc))
-				r.Route("/add", func(r chi.Router) {
+			})
+			r.Route("/add", func(r chi.Router) {
+				r.Get("/", handlerMgr.HandleAddSubscription())
+				r.Group(func(r chi.Router) {
+					r.Use(htmx.RequireHTMX)
+					r.Post("/suggestions", handlerMgr.HandleSuggestFeeds(feedSvc))
+					r.Post("/feed", handlerMgr.HandleAddNewFeedSubscription(subscriptionSvc, userSvc, feedSvc))
+					// Add search subscription.
+					r.Get("/search", handlerMgr.HandleAddSearchSubscription(subscriptionSvc, userSvc))
+					r.Post("/search", handlerMgr.HandleAddSearchSubscription(subscriptionSvc, userSvc))
+					// Add group subscription.
+					r.Get("/group", handlerMgr.HandleAddGroupSubscription(subscriptionSvc, userSvc))
+					r.Post("/group", handlerMgr.HandleAddGroupSubscription(subscriptionSvc, userSvc))
 					r.Post("/feedset", handlerMgr.HandleAddFeedset(feedSvc, subscriptionSvc))
 					r.Post("/category", handlerMgr.HandleSubscriptionCategories())
 				})
+			})
+			r.Route("/group", func(r chi.Router) {
+				r.With(htmx.RequireHTMX).Post("/add", handlerMgr.HandleAddSubscriptionToGroup())
 			})
 			r.Route("/{subscriptionID}", func(r chi.Router) {
 				r.Use(handlerMgr.SubscriptionCtx(subscriptionSvc))
@@ -433,24 +447,7 @@ func Start() error {
 		})
 		r.Route("/subscription", func(r chi.Router) {
 			r.Use(handlerMgr.AllSubscriptionsCtx(subscriptionSvc))
-			r.Route("/add", func(r chi.Router) {
-				r.Get("/", handlerMgr.HandleAddSubscription())
-				r.With(htmx.RequireHTMX).Post("/suggestions", handlerMgr.HandleSuggestFeeds(feedSvc))
-				r.With(htmx.RequireHTMX).
-					Post("/feed", handlerMgr.HandleAddNewFeedSubscription(subscriptionSvc, userSvc, feedSvc))
-				// Add search subscription.
-				r.Get("/search", handlerMgr.HandleAddSearchSubscription(subscriptionSvc, userSvc))
-				r.With(htmx.RequireHTMX).
-					Post("/search", handlerMgr.HandleAddSearchSubscription(subscriptionSvc, userSvc))
-				// Add group subscription.
-				r.Get("/group", handlerMgr.HandleAddGroupSubscription(subscriptionSvc, userSvc))
-				r.With(htmx.RequireHTMX).
-					Post("/group", handlerMgr.HandleAddGroupSubscription(subscriptionSvc, userSvc))
-			})
 			// Group subscription management.
-			r.Route("/group", func(r chi.Router) {
-				r.With(htmx.RequireHTMX).Post("/add", handlerMgr.HandleAddSubscriptionToGroup())
-			})
 			// Search subscription management.
 			r.Route("/search", func(r chi.Router) {
 				r.With(htmx.RequireHTMX).
@@ -563,6 +560,7 @@ func Start() error {
 		r.Get("/user/import", handlers.RedirectTo("/import", http.StatusMovedPermanently))
 		r.Get("/user/export", handlers.RedirectTo("/export", http.StatusMovedPermanently))
 		r.Get("/user/settings", handlers.RedirectTo("/settings", http.StatusMovedPermanently))
+		r.Get("/subscription/add", handlers.RedirectTo("/subscriptions/add", http.StatusMovedPermanently))
 	})
 
 	// Requests must NOT inherit the signal context, otherwise SIGTERM cancels every in-flight request

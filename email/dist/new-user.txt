@@ -19,13 +19,13 @@ Dive right in Got a favorite site in mind? Coming from another feed reader? Get 
 
 Add a Subscription
 
-https://foragd.app/subscription/add?utm_medium=email&utm_source=notification
+https://foragd.app/subscriptions/add?utm_medium=email&utm_source=notification
 
 ‍
 
 Import from OPML
 
-https://foragd.app/user/import?utm_medium=email&utm_source=notification
+https://foragd.app/import?utm_medium=email&utm_source=notification
 
 Also, check out the
 help documentation

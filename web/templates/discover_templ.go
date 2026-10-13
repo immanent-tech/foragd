@@ -632,7 +632,7 @@ func feedSuggestion(feed *models.Feed, items models.Items) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"> <button type=\"submit\" class=\"group btn btn-primary\" hx-post=\"/subscription/add/feed\" hx-swap=\"none\" hx-disable=\"this\" hx-encoding=\"multipart/form-data\" data-suggestionid=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"> <button type=\"submit\" class=\"group btn btn-primary\" hx-post=\"/subscriptions/add/feed\" hx-swap=\"none\" hx-disable=\"this\" hx-encoding=\"multipart/form-data\" data-suggestionid=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

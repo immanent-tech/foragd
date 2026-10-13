@@ -82,15 +82,15 @@
   "protocol_handlers": [
     {
       "protocol": "web+feed",
-      "url": "/subscription/add?url=%s&utm_source=pwa"
+      "url": "/subscriptions/add?url=%s&utm_source=pwa"
     },
     {
       "protocol": "web+rss",
-      "url": "/subscription/add?url=%s&utm_source=pwa"
+      "url": "/subscriptions/add?url=%s&utm_source=pwa"
     }
   ],
   "share_target": {
-    "action": "/subscription/add?utm_source=pwa",
+    "action": "/subscriptions/add?utm_source=pwa",
     "method": "GET",
     "params": {
       "title": "title",

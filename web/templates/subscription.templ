@@ -254,7 +254,7 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		}
 	</button>
 	<button
-		hx-get="/subscription/add"
+		hx-get="/subscriptions/add"
 		hx-target={ ContentID.Target() }
 		hx-swap="innerMorph show:top transition:true"
 		class="btn hidden border-neutral/15 btn-outline btn-sm sm:flex"
@@ -269,7 +269,7 @@ templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
 	<ul>
 		<li>
 			<a
-				hx-get="/subscription/add"
+				hx-get="/subscriptions/add"
 				hx-target={ ContentID.Target() }
 				class="flex items-center gap-1"
 			>
@@ -318,7 +318,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									}
 									autocomplete="off"
 									placeholder="Text, phrase or URL..."
-									hx-post="/subscription/add/suggestions"
+									hx-post="/subscriptions/add/suggestions"
 									hx-target="#subscription-suggestions"
 									hx-trigger="keyup changed delay:500ms, search[this.value != ''], load[this.value != '']"
 									hx-sync="this:replace"
@@ -393,7 +393,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<div
 							class="card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
-							hx-get="/subscription/add/group"
+							hx-get="/subscriptions/add/group"
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
 						>
@@ -405,7 +405,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 						</div>
 						<div
 							class="card-body cursor-pointer touch-manipulation rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
-							hx-get="/subscription/add/search"
+							hx-get="/subscriptions/add/search"
 							hx-target={ ContentID.Target() }
 							hx-include="#search-filters"
 							hx-push-url="true"
@@ -595,7 +595,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 					<form
 						id="add-subscription"
 						if action == "add" {
-							hx-post="/subscription/add/search"
+							hx-post="/subscriptions/add/search"
 						} else {
 							hx-post={ "/subscriptions/" + string(*request.Search.SubscriptionID) + "/edit" }
 						}
@@ -765,7 +765,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 					<form
 						id="add-subscription"
 						if action == "add" {
-							hx-post="/subscription/add/group"
+							hx-post="/subscriptions/add/group"
 						} else {
 							hx-post={ "/subscriptions/" + string(*request.SubscriptionID) + "/edit" }
 						}
@@ -820,7 +820,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										</el-options>
 									</el-autocomplete>
 									<button
-										hx-post="/subscription/group/add"
+										hx-post="/subscriptions/group/add"
 										hx-target="#subscriptions"
 										hx-encoding="application/x-www-form-urlencoded"
 										hx-include="#suggestions,#subscriptions"

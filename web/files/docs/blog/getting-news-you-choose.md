@@ -34,36 +34,36 @@ with links to directly subscribe in [Foragd](https://foragd.app)).
 - [BBC News](https://www.bbc.co.uk)
   - UK-based online news source.
   - 🔗 [Feed URL](https://feeds.bbci.co.uk/news/rss.xml)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://feeds.bbci.co.uk/news/rss.xml)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://feeds.bbci.co.uk/news/rss.xml)
 
 - [SBS News](https://www.sbs.com.au/news)
   - Australian-based news source.
   - 🔗 [Feed URL](https://sbs.com.au/news/feed)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://sbs.com.au/news/feed)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://sbs.com.au/news/feed)
 
 - [Global Voices](https://globalvoices.org/feed/)
   - Citizen media stories from around the world.
   - 🔗 [Feed URL](https://globalvoices.org/feed/)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://globalvoices.org/feed/)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://globalvoices.org/feed/)
 
 ### Finance
 
 - [Yahoo Finance](https://finance.yahoo.com)
   - Finance and business news.
   - 🔗 [Feed URL](https://finance.yahoo.com/news/rssindex)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://finance.yahoo.com/news/rssindex)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://finance.yahoo.com/news/rssindex)
 
 ### Science
 
 - [New Scientist](https://www.newscientist.com/)
   - Science news and science articles.
   - 🔗 [Feed URL](https://www.newscientist.com/feed/home/)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://www.newscientist.com/feed/home/)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://www.newscientist.com/feed/home/)
 
 - [Live Science](https://www.livescience.com)
   - Science news and related updates.
   - 🔗 [Feed URL](https://www.livescience.com/feeds.xml)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://www.livescience.com/feeds.xml)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://www.livescience.com/feeds.xml)
 
 ### Tech
 
@@ -71,12 +71,12 @@ with links to directly subscribe in [Foragd](https://foragd.app)).
   - News and reviews, covering IT, AI, science, space, health, gaming, cybersecurity, tech policy, computers, mobile
     devices, and operating systems.
   - 🔗 [Feed URL](http://feeds.arstechnica.com/arstechnica/index/)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=http://feeds.arstechnica.com/arstechnica/index/)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=http://feeds.arstechnica.com/arstechnica/index/)
 
 - [Rest of the World](https://restofworld.org/)
   - Global tech news outside of the western world.
   - 🔗 [Feed URL](https://restofworld.org/feed/latest)
-  - ➕ [Subscribe in Foragd](/subscription/add?url=https://restofworld.org/feed/latest)
+  - ➕ [Subscribe in Foragd](/subscriptions/add?url=https://restofworld.org/feed/latest)
 
 ## Choosing a Feed Reader
 

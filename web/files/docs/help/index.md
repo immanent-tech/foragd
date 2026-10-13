@@ -83,7 +83,7 @@ To add a subscription:
   - Or on mobile, in the actions section of the Options popover on mobile)
 - Click the **Add a subscription** button at the bottom of the latest subscriptions on the homepage.
 - Type *Add* in the search bar and choose the **Add a subscription** option shown.
-- Click/bookmark [/subscription/add](/subscription/add).
+- Click/bookmark [/subscriptions/add](/subscriptions/add).
 
 By default, you can enter any website or feed URL and Foragd will either find or parse and present potential
 subscriptions you can subscribe to. Alternatively, use the **Source** drop-down to add a YouTube channel or Google New

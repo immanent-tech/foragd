@@ -261,7 +261,7 @@ templ suggestAddFeedSubscription() {
 	<li
 		role="option"
 		tabindex="-1"
-		hx-get="/subscription/add"
+		hx-get="/subscriptions/add"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
@@ -279,7 +279,7 @@ templ suggestAddGroupSubscription() {
 	<li
 		role="option"
 		tabindex="-1"
-		hx-get="/subscription/add/group"
+		hx-get="/subscriptions/add/group"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
@@ -297,7 +297,7 @@ templ suggestAddSearchSubscription() {
 	<li
 		role="option"
 		tabindex="-1"
-		hx-get="/subscription/add/search"
+		hx-get="/subscriptions/add/search"
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
@@ -533,7 +533,7 @@ templ SearchControls(results *models.SearchResults) {
 				</div>
 			} else {
 				<button
-					hx-get="/subscription/add/search"
+					hx-get="/subscriptions/add/search"
 					hx-target={ ContentID.Target() }
 					hx-include="#search-filters"
 					class="btn border-neutral/15 btn-outline btn-sm"

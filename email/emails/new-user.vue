@@ -101,14 +101,14 @@
           </Text>
           <div class="bg-base-200 p-8 mt-4 mx-auto text-center rounded-lg text-lg font-semibold font-nunito max-w-sm">
             <Button
-              href="/subscription/add?utm_medium=email&utm_source=notification"
+              href="/subscriptions/add?utm_medium=email&utm_source=notification"
               class="rounded-lg bg-primary px-7 py-3 text-sm font-bold text-primary-content"
             >
               Add a Subscription
             </Button>
             <Spacer class="h-4" />
             <Button
-              href="/user/import?utm_medium=email&utm_source=notification"
+              href="/import?utm_medium=email&utm_source=notification"
               class="rounded-lg bg-primary px-7 py-3 text-sm font-bold text-primary-content"
             >
               Import from OPML

@@ -412,7 +412,7 @@ func UserHome(data *HomeData) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscription/add\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscriptions/add\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -655,7 +655,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2\"><a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscription/add\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2\"><a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscriptions/add\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
