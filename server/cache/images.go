@@ -29,6 +29,8 @@ var bufPool = sync.Pool{
 	},
 }
 
+var ErrCacheNotFound = errors.New("cache not found")
+
 type ImageCache struct {
 	caches map[string]ObjectCache
 }
@@ -92,50 +94,82 @@ var NewCache = sync.OnceValues(func() (*ImageCache, error) {
 })
 
 func (c *ImageCache) GetImage(ctx context.Context, key string, buf *bytes.Buffer) error {
-	if err := c.caches["imgproxy"].Copy(ctx, key, buf); err != nil {
+	imgProxyCache, found := c.caches["imgproxy"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "imgproxy")
+	}
+	if err := imgProxyCache.Copy(ctx, key, buf); err != nil {
 		return fmt.Errorf("copy image from cache: %w", err)
 	}
 	return nil
 }
 
 func (c *ImageCache) SaveImage(ctx context.Context, id string, data []byte) error {
-	c.caches["imgproxy"].Set(ctx, id, data)
+	imgProxyCache, found := c.caches["imgproxy"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "imgproxy")
+	}
+	imgProxyCache.Set(ctx, id, data)
 	return nil
 }
 
 func (c *ImageCache) GetAvatar(ctx context.Context, key string, buf *bytes.Buffer) error {
-	if err := c.caches["avatars"].Copy(ctx, key, buf); err != nil {
+	avatarsCache, found := c.caches["avatars"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "avatars")
+	}
+	if err := avatarsCache.Copy(ctx, key, buf); err != nil {
 		return fmt.Errorf("copy avatar from cache: %w", err)
 	}
 	return nil
 }
 
 func (c *ImageCache) SaveAvatar(ctx context.Context, id string, data []byte) error {
-	c.caches["avatars"].Set(ctx, id, data)
+	avatarsCache, found := c.caches["avatars"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "avatars")
+	}
+	avatarsCache.Set(ctx, id, data)
 	return nil
 }
 
 func (c *ImageCache) GetThumbnail(ctx context.Context, key string, buf *bytes.Buffer) error {
-	if err := c.caches["subscription_thumbnails"].Copy(ctx, key, buf); err != nil {
+	thumbnailsCache, found := c.caches["subscription_thumbnails"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "subscription_thumbnails")
+	}
+	if err := thumbnailsCache.Copy(ctx, key, buf); err != nil {
 		return fmt.Errorf("copy thumbnail from cache: %w", err)
 	}
 	return nil
 }
 
 func (c *ImageCache) SaveThumbnail(ctx context.Context, id string, data []byte) error {
-	c.caches["subscription_thumbnails"].Set(ctx, id, data)
+	thumbnailsCache, found := c.caches["subscription_thumbnails"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "subscription_thumbnails")
+	}
+	thumbnailsCache.Set(ctx, id, data)
 	return nil
 }
 
 func (c *ImageCache) GetScreenshot(ctx context.Context, key string, buf *bytes.Buffer) error {
-	if err := c.caches["screenshots"].Copy(ctx, key, buf); err != nil {
+	screenshotsCache, found := c.caches["screenshots"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "screenshots")
+	}
+	if err := screenshotsCache.Copy(ctx, key, buf); err != nil {
 		return fmt.Errorf("copy screenshot from cache: %w", err)
 	}
 	return nil
 }
 
 func (c *ImageCache) SaveScreenshot(ctx context.Context, id string, data []byte) error {
-	c.caches["screenshots"].Set(ctx, id, data)
+	screenshotsCache, found := c.caches["screenshots"]
+	if !found {
+		return fmt.Errorf("%w: %s", ErrCacheNotFound, "screenshots")
+	}
+	screenshotsCache.Set(ctx, id, data)
 	return nil
 }
 
