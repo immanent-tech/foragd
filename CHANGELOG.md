@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.247.0](https://github.com/immanent-tech/foragd/compare/v0.246.2...v0.247.0) (2026-10-13)
+
+
+### Features
+
+* **templates/subscriptions:** ✨ improved subscription category management ([559e17f](https://github.com/immanent-tech/foragd/commit/559e17f132a629d2f5676c3af783d454b73d98d3))
+
+
+### Bug Fixes
+
+* **models:** 🔧 better check for subscription categories ([ef46108](https://github.com/immanent-tech/foragd/commit/ef46108fc613633331db2bac314fd7a66edd5629))
+* **styles:** 🎨 customise daisyui label and fieldset display ([45e7245](https://github.com/immanent-tech/foragd/commit/45e724549c26b44a7c69d6b6ff9982c93b37b168))
+* **templates:** 🔧 fix display of categories ([af36848](https://github.com/immanent-tech/foragd/commit/af36848868240c0c833cc659796b6402283e966a))
+* **templates:** 🔧 fix display of categories ([d445f45](https://github.com/immanent-tech/foragd/commit/d445f45ef51d54c0d4e7829f79ec7001783516dd))
+
 ## [0.246.2](https://github.com/immanent-tech/foragd/compare/v0.246.1...v0.246.2) (2026-10-12)
 
 
