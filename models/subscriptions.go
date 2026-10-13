@@ -197,7 +197,7 @@ func (s *Subscription) GetTitle() string {
 // the categories in the feed content.
 func (s *Subscription) GetCategories(maxCount int) Categories {
 	var all []Category
-	if s.Customisation.Categories != nil {
+	if len(s.Customisation.Categories) > 0 {
 		all = s.Customisation.Categories
 		if maxCount != 0 {
 			if len(all) > maxCount {
