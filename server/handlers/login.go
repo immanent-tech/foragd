@@ -144,6 +144,9 @@ func (m *Manager) HandleLoginCallback(
 					"body", string(re.Body))
 				m.HandleExternalError(models.NewAPIError(http.StatusBadGateway, err)).ServeHTTP(res, req)
 				return
+			} else {
+				m.HandleExternalError(models.NewAPIError(http.StatusInternalServerError, err)).ServeHTTP(res, req)
+				return
 			}
 		}
 

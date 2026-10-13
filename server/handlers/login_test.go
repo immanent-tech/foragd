@@ -152,9 +152,27 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 				"error":             "invalid_request",
 				"error_description": "Invalid state parameter",
 			},
-			authMgrFunc: func(t *testing.T) *MoqAuthManager { return &MoqAuthManager{} },
-			mgrFunc:     func(t *testing.T) *handlers.Manager { return setupManager(t) },
-			wantCode:    http.StatusInternalServerError,
+			authMgrFunc: func(t *testing.T) *MoqAuthManager {
+				return &MoqAuthManager{}
+			},
+			authFunc: func(t *testing.T) *MoqAuthenticator {
+				mock := &MoqAuthenticator{}
+				mock.ValidateStateFunc = func(ctx context.Context, got string) error {
+					return nil
+				}
+				return mock
+			},
+			mgrFunc: func(t *testing.T) *handlers.Manager {
+				mgr := setupManager(t)
+				mgr.SessionMgr = &MoqSessionManager{
+					GetFunc: func(ctx context.Context, key string) any {
+						return ""
+					},
+					PutFunc: func(ctx context.Context, key string, value any) {},
+				}
+				return mgr
+			},
+			wantCode: http.StatusBadRequest,
 		},
 		{
 			name: "state validation error",
@@ -171,7 +189,7 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 			},
 			authMgrFunc: func(t *testing.T) *MoqAuthManager { return &MoqAuthManager{} },
 			mgrFunc:     func(t *testing.T) *handlers.Manager { return setupManager(t) },
-			wantCode:    http.StatusInternalServerError,
+			wantCode:    http.StatusBadRequest,
 		},
 		{
 			name: "perform exchange error",
@@ -190,8 +208,23 @@ func TestManager_HandleLoginCallback(t *testing.T) {
 				return mock
 			},
 			authMgrFunc: func(t *testing.T) *MoqAuthManager { return &MoqAuthManager{} },
-			mgrFunc:     func(t *testing.T) *handlers.Manager { return setupManager(t) },
-			wantCode:    http.StatusInternalServerError,
+			mgrFunc: func(t *testing.T) *handlers.Manager {
+				mgr := setupManager(t)
+				mgr.SessionMgr = &MoqSessionManager{
+					GetFunc: func(ctx context.Context, key string) any {
+						if key == "state" {
+							return "valid-state"
+						}
+						if key == "code" {
+							return "auth-code-here"
+						}
+						return ""
+					},
+					PutFunc: func(ctx context.Context, key string, value any) {},
+				}
+				return mgr
+			},
+			wantCode: http.StatusInternalServerError,
 		},
 		{
 			name: "existing user with backend error",
