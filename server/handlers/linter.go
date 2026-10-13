@@ -86,7 +86,17 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				svc:         m.NewPageServices(),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
-			rawURL := validation.SanitizeString(req.FormValue("url"))
+			rawURL, err := validation.SanitizeURLString(req.FormValue("url"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",
+					slog.String("url", rawURL),
+					slog.Any("error", err),
+				)
+				RenderPartial(&LinterError{
+					msg: fetchErr,
+				}).ServeHTTP(res, req)
+				return
+			}
 			feedData, err := fetchFeedData(httpClient, rawURL)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",

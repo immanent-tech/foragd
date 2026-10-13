@@ -40,7 +40,7 @@ func (e *ReceivedEmail) Timestamp() time.Time {
 }
 
 func (e *ReceivedEmail) GetSubject() string {
-	return validation.SanitizeString(e.Subject)
+	return validation.SanitizeInput(e.Subject)
 }
 
 func (e *ReceivedEmail) GetBody() string {

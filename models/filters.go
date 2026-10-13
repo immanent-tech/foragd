@@ -156,10 +156,10 @@ func (f *ListFilters) Sanitise() error {
 		f.Count = maxCount
 	}
 	if f.Category != nil {
-		f.Category = new(validation.SanitizeString(*f.Category))
+		f.Category = new(validation.SanitizeInput(*f.Category))
 	}
 	if f.Language != nil {
-		f.Language = new(validation.SanitizeString(*f.Language))
+		f.Language = new(validation.SanitizeInput(*f.Language))
 	}
 	if len(f.Subscriptions) > 0 {
 		slices.Sort(f.Subscriptions)

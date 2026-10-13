@@ -134,7 +134,7 @@ func (r *AddFeedsetRequest) Sanitise() error {
 	}
 	sets := make([]string, 0, len(r.Feedset))
 	for set := range slices.Values(r.Feedset) {
-		set = validation.SanitizeString(set)
+		set = validation.SanitizeInput(set)
 		sets = append(sets, set)
 	}
 	r.Feedset = sets

@@ -17,7 +17,10 @@ func (r *GetSubscriptionsSuggestionRequest) Validate() error {
 }
 
 func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
-	r.Text = validation.SanitizeString(r.Text)
+	r.Text = validation.SanitizeInput(r.Text)
+	for idx, subscription := range r.IgnoredSubscriptions {
+		r.IgnoredSubscriptions[idx] = validation.SanitizeInput(subscription)
+	}
 	return nil
 }
 
@@ -29,7 +32,10 @@ func (r *AddSubscriptionToSearchRequest) Validate() error {
 }
 
 func (r *AddSubscriptionToSearchRequest) Sanitise() error {
-	r.SelectedSubscription = validation.SanitizeString(r.SelectedSubscription)
+	r.SelectedSubscription = validation.SanitizeInput(r.SelectedSubscription)
+	for idx, subscription := range r.SuggestedSubscriptions {
+		r.SuggestedSubscriptions[idx] = validation.SanitizeInput(subscription)
+	}
 	return nil
 }
 
@@ -41,9 +47,9 @@ func (r *AddCategoryToSubscriptionRequest) Validate() error {
 }
 
 func (r *AddCategoryToSubscriptionRequest) Sanitise() error {
-	r.NewCategory = validation.SanitizeString(r.NewCategory)
+	r.NewCategory = validation.SanitizeInput(r.NewCategory)
 	for idx := range r.ExistingCategories {
-		r.ExistingCategories[idx] = validation.SanitizeString(r.ExistingCategories[idx])
+		r.ExistingCategories[idx] = validation.SanitizeInput(r.ExistingCategories[idx])
 	}
 	return nil
 }
@@ -57,7 +63,11 @@ func (r *FeedSubscriptionRequest) Validate() error {
 
 func (r *FeedSubscriptionRequest) Sanitise() error {
 	if r.URL != "" {
-		r.URL = validation.SanitizeString(r.URL)
+		var err error
+		r.URL, err = validation.SanitizeURLString(r.URL)
+		if err != nil {
+			return fmt.Errorf("sanitise URL: %w", err)
+		}
 	}
 	if r.Customisation != nil {
 		r.Customisation.Sanitise()
@@ -106,7 +116,13 @@ func (r *AddSubscriptionToGroupRequest) Validate() error {
 }
 
 func (r *AddSubscriptionToGroupRequest) Sanitise() error {
-	r.SuggestionText = validation.SanitizeString(r.SuggestionText)
+	r.SuggestionText = validation.SanitizeInput(r.SuggestionText)
+	for k, v := range r.ExistingSubscriptions {
+		r.ExistingSubscriptions[k] = validation.SanitizeInput(v)
+	}
+	for k, v := range r.Suggestions {
+		r.ExistingSubscriptions[k] = validation.SanitizeInput(v)
+	}
 	return nil
 }
 
@@ -118,7 +134,7 @@ func (r *ContactRequest) Validate() error {
 }
 
 func (r *ContactRequest) Sanitise() error {
-	r.ContactEmail = validation.SanitizeString(r.ContactEmail)
+	r.ContactEmail = validation.SanitizeInput(r.ContactEmail)
 	r.Details = validation.SanitizeString(r.Details)
 	return nil
 }
@@ -148,13 +164,13 @@ func (r *SuggestFeedsRequest) Sanitise() error {
 	if r == nil {
 		return nil
 	}
-	r.Text = validation.SanitizeString(r.Text)
+	r.Text = validation.SanitizeInput(r.Text)
 	if r.Count <= 0 {
 		r.Count = 10
 	}
 	if len(r.Categories) > 0 {
 		for idx, category := range r.Categories {
-			r.Categories[idx] = validation.SanitizeString(category)
+			r.Categories[idx] = validation.SanitizeInput(category)
 		}
 	}
 	return nil

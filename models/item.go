@@ -125,7 +125,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
 		Title:        source.GetTitle(),
-		Description:  new(validation.SanitizeString(source.GetDescription())),
+		Description:  new(validation.SanitizeInput(source.GetDescription())),
 		SourceType:   feed.SourceType,
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),

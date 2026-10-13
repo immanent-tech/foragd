@@ -88,9 +88,9 @@ func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerF
 
 		// If ?_ptxn=txn_01... is present, this will be passed so the Paddle overlay is opened automatically for that
 		// transaction.
-		transactionID := validation.SanitizeString(req.FormValue("_ptxn"))
+		transactionID := validation.SanitizeInput(req.FormValue("_ptxn"))
 		var planID string
-		if frequency := validation.SanitizeString(req.FormValue("frequency")); frequency != "" {
+		if frequency := validation.SanitizeInput(req.FormValue("frequency")); frequency != "" {
 			var err error
 			planID, err = paddle.GetPriceID(frequency)
 			if err != nil {

@@ -47,8 +47,11 @@ func (f AddFeedSubscriptionRequest) Validate() error {
 }
 
 func (f *AddFeedSubscriptionRequest) Sanitise() error {
-	f.URL = validation.SanitizeString(f.URL)
-	f.FeedID = validation.SanitizeString(f.FeedID)
+	var err error
+	f.URL, err = validation.SanitizeURLString(f.URL)
+	if err != nil {
+		return fmt.Errorf("sanitise URL: %w", err)
+	}
 	return nil
 }
 
@@ -115,7 +118,11 @@ func (r GroupSubscriptionSuggestionRequest) Validate() error {
 }
 
 func (r *GroupSubscriptionSuggestionRequest) Sanitise() error {
-	r.Text = validation.SanitizeString(r.Text)
+	r.Text = validation.SanitizeInput(r.Text)
+	for k, v := range r.IgnoredSubscriptions {
+		r.IgnoredSubscriptions[k] = validation.SanitizeInput(v)
+	}
+
 	return nil
 }
 
@@ -795,12 +802,22 @@ func (c *SubscriptionCustomisation) Validate() error {
 func (c *SubscriptionCustomisation) Sanitise() error {
 	if c != nil {
 		for idx := range c.Categories {
-			c.Categories[idx] = validation.SanitizeString(c.Categories[idx])
+			c.Categories[idx] = validation.SanitizeInput(c.Categories[idx])
 		}
 		slices.Sort(c.Categories)
 		c.Categories = slices.Compact(c.Categories)
+		for idx := range c.SuggestedCategories {
+			c.SuggestedCategories[idx] = validation.SanitizeInput(c.SuggestedCategories[idx])
+		}
+		if c.ImageURL != nil {
+			imgURL, err := validation.SanitizeURLString(*c.ImageURL)
+			if err != nil {
+				return fmt.Errorf("sanitize image URL: %w", err)
+			}
+			c.ImageURL = &imgURL
+		}
 		if c.Nickname != nil {
-			c.Nickname = new(validation.SanitizeString(*c.Nickname))
+			c.Nickname = new(validation.SanitizeInput(*c.Nickname))
 		}
 	}
 	return nil
@@ -816,15 +833,15 @@ func (f ArticleFilters) Validate() error {
 func (f *ArticleFilters) Sanitise() error {
 	if f != nil {
 		if f.Authors != nil {
-			cleanAuthorFilters := validation.SanitizeString(*f.Authors)
+			cleanAuthorFilters := validation.SanitizeInput(*f.Authors)
 			f.Authors = &cleanAuthorFilters
 		}
 		if f.Categories != nil {
-			cleanCategoryFilters := validation.SanitizeString(*f.Categories)
+			cleanCategoryFilters := validation.SanitizeInput(*f.Categories)
 			f.Categories = &cleanCategoryFilters
 		}
 		if f.Text != nil {
-			cleanTextFilters := validation.SanitizeString(*f.Text)
+			cleanTextFilters := validation.SanitizeInput(*f.Text)
 			f.Text = &cleanTextFilters
 		}
 	}

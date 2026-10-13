@@ -212,8 +212,15 @@ func (s *EditUserRequest) Validate() error {
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
 func (s *EditUserRequest) Sanitise() error {
-	s.Nickname = validation.SanitizeString(s.Nickname)
-	s.Email = validation.SanitizeString(s.Email)
+	s.Nickname = validation.SanitizeInput(s.Nickname)
+	s.Email = validation.SanitizeInput(s.Email)
+	if s.AvatarURL != nil {
+		safeURL, err := validation.SanitizeURLString(*s.AvatarURL)
+		if err != nil {
+			return fmt.Errorf("sanitize avatar URL: %w", err)
+		}
+		s.AvatarURL = &safeURL
+	}
 	return nil
 }
 

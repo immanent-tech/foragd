@@ -20,7 +20,7 @@ import (
 func (m *Manager) GetSubscriptionActionSuggestions(subs SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
-		text := validation.SanitizeString(req.FormValue("command-text"))
+		text := validation.SanitizeInput(req.FormValue("command-text"))
 		subscriptions, err := subs.GetSubscriptionSuggestions(req.Context(), text, defaultSuggestionCount, nil)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",

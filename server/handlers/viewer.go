@@ -88,7 +88,18 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			rawURL := validation.SanitizeString(chi.URLParam(req, "*"))
+			rawURL, err := validation.SanitizeURLString(chi.URLParam(req, "*"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
+					slog.Any("error", err),
+				)
+				RenderExternalPage(&Viewer{
+					metadata: metadata,
+					errMsg:   fetchErr,
+					svc:      m.NewPageServices(),
+				}).ServeHTTP(res, req)
+				return
+			}
 			feedURL, err := models.NormalizeFeedURL(rawURL)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",

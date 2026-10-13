@@ -73,7 +73,7 @@ func HandleResendWebhook(verifier WebhookVerifier, processor EmailReceiver) http
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		envelope.Type = validation.SanitizeString(envelope.Type)
+		envelope.Type = validation.SanitizeInput(envelope.Type)
 
 		// Act accordingly based on type.
 		switch envelope.Type {

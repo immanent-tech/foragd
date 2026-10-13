@@ -191,16 +191,16 @@ func (r *SearchRequest) Sanitise() error {
 		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
 	}
 	for idx, subscription := range r.Subscriptions {
-		r.Subscriptions[idx] = validation.SanitizeString(subscription)
+		r.Subscriptions[idx] = validation.SanitizeInput(subscription)
 	}
 	// Sanitise text inputs.
-	r.Text = validation.SanitizeString(r.Text)
+	r.Text = validation.SanitizeInput(r.Text)
 	if r.Authors != nil {
-		cleanAuthors := validation.SanitizeString(*r.Authors)
+		cleanAuthors := validation.SanitizeInput(*r.Authors)
 		r.Authors = &cleanAuthors
 	}
 	if r.Authors != nil {
-		cleanCategories := validation.SanitizeString(*r.Categories)
+		cleanCategories := validation.SanitizeInput(*r.Categories)
 		r.Categories = &cleanCategories
 	}
 	// Default timezone is UTC.
@@ -212,11 +212,11 @@ func (r *SearchRequest) Sanitise() error {
 		r.PublishedWithin = SearchRequestPublishedWithinLastWeek
 	}
 	// Default view is unread.
-	if r.View == "" {
+	if !validView[r.View] {
 		r.View = ViewUnread
 	}
 	// Default sort is most relevant.
-	if r.Sort == "" {
+	if !validSort[r.Sort] {
 		r.Sort = DefaultSearchSort
 	}
 	if r.Count < 1 {
@@ -259,8 +259,7 @@ func (r *AddSubscriptionSearchFilterRequest) Validate() error {
 
 // Sanitise will sanitise the add subscription search filter request.
 func (r *AddSubscriptionSearchFilterRequest) Sanitise() error {
-	r.InputName = validation.SanitizeString(r.InputName)
-	r.SubscriptionName = validation.SanitizeString(r.SubscriptionName)
-	r.SubscriptionID = validation.SanitizeString(r.SubscriptionID)
+	r.InputName = validation.SanitizeInput(r.InputName)
+	r.SubscriptionName = validation.SanitizeInput(r.SubscriptionName)
 	return nil
 }

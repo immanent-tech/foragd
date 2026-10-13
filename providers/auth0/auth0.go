@@ -31,10 +31,10 @@ func (e Error) Validate() error {
 }
 
 func (s *Error) Sanitise() error {
-	s.ClientID = validation.SanitizeString(s.ClientID)
-	s.Code = validation.SanitizeString(s.Code)
-	s.Message = validation.SanitizeString(s.Message)
-	s.Tracking = validation.SanitizeString(s.Tracking)
+	s.ClientID = validation.SanitizeInput(s.ClientID)
+	s.Code = validation.SanitizeInput(s.Code)
+	s.Message = validation.SanitizeInput(s.Message)
+	s.Tracking = validation.SanitizeInput(s.Tracking)
 	return nil
 }
 

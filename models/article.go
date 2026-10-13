@@ -318,13 +318,6 @@ func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item
 }
 
 func (r *ListArticlesRequest) Sanitise() error {
-	if r == nil {
-		return nil
-	}
-	if r.SubscriptionID != nil {
-		subID := validation.SanitizeString(*r.SubscriptionID)
-		r.SubscriptionID = &subID
-	}
 	return nil
 }
 

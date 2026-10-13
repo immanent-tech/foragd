@@ -1001,8 +1001,8 @@ func (m *Manager) HandleAddNewFeedSubscription(
 func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get suggestion text.
-		text := validation.SanitizeString(req.FormValue("suggestion_text"))
-		source := validation.SanitizeString(req.FormValue("suggestion_source"))
+		text := validation.SanitizeInput(req.FormValue("suggestion_text"))
+		source := validation.SanitizeInput(req.FormValue("suggestion_source"))
 		// Ignore empty text string.
 		if text == "" {
 			res.WriteHeader(http.StatusNoContent)

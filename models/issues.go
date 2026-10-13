@@ -3,7 +3,11 @@
 
 package models
 
-import "github.com/immanent-tech/go-base/validation"
+import (
+	"fmt"
+
+	"github.com/immanent-tech/go-base/validation"
+)
 
 func (i *ReportIssueRequest) Validate() error {
 	if err := validation.Validate.Struct(i); err != nil {
@@ -13,6 +17,18 @@ func (i *ReportIssueRequest) Validate() error {
 }
 
 func (i *ReportIssueRequest) Sanitise() error {
+	var err error
+	i.UserEmail = validation.SanitizeInput(i.UserEmail)
+	i.PageUrl, err = validation.SanitizeURLString(i.PageUrl)
+	if err != nil {
+		return fmt.Errorf("sanitise page URL: %w", err)
+	}
+	if i.ScreenshotURL != nil {
+		*i.ScreenshotURL, err = validation.SanitizeURLString(*i.ScreenshotURL)
+		if err != nil {
+			return fmt.Errorf("sanitise page URL: %w", err)
+		}
+	}
 	if i.Details != nil {
 		cleanDetails := validation.SanitizeString(*i.Details)
 		i.Details = &cleanDetails
