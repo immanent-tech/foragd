@@ -85,7 +85,7 @@ type APIError struct {
 // AddCategoryToSubscriptionRequest is a request to add a new category to a subscription.
 type AddCategoryToSubscriptionRequest struct {
 	// ExistingCategories is a list of categories already assigned to the subscription.
-	ExistingCategories []Category `form:"category" json:"existing_categories,omitempty"`
+	ExistingCategories []Category `form:"customisation.categories" json:"existing_categories,omitempty"`
 
 	// NewCategory represents a taxonomy applied to an object.
 	NewCategory Category `form:"new_category" json:"new_category"`

@@ -972,7 +972,7 @@ templ subscriptionCategoryManagement(suggested []models.Category, existing []mod
 					if !slices.ContainsFunc(ollama.IABTier1Categories, func(e ollama.CategoryEmbedding) bool {
                     return e.Label == category
                 }) {
-						@AddCategoryToSubscription(category, true)
+						@AddCategoryToSubscription(category, false)
 					}
 				}
 				// Existing custom categories.
@@ -992,7 +992,7 @@ templ subscriptionCategoryManagement(suggested []models.Category, existing []mod
 					<button
 						class="btn join-item btn-square"
 						hx-post="/subscriptions/add/category"
-						hx-include="[name='category'],[name='new_category']"
+						hx-include="[name='customisation.categories'],[name='new_category']"
 						hx-target="#categories"
 						hx-swap="beforeend transition:true"
 						_="on htmx:after:request if event.detail.successful then set value to '' in the closest <input/>"
@@ -1010,7 +1010,7 @@ templ AddCategoryToSubscription(category models.Category, checked bool) {
 	<input
 		class="btn btn-sm"
 		type="checkbox"
-		name="category"
+		name="customisation.categories"
 		aria-label={ category }
 		value={ category }
 		if checked {

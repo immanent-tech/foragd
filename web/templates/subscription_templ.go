@@ -2855,7 +2855,7 @@ func subscriptionCategoryManagement(suggested []models.Category, existing []mode
 			if !slices.ContainsFunc(ollama.IABTier1Categories, func(e ollama.CategoryEmbedding) bool {
 				return e.Label == category
 			}) {
-				templ_7745c5c3_Err = AddCategoryToSubscription(category, true).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = AddCategoryToSubscription(category, false).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2871,7 +2871,7 @@ func subscriptionCategoryManagement(suggested []models.Category, existing []mode
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "</div><label class=\"fieldset\"><span class=\"label\">Add custom category</span><div class=\"join\"><input type=\"text\" name=\"new_category\" value=\"\" class=\"input join-item\" placeholder=\"My category\"> <button class=\"btn join-item btn-square\" hx-post=\"/subscriptions/add/category\" hx-include=\"[name='category'],[name='new_category']\" hx-target=\"#categories\" hx-swap=\"beforeend transition:true\" _=\"on htmx:after:request if event.detail.successful then set value to '' in the closest <input/>\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "</div><label class=\"fieldset\"><span class=\"label\">Add custom category</span><div class=\"join\"><input type=\"text\" name=\"new_category\" value=\"\" class=\"input join-item\" placeholder=\"My category\"> <button class=\"btn join-item btn-square\" hx-post=\"/subscriptions/add/category\" hx-include=\"[name='customisation.categories'],[name='new_category']\" hx-target=\"#categories\" hx-swap=\"beforeend transition:true\" _=\"on htmx:after:request if event.detail.successful then set value to '' in the closest <input/>\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2909,7 +2909,7 @@ func AddCategoryToSubscription(category models.Category, checked bool) templ.Com
 			templ_7745c5c3_Var119 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "<input class=\"btn btn-sm\" type=\"checkbox\" name=\"category\" aria-label=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "<input class=\"btn btn-sm\" type=\"checkbox\" name=\"customisation.categories\" aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -49,7 +49,7 @@ components:
           items:
             $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: "category"
+            form: "customisation.categories"
           x-go-type-skip-optional-pointer: true
     AddFeedSubscriptionRequest:
       description: contains request data for adding a new feed subscription.

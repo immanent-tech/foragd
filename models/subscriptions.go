@@ -193,18 +193,20 @@ func (s *Subscription) GetTitle() string {
 	return s.Customisation.GetNickname()
 }
 
-// GetCategories returns the categories of the subscription. It is the combined list of any user-assigned categories and
-// the categories in the feed content.
+// GetCategories returns a [Categories] slice of user-assigned [Category] values for the subscription.
 func (s *Subscription) GetCategories(maxCount int) Categories {
-	var all []Category
-	if len(s.Customisation.Categories) > 0 {
-		all = s.Customisation.Categories
-		if maxCount != 0 {
-			if len(all) > maxCount {
-				return all[:maxCount]
-			}
-			return all
+	// all := slices.Concat(s.Customisation.Categories, s.Feed.GetCategories())
+	// slices.Sort(all)
+	// all = slices.Compact(all)
+	if len(s.Customisation.Categories) == 0 {
+		return nil
+	}
+	all := s.Customisation.Categories
+	if maxCount != 0 {
+		if len(all) > maxCount {
+			return all[:maxCount]
 		}
+		return all
 	}
 	return all
 }

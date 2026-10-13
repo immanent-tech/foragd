@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	gonanoid "github.com/matoous/go-nanoid/v2"
+	"html"
 	"slices"
 	"strings"
 )
@@ -21,7 +22,7 @@ templ CategoryBadge(category models.Category, options ...element.PropertiesOptio
 		class={ "category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.GetClasses() }
 		{ props.GetAllAttributes()... }
 	>
-		{ category }
+		{ html.UnescapeString(category) }
 		{ children... }
 	</span>
 }

@@ -608,7 +608,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			request.Customisation.SuggestedCategories = subSvc.GetSubscriptionCategorySuggestions(
 				req.Context(),
 				[]models.FeedID{subscription.FeedData.GetFeedID()},
-				subscription.Customisation.Categories,
+				subscription.GetCategories(0),
 			)
 			// Generate page template.
 			template = templates.EditFeedSubscription(request, m.Breadcrumbs)
