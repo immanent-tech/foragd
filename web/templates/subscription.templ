@@ -16,7 +16,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-base/pkg/htmx"
-	"html"
 	"net/http"
 	"slices"
 	"strings"
@@ -627,7 +626,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 									class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 								>
 									if request.Search.Text != "" {
-										{ html.UnescapeString(request.Search.Text) }
+										{ request.Search.Text }
 									}
 								</textarea>
 							</label>
@@ -655,7 +654,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Categories != nil {
-												{ html.UnescapeString(*request.Search.Categories) }
+												{ *request.Search.Categories }
 											}
 										</textarea>
 									</label>
@@ -671,7 +670,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 											class="textarea mt-2 w-full bg-base-300 brightness-95 textarea-primary textarea-sm"
 										>
 											if request.Search.Authors != nil {
-												{ html.UnescapeString(*request.Search.Authors) }
+												{ *request.Search.Authors }
 											}
 										</textarea>
 									</label>

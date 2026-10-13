@@ -263,3 +263,104 @@ func TestEditFeedSubscription(t *testing.T) {
 		})
 	}
 }
+
+func TestAddSearchSubscription(t *testing.T) {
+	tests := []struct {
+		name        string
+		request     *models.SearchSubscriptionRequest
+		breadcrumbs templates.Breadcrumbs
+		setupCtx    func() context.Context
+		tests       func(t *testing.T, doc *goquery.Document)
+	}{
+		{
+			name: "no search",
+			request: &models.SearchSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
+				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
+			},
+		},
+		{
+			name: "with search",
+			request: &models.SearchSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{},
+				Search: models.SearchRequest{
+					Text: `-foo "bar baz"`,
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Add a Search Subscription")
+				assert.True(t, strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
+				assert.Equal(t, doc.Find("input[name='count'][value='9']").Length(), 1)
+				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/add/search']").Length(), 1)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := tc.setupCtx()
+			doc := render(t, ctx, templates.AddSearchSubscription(tc.request, tc.breadcrumbs))
+			tc.tests(t, doc)
+		})
+	}
+}
+
+func TestEditSearchSubscription(t *testing.T) {
+	tests := []struct {
+		name        string
+		request     *models.SearchSubscriptionRequest
+		breadcrumbs templates.Breadcrumbs
+		setupCtx    func() context.Context
+		tests       func(t *testing.T, doc *goquery.Document)
+	}{
+		{
+			name: "with search",
+			request: &models.SearchSubscriptionRequest{
+				Customisation: &models.SubscriptionCustomisation{
+					Nickname: new("Test"),
+				},
+				Search: models.SearchRequest{
+					Text:           `-foo "bar baz"`,
+					SubscriptionID: new("sub_test"),
+				},
+			},
+			breadcrumbs: &MoqBreadcrumbs{
+				PreviousFunc: func(ctx context.Context) (*url.URL, bool) { return nil, false },
+			},
+			setupCtx: func() context.Context {
+				return models.UserToCtx(t.Context(), &models.User{})
+			},
+			tests: func(t *testing.T, doc *goquery.Document) {
+				assert.True(t, strings.TrimSpace(doc.Find("#page-heading").Text()) == "Editing Test")
+				assert.True(t, strings.TrimSpace(doc.Find("#search-text").Text()) == `-foo "bar baz"`)
+				assert.Equal(t, doc.Find("input[name='count'][value='9']").Length(), 1)
+				assert.Equal(t, doc.Find("input[name='subscription_id'][value='sub_test']").Length(), 1)
+				assert.Equal(t, doc.Find("input[name='subscription_type'][value='search']").Length(), 1)
+				assert.Equal(t, doc.Find("form[hx-post^='/subscriptions/sub_test/edit']").Length(), 1)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := tc.setupCtx()
+			doc := render(t, ctx, templates.EditSearchSubscription(tc.request, tc.breadcrumbs))
+			tc.tests(t, doc)
+		})
+	}
+}
