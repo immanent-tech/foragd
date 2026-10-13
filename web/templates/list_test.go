@@ -9,9 +9,11 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/a-h/templ"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/immanent-tech/foragd/models"
@@ -569,4 +571,22 @@ func TestNewListControls_Render(t *testing.T) {
 	if doc.Find("li[.menu-title]").Text() == "Sort" {
 		t.Error("Expected 'Sort' label in mobile filters")
 	}
+}
+
+func TestNewListControls_RenderCategories(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	c := templates.NewListControls(
+		"/test/path",
+		models.ListFilters{},
+		templates.WithListCategories(models.Categories{"Technology & Computing"}),
+	)
+	doc := render(t, ctx, c.Template())
+
+	assert.True(
+		t,
+		strings.TrimSpace(
+			doc.Find("ul[id='desktop-category-filters'] > li").First().Text(),
+		) == "Technology & Computing",
+	)
 }

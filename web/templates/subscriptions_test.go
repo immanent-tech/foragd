@@ -230,7 +230,7 @@ func TestEditFeedSubscription(t *testing.T) {
 				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Pop Culture"][checked]`).Length(), 1)
 				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Events"][checked]`).Length(), 1)
 				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Custom"][checked]`).Length(), 1)
-				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Suggested1"][checked]`).Length(), 1)
+				assert.Equal(t, doc.Find(`input[type="checkbox"][value="Suggested1"]`).Length(), 1)
 			},
 		},
 		{

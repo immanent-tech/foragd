@@ -9,6 +9,7 @@ import (
 	"github.com/dimmerz92/go-icons/tabler-outline"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
+	"html"
 	"net/http"
 	"slices"
 )
@@ -364,7 +365,7 @@ templ categoryFilterOption(category models.Category, path string, filters models
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
-				{ category }
+				{ html.UnescapeString(category) }
 			</span>
 			<span aria-hidden="true" class={ templ.KV("hidden", !slices.Contains(currentCategories, category)) }>
 				@tableroutline.Check(templ.Attributes{"class": "size-5"})
