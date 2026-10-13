@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.248.0](https://github.com/immanent-tech/foragd/compare/v0.247.0...v0.248.0) (2026-10-13)
+
+
+### Features
+
+* **models:** ➕ add fields for tracking comments URL for items ([50a2249](https://github.com/immanent-tech/foragd/commit/50a2249a02a8ed683bfd68359943dd70341d4fd3))
+
 ## [0.247.0](https://github.com/immanent-tech/foragd/compare/v0.246.2...v0.247.0) (2026-10-13)
 
 
