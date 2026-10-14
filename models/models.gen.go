@@ -8,7 +8,7 @@ import (
 	"mime/multipart"
 	"time"
 
-	externalRef0 "github.com/immanent-tech/foragd/providers/zyte"
+	externalRef0 "github.com/immanent-tech/go-base/pkg/zyte"
 	externalRef1 "github.com/immanent-tech/go-syndication/extensions/georss"
 	externalRef2 "github.com/immanent-tech/go-syndication/types"
 	"github.com/oapi-codegen/runtime"

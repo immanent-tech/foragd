@@ -48,6 +48,8 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/textx"
 
+	"github.com/immanent-tech/go-base/pkg/zyte"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
@@ -56,7 +58,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/news"
 	"github.com/immanent-tech/foragd/providers/google/youtube"
 	"github.com/immanent-tech/foragd/providers/ollama"
-	"github.com/immanent-tech/foragd/providers/zyte"
 )
 
 // feedCacheExpiryCalculator is a custom expiry calculator for the feed cache.

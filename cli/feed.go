@@ -23,10 +23,10 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
-	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
+	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 type FeedArgs struct {

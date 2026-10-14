@@ -31,8 +31,8 @@ import (
 	"github.com/immanent-tech/go-base/client"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/web"
+	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 const (

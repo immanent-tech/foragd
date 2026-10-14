@@ -15,6 +15,6 @@ compatibility:
   always-prefix-enum-values: true
 import-mapping:
   api.yaml: "-"
-  ../../providers/zyte/zyte.yaml: "github.com/immanent-tech/foragd/providers/zyte"
+  ../../base/pkg/zyte/zyte.yaml: "github.com/immanent-tech/go-base/pkg/zyte"
   ../../pkg/go-syndication/schema/georss.yaml: "github.com/immanent-tech/go-syndication/extensions/georss"
   ../../pkg/go-syndication/schema/types.yaml: "github.com/immanent-tech/go-syndication/types"

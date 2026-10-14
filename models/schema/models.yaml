@@ -755,7 +755,7 @@ components:
     FetchZyteOptions:
       description: contains information to assist with Zyte feed fetching.
       allOf:
-        - $ref: "../../providers/zyte/zyte.yaml#/components/schemas/ExtractOptions"
+        - $ref: "../../base/pkg/zyte/zyte.yaml#/components/schemas/ExtractOptions"
     YoutubeFeedData:
       description: >
         contains data for fetching and parsing a Youtube feed.

@@ -33,8 +33,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/zyte"
 	"github.com/immanent-tech/foragd/server/cache"
+	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 // itemCacheExpiryCalculator is a custom expiry calculator for the feed cache.
