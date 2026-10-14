@@ -444,7 +444,7 @@ func AccountSettings(user *models.User) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if user.Settings.SubscriptionEmail == nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"mt-4 flex w-full justify-end\"><button hx-post=\"/settings/account/newsletters\" hx-target=\"#subscription-email\" hx-swap=\"innerMorph transition:true\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Generate email address</span></span></button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"mt-4 flex w-full flex-col justify-end\"><button hx-post=\"/settings/account/newsletters\" hx-target=\"#subscription-email\" hx-swap=\"outerMorph transition:true\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Generate email address</span></span></button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -475,11 +475,11 @@ templ AccountSettings(user *models.User) {
 				<p>Use or generate an email for subscribing to email newsletters.</p>
 				<fieldset class="fieldset min-w-0 py-8">
 					if user.Settings.SubscriptionEmail == nil {
-						<div class="mt-4 flex w-full justify-end">
+						<div class="mt-4 flex w-full flex-col justify-end">
 							<button
 								hx-post="/settings/account/newsletters"
 								hx-target="#subscription-email"
-								hx-swap="innerMorph transition:true"
+								hx-swap="outerMorph transition:true"
 								class="group btn btn-primary"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
