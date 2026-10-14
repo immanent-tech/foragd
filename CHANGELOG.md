@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.248.1](https://github.com/immanent-tech/foragd/compare/v0.248.0...v0.248.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **models:** 🔧 don't require ArticleStates ([f4caee2](https://github.com/immanent-tech/foragd/commit/f4caee2bc256fb1b5d866367422c7df2ebe555e6))
+* **server:** 🔧 nil pointer protection when accessing image caches ([1e3c230](https://github.com/immanent-tech/foragd/commit/1e3c230ad2e3c06deecda1f4ace19c80bcc5d783))
+* **templates/settings:** 🔧 fix display of user subscription email after generation ([d6c7511](https://github.com/immanent-tech/foragd/commit/d6c7511cc245c8dcff5a29be0a0700331d77b568))
+
 ## [0.248.0](https://github.com/immanent-tech/foragd/compare/v0.247.0...v0.248.0) (2026-10-13)
 
 
