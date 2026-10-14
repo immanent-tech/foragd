@@ -3,7 +3,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "postCreateCommand": {
-    "fix-permissions": "bash .devcontainer/postcreate.sh",
+    "fix-permissions": "bash base/.devcontainer/postcreate.sh",
     "oh-my-posh": "bash base/.devcontainer/postcreate.scripts.d/oh-my-posh.sh",
     "zyte": "bash base/.devcontainer/postcreate.scripts.d/zyte.sh",
     "frontend": "bash base/.devcontainer/postcreate.scripts.d/frontend.sh",
