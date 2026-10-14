@@ -1189,7 +1189,7 @@ components:
             contains the states of items marked explicitly as read/unread/saved by the user.
           x-go-type: "map[ItemID]ArticleState"
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: "omitempty,dive"
         article_filters:
           $ref: "#/components/schemas/ArticleFilters"
       x-oapi-codegen-extra-tags:

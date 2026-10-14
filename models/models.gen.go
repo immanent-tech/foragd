@@ -579,7 +579,7 @@ type EmailSubscription struct {
 	ArticleFilters *ArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
+	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"omitempty,dive"`
 
 	// EmailSenderID is an email address that sends emails.
 	EmailSenderID EmailSenderID `form:"email_sender_id" json:"email_sender_id" validate:"required,email"`

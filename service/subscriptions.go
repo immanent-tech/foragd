@@ -1465,6 +1465,7 @@ func NewEmailSubscription(
 
 	emailSubscription := &models.EmailSubscription{
 		EmailSenderID: from.Address,
+		ArticleStates: make(map[models.ItemID]models.ArticleState),
 	}
 	customisation := &models.SubscriptionCustomisation{
 		Nickname: new(from.String()),
