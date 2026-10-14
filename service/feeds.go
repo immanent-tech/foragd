@@ -1315,8 +1315,7 @@ func getFeedAverageDailyUpdates(
 
 // FetchOptions defines options that manipulate how a feed will be fetched from a remote URL.
 type FetchOptions struct {
-	Proxy  bool
-	FeedID models.FeedID
+	Proxy bool
 }
 
 // FetchOption is a functional option that controls some aspect of how a feed will be fetched.
@@ -1326,13 +1325,6 @@ type FetchOption func(*FetchOptions)
 func FetchWithProxy(value bool) FetchOption {
 	return func(fo *FetchOptions) {
 		fo.Proxy = value
-	}
-}
-
-// FetchWithFeedID assigns the given FeedID to the feed object.
-func FetchWithFeedID(id models.FeedID) FetchOption {
-	return func(fo *FetchOptions) {
-		fo.FeedID = id
 	}
 }
 
@@ -1370,8 +1362,6 @@ func (s *FeedService) FetchFeed(
 			models.WithUserMessage(models.NewErrorMessage("Unknown URL", feedURL)),
 		)
 	}
-
-	ctx = slogctx.With(ctx, slog.String("source_url", sourceURL.String()))
 
 	// Create a buffer for the feed data.
 	feedBuf, ok := bufPool.Get().(*bytes.Buffer)
@@ -1453,7 +1443,7 @@ func (s *FeedService) FetchFeed(
 		feedData.SetSourceURL(sourceURL.String())
 	}
 
-	feed := models.NewFeed(feedData.GetSourceURL(), opts.FeedID, feedData)
+	feed := models.NewFeed(feedData.GetSourceURL(), feedData)
 
 	// Set the feed update interval to an appropriate value.
 	switch interval := feedData.GetUpdateInterval(); {
@@ -1695,7 +1685,6 @@ func (s *FeedService) FetchFeedUpdates(
 		feed, err := s.FetchFeed(
 			ctx,
 			feedURL,
-			FetchWithFeedID(details.GetID()),
 			FetchWithProxy(proxyRequest),
 		)
 		if err != nil {
@@ -1703,6 +1692,8 @@ func (s *FeedService) FetchFeedUpdates(
 			logGeneralError(ctx, err, feedURL, details.GetID())
 			continue
 		}
+		// Set the FeedID to ensure consistency.
+		feed.FeedID = details.GetID()
 		return feed, feedURL, nil
 	}
 

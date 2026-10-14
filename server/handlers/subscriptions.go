@@ -941,7 +941,6 @@ func (m *Manager) HandleAddNewFeedSubscription(
 			feed, err = feedSvc.FetchFeed(
 				req.Context(),
 				request.URL,
-				service.FetchWithFeedID(request.FeedID),
 			)
 			if err != nil {
 				m.HandleInternalError(
@@ -949,6 +948,10 @@ func (m *Manager) HandleAddNewFeedSubscription(
 					fmt.Errorf("new feed from URL: %w", err),
 				).ServeHTTP(res, req)
 				return
+			}
+			// Set the FeedID to ensure consistency.
+			if request.FeedID != "" {
+				feed.FeedID = request.FeedID
 			}
 			// Add the feed to the database.
 			if err := feedSvc.AddFeed(req.Context(), feed); err != nil {
