@@ -219,7 +219,9 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			}) }
 			/>
 			for schema := range slices.Values(p.JSONLDSchema) {
-				@schema.ToJsonLd()
+				if schema != nil {
+					@schema.ToJsonLd()
+				}
 			}
 			// Insert any additional header, if defined.
 			if templx.HasSlot(ctx,HeaderSlot) {
