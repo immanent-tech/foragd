@@ -96,7 +96,7 @@ func (a Articles) FilterByView(view View) Articles {
 
 // Validate returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (a *Article) Validate() error {
+func (a Article) Validate() error {
 	if err := validation.Validate.Struct(a); err != nil {
 		return fmt.Errorf("article is invalid: %w", err)
 	}
@@ -104,22 +104,22 @@ func (a *Article) Validate() error {
 }
 
 // GetID returns the article ID.
-func (a *Article) GetID() string {
+func (a Article) GetID() string {
 	return a.Item.GetID()
 }
 
 // GetSubscriptionID returns the ID of the user subscription the article belongs to.
-func (a *Article) GetSubscriptionID() SubscriptionID {
+func (a Article) GetSubscriptionID() SubscriptionID {
 	return a.Subscription.GetID()
 }
 
 // GetFeedID returns the ID of the feed the article belongs to.
-func (a *Article) GetFeedID() FeedID {
+func (a Article) GetFeedID() FeedID {
 	return a.Item.GetFeedID()
 }
 
 // GetTitle returns the title of the article.
-func (a *Article) GetTitle() string {
+func (a Article) GetTitle() string {
 	if a.Item.GetTitle() == "" {
 		return "(no title)"
 	}
@@ -127,15 +127,15 @@ func (a *Article) GetTitle() string {
 }
 
 // GetDescription returns the description of the article.
-func (a *Article) GetDescription() string {
+func (a Article) GetDescription() string {
 	return a.Item.GetDescription()
 }
 
-func (a *Article) IsYoutubeVideo() bool {
+func (a Article) IsYoutubeVideo() bool {
 	return a.Item.ExtensionType != nil && *a.Item.ExtensionType == ItemExtensionTypeYoutube
 }
 
-func (a *Article) AsYoutubeVideo() (*ItemExtensionYoutube, error) {
+func (a Article) AsYoutubeVideo() (*ItemExtensionYoutube, error) {
 	if !a.IsYoutubeVideo() {
 		return nil, ErrInvalidArticleContent
 	}
@@ -146,13 +146,13 @@ func (a *Article) AsYoutubeVideo() (*ItemExtensionYoutube, error) {
 	return &data, nil
 }
 
-func (a *Article) IsEmail() bool {
+func (a Article) IsEmail() bool {
 	return a.Item.SourceType == SourceTypeEmail
 }
 
 // GetContent returns the main content of the article. This will be either the full content fetched remotely (if
 // requested), the "content" field of the item (if not empty), or the description (if any).
-func (a *Article) GetContent() string {
+func (a Article) GetContent() string {
 	switch {
 	case a.IsEmail():
 		return a.formatContent()
@@ -169,7 +169,7 @@ func (a *Article) GetContent() string {
 
 // formatContent performs additional formatting of content from specific sources, such as cleaning up the HTML to make
 // it more presentable in the interface.
-func (a *Article) formatContent() string {
+func (a Article) formatContent() string {
 	switch content := a.Item.GetContent(); {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
 		sanitized, err := htmlx.Sanitize(
@@ -198,12 +198,12 @@ func (a *Article) formatContent() string {
 }
 
 // IsRemoteContent returns a boolean indicating whether the full content of the article should be shown.
-func (a *Article) IsRemoteContent() bool {
+func (a Article) IsRemoteContent() bool {
 	return a.ShowFullContent
 }
 
 // GetImage returns the image associated with the article.
-func (a *Article) GetImage() *RemoteImage {
+func (a Article) GetImage() *RemoteImage {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
 	}
@@ -224,22 +224,22 @@ func (a *Article) GetImage() *RemoteImage {
 }
 
 // GetAuthors returns a slice of authors (if any) of the article.
-func (a *Article) GetAuthors() []Author {
+func (a Article) GetAuthors() []Author {
 	return a.Item.GetAuthors()
 }
 
 // GetUpdatedDate returns the timestamp when the article was last updated (or created if no updates).
-func (a *Article) GetUpdatedDate() time.Time {
+func (a Article) GetUpdatedDate() time.Time {
 	return a.Item.GetTimestamp()
 }
 
 // GetLink returns the URL pointing to the original article content.
-func (a *Article) GetLink() string {
+func (a Article) GetLink() string {
 	return a.Item.GetLink()
 }
 
 // GetCategories returns the categories of the article (if any).
-func (a *Article) GetCategories(num int) Categories {
+func (a Article) GetCategories(num int) Categories {
 	categories := slices.Compact(a.Item.GetCategories())
 	if num != 0 {
 		if len(categories) > num {
@@ -251,12 +251,12 @@ func (a *Article) GetCategories(num int) Categories {
 }
 
 // GetFeedTitle returns the title of the feed the article belongs to.
-func (a *Article) GetFeedTitle() string {
+func (a Article) GetFeedTitle() string {
 	return a.Item.FeedTitle
 }
 
 // IsUnread returns a boolean indicating whether the user has not read this article.
-func (a *Article) IsUnread() bool {
+func (a Article) IsUnread() bool {
 	if a.State != nil {
 		return !a.State.Read
 	}
@@ -264,7 +264,7 @@ func (a *Article) IsUnread() bool {
 }
 
 // IsFavorite returns a boolean indicating whether the article has been favorited.
-func (a *Article) IsFavorite() bool {
+func (a Article) IsFavorite() bool {
 	if a.State != nil {
 		return a.State.Favorite
 	}
@@ -272,7 +272,7 @@ func (a *Article) IsFavorite() bool {
 }
 
 // GetObjectType returns the type of the object, in this case, "article".
-func (a *Article) GetObjectType() ObjectType {
+func (a Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }
 

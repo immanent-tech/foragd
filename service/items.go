@@ -292,7 +292,7 @@ func (s *ItemService) EnrichItem(
 					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
 				}
 			}
-		case readabilityData.ImageURL() != "":
+		case readabilityData != nil && readabilityData.ImageURL() != "":
 			if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
 				if !imgURL.IsAbs() {
 					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())

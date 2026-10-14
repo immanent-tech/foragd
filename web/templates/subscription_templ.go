@@ -173,7 +173,7 @@ func SubscriptionMarkToggle(subscription *models.Subscription, options ...elemen
 			return
 		}
 		var mark models.Mark
-		if subscription.GetStats().IsUnread() {
+		if subscription.IsUnread() {
 			mark = models.MarkRead
 		} else {
 			mark = models.MarkUnread
@@ -3500,7 +3500,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
 		filters := models.NewListFilters()
 		filters.Subscriptions = []string{s.GetID()}
-		if s.GetStats().IsUnread() {
+		if s.IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
@@ -3511,7 +3511,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 	case models.SubscriptionTypeGroup:
 		filters := models.NewListFilters()
 		filters.Subscriptions = s.GroupData.GetGroupedSubscriptionIDs()
-		if s.GetStats().IsUnread() {
+		if s.IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead

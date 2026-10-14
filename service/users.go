@@ -80,10 +80,13 @@ func (s *UserService) GetUser(ctx context.Context, id models.UserID) (*models.Us
 	defer span.End()
 
 	user, err := elastic.GetDoc[models.UserID, *models.User](ctx, s.store.GetIndexRO(UsersIndex), id)
-	if err != nil || user == nil {
+	switch {
+	case err != nil:
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("get user: %w", err)
+	case user == nil:
+		return nil, models.ErrNotFound
 	}
 	return user, nil
 }

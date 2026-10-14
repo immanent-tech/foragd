@@ -68,6 +68,9 @@ func (s *ItemService) GetNextArticle(
 		return nil, fmt.Errorf("get user subscriptions: %w", models.ErrCtxValueNotFound)
 	}
 	subscription := allSubscriptions.GetByID(subscriptionID)
+	if subscription == nil {
+		return nil, fmt.Errorf("get article subscription: %w", models.ErrNotFound)
+	}
 	filters = append(filters, query.Term("feed_id", subscription.GetFeedID()))
 	filters = append(filters,
 		query.Bool(
@@ -445,15 +448,16 @@ func (s *ItemService) GetArticleRemoteContent(
 		if err != nil {
 			logGeneralError(ctx, err, article.GetLink(), article.Item.GetFeedID())
 		}
+		if readabilityData != nil {
+			// Extract article content using readability.
+			var articleBuf bytes.Buffer
+			if err := readabilityData.RenderHTML(&articleBuf); err != nil {
+				return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("render article HTML: %w", err))
+			}
 
-		// Extract article content using readability.
-		var articleBuf bytes.Buffer
-		if err := readabilityData.RenderHTML(&articleBuf); err != nil {
-			return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("render article HTML: %w", err))
+			// Set the article content to the extracted content.
+			article.Content = new(sanitization.SanitizeString(articleBuf.String()))
 		}
-
-		// Set the article content to the extracted content.
-		article.Content = new(sanitization.SanitizeString(articleBuf.String()))
 	}
 
 	return nil

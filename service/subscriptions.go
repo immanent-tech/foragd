@@ -834,10 +834,10 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 				if err != nil {
 					return fmt.Errorf("retrieve items: %w", err)
 				}
-				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
+				subscription.SetLastUpdate(items[0].GetTimestamp())
 				count, err := itemSvc.CountSearchResults(jobCtx, &request)
 				if err == nil {
-					subscription.GetStats().UnreadCount = int(count)
+					subscription.SetUnreadCount(int(count))
 				} else {
 					slogctx.FromCtx(jobCtx).
 						Warn("Add subscription dynamic info, could not get unread count for search subscription.",
@@ -885,10 +885,10 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 	// For feed subscriptions, add stats.
 	if feedSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeFeed); len(feedSubscriptions) > 0 {
 		for subscription := range slices.Values(feedSubscriptions) {
-			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			subscription.SetUnreadCount(int(unreadCounts[subscription.GetFeedID()]))
+			subscription.SetLastUpdate(lastUpdate[subscription.GetFeedID()])
 			if user.GetSettings().ShowSubscriptionStats {
-				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+				subscription.SetAvgDailyUpdates(avgDailyUpdates[subscription.GetFeedID()])
 			}
 		}
 	}
@@ -896,19 +896,19 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 	// For email subscriptions, add stats.
 	if emailSubscriptions := subscriptions.FilterByType(models.SubscriptionTypeEmail); len(emailSubscriptions) > 0 {
 		for subscription := range slices.Values(emailSubscriptions) {
-			subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-			subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
+			subscription.SetUnreadCount(int(unreadCounts[subscription.GetFeedID()]))
+			subscription.SetLastUpdate(lastUpdate[subscription.GetFeedID()])
 			if user.GetSettings().ShowSubscriptionStats {
-				subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+				subscription.SetAvgDailyUpdates(avgDailyUpdates[subscription.GetFeedID()])
 			}
 		}
 	}
 
 	// For group subscriptions, calculate stats from other subscriptions.
 	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
-		var avgDailyUpdates []float64
 		var unreadCount int
-		var lastUpdates []time.Time
+		avgDailyUpdates := make([]float64, 0, len(subscription.GroupData.GetGroupedSubscriptionFeedIDs()))
+		lastUpdates := make([]time.Time, 0, len(subscription.GroupData.GetGroupedSubscriptionFeedIDs()))
 		// Get the avg daily updates and last update for each subscription in the group.
 		allSubscriptions := models.SubscriptionsFromCtx(ctx)
 		if len(allSubscriptions) == 0 {
@@ -918,25 +918,25 @@ func (s *SubscriptionService) UpdateSubscriptionDynamicInfo(
 		for groupedSubscription := range slices.Values(groupedSubscriptions) {
 			// Collate statistics from child subscription.
 			if user.GetSettings().ShowSubscriptionStats {
-				avgDailyUpdates = append(avgDailyUpdates, groupedSubscription.GetStats().AvgDailyUpdates)
+				avgDailyUpdates = append(avgDailyUpdates, groupedSubscription.GetAvgDailyUpdates())
 			}
-			unreadCount += groupedSubscription.GetStats().UnreadCount
-			lastUpdates = append(lastUpdates, groupedSubscription.GetStats().LastUpdate)
+			unreadCount += groupedSubscription.GetUnreadCount()
+			lastUpdates = append(lastUpdates, groupedSubscription.GetLastUpdate())
 		}
 		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
 			// Use the highest avg daily updates as the avg daily updates of the group.
 			slices.Sort(avgDailyUpdates)
 			slices.Reverse(avgDailyUpdates)
-			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
+			subscription.SetAvgDailyUpdates(avgDailyUpdates[0])
 		}
 		// Unread count is total unread count from all subscriptions in the group.
-		subscription.GetStats().UnreadCount = unreadCount
+		subscription.SetUnreadCount(unreadCount)
 		// LastUpdate is the timestamp of the most recent update across all subscriptions in the group.
 		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
 			return timeA.Compare(timeB)
 		})
 		slices.Reverse(lastUpdates)
-		subscription.GetStats().LastUpdate = lastUpdates[0]
+		subscription.SetLastUpdate(lastUpdates[0])
 	}
 
 	return nil

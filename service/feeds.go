@@ -361,8 +361,8 @@ func (s *FeedService) UpdateFeedItems(
 		return oldData.LastFetched, nil
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		maxConcurrentEnrichment := runtime.GOMAXPROCS(0) * 4
-		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*50)
+		maxConcurrentEnrichment := runtime.GOMAXPROCS(0) * 6
+		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*100)
 		var wg sync.WaitGroup
 		for range maxConcurrentEnrichment {
 			// Try to enrich item with additional data if possible.
@@ -399,7 +399,7 @@ func (s *FeedService) UpdateFeedItems(
 				slog.Int("new", len(results["new"])),
 				slog.Int("updated", len(results["updated"])),
 			)
-			var allItems models.Items
+			allItems := make(models.Items, 0, len(results["new"])+len(results["updated"]))
 			for _, v := range results {
 				allItems = append(allItems, v...)
 			}
@@ -1825,6 +1825,7 @@ func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.
 		SourceURLs:  []string{sourceURL.String()},
 		URL:         sourceURL.String(),
 		Domain:      sourceURL.Hostname(),
+		Published:   models.UnixEpoch,
 	}
 	if resp.ArticleList != nil {
 		feed.FetchMethod = models.FeedFetchMethodZyteArticles
@@ -1850,17 +1851,14 @@ func NewFeedFromZyteResponse(ctx context.Context, resp *zyte.Response) (*models.
 		if rdData.Byline() != "" && feed.Description == nil {
 			feed.Description = new(rdData.Byline())
 		}
-	}
-
-	// Parse timestamps.
-	if published, err := rdData.PublishedTime(); err != nil {
-		feed.Published = models.UnixEpoch
-	} else {
-		feed.Published = published.UTC()
-	}
-	if updated, _ := rdData.ModifiedTime(); !updated.IsZero() {
-		updUTC := updated.UTC()
-		feed.Updated = &updUTC
+		// Parse timestamps (only in readability output).
+		if published, err := rdData.PublishedTime(); err == nil {
+			feed.Published = published.UTC()
+		}
+		if updated, _ := rdData.ModifiedTime(); !updated.IsZero() {
+			updUTC := updated.UTC()
+			feed.Updated = &updUTC
+		}
 	}
 
 	// Set extract options

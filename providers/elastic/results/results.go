@@ -120,7 +120,7 @@ func ExtractFieldFromHits[T any](field string, hits []types.Hit) (map[string]T, 
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-fields.html#search-fields-param
 func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (T, error) {
-	var fieldValue []T
+	fieldValue := make([]T, 0)
 
 	value, found := fields[field]
 	if !found {

@@ -43,17 +43,17 @@ func (u *User) Valid(_ context.Context) error {
 }
 
 // GetID returns the ID for the user.
-func (u *User) GetID() UserID {
+func (u User) GetID() UserID {
 	return u.UserID
 }
 
 // GetExternalID returns the backend ID for the user.
-func (u *User) GetExternalID() UserID {
+func (u User) GetExternalID() UserID {
 	return u.ExternalUserID
 }
 
 // GetAvatar retrieves the URL to the image to represent the user.
-func (u *User) GetAvatar() string {
+func (u User) GetAvatar() string {
 	if u.AvatarURL != nil {
 		return *u.AvatarURL
 	}
@@ -61,18 +61,18 @@ func (u *User) GetAvatar() string {
 }
 
 // GetNickname retrieves the nickname of the user.
-func (u *User) GetNickname() string {
+func (u User) GetNickname() string {
 	return u.Nickname
 }
 
 // GetEmail retrieves the email of the user.
-func (u *User) GetEmail() string {
+func (u User) GetEmail() string {
 	return u.Email
 }
 
 // GetMaxHistory returns a timestamp in the past from which the user can view items. If there is an issue retrieving and
 // parsing the value from the user's metadata, it will default to using the lowest plan max history.
-func (u *User) GetMaxHistory() time.Time {
+func (u User) GetMaxHistory() time.Time {
 	if u.GetSettings().MaxViewHistory == 0 {
 		return time.Now().UTC().Add(-DefaultMaxHistory)
 	}
@@ -82,7 +82,7 @@ func (u *User) GetMaxHistory() time.Time {
 
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
 // parsing the value from the user's metadata, it will use the lowest plan updates frequency.
-func (u *User) GetUpdatesFrequency() time.Duration {
+func (u User) GetUpdatesFrequency() time.Duration {
 	if u.GetSettings().UpdatesInterval == 0 {
 		return DefaultUpdateInterval
 	}
@@ -91,12 +91,12 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
-func (u *User) GetSettings() *UserSettings {
+func (u User) GetSettings() *UserSettings {
 	return &u.Settings
 }
 
 // InTrial returns a boolean indicating whether this user account is in its trial period.
-func (u *User) InTrial() bool {
+func (u User) InTrial() bool {
 	if !u.HasValidSubscription() {
 		// No current subscription, check against account creation time.
 		if time.Now().UTC().Before(u.CreatedAt.Add(DefaultTrialPeriod)) {
@@ -110,7 +110,7 @@ func (u *User) InTrial() bool {
 // grace period starts after the trial has expired and lasts for one week. It allows a user who may have forgotten or
 // otherwise let a trial temporarily lapse to continue to use the app for a short period, with the hope they will buy a
 // subscription.
-func (u *User) InTrialGracePeriod() bool {
+func (u User) InTrialGracePeriod() bool {
 	return !u.HasValidSubscription() &&
 		time.Now().UTC().After(u.CreatedAt.Add(DefaultTrialPeriod)) &&
 		time.Now().UTC().Before(u.CreatedAt.Add(DefaultTrialPeriod+7*24*time.Hour))
@@ -118,7 +118,7 @@ func (u *User) InTrialGracePeriod() bool {
 
 // HasValidSubscription returns a boolean indicating whether the user has a valid subscription. A valid subscription
 // only indicates the user has a subscription of some type. It does not indicate the state of the subscription.
-func (u *User) HasValidSubscription() bool {
+func (u User) HasValidSubscription() bool {
 	switch {
 	case u.Subscription == nil:
 		// No subscription data.
@@ -154,7 +154,7 @@ func (u *User) HasValidSubscription() bool {
 
 // Validate returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *UserSettings) Validate() error {
+func (s UserSettings) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user settings: %w", err)
 	}
@@ -169,7 +169,7 @@ func (s *UserSettings) Sanitise() error {
 }
 
 // GetTextFilters returns any global article text filters the user has set.
-func (s *UserSettings) GetTextFilters() *string {
+func (s UserSettings) GetTextFilters() *string {
 	if s.GlobalFilters != nil {
 		return s.GlobalFilters.Text
 	}
@@ -177,7 +177,7 @@ func (s *UserSettings) GetTextFilters() *string {
 }
 
 // GetCategoryFilters returns any global article category filters the user has set.
-func (s *UserSettings) GetCategoryFilters() *string {
+func (s UserSettings) GetCategoryFilters() *string {
 	if s.GlobalFilters != nil {
 		return s.GlobalFilters.Categories
 	}
@@ -185,7 +185,7 @@ func (s *UserSettings) GetCategoryFilters() *string {
 }
 
 // GetAuthorFilters returns any global article author filters the user has set.
-func (s *UserSettings) GetAuthorFilters() *string {
+func (s UserSettings) GetAuthorFilters() *string {
 	if s.GlobalFilters != nil {
 		return s.GlobalFilters.Authors
 	}
@@ -194,7 +194,7 @@ func (s *UserSettings) GetAuthorFilters() *string {
 
 // Validate returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *UserMetadata) Validate() error {
+func (s UserMetadata) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user metadata: %w", err)
 	}
@@ -203,7 +203,7 @@ func (s *UserMetadata) Validate() error {
 
 // Validate returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *EditUserRequest) Validate() error {
+func (s EditUserRequest) Validate() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}
@@ -225,7 +225,7 @@ func (s *EditUserRequest) Sanitise() error {
 }
 
 // Validate returns a boolean indicating whether the ChangePasswordRequest contains valid data.
-func (r *ChangePasswordRequest) Validate() error {
+func (r ChangePasswordRequest) Validate() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}
@@ -237,11 +237,11 @@ func (r *ChangePasswordRequest) Sanitise() error {
 	return nil
 }
 
-func (u *UserProfileResponse) GetID() string {
+func (u UserProfileResponse) GetID() string {
 	return u.Subject
 }
 
-func (u *UserProfileResponse) GetEmail() string {
+func (u UserProfileResponse) GetEmail() string {
 	if u.Email != nil {
 		return *u.Email
 	}

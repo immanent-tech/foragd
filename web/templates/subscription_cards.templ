@@ -34,10 +34,10 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 		<div class="absolute top-2 right-2">
 			if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 				<span class="badge badge-sm badge-primary">
-					if sub.GetStats().UnreadTotal() >= 100 {
+					if sub.GetUnreadCount() >= 100 {
 						99+ Unread
 					} else {
-						{ sub.GetStats().UnreadTotal() } Unread
+						{ sub.GetUnreadCount() } Unread
 					}
 				</span>
 			}

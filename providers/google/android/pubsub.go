@@ -67,14 +67,6 @@ type subscriptionNotification struct {
 // https://developer.android.com/google/play/billing/rtdn-reference
 func HandleRTDN(appCfg *config.AppConfig, userSvc UserService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		if err := initClient(); err != nil {
-			slogctx.Error(req.Context(), "Could not listen for notifications.",
-				slog.Any("error", err),
-			)
-			http.Error(res, "Unable to listen for notifications", http.StatusInternalServerError)
-			return
-		}
-
 		webhookURL := appCfg.GetBaseURL().JoinPath("/webhooks/googleplay")
 
 		if err := loadConfig(); err != nil {
@@ -232,7 +224,8 @@ func lookupSubscriptionFromRTDN(
 	ctx context.Context,
 	purchaseToken string,
 ) (*androidpublisher.SubscriptionPurchaseV2, error) {
-	if err := initClient(); err != nil {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 

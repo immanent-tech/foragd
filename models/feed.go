@@ -161,22 +161,22 @@ func (f Feed) Validate() error {
 }
 
 // GetID returns the ID of the Feed.
-func (f *Feed) GetID() FeedID {
+func (f Feed) GetID() FeedID {
 	return f.FeedID
 }
 
 // GetSourceURLs returns all discovered source URLs of the feed (i.e., URLs that point to the feed itself).
-func (f *Feed) GetSourceURLs() []URL {
+func (f Feed) GetSourceURLs() []URL {
 	return f.SourceURLs
 }
 
 // GetLink returns the URL of the website that publishes and/or is the owner the feed.
-func (f *Feed) GetLink() URL {
+func (f Feed) GetLink() URL {
 	return strings.TrimSpace(f.URL)
 }
 
 // GetTitle returns the feed title.
-func (f *Feed) GetTitle() string {
+func (f Feed) GetTitle() string {
 	if f.Customisation != nil && f.Customisation.Title != nil {
 		return *f.Customisation.Title
 	}
@@ -184,7 +184,7 @@ func (f *Feed) GetTitle() string {
 }
 
 // GetDescription returns the feed description, if any.
-func (f *Feed) GetDescription() string {
+func (f Feed) GetDescription() string {
 	if f.Customisation != nil && f.Customisation.Description != nil {
 		return *f.Customisation.Description
 	}
@@ -195,32 +195,32 @@ func (f *Feed) GetDescription() string {
 }
 
 // GetAuthors returns the feed authors, if any.
-func (f *Feed) GetAuthors() []string {
+func (f Feed) GetAuthors() []string {
 	return f.Authors
 }
 
 // GetContributors returns the feed contributors, if any.
-func (f *Feed) GetContributors() []string {
+func (f Feed) GetContributors() []string {
 	return f.Contributors
 }
 
 // GetCategories returns the slice of categories assigned to the feed, if any.
-func (f *Feed) GetCategories() []string {
+func (f Feed) GetCategories() []string {
 	return f.Categories
 }
 
 // GetImage returns an image object that can visually represent the feed.
-func (f *Feed) GetImage() *RemoteImage {
+func (f Feed) GetImage() *RemoteImage {
 	return f.Image
 }
 
 // GetItems returns a slice of the currently published items in the feed.
-func (f *Feed) GetItems() Items {
+func (f Feed) GetItems() Items {
 	return f.Items
 }
 
 // GetLanguage returns the language tag of the feed, if any.
-func (f *Feed) GetLanguage() string {
+func (f Feed) GetLanguage() string {
 	if f.Language != nil {
 		return *f.Language
 	}
@@ -230,7 +230,7 @@ func (f *Feed) GetLanguage() string {
 // GetTimestamp returns a timestamp indicating when the feed was last updated. This will be either, the updated
 // timestamp in the feed, or, the published timestamp in the feed, or the last fetched timestamp, whichever is found and
 // is a valid value, in that order.
-func (f *Feed) GetTimestamp() time.Time {
+func (f Feed) GetTimestamp() time.Time {
 	if f.Updated != nil && (!f.Updated.IsZero() && !f.Updated.Equal(UnixEpoch)) {
 		return f.Updated.UTC()
 	}
@@ -241,7 +241,7 @@ func (f *Feed) GetTimestamp() time.Time {
 }
 
 // GetRights returns the rights or copyright of the feed content, if any.
-func (f *Feed) GetRights() string {
+func (f Feed) GetRights() string {
 	if f.Copyright != nil {
 		return *f.Copyright
 	}
@@ -250,7 +250,7 @@ func (f *Feed) GetRights() string {
 
 // GetUpdateInterval returns the update interval of the feed. This will be a minimum of every 5 minutes, even if the
 // actual update interval is less than 5 minutes.
-func (f *Feed) GetUpdateInterval() time.Duration {
+func (f Feed) GetUpdateInterval() time.Duration {
 	interval := time.Duration(f.UpdateInterval)
 	if interval < 5*time.Minute {
 		return 5 * time.Minute

@@ -72,22 +72,19 @@ type Entitlement struct {
 	GrantedAt     time.Time
 }
 
-var client *androidpublisher.Service
-
-//nolint:sloglint // no context passed.
-var initClient = sync.OnceValue(func() error {
+var initClient = sync.OnceValues(func() (*androidpublisher.Service, error) {
 	if err := loadConfig(); err != nil {
-		return fmt.Errorf("load config: %w", err)
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 	var err error
-	client, err = androidpublisher.NewService(context.Background(),
+	client, err := androidpublisher.NewService(context.Background(),
 		option.WithScopes(androidpublisher.AndroidpublisherScope),
 	)
 	if err != nil {
-		return fmt.Errorf("load android billing: %w", err)
+		return nil, fmt.Errorf("load android billing: %w", err)
 	}
 	slog.Info("Android billing client created.")
-	return nil
+	return client, nil
 })
 
 func GetPriceID(frequency string) (string, error) {
@@ -123,7 +120,8 @@ func VerifyAndAcknowledgeSubscription(
 	userSvc UserService,
 	user *models.User, sku, token string,
 ) (*Entitlement, error) {
-	if err := initClient(); err != nil {
+	client, err := initClient()
+	if err != nil {
 		return nil, fmt.Errorf("init client: %w", err)
 	}
 
@@ -186,7 +184,8 @@ func VerifyAndAcknowledgeSubscription(
 }
 
 func acknowledgeSubscriptionPurchase(ctx context.Context, pkg, sku, token string) error {
-	if err := initClient(); err != nil {
+	client, err := initClient()
+	if err != nil {
 		return fmt.Errorf("init client: %w", err)
 	}
 

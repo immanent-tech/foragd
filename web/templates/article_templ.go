@@ -1462,16 +1462,16 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							if response.Subscription.GetStats().UnreadTotal() >= 100 {
+							if response.Subscription.GetUnreadCount() >= 100 {
 								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "99+")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 							} else {
 								var templ_7745c5c3_Var68 string
-								templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(response.Subscription.GetStats().UnreadTotal())
+								templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(response.Subscription.GetUnreadCount())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 468, Col: 57}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 468, Col: 49}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 								if templ_7745c5c3_Err != nil {

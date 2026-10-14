@@ -11,10 +11,10 @@ import (
 	"github.com/zeebo/xxh3"
 )
 
-func (i *ImportStatus) GetID() string {
+func (i ImportStatus) GetID() string {
 	return i.JobID
 }
 
-func (i *ImportResult) GetID() string {
+func (i ImportResult) GetID() string {
 	return "import_result_" + strconv.FormatUint(xxh3.Hash([]byte(i.JobID+i.URL)), 10)
 }
