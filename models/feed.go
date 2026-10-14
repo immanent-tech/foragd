@@ -104,6 +104,18 @@ func NewFeed(sourceURL string, source *feeds.Feed) *Feed {
 		}
 	}
 
+	// Set the feed update interval to an appropriate value.
+	switch interval := source.GetUpdateInterval(); {
+	case interval < time.Minute:
+		// Set really short update intervals to every 5 minutes.
+		feed.UpdateInterval = int64(5 * time.Minute)
+	case interval > 24*time.Hour:
+		// Set really long update intervals to daily.
+		feed.UpdateInterval = int64(24 * time.Hour)
+	default:
+		feed.UpdateInterval = int64(interval)
+	}
+
 	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
 	// calls to fetch additional information (e.g., images).
 	var wg sync.WaitGroup

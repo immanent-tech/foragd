@@ -1387,6 +1387,7 @@ func (s *FeedService) FetchFeed(
 		}
 	}
 
+	// Read the fetched data from the buffer.
 	data, err := io.ReadAll(feedBuf)
 	if err != nil {
 		return nil, models.NewAPIError(
@@ -1399,7 +1400,8 @@ func (s *FeedService) FetchFeed(
 		)
 	}
 
-	feedData, err := parseFeed(ctx, sourceURL, data)
+	// Parse the data into the appropriate source type.
+	source, err := parseFeed(ctx, sourceURL, data)
 	if err != nil && err.Error() == "html source" {
 		// Set a context value to let us know we have already attempted fetching from the HTML link. This protects
 		// against weird links that do infinite redirection or other strange loops.
@@ -1429,8 +1431,8 @@ func (s *FeedService) FetchFeed(
 		)
 	}
 
-	// Handle getting through the switch but still not parsing the content.
-	if feedData == nil {
+	// Safety-net check that we could actually parse the source.
+	if source == nil {
 		return nil, models.NewAPIError(
 			http.StatusNotFound,
 			fmt.Errorf("not found: %s", sourceURL.String()),
@@ -1439,23 +1441,12 @@ func (s *FeedService) FetchFeed(
 	}
 
 	// If the source URL is not set, set it.
-	if feedData.GetSourceURL() == "" || feedData.GetSourceURL() != sourceURL.String() {
-		feedData.SetSourceURL(sourceURL.String())
+	if source.GetSourceURL() == "" || source.GetSourceURL() != sourceURL.String() {
+		source.SetSourceURL(sourceURL.String())
 	}
 
-	feed := models.NewFeed(feedData.GetSourceURL(), feedData)
-
-	// Set the feed update interval to an appropriate value.
-	switch interval := feedData.GetUpdateInterval(); {
-	case interval < time.Minute:
-		// Set really short update intervals to every 5 minutes.
-		feed.UpdateInterval = int64(5 * time.Minute)
-	case interval > 24*time.Hour:
-		// Set really long update intervals to daily.
-		feed.UpdateInterval = int64(24 * time.Hour)
-	default:
-		feed.UpdateInterval = int64(interval)
-	}
+	// Create a new feed from the source.
+	feed := models.NewFeed(source.GetSourceURL(), source)
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
