@@ -7,7 +7,6 @@ package service
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/xml"
 	"errors"
@@ -1390,11 +1389,11 @@ func (s *FeedService) FetchFeed(
 	// Fetch the feed data from the source URL.
 	switch opts.Proxy {
 	case false:
-		if err := directFetch(ctx, s.httpClient, sourceURL, feedBuf); err != nil {
+		if err := DirectFetch(ctx, s.httpClient, sourceURL, feedBuf); err != nil {
 			return nil, fmt.Errorf("direct fetch: %w", err)
 		}
 	case true:
-		if err := proxyFetch(ctx, sourceURL, feedBuf); err != nil {
+		if err := ProxyFetch(ctx, sourceURL, feedBuf); err != nil {
 			return nil, fmt.Errorf("proxy fetch: %w", err)
 		}
 	}
@@ -1413,7 +1412,7 @@ func (s *FeedService) FetchFeed(
 	}
 
 	// Parse the data into the appropriate source type.
-	source, err := parseFeed(ctx, sourceURL, data)
+	source, err := parseFeed(sourceURL, data)
 	if err != nil && err.Error() == "html source" {
 		// Set a context value to let us know we have already attempted fetching from the HTML link. This protects
 		// against weird links that do infinite redirection or other strange loops.
@@ -1470,129 +1469,7 @@ func (s *FeedService) FetchFeed(
 	return feed, nil
 }
 
-func directFetch(ctx context.Context, httpClient *resty.Client, sourceURL *url.URL, buf *bytes.Buffer) error {
-	resp, err := httpClient.R().
-		SetContext(ctx).
-		SetDoNotParseResponse(true).
-		// SetDebug(true).
-		Get(sourceURL.String())
-	switch {
-	case err != nil:
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("fetch failed: %q: %w", sourceURL.String(), err),
-			models.WithUserMessage(models.NewErrorMessage("Could not fetch feed", sourceURL.String())),
-		)
-	case resp.IsError():
-		if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
-			slogctx.FromCtx(ctx).Debug("Potentially blocked. Retrying request through proxy.",
-				slog.String("feed_url", sourceURL.String()),
-			)
-			return proxyFetch(ctx, sourceURL, buf)
-		}
-		return models.NewAPIError(
-			resp.StatusCode(),
-			errors.New(resp.Status()),
-			models.WithUserMessage(
-				models.NewErrorMessage("Could not fetch feed from URL: "+resp.Status(), sourceURL.String()),
-			),
-		)
-	}
-	defer resp.RawBody().Close()
-
-	if resp.Header().Get("Content-Encoding") == "gzip" {
-		// For gzipped response, uncompress first.
-		reader, err := gzip.NewReader(resp.RawBody())
-		if err != nil {
-			return models.NewAPIError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("read gzip response: %w", err),
-				models.WithUserMessage(models.NewErrorMessage(
-					"Feed URL returned invalid or malformed data",
-					sourceURL.String(),
-				)),
-			)
-		}
-		defer reader.Close()
-		const maxBodySize = 10 * 1024 * 1024 // 10 MB limit
-		limitReader := io.LimitReader(reader, maxBodySize)
-		if _, err := io.Copy(buf, limitReader); err != nil {
-			return models.NewAPIError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("read response: %w", err),
-				models.WithUserMessage(models.NewErrorMessage(
-					"Feed URL returned invalid or malformed data",
-					sourceURL.String(),
-				)),
-			)
-		}
-	} else {
-		// Read response directly.
-		if _, err := io.Copy(buf, resp.RawBody()); err != nil {
-			return models.NewAPIError(
-				http.StatusUnprocessableEntity,
-				fmt.Errorf("read response: %w", err),
-				models.WithUserMessage(models.NewErrorMessage(
-					"Feed URL returned invalid or malformed data",
-					sourceURL.String(),
-				)),
-			)
-		}
-	}
-	return nil
-}
-
-func proxyFetch(ctx context.Context, sourceURL *url.URL, buf *bytes.Buffer) error {
-	resp, err := zyte.Proxy(
-		ctx,
-		sourceURL.String(),
-		zyte.WithResponseBody(true),
-		zyte.WithFollowRedirects(true),
-	)
-	if err != nil {
-		if zyteErr, isZyteErr := errors.AsType[*zyte.ResponseError](err); isZyteErr {
-			return models.NewAPIError(
-				zyteErr.HTTPStatus(),
-				fmt.Errorf("proxy request: %w", zyteErr),
-				models.WithUserMessage(models.NewErrorMessage(
-					"Could not fetch feed from URL: "+strconv.Itoa(zyteErr.HTTPStatus()),
-					sourceURL.String(),
-				)),
-			)
-		}
-		return models.NewAPIError(
-			http.StatusInternalServerError,
-			fmt.Errorf("proxy request: %w", err),
-			models.WithUserMessage(models.NewErrorMessage(
-				"Could not fetch feed from URL",
-				sourceURL.String(),
-			)),
-		)
-	}
-	body, err := resp.GetHTMLResponse()
-	if err != nil {
-		return models.NewAPIError(
-			http.StatusUnprocessableEntity,
-			fmt.Errorf("get response body: %w", err),
-			models.WithUserMessage(models.NewErrorMessage(
-				"Feed URL returned invalid or malformed data",
-				sourceURL.String(),
-			)),
-		)
-	}
-	if _, err := buf.Write(body); err != nil {
-		return models.NewAPIError(
-			http.StatusUnprocessableEntity, fmt.Errorf("read response: %w", err),
-			models.WithUserMessage(models.NewErrorMessage(
-				"Feed URL returned invalid or malformed data",
-				sourceURL.String(),
-			)),
-		)
-	}
-	return nil
-}
-
-func parseFeed(ctx context.Context, sourceURL *url.URL, data []byte) (*feeds.Feed, error) {
+func parseFeed(sourceURL *url.URL, data []byte) (*feeds.Feed, error) {
 	// Parse the response as a feed type.
 	var feedData *feeds.Feed
 	switch feedType, err := feeds.DetectSourceType(bytes.NewReader(data)); {

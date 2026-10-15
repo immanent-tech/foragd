@@ -5,16 +5,9 @@ package handlers
 
 import (
 	"bytes"
-	"compress/gzip"
-	"context"
-	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/a-h/templ"
 	"github.com/go-resty/resty/v2"
@@ -24,6 +17,7 @@ import (
 	"github.com/immanent-tech/go-syndication/linter"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -97,7 +91,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			feedData, err := fetchFeedData(httpClient, rawURL)
+			sourceURL, err := url.Parse(rawURL)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",
 					slog.String("url", rawURL),
@@ -108,8 +102,19 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+			var feedData bytes.Buffer
+			if err := service.DirectFetch(req.Context(), httpClient, sourceURL, &feedData); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Linter failed to parse feed.",
+					slog.String("url", rawURL),
+					slog.Any("error", err),
+				)
+				RenderPartial(&LinterError{
+					msg: fetchErr,
+				}).ServeHTTP(res, req)
+				return
+			}
 
-			results, err := linter.Lint(feedData)
+			results, err := linter.Lint(&feedData)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed.",
 					slog.Any("error", err),
@@ -122,54 +127,4 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 			RenderPartial(&LinterResponse{Results: results}).ServeHTTP(res, req)
 		}
 	}
-}
-
-func fetchFeedData(httpClient *resty.Client, feedURL string) (*bytes.Buffer, error) {
-	// Set up context.
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-
-	// Parse the URL to ensure its valid.
-	sourceURL, err := url.Parse(feedURL)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse URL: %w", err)
-	}
-	if !sourceURL.IsAbs() {
-		return nil, fmt.Errorf("not an absolute URL: %s", sourceURL.String())
-	}
-
-	resp, err := httpClient.R().
-		SetContext(ctx).
-		SetDoNotParseResponse(true).
-		Get(sourceURL.String())
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("fetch feed: %w", err)
-	case resp.IsError():
-		return nil, fmt.Errorf("fetch feed response: %s", resp.Status())
-	}
-	defer resp.RawBody().Close()
-
-	// Read response data into buffer.
-	var feedBuf bytes.Buffer
-	if resp.Header().Get("Content-Encoding") == "gzip" {
-		// For gzipped response, uncompress first.
-		reader, err := gzip.NewReader(resp.RawBody())
-		if err != nil {
-			return nil, fmt.Errorf("read gzip response: %w", err)
-		}
-		defer reader.Close()
-		const maxBodySize = 10 * 1024 * 1024 // 10 MB limit
-		limitReader := io.LimitReader(reader, maxBodySize)
-		if _, err := io.Copy(&feedBuf, limitReader); err != nil {
-			return nil, fmt.Errorf("read response: %w", err)
-		}
-	} else {
-		// Read response directly.
-		if _, err := io.Copy(&feedBuf, resp.RawBody()); err != nil {
-			return nil, fmt.Errorf("read response: %w", err)
-		}
-	}
-
-	return &feedBuf, nil
 }
