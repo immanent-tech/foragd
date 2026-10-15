@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.250.1](https://github.com/immanent-tech/foragd/compare/v0.250.0...v0.250.1) (2026-10-15)
+
+
+### Performance Improvements
+
+* **service:** ⚡ fix potential blocked item enrichment issues ([39b8a72](https://github.com/immanent-tech/foragd/commit/39b8a72f3a0c0e293a0771c84cc63a1b052e5ce5))
+
 ## [0.250.0](https://github.com/immanent-tech/foragd/compare/v0.249.0...v0.250.0) (2026-10-15)
 
 
