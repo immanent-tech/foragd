@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.250.2](https://github.com/immanent-tech/foragd/compare/v0.250.1...v0.250.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **handlers/linter:** 🔧 more robust fetching of feed data for linter ([82694ac](https://github.com/immanent-tech/foragd/commit/82694ace2a4e0994b8723e10881f7b8ea9848f01))
+* **templates/linter:** ♻️ update text to mention Atom support ([c415253](https://github.com/immanent-tech/foragd/commit/c415253a121ecb359b87d358e52cbcb66abe48db))
+
 ## [0.250.1](https://github.com/immanent-tech/foragd/compare/v0.250.0...v0.250.1) (2026-10-15)
 
 
