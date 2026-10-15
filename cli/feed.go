@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package cli
 
@@ -21,12 +23,13 @@ import (
 
 	"github.com/immanent-tech/go-base/validation"
 
+	"github.com/immanent-tech/go-base/pkg/zyte"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/scheduler"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/service"
-	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 type FeedArgs struct {
@@ -349,7 +352,8 @@ func updateFeed(ctx context.Context, edits FeedArgs, feedSvc *service.FeedServic
 
 // ClassifyFeedCmd is a command that will classify a feed.
 type ClassifyFeedCmd struct {
-	FeedID models.FeedID `help:"ID of feed" validate:"omitempty,required_without=FeedURL,startswith=feed_"`
+	AllUnclassified bool          `help:"classify all unclassified feeds" validate:"omitempty"`
+	FeedID          models.FeedID `help:"ID of feed"                      validate:"omitempty,required_without=AllUnclassified,startswith=feed_"`
 }
 
 func (c *ClassifyFeedCmd) Run() error {
@@ -366,12 +370,42 @@ func (c *ClassifyFeedCmd) Run() error {
 		return fmt.Errorf("load feed service: %w", err)
 	}
 
-	details, err := feedSvc.GetFeed(ctx, c.FeedID)
-	if err != nil {
-		return fmt.Errorf("get feed: %w", err)
+	switch {
+	case c.FeedID != "":
+		// Single feed.
+		details, err := feedSvc.GetFeed(ctx, c.FeedID)
+		if err != nil {
+			return fmt.Errorf("get feed: %w", err)
+		}
+		if err := classifyFeed(ctx, feedSvc, details); err != nil {
+			return fmt.Errorf("classify feed: %w", err)
+		}
+
+	default:
+		// Classify all unclassified.
+		feeds, err := feedSvc.GetUnclassifiedFeeds(ctx)
+		if err != nil {
+			return fmt.Errorf("get unclassified: %w", err)
+		}
+		for feed := range slices.Values(feeds) {
+			if err := classifyFeed(ctx, feedSvc, feed); err != nil {
+				slogctx.Warn(ctx, "Could not classify feed",
+					slog.Any("error", err),
+					slog.String("feed_id", feed.GetID()),
+					slog.String("feed_title", feed.GetTitle()),
+				)
+			}
+		}
 	}
 
-	var feed *models.Feed
+	return nil
+}
+
+func classifyFeed(ctx context.Context, feedSvc *service.FeedService, details *models.Feed) error {
+	var (
+		feed *models.Feed
+		err  error
+	)
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
 		feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, details)
@@ -387,7 +421,6 @@ func (c *ClassifyFeedCmd) Run() error {
 	if err := service.ClassifyFeed(ctx, feed); err != nil {
 		return fmt.Errorf("classify feed failed: %w", err)
 	}
-
 	return nil
 }
 
