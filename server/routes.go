@@ -407,6 +407,11 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 		r.Get("/user/export", handlers.RedirectTo("/export", http.StatusMovedPermanently))
 		r.Get("/user/settings", handlers.RedirectTo("/settings", http.StatusMovedPermanently))
 		r.Get("/subscription/add", handlers.RedirectTo("/subscriptions/add", http.StatusMovedPermanently))
+		r.Get("/feedly", handlers.RedirectTo("/compare/feedly", http.StatusMovedPermanently))
+		r.Get("/inoreader", handlers.RedirectTo("/compare/inoreader", http.StatusMovedPermanently))
+		r.Get("/innoreader", handlers.RedirectTo("/compare/inoreader", http.StatusMovedPermanently))
+		r.Get("/newsblur", handlers.RedirectTo("/compare/newsblur", http.StatusMovedPermanently))
+		r.Get("/freshrss", handlers.RedirectTo("/compare/freshrss", http.StatusMovedPermanently))
 	})
 
 	return router
