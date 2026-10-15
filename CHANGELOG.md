@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.250.0](https://github.com/immanent-tech/foragd/compare/v0.249.0...v0.250.0) (2026-10-15)
+
+
+### Features
+
+* **blog:** ➕ add October update post ([8bcaa13](https://github.com/immanent-tech/foragd/commit/8bcaa13e1ee7d37113d15a6ef64754576b598eb9))
+
+
+### Bug Fixes
+
+* **models:** 🔧 subscription category improvements ([9baa129](https://github.com/immanent-tech/foragd/commit/9baa129da9c8fa0718005e687fd01b03b2dcace8))
+
 ## [0.249.0](https://github.com/immanent-tech/foragd/compare/v0.248.1...v0.249.0) (2026-10-15)
 
 
