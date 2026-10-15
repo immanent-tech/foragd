@@ -200,15 +200,20 @@ func (s Subscription) GetTitle() string {
 	return s.Customisation.GetNickname()
 }
 
-// GetCategories returns a [Categories] slice of user-assigned [Category] values for the subscription.
+// GetCategories returns a [Categories] slice of [Category] values for the subscription. It returns the user's
+// customized categories. If the user hasn't added any categories for the subscription, it returns categories assigned
+// to the [Feed].
 func (s Subscription) GetCategories(maxCount int) Categories {
-	// all := slices.Concat(s.Customisation.Categories, s.Feed.GetCategories())
-	// slices.Sort(all)
-	// all = slices.Compact(all)
-	if len(s.Customisation.Categories) == 0 {
-		return nil
+	var all Categories
+	if len(s.Customisation.Categories) > 0 {
+		all = append(all, s.Customisation.Categories...)
+	} else {
+		if s.Feed != nil && len(s.Feed.GetCategories()) > 0 {
+			all = append(all, s.Feed.GetCategories()...)
+		}
 	}
-	all := s.Customisation.Categories
+	slices.Sort(all)
+	all = slices.Compact(all)
 	if maxCount != 0 {
 		if len(all) > maxCount {
 			return all[:maxCount]
@@ -218,10 +223,14 @@ func (s Subscription) GetCategories(maxCount int) Categories {
 	return all
 }
 
-// GetImage retrieves the image that represents the subscription, or nil if no image is available.
+// GetImage retrieves the user's custom image for the subscription, or the feed's own image if no custom image.
+// Otherwise, it returns an empty string.
 func (s Subscription) GetImage() URL {
 	if s.Customisation.ImageURL != nil {
 		return *s.Customisation.ImageURL
+	}
+	if s.Feed != nil && s.Feed.GetImage() != nil {
+		return s.Feed.GetImage().GetURL()
 	}
 	return ""
 }
@@ -520,6 +529,7 @@ func (s Subscriptions) GetCategories() Categories {
 	for subscription := range slices.Values(s) {
 		categories = append(categories, subscription.GetCategories(0)...)
 	}
+	slices.Sort(categories)
 	return slices.Compact(categories)
 }
 
