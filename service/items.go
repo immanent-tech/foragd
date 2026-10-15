@@ -29,12 +29,13 @@ import (
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/validation"
 
+	"github.com/immanent-tech/go-base/pkg/zyte"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/cache"
-	"github.com/immanent-tech/go-base/pkg/zyte"
 )
 
 // itemCacheExpiryCalculator is a custom expiry calculator for the feed cache.
@@ -219,7 +220,10 @@ func (s *ItemService) EnrichItem(
 		return fmt.Errorf("cannot enrich item: %w", err)
 	}
 
-	ctx = slogctx.With(ctx,
+	itemCtx, cancel := context.WithTimeoutCause(ctx, 2*time.Minute, errors.New("enrich item timeout"))
+	defer cancel()
+
+	itemCtx = slogctx.With(ctx,
 		slog.String("feed_id", item.GetFeedID()),
 		slog.String("item_id", item.GetID()),
 		slog.String("url", item.GetLink()),
@@ -242,7 +246,7 @@ func (s *ItemService) EnrichItem(
 	if feed.FetchMethod == models.FeedFetchMethodDirect || feed.FetchMethod == models.FeedFetchMethodProxied {
 		if feed.FetchOptions != nil {
 			if fetchOptions, err := feed.FetchOptions.AsFetchDirectOptions(); err != nil {
-				slogctx.Warn(ctx, "Unable to parse feed fetch options.",
+				slogctx.Warn(itemCtx, "Unable to parse feed fetch options.",
 					slog.Any("error", err))
 			} else {
 				if fetchOptions.FetchItemSummaries {
@@ -270,7 +274,7 @@ func (s *ItemService) EnrichItem(
 	}
 
 	// Get the item content, either from the cache or fetch fresh.
-	itemContentBuf, err := s.getItemContent(ctx, item.GetID(), itemURL)
+	itemContentBuf, err := s.getItemContent(itemCtx, item.GetID(), itemURL)
 	if err != nil {
 		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get item content: %w", err))
 	}
@@ -278,7 +282,7 @@ func (s *ItemService) EnrichItem(
 	// Extract opengraph and readability data from item HTML source.
 	opengraphData, readabilityData, err := extractMetadataFromHTML(itemURL, itemContentBuf.Bytes())
 	if err != nil {
-		logGeneralError(ctx, err, feed.GetSourceURLs()[0], feed.GetID())
+		logGeneralError(itemCtx, err, feed.GetSourceURLs()[0], feed.GetID())
 	}
 
 	// Add an image if needed.

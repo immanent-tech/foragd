@@ -365,14 +365,25 @@ func (s *FeedService) UpdateFeedItems(
 		maxConcurrentEnrichment := runtime.GOMAXPROCS(0) * 6
 		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*100)
 		var wg sync.WaitGroup
+
 		for range maxConcurrentEnrichment {
+			var cancelWorker context.CancelFunc
+			enrichCtx, cancelWorker := context.WithCancel(ctx)
 			// Try to enrich item with additional data if possible.
 			wg.Go(func() {
-				for item := range enrichJobCh {
-					if err := itemSvc.EnrichItem(ctx, oldData, item); err != nil {
-						slogctx.FromCtx(ctx).Warn("Unable to enrich item.",
-							slog.Any("error", err),
-						)
+				defer cancelWorker()
+				for {
+					select {
+					case <-enrichCtx.Done():
+						return
+					case item, ok := <-enrichJobCh:
+						if !ok {
+							return
+						}
+						if err := itemSvc.EnrichItem(enrichCtx, oldData, item); err != nil {
+							slogctx.FromCtx(enrichCtx).Warn("Unable to enrich item",
+								slog.Any("error", err))
+						}
 					}
 				}
 			})
