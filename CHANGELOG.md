@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.249.0](https://github.com/immanent-tech/foragd/compare/v0.248.1...v0.249.0) (2026-10-15)
+
+
+### Features
+
+* **blog:** ➕ add a blog post about the Reddit RSS shutdown ([044be7a](https://github.com/immanent-tech/foragd/commit/044be7a16c1757ff702eba575f0d61206495056d))
+
 ## [0.248.1](https://github.com/immanent-tech/foragd/compare/v0.248.0...v0.248.1) (2026-10-14)
 
 
