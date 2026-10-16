@@ -112,61 +112,60 @@ templ mobileFilterToggle(mobilePanelID string) {
 
 // desktopSortDropdown renders the desktop sort dropdown.
 templ desktopSortDropdown(path string, currentSort models.Sort, filters models.ListFilters, show bool) {
-	if !show {
-		return
+	if show {
+		// {{
+		// 	var sortOptions = []*element.ELOption{
+		// 		desktopSortOption(path, models.SortNewestFirst, filters),
+		// 		desktopSortOption(path, models.SortOldestFirst, filters),
+		// 	}
+		// 	if path == routeSubscriptions.String() {
+		// 		sortOptions = append(sortOptions,
+		// 			desktopSortOption(path, models.SortMostUnread, filters),
+		// 			desktopSortOption(path, models.SortLeastUnread, filters),
+		// 		)
+		// 	}
+		// }}
+		// @element.NewELSelect("desktop-sort-filters-new", "sort",
+		// 	element.WithELSelectOptions(sortOptions...),
+		// ).Template()
+		<div
+			id="desktop-sort-filters"
+			class="inline-block"
+		>
+			<el-select id="select-sort" class="inline-block">
+				<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
+					<el-selectedcontent class="truncate">
+						{ currentSort.String() }
+					</el-selectedcontent>
+					@tableroutline.ChevronDown(templ.Attributes{
+						"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
+						"aria-hidden": "true"})
+				</button>
+				<el-options
+					class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
+					anchor="bottom start"
+					popover
+				>
+					<div class="menu">
+						<el-option value={ string(models.SortNewestFirst) }>
+							@mobileSortOption(path, models.SortNewestFirst, filters)
+						</el-option>
+						<el-option value={ string(models.SortOldestFirst) }>
+							@mobileSortOption(path, models.SortOldestFirst, filters)
+						</el-option>
+						if path == "/subscriptions" {
+							<el-option value={ string(models.SortMostUnread) }>
+								@mobileSortOption(path, models.SortMostUnread, filters)
+							</el-option>
+							<el-option value={ string(models.SortLeastUnread) }>
+								@mobileSortOption(path, models.SortLeastUnread, filters)
+							</el-option>
+						}
+					</div>
+				</el-options>
+			</el-select>
+		</div>
 	}
-	// {{
-	// 	var sortOptions = []*element.ELOption{
-	// 		desktopSortOption(path, models.SortNewestFirst, filters),
-	// 		desktopSortOption(path, models.SortOldestFirst, filters),
-	// 	}
-	// 	if path == routeSubscriptions.String() {
-	// 		sortOptions = append(sortOptions,
-	// 			desktopSortOption(path, models.SortMostUnread, filters),
-	// 			desktopSortOption(path, models.SortLeastUnread, filters),
-	// 		)
-	// 	}
-	// }}
-	// @element.NewELSelect("desktop-sort-filters-new", "sort",
-	// 	element.WithELSelectOptions(sortOptions...),
-	// ).Template()
-	<div
-		id="desktop-sort-filters"
-		class="inline-block"
-	>
-		<el-select id="select-sort" class="inline-block">
-			<button class="btn border-neutral/15 btn-outline btn-sm" type="button">
-				<el-selectedcontent class="truncate">
-					{ currentSort.String() }
-				</el-selectedcontent>
-				@tableroutline.ChevronDown(templ.Attributes{
-					"class":       "size-4 transform transition-transform transition-discrete duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180",
-					"aria-hidden": "true"})
-			</button>
-			<el-options
-				class="max-h-60 w-fit overflow-auto rounded-box bg-base-200 shadow-lg outline-1 outline-neutral/5 [--anchor-gap:--spacing(1)]"
-				anchor="bottom start"
-				popover
-			>
-				<div class="menu">
-					<el-option value={ string(models.SortNewestFirst) }>
-						@mobileSortOption(path, models.SortNewestFirst, filters)
-					</el-option>
-					<el-option value={ string(models.SortOldestFirst) }>
-						@mobileSortOption(path, models.SortOldestFirst, filters)
-					</el-option>
-					if path == "/subscriptions" {
-						<el-option value={ string(models.SortMostUnread) }>
-							@mobileSortOption(path, models.SortMostUnread, filters)
-						</el-option>
-						<el-option value={ string(models.SortLeastUnread) }>
-							@mobileSortOption(path, models.SortLeastUnread, filters)
-						</el-option>
-					}
-				</div>
-			</el-options>
-		</el-select>
-	</div>
 }
 
 func desktopSortOption(path string, sort models.Sort, filters models.ListFilters) *element.ELOption {
