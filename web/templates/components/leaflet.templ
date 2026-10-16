@@ -1,32 +1,13 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package components
 
 import "github.com/immanent-tech/foragd/web/templates/element"
 
 const MapMarkersFragment = "MapMarkers"
-
-var leafletOnce = templ.NewOnceHandle()
-
-// Leaflet assets will load the required assets (scripts/stylesheets) for using leaflet maps. This can be called many
-// times, but will only load the assets once.
-templ LeafletAssets() {
-	@leafletOnce.Once() {
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-		// <script type="importmap" nonce={ templ.GetNonce(ctx) }>
-		// 	{
-		// 		"imports": {
-		// 			"leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
-		// 			"leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
-		// 		}
-		// 	}
-		// </script>
-		// <script type="module" nonce={ templ.GetNonce(ctx) }>
-		// 	import 'leaflet-html'
-		// </script>
-	}
-}
 
 // LeafletMap renders a leaflet map element using leaflet-html. Any optional attributes and classes may be passed and
 // this template may wrap any optional children elements.

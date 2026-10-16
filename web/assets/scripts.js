@@ -2,7 +2,6 @@
  * Copyright (c) 2026 Immanent Tech
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-// organize-imports-ignore
 
 import './trusted-types'
 
@@ -14,6 +13,7 @@ import '@github/relative-time-element'
 import './embed-youtube'
 // Android billing.
 import 'leaflet-html'
+import 'leaflet/dist/leaflet.css'
 import './android-billing'
 
 // Make sure back button after logout does not show cached data.

@@ -171,9 +171,9 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<meta name="color-scheme" content="light dark"/>
 			// Load style bundles from embedded FS.
 			<link rel="stylesheet" href={ filepath.Join("/assets/", assets.AssetPath("web/assets/fonts.css")) }/>
-			<link rel="preload" href={ filepath.Join("/files/fonts/", assets.AssetPath("alegreya-latin-wght-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
-			<link rel="preload" href={ filepath.Join("/files/fonts/", assets.AssetPath("alegreya-sans-latin-400-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
-			<link rel="preload" href={ filepath.Join("/files/fonts/", assets.AssetPath("alegreya-sans-latin-700-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href={ filepath.Join("/files/assets/", assets.AssetPath("alegreya-latin-wght-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href={ filepath.Join("/files/assets/", assets.AssetPath("alegreya-sans-latin-400-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href={ filepath.Join("/files/assets/", assets.AssetPath("alegreya-sans-latin-700-normal.woff2")) } as="font" type="font/woff2" crossorigin/>
 			<link rel="stylesheet" href={ filepath.Join("/assets/", assets.AssetPath("web/assets/styles.processed.css")) }/>
 			if p.OpenGraph != nil {
 				@p.OpenGraph.ToMetaTags()
@@ -201,8 +201,6 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
-			// Leaflet.
-			@components.LeafletAssets()
 			// Load script bundles from embedded FS.
 			<script src={ filepath.Join("/assets/", assets.AssetPath("web/assets/scripts.js")) } type="module" nonce={ templ.GetNonce(ctx) }></script>
 			if appCfg.IsProduction() {
