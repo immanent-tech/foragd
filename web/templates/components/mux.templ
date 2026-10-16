@@ -14,7 +14,7 @@ type MuxVideo struct {
 
 templ MuxPlayer(video MuxVideo) {
 	@muxScriptOnce.Once() {
-		<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
+		<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer nonce={ templ.GetNonce(ctx) }></script>
 	}
 	<mux-player
 		crossorigin

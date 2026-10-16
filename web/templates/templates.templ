@@ -204,7 +204,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			// Leaflet.
 			@components.LeafletAssets()
 			// Load script bundles from embedded FS.
-			<script src={ filepath.Join("/assets/", assets.AssetPath("web/assets/scripts.js")) } type="module"></script>
+			<script src={ filepath.Join("/assets/", assets.AssetPath("web/assets/scripts.js")) } type="module" nonce={ templ.GetNonce(ctx) }></script>
 			if appCfg.IsProduction() {
 				// Load Umami.
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
@@ -214,7 +214,6 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<meta
 				name="htmx-config"
 				content={ templ.JSONString(htmx.Config{
-				InlineScriptNonce: templ.GetNonce(ctx),
                 IncludeIndicatorCSS: new(false),
 			}) }
 			/>
@@ -237,10 +236,10 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			// Pull-to-refresh.
 			@components.PullToRefreshBehavior()
 			if fontStyle, ok := session.Get(ctx,"font-style").(string); ok {
-				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", fontStyle) }}
+				{{ style := fmt.Sprintf("<style id=\"font-vars\" nonce=\"%s\">:root { --font-serif: var(%s); }</style>", templ.GetNonce(ctx), fontStyle) }}
 				@templ.Raw(style)
 			} else {
-				{{ style := fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", "--font-oldstyle") }}
+				{{ style := fmt.Sprintf("<style id=\"font-vars\" nonce=\"%s\">:root { --font-serif: var(%s); }</style>", templ.GetNonce(ctx), "--font-oldstyle") }}
 				@templ.Raw(style)
 			}
 		</head>

@@ -43,7 +43,7 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 			}
 		</div>
 		// Main card content.
-		<div class="cursor-pointer touch-manipulation" { generateSubscriptionViewAttributes(sub)... }>
+		<div class="cursor-pointer touch-manipulation" { generateSubscriptionViewAttributes(ctx,sub)... }>
 			@partials.CardHeader(element.WithClasses("pt-12")) {
 				@subscriptionCardHeader(sub)
 			}
@@ -140,6 +140,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="btn btn-square btn-ghost btn-sm"
 					>
 						<span class="sr-only">Article filtering applied</span>
@@ -156,6 +157,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
 						hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="btn btn-square btn-ghost btn-sm"
 					>
 						<span class="sr-only">Show articles on map</span>
@@ -231,6 +233,7 @@ templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 							hx-swap="innerMorph show:top transition:true"
 							hx-trigger="click consume"
 							hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+							hx-nonce={ templ.GetNonce(ctx) }
 						>
 							@tableroutline.Map2(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})
 							Map articles
@@ -244,6 +247,7 @@ templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 						Edit Subscription
@@ -256,6 +260,7 @@ templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 						hx-target={ ModalContainerID.Target() }
 						hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Trash(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 						Remove Subscription
@@ -269,6 +274,7 @@ templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 						hx-replace-url="true"
 						hx-vals={ templ.JSONString(map[string]string{"object_id": sub.GetID()}) }
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Flag2(templ.Attributes{"class": " size-5 stroke-base-content", "aria-hidden": "true"})
 						Report an Issue

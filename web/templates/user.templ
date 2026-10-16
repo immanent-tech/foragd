@@ -67,6 +67,7 @@ templ DeactivateAccountModal() {
 					hx-swap="none"
 					hx-vals={ templ.JSONString(map[string]any{"confirmed": true}) }
 					hx-disable="this"
+					hx-nonce={ templ.GetNonce(ctx) }
 					_="on htmx:after:request remove @open from  the closest <el-dialog/>"
 					class="group btn btn-error"
 				>
@@ -188,10 +189,12 @@ templ DeactivateResult(user *models.User, timeLeft *time.Time) {
 				<a
 					role="button"
 					class="btn btn-primary"
+					href="/home"
 					hx-get="/home"
 					hx-target={ ContentID.Target() }
 					hx-swap="innerMorph transition:true"
 					hx-trigger="load delay:10s"
+					hx-nonce={ templ.GetNonce(ctx) }
 				>Go Home</a>
 			</div>
 		</div>
@@ -224,6 +227,7 @@ templ Unsubscribe(token string) {
 					hx-post={ "/unsubscribe/" + token }
 					hx-target="#unsubscribe"
 					hx-swap="innerMorph transition:true"
+					hx-nonce={ templ.GetNonce(ctx) }
 				>
 					Unsubscribe
 				</button>

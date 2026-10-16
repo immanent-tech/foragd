@@ -24,6 +24,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavHome) }
 		>
 			<span class="sr-only">Go to Home Page</span>
@@ -43,6 +44,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavSubscriptions) }
 		>
 			<span class="sr-only">Go to Subscriptions</span>
@@ -62,6 +64,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("bg-primary/25 rounded-lg", nav == NavArticles) }
 			hx-include="[name='subscriptions']"
 		>
@@ -81,6 +84,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavFavorites) }
 		>
 			<span class="sr-only">Go to Favorites</span>
@@ -99,6 +103,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavDiscover) }
 		>
 			<span class="sr-only">Discover Feeds</span>

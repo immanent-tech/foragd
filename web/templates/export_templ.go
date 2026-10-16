@@ -113,7 +113,20 @@ func ExportSubscriptions(breadcrumbs Breadcrumbs) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"innerMorph transition:true\" hx-push-url=\"true\">Back</button><form method=\"post\"><button type=\"submit\" class=\"btn btn-primary\">Export</button></form></div></div><center id=\"processing\" class=\"htmx-indicator\">Processing, this could take a few minutes... <span class=\"loading loading-md loading-spinner\"></span></center>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"innerMorph transition:true\" hx-push-url=\"true\" hx-nonce=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var7 string
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/export.templ`, Line: 38, Col: 37}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">Back</button><form method=\"post\"><button type=\"submit\" class=\"btn btn-primary\">Export</button></form></div></div><center id=\"processing\" class=\"htmx-indicator\">Processing, this could take a few minutes... <span class=\"loading loading-md loading-spinner\"></span></center>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

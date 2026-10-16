@@ -84,6 +84,7 @@ templ MapArticles(response *models.ListArticlesResponse) {
 				hx-vals={ templ.JSONString(response.Filters) }
 				hx-trigger="every 5m"
 				hx-target="#updates"
+				hx-nonce={ templ.GetNonce(ctx) }
 			></div>
 		}
 	}

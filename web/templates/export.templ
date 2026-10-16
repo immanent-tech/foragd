@@ -35,6 +35,7 @@ templ ExportSubscriptions(breadcrumbs Breadcrumbs) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph transition:true"
 							hx-push-url="true"
+							hx-nonce={ templ.GetNonce(ctx) }
 						>
 							Back
 						</button>

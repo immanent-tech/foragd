@@ -188,11 +188,24 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-trigger=\"refresh\" hx-indicator=\"#refreshing\"><div class=\"space-y-8 sm:col-span-2\"><section aria-labelledby=\"section-latest-articles\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-trigger=\"refresh\" hx-indicator=\"#refreshing\" hx-nonce=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Var9 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+						var templ_7745c5c3_Var9 string
+						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 64, Col: 36}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><div class=\"space-y-8 sm:col-span-2\"><section aria-labelledby=\"section-latest-articles\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Var10 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 							templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 							templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 							if !templ_7745c5c3_IsBuffer {
@@ -208,7 +221,7 @@ func UserHome(data *HomeData) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Var10 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+							templ_7745c5c3_Var11 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 								if !templ_7745c5c3_IsBuffer {
@@ -220,49 +233,62 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a hx-get=\"")
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								var templ_7745c5c3_Var11 string
-								templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(routeArticles.String())
-								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 73, Col: 42}
-								}
-								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a hx-get=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 								var templ_7745c5c3_Var12 string
-								templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+								templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(routeArticles.String())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 74, Col: 41}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 74, Col: 42}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"innerMorph show:top transition:true\" class=\"link text-sm text-secondary link-hover\">See all <span aria-hidden=\"true\">-></span></a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var13 string
+								templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 75, Col: 41}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-swap=\"innerMorph show:top transition:true\" hx-nonce=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var14 string
+								templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 77, Col: 41}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"link text-sm text-secondary link-hover\">See all <span aria-hidden=\"true\">-></span></a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = sectionActions().Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = sectionActions().Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"masonry-grid relative mt-2 grid grid-cols-1 items-start gap-2 sm:grid-cols-2\" _=\"install MasonryGrid\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"masonry-grid relative mt-2 grid grid-cols-1 items-start gap-2 sm:grid-cols-2\" _=\"install MasonryGrid\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -272,11 +298,11 @@ func UserHome(data *HomeData) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></section></div><aside class=\"space-y-5\"><div class=\"overflow-hidden rounded-box border border-base-content/8 bg-base-200\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></section></div><aside class=\"space-y-5\"><div class=\"overflow-hidden rounded-box border border-base-content/8 bg-base-200\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+						templ_7745c5c3_Var15 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 							templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 							templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 							if !templ_7745c5c3_IsBuffer {
@@ -292,7 +318,7 @@ func UserHome(data *HomeData) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Var14 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+							templ_7745c5c3_Var16 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 								if !templ_7745c5c3_IsBuffer {
@@ -304,76 +330,89 @@ func UserHome(data *HomeData) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a class=\"link text-sm text-secondary link-hover\" hx-get=\"/subscriptions\" hx-target=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<a class=\"link text-sm text-secondary link-hover\" hx-get=\"/subscriptions\" hx-target=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								var templ_7745c5c3_Var15 string
-								templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+								var templ_7745c5c3_Var17 string
+								templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 96, Col: 114}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 101, Col: 41}
 								}
-								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\">All</a>")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" hx-nonce=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var18 string
+								templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 102, Col: 41}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\">All</a>")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = sectionActions().Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = sectionActions().Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = sectionHeading(element.WithClasses("pt-2 px-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = sectionHeading(element.WithClasses("pt-2 px-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<ul role=\"list\" class=\"scrollbar-thin divide-y divide-neutral/15 overflow-y-auto\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<ul role=\"list\" class=\"scrollbar-thin divide-y divide-neutral/15 overflow-y-auto\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						for idx, subscription := range data.Subscriptions {
 							styleAttr := fmt.Sprintf("--i: %d; --hue: %ddeg", idx, hueFromText(subscription.GetTitle()+subscription.GetLink()))
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<li style=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<li style=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var16 string
-							templ_7745c5c3_Var16, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(styleAttr)
+							var templ_7745c5c3_Var19 string
+							templ_7745c5c3_Var19, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(styleAttr)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 103, Col: 28}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 110, Col: 28}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform] animation-delay-[calc(min(var(--i),15)*80ms)]\" id=\"")
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var17 string
-							templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
-							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 105, Col: 36}
-							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"group hover:hover-shadow flex animate-fadeinup cursor-pointer touch-manipulation flex-col px-4 py-4 will-change-[opacity,transform] animation-delay-[calc(min(var(--i),15)*80ms)]\" id=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-indicator=\"this\"")
+							var templ_7745c5c3_Var20 string
+							templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetID())
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 112, Col: 36}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, generateSubscriptionViewAttributes(subscription))
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-indicator=\"this\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, ">")
+							templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, generateSubscriptionViewAttributes(ctx, subscription))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, ">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -381,51 +420,64 @@ func UserHome(data *HomeData) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<p class=\"mt-2 text-center text-sm/6 tabular-nums\">Updated <relative-time datetime=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-2 text-center text-sm/6 tabular-nums\">Updated <relative-time datetime=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var18 string
-							templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
+							var templ_7745c5c3_Var21 string
+							templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 113, Col: 88}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 120, Col: 88}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" format=\"relative\" class=\"font-semibold\">")
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var19 string
-							templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
-							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 117, Col: 67}
-							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" format=\"relative\" class=\"font-semibold\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</relative-time></p></li>")
+							var templ_7745c5c3_Var22 string
+							templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("Jan _2, 2006"))
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 124, Col: 67}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</relative-time></p></li>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscriptions/add\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</ul><div class=\"border-t border-base-content/6 px-4 py-3\"><button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Add a new feed\" hx-get=\"/subscriptions/add\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var20 string
-						templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+						var templ_7745c5c3_Var23 string
+						templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 129, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 136, Col: 40}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" hx-push-url=\"true\" hx-indicator=\"this\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" hx-push-url=\"true\" hx-indicator=\"this\" hx-nonce=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var24 string
+						templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 139, Col: 40}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -433,20 +485,33 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span>Add a feed</span></button> <button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Discover new feeds\" hx-get=\"/discover\" hx-target=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span>Add a feed</span></button> <button class=\"btn flex w-full items-center justify-center gap-1.5 btn-ghost text-secondary btn-sm\" aria-label=\"Discover new feeds\" hx-get=\"/discover\" hx-target=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var21 string
-						templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+						var templ_7745c5c3_Var25 string
+						templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 140, Col: 40}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 148, Col: 40}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" hx-push-url=\"true\" hx-indicator=\"this\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" hx-push-url=\"true\" hx-indicator=\"this\" hx-nonce=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var26 string
+						templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 151, Col: 40}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -454,16 +519,16 @@ func UserHome(data *HomeData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<span>Discover new feeds</span></button></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span>Discover new feeds</span></button></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						if len(data.TopCategories) > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"rounded-box border border-base-content/8 bg-base-200\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"rounded-box border border-base-content/8 bg-base-200\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Var22 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+							templ_7745c5c3_Var27 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 								templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 								templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 								if !templ_7745c5c3_IsBuffer {
@@ -481,11 +546,11 @@ func UserHome(data *HomeData) templ.Component {
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = sectionHeading(element.WithClasses("pt-2 px-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var22), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = sectionHeading(element.WithClasses("pt-2 px-4")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"flex flex-wrap justify-center gap-1.5 p-4\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"flex flex-wrap justify-center gap-1.5 p-4\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -503,12 +568,12 @@ func UserHome(data *HomeData) templ.Component {
 									return templ_7745c5c3_Err
 								}
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div></div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div></div>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</aside></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</aside></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -520,38 +585,51 @@ func UserHome(data *HomeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				filters := models.NewListFilters()
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div id=\"updates\" class=\"toast toast-center z-10\" hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div id=\"updates\" class=\"toast toast-center z-10\" hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var23 string
-				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue(routeArticlesUpdates.String())
+				var templ_7745c5c3_Var28 string
+				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.ResolveAttributeValue(routeArticlesUpdates.String())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 181, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 190, Col: 43}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" hx-vals=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var24 string
-				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 182, Col: 39}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" hx-vals=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-trigger=\"every 5m\" hx-target=\"#updates\"></div>")
+				var templ_7745c5c3_Var29 string
+				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.JSONString(filters))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 191, Col: 39}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var29)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" hx-trigger=\"every 5m\" hx-target=\"#updates\" hx-nonce=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var30 string
+				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 194, Col: 34}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -588,12 +666,12 @@ func NewUserHome() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var25 == nil {
-			templ_7745c5c3_Var25 = templ.NopComponent
+		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var31 == nil {
+			templ_7745c5c3_Var31 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var26 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var32 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -605,7 +683,7 @@ func NewUserHome() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Var27 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var33 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -617,7 +695,7 @@ func NewUserHome() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Var28 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var34 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -629,11 +707,11 @@ func NewUserHome() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<div class=\"mt-16 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 0\"><p class=\"text-base text-balance text-accent uppercase\">Welcome to Foragd</p><h1 class=\"my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl\">Your feed reader,<br>your way.</h1><p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div class=\"mt-16 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 0\"><p class=\"text-base text-balance text-accent uppercase\">Welcome to Foragd</p><h1 class=\"my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl\">Your feed reader,<br>your way.</h1><p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var29 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_Var35 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 						if !templ_7745c5c3_IsBuffer {
@@ -651,24 +729,37 @@ func NewUserHome() templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2\"><a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscriptions/add\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2\"><a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/subscriptions/add\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var30 string
-					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+					var templ_7745c5c3_Var36 string
+					templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 208, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 218, Col: 37}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" hx-swap=\"innerMorph show:top transition:true\" hx-push-url=\"true\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\" hx-swap=\"innerMorph show:top transition:true\" hx-push-url=\"true\" hx-nonce=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var37 string
+					templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 221, Col: 37}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -676,20 +767,33 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div><div class=\"card-title text-secondary\">Add a feed</div><p class=\"text-base/7 text-secondary\">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p></div><div class=\"card-actions justify-end text-accent\">Get started <span aria-hidden=\"true\">-></span></div></a> <a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/import\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div><div class=\"card-title text-secondary\">Add a feed</div><p class=\"text-base/7 text-secondary\">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p></div><div class=\"card-actions justify-end text-accent\">Get started <span aria-hidden=\"true\">-></span></div></a> <a class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\" hx-get=\"/import\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var31 string
-					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+					var templ_7745c5c3_Var38 string
+					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 222, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 233, Col: 37}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" hx-swap=\"innerMorph show:top transition:true\" hx-push-url=\"true\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" hx-swap=\"innerMorph show:top transition:true\" hx-push-url=\"true\" hx-nonce=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var39 string
+					templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 236, Col: 37}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var39)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -697,11 +801,11 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div><div class=\"card-title text-secondary\">Import from OPML</div><p class=\"text-base/7 text-secondary\">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p></div><div class=\"card-actions justify-end text-accent\">Upload OPML file <span aria-hidden=\"true\">-></span></div></a></div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div><div class=\"card-title text-secondary\">Import from OPML</div><p class=\"text-base/7 text-secondary\">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p></div><div class=\"card-actions justify-end text-accent\">Upload OPML file <span aria-hidden=\"true\">-></span></div></a></div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var32 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_Var40 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 						if !templ_7745c5c3_IsBuffer {
@@ -719,11 +823,11 @@ func NewUserHome() templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var40), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<form><div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3\"><label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<form><div class=\"grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3\"><label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -731,7 +835,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"card-title text-secondary\" for=\"informed\">Informed</div></div><p class=\"text-sm/6\">News and information from across the web.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<div class=\"card-title text-secondary\" for=\"informed\">Informed</div></div><p class=\"text-sm/6\">News and information from across the web.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -739,7 +843,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"card-title text-secondary\" for=\"inspired\">Inspired</div></div><p class=\"text-sm/6\">Digital art, design and creative oddities.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" class=\"checkbox checkbox-sm checkbox-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div class=\"card-title text-secondary\" for=\"inspired\">Inspired</div></div><p class=\"text-sm/6\">Digital art, design and creative oddities.</p></label> <label class=\"card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]\"><div class=\"flex flex-row items-center gap-x-3\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" class=\"checkbox checkbox-sm checkbox-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -747,7 +851,20 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</div></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></label></div><div class=\"mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\"><button hx-post=\"/subscriptions/add/feedset\" hx-swap=\"none\" hx-disable=\"this\" type=\"submit\" class=\"btn btn-primary\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<div class=\"card-title text-secondary\" for=\"enlightened\">Enlightened</div></div><p class=\"text-sm/6\">Alternative and fringe perspectives.</p></label></div><div class=\"mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 2\"><button hx-post=\"/subscriptions/add/feedset\" hx-swap=\"none\" hx-disable=\"this\" hx-nonce=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var41 string
+					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 301, Col: 38}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" type=\"submit\" class=\"btn btn-outline\" id=\"add-sets-btn\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> Processing</span> <span class=\"hide-loading\"><div class=\"flex flex-row items-center gap-x-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -755,11 +872,11 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<span class=\"text-sm/6\">Add Sets</span></div></span></button></div></form></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"text-sm/6\">Add Sets</span></div></span></button></div></form></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var33 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_Var42 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 						if !templ_7745c5c3_IsBuffer {
@@ -775,17 +892,17 @@ func NewUserHome() templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<p class=\"text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<p class=\"text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<div class=\"mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -793,11 +910,11 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div></div><div class=\"mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]\" style=\"--i: 4\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var34 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+					templ_7745c5c3_Var43 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 						if !templ_7745c5c3_IsBuffer {
@@ -815,29 +932,29 @@ func NewUserHome() templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = sectionHeading().Render(templ.WithChildren(ctx, templ_7745c5c3_Var43), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<ul role=\"list\" class=\"divide-y divide-accent\"><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/docs\">Documentation Home</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/blog\">Blog</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/changelog\">Changelog</a></li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<ul role=\"list\" class=\"divide-y divide-accent\"><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/docs\">Documentation Home</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/blog\">Blog</a></li><li class=\"px-4 py-4 sm:px-0\"><a class=\"link link-hover\" href=\"/changelog\">Changelog</a></li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var28), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = templ.Fragment(ContentFragment).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templ.Fragment(ContentFragment).Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutInternal(NavHome, &InternalLayoutProps{User: models.UserFromCtx(ctx)}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutInternal(NavHome, &InternalLayoutProps{User: models.UserFromCtx(ctx)}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

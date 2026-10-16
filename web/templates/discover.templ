@@ -40,6 +40,7 @@ templ Discover(request *models.SuggestFeedsRequest) {
 						hx-sync="this:replace"
 						hx-indicator="#discover-loading"
 						hx-include="#category-suggestions"
+						hx-nonce={ templ.GetNonce(ctx) }
 						_="
 						on htmx:before:request set #discover-suggestions.innerHTML to ''
 						on keydown[key=='Enter'] halt the event
@@ -201,6 +202,7 @@ templ feedSuggestion(feed *models.Feed, items models.Items) {
 							hx-swap="none"
 							hx-disable="this"
 							hx-encoding="multipart/form-data"
+							hx-nonce={ templ.GetNonce(ctx) }
 							data-suggestionid={ "#suggestion-" + feed.GetID() }
 							_="on htmx:after:request(successful) remove me"
 						>

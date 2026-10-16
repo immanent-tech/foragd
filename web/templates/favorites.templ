@@ -14,7 +14,7 @@ import (
 )
 
 templ scriptFavoritesTabHandler() {
-	<script type="module">
+	<script id="favorites-tab" type="module" nonce={ templ.GetNonce(ctx) }>
 		const tabGroup = document.getElementById('favorites-tabs')
 
 		// Map hash → tab index
@@ -46,7 +46,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 			@container(element.WithClasses("pt-4")) {
 				<el-tab-group
 					id="favorites-tabs"
-					data-script="
+					_="
 					init
                        	set hash to window.location.hash.replace('#', '')
 						if hash is empty
@@ -130,6 +130,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 																	hx-swap="innerMorph show:top transition:true"
 																	hx-trigger="click"
 																	hx-push-url="true"
+																	hx-nonce={ templ.GetNonce(ctx) }
 																	_="on click halt the event's bubbling"
 																	class="line-clamp-3 text-base"
 																	title={ item.GetTitle() }
@@ -156,6 +157,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 										hx-get="/subscriptions"
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
+										hx-nonce={ templ.GetNonce(ctx) }
 										class="btn mt-6 btn-primary"
 									>
 										Go to your subscriptions <span aria-hidden="true">-></span>
@@ -187,6 +189,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 										hx-get={ routeArticles.String() }
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
+										hx-nonce={ templ.GetNonce(ctx) }
 										class="btn mt-6 btn-primary"
 									>
 										Go to your articles <span aria-hidden="true">-></span>

@@ -39,6 +39,7 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 					hx-encoding="multipart/form-data"
 					hx-swap="none"
 					hx-disable="find button[type='submit']"
+					hx-nonce={ templ.GetNonce(ctx) }
 					class="mt-12"
 				>
 					<fieldset class="fieldset min-w-0">
@@ -137,6 +138,7 @@ templ ReportIssue(details *models.ReportIssueRequest, breadcrumbs Breadcrumbs) {
 								hx-target={ ContentID.Target() }
 								hx-swap="innerMorph transition:true"
 								hx-push-url="true"
+								hx-nonce={ templ.GetNonce(ctx) }
 							>
 								Back
 							</button>

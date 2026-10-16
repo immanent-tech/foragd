@@ -28,6 +28,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome end"
 						>
@@ -52,6 +53,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions end"
 						>
@@ -77,6 +79,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles end"
 						>
@@ -99,6 +102,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end"
 						>
@@ -121,6 +125,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end"
 						>

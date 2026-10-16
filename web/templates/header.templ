@@ -144,6 +144,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 				hx-get="/home"
 				hx-target={ ContentID.Target() }
 				hx-swap="innerMorph show:top transition:true"
+				hx-nonce={ templ.GetNonce(ctx) }
 				class="flex shrink link link-hover"
 				aria-label="Foragd home"
 			>
@@ -196,6 +197,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 								<a
 									hx-get="/favorites"
 									hx-target={ ContentID.Target() }
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
 										@tableroutline.Heart(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
@@ -208,6 +210,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 								<a
 									hx-get="/settings"
 									hx-target={ ContentID.Target() }
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
 										@tabler.Settings(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
@@ -222,6 +225,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									hx-target={ ContentID.Target() }
 									hx-swap="innerMorph transition:true"
 									hx-replace-url="true"
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
 										@tabler.Lifebuoy(templ.Attributes{"class": "size-5", "aria-hidden": "true"})
@@ -245,6 +249,7 @@ templ HeaderInternal(props *InternalLayoutProps) {
 									hx-get="/issue"
 									hx-target={ ContentID.Target() }
 									hx-replace-url="true"
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
 										@tabler.Flag(templ.Attributes{"class": "size-5", "aria-hidden": "true"})

@@ -72,6 +72,7 @@ templ categoryOption(path string, category models.Category, filters models.ListF
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			if checked {
 				@tableroutline.Check(templ.Attributes{"class": "size-5 shrink-0 stroke-accent opacity-100", "aria-hidden": "true"})
@@ -95,6 +96,7 @@ templ clearCategoryFiltersOption(path string, filters models.ListFilters) {
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-params="not selected_subscriptions,categories"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			@tableroutline.X(templ.Attributes{"class": "size-5 shrink-0 stroke-accent", "aria-hidden": "true"})
 			<span class="block text-sm/6 font-medium">Clear</span>

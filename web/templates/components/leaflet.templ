@@ -14,17 +14,17 @@ var leafletOnce = templ.NewOnceHandle()
 templ LeafletAssets() {
 	@leafletOnce.Once() {
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-		<script type="importmap">
-			{
-				"imports": {
-					"leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
-					"leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
-				}
-			}
-		</script>
-		<script type="module">
-			import 'leaflet-html'
-		</script>
+		// <script type="importmap" nonce={ templ.GetNonce(ctx) }>
+		// 	{
+		// 		"imports": {
+		// 			"leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
+		// 			"leaflet-html": "https://unpkg.com/leaflet-html@latest/dist/leaflet-html.js"
+		// 		}
+		// 	}
+		// </script>
+		// <script type="module" nonce={ templ.GetNonce(ctx) }>
+		// 	import 'leaflet-html'
+		// </script>
 	}
 }
 
@@ -76,7 +76,7 @@ templ LeafletMap(options ...element.PropertiesOption) {
 			}
 		</div>
 	</l-map>
-	<script>
+	<script nonce={ templ.GetNonce(ctx) }>
 		document.getElementById('map').addEventListener('popupopen', (ev) => {
 			const popupEl = ev.detail.popup.getElement()
 			htmx.process(popupEl)

@@ -51,6 +51,7 @@ templ Linter() {
 						hx-target="#linter-results"
 						hx-swap="innerMorph"
 						hx-disable="find button[type='submit']"
+						hx-nonce={ templ.GetNonce(ctx) }
 						_="on htmx:before:request set the innerHTML of #linter-results to ''"
 						class="group"
 					>

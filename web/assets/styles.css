@@ -7,7 +7,6 @@
 @import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui';
-
 @import './daisyui-custom.css';
 
 /* Use page view transitions. */

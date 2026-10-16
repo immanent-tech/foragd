@@ -59,59 +59,85 @@ func ForgetMe() templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\" async defer></script> <section id=\"contact\" class=\"mx-auto sm:max-w-4xl\"><h1 id=\"page-title\" class=\"mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Forget Me</h1><p class=\"mt-2 max-w-4xl text-neutral\">Use this form to request deletion of your account and all personal data stored in the app. We will contact you on the email address provided to confirm deletion and completion of the request.</p><p class=\"mt-2 max-w-4xl text-neutral\">Note: to verify your identity for security, we may request extra information before addressing your request.</p><form hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\" async defer nonce=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue("/contact")
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 23, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 11, Col: 110}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"></script> <section id=\"contact\" class=\"mx-auto sm:max-w-4xl\"><h1 id=\"page-title\" class=\"mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl\">Forget Me</h1><p class=\"mt-2 max-w-4xl text-neutral\">Use this form to request deletion of your account and all personal data stored in the app. We will contact you on the email address provided to confirm deletion and completion of the request.</p><p class=\"mt-2 max-w-4xl text-neutral\">Note: to verify your identity for security, we may request extra information before addressing your request.</p><form hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue("/contact")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 24, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 23, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-target-error=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 25, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 24, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-disable=\"find button[type='submit']\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"></div><span class=\"text-sm font-semibold\">Use the email address associated with your account.</span></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-target-error=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(os.Getenv("CLOUDFLARE_TURNSTILE_KEY"))
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(ContentID.Target())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 50, Col: 86}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 25, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"></div></div></div></div><div class=\"mt-6 flex w-full items-center justify-end gap-x-6 sm:max-w-3xl\"><button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-encoding=\"multipart/form-data\" hx-swap=\"none\" hx-disable=\"find button[type='submit']\" hx-nonce=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 29, Col: 35}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"mt-12\"><div class=\"space-y-12\"><div class=\"mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6\"><div class=\"sm:col-span-4\"><label for=\"email\" class=\"block text-sm/6 font-medium text-neutral\">Email address</label><div class=\"mt-2\"><input id=\"email\" type=\"email\" name=\"contact_email\" autocomplete=\"email\" required class=\"input bg-base-300 brightness-95 input-primary\"></div><span class=\"text-sm font-semibold\">Use the email address associated with your account.</span></div><div class=\"col-span-full\"><div class=\"cf-turnstile\" data-sitekey=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var9 string
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(os.Getenv("CLOUDFLARE_TURNSTILE_KEY"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/forget-me.templ`, Line: 51, Col: 86}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"></div></div></div></div><div class=\"mt-6 flex w-full items-center justify-end gap-x-6 sm:max-w-3xl\"><button type=\"submit\" class=\"group btn btn-primary\"><span class=\"hidden items-center group-[.htmx-request]:inline-flex\"><span class=\"loading mr-3 loading-spinner\"></span> <span class=\"text-sm/6\">Processing</span></span> <span class=\"inline-flex items-center group-[.htmx-request]:hidden\"><span class=\"text-sm/6\">Submit</span></span></button></div></form></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

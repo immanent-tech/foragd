@@ -205,6 +205,7 @@ templ mobileSortOption(path string, sort models.Sort, filters models.ListFilters
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",isCurrentSort(sort,filters)) }>{ sort.String() }</span>
@@ -292,6 +293,7 @@ templ viewFilterOption(path string, view models.View, filters models.ListFilters
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="flex justify-between gap-2"
 		>
 			<span class={ "font-normal capitalize text-base-content", templ.KV("font-semibold",active) }>{ string(view) }</span>
@@ -314,6 +316,7 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 		hx-target="#grid-objects"
 		hx-swap="append"
 		hx-indicator="#loading-items"
+		hx-nonce={ templ.GetNonce(ctx) }
 		_="
 		on htmx:before:history:restore from body
 			toggle .hidden on me until gridLayoutComplete from body
@@ -362,6 +365,7 @@ templ categoryFilterOption(category models.Category, path string, filters models
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",slices.Contains(currentCategories,category)) }>
 				{ html.UnescapeString(category) }
@@ -383,6 +387,7 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			<span class="font-normal text-base-content">
 				Clear
@@ -432,6 +437,7 @@ templ languageFilterOption(lang models.Language, path string, filters models.Lis
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			<span class={ "font-normal text-base-content", templ.KV("font-semibold",currentLanguage != nil && lang == *currentLanguage) }>
 				{ lang }
@@ -453,6 +459,7 @@ templ clearLanguageFilterOption(path string, filters models.ListFilters) {
 			hx-swap="innerMorph transition:true"
 			hx-vals={ templ.JSONString(filters) }
 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			<span class="font-normal text-base-content">
 				Clear

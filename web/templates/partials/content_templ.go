@@ -43,7 +43,20 @@ func NoContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">All caught up!</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Congratulations, you've read everything!</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a hx-get=\"/favorites\" hx-target=\"#content\" hx-swap=\"innerMorph show:top transition:true\" class=\"btn btn-accent\">View favorites</a></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance\">All caught up!</h1><p class=\"mt-6 text-lg font-medium text-pretty\">Congratulations, you've read everything!</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"/favorites\" hx-get=\"/favorites\" hx-target=\"#content\" hx-swap=\"innerMorph show:top transition:true\" hx-nonce=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/content.templ`, Line: 20, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"btn btn-accent\">View favorites</a></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

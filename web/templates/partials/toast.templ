@@ -47,5 +47,6 @@ templ UpdatesPoller(path string, filters *models.ListFilters) {
 		}
 		hx-trigger="every 5m"
 		hx-target="#updates"
+		hx-nonce={ templ.GetNonce(ctx) }
 	></div>
 }

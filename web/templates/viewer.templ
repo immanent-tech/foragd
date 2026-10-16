@@ -120,6 +120,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						hx-target="#viewer-results"
 						hx-swap="innerMorph"
 						hx-disable="find button[type='submit']"
+						hx-nonce={ templ.GetNonce(ctx) }
 						_="on htmx:before:request set the innerHTML of #viewer-results to ''"
 						class="group"
 					>

@@ -37,6 +37,7 @@ templ ImportSubscriptions() {
 						hx-target="#import-results"
 						hx-indicator="#import-button"
 						hx-push-url="false"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						<div
 							id="drop-zone"
@@ -150,6 +151,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 							hx-trigger="every 10s"
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph"
+							hx-nonce={ templ.GetNonce(ctx) }
 						}
 					>
 						<p class="py-4 text-lg font-semibold">Status: { string(status.Status) }...</p>
@@ -207,6 +209,7 @@ templ ImportStatus(status *models.ImportStatus, results []*models.ImportResult, 
 								hx-get="/subscriptions"
 								hx-target={ ContentID.Target() }
 								hx-vals={ templ.JSONString(filters) }
+								hx-nonce={ templ.GetNonce(ctx) }
 								class="btn btn-primary"
 							>
 								Go to your subscriptions
@@ -322,6 +325,7 @@ templ ImportList(imports []*models.ImportStatus, msg *models.UserMessage) {
 								hx-target={ ContentID.Target() }
 								hx-swap="innerMorph"
 								hx-push-url="true"
+								hx-nonce={ templ.GetNonce(ctx) }
 								class="link link-hover"
 							>
 								<td>{ importStatus.CreatedAt.Format(time.DateTime) }</td>

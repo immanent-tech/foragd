@@ -19,7 +19,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 		<a
 			hx-on::after:request="document.getElementById('commands').close()"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			{ generateSubscriptionViewAttributes(subscription)... }
+			{ generateSubscriptionViewAttributes(ctx,subscription)... }
 		>
 			<div class="flex-none">
 				if img := subscription.GetImage(); img == "" {
@@ -49,13 +49,13 @@ templ Search() {
 	<el-popover-group class="flex w-full items-center justify-center">
 		<div class="input w-full bg-base-200 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
 			// Keyboard navigation of search input and results.
-			@scriptSearchKeyboardNav()
 			@tableroutline.Search(templ.Attributes{"class": "pointer-events-none flex-none text-base-content", "aria-hidden": "true"})
 			<input
 				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
 				hx-trigger="keydown[key=='Enter'] consume"
+				hx-nonce={ templ.GetNonce(ctx) }
 				id="global-search"
 				type="search"
 				name="text"
@@ -88,6 +88,7 @@ templ Search() {
 				hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#global-search"
 				hx-on::after:request="if (!window._searchSubmitted) document.getElementById('search-suggestions-popover').showPopover()"
 				hx-sync="this:replace"
+				hx-nonce={ templ.GetNonce(ctx) }
 				popovertarget="search-suggestions-popover"
 				type="button"
 				aria-label="Search suggestions"
@@ -141,6 +142,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-include="#search-filters,[id='timezone']"
 			hx-sync="#search-suggestions-popover:drop"
 			hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
+			hx-nonce={ templ.GetNonce(ctx) }
 			_="on htmx:before:request set #global-search.value to #suggestion-text.value"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 		>
@@ -203,7 +205,7 @@ templ suggestSubscription(subscription *models.Subscription) {
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
 		hx-sync="#global-search:drop"
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
-		{ generateSubscriptionViewAttributes(subscription)... }
+		{ generateSubscriptionViewAttributes(ctx,subscription)... }
 	>
 		<div class="group flex items-center">
 			if img := subscription.GetImage(); img != "" {
@@ -235,6 +237,7 @@ templ suggestArticle(article *models.Article) {
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
 		hx-sync="#global-search:drop"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 	>
 		if img := article.GetImage(); img != nil {
@@ -258,6 +261,7 @@ templ suggestAddFeedSubscription() {
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 	>
 		@tableroutline.CirclePlus(templ.Attributes{
@@ -276,6 +280,7 @@ templ suggestAddGroupSubscription() {
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 	>
 		@tableroutline.CirclePlus(templ.Attributes{
@@ -294,6 +299,7 @@ templ suggestAddSearchSubscription() {
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 	>
 		@tableroutline.CirclePlus(templ.Attributes{
@@ -312,6 +318,7 @@ templ suggestDiscover() {
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-on::before:request="document.getElementById('search-suggestions-popover').hidePopover()"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 	>
 		@tableroutline.WorldSearch(templ.Attributes{
@@ -354,6 +361,7 @@ templ SearchResults(results *models.SearchResults) {
 						hx-vals={ templ.JSONString(results.Search) }
 						hx-trigger="every 5m"
 						hx-target="#updates"
+						hx-nonce={ templ.GetNonce(ctx) }
 					></div>
 					@SearchControls(results)
 					if len(results.Articles) > 1 {
@@ -435,6 +443,7 @@ templ SearchControls(results *models.SearchResults) {
 											hx-post="/articles/read"
 											hx-target={ ModalContainerID.Target() }
 											hx-include="#grid-objects"
+											hx-nonce={ templ.GetNonce(ctx) }
 											class="group/item flex items-center gap-x-2"
 										>
 											@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -449,6 +458,7 @@ templ SearchControls(results *models.SearchResults) {
 											hx-post="/articles/unread"
 											hx-target={ ModalContainerID.Target() }
 											hx-include="#grid-objects"
+											hx-nonce={ templ.GetNonce(ctx) }
 											class="group/item flex items-center gap-x-2"
 										>
 											@tableroutline.Mail(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -463,6 +473,7 @@ templ SearchControls(results *models.SearchResults) {
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
+										hx-nonce={ templ.GetNonce(ctx) }
 										class="group/item flex items-center gap-x-2"
 									>
 										@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -494,6 +505,7 @@ templ SearchControls(results *models.SearchResults) {
 							hx-post="/articles/read"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects"
+							hx-nonce={ templ.GetNonce(ctx) }
 							class="btn border-neutral/15 btn-outline btn-sm"
 						>
 							@tableroutline.MailOpened(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -518,6 +530,7 @@ templ SearchControls(results *models.SearchResults) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="btn border-neutral/15 btn-outline btn-sm"
 					>
 						@tableroutline.Edit(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -529,6 +542,7 @@ templ SearchControls(results *models.SearchResults) {
 					hx-get="/subscriptions/add/search"
 					hx-target={ ContentID.Target() }
 					hx-include="#search-filters"
+					hx-nonce={ templ.GetNonce(ctx) }
 					class="btn border-neutral/15 btn-outline btn-sm"
 				>
 					@tableroutline.Plus(templ.Attributes{"class": "size-4", "aria-hidden": "true"})
@@ -549,6 +563,7 @@ templ SearchPaginationControl(search *models.SearchRequest, options ...element.P
 		hx-target="#grid-objects"
 		hx-swap="append"
 		hx-indicator="#loading-items"
+		hx-nonce={ templ.GetNonce(ctx) }
 		_="
 		on htmx:before:history:restore from body
 			toggle .hidden on me until gridLayoutComplete from body
@@ -711,6 +726,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				hx-target={ ContentID.Target() }
 				hx-include="[id='timezone'],#search-filters"
 				hx-disable="find button[type='submit']"
+				hx-nonce={ templ.GetNonce(ctx) }
 				_="on htmx:before:request call #search-advanced-popover.hidePopover()"
 			>
 				<button
@@ -758,6 +774,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-post="/search/subscription"
 			hx-swap="beforeend"
 			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 			_="on htmx:after:request(successful) remove me"
 			aria-label={ "Add subscription filter for " + subscription.GetTitle() }
 		>
@@ -823,70 +840,4 @@ templ SimilarArticles(articles models.Articles) {
 			}
 		}
 	}
-}
-
-templ scriptSearchKeyboardNav() {
-	<script>
-		{
-			const input = document.getElementById('global-search')
-			const popover = document.getElementById('search-suggestions-popover')
-
-			input.addEventListener('keydown', (e) => {
-				const items = [...popover.querySelectorAll('[role="option"]')]
-				if (!items.length) return
-
-				const current = document.activeElement
-				const idx = items.indexOf(current)
-
-				if (e.key === 'ArrowDown') {
-					e.preventDefault()
-					const next = idx < items.length - 1 ? items[idx + 1] : items[0]
-					next.focus()
-				}
-
-				if (e.key === 'ArrowUp') {
-					e.preventDefault()
-					const prev = idx > 0 ? items[idx - 1] : items[items.length - 1]
-					prev.focus()
-				}
-
-				if (e.key === 'Escape') {
-					popover.hidePopover()
-					input.focus()
-				}
-			})
-
-			// Allow ArrowUp to re-enter the list from any focused item
-			popover.addEventListener('keydown', (e) => {
-				const items = [...popover.querySelectorAll('[role="option"]')]
-				const idx = items.indexOf(document.activeElement)
-
-				if (e.key === 'ArrowDown') {
-					e.preventDefault()
-					const next = idx < items.length - 1 ? items[idx + 1] : items[0]
-					next.focus()
-				}
-
-				if (e.key === 'ArrowUp') {
-					e.preventDefault()
-					if (idx === 0) {
-						input.focus()
-					} else {
-						items[idx - 1].focus()
-					}
-				}
-
-				if (e.key === 'Escape') {
-					popover.hidePopover()
-					input.focus()
-				}
-
-				if (e.key === 'Enter') {
-					e.preventDefault()
-					e.stopPropagation()
-					document.activeElement.click()
-				}
-			})
-		}
-	</script>
 }

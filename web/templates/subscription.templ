@@ -7,6 +7,7 @@
 package templates
 
 import (
+	"context"
 	"fmt"
 	"github.com/dimmerz92/go-icons/tabler-filled"
 	tableroutline "github.com/dimmerz92/go-icons/tabler-outline"
@@ -44,6 +45,7 @@ templ SubscriptionFavoriteToggle(subscription *models.Subscription, options ...e
 			hx-post={ "/subscriptions/" + subscription.GetID() + "/favorite" }
 			hx-swap="none"
 			hx-trigger="click consume"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			switch subscription.IsFavorite() {
 				case true:
@@ -81,6 +83,7 @@ templ SubscriptionMarkToggle(subscription *models.Subscription, options ...eleme
 			hx-post={ "/subscriptions/" + subscription.GetID() + "/" + string(mark) }
 			hx-swap="none"
 			hx-trigger="click consume"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			switch mark {
 				case models.MarkRead:
@@ -177,6 +180,7 @@ templ latestItemSummary(item *models.Item) {
 				hx-swap="innerMorph show:top transition:true"
 				hx-trigger="click"
 				hx-push-url="true"
+				hx-nonce={ templ.GetNonce(ctx) }
 				_="on click halt the event's bubbling"
 			>
 				<span class="line-clamp-2 font-serif text-base/7 font-semibold">
@@ -195,7 +199,13 @@ templ latestItemSummary(item *models.Item) {
 }
 
 templ ListMarkAllSubscriptionsButton(a MarkAction) {
-	<button class="group btn border-neutral/15 btn-outline" hx-post={ a.Path } hx-target={ ModalContainerID.Target() } hx-include="article > input">
+	<button
+		class="group btn border-neutral/15 btn-outline"
+		hx-post={ a.Path }
+		hx-target={ ModalContainerID.Target() }
+		hx-include="article > input"
+		hx-nonce={ templ.GetNonce(ctx) }
+	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
 			<span class="text-sm/6">Loading</span>
@@ -212,7 +222,12 @@ templ ListMarkAllSubscriptionsButton(a MarkAction) {
 }
 
 templ ListMarkSubscriptionButton(a MarkAction) {
-	<button class="group btn border-neutral/15 btn-outline" hx-post={ a.Path } hx-target={ ModalContainerID.Target() }>
+	<button
+		class="group btn border-neutral/15 btn-outline"
+		hx-post={ a.Path }
+		hx-target={ ModalContainerID.Target() }
+		hx-nonce={ templ.GetNonce(ctx) }
+	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
 			Loading
@@ -242,6 +257,7 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		hx-post={ "/subscriptions/" + string(mark) }
 		hx-target={ ModalContainerID.Target() }
 		hx-include=".card > input"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="btn border-neutral/15 btn-outline btn-sm"
 	>
 		if response.Filters.GetView() == models.ViewUnread {
@@ -256,6 +272,7 @@ templ listSubscriptionsButtons(response *models.ListSubscriptionsResponse) {
 		hx-get="/subscriptions/add"
 		hx-target={ ContentID.Target() }
 		hx-swap="innerMorph show:top transition:true"
+		hx-nonce={ templ.GetNonce(ctx) }
 		class="btn hidden border-neutral/15 btn-outline btn-sm sm:flex"
 	>
 		@tableroutline.Plus(templ.Attributes{"class": "size-5  stroke-base-content/80", "aria-hidden": "true"})
@@ -270,6 +287,7 @@ templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
 			<a
 				hx-get="/subscriptions/add"
 				hx-target={ ContentID.Target() }
+				hx-nonce={ templ.GetNonce(ctx) }
 				class="flex items-center gap-1"
 			>
 				@tableroutline.Plus(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -280,6 +298,7 @@ templ listSubscriptionsActions(response *models.ListSubscriptionsResponse) {
 			<a
 				hx-get="/discover"
 				hx-target={ ContentID.Target() }
+				hx-nonce={ templ.GetNonce(ctx) }
 				class="flex items-center gap-1"
 			>
 				@tableroutline.WorldSearch(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -323,6 +342,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 									hx-sync="this:replace"
 									hx-indicator="#suggestions-loading"
 									hx-include="[name='suggestion_source']"
+									hx-nonce={ templ.GetNonce(ctx) }
 									_="
 									on htmx:before:request set #subscription-suggestions.innerHTML to ''
 									on keydown[key=='Enter'] halt the event
@@ -395,6 +415,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							hx-get="/subscriptions/add/group"
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
+							hx-nonce={ templ.GetNonce(ctx) }
 						>
 							<div class="flex flex-row items-center gap-x-3">
 								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
@@ -408,6 +429,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 							hx-target={ ContentID.Target() }
 							hx-include="#search-filters"
 							hx-push-url="true"
+							hx-nonce={ templ.GetNonce(ctx) }
 						>
 							<div class="flex flex-row items-center gap-x-3">
 								@tableroutline.Plus(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
@@ -428,6 +450,7 @@ templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 										hx-post="/settings/account/newsletters"
 										hx-target="#subscription-email"
 										hx-swap="innerMorph transition:true"
+										hx-nonce={ templ.GetNonce(ctx) }
 										class="btn btn-primary"
 									>
 										<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -484,6 +507,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 			hx-swap="none"
 			hx-encoding="multipart/form-data"
 			hx-disable="find button[type='submit']"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="group"
 		>
 			// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -602,6 +626,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 						hx-encoding="multipart/form-data"
 						hx-disable="find button[type='submit']"
 						hx-vals={ templ.JSONString(request.Search) }
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="group"
 					>
 						// Add hidden inputs for non-editable search parameters.
@@ -771,6 +796,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 						hx-swap="none"
 						hx-encoding="multipart/form-data"
 						hx-disable="find button[type='submit']"
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="group"
 					>
 						// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -825,6 +851,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										hx-include="#suggestions,#subscriptions"
 										hx-swap="beforeend"
 										hx-trigger="click, subscriptionSuggestionSelected from:body"
+										hx-nonce={ templ.GetNonce(ctx) }
 										type="button"
 										class="btn join-item btn-secondary"
 										_="on htmx:after:request set #subscription-suggestion.value to ''"
@@ -885,6 +912,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest, breadc
 					hx-swap="none"
 					hx-encoding="multipart/form-data"
 					hx-disable="find button[type='submit']"
+					hx-nonce={ templ.GetNonce(ctx) }
 					class="group"
 				>
 					// Add hidden inputs when editing a subscription to know which subscription we are editing.
@@ -994,6 +1022,7 @@ templ subscriptionCategoryManagement(suggested []models.Category, existing []mod
 						hx-include="[name='customisation.categories'],[name='new_category']"
 						hx-target="#categories"
 						hx-swap="beforeend transition:true"
+						hx-nonce={ templ.GetNonce(ctx) }
 						_="on htmx:after:request if event.detail.successful then set value to '' in the closest <input/>"
 					>
 						@tableroutline.Plus(templ.Attributes{"class": "size-4"})
@@ -1104,6 +1133,7 @@ templ editSubscriptionFormButtons(action string, breadcrumbs Breadcrumbs) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph transition:true"
 			hx-push-url="true"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			Back
 		</button>
@@ -1147,6 +1177,7 @@ templ RemoveSubscriptionModal(subscription *models.Subscription, options ...elem
 				hx-get={ "/subscriptions/" + string(subscription.GetID()) + "/remove" }
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-disable="find button[type='submit']"
+				hx-nonce={ templ.GetNonce(ctx) }
 				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
@@ -1190,6 +1221,7 @@ templ BulkMarkSubscriptionsModal(mark models.Mark, options ...element.Properties
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
+				hx-nonce={ templ.GetNonce(ctx) }
 				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
@@ -1233,6 +1265,7 @@ templ BulkRemoveSubscriptionsModal(options ...element.PropertiesOption) {
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include="[name='selected_subscriptions']"
+				hx-nonce={ templ.GetNonce(ctx) }
 				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
@@ -1254,7 +1287,7 @@ templ BulkRemoveSubscriptionsModal(options ...element.PropertiesOption) {
 
 // generateSubscriptionViewAttributes generates a templ.Attributes map containing the appropriate hx-* attributes for
 // viewing the subscription, depending on its type.
-func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes {
+func generateSubscriptionViewAttributes(ctx context.Context, s *models.Subscription) templ.Attributes {
 	var (
 		path string
 		vals any
@@ -1294,6 +1327,7 @@ func generateSubscriptionViewAttributes(s *models.Subscription) templ.Attributes
 		htmx.WithHXPushURL(path),
 		htmx.WithHXTrigger("click consume"),
 		htmx.WithHXVals(vals),
+		htmx.WithNonce(templ.GetNonce(ctx)),
 	).GetAttributes()
 }
 

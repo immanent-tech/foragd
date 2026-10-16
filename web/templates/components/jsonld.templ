@@ -4,7 +4,7 @@
 package components
 
 templ AppMetadataJSONLD() {
-	<script id="application-metadata" type="application/ld+json">
+	<script id="application-metadata" type="application/ld+json" nonce={ templ.GetNonce(ctx) }>
 		{
 		  "@context": "https://schema.org",
 		  "@type": ["SoftwareApplication","WebApplication"],

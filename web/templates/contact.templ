@@ -9,7 +9,7 @@ import "github.com/immanent-tech/go-base/pkg/htmlx"
 templ Contact() {
 	@LayoutExternal() {
 		@container() {
-			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce={ templ.GetNonce(ctx) }></script>
 			<section id="contact" class="mx-auto sm:max-w-4xl">
 				<h1 id="page-title" class="mt-4 mb-2 scroll-mt-16 font-display text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Contact Us</h1>
 				<p class="mt-2 max-w-4xl text-neutral">
@@ -25,6 +25,7 @@ templ Contact() {
 					hx-encoding="multipart/form-data"
 					hx-swap="none"
 					hx-disable="find button[type='submit']"
+					hx-nonce={ templ.GetNonce(ctx) }
 					class="mt-12"
 				>
 					<div class="space-y-12">

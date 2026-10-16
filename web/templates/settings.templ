@@ -25,7 +25,7 @@ templ UserSettings() {
 		@partials.BackToTopButton()
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("pt-4")) {
-				<script type="module">
+				<script id="settings-tabs" type="module" nonce={ templ.GetNonce(ctx) }>
 					const tabGroup = document.getElementById('settings-tabs')
 
 					// Map hash → tab index
@@ -50,7 +50,7 @@ templ UserSettings() {
 				</script>
 				<el-tab-group
 					id="settings-tabs"
-					data-script="
+					_="
 					init
                        	set hash to window.location.hash.replace('#', '')
 						if hash is empty
@@ -67,19 +67,19 @@ templ UserSettings() {
 									id="settings-display-button"
 									type="button"
 									class="btn"
-									onclick="location.hash = '#display'"
+									_="on click set window.location.hash to '#display'"
 								>Display</button>
 								<button
 									id="settings-account-button"
 									type="button"
 									class="btn"
-									onclick="location.hash = '#account'"
+									_="on click set window.location.hash to '#account'"
 								>Account</button>
 								<button
 									id="settings-subscriptions-button"
 									type="button"
 									class="btn"
-									onclick="location.hash = '#subscriptions'"
+									_="on click set window.location.hash to '#subscriptions'"
 								>Subscriptions</button>
 							</el-tab-list>
 						}
@@ -96,7 +96,8 @@ templ UserSettings() {
 							hx-get="/settings/display"
 							hx-trigger="load, settings-display-revealed"
 							hx-indicator="#tabs-loading"
-							data-script="on load
+							hx-nonce={ templ.GetNonce(ctx) }
+							_="on load
                            	set hash to window.location.hash.replace('#', '')
                             if hash is 'display'
                               add .btn-primary to #settings-display-button
@@ -126,7 +127,8 @@ templ UserSettings() {
 							hx-get="/settings/account"
 							hx-trigger="settings-account-revealed"
 							hx-indicator="#tabs-loading"
-							data-script="on load
+							hx-nonce={ templ.GetNonce(ctx) }
+							_="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'account'
                                   add .btn-primary to #settings-account-button
@@ -157,7 +159,8 @@ templ UserSettings() {
 							hx-get="/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
 							hx-indicator="#tabs-loading"
-							data-script="on load
+							hx-nonce={ templ.GetNonce(ctx) }
+							_="on load
                                 set hash to window.location.hash.replace('#', '')
                                 if hash is 'subscriptions'
                                   add .btn-primary to #settings-subscriptions-button
@@ -219,6 +222,7 @@ templ AccountSettings(user *models.User) {
 									hx-get="/checkout"
 									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
 									hx-target={ ContentID.Target() }
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									Purchase a subscription
 								</button>
@@ -241,6 +245,7 @@ templ AccountSettings(user *models.User) {
 									hx-get="/checkout"
 									hx-vals='js:{"has_dgs": ("getDigitalGoodsService" in window)}'
 									hx-target={ ContentID.Target() }
+									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									Purchase a subscription
 								</button>
@@ -420,6 +425,7 @@ templ AccountSettings(user *models.User) {
 									hx-post="/settings/account"
 									hx-disable="this"
 									hx-swap="none"
+									hx-nonce={ templ.GetNonce(ctx) }
 									type="submit"
 									class="group btn btn-primary"
 								>
@@ -456,6 +462,7 @@ templ AccountSettings(user *models.User) {
 								hx-post="/settings/account/password"
 								hx-swap="none"
 								hx-disable="this"
+								hx-nonce={ templ.GetNonce(ctx) }
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
 									<span class="loading mr-3 loading-spinner"></span>
@@ -480,6 +487,7 @@ templ AccountSettings(user *models.User) {
 								hx-post="/settings/account/newsletters"
 								hx-target="#subscription-email"
 								hx-swap="outerMorph transition:true"
+								hx-nonce={ templ.GetNonce(ctx) }
 								class="group btn btn-primary"
 							>
 								<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -517,6 +525,7 @@ templ AccountSettings(user *models.User) {
 										hx-target={ ModalContainerID.Target() }
 										hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
 										hx-disable="this"
+										hx-nonce={ templ.GetNonce(ctx) }
 										type="submit"
 										class="btn btn-error"
 									>
@@ -544,6 +553,7 @@ templ AccountSettings(user *models.User) {
 												hx-target={ ModalContainerID.Target() }
 												hx-vals={ templ.JSONString(map[string]any{"confirmed": false}) }
 												hx-disable="this"
+												hx-nonce={ templ.GetNonce(ctx) }
 												type="submit"
 												class="btn btn-error"
 											>
@@ -602,6 +612,7 @@ templ DisplaySettings(user *models.User, session SessionManager) {
 						hx-swap="none"
 						hx-include="#theme-settings"
 						hx-disable="find button[type='submit']"
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="group"
 					>
 						<label class="fieldset py-4">
@@ -717,6 +728,7 @@ templ DisplaySettings(user *models.User, session SessionManager) {
 					<select
 						hx-post="/settings/display/font"
 						hx-swap="none"
+						hx-nonce={ templ.GetNonce(ctx) }
 						class="select"
 						name="font_style"
 						_="
@@ -837,7 +849,7 @@ templ DisplaySettings(user *models.User, session SessionManager) {
 }
 
 templ SetFontStyle(style string) {
-	{{ style = fmt.Sprintf("<style id=\"font-vars\">:root { --font-serif: var(%s); }</style>", style) }}
+	{{ style = fmt.Sprintf("<style id=\"font-vars\" nonce=\"%s\">:root { --font-serif: var(%s); }</style>", templ.GetNonce(ctx), style) }}
 	<head>
 		@templ.Raw(style)
 	</head>
@@ -919,6 +931,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 						hx-post="/settings/subscriptions"
 						hx-swap="none"
 						hx-include="#global-filters"
+						hx-nonce={ templ.GetNonce(ctx) }
 						type="submit"
 						class="group btn btn-primary"
 					>
@@ -946,6 +959,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					hx-push-url="true"
 					hx-get="/import"
 					hx-target={ ContentID.Target() }
+					hx-nonce={ templ.GetNonce(ctx) }
 				>Import</button>
 				<button
 					type="button"
@@ -953,6 +967,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 					hx-push-url="true"
 					hx-get="/export"
 					hx-target={ ContentID.Target() }
+					hx-nonce={ templ.GetNonce(ctx) }
 				>Export</button>
 			</div>
 		</div>
@@ -1122,6 +1137,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												hx-post={ "/subscriptions/" + string(models.MarkRead) }
 												hx-target={ ContentID.Target() }
 												hx-include="[name='selected_subscriptions']"
+												hx-nonce={ templ.GetNonce(ctx) }
 											>
 												@tableroutline.MailOpened(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
@@ -1133,6 +1149,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												hx-post={ "/subscriptions/" + string(models.MarkUnread) }
 												hx-target={ ContentID.Target() }
 												hx-include="[name='selected_subscriptions']"
+												hx-nonce={ templ.GetNonce(ctx) }
 											>
 												@tableroutline.Mail(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
@@ -1144,6 +1161,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 												hx-post="/subscriptions/remove"
 												hx-target={ ModalContainerID.Target() }
 												hx-include="[name='selected_subscriptions']"
+												hx-nonce={ templ.GetNonce(ctx) }
 											>
 												@tableroutline.Trash(templ.Attributes{"class": "stroke-primary", "aria-hidden": "true"})
 											</button>
@@ -1175,7 +1193,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 											<div>
 												@thumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
 											</div>
-											<a class="link link-hover" { generateSubscriptionViewAttributes(subscription)... }>
+											<a class="link link-hover" { generateSubscriptionViewAttributes(ctx,subscription)... }>
 												<div class="font-semibold text-pretty">{ subscription.GetTitle() }</div>
 											</a>
 										</div>
@@ -1206,6 +1224,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 													hx-target={ ContentID.Target() }
 													hx-swap="innerMorph show:top transition:true"
 													hx-trigger="click consume"
+													hx-nonce={ templ.GetNonce(ctx) }
 													class="btn btn-square btn-ghost btn-md"
 												>
 													<span class="sr-only">{ "Edit "+subscription.GetTitle() }</span>
@@ -1220,6 +1239,7 @@ templ SubscriptionSettings(data *SubscriptionSettingsData) {
 													hx-target={ ModalContainerID.Target() }
 													hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
 													hx-trigger="click consume"
+													hx-nonce={ templ.GetNonce(ctx) }
 												>
 													<span class="sr-only">{ "Unsubscribe from "+subscription.GetTitle() }</span>
 													@tableroutline.Trash(templ.Attributes{"class": "size-5 stroke-primary", "aria-hidden": "true"})

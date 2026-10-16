@@ -4,7 +4,6 @@
 package ollama
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/idtoken"
 )
 
 const (
@@ -53,22 +51,22 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		return nil, fmt.Errorf("google: unable to validate config: %w", err)
 	}
 
-	appCfg, err := config.LoadAppConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load app config: %w", err)
-	}
+	// appCfg, err := config.LoadAppConfig()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("load app config: %w", err)
+	// }
 
-	var tokenSource oauth2.TokenSource
-	if appCfg.IsProduction() {
-		var err error
-		tokenSource, err = idtoken.NewTokenSource(context.Background(), cfg.URL)
-		if err != nil {
-			return nil, fmt.Errorf("generate token source: %w", err)
-		}
-		// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
-		// than minting a new one on every single call.
-		cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
-	}
+	// var tokenSource oauth2.TokenSource
+	// if appCfg.IsProduction() {
+	// 	var err error
+	// 	tokenSource, err = idtoken.NewTokenSource(context.Background(), cfg.URL)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("generate token source: %w", err)
+	// 	}
+	// 	// Wrap with ReuseTokenSource so the underlying token is cached and only refreshed once it's near expiry, rather
+	// 	// than minting a new one on every single call.
+	// 	cfg.tokenSource = oauth2.ReuseTokenSource(nil, tokenSource)
+	// }
 
 	cfg.httpClient = client.New()
 	if cfg.tokenSource != nil {

@@ -247,6 +247,7 @@ templ PurchaseSubscriptionSuccess(transactionID string) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph transition:true"
 						hx-trigger="load delay:10s"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>Go Home</a>
 				</div>
 			</div>

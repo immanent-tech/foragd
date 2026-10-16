@@ -217,7 +217,7 @@ templ articleSource(article *models.Article) {
 		style={ styleAttr }
 		class="line-clamp-1 w-fit cursor-pointer touch-manipulation items-center gap-1 rounded-field accent-hue-rotate p-1 text-sm hover:underline"
 	>
-		<a { generateSubscriptionViewAttributes(&article.Subscription)... }>
+		<a { generateSubscriptionViewAttributes(ctx,&article.Subscription)... }>
 			{ article.Subscription.GetTitle() }
 		</a>
 	</div>

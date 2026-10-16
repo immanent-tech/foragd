@@ -23,6 +23,7 @@ templ paddleCheckoutButton(frequency string) {
 		}) }
 		hx-swap="none"
 		hx-disable="this"
+		hx-nonce={ templ.GetNonce(ctx) }
 		_="
 		on htmx:after:request
 			if event.detail.successful

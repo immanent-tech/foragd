@@ -9,7 +9,7 @@ templ ObfuscateEmail(email, label string) {
 		xmlns="http://www.w3.org/2000/svg"
 		class="w-fit"
 	>
-		<style>
+		<style nonce={ templ.GetNonce(ctx) }>
 			text {
 				dominant-baseline: middle;
 				fill: #000;

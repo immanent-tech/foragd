@@ -42,6 +42,7 @@ templ ArticleFavoriteToggle(article *models.Article, options ...element.Properti
 			hx-post={ "/articles/" + article.GetID() + "/favorite" }
 			hx-swap="none"
 			hx-trigger="click consume"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			switch article.IsFavorite() {
 				case true:
@@ -166,6 +167,7 @@ templ articleViewToggle(article *models.Article) {
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hx-swap="innerMorph show:top transition:true"
+			hx-nonce={ templ.GetNonce(ctx) }
 		>
 			@tableroutline.Eye(templ.Attributes{"class": " size-5 stroke-primary", "aria-hidden": "true"})
 			<span class="sr-only">View Article</span>
@@ -200,6 +202,7 @@ templ articleShareButton(article *models.Article) {
 		hx-post={ "/articles/" + article.GetID() + "/share" }
 		hx-target={ ModalContainerID.Target() }
 		hx-trigger="click consume"
+		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<div class="inline-flex items-center gap-1">
 			@tableroutline.Share(templ.Attributes{"class": "size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -238,6 +241,7 @@ templ articleShowRemoteContentButton(article *models.Article) {
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true}) }
 		hx-disable="this"
+		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
@@ -263,6 +267,7 @@ templ articleShowFeedContentButton(article *models.Article) {
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false}) }
 		hx-disable="this"
+		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-xs loading-spinner"></span>
@@ -298,6 +303,7 @@ templ articleActionsMenu(article *models.Article) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph transition:true"
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Find Similar...</span>
@@ -325,6 +331,7 @@ templ articleActionsMenu(article *models.Article) {
 						hx-post={ "/articles/" + article.GetID() + "/share" }
 						hx-target={ ModalContainerID.Target() }
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Share(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Share</span>
@@ -333,11 +340,13 @@ templ articleActionsMenu(article *models.Article) {
 				// Report issue action.
 				@partials.MenuItem() {
 					<a
+						href="/issue"
 						hx-get="/issue"
 						hx-target={ ContentID.Target() }
 						hx-replace-url="true"
 						hx-vals={ templ.JSONString(map[string]string{"object_id": article.GetID()}) }
 						hx-trigger="click consume"
+						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Flag2(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
 						<span class="text-base-content">Report an Issue</span>
@@ -431,6 +440,7 @@ templ ArticleMapPopup(article *models.Article) {
 			hx-get={ routeArticles.String() }
 			hx-target={ ContentID.Target() }
 			hx-values={ templ.JSONString(map[string]string{"subscriptions": article.GetSubscriptionID()}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="line-clamp-1 link truncate link-hover"
 		>{ article.Item.FeedTitle }</a>
 	</div>
@@ -478,6 +488,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-target={ ContentID.Target() }
 										hx-swap="innerMorph show:top transition:true"
 										hx-trigger="click consume"
+										hx-nonce={ templ.GetNonce(ctx) }
 										class="btn btn-square btn-ghost btn-sm"
 									>
 										<span class="sr-only">Article filtering applied</span>
@@ -495,6 +506,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									hx-swap="innerMorph show:top transition:true"
 									hx-trigger="click consume"
 									hx-vals={ templ.JSONString(map[string]string{"subscriptions": response.Subscription.GetID()}) }
+									hx-nonce={ templ.GetNonce(ctx) }
 									class="btn btn-square btn-ghost btn-sm"
 								>
 									<span class="sr-only">Show articles on map</span>
@@ -577,6 +589,7 @@ templ ListMarkAllArticlesButton(a MarkAction) {
 		hx-post={ a.Path }
 		hx-target={ ModalContainerID.Target() }
 		hx-include="article > input"
+		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
 			<span class="loading mr-3 loading-spinner"></span>
@@ -604,6 +617,7 @@ templ listArticlesActions(response *models.ListArticlesResponse) {
 					hx-target={ ContentID.Target() }
 					hx-swap="innerMorph show:top transition:true"
 					hx-trigger="click consume"
+					hx-nonce={ templ.GetNonce(ctx) }
 					class="flex items-center gap-1"
 				>
 					@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -634,6 +648,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			hx-include=".card > input"
 			hx-target={ ModalContainerID.Target() }
 			hx-vals={ templ.JSONString(map[string]string{"confirmed": "false"}) }
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="group btn border-neutral/15 btn-outline btn-sm"
 		>
 			<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -657,6 +672,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-trigger="click consume"
+			hx-nonce={ templ.GetNonce(ctx) }
 			class="btn hidden items-center gap-1 border-neutral/15 btn-outline btn-sm sm:flex"
 		>
 			@tableroutline.Edit(templ.Attributes{"class": " size-5 stroke-base-content/80", "aria-hidden": "true"})
@@ -666,6 +682,7 @@ templ listArticlesButtons(response *models.ListArticlesResponse) {
 		if response.Filters.GetView() != models.ViewAll {
 			<button
 				hx-post={ "/subscriptions/" + response.Subscription.GetID() + "/" + string(mark) }
+				hx-nonce={ templ.GetNonce(ctx) }
 				class="group btn border-neutral/15 btn-outline btn-sm"
 			>
 				<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -768,6 +785,7 @@ templ BulkMarkArticlesModal(mark models.Mark, options ...element.PropertiesOptio
 				hx-disable="find button[type='submit']"
 				hx-vals={ templ.JSONString(map[string]string{"confirmed": "true"}) }
 				hx-include=".card > input"
+				hx-nonce={ templ.GetNonce(ctx) }
 				{ props.GetAllAttributes()... }
 				class="flex"
 				_="on htmx:after:request(successful) remove @open from  the closest <el-dialog/>"
