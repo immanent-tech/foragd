@@ -174,6 +174,24 @@ func (s *FeedService) GetAllFeedsExcept(ctx context.Context, ids ...models.FeedI
 	return allFeeds, nil
 }
 
+// GetUnclassifiedFeeds returns a [models.Feeds] slice containing feeds with any categories (or "Uncategorized").
+func (s *FeedService) GetUnclassifiedFeeds(ctx context.Context) (models.Feeds, error) {
+	allFeeds, err := elastic.SearchAll[*models.Feed](
+		ctx,
+		s.store.GetIndexRO(FeedsIndex),
+		query.Bool(
+			query.Filter(
+				query.Term("categories.raw", "Uncategorized"),
+			),
+		),
+		10000,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search all feeds: %w", err)
+	}
+	return allFeeds, nil
+}
+
 // GetNewFeedsSince retrieves a [models.Feeds] slice containing all feeds created since the given timestamp.
 func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (models.Feeds, error) {
 	feeds, err := elastic.SearchAll[*models.Feed](
@@ -940,6 +958,7 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) error {
 	}
 
 	ctx = slogctx.With(ctx, "feed_id", feed.GetID())
+	ctx = slogctx.With(ctx, "feed_title", feed.GetTitle())
 
 	var classificationText strings.Builder
 
