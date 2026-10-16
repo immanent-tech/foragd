@@ -3,7 +3,7 @@ title = "Foragd October 2026 Update"
 page_title = "Foragd RSS/Atom/JSON Feed Reader - October 2026 Update"
 description = "A quick summary of updates to Foragd for September 2026"
 created_at = "2026-10-15"
-updated_at = "2026-10-15"
+updated_at = "2026-10-16"
 image = "/images/logo-vertical-light.webp"
 author = "Joshua Rich"
 slug = "update-oct-2026"
@@ -45,6 +45,16 @@ more backend work; adding various testing and performance improvements to make F
   being used and a richer display in articles.
 - I've been implementing more robust testing of the application, from backend to frontend, to capture more bugs and
   issues before they hit you.
+
+**What I’m working on:**
+
+- I’ve recently added support for the Comments API namespace in
+  [go-syndication](https://github.com/immanent-tech/go-syndication), so I’m looking at how to display the comments on a
+  post in the UI.
+- I’m working on adding a time period filter, which will be very useful for the map view. You’ll be then able to filter
+  the points on the map to ones that happened in the last hour, for example.
+- I’m looking into how to expose more information about the author of a post, so you can find out more about who wrote
+  what you are reading.
 
 **Links:**
 
