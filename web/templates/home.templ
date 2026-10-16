@@ -217,144 +217,162 @@ templ NewUserHome() {
 				<div class="mt-16 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 0">
 					<p class="text-base text-balance text-accent uppercase">Welcome to Foragd</p>
 					<h1 class="my-4 text-2xl/7 font-bold tracking-tight text-balance sm:text-3xl">Your feed reader,<br/>your way.</h1>
-					<p>No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.</p>
+					<p>
+						No algorithms. No ads. Follow any website, blog, or newsletter. Everything in one fully searchable place. Let's get you set up.
+					</p>
 				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 1">
-					@sectionHeading() {
-						@sectionTitle("Add subscriptions")
-					}
-					<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
-						<a
-							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
-							hx-get="/subscriptions/add"
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph show:top transition:true"
-							hx-push-url="true"
-							hx-nonce={ templ.GetNonce(ctx) }
-						>
-							@tableroutline.Plus(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
-							<div>
-								<div class="card-title text-secondary">Add a feed</div>
-								<p class="text-base/7 text-secondary">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p>
-							</div>
-							<div class="card-actions justify-end text-accent">Get started <span aria-hidden="true">-></span></div>
-						</a>
-						<a
-							class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
-							hx-get="/import"
-							hx-target={ ContentID.Target() }
-							hx-swap="innerMorph show:top transition:true"
-							hx-push-url="true"
-							hx-nonce={ templ.GetNonce(ctx) }
-						>
-							@tableroutline.CloudDownload(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
-							<div>
-								<div class="card-title text-secondary">Import from OPML</div>
-								<p class="text-base/7 text-secondary">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p>
-							</div>
-							<div class="card-actions justify-end text-accent">Upload OPML file <span aria-hidden="true">-></span></div>
-						</a>
-					</div>
-				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 2">
-					@sectionHeading() {
-						@sectionTitle("Or start with a curated set")
-					}
-					<form>
-						<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
-							<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
-								<div class="flex flex-row items-center gap-x-3">
-									<input
-										id="informed"
-										type="checkbox"
-										name="feedset"
-										value="informed"
-										class="checkbox checkbox-sm checkbox-primary"
-									/>
-									@tableroutline.News(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-									<div class="card-title text-secondary" for="informed">Informed</div>
-								</div>
-								<p class="text-sm/6">News and information from across the web.</p>
-							</label>
-							<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
-								<div class="flex flex-row items-center gap-x-3">
-									<input
-										id="inspired"
-										type="checkbox"
-										name="feedset"
-										value="inspired"
-										class="checkbox checkbox-sm checkbox-primary"
-									/>
-									@tableroutline.Palette(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-									<div class="card-title text-secondary" for="inspired">Inspired</div>
-								</div>
-								<p class="text-sm/6">Digital art, design and creative oddities.</p>
-							</label>
-							<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
-								<div class="flex flex-row items-center gap-x-3">
-									<input
-										id="enlightened"
-										type="checkbox"
-										name="feedset"
-										value="enlightened"
-										class="checkbox checkbox-sm checkbox-primary"
-									/>
-									@tableroutline.Atom(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
-									<div class="card-title text-secondary" for="enlightened">Enlightened</div>
-								</div>
-								<p class="text-sm/6">Alternative and fringe perspectives.</p>
-							</label>
-						</div>
-						<div class="mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 2">
-							<button
-								hx-post="/subscriptions/add/feedset"
-								hx-swap="none"
-								hx-disable="this"
-								hx-nonce={ templ.GetNonce(ctx) }
-								type="submit"
-								class="btn btn-outline"
-								id="add-sets-btn"
-							>
-								<span class="hidden items-center group-[.htmx-request]:inline-flex">
-									<span class="loading mr-3 loading-spinner"></span>
-									Processing
-								</span>
-								<span class="hide-loading">
-									<div class="flex flex-row items-center gap-x-3">
-										@tableroutline.CirclePlus(templ.Attributes{"aria-hidden": "true"})
-										<span class="text-sm/6">Add Sets</span>
-									</div>
-								</span>
-							</button>
-						</div>
-					</form>
-				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 3">
-					@sectionHeading() {
-						@sectionTitle("Pick a theme")
-						<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
-					}
-					<div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-						@themeCards()
-					</div>
-				</div>
-				<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 4">
-					@sectionHeading() {
-						@sectionTitle("Learn more")
-					}
-					<ul role="list" class="divide-y divide-accent">
-						<li class="px-4 py-4 sm:px-0">
-							<a class="link link-hover" href="/docs">Documentation Home</a>
-						</li>
-						<li class="px-4 py-4 sm:px-0">
-							<a class="link link-hover" href="/blog">Blog</a>
-						</li>
-						<li class="px-4 py-4 sm:px-0">
-							<a class="link link-hover" href="/changelog">Changelog</a>
-						</li>
-					</ul>
-				</div>
+				@newHomeAddFeeds()
+				@newHomeAddFeedset()
+				@newHomeThemes()
+				@newHomeDocs()
 			}
 		}
 	}
+}
+
+templ newHomeAddFeeds() {
+	<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 1">
+		@sectionHeading() {
+			@sectionTitle("Add subscriptions")
+		}
+		<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
+			<a
+				class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
+				hx-get="/subscriptions/add"
+				hx-target={ ContentID.Target() }
+				hx-swap="innerMorph show:top transition:true"
+				hx-push-url="true"
+				hx-nonce={ templ.GetNonce(ctx) }
+			>
+				@tableroutline.Plus(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
+				<div>
+					<div class="card-title text-secondary">Add a feed</div>
+					<p class="text-base/7 text-secondary">Paste any URL or webpage and Foragd will find the RSS feed automatically.</p>
+				</div>
+				<div class="card-actions justify-end text-accent">Get started <span aria-hidden="true">-></span></div>
+			</a>
+			<a
+				class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]"
+				hx-get="/import"
+				hx-target={ ContentID.Target() }
+				hx-swap="innerMorph show:top transition:true"
+				hx-push-url="true"
+				hx-nonce={ templ.GetNonce(ctx) }
+			>
+				@tableroutline.CloudDownload(templ.Attributes{"class": "rounded-selector bg-secondary p-1 text-secondary-content", "aria-hidden": "true"})
+				<div>
+					<div class="card-title text-secondary">Import from OPML</div>
+					<p class="text-base/7 text-secondary">Moving from Feedly, Inoreader, or another reader? Import all your feeds at once.</p>
+				</div>
+				<div class="card-actions justify-end text-accent">Upload OPML file <span aria-hidden="true">-></span></div>
+			</a>
+		</div>
+	</div>
+}
+
+templ newHomeAddFeedset() {
+	<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 2">
+		@sectionHeading() {
+			@sectionTitle("Or start with a curated set")
+		}
+		<form>
+			<div class="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-3">
+				<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+					<div class="flex flex-row items-center gap-x-3">
+						<input
+							id="informed"
+							type="checkbox"
+							name="feedset"
+							value="informed"
+							class="checkbox checkbox-sm checkbox-primary"
+						/>
+						@tableroutline.News(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+						<div class="card-title text-secondary" for="informed">Informed</div>
+					</div>
+					<p class="text-sm/6">News and information from across the web.</p>
+				</label>
+				<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+					<div class="flex flex-row items-center gap-x-3">
+						<input
+							id="inspired"
+							type="checkbox"
+							name="feedset"
+							value="inspired"
+							class="checkbox checkbox-sm checkbox-primary"
+						/>
+						@tableroutline.Palette(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+						<div class="card-title text-secondary" for="inspired">Inspired</div>
+					</div>
+					<p class="text-sm/6">Digital art, design and creative oddities.</p>
+				</label>
+				<label class="card-body rounded-box bg-base-200 hover:border hover:border-secondary hover:shadow-md active:scale-[0.98]">
+					<div class="flex flex-row items-center gap-x-3">
+						<input
+							id="enlightened"
+							type="checkbox"
+							name="feedset"
+							value="enlightened"
+							class="checkbox checkbox-sm checkbox-primary"
+						/>
+						@tableroutline.Atom(templ.Attributes{"class": "text-secondary", "aria-hidden": "true"})
+						<div class="card-title text-secondary" for="enlightened">Enlightened</div>
+					</div>
+					<p class="text-sm/6">Alternative and fringe perspectives.</p>
+				</label>
+			</div>
+			<div class="mt-4 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 2">
+				<button
+					hx-post="/subscriptions/add/feedset"
+					hx-swap="none"
+					hx-disable="this"
+					hx-nonce={ templ.GetNonce(ctx) }
+					type="submit"
+					class="btn btn-outline"
+					id="add-sets-btn"
+				>
+					<span class="hidden items-center group-[.htmx-request]:inline-flex">
+						<span class="loading mr-3 loading-spinner"></span>
+						Processing
+					</span>
+					<span class="hide-loading">
+						<div class="flex flex-row items-center gap-x-3">
+							@tableroutline.CirclePlus(templ.Attributes{"aria-hidden": "true"})
+							<span class="text-sm/6">Add Sets</span>
+						</div>
+					</span>
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+templ newHomeThemes() {
+	<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 3">
+		@sectionHeading() {
+			@sectionTitle("Pick a theme")
+			<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+		}
+		<div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+			@themeCards()
+		</div>
+	</div>
+}
+
+templ newHomeDocs() {
+	<div class="mt-12 animate-fadeinup transition-transform duration-300 ease-in-out animation-delay-[calc(min(var(--i),15)*80ms)]" style="--i: 4">
+		@sectionHeading() {
+			@sectionTitle("Learn more")
+		}
+		<ul role="list" class="divide-y divide-accent">
+			<li class="px-4 py-4 sm:px-0">
+				<a class="link link-hover" href="/docs">Documentation Home</a>
+			</li>
+			<li class="px-4 py-4 sm:px-0">
+				<a class="link link-hover" href="/blog">Blog</a>
+			</li>
+			<li class="px-4 py-4 sm:px-0">
+				<a class="link link-hover" href="/changelog">Changelog</a>
+			</li>
+		</ul>
+	</div>
 }
