@@ -12,6 +12,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/a-h/templ"
+
 	"github.com/immanent-tech/foragd/models"
 )
 
@@ -69,6 +71,38 @@ type Breadcrumbs interface {
 
 type SessionManager interface {
 	Get(ctx context.Context, key string) any
+}
+
+type PageIntr interface {
+	GetTitle() string
+	GetDescription() string
+	CanonicalLink() string
+	ToMetaTags() templ.Component
+	ToJsonLd() templ.Component
+	GetTemplate() templ.Component
+}
+
+type PageTitle struct {
+	Summary     string
+	Description string
+	Date        string
+}
+
+func (t PageTitle) String() string {
+	var title strings.Builder
+	title.WriteString(t.Summary)
+	if t.Description != "" {
+		title.WriteString(": ")
+		title.WriteString(t.Description)
+	}
+	if t.Date != "" {
+		title.WriteString(" (")
+		title.WriteString(t.Date)
+		title.WriteString(")")
+	}
+	title.WriteString(" | ")
+	title.WriteString("Foragd")
+	return title.String()
 }
 
 func FragmentKeysToCtx(ctx context.Context, keys ...templFragmentKey) context.Context {
