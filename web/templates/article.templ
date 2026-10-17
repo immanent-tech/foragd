@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshuarticle.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package templates
 
@@ -241,6 +244,7 @@ templ articleShowRemoteContentButton(article *models.Article) {
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=true" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": true}) }
 		hx-disable="this"
+		hx-browser-indicator="true"
 		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">
@@ -267,6 +271,7 @@ templ articleShowFeedContentButton(article *models.Article) {
 		hx-replace-url={ "/articles/" + article.GetID() + "?show_full_content=false" }
 		hx-vals={ templ.JSONString(map[string]any{"show_full_content": false}) }
 		hx-disable="this"
+		hx-browser-indicator="true"
 		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		<span class="hidden items-center group-[.htmx-request]:inline-flex">

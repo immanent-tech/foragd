@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package templates
 
@@ -28,6 +31,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome end"
@@ -53,6 +57,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions end"
@@ -79,6 +84,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles end"
@@ -102,6 +108,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites end"
@@ -125,6 +132,7 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
+							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
 							_="on keydown from body if the event's key is 'n' and event.altKey then send globalShortcutAdd end"
