@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.2](https://github.com/immanent-tech/foragd/compare/v0.251.1...v0.251.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **assets:** 🔧 add nonce to umami and adjust trusted-types ([9e26471](https://github.com/immanent-tech/foragd/commit/9e264716104beb9daa14fca8de609dfa198e283f))
+
 ## [0.251.1](https://github.com/immanent-tech/foragd/compare/v0.251.0...v0.251.1) (2026-10-17)
 
 
