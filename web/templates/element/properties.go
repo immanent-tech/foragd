@@ -216,3 +216,9 @@ func WithHXIndicator(indicator string) PropertiesOption {
 		p.SetAttribute("hx-indicator", indicator)
 	}
 }
+
+func WithHXNonce(nonce string) PropertiesOption {
+	return func(p *Properties) {
+		p.SetAttribute("hx-nonce", nonce)
+	}
+}
