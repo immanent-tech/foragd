@@ -54,6 +54,7 @@ templ ArticleCard(idx int, article *models.Article, options ...func(*articleCard
 		element.WithHXTrigger("click"),
 		element.WithHXPushURL(true),
 		element.WithHXIndicator("this"),
+		element.WithHXNonce(templ.GetNonce(ctx)),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
