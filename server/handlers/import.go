@@ -16,6 +16,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -72,7 +73,7 @@ func (m *Manager) HandleSetupImport(
 func (m *Manager) HandleStartImport(importSvc Importer) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract OPML file.
-		opmlUpload, err := decodeMultipartFile(req, "source")
+		opmlUpload, err := forms.DecodeMultipartFile(req, "source")
 		if err != nil {
 			m.HandleInternalError(
 				http.StatusUnprocessableEntity,

@@ -7,7 +7,6 @@ package handlers_test
 import (
 	"bytes"
 	"context"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"sync"
@@ -5118,78 +5117,6 @@ func (mock *MoqEmailSender) SendCalls() []struct {
 	mock.lockSend.RLock()
 	calls = mock.calls.Send
 	mock.lockSend.RUnlock()
-	return calls
-}
-
-// Ensure that MoqFileUpload does implement handlers.FileUpload.
-// If this is not the case, regenerate this file with mockery.
-var _ handlers.FileUpload = &MoqFileUpload{}
-
-// MoqFileUpload is a mock implementation of handlers.FileUpload.
-//
-//	func TestSomethingThatUsesFileUpload(t *testing.T) {
-//
-//		// make and configure a mocked handlers.FileUpload
-//		mockedFileUpload := &MoqFileUpload{
-//			SetFunc: func(hdr *multipart.FileHeader, data multipart.File)  {
-//				panic("mock out the Set method")
-//			},
-//		}
-//
-//		// use mockedFileUpload in code that requires handlers.FileUpload
-//		// and then make assertions.
-//
-//	}
-type MoqFileUpload struct {
-	// SetFunc mocks the Set method.
-	SetFunc func(hdr *multipart.FileHeader, data multipart.File)
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// Set holds details about calls to the Set method.
-		Set []struct {
-			// Hdr is the hdr argument value.
-			Hdr *multipart.FileHeader
-			// Data is the data argument value.
-			Data multipart.File
-		}
-	}
-	lockSet sync.RWMutex
-}
-
-// Set calls SetFunc.
-func (mock *MoqFileUpload) Set(hdr *multipart.FileHeader, data multipart.File) {
-	if mock.SetFunc == nil {
-		panic("MoqFileUpload.SetFunc: method is nil but FileUpload.Set was just called")
-	}
-	callInfo := struct {
-		Hdr  *multipart.FileHeader
-		Data multipart.File
-	}{
-		Hdr:  hdr,
-		Data: data,
-	}
-	mock.lockSet.Lock()
-	mock.calls.Set = append(mock.calls.Set, callInfo)
-	mock.lockSet.Unlock()
-	mock.SetFunc(hdr, data)
-}
-
-// SetCalls gets all the calls that were made to Set.
-// Check the length with:
-//
-//	len(mockedFileUpload.SetCalls())
-func (mock *MoqFileUpload) SetCalls() []struct {
-	Hdr  *multipart.FileHeader
-	Data multipart.File
-} {
-	var calls []struct {
-		Hdr  *multipart.FileHeader
-		Data multipart.File
-	}
-	mock.lockSet.RLock()
-	calls = mock.calls.Set
-	mock.lockSet.RUnlock()
 	return calls
 }
 

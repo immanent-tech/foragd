@@ -5,7 +5,6 @@ package models
 
 import (
 	"encoding/json"
-	"mime/multipart"
 	"time"
 
 	externalRef0 "github.com/immanent-tech/go-base/pkg/zyte"
@@ -738,15 +737,6 @@ type FetchDirectOptions struct {
 
 // FetchZyteOptions contains information to assist with Zyte feed fetching.
 type FetchZyteOptions = externalRef0.ExtractOptions
-
-// FileUpload represents a file upload by a user.
-type FileUpload struct {
-	// Data is the file data/content.
-	Data multipart.File `json:"data" validate:"required"`
-
-	// Header is the mime header information of the file.
-	Header *multipart.FileHeader `json:"header" validate:"required"`
-}
 
 // GetSubscriptionsSuggestionRequest contains the data for finding matching subscriptions as suggestion results.
 type GetSubscriptionsSuggestionRequest struct {

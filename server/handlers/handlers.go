@@ -11,7 +11,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"time"
@@ -292,40 +291,6 @@ func parseMultipartForm[T forms.FormInput](req *http.Request) (T, error) {
 		}
 	}
 	return request, nil
-}
-
-// FileUpload represents file data uploaded through a mutlipart form.
-type FileUpload interface {
-	Set(hdr *multipart.FileHeader, data multipart.File)
-}
-
-// DecodeMultipartFile will the file represented by the given field in a multipart form
-// submission. It will perform validation of the file and will return the file
-// object and a boolean true if it is valid. If decoding fails, a non-nill error
-// is returned.
-func decodeMultipartFile(req *http.Request, field string) (*models.FileUpload, error) {
-	// defaultMaxSize for a multipart for submission is 32 MB.
-	const defaultMaxSize = 32 << 20
-
-	// Parse form values in request.
-	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
-		return nil, fmt.Errorf("decode multipart form: %w", err)
-	}
-	// Decode the form values.
-	data, hdr, err := req.FormFile(field)
-	if err != nil {
-		return nil, fmt.Errorf("decode form file: %w", err)
-	}
-	// Create a models.FileUpload object.
-	upload := &models.FileUpload{
-		Data:   data,
-		Header: hdr,
-	}
-	// Validate file upload.
-	if err := upload.Validate(); err != nil {
-		return nil, fmt.Errorf("validate file upload: %w", err)
-	}
-	return upload, nil
 }
 
 // PostHandlerHook is a function that can be run after a handler has done its main processing. Used mainly to perform

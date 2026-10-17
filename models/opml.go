@@ -11,6 +11,7 @@ import (
 	"io"
 	"slices"
 
+	"github.com/immanent-tech/go-base/server/forms"
 	"github.com/immanent-tech/go-base/validation"
 	"github.com/immanent-tech/go-syndication/opml"
 )
@@ -20,10 +21,10 @@ var ErrInvalidMimeType = errors.New("invalid mime type")
 
 // OPMLFile is an opml file used for importing/exporting subscriptions.
 type OPMLFile struct {
-	*FileUpload
+	*forms.FileUpload
 }
 
-func NewOPMLFile(file *FileUpload) *OPMLFile {
+func NewOPMLFile(file *forms.FileUpload) *OPMLFile {
 	return &OPMLFile{FileUpload: file}
 }
 
@@ -52,7 +53,7 @@ func (f *OPMLFile) GenerateRequests() ([]ImportRequest, error) {
 
 func (f *OPMLFile) parse() (*opml.OPML, error) {
 	// Read the OPML file data into a byte array.
-	data, err := io.ReadAll(f.Data)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return nil, fmt.Errorf("decode OPML file data failed: %w", err)
 	}

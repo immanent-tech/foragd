@@ -1546,28 +1546,6 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "required"
       x-go-type-skip-optional-pointer: false
-    FileUpload:
-      description: >
-        represents a file upload by a user.
-      type: object
-      required:
-        - data
-        - name
-        - header
-        - size
-      properties:
-        data:
-          description: >
-            is the file data/content.
-          x-go-type: multipart.File
-          x-oapi-codegen-extra-tags:
-            validate: "required"
-        header:
-          description: >
-            is the mime header information of the file.
-          x-go-type: "*multipart.FileHeader"
-          x-oapi-codegen-extra-tags:
-            validate: "required"
     EmailTemplateID:
       description: is the ID of an email template.
       type: string

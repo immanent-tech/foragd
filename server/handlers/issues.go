@@ -17,6 +17,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
+	"github.com/immanent-tech/go-base/server/forms"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -183,19 +185,19 @@ func processScreenshots(appCfg AppConfig, cache ImageCache, req *http.Request) (
 	const maxScreenshotSize = 10000000 // Max screenshot size is 10 MB.
 
 	// Get any uploaded screenshot.
-	image, err := decodeMultipartFile(req, "screenshot")
+	image, err := forms.DecodeMultipartFile(req, "screenshot")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("decode screenshot upload: %w", err)
 	}
 	if image.GetSize() > maxScreenshotSize {
-		return "", fmt.Errorf("decode screenshot upload: %w", models.ErrFileTooLarge)
+		return "", fmt.Errorf("decode screenshot upload: %w", forms.ErrFileTooLarge)
 	}
 	// If the user uploaded a new avatar, process it.
 	if image != nil {
 		// Generate a unique ID for the avatar image in the cache using the user ID.
-		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(image.Header.Filename)), 10)
+		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(image.GetFilename())), 10)
 		// Read the uploaded data and store in the cache.
-		imageData, err := io.ReadAll(image.Data)
+		imageData, err := io.ReadAll(image)
 		if err != nil {
 			return "", fmt.Errorf("read image: %w", err)
 		}

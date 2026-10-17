@@ -1433,12 +1433,12 @@ func processThumbnail(appCfg AppConfig, cache ImageCache, req *http.Request, obj
 	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
 
 	// Get any uploaded image.
-	image, err := decodeMultipartFile(req, "thumbnail")
+	image, err := forms.DecodeMultipartFile(req, "thumbnail")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("parse thumbnail data: %w", err)
 	}
 	if image.GetSize() > maxThumbnailSize {
-		return "", fmt.Errorf("parse thumbnail data: %w", models.ErrFileTooLarge)
+		return "", fmt.Errorf("parse thumbnail data: %w", forms.ErrFileTooLarge)
 	}
 
 	// If the user uploaded a new avatar, process it.
@@ -1446,7 +1446,7 @@ func processThumbnail(appCfg AppConfig, cache ImageCache, req *http.Request, obj
 		// Generate a unique ID for the avatar image in the cache using the user ID.
 		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(objectID+"thumbnail")), 10)
 		// Read the uploaded data and store in the cache.
-		imageData, err := io.ReadAll(image.Data)
+		imageData, err := io.ReadAll(image)
 		if err != nil {
 			return "", fmt.Errorf("read thumbnail data: %w", err)
 		}

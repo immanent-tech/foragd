@@ -22,6 +22,7 @@ import (
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/server/forms"
 
 	"github.com/immanent-tech/go-base/validation"
 
@@ -282,7 +283,7 @@ func (m *Manager) HandleSaveAccountSettings(
 		}
 
 		// Parse and process avatar.
-		avatar, err := decodeMultipartFile(req, "avatar")
+		avatar, err := forms.DecodeMultipartFile(req, "avatar")
 		if err != nil {
 			m.HandleInternalError(
 				http.StatusUnprocessableEntity,
@@ -294,13 +295,13 @@ func (m *Manager) HandleSaveAccountSettings(
 			// Maximum size of an avatar image is 1MB.
 			const maxAvatarSizeBytes = 1000000
 			if avatar.GetSize() > maxAvatarSizeBytes {
-				m.HandleInternalError(http.StatusUnprocessableEntity, models.ErrFileTooLarge).ServeHTTP(res, req)
+				m.HandleInternalError(http.StatusUnprocessableEntity, forms.ErrFileTooLarge).ServeHTTP(res, req)
 				return
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
 			avatarFileID := strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+"avatar")), 10)
 			// Read the uploaded data and store in the cache.
-			avatarData, err := io.ReadAll(avatar.Data)
+			avatarData, err := io.ReadAll(avatar)
 			if err != nil {
 				m.HandleInternalError(
 					http.StatusUnprocessableEntity,
