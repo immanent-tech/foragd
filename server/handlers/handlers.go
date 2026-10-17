@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/server/forms"
 	"github.com/indaco/teseo/opengraph"
@@ -239,29 +238,6 @@ var (
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/server/handlers")
-
-// RedirectTo performs route redirection for routes that have moved.
-func RedirectTo(target string, code int) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		dest := target
-		if r.URL.RawQuery != "" {
-			dest += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, dest, code)
-	}
-}
-
-// RedirectParam performs route redirection for routes with parameters that have moved.
-func RedirectParam(paramName, targetTmpl string, code int) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		val := chi.URLParam(r, paramName)
-		dest := fmt.Sprintf(targetTmpl, val)
-		if r.URL.RawQuery != "" {
-			dest += "?" + r.URL.RawQuery
-		}
-		http.Redirect(w, r, dest, code)
-	}
-}
 
 func parseForm[T forms.FormInput](req *http.Request) (T, error) {
 	request, err := forms.DecodeForm[T](req)
