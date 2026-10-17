@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.251.1](https://github.com/immanent-tech/foragd/compare/v0.251.0...v0.251.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **assets:** 🗑️ remove unused hx-head extension ([841629b](https://github.com/immanent-tech/foragd/commit/841629b485046deaed97dc2f1d5eea0a22a5c0b9))
+* **templates/element:** ➕ add ability to set hx-nonce ([1bfa69a](https://github.com/immanent-tech/foragd/commit/1bfa69a1fe7e7805273c15aee54e0961bd7d7faf))
+* **templates:** 🔧 fix missing nonce on article cards ([fbc9d62](https://github.com/immanent-tech/foragd/commit/fbc9d626ec83ef03328b854fff3e8eecb8e591a7))
+* **templates:** 🔧 fix missing nonce on toasts ([d7c2d0a](https://github.com/immanent-tech/foragd/commit/d7c2d0aab32e599387164a1c81bd7f4eece505fa))
+
 ## [0.251.0](https://github.com/immanent-tech/foragd/compare/v0.250.2...v0.251.0) (2026-10-17)
 
 
