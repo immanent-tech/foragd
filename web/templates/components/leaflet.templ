@@ -9,6 +9,16 @@ import "github.com/immanent-tech/foragd/web/templates/element"
 
 const MapMarkersFragment = "MapMarkers"
 
+var leafletOnce = templ.NewOnceHandle()
+
+// Leaflet assets will load the required assets (scripts/stylesheets) for using leaflet maps. This can be called many
+// times, but will only load the assets once.
+templ LeafletAssets() {
+	@leafletOnce.Once() {
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+	}
+}
+
 // LeafletMap renders a leaflet map element using leaflet-html. Any optional attributes and classes may be passed and
 // this template may wrap any optional children elements.
 templ LeafletMap(options ...element.PropertiesOption) {
