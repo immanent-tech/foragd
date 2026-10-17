@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.251.0](https://github.com/immanent-tech/foragd/compare/v0.250.2...v0.251.0) (2026-10-17)
+
+
+### Features
+
+* ✨ integrate hx-csp htmx extension to tighten CSP ([97601d9](https://github.com/immanent-tech/foragd/commit/97601d929f66804b101b755833cc4752316b7a07))
+* **cli:** ➕ support classifying all feeds without existing categories ([d1e8e84](https://github.com/immanent-tech/foragd/commit/d1e8e8469e202d1d711c1c75756a955b9a46074b))
+* **service/feeds:** ➕ add function to get all unclassified feeds ([ebcb565](https://github.com/immanent-tech/foragd/commit/ebcb565f11d6338d2973add0c65859e192f8fd09))
+* **templates:** ➕ add preliminary hx-browser-indicator support ([a33edb4](https://github.com/immanent-tech/foragd/commit/a33edb4069164b5466e6d0b8f9b3d13e9c936a2d))
+
+
+### Bug Fixes
+
+* ♻️ remove mentions of adding subreddits now that Reddit has shutdown RSS access ([ad261de](https://github.com/immanent-tech/foragd/commit/ad261de8f325df91cd62a7233e006a38cf683c80))
+* **add redirects for comparison pages:** 🔧 ([a2e78c6](https://github.com/immanent-tech/foragd/commit/a2e78c6ad2b25de936c771a4beaca05101fb5f94))
+* **templates/list:** 🔧 fix errant return string ([869646d](https://github.com/immanent-tech/foragd/commit/869646d556bf4bfe0bd20b0b803c60378bd17c89))
+
+
+### Reverts
+
+* **templates:** ♻️ don't bundle leaflet css (too flaky) ([384bf66](https://github.com/immanent-tech/foragd/commit/384bf6627b73b1a7d061933cd10efc059c576ab5))
+
 ## [0.250.2](https://github.com/immanent-tech/foragd/compare/v0.250.1...v0.250.2) (2026-10-15)
 
 
