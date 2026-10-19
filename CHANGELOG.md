@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.251.3](https://github.com/immanent-tech/foragd/compare/v0.251.2...v0.251.3) (2026-10-19)
+
+
+### Bug Fixes
+
+* 🔧 reenable specifying feed id when updating ([a0148d5](https://github.com/immanent-tech/foragd/commit/a0148d50a37df7d1c96d722190a851c8f40bff27))
+* **assets:** 🔧 add all trusted script urls for trusted types CSP ([cc42fd1](https://github.com/immanent-tech/foragd/commit/cc42fd1116d203e3269d32354a2ef0f1557a4925))
+
 ## [0.251.2](https://github.com/immanent-tech/foragd/compare/v0.251.1...v0.251.2) (2026-10-17)
 
 
