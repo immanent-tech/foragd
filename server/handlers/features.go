@@ -25,7 +25,7 @@ func (m *Manager) HandleFeatures() http.HandlerFunc {
 			WithTemplate(templates.Features()),
 		),
 	}
-	return features.Render()
+	return features.Handle()
 }
 
 type FeaturesCollect struct {
@@ -44,7 +44,7 @@ func (m *Manager) HandleFeaturesCollect() http.HandlerFunc {
 			WithTemplate(templates.FeaturesPageCollect(m.AppConfig.GetBaseURL())),
 		),
 	}
-	return collect.Render()
+	return collect.Handle()
 }
 
 type FeaturesCurate struct {
@@ -63,7 +63,7 @@ func (m *Manager) HandleFeaturesCurate() http.HandlerFunc {
 			WithTemplate(templates.FeaturesPageCurate(m.AppConfig.GetBaseURL())),
 		),
 	}
-	return curate.Render()
+	return curate.Handle()
 }
 
 type FeaturesConsume struct {
@@ -82,5 +82,5 @@ func (m *Manager) HandleFeaturesConsume() http.HandlerFunc {
 			WithTemplate(templates.FeaturesPageConsume(m.AppConfig.GetBaseURL())),
 		),
 	}
-	return consume.Render()
+	return consume.Handle()
 }

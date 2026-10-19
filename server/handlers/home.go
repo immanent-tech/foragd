@@ -86,6 +86,6 @@ func (m *Manager) HandleHome(homepageSvc HomePageService) http.HandlerFunc {
 			page.template = templates.UserHome(page.data)
 		}
 
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }

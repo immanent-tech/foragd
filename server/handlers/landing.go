@@ -24,5 +24,5 @@ func (m *Manager) HandleLanding() http.HandlerFunc {
 			WithTemplate(templates.Landing()),
 		),
 	}
-	return landing.Render()
+	return landing.Handle()
 }

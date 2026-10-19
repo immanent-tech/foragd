@@ -33,7 +33,7 @@ func (m *Manager) HandleForgetMe() http.HandlerFunc {
 			WithTemplate(templates.ForgetMe()),
 		),
 	}
-	return forgetMe.Render()
+	return forgetMe.Handle()
 }
 
 func (m *Manager) HandleSubmitForgetMe(emailSender EmailSender) http.HandlerFunc {

@@ -27,5 +27,5 @@ func (m *Manager) HandleAbout() http.HandlerFunc {
 			WithTemplate(templates.About()),
 		),
 	}
-	return about.Render()
+	return about.Handle()
 }

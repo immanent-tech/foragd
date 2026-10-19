@@ -101,7 +101,7 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 			page.template = partials.Notification(page.err.UserMessage)
 		}
 
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -132,7 +132,7 @@ func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 			// Write response.
 			page.template = templates.ExternalError(models.UserFromCtx(req.Context()), apiErr.GetUserMessage())
 			res.WriteHeader(apiErr.HTTPStatus())
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		} else {
 			slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
 				slog.Any("error", err),

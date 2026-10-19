@@ -64,6 +64,6 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 				templates.Document(mdHTML),
 			)
 		}
-		page.Render().ServeHTTP(res, req.WithContext(req.Context()))
+		page.Handle().ServeHTTP(res, req.WithContext(req.Context()))
 	}
 }

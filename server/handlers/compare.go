@@ -73,6 +73,6 @@ func (m *Manager) HandleComparison() http.HandlerFunc {
 			),
 		}
 
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }

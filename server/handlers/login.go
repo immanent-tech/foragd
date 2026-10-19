@@ -326,7 +326,7 @@ func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
 			WithTemplate(templates.UserAccountIssue()),
 		),
 	}
-	page.Render().ServeHTTP(res, req)
+	page.Handle().ServeHTTP(res, req)
 }
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.

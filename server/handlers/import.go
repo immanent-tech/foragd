@@ -47,7 +47,7 @@ func (m *Manager) HandleSetupImport(
 				http.Redirect(res, req, "/login", http.StatusSeeOther)
 				return
 			}
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		}),
 	).ServeHTTP
 }
@@ -138,7 +138,7 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportStatus(nil, nil, msg)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 			// If no job ID was given, replace the URL with a new one containing the retrieved job ID.
@@ -149,10 +149,10 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 			page.Description = string(status.Status)
 			switch status.Status {
 			case "pending", "running", "done":
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 			case "error":
 				slogctx.Error(req.Context(), "Import failed.", slog.Any("error", err))
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 			}
 		} else {
 			imports, err := importSvc.GetAllImports(req.Context(), user.GetID())
@@ -169,11 +169,11 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportList(nil, msg)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 			page.template = templates.ImportList(imports, nil)
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		}
 	}
 }

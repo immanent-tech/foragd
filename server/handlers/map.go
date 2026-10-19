@@ -70,7 +70,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			// GET: render full page.
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.
 			page.PartialResponse(res, req)
@@ -79,7 +79,7 @@ func (m *Manager) HandleMap(itemSvc ItemService) http.HandlerFunc {
 				"/articles",
 				response.Filters,
 				response.Articles.GetCategoryCounts().GetCategories(),
-			)).Render().ServeHTTP(res, req)
+			)).Handle().ServeHTTP(res, req)
 		}
 	}
 }

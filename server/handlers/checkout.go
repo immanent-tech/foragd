@@ -106,6 +106,6 @@ func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 
 		transactionID := validation.SanitizeInput(req.URL.Query().Get("_ptxn"))
 		page.template = templates.PurchaseSubscriptionSuccess(transactionID)
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }

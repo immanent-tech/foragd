@@ -126,7 +126,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			// GET: render full page.
-			listArticles.Render().ServeHTTP(res, req)
+			listArticles.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.
 			listArticles.PartialResponse(res, req)
@@ -136,7 +136,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 					"/articles",
 					response.Filters,
 					response.Articles.GetCategoryCounts().GetCategories(),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 			// Update language filters.
 			if len(response.Articles.GetLanguageCounts()) > 0 {
@@ -144,7 +144,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 					"/articles",
 					response.Filters,
 					response.Articles.GetLanguageCounts(),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 			// Update pagination control element.
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
@@ -152,7 +152,7 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 					"/articles/paginate",
 					&response.Filters,
 					element.WithHXSwapOOB("true"),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 		}
 	}
@@ -233,7 +233,7 @@ func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFun
 		}
 
 		// Show results.
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -292,7 +292,7 @@ func (m *Manager) HandleViewArticle(itemSvc ItemService) http.HandlerFunc {
 			),
 		}
 
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -425,7 +425,7 @@ func (m *Manager) HandleBrowseArticles(
 		}
 
 		// Render article content.
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -483,7 +483,7 @@ func (m *Manager) HandleBulkMarkArticles(
 			// Show modal to confirm bulk mark articles.
 			m.NewPartial(templates.BulkMarkArticlesModal(mark,
 				element.WithHXSwap("none"),
-			)).Render().ServeHTTP(res, req)
+			)).Handle().ServeHTTP(res, req)
 		case true:
 			// For each subscription's articles shown, mark.
 			for subscriptionID, itemIDs := range request.DisplayedArticles {
@@ -555,7 +555,7 @@ func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService
 		article.State.Favorite = favorite
 		m.NewPartial(templates.ArticleFavoriteToggle(article,
 			element.WithHXSwapOOB("true"),
-		)).Render().ServeHTTP(res, req)
+		)).Handle().ServeHTTP(res, req)
 		res.WriteHeader(http.StatusOK)
 	}
 }
@@ -570,7 +570,7 @@ func (m *Manager) HandleShareArticle() http.HandlerFunc {
 			return
 		}
 		// Render share modal.
-		m.NewPartial(templates.ShareArticleModal(article)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.ShareArticleModal(article)).Handle().ServeHTTP(res, req)
 	}
 }
 

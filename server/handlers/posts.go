@@ -89,7 +89,7 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 					})),
 				),
 			}
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		default:
 			// Individual post.
 			idx := slices.IndexFunc(posts, func(p *markdownx.File) bool {
@@ -135,7 +135,7 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		}
 	}
 }

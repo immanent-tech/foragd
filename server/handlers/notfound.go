@@ -35,6 +35,6 @@ func (m *Manager) HandleNotFound() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "no-store")
 		res.WriteHeader(http.StatusNotFound)
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }

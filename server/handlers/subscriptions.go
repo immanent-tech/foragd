@@ -168,7 +168,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {
 		case http.MethodGet:
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Render new subscription cards.
 			page.PartialResponse(res, req)
@@ -178,7 +178,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 					"/subscriptions",
 					response.Filters,
 					response.Subscriptions.GetCategories(),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 			// Render new language filters.
 			if len(response.Subscriptions.GetLanguageCounts()) > 0 {
@@ -186,7 +186,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 					"/subscriptions",
 					response.Filters,
 					response.Subscriptions.GetLanguageCounts(),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 			// Update pagination control element.
 			if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
@@ -194,7 +194,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 					"/subscriptions/paginate",
 					&response.Filters,
 					element.WithHXSwapOOB("true"),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func (m *Manager) HandleMarkSubscription(
 		// Update toggle.
 		m.NewPartial(templates.SubscriptionMarkToggle(subscription,
 			element.WithHXSwapOOB("true"),
-		)).Render().ServeHTTP(res, req)
+		)).Handle().ServeHTTP(res, req)
 
 		// Perform post handling hooks.
 		var postMarkHooks = map[string]PostHandlerHook{
@@ -363,7 +363,7 @@ func (m *Manager) HandleBulkMarkSubscriptions(svc SubscriptionsService, mark mod
 			// Show modal to confirm bulk mark articles.
 			m.NewPartial(templates.BulkMarkSubscriptionsModal(mark,
 				element.WithHXSwap("none"),
-			)).Render().ServeHTTP(res, req)
+			)).Handle().ServeHTTP(res, req)
 		case true:
 			// Determine actions to apply based on which route this handler was called from.
 			ctx := req.Context()
@@ -414,7 +414,7 @@ func (m *Manager) HandleFavoriteSubscription(svc SubscriptionsService) http.Hand
 		// Update toggle.
 		m.NewPartial(templates.SubscriptionFavoriteToggle(subscription,
 			element.WithHXSwapOOB("true"),
-		)).Render().ServeHTTP(res, req)
+		)).Handle().ServeHTTP(res, req)
 		res.WriteHeader(http.StatusOK)
 	}
 }
@@ -445,12 +445,12 @@ func (m *Manager) HandleRemoveSubscription(svc SubscriptionsService) http.Handle
 				m.NewPartial(templates.RemoveSubscriptionModal(subscription,
 					element.WithHXTarget("#"+subscription.GetID()),
 					element.WithHXSwap("delete transition:true"),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			} else {
 				// On "/articles", don't do anything to the page (a redirect will be triggered).
 				m.NewPartial(templates.RemoveSubscriptionModal(subscription,
 					element.WithHXSwap("none"),
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 			}
 		case true:
 			if err := svc.RemoveSubscriptions(req.Context(), subscription.GetID()); err != nil {
@@ -490,7 +490,7 @@ func (m *Manager) HandleBulkRemoveSubscriptions(svc SubscriptionsService) http.H
 		case false:
 			// Show modal to confirm bulk mark articles.
 			m.NewPartial(templates.BulkRemoveSubscriptionsModal(element.WithHXSwap("none"))).
-				Render().
+				Handle().
 				ServeHTTP(res, req)
 		case true:
 			// Determine actions to apply based on which route this handler was called from.
@@ -641,7 +641,7 @@ func (m *Manager) HandleEditSubscription(subSvc SubscriptionsService) http.Handl
 			page.template = templates.EditEmailSubscription(request, m.Breadcrumbs)
 		}
 		// Render the page.
-		page.Render().ServeHTTP(res, req.WithContext(ctx))
+		page.Handle().ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
@@ -806,7 +806,7 @@ func (m *Manager) HandleAddSubscription() http.HandlerFunc {
 		}
 
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -921,10 +921,10 @@ func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate youtube suggestions.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.ShowNoSuggestions(text)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.ShowNoSuggestions(text)).Handle().ServeHTTP(res, req)
 				return
 			}
-			m.NewPartial(templates.ShowFeedSuggestions(results)).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.ShowFeedSuggestions(results)).Handle().ServeHTTP(res, req)
 			return
 		case "gnews":
 			results, err := feeds.SuggestGoogleNewsFeeds(req.Context(), text)
@@ -932,10 +932,10 @@ func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate google news suggestions.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.ShowNoSuggestions(text)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.ShowNoSuggestions(text)).Handle().ServeHTTP(res, req)
 				return
 			}
-			m.NewPartial(templates.ShowFeedSuggestions(results)).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.ShowFeedSuggestions(results)).Handle().ServeHTTP(res, req)
 			return
 		case "web":
 			fallthrough
@@ -945,10 +945,10 @@ func (m *Manager) HandleSuggestFeeds(feeds FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable generate feed suggestions.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.ShowNoSuggestions(text)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.ShowNoSuggestions(text)).Handle().ServeHTTP(res, req)
 				return
 			}
-			m.NewPartial(templates.ShowFeedSuggestions(results)).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.ShowFeedSuggestions(results)).Handle().ServeHTTP(res, req)
 			return
 		}
 	}
@@ -999,7 +999,7 @@ func (m *Manager) HandleAddSearchSubscription(
 				),
 			}
 			// Render form.
-			page.Render().ServeHTTP(res, req.WithContext(req.Context()))
+			page.Handle().ServeHTTP(res, req.WithContext(req.Context()))
 		case http.MethodPost:
 			request, err := parseMultipartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil {
@@ -1052,7 +1052,7 @@ func (m *Manager) HandleSuggestSubscriptionForSearch(svc SubscriptionsService) h
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		m.NewPartial(partials.SubscriptionSuggestions(subscriptions)).Render().ServeHTTP(res, req)
+		m.NewPartial(partials.SubscriptionSuggestions(subscriptions)).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -1072,7 +1072,7 @@ func (m *Manager) HandleAddSubscriptionToSearch() http.HandlerFunc {
 					InputName:        "search.subscriptions",
 					SubscriptionID:   key,
 					SubscriptionName: value,
-				})).Render().ServeHTTP(res, req)
+				})).Handle().ServeHTTP(res, req)
 				return
 			}
 		}
@@ -1128,7 +1128,7 @@ func (m *Manager) HandleAddGroupSubscription(
 				),
 			}
 
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Decode request.
 			request, err := parseMultipartForm[*models.GroupSubscriptionRequest](req)
@@ -1187,7 +1187,7 @@ func (m *Manager) HandleAddSubscriptionToGroup() http.HandlerFunc {
 				m.NewPartial(templates.AddSubscriptionToGroup(
 					subscriptionID,
 					subscriptionName,
-				)).Render().ServeHTTP(res, req)
+				)).Handle().ServeHTTP(res, req)
 				return
 			}
 		}
@@ -1221,7 +1221,7 @@ func (m *Manager) HandleExportSubscriptions(feedSvc FeedService) http.HandlerFun
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get all user subscriptions.
 			subscriptions := models.SubscriptionsFromCtx(req.Context())
@@ -1275,7 +1275,7 @@ func (m *Manager) HandleSubscriptionCategories() http.HandlerFunc {
 		}
 
 		// Add the new category.
-		m.NewPartial(templates.AddCategoryToSubscription(request.NewCategory, true)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.AddCategoryToSubscription(request.NewCategory, true)).Handle().ServeHTTP(res, req)
 	}
 }
 

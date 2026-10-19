@@ -30,7 +30,7 @@ func (m *Manager) HandleDiscover() http.HandlerFunc {
 		}
 
 		page.template = templates.Discover(request)
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -46,6 +46,6 @@ func (m *Manager) HandleDiscoverSuggestions(feedSvc FeedService) http.HandlerFun
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
-		m.NewPartial(templates.DiscoverSuggestions(*results)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.DiscoverSuggestions(*results)).Handle().ServeHTTP(res, req)
 	}
 }

@@ -26,7 +26,7 @@ func (m *Manager) HandleContact() http.HandlerFunc {
 			WithTemplate(templates.Contact()),
 		),
 	}
-	return page.Render()
+	return page.Handle()
 }
 
 func (m *Manager) HandleSubmitContact(emailSender EmailSender) http.HandlerFunc {

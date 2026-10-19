@@ -110,7 +110,7 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 			Search:        *search,
 			Subscriptions: subscriptions,
 			Articles:      articles,
-		})).Render().ServeHTTP(res, req)
+		})).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -247,7 +247,7 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 			),
 			results: results,
 		}
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -294,7 +294,7 @@ func (m *Manager) AddSubscriptionFilter() http.HandlerFunc {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
-		m.NewPartial(templates.AddSearchSubscriptionFilter(subscription)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.AddSearchSubscriptionFilter(subscription)).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -327,6 +327,6 @@ func (m *Manager) GetSubscriptionFilterSuggestions(svc SubscriptionsService) htt
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		m.NewPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)).Handle().ServeHTTP(res, req)
 	}
 }

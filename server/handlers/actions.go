@@ -33,6 +33,6 @@ func (m *Manager) GetSubscriptionActionSuggestions(subs SubscriptionsService) ht
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		m.NewPartial(templates.ActionSuggestionSubscriptions(subscriptions)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.ActionSuggestionSubscriptions(subscriptions)).Handle().ServeHTTP(res, req)
 	}
 }

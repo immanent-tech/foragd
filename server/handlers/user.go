@@ -98,7 +98,7 @@ func (m *Manager) ShowSettings() http.HandlerFunc {
 			WithNavigation(templates.NavSettings),
 		),
 	}
-	return page.Render()
+	return page.Handle()
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
@@ -111,7 +111,7 @@ func (m *Manager) HandleShowDisplaySettings() http.HandlerFunc {
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
-		m.NewPartial(templates.DisplaySettings(user, m.SessionMgr)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.DisplaySettings(user, m.SessionMgr)).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -125,7 +125,7 @@ func (m *Manager) HandleShowAccountSettings() http.HandlerFunc {
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
-		m.NewPartial(templates.AccountSettings(user)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.AccountSettings(user)).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -147,7 +147,7 @@ func (m *Manager) HandleShowSubscriptionsSettings() http.HandlerFunc {
 		m.NewPartial(templates.SubscriptionSettings(&templates.SubscriptionSettingsData{
 			User:          user,
 			Subscriptions: allSubscriptions,
-		})).Render().ServeHTTP(res, req)
+		})).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -334,7 +334,7 @@ func (m *Manager) HandleSaveAccountSettings(
 		// Report success.
 		m.HandleNotification(res, req, models.NewSuccessMessage("Account edits saved!", ""))
 		// Update the avatar (in case it changed).
-		m.NewPartial(templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"})).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"})).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -587,7 +587,7 @@ func (m *Manager) HandleDeactivateAccount(
 					timeLeft = userSubscription.CurrentPeriodEnd
 					res.Header().Set(htmx.HeaderReswap, "innerMorph transition:true")
 					res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-					m.NewPartial(templates.DeactivateResult(user, timeLeft)).Render().ServeHTTP(res, req)
+					m.NewPartial(templates.DeactivateResult(user, timeLeft)).Handle().ServeHTTP(res, req)
 
 					slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
 				case models.UserSubscriptionTypeAndroid:
@@ -596,7 +596,7 @@ func (m *Manager) HandleDeactivateAccount(
 			}
 
 		default:
-			m.NewPartial(templates.DeactivateAccountModal()).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.DeactivateAccountModal()).Handle().ServeHTTP(res, req)
 		}
 	}
 }
@@ -748,7 +748,7 @@ func (m *Manager) HandleAccountIssue() http.HandlerFunc {
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -789,7 +789,7 @@ func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.Handle
 				ServeHTTP(res, req)
 			return
 		}
-		m.NewPartial(templates.ShowSubscriptionEmail(*settings.SubscriptionEmail)).Render().ServeHTTP(res, req)
+		m.NewPartial(templates.ShowSubscriptionEmail(*settings.SubscriptionEmail)).Handle().ServeHTTP(res, req)
 	}
 }
 
@@ -833,7 +833,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 					WithTemplate(templates.Unsubscribe(token)),
 				),
 			}
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Closure used to display results.
 			displayResults := func(err error) {
@@ -860,7 +860,7 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 						WithTemplate(templates.UnsubscribeResult(msg)),
 					),
 				}
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 			}
 
 			// Decode the user email address.

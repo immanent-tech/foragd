@@ -43,7 +43,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
 				page.template = templates.Viewer(nil, nil)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 			rawURL, err := validation.SanitizeURLString(chi.URLParam(req, "*"))
@@ -52,7 +52,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				page.template = templates.Viewer(nil, fetchErr)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 			feedURL, err := models.NormalizeFeedURL(rawURL)
@@ -61,7 +61,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				page.template = templates.Viewer(nil, fetchErr)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 
@@ -72,11 +72,11 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				page.template = templates.Viewer(nil, fetchErr)
-				page.Render().ServeHTTP(res, req)
+				page.Handle().ServeHTTP(res, req)
 				return
 			}
 			page.template = templates.Viewer(feed, nil)
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Parse the URL and find feed content.
 			feedURL, err := models.NormalizeFeedURL(req.FormValue("url"))
@@ -84,7 +84,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.ViewerError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.ViewerError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
 
@@ -93,11 +93,11 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.ViewerError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.ViewerError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
 
-			m.NewPartial(templates.ViewerResults(feed)).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.ViewerResults(feed)).Handle().ServeHTTP(res, req)
 		}
 	}
 }

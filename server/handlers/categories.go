@@ -45,7 +45,7 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 					Path:       "/subscriptions",
 					Filters:    *filters,
 				},
-			)).Render().ServeHTTP(res, req)
+			)).Handle().ServeHTTP(res, req)
 		case strings.HasPrefix(req.URL.Path, "/articles"):
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
@@ -95,7 +95,7 @@ func (m *Manager) ListCategories(subSvc SubscriptionsService, itemSvc ItemServic
 					Path:       "/subscriptions",
 					Filters:    *filters,
 				},
-			)).Render().ServeHTTP(res, req)
+			)).Handle().ServeHTTP(res, req)
 
 		default:
 			res.WriteHeader(http.StatusNotAcceptable)

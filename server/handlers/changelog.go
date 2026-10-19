@@ -67,7 +67,7 @@ func (m *Manager) HandleChangelog() http.HandlerFunc {
 			changelog.template = templates.LayoutExternal(templates.ChangelogPage(changelog.Releases))
 		}
 
-		changelog.Render().ServeHTTP(res, req)
+		changelog.Handle().ServeHTTP(res, req)
 	}
 }
 

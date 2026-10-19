@@ -95,6 +95,6 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 			Articles:      articles,
 		}
 		page.template = templates.ListFavorites(response)
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }

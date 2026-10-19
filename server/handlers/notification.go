@@ -20,5 +20,5 @@ func (m *Manager) HandleNotification(
 	msg *models.UserMessage,
 	options ...partials.NotificationOption,
 ) {
-	m.NewPartial(partials.Notification(msg, options...)).Render().ServeHTTP(res, req)
+	m.NewPartial(partials.Notification(msg, options...)).Handle().ServeHTTP(res, req)
 }

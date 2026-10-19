@@ -155,7 +155,7 @@ func (p Page) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNoContent)
 }
 
-func (p Page) Render() http.HandlerFunc {
+func (p Page) Handle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		ctx, span := tracer.Start(req.Context(), "pageRender")
 		defer span.End()
@@ -249,10 +249,10 @@ func (p Partial) GetTitle() string {
 	return p.pageTitle.String()
 }
 
-// Render renders the [Partial] to the response. If the request is not HTMX-based, it returns
+// Handle renders the [Partial] to the response. If the request is not HTMX-based, it returns
 // [http.StatusNotAcceptable]. Otherwise the template is rendered (or the specified fragments of the template are
 // rendered).
-func (p Partial) Render() http.HandlerFunc {
+func (p Partial) Handle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		ctx, span := tracer.Start(req.Context(), "partialRender")
 		defer span.End()

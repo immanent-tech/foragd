@@ -42,7 +42,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 			"No feed details could be fetched from the given URL. This could be a temporary error.",
 		); req.Method {
 		case http.MethodGet:
-			page.Render().ServeHTTP(res, req)
+			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			rawURL, err := validation.SanitizeURLString(req.FormValue("url"))
 			if err != nil {
@@ -50,7 +50,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 					slog.String("url", rawURL),
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.LinterError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.LinterError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
 			sourceURL, err := url.Parse(rawURL)
@@ -59,7 +59,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 					slog.String("url", rawURL),
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.LinterError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.LinterError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
 			var feedData bytes.Buffer
@@ -68,7 +68,7 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 					slog.String("url", rawURL),
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.LinterError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.LinterError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
 
@@ -77,10 +77,10 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Linter failed.",
 					slog.Any("error", err),
 				)
-				m.NewPartial(templates.LinterError(fetchErr)).Render().ServeHTTP(res, req)
+				m.NewPartial(templates.LinterError(fetchErr)).Handle().ServeHTTP(res, req)
 				return
 			}
-			m.NewPartial(templates.LinterResults(results)).Render().ServeHTTP(res, req)
+			m.NewPartial(templates.LinterResults(results)).Handle().ServeHTTP(res, req)
 		}
 	}
 }

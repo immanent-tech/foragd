@@ -54,7 +54,7 @@ func (m *Manager) HandleReportIssue() http.HandlerFunc {
 		)
 
 		// Display the report issue form.
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 

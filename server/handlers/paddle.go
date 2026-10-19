@@ -123,7 +123,7 @@ func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerF
 
 		page.template = templates.Checkout(checkout)
 
-		page.Render().ServeHTTP(res, req)
+		page.Handle().ServeHTTP(res, req)
 	}
 }
 

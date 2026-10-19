@@ -21,5 +21,5 @@ func (m *Manager) HandleUpdatesToast(res http.ResponseWriter, req *http.Request,
 		element.WithHXSwap("innerMorph scroll:top transition:true"),
 		element.WithHXValues(values),
 	)
-	m.NewPartial(toast).Render().ServeHTTP(res, req)
+	m.NewPartial(toast).Handle().ServeHTTP(res, req)
 }
