@@ -59,7 +59,6 @@ templ CreatePage(appCfg AppConfig, session SessionManager, page Page) {
 			<meta charset="UTF-8" hx-preserve="true"/>
 			<meta name="description" content={ page.GetDescription() } hx-preserve="true"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>
-			<meta http-equiv="X-UA-Compatible" content="ie=edge" hx-preserve="true"/>
 			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" hx-preserve="true"/>
 			// Set browser chrome to accent color.
 			<meta
@@ -81,16 +80,11 @@ templ CreatePage(appCfg AppConfig, session SessionManager, page Page) {
 			// Leaflet.
 			@components.LeafletAssets()
 			<link rel="canonical" href={ page.CanonicalLink() }/>
-			//  iOS Safari Full screen.
-			<meta name="apple-mobile-web-app-capable" content="yes" hx-preserve="true"/>
-			<meta name="apple-mobile-web-app-status-bar-style" content="default" hx-preserve="true"/>
-			<meta name="apple-mobile-web-app-title" content="Foragd" hx-preserve="true"/>
 			//  Chrome Android Full screen.
 			<meta name="mobile-web-app-capable" content="yes" hx-preserve="true"/>
 			//  Web app manifest.
 			<link rel="manifest" href="/manifest.json" hx-preserve="true"/>
 			// Favicons.
-			<link rel="apple-touch-icon" href="/images/apple-touch-icon.png" hx-preserve="true"/>
 			<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" hx-preserve="true"/>
 			<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" hx-preserve="true"/>
 			// RSS feed.
