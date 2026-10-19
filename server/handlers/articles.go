@@ -65,8 +65,10 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req)
 		// templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("outerMorph transition:true"))).
+			ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("outerMorph transition:true"))).
+			ServeHTTP(res, req)
 	case "/articles/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}

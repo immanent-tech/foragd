@@ -173,7 +173,7 @@ templ androidRestorePurchaseScript() {
 				statusEl.textContent =
 					'No purchases could be restored. Contact support if this seems wrong.'
 				const html = await res.text()
-				htmx.swap('#content', html, { swapStyle: 'innerHTML' })
+				htmx.swap('#content', html, { swapStyle: 'innerMorph transition:true' })
 			}
 		}
 	</script>

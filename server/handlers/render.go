@@ -153,8 +153,10 @@ func (p Page) PartialResponse(res http.ResponseWriter, req *http.Request) {
 		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req.WithContext(ctx))
 		templ.Handler(p.template, templ.WithFragments(p.fragment)).ServeHTTP(res, req.WithContext(ctx))
 		if p.nav != "" {
-			templ.Handler(templates.SideBar(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req.WithContext(ctx))
-			templ.Handler(templates.Dock(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req.WithContext(ctx))
+			templ.Handler(templates.SideBar(p.nav, element.WithHXSwapOOB("outerMorph transition:true"))).
+				ServeHTTP(res, req.WithContext(ctx))
+			templ.Handler(templates.Dock(p.nav, element.WithHXSwapOOB("outerMorph transition:true"))).
+				ServeHTTP(res, req.WithContext(ctx))
 		}
 		return
 	}

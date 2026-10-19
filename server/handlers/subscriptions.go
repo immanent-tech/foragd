@@ -96,8 +96,10 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 	case "/subscriptions":
 		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req)
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templates.NavSubscriptions, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templates.NavSubscriptions, element.WithHXSwapOOB("outerMorph transition:true"))).
+			ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templates.NavSubscriptions, element.WithHXSwapOOB("outerMorph transition:true"))).
+			ServeHTTP(res, req)
 	case "/subscriptions/paginate":
 		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}

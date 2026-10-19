@@ -129,13 +129,13 @@ func (p *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 			// Also update the search filters element.
 			template = templ.Join(
 				template,
-				templates.AdvancedSearch(&p.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
+				templates.AdvancedSearch(&p.results.Search, templ.Attributes{"hx-swap-oob": "outerMorph"}),
 			)
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar("", element.WithHXSwapOOB("outerMorph transition:true"))).ServeHTTP(res, req)
+		templ.Handler(templates.Dock("", element.WithHXSwapOOB("outerMorph transition:true"))).ServeHTTP(res, req)
 	case "/search/paginate":
 		if len(p.results.Articles) == 0 {
 			res.WriteHeader(http.StatusNoContent)
