@@ -22,7 +22,7 @@ templ SiteJSONLD(baseURL *url.URL) {
 }
 
 templ SiteOG(baseURL *url.URL) {
-	@opengraph.NewWebSite(		"Foragd",
+	@opengraph.NewWebSite("Foragd",
 		baseURL.String(),
 		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
 		baseURL.Clone().JoinPath("/images/logo-vertical-light.webp").String(),
@@ -42,7 +42,7 @@ var OrgJSONLD = schemaorg.NewOrganization(
 )
 
 templ AppMetadataJSONLD() {
-	<script id="application-metadata" type="application/ld+json" nonce={ templ.GetNonce(ctx) }>
+	<script id="application-metadata" type="application/ld+json" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
 		{
 		  "@context": "https://schema.org",
 		  "@type": ["SoftwareApplication","WebApplication"],

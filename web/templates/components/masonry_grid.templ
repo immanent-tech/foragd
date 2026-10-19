@@ -16,7 +16,7 @@ var masonryGridOnce = templ.NewOnceHandle()
 //      - Add "masonry-item" class to each element in grid.
 templ MasonryGridBehavior() {
 	@masonryGridOnce.Once() {
-		<script id="masonry-grid-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) }>
+		<script id="masonry-grid-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
 			behavior MasonryGrid
 
 			  def layout()

@@ -6,6 +6,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
@@ -18,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
@@ -95,6 +97,7 @@ type Page struct {
 	pageMetadata
 	pageServices
 
+	fragment templates.FragmentKey
 	nav      templates.Navigation
 	template templ.Component
 }
@@ -109,6 +112,7 @@ func (m *Manager) NewPage(path string, options ...PageOption) *Page {
 			ImagePath: "/images/logo-vertical-light.webp",
 		},
 		pageServices: m.NewPageServices(),
+		fragment:     templates.ContentFragment,
 	}
 	for option := range slices.Values(options) {
 		option(page)
@@ -133,25 +137,28 @@ func (p Page) GetTemplate() templ.Component {
 }
 
 func (p Page) FullResponse(res http.ResponseWriter, req *http.Request) {
+	ctx := slogctx.With(req.Context(), slog.String("render", "full"))
 	if p.template != nil {
 		// Render a default full response.
-		templ.Handler(templates.CreatePage(p.appCfg, p.sessionMgr, p)).ServeHTTP(res, req)
+		templ.Handler(templates.CreatePage(p.appCfg, p.sessionMgr, p)).ServeHTTP(res, req.WithContext(ctx))
 		return
 	}
-	slogctx.Warn(req.Context(), "FullResponse called but no template for page")
+	slogctx.Warn(ctx, "FullResponse called but no template for page")
 	res.WriteHeader(http.StatusNoContent)
 }
 
 func (p Page) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	// Use the page's own full response handler if defined.
+	ctx := slogctx.With(req.Context(), slog.String("render", "partial"))
 	if p.template != nil {
-		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-		templ.Handler(templates.Dock(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req.WithContext(ctx))
+		templ.Handler(p.template, templ.WithFragments(p.fragment)).ServeHTTP(res, req.WithContext(ctx))
+		if p.nav != "" {
+			templ.Handler(templates.SideBar(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req.WithContext(ctx))
+			templ.Handler(templates.Dock(p.nav, element.WithHXSwapOOB("true"))).ServeHTTP(res, req.WithContext(ctx))
+		}
 		return
 	}
-	slogctx.Warn(req.Context(), "PartialResponse called but no template for page")
+	slogctx.Warn(ctx, "PartialResponse called but no template for page")
 	res.WriteHeader(http.StatusNoContent)
 }
 
@@ -182,7 +189,7 @@ func (p Page) ToMetaTags() templ.Component {
 	if og := p.OpengraphData(); og != nil {
 		return og.ToMetaTags()
 	}
-	return nil
+	return components.SiteOG(p.appCfg.GetBaseURL())
 }
 
 // PageOption is a functional option applied to a page.

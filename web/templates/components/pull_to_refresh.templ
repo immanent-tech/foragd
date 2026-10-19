@@ -17,7 +17,7 @@ var pullToRefreshOnce = templ.NewOnceHandle()
 //  </div>
 templ PullToRefreshBehavior() {
 	@pullToRefreshOnce.Once() {
-		<script id="pull-to-refresh-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) }>
+		<script id="pull-to-refresh-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
 			behavior PullToRefresh(threshold)
 			  init
 			    set my.startY to 0

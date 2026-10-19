@@ -82,15 +82,15 @@ type Page interface {
 	GetTemplate() templ.Component
 }
 
-func FragmentKeysToCtx(ctx context.Context, keys ...templFragmentKey) context.Context {
+func FragmentKeysToCtx(ctx context.Context, keys ...FragmentKey) context.Context {
 	if len(keys) > 0 {
 		return context.WithValue(ctx, fragmentsCtxKey, keys)
 	}
 	return ctx
 }
 
-func FragmentKeysFromCtx(ctx context.Context) []templFragmentKey {
-	keys, found := ctx.Value(fragmentsCtxKey).([]templFragmentKey)
+func FragmentKeysFromCtx(ctx context.Context) []FragmentKey {
+	keys, found := ctx.Value(fragmentsCtxKey).([]FragmentKey)
 	if !found {
 		return nil
 	}

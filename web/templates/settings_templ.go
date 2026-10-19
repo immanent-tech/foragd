@@ -951,7 +951,7 @@ type SubscriptionSettingsData struct {
 	Subscriptions models.Subscriptions
 }
 
-const SubscriptionsTable templFragmentKey = "subscriptionsTable"
+const SubscriptionsTable FragmentKey = "subscriptionsTable"
 
 func SubscriptionSettings(data *SubscriptionSettingsData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

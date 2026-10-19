@@ -15,7 +15,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/immanent-tech/foragd/models"
 
 const (
-	ExternalHeader templFragmentKey = "ExternalHeader"
+	ExternalHeader FragmentKey = "ExternalHeader"
 )
 
 type InternalLayoutProps struct {

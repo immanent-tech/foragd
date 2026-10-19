@@ -6,7 +6,7 @@ package templates
 import "github.com/immanent-tech/foragd/models"
 import "github.com/dimmerz92/go-icons/tabler-outline"
 
-const ErrorFragment templFragmentKey = "error"
+const ErrorFragment FragmentKey = "error"
 
 templ InternalError(user *models.User, referer string, msg *models.UserMessage) {
 	@LayoutInternal("", &InternalLayoutProps{User: user}) {

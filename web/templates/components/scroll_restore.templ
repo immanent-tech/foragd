@@ -11,12 +11,12 @@ var scrollRestoreOnce = templ.NewOnceHandle()
 
 templ ScrollRestoreBehavior() {
 	@scrollRestoreOnce.Once() {
-		<script id="scroll-restore-setup" nonce={ templ.GetNonce(ctx) }>
+		<script id="scroll-restore-setup" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
 			if ('scrollRestoration' in history) {
 				history.scrollRestoration = 'manual'
 			}
 		</script>
-		<script id="scroll-restore-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) }>
+		<script id="scroll-restore-behavior" type="text/hyperscript" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
 			behavior ScrollRestore(gridSelector, cardSelector, storageKey)
 			  def doRestore()
 			    js(gridSelector, cardSelector, storageKey)

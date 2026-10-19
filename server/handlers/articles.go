@@ -60,12 +60,11 @@ type ListArticles struct {
 // PartialResponse will either render the list of articles, the controls and update the title/dock/sidebar or, when
 // paginating, just the list of articles.
 func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	slogctx.Debug(req.Context(), "Using custom partial render")
 	switch req.URL.Path {
 	case "/articles":
-		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
+		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req)
+		// templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/articles/paginate":

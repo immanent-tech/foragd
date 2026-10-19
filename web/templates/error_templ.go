@@ -15,7 +15,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/immanent-tech/foragd/models"
 import "github.com/dimmerz92/go-icons/tabler-outline"
 
-const ErrorFragment templFragmentKey = "error"
+const ErrorFragment FragmentKey = "error"
 
 func InternalError(user *models.User, referer string, msg *models.UserMessage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
