@@ -1345,7 +1345,8 @@ func getFeedAverageDailyUpdates(
 
 // FetchOptions defines options that manipulate how a feed will be fetched from a remote URL.
 type FetchOptions struct {
-	Proxy bool
+	Proxy      bool
+	ExistingID models.FeedID
 }
 
 // FetchOption is a functional option that controls some aspect of how a feed will be fetched.
@@ -1355,6 +1356,13 @@ type FetchOption func(*FetchOptions)
 func FetchWithProxy(value bool) FetchOption {
 	return func(fo *FetchOptions) {
 		fo.Proxy = value
+	}
+}
+
+// ApplyExistingID assigns the given FeedID to the feed object.
+func ApplyExistingID(id models.FeedID) FetchOption {
+	return func(fo *FetchOptions) {
+		fo.ExistingID = id
 	}
 }
 
@@ -1476,7 +1484,7 @@ func (s *FeedService) FetchFeed(
 	}
 
 	// Create a new feed from the source.
-	feed := models.NewFeed(source.GetSourceURL(), source)
+	feed := models.NewFeed(source.GetSourceURL(), opts.ExistingID, source)
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
@@ -1585,6 +1593,7 @@ func (s *FeedService) FetchFeedUpdates(
 			ctx,
 			feedURL,
 			FetchWithProxy(proxyRequest),
+			ApplyExistingID(details.GetID()),
 		)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", feedURL, err))

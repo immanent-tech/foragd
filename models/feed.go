@@ -66,9 +66,15 @@ func (f Feeds) GetCategories() Categories {
 }
 
 // NewFeed converts a feed source from the go-syndication library into a models.Feed object.
-func NewFeed(sourceURL string, source *feeds.Feed) *Feed {
+func NewFeed(sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
+	var id FeedID
+	if existingID == "" {
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
+	} else {
+		id = existingID
+	}
 	feed := &Feed{
-		FeedID:       "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10),
+		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),
 		LastFetched:  UnixEpoch,
 		Title:        source.GetTitle(),

@@ -115,7 +115,7 @@ func (c *FetchFeedCmd) Run() error {
 		return fmt.Errorf("fetch feed: %w", err)
 	}
 
-	if details != nil && c.ApplyUpdates {
+	if details != nil || c.ApplyUpdates {
 		if err := feedSvc.ApplyFeedUpdates(ctx, details, feed); err != nil {
 			return fmt.Errorf("apply feed updates: %w", err)
 		}
@@ -531,6 +531,9 @@ func showFeedDetails(feed *models.Feed) {
 
 	str.WriteString("Feed: ")
 	str.WriteString(feed.GetTitle())
+	str.WriteRune('\n')
+	str.WriteString("ID: ")
+	str.WriteString(feed.GetID())
 	str.WriteRune('\n')
 	str.WriteString("Link: ")
 	str.WriteString(feed.GetLink())
