@@ -21,6 +21,7 @@ templ CategoryBadge(category models.Category, options ...element.PropertiesOptio
 	<span
 		class={ "category-badge badge badge-neutral badge-outline hover:bg-secondary hover:text-secondary-content items-center", props.GetClasses() }
 		{ props.GetAllAttributes()... }
+		hx-nonce={ templ.GetNonce(ctx) }
 	>
 		{ html.UnescapeString(category) }
 		{ children... }

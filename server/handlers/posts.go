@@ -4,14 +4,10 @@
 package handlers
 
 import (
-	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -22,7 +18,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/markdownx"
-	"github.com/immanent-tech/go-base/pkg/templx"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
@@ -31,7 +26,6 @@ import (
 
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
@@ -41,90 +35,20 @@ var getPosts = sync.OnceValues(func() ([]*markdownx.File, error) {
 
 // PostsIndex is the index of all posts.
 type PostsIndex struct {
-	data     templates.PostsData
-	metadata pageMetadata
-	svc      pageServices
-}
-
-// FullResponse renders the posts index.
-func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(
-		p.svc.appCfg,
-		p.svc.sessionMgr,
-		templates.PostsIndex(p.data),
-		templates.WithPageTitle(p.metadata.Title),
-		templates.WithPageDescription(p.metadata.Description),
-		templates.WithCanonicalLink(p.metadata.CanonicalLink()),
-		templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(p.metadata.baseURL),
-			p.metadata.JSONLD(),
-		),
-	),
-	).ServeHTTP(res, req)
+	*Page
 }
 
 // Post is an individual post.
 type Post struct {
+	*Page
 	*markdownx.File
 
-	svc pageServices
+	postOG     *opengraph.Article
+	postJsonLd *schemaorg.Article
 }
 
-// FullResponse renders an individual post.
-func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	if jsonLD, err := generatePostJSONLD(req.URL, &p.Frontmatter); err != nil {
-		slogctx.Warn(ctx, "Could not generate JSON-LD for post.",
-			slog.String("post", p.Frontmatter.Title),
-			slog.Any("error", err),
-		)
-	} else {
-		ctx = templx.WithSlot(
-			req.Context(),
-			templates.HeaderSlot,
-			partials.RenderJSONLD(strings.ToLower(strings.ReplaceAll(p.Frontmatter.Title, " ", "")), jsonLD),
-		)
-	}
-	title := templates.PageTitle{
-		Summary:     p.Frontmatter.PageTitle,
-		Description: "Blog",
-		Date:        p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
-	}
-	postOG := opengraph.NewArticle(
-		title.String(),
-		p.svc.appCfg.GetBaseURL().JoinPath("blog", p.Frontmatter.Slug).String(),
-		p.Frontmatter.Description,
-		p.svc.appCfg.GetBaseURL().JoinPath(*p.Frontmatter.Image).String(),
-		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
-		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
-		"",
-		[]string{*p.Frontmatter.Author},
-		"Blog",
-		nil,
-	)
-	postJsonLd := schemaorg.NewArticle(
-		title.String(),
-		[]string{p.svc.appCfg.GetBaseURL().JoinPath(*p.Frontmatter.Image).String()},
-		nil,
-		nil,
-		p.Frontmatter.GetCreatedDate().Format(time.DateOnly),
-		p.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
-		p.Frontmatter.Description,
-	)
-	templ.Handler(templates.CreatePage(
-		p.svc.appCfg,
-		p.svc.sessionMgr,
-		templates.Post(p.File),
-		templates.WithPageTitle(title),
-		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(p.svc.appCfg.GetBaseURL().JoinPath("blog", p.Frontmatter.Slug).String()),
-		templates.WithOpenGraphMetadata(postOG),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(p.svc.appCfg.GetBaseURL()),
-			postJsonLd,
-		),
-	)).ServeHTTP(res, req.WithContext(ctx))
+func (p Post) ToMetaTags() templ.Component {
+	return p.postOG.ToMetaTags()
 }
 
 // HandlePosts handles showing the posts index or individual posts.
@@ -151,25 +75,21 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 		switch slug := chi.URLParam(req, "*"); slug {
 		case "":
 			// Posts index.
-			index := &PostsIndex{
-				metadata: pageMetadata{
-					Title: templates.PageTitle{
-						Summary:     "Blog",
-						Description: "RSS Reader Tips, Guides and Comparisons",
-					},
-					Description: "Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
-					Path:        "/blog",
-					ImagePath:   "/images/logo-vertical-light.webp",
-					baseURL:     m.AppConfig.GetBaseURL(),
-				},
-				data: templates.PostsData{
-					Files:   posts,
-					BaseURL: m.AppConfig.GetBaseURL(),
-				},
-				svc: m.NewPageServices(),
+			page := &PostsIndex{
+				Page: m.NewPage(
+					"/blog",
+					WithSummary("Blog"),
+					WithDescription("RSS Reader Tips, Guides and Comparisons"),
+					WithMetadataDescription(
+						"Guides, comparisons and tips on RSS feed readers, finding feeds, managing information overload, and taking back control of your reading from social media algorithms.",
+					),
+					WithTemplate(templates.PostsIndex(templates.PostsData{
+						Files:   posts,
+						BaseURL: m.AppConfig.GetBaseURL(),
+					})),
+				),
 			}
-
-			RenderExternalPage(index).ServeHTTP(res, req)
+			page.Render().ServeHTTP(res, req)
 		default:
 			// Individual post.
 			idx := slices.IndexFunc(posts, func(p *markdownx.File) bool {
@@ -180,12 +100,42 @@ func (m *Manager) HandlePosts() http.HandlerFunc {
 				return
 			}
 
+			file := posts[idx]
+			path := m.AppConfig.GetBaseURL().JoinPath("blog", file.Frontmatter.Slug).String()
+			page := &Post{
+				File: file,
+				Page: m.NewPage(path,
+					WithSummary(file.Frontmatter.Title),
+					WithDescription("Blog"),
+					WithDate(file.Frontmatter.GetCreatedDate().Format(time.DateOnly)),
+				),
+				postOG: opengraph.NewArticle(
+					file.Frontmatter.Title+" Blog",
+					path,
+					file.Frontmatter.Description,
+					m.AppConfig.GetBaseURL().JoinPath(*file.Frontmatter.Image).String(),
+					file.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+					file.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
+					"",
+					[]string{*file.Frontmatter.Author},
+					"Blog",
+					nil,
+				),
+				postJsonLd: schemaorg.NewArticle(
+					file.Frontmatter.Title+" Blog",
+					[]string{path},
+					nil,
+					nil,
+					file.Frontmatter.GetCreatedDate().Format(time.DateOnly),
+					file.Frontmatter.GetUpdatedDate().Format(time.DateOnly),
+					file.Frontmatter.Description,
+				),
+			}
+			page.template = templ.Join(page.postJsonLd.ToJsonLd(), templates.Post(file))
+
 			res.Header().
 				Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
-			RenderExternalPage(&Post{
-				File: posts[idx],
-				svc:  m.NewPageServices(),
-			}).ServeHTTP(res, req)
+			page.Render().ServeHTTP(res, req)
 		}
 	}
 }
@@ -277,41 +227,4 @@ func (m *Manager) HandlePostsFeed() http.HandlerFunc {
 		}
 		res.Write(data)
 	}
-}
-
-func generatePostJSONLD(postURL *url.URL, frontmatter *markdownx.FrontMatter) (json.RawMessage, error) {
-	baseURL := postURL.Clone()
-	baseURL.Path = "/"
-	data := map[string]any{
-		"@context":      "https://schema.org",
-		"@type":         "Article",
-		"headline":      frontmatter.Title,
-		"description":   frontmatter.Description,
-		"datePublished": frontmatter.GetCreatedDate(),
-		"dateModified":  frontmatter.GetUpdatedDate(),
-		"author": map[string]any{
-			"@type": "Person",
-			"name":  frontmatter.Author,
-		},
-		"publisher": map[string]any{
-			"@type": "Organization",
-			"name":  "Foragd",
-			"url":   baseURL.String(),
-		},
-		"mainEntityOfPage": map[string]any{
-			"@type": "WebPage",
-			"@id":   postURL.String(),
-		},
-	}
-	if frontmatter.Image != nil {
-		imgURL := postURL.Clone()
-		imgURL.Path = *frontmatter.Image
-		data["image"] = imgURL.String()
-	}
-
-	jsonLD, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("marshal frontmatter: %w", err)
-	}
-	return jsonLD, nil
 }

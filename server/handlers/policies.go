@@ -19,12 +19,24 @@ import (
 
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/components"
 )
 
 var getPolicyDocs = sync.OnceValues(func() ([]*markdownx.File, error) {
 	var policiesPath = "files/docs/policies"
 	return markdownx.ReadDir(web.Files, policiesPath)
 })
+
+type Policy struct {
+	*Page
+
+	policyOG     *opengraph.Article
+	policyJsonLd *schemaorg.Article
+}
+
+func (p Policy) ToMetaTags() templ.Component {
+	return p.policyOG.ToMetaTags()
+}
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
 func (m *Manager) PolicyDocsHandler() http.HandlerFunc {
@@ -48,48 +60,40 @@ func (m *Manager) PolicyDocsHandler() http.HandlerFunc {
 		}
 
 		policyFile := polices[idx]
+		path := m.AppConfig.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String()
+		page := &Policy{
+			Page: m.NewPage(path,
+				WithSummary(policyFile.Frontmatter.Title),
+				WithDescription("Service Policy"),
+				WithTemplate(templates.LayoutExternal(
+					templates.Document(policyFile.Content),
+				)),
+			),
+			policyOG: opengraph.NewArticle(
+				policyFile.Frontmatter.Title+" Service Policy",
+				path,
+				policyFile.Frontmatter.Description,
+				m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
+				policyFile.Frontmatter.GetCreatedDate().String(),
+				policyFile.Frontmatter.GetUpdatedDate().String(),
+				"",
+				[]string{"Immanent Tech <hello@immanent.tech>"},
+				"Policies",
+				nil,
+			),
+			policyJsonLd: schemaorg.NewArticle(
+				policyFile.Frontmatter.Title+" Service Policy",
+				nil,
+				nil,
+				components.OrgJSONLD,
+				policyFile.Frontmatter.GetCreatedDate().String(),
+				policyFile.Frontmatter.GetUpdatedDate().String(),
+				policyFile.Frontmatter.Description,
+			),
+		}
+		template := templ.Join(page.policyJsonLd.ToJsonLd(), templates.CreatePage(page.appCfg, page.sessionMgr, page))
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-
-		title := templates.PageTitle{
-			Summary:     policyFile.Frontmatter.Title,
-			Description: "Service Policy",
-		}
-		policyOG := opengraph.NewArticle(
-			title.String(),
-			m.AppConfig.GetBaseURL().JoinPath(policyFile.Frontmatter.Slug).String(),
-			policyFile.Frontmatter.Description,
-			m.AppConfig.GetBaseURL().JoinPath("/images/logo-vertical-light.webp").String(),
-			policyFile.Frontmatter.GetCreatedDate().String(),
-			policyFile.Frontmatter.GetUpdatedDate().String(),
-			"",
-			[]string{"Immanent Tech <hello@immanent.tech>"},
-			"Policies",
-			nil,
-		)
-		policyJsonLd := schemaorg.NewArticle(
-			title.String(),
-			nil,
-			nil,
-			orgJsonLd,
-			policyFile.Frontmatter.GetCreatedDate().String(),
-			policyFile.Frontmatter.GetUpdatedDate().String(),
-			policyFile.Frontmatter.Description,
-		)
-		template := templates.CreatePage(
-			m.AppConfig,
-			m.SessionMgr,
-			templates.LayoutExternal(
-				templates.Document(policyFile.Content),
-			),
-			templates.WithPageTitle(title),
-			templates.WithPageDescription(policyFile.Frontmatter.Description),
-			templates.WithOpenGraphMetadata(policyOG),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(m.AppConfig.GetBaseURL()),
-				policyJsonLd,
-			),
-		)
 		templ.Handler(template).ServeHTTP(res, req)
 	}
 }

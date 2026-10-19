@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/a-h/templ"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -354,5 +355,249 @@ func (mock *MoqSessionManager) GetCalls() []struct {
 	mock.lockGet.RLock()
 	calls = mock.calls.Get
 	mock.lockGet.RUnlock()
+	return calls
+}
+
+// Ensure that MoqPage does implement templates.Page.
+// If this is not the case, regenerate this file with mockery.
+var _ templates.Page = &MoqPage{}
+
+// MoqPage is a mock implementation of templates.Page.
+//
+//	func TestSomethingThatUsesPage(t *testing.T) {
+//
+//		// make and configure a mocked templates.Page
+//		mockedPage := &MoqPage{
+//			CanonicalLinkFunc: func() string {
+//				panic("mock out the CanonicalLink method")
+//			},
+//			GetDescriptionFunc: func() string {
+//				panic("mock out the GetDescription method")
+//			},
+//			GetTemplateFunc: func() templ.Component {
+//				panic("mock out the GetTemplate method")
+//			},
+//			GetTitleFunc: func() string {
+//				panic("mock out the GetTitle method")
+//			},
+//			ToJsonLdFunc: func() templ.Component {
+//				panic("mock out the ToJsonLd method")
+//			},
+//			ToMetaTagsFunc: func() templ.Component {
+//				panic("mock out the ToMetaTags method")
+//			},
+//		}
+//
+//		// use mockedPage in code that requires templates.Page
+//		// and then make assertions.
+//
+//	}
+type MoqPage struct {
+	// CanonicalLinkFunc mocks the CanonicalLink method.
+	CanonicalLinkFunc func() string
+
+	// GetDescriptionFunc mocks the GetDescription method.
+	GetDescriptionFunc func() string
+
+	// GetTemplateFunc mocks the GetTemplate method.
+	GetTemplateFunc func() templ.Component
+
+	// GetTitleFunc mocks the GetTitle method.
+	GetTitleFunc func() string
+
+	// ToJsonLdFunc mocks the ToJsonLd method.
+	ToJsonLdFunc func() templ.Component
+
+	// ToMetaTagsFunc mocks the ToMetaTags method.
+	ToMetaTagsFunc func() templ.Component
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// CanonicalLink holds details about calls to the CanonicalLink method.
+		CanonicalLink []struct {
+		}
+		// GetDescription holds details about calls to the GetDescription method.
+		GetDescription []struct {
+		}
+		// GetTemplate holds details about calls to the GetTemplate method.
+		GetTemplate []struct {
+		}
+		// GetTitle holds details about calls to the GetTitle method.
+		GetTitle []struct {
+		}
+		// ToJsonLd holds details about calls to the ToJsonLd method.
+		ToJsonLd []struct {
+		}
+		// ToMetaTags holds details about calls to the ToMetaTags method.
+		ToMetaTags []struct {
+		}
+	}
+	lockCanonicalLink  sync.RWMutex
+	lockGetDescription sync.RWMutex
+	lockGetTemplate    sync.RWMutex
+	lockGetTitle       sync.RWMutex
+	lockToJsonLd       sync.RWMutex
+	lockToMetaTags     sync.RWMutex
+}
+
+// CanonicalLink calls CanonicalLinkFunc.
+func (mock *MoqPage) CanonicalLink() string {
+	if mock.CanonicalLinkFunc == nil {
+		panic("MoqPage.CanonicalLinkFunc: method is nil but Page.CanonicalLink was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockCanonicalLink.Lock()
+	mock.calls.CanonicalLink = append(mock.calls.CanonicalLink, callInfo)
+	mock.lockCanonicalLink.Unlock()
+	return mock.CanonicalLinkFunc()
+}
+
+// CanonicalLinkCalls gets all the calls that were made to CanonicalLink.
+// Check the length with:
+//
+//	len(mockedPage.CanonicalLinkCalls())
+func (mock *MoqPage) CanonicalLinkCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockCanonicalLink.RLock()
+	calls = mock.calls.CanonicalLink
+	mock.lockCanonicalLink.RUnlock()
+	return calls
+}
+
+// GetDescription calls GetDescriptionFunc.
+func (mock *MoqPage) GetDescription() string {
+	if mock.GetDescriptionFunc == nil {
+		panic("MoqPage.GetDescriptionFunc: method is nil but Page.GetDescription was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetDescription.Lock()
+	mock.calls.GetDescription = append(mock.calls.GetDescription, callInfo)
+	mock.lockGetDescription.Unlock()
+	return mock.GetDescriptionFunc()
+}
+
+// GetDescriptionCalls gets all the calls that were made to GetDescription.
+// Check the length with:
+//
+//	len(mockedPage.GetDescriptionCalls())
+func (mock *MoqPage) GetDescriptionCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetDescription.RLock()
+	calls = mock.calls.GetDescription
+	mock.lockGetDescription.RUnlock()
+	return calls
+}
+
+// GetTemplate calls GetTemplateFunc.
+func (mock *MoqPage) GetTemplate() templ.Component {
+	if mock.GetTemplateFunc == nil {
+		panic("MoqPage.GetTemplateFunc: method is nil but Page.GetTemplate was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetTemplate.Lock()
+	mock.calls.GetTemplate = append(mock.calls.GetTemplate, callInfo)
+	mock.lockGetTemplate.Unlock()
+	return mock.GetTemplateFunc()
+}
+
+// GetTemplateCalls gets all the calls that were made to GetTemplate.
+// Check the length with:
+//
+//	len(mockedPage.GetTemplateCalls())
+func (mock *MoqPage) GetTemplateCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetTemplate.RLock()
+	calls = mock.calls.GetTemplate
+	mock.lockGetTemplate.RUnlock()
+	return calls
+}
+
+// GetTitle calls GetTitleFunc.
+func (mock *MoqPage) GetTitle() string {
+	if mock.GetTitleFunc == nil {
+		panic("MoqPage.GetTitleFunc: method is nil but Page.GetTitle was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetTitle.Lock()
+	mock.calls.GetTitle = append(mock.calls.GetTitle, callInfo)
+	mock.lockGetTitle.Unlock()
+	return mock.GetTitleFunc()
+}
+
+// GetTitleCalls gets all the calls that were made to GetTitle.
+// Check the length with:
+//
+//	len(mockedPage.GetTitleCalls())
+func (mock *MoqPage) GetTitleCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetTitle.RLock()
+	calls = mock.calls.GetTitle
+	mock.lockGetTitle.RUnlock()
+	return calls
+}
+
+// ToJsonLd calls ToJsonLdFunc.
+func (mock *MoqPage) ToJsonLd() templ.Component {
+	if mock.ToJsonLdFunc == nil {
+		panic("MoqPage.ToJsonLdFunc: method is nil but Page.ToJsonLd was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockToJsonLd.Lock()
+	mock.calls.ToJsonLd = append(mock.calls.ToJsonLd, callInfo)
+	mock.lockToJsonLd.Unlock()
+	return mock.ToJsonLdFunc()
+}
+
+// ToJsonLdCalls gets all the calls that were made to ToJsonLd.
+// Check the length with:
+//
+//	len(mockedPage.ToJsonLdCalls())
+func (mock *MoqPage) ToJsonLdCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockToJsonLd.RLock()
+	calls = mock.calls.ToJsonLd
+	mock.lockToJsonLd.RUnlock()
+	return calls
+}
+
+// ToMetaTags calls ToMetaTagsFunc.
+func (mock *MoqPage) ToMetaTags() templ.Component {
+	if mock.ToMetaTagsFunc == nil {
+		panic("MoqPage.ToMetaTagsFunc: method is nil but Page.ToMetaTags was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockToMetaTags.Lock()
+	mock.calls.ToMetaTags = append(mock.calls.ToMetaTags, callInfo)
+	mock.lockToMetaTags.Unlock()
+	return mock.ToMetaTagsFunc()
+}
+
+// ToMetaTagsCalls gets all the calls that were made to ToMetaTags.
+// Check the length with:
+//
+//	len(mockedPage.ToMetaTagsCalls())
+func (mock *MoqPage) ToMetaTagsCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockToMetaTags.RLock()
+	calls = mock.calls.ToMetaTags
+	mock.lockToMetaTags.RUnlock()
 	return calls
 }

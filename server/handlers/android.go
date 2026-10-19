@@ -47,16 +47,15 @@ func (m *Manager) HandleChooseAndroidSubscription(appCfg AppConfig) http.Handler
 			return
 		}
 
-		RenderInternalPage(&ChooseSubscription{
-			title: templates.PageTitle{
-				Summary:     "Choose Subscription Plan",
-				Description: "Pick whether to subscribe monthly or yearly",
-			},
-			user:       user,
-			request:    checkout,
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		page := &ChooseSubscription{
+			Page: m.NewPage(
+				"/checkout",
+				WithSummary("Choose your subscription plan"),
+				WithDescription("Pick from a monthly or yearly subscription"),
+				WithTemplate(templates.Checkout(checkout)),
+			),
+		}
+		page.Render().ServeHTTP(res, req)
 	}
 }
 

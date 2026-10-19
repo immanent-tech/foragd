@@ -17,39 +17,23 @@ import (
 )
 
 type ForgetMe struct {
-	pageMetadata
-
-	svc pageServices
+	*Page
 }
 
 func (p *ForgetMe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(
-		p.svc.appCfg,
-		p.svc.sessionMgr,
-		templates.ForgetMe(),
-		templates.WithPageTitle(p.Title),
-		templates.WithPageDescription(p.Description),
-		templates.WithCanonicalLink(p.CanonicalLink()),
-		templates.WithOpenGraphMetadata(p.OpengraphData()),
-		templates.WithJSONLDSchema(
-			generateSiteJSONLD(p.baseURL),
-			p.JSONLD(),
-		),
-	)).ServeHTTP(res, req)
+	templ.Handler(templates.CreatePage(p.appCfg, p.sessionMgr, p)).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleForgetMe() http.HandlerFunc {
-	return RenderExternalPage(&ForgetMe{
-		Title: templates.PageTitle{
-			Summary:     "Forget Me Request",
-			Description: "Request removal of your account and personal data",
-		},
-		Description: "Request deletion of your account and personal data.",
-		Path:        "/forget-me",
-		ImagePath:   "/images/logo-vertical-light.webp",
-		baseURL:     m.AppConfig.GetBaseURL(),
-		svc:         m.NewPageServices(),
-	})
+	forgetMe := &ForgetMe{
+		Page: m.NewPage("/forget-me",
+			WithSummary("Forget Me Request"),
+			WithDescription("Request removal of your account and personal data"),
+			WithMetadataDescription("Request deletion of your account and personal data."),
+			WithTemplate(templates.ForgetMe()),
+		),
+	}
+	return forgetMe.Render()
 }
 
 func (m *Manager) HandleSubmitForgetMe(emailSender EmailSender) http.HandlerFunc {
@@ -93,11 +77,11 @@ func (m *Manager) HandleSubmitForgetMe(emailSender EmailSender) http.HandlerFunc
 		}
 
 		// Show notification of issue reported.
-		RenderPartial(&Notification{
-			msg: models.NewInfoMessage(
+		m.HandleNotification(res, req,
+			models.NewInfoMessage(
 				"Your request has been recieved",
 				"We will reply via email to confirm and then once the request is complete.",
 			),
-		}).ServeHTTP(res, req)
+		)
 	}
 }

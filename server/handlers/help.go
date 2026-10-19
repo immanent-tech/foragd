@@ -8,55 +8,29 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/pkg/htmx"
 	"github.com/immanent-tech/go-base/pkg/markdownx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type Help struct {
-	template templ.Component
-	metadata pageMetadata
-	svc      pageServices
-}
-
-// FullResponse renders a full page (headers, footers and list of subscriptions).
-func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			p.template,
-			templates.WithPageTitle(p.metadata.Title),
-			templates.WithPageDescription(p.metadata.Description),
-			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
-			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(p.metadata.baseURL),
-				p.metadata.JSONLD(),
-			),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
-// paginating, just the list of subscriptions.
-func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.metadata.Title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	*Page
 }
 
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
 func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 	const docPrefix = "files/docs/help"
+	page := &Help{
+		Page: m.NewPage(path,
+			WithSummary("Help & Documentation"),
+			WithDescription("Foragd RSS reader help guides and usage"),
+			WithMetadataDescription("Get help and read documentation for using Foragd."),
+		),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		contents, err := web.Files.ReadFile(filepath.Join(docPrefix, "index.md"))
@@ -79,35 +53,17 @@ func (m *Manager) DocumentationHandler(path string) http.HandlerFunc {
 			return
 		}
 
-		metadata := pageMetadata{
-			Title: templates.PageTitle{
-				Summary:     "Help & Documentation",
-				Description: "RSS Reader Guides and Usage",
-			},
-			Description: "Get help and review documentation for using Foragd.",
-			Path:        path,
-			ImagePath:   "/images/logo-vertical-light.webp",
-			baseURL:     m.AppConfig.GetBaseURL(),
-		}
-
 		if user := models.UserFromCtx(req.Context()); user != nil {
-			RenderInternalPage(&Help{
-				metadata: metadata,
-				template: templates.LayoutInternal(
-					"",
-					&templates.InternalLayoutProps{User: user},
-					templates.Document(mdHTML),
-				),
-				svc: m.NewPageServices(),
-			}).ServeHTTP(res, req.WithContext(req.Context()))
+			page.template = templates.LayoutInternal(
+				"",
+				&templates.InternalLayoutProps{User: user},
+				templates.Document(mdHTML),
+			)
 		} else {
-			RenderExternalPage(&Help{
-				metadata: metadata,
-				template: templates.LayoutExternal(
-					templates.Document(mdHTML),
-				),
-				svc: m.NewPageServices(),
-			}).ServeHTTP(res, req.WithContext(req.Context()))
+			page.template = templates.LayoutExternal(
+				templates.Document(mdHTML),
+			)
 		}
+		page.Render().ServeHTTP(res, req.WithContext(req.Context()))
 	}
 }

@@ -319,7 +319,14 @@ func (m *Manager) HandleLoginError(res http.ResponseWriter, req *http.Request) {
 			slog.String("tracking", auth0Err.Tracking),
 		)
 	}
-	RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
+	page := &AccountIssue{
+		Page: m.NewPage("/login/error",
+			WithSummary("Account Issue"),
+			WithDescription("There is a critical problem with your Foragd account"),
+			WithTemplate(templates.UserAccountIssue()),
+		),
+	}
+	page.Render().ServeHTTP(res, req)
 }
 
 // HandleRefreshToken handles refreshing the user's access token (using a refresh token) when it is about to expire.

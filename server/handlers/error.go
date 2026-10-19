@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-base/pkg/htmx"
@@ -17,6 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 type ErrorOptions struct {
@@ -33,10 +33,10 @@ func WithUserMessage(msg *models.UserMessage) ErrorOption {
 
 // InternalError represents errors shown on internal (pages accessible to logged in users) pages.
 type InternalError struct {
-	err        *models.APIError
-	referer    string
-	appCfg     AppConfig
-	sessionMgr SessionManager
+	*Page
+
+	err     *models.APIError
+	referer string
 }
 
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users). If the passed in
@@ -54,10 +54,15 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 	}
 
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Don't cache errors.
-		res.Header().Set("Cache-Control", "no-store")
+		page := &InternalError{
+			Page: m.NewPage(req.URL.Path,
+				WithSummary(opts.UserMessage.Summary),
+				WithDescription(*opts.UserMessage.Details),
+			),
+		}
 
-		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+		apiErr, ok := errors.AsType[*models.APIError](err)
+		if ok {
 			// Write appropriately leveled log message.
 			apiErr.WriteLog(req.Context())
 			// For 500+ errors, log to GCP error console.
@@ -65,18 +70,10 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 				gerror.ReportError(apiErr)
 			}
 			// Write response.
-			res.WriteHeader(apiErr.HTTPStatus())
 			if apiErr.UserMessage == nil {
 				// Add a generic user message if one isn't already set.
 				apiErr.UserMessage = opts.UserMessage
 			}
-			page := &InternalError{
-				err:        apiErr,
-				referer:    req.URL.Path,
-				appCfg:     m.AppConfig,
-				sessionMgr: m.SessionMgr,
-			}
-			RenderInternalPage(page).ServeHTTP(res, req)
 		} else {
 			if status == 0 {
 				status = http.StatusInternalServerError
@@ -86,50 +83,42 @@ func (m *Manager) HandleInternalError(status int, err error, options ...ErrorOpt
 			}
 			apiErr = models.NewAPIError(status, err, models.WithUserMessage(opts.UserMessage))
 			apiErr.WriteLog(req.Context())
-			res.WriteHeader(apiErr.HTTPStatus())
-			page := &InternalError{
-				err:        apiErr,
-				referer:    req.URL.Path,
-				appCfg:     m.AppConfig,
-				sessionMgr: m.SessionMgr,
-			}
-			RenderInternalPage(page).ServeHTTP(res, req)
 		}
-	}
-}
+		page.err = apiErr
+		page.referer = req.URL.Path
+		res.WriteHeader(apiErr.HTTPStatus())
+		// Don't cache errors.
+		res.Header().Set("Cache-Control", "no-store")
+		if req.Method == http.MethodGet {
+			res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
+			page.template = templates.InternalError(
+				models.UserFromCtx(req.Context()),
+				page.referer,
+				page.err.UserMessage,
+			)
+		} else {
+			res.Header().Set(htmx.HeaderReswap, "none")
+			page.template = partials.Notification(page.err.UserMessage)
+		}
 
-// FullResponse renders the error message on a full page.
-func (p *InternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(
-		p.appCfg,
-		p.sessionMgr,
-		templates.InternalError(
-			models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage))).
-		ServeHTTP(res, req)
-}
-
-// PartialResponse will render the error in the content area for GET requests, as a notification otherwise.
-func (p *InternalError) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodGet {
-		res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-		templ.Handler(templates.InternalError(models.UserFromCtx(req.Context()), p.referer, p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
-			ServeHTTP(res, req)
-	} else {
-		res.Header().Set(htmx.HeaderReswap, "none")
-		RenderPartial(&Notification{
-			msg: p.err.UserMessage,
-		}).ServeHTTP(res, req)
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
 // ExternalError represents errors shown on external (public) pages.
 type ExternalError struct {
-	template templ.Component
+	*Page
 }
 
 // HandleExternalError handles display errors on external pages.
 func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		page := &ExternalError{
+			Page: m.NewPage(req.URL.Path,
+				WithSummary("Whoops! Something went wrong"),
+				WithDescription("We could not display the page you requested"),
+			),
+		}
 		// Don't cache errors.
 		res.Header().Set("Cache-Control", "no-store")
 
@@ -141,17 +130,9 @@ func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 				gerror.ReportError(apiErr)
 			}
 			// Write response.
+			page.template = templates.ExternalError(models.UserFromCtx(req.Context()), apiErr.GetUserMessage())
 			res.WriteHeader(apiErr.HTTPStatus())
-			page := &ExternalError{
-				template: templates.CreatePage(
-					m.AppConfig,
-					m.SessionMgr,
-					templates.ExternalError(models.UserFromCtx(req.Context()),
-						apiErr.GetUserMessage()),
-					templates.WithPageTitle(templates.PageTitle{Summary: "Whoops! Something went wrong"}),
-				),
-			}
-			RenderExternalPage(page).ServeHTTP(res, req)
+			page.Render().ServeHTTP(res, req)
 		} else {
 			slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
 				slog.Any("error", err),
@@ -160,9 +141,4 @@ func (m *Manager) HandleExternalError(err error) http.HandlerFunc {
 			return
 		}
 	}
-}
-
-// FullResponse renders the error on a full page.
-func (p *ExternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template).ServeHTTP(res, req)
 }

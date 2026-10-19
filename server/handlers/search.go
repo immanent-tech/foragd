@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 const (
@@ -107,60 +106,48 @@ func (m *Manager) HandleSearchSuggestions(svc SubscriptionsService, itemSvc Item
 		}
 
 		// Generate search suggestions object.
-		RenderPartial(&SearchSuggestions{
-			template: templates.SearchSuggestions(&models.SearchResults{
-				Search:        *search,
-				Subscriptions: subscriptions,
-				Articles:      articles,
-			}),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.SearchSuggestions(&models.SearchResults{
+			Search:        *search,
+			Subscriptions: subscriptions,
+			Articles:      articles,
+		})).Render().ServeHTTP(res, req)
 	}
 }
 
 type SearchResults struct {
-	title   templates.PageTitle
+	*Page
+
 	results *models.SearchResults
-	svc     pageServices
 }
 
-func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			h.svc.appCfg,
-			h.svc.sessionMgr,
-			templates.SearchResults(h.results),
-			templates.WithPageTitle(h.title),
-		)).ServeHTTP(res, req)
-}
-
-func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
+func (p *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
 	case "/search":
-		res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Encode())
-		template := templates.SearchResults(h.results)
-		if len(h.results.Articles) > 0 {
+		res.Header().Add(htmx.HeaderPushURL, "/search?"+p.results.Search.Encode())
+		template := templates.SearchResults(p.results)
+		if len(p.results.Articles) > 0 {
 			// Also update the search filters element.
 			template = templ.Join(
 				template,
-				templates.AdvancedSearch(&h.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
+				templates.AdvancedSearch(&p.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
 			)
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
+		templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/search/paginate":
-		if len(h.results.Articles) == 0 {
+		if len(p.results.Articles) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 		} else {
-			templ.Handler(templates.SearchResults(h.results), templ.WithFragments(templates.PaginateFragment)).
+			templ.Handler(templates.SearchResults(p.results), templ.WithFragments(templates.PaginateFragment)).
 				ServeHTTP(res, req)
-			RenderPartial(&PartialTemplate{
-				template: templates.SearchPaginationControl(
-					&h.results.Search,
-					element.WithHXSwapOOB("true"),
-				),
-			}).ServeHTTP(res, req)
+			// RenderPartial(&PartialTemplate{
+			// 	template: templates.SearchPaginationControl(
+			// 		&p.results.Search,
+			// 		element.WithHXSwapOOB("true"),
+			// 	),
+			// }).ServeHTTP(res, req)
 		}
 	}
 }
@@ -252,14 +239,15 @@ func (m *Manager) HandleSearchResults(itemSvc ItemService) http.HandlerFunc {
 		results.Search.From = pagination.From
 
 		// Render.
-		RenderInternalPage(&SearchResults{
-			title: templates.PageTitle{
-				Summary:     "Search Results",
-				Description: search.Text,
-			},
+		page := &SearchResults{
+			Page: m.NewPage("/search",
+				WithSummary("Search Results"),
+				WithDescription(search.Text),
+				WithTemplate(templates.SearchResults(results)),
+			),
 			results: results,
-			svc:     m.NewPageServices(),
-		}).ServeHTTP(res, req)
+		}
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
@@ -291,12 +279,7 @@ func (m *Manager) HandleSearchUpdates(itemSvc ItemService) http.HandlerFunc {
 
 		// If updates found, render a notification.
 		if updateCount > 0 {
-			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
-				element.WithHXMethod(http.MethodGet, "/search"),
-				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("innerMorph scroll:top transition:true"),
-				element.WithHXValues(search),
-			)}).ServeHTTP(res, req)
+			m.HandleUpdatesToast(res, req, "/search", search)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
@@ -311,10 +294,7 @@ func (m *Manager) AddSubscriptionFilter() http.HandlerFunc {
 			m.HandleInternalError(http.StatusUnprocessableEntity, err).ServeHTTP(res, req)
 			return
 		}
-
-		RenderPartial(&PartialTemplate{
-			template: templates.AddSearchSubscriptionFilter(subscription),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.AddSearchSubscriptionFilter(subscription)).Render().ServeHTTP(res, req)
 	}
 }
 
@@ -347,8 +327,6 @@ func (m *Manager) GetSubscriptionFilterSuggestions(svc SubscriptionsService) htt
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.SearchSubscriptionFilterSuggestions(subscriptions),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)).Render().ServeHTTP(res, req)
 	}
 }

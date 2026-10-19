@@ -9,17 +9,17 @@ import (
 	"fmt"
 	"github.com/immanent-tech/foragd/web/templates/components"
 	"github.com/immanent-tech/go-base/pkg/htmx"
-	"github.com/immanent-tech/go-base/pkg/templx"
 	"github.com/immanent-tech/go-base/server/handlers/assets"
 	"go.opentelemetry.io/otel"
 	"path/filepath"
-	"slices"
 )
 
 var tracer = otel.Tracer("github.com/immanent-tech/foragd/web/templates")
 
 var (
+    // ContentID is the ID attribute value of the main content of the page.
 	ContentID        = htmx.ID("content")
+    // ModalContainerID is the ID attribute value of element that can show modals.
 	ModalContainerID = htmx.ID("modals")
 )
 
@@ -38,82 +38,8 @@ const (
 	HeaderSlot = "Header"
 )
 
-// Page contains data for rendering a full HTML page.
-type Page struct {
-	// Component is the main body content of the page.
-	Component templ.Component
-	// Title is a string for the (browser) titlebar.
-	Title string
-	// Description adds a meta tag with the given text.
-	Description string
-	// OpenGraph contains the Opengraph metadata for the page.
-	OpenGraph OpenGraphData
-	// JSONLDSchema contains the JSONLDSchema for the page.
-	JSONLDSchema []JSONLDSchema
-	// CanonicalLink is the link that will be used with <link rel="canonical> on the page.
-	CanonicalLink string
-}
-
-type OpenGraphData interface {
-	ToMetaTags() templ.Component
-}
-
-type JSONLDSchema interface {
-	ToJsonLd() templ.Component
-}
-
-// PageOption is a functional option applied to a page.
-type PageOption func(*Page)
-
-// WithPageTitle option sets the page title (displayed in the browser titlebar).
-func WithPageTitle(title PageTitle) PageOption {
-	return func(p *Page) {
-		p.Title = title.String()
-	}
-}
-
-// WithPageDescription option sets a description meta tag in the page header.
-func WithPageDescription(desc string) PageOption {
-	return func(p *Page) {
-		p.Description = desc
-	}
-}
-
-// WithOpenGraphMetadata option sets the given metadata as appropriate Open Graph tags in the page header.
-func WithOpenGraphMetadata(metadata OpenGraphData) PageOption {
-	return func(p *Page) {
-		p.OpenGraph = metadata
-	}
-}
-
-// WithJSONLDSchema option adds the given JSON-LD schemas to the page.
-func WithJSONLDSchema(schema ...JSONLDSchema) PageOption {
-	return func(p *Page) {
-		p.JSONLDSchema = append(p.JSONLDSchema, schema...)
-	}
-}
-
-// WithCanonicalLink sets the <link rel="canonical> link for the page.
-func WithCanonicalLink(link string) PageOption {
-	return func(p *Page) {
-		p.CanonicalLink = link
-	}
-}
-
-// CreatePage creates a new page with the given body template and additional options.
-templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Component, options ...PageOption) {
-	// Build page with specified options.
-	{{
-		p := &Page{
-			Component: template,
-			Title:     "Foragd",
-		}
-
-		for option := range slices.Values(options) {
-			option(p)
-		}
-	}}
-	// Render page.
+// NewPage renders a full page (<head> and <body>).
+templ CreatePage(appCfg AppConfig, session SessionManager, page Page) {
 	<!DOCTYPE html>
 	<html
 		lang="en"
@@ -131,7 +57,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 	>
 		<head>
 			<meta charset="UTF-8"/>
-			<meta name="description" content={ p.Description }/>
+			<meta name="description" content={ page.GetDescription() }/>
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
 			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width"/>
@@ -153,14 +79,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<link rel="stylesheet" href={ filepath.Join("/assets/", assets.AssetPath("web/assets/styles.processed.css")) }/>
 			// Leaflet.
 			@components.LeafletAssets()
-			if p.OpenGraph != nil {
-				@p.OpenGraph.ToMetaTags()
-			}
-			if p.CanonicalLink != "" {
-				<link rel="canonical" href={ templ.URL(p.CanonicalLink) }/>
-			} else {
-				<link rel="canonical" href={ templ.URL(appCfg.GetBaseURL().String()) }/>
-			}
+			<link rel="canonical" href={ page.CanonicalLink() }/>
 			//  iOS Safari Full screen.
 			<meta name="apple-mobile-web-app-capable" content="yes"/>
 			<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -192,18 +111,13 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
                 IncludeIndicatorCSS: new(false),
 			}) }
 			/>
-			for schema := range slices.Values(p.JSONLDSchema) {
-				if schema != nil {
-					@schema.ToJsonLd()
-				}
-			}
-			// Insert any additional header, if defined.
-			if templx.HasSlot(ctx,HeaderSlot) {
-				@templx.GetSlot(ctx, HeaderSlot)
-			}
-			<title>{ p.Title }</title>
-			// Load the default application metadata JSON-LD.
+			// OpenGraph.
+            @components.SiteOG(appCfg.GetBaseURL())
+			// JSON-LD.
+			@components.SiteJSONLD(appCfg.GetBaseURL())
 			@components.AppMetadataJSONLD()
+			<title>{ page.GetTitle() }</title>
+			// Load the default application metadata JSON-LD.
 			// Scroll/page restoration management.
 			@components.ScrollRestoreBehavior()
 			// MasonryGrid for list layouts.
@@ -226,7 +140,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 			<div id={ ModalContainerID.String() }></div>
 			// Main page content.
 			@templ.Fragment(BodyFragment) {
-				@p.Component
+				@page.GetTemplate()
 			}
 			// Notifications.
 			<div aria-live="assertive" class="pointer-events-none fixed inset-safe-or-0 z-999 flex items-end sm:items-start">
@@ -236,6 +150,7 @@ templ CreatePage(appCfg AppConfig, session SessionManager, template templ.Compon
 	</html>
 }
 
-templ UpdateTitle(title PageTitle) {
-	<title>{ title.String() }</title>
+// Title renders the <title> tag. It can be used whenever an update to the title is needed.
+templ Title(title string) {
+	<title>{ title }</title>
 }

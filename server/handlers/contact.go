@@ -8,48 +8,25 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/a-h/templ"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 type Contact struct {
-	template templ.Component
-}
-
-func (p *Contact) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandleContact() http.HandlerFunc {
-	metadata := pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     "Contact",
-			Description: "Contact the developers of Foragd.",
-		},
-		Description: "Contact the developers of Foragd.",
-		Path:        "/contact",
-		ImagePath:   "/images/logo-vertical-light.webp",
-		baseURL:     m.AppConfig.GetBaseURL(),
-	}
-	return RenderExternalPage(&Contact{
-		template: templates.CreatePage(
-			m.AppConfig,
-			m.SessionMgr,
-			templates.Contact(),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
-			templates.WithCanonicalLink(metadata.CanonicalLink()),
-			templates.WithOpenGraphMetadata(metadata.OpengraphData()),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(metadata.baseURL),
-				metadata.JSONLD(),
-				orgJsonLd,
-			),
+	page := &Contact{
+		Page: m.NewPage("/contact",
+			WithSummary("Contact Us"),
+			WithDescription("Get in touch with the developers of Foragd."),
+			WithMetadataDescription("Get in touch with the developers of Foragd."),
+			WithTemplate(templates.Contact()),
 		),
-	})
+	}
+	return page.Render()
 }
 
 func (m *Manager) HandleSubmitContact(emailSender EmailSender) http.HandlerFunc {
@@ -91,11 +68,11 @@ func (m *Manager) HandleSubmitContact(emailSender EmailSender) http.HandlerFunc 
 		}
 
 		// Show notification of issue reported.
-		RenderPartial(&Notification{
-			msg: models.NewInfoMessage(
+		m.HandleNotification(res, req,
+			models.NewInfoMessage(
 				"Thanks for contacting us!",
 				"If we need to reach out to discuss, we will send you an email to the address that was submitted.",
 			),
-		}).ServeHTTP(res, req)
+		)
 	}
 }

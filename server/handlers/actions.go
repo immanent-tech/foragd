@@ -33,8 +33,6 @@ func (m *Manager) GetSubscriptionActionSuggestions(subs SubscriptionsService) ht
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.ActionSuggestionSubscriptions(subscriptions),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.ActionSuggestionSubscriptions(subscriptions)).Render().ServeHTTP(res, req)
 	}
 }

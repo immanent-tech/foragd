@@ -6,46 +6,35 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 type NotFoundPage struct {
-	template templ.Component
-	svc      pageServices
+	*Page
 }
 
 // HandleNotFound handles showing a page for a 404 response.
 func (m *Manager) HandleNotFound() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		page := &NotFoundPage{
+			Page: m.NewPage(req.URL.Path,
+				WithSummary("Not Found"),
+				WithDescription("Could not find the requested page"),
+			),
+		}
 		user := models.UserFromCtx(req.Context())
-		var layout templ.Component
 		if user == nil {
-			layout = templates.LayoutExternal(templates.NotFound())
+			page.template = templates.LayoutExternal(templates.NotFound())
 		} else {
-			layout = templates.LayoutInternal(
+			page.template = templates.LayoutInternal(
 				"",
 				&templates.InternalLayoutProps{User: user},
 				templates.NotFound(),
 			)
 		}
+		res.Header().Set("Cache-Control", "no-store")
 		res.WriteHeader(http.StatusNotFound)
-		RenderInternalPage(&NotFoundPage{
-			template: layout,
-			svc:      m.NewPageServices(),
-		}).ServeHTTP(res, req)
+		page.Render().ServeHTTP(res, req)
 	}
-}
-
-func (p *NotFoundPage) FullResponse(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(p.svc.appCfg, p.svc.sessionMgr, p.template)).ServeHTTP(w, r)
-}
-
-func (p *NotFoundPage) PartialResponse(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(p.svc.appCfg, p.svc.sessionMgr, p.template), templ.WithFragments(templates.ErrorFragment)).
-		ServeHTTP(w, r)
 }

@@ -27,6 +27,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-push-url="true"
 			hx-browser-indicator="true"
 			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavHome) }
@@ -48,6 +49,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-push-url="true"
 			hx-browser-indicator="true"
 			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavSubscriptions) }
@@ -69,6 +71,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-vals={ templ.JSONString(models.NewListFilters()) }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-push-url="true"
 			hx-browser-indicator="true"
 			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("bg-primary/25 rounded-lg", nav == NavArticles) }
@@ -90,6 +93,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-push-url="true"
 			hx-browser-indicator="true"
 			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavFavorites) }
@@ -110,6 +114,7 @@ templ Dock(nav Navigation, options ...element.PropertiesOption) {
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph show:top transition:true"
 			hx-sync="#page-dock:drop"
+			hx-push-url="true"
 			hx-browser-indicator="true"
 			hx-nonce={ templ.GetNonce(ctx) }
 			class={ "group", templ.KV("rounded-lg bg-primary/25", nav == NavDiscover) }

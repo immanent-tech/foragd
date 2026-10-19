@@ -95,6 +95,7 @@ templ UserSettings() {
 							id="display"
 							hx-get="/settings/display"
 							hx-trigger="load, settings-display-revealed"
+							hx-push-url="/settings/#display"
 							hx-indicator="#tabs-loading"
 							hx-nonce={ templ.GetNonce(ctx) }
 							_="on load
@@ -126,6 +127,7 @@ templ UserSettings() {
 							id="account"
 							hx-get="/settings/account"
 							hx-trigger="settings-account-revealed"
+							hx-push-url="/settings/#account"
 							hx-indicator="#tabs-loading"
 							hx-nonce={ templ.GetNonce(ctx) }
 							_="on load
@@ -158,6 +160,7 @@ templ UserSettings() {
 							id="subscriptions"
 							hx-get="/settings/subscriptions"
 							hx-trigger="settings-subscriptions-revealed"
+							hx-push-url="/settings/#subscriptions"
 							hx-indicator="#tabs-loading"
 							hx-nonce={ templ.GetNonce(ctx) }
 							_="on load

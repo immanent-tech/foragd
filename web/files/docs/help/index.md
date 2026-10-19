@@ -1,5 +1,3 @@
-<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
-
 # Foragd Help
 
 - [Foragd Help](#foragd-help)

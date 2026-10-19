@@ -77,6 +77,12 @@ func HandlePaddleWebhook(userSvc UserService, emailSender EmailSender) http.Hand
 }
 
 func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerFunc {
+	page := &ChooseSubscription{
+		Page: m.NewPage("/checkout",
+			WithSummary("Choose Subscription Plan"),
+			WithDescription("Pick whether to subscribe monthly or yearly"),
+		),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -115,33 +121,24 @@ func (m *Manager) HandleChoosePaddleSubscription(appCfg AppConfig) http.HandlerF
 			return
 		}
 
-		RenderInternalPage(&ChooseSubscription{
-			title: templates.PageTitle{
-				Summary:     "Choose Subscription Plan",
-				Description: "Pick whether to subscribe monthly or yearly",
-			},
-			user:       user,
-			request:    checkout,
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		page.template = templates.Checkout(checkout)
+
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
-func handlePaddlePurchase(appCfg AppConfig) http.HandlerFunc {
+func (m *Manager) handlePaddlePurchase(appCfg AppConfig) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			slogctx.FromCtx(req.Context()).Error("Invalid user.")
 			res.WriteHeader(http.StatusInternalServerError)
-			RenderPartial(
-				&Notification{
-					msg: models.NewErrorMessage(
-						"Invalid data",
-						"There was a problem processing the checkout. This might be temporary, please try again.",
-					),
-				},
-			).ServeHTTP(res, req)
+			m.HandleNotification(res, req,
+				models.NewErrorMessage(
+					"Invalid data",
+					"There was a problem processing the checkout. This might be temporary, please try again.",
+				),
+			)
 			return
 		}
 
@@ -151,14 +148,12 @@ func handlePaddlePurchase(appCfg AppConfig) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Invalid purchase data.",
 				slog.Any("error", err))
 			res.WriteHeader(http.StatusBadRequest)
-			RenderPartial(
-				&Notification{
-					msg: models.NewWarningMessage(
-						"Invalid data",
-						"There was a problem processing the checkout. This might be temporary, please try again.",
-					),
-				},
-			).ServeHTTP(res, req)
+			m.HandleNotification(res, req,
+				models.NewWarningMessage(
+					"Invalid data",
+					"There was a problem processing the checkout. This might be temporary, please try again.",
+				),
+			)
 			return
 		}
 

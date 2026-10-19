@@ -19,6 +19,7 @@ templ NoContent() {
 					href="/favorites"
 					hx-get="/favorites"
 					hx-target="#content"
+					hx-push-url="true"
 					hx-swap="innerMorph show:top transition:true"
 					hx-nonce={ templ.GetNonce(ctx) }
 					class="btn btn-accent"

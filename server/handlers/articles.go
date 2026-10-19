@@ -24,7 +24,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // ArticleCtx retrieves the article matching the URL param and stores it in the context.
@@ -55,28 +54,18 @@ func (m *Manager) ArticleCtx(itemSvc ItemService) func(next http.Handler) http.H
 
 // ListArticles holds data for generating the articles list page.
 type ListArticles struct {
-	appCfg     AppConfig
-	sessionMgr SessionManager
-	title      templates.PageTitle
-	template   templ.Component
-}
-
-// FullResponse renders a full page (headers, footers and list of articles).
-func (p *ListArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(p.appCfg, p.sessionMgr, p.template,
-			templates.WithPageTitle(p.title),
-		)).ServeHTTP(res, req)
+	*Page
 }
 
 // PartialResponse will either render the list of articles, the controls and update the title/dock/sidebar or, when
 // paginating, just the list of articles.
 func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	slogctx.Debug(req.Context(), "Using custom partial render")
 	switch req.URL.Path {
 	case "/articles":
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+		templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 	case "/articles/paginate":
@@ -123,55 +112,47 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 		} else {
 			titleSummary = "Articles"
 		}
-		title := templates.PageTitle{
-			Summary:     titleSummary,
-			Description: string(response.Filters.GetView()) + " | " + response.Filters.GetSort().String(),
-		}
 
-		page := &ListArticles{
-			title:      title,
-			template:   templates.ListArticles(response),
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
+		listArticles := &ListArticles{
+			Page: m.NewPage("/articles",
+				WithSummary(titleSummary),
+				WithDescription(string(response.Filters.GetView())+" | "+response.Filters.GetSort().String()),
+				WithTemplate(templates.ListArticles(response)),
+				WithNavigation(templates.NavArticles),
+			),
 		}
 
 		// Choose rendering method based on method.
 		switch req.Method {
 		case http.MethodGet:
 			// GET: render full page.
-			RenderInternalPage(page).ServeHTTP(res, req)
+			listArticles.Render().ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.
-			RenderPartial(page).ServeHTTP(res, req)
+			listArticles.PartialResponse(res, req)
 			// Update category filters.
 			if len(response.Articles.GetCategoryCounts()) > 0 {
-				RenderPartial(&PartialTemplate{
-					template: templates.UpdateListCategoryFilters(
-						"/articles",
-						response.Filters,
-						response.Articles.GetCategoryCounts().GetCategories(),
-					),
-				}).ServeHTTP(res, req)
+				m.NewPartial(templates.UpdateListCategoryFilters(
+					"/articles",
+					response.Filters,
+					response.Articles.GetCategoryCounts().GetCategories(),
+				)).Render().ServeHTTP(res, req)
 			}
 			// Update language filters.
 			if len(response.Articles.GetLanguageCounts()) > 0 {
-				RenderPartial(&PartialTemplate{
-					template: templates.UpdateListLanguageFilters(
-						"/articles",
-						response.Filters,
-						response.Articles.GetLanguageCounts(),
-					),
-				}).ServeHTTP(res, req)
+				m.NewPartial(templates.UpdateListLanguageFilters(
+					"/articles",
+					response.Filters,
+					response.Articles.GetLanguageCounts(),
+				)).Render().ServeHTTP(res, req)
 			}
 			// Update pagination control element.
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
-				RenderPartial(&PartialTemplate{
-					template: templates.ListPaginationControl(
-						"/articles/paginate",
-						&response.Filters,
-						element.WithHXSwapOOB("true"),
-					),
-				}).ServeHTTP(res, req)
+				m.NewPartial(templates.ListPaginationControl(
+					"/articles/paginate",
+					&response.Filters,
+					element.WithHXSwapOOB("true"),
+				)).Render().ServeHTTP(res, req)
 			}
 		}
 	}
@@ -211,12 +192,7 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 			if filters.From != nil {
 				filters.From = nil
 			}
-			RenderPartial(&PartialTemplate{template: partials.UpdatesToast(
-				element.WithHXMethod(http.MethodGet, route),
-				element.WithHXTarget(templates.ContentID.Target()),
-				element.WithHXSwap("innerMorph scroll:top transition:true"),
-				element.WithHXValues(filters),
-			)}).ServeHTTP(res, req)
+			m.HandleUpdatesToast(res, req, route, filters)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
@@ -224,28 +200,7 @@ func (m *Manager) HandleListArticlesUpdates(itemSvc ItemService) http.HandlerFun
 }
 
 type SimilarArticles struct {
-	appCfg     AppConfig
-	sessionMgr SessionManager
-	title      templates.PageTitle
-	template   templ.Component
-}
-
-// FullResponse renders a full page (headers, footers and list of subscriptions).
-func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(h.appCfg, h.sessionMgr, h.template,
-			templates.WithPageTitle(h.title),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
-// paginating, just the list of subscriptions.
-func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
@@ -268,40 +223,23 @@ func (m *Manager) HandleFindSimilarArticles(itemSvc ItemService) http.HandlerFun
 			).ServeHTTP(res, req)
 			return
 		}
+
+		page := &SimilarArticles{
+			Page: m.NewPage("/articles/"+article.GetID()+"/similar",
+				WithSummary("Similar articles to"),
+				WithDescription(article.GetTitle()),
+				WithTemplate(templates.SimilarArticles(articles)),
+			),
+		}
+
 		// Show results.
-		RenderInternalPage(&SimilarArticles{
-			title: templates.PageTitle{
-				Summary: "Similar Articles",
-			},
-			template:   templates.SimilarArticles(articles),
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
 // ArticleContent contains the data to view article content.
 type ArticleContent struct {
-	appCfg     AppConfig
-	sessionMgr SessionManager
-	title      templates.PageTitle
-	template   templ.Component
-}
-
-// FullResponse renders a full page (headers, footers and content).
-func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(t.appCfg, t.sessionMgr, t.template,
-			templates.WithPageTitle(t.title),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
-func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleViewArticle handles showing an article's content.
@@ -338,22 +276,23 @@ func (m *Manager) HandleViewArticle(itemSvc ItemService) http.HandlerFunc {
 			article.ShowFullContent = *request.ShowFullContent
 		}
 
-		processRemoteContent(req.Context(), req, itemSvc, article, res)
+		m.processRemoteContent(req.Context(), req, itemSvc, article, res)
 
-		RenderInternalPage(&ArticleContent{
-			title: templates.PageTitle{
-				Summary:     article.GetTitle(),
-				Description: article.GetFeedTitle(),
-			},
-			template: templates.ArticleContent(&models.ShowArticleResponse{
-				Article: *article,
-				Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/articles"),
-				BaseURL: m.AppConfig.GetBaseURL(),
-				// Filters: filters,
-			}),
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		page := &ArticleContent{
+			Page: m.NewPage("/articles/"+article.GetID(),
+				WithSummary(article.GetTitle()),
+				WithDescription(article.GetFeedTitle()),
+				WithTemplate(
+					templates.ArticleContent(&models.ShowArticleResponse{
+						Article: *article,
+						Filters: *ListFiltersFromSession(req.Context(), m.SessionMgr, "/articles"),
+						BaseURL: m.AppConfig.GetBaseURL(),
+					}),
+				),
+			),
+		}
+
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
@@ -380,7 +319,7 @@ func fetchArticle(ctx context.Context, svc ItemService, id string) (models.Artic
 
 // processRemoteContent handles fetching remote content if ShowFullContent is requested,
 // and serves the remote content failure response.
-func processRemoteContent(
+func (m *Manager) processRemoteContent(
 	reqCtx context.Context,
 	req *http.Request,
 	svc ItemService,
@@ -404,12 +343,12 @@ func processRemoteContent(
 		}
 		res.Header().Set(htmx.HeaderReswap, "none")
 		res.Header().Set(htmx.HeaderReplaceUrl, "false")
-		RenderPartial(&Notification{
-			msg: models.NewErrorMessage(
+		m.HandleNotification(res, req,
+			models.NewErrorMessage(
 				"Unable to fetch remote content",
 				"An error occurred fetching the article remote content.",
 			),
-		}).ServeHTTP(res, req)
+		)
 		article.ShowFullContent = false
 		return
 	}
@@ -469,24 +408,24 @@ func (m *Manager) HandleBrowseArticles(
 		if errors.Is(err, elastic.ErrNotFound) {
 			// Likely reached the "end of the list".
 			res.Header().Set(htmx.HeaderReswap, "none")
-			RenderPartial(
-				&Notification{
-					msg: models.NewInfoMessage("No more articles!", ""),
-				},
-			).ServeHTTP(res, req)
+			m.HandleNotification(res, req, models.NewInfoMessage("No more articles!", ""))
 			return
 		}
+
+		page := &ArticleContent{
+			Page: m.NewPage("/articles/"+article.GetID(),
+				WithSummary(article.GetTitle()),
+				WithDescription(article.GetFeedTitle()),
+				WithTemplate(
+					templates.ArticleContent(&models.ShowArticleResponse{
+						Article: *article,
+					}),
+				),
+			),
+		}
+
 		// Render article content.
-		RenderInternalPage(&ArticleContent{
-			title: templates.PageTitle{
-				Summary:     article.GetTitle(),
-				Description: article.GetFeedTitle(),
-			},
-			template: templates.ArticleContent(&models.ShowArticleResponse{
-				Article: *article,
-				// Filters: filters,
-			}),
-		}).ServeHTTP(res, req)
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
@@ -542,10 +481,9 @@ func (m *Manager) HandleBulkMarkArticles(
 		switch request.Confirmed {
 		case false:
 			// Show modal to confirm bulk mark articles.
-			RenderPartial(&Modal{
-				template: templates.BulkMarkArticlesModal(mark,
-					element.WithHXSwap("none"),
-				)}).ServeHTTP(res, req)
+			m.NewPartial(templates.BulkMarkArticlesModal(mark,
+				element.WithHXSwap("none"),
+			)).Render().ServeHTTP(res, req)
 		case true:
 			// For each subscription's articles shown, mark.
 			for subscriptionID, itemIDs := range request.DisplayedArticles {
@@ -615,12 +553,9 @@ func (m *Manager) HandleFavoriteArticle(itemSvc ItemService, userSvc UserService
 
 		// Update toggle.
 		article.State.Favorite = favorite
-		RenderPartial(&PartialTemplate{
-			template: templates.ArticleFavoriteToggle(article,
-				element.WithHXSwapOOB("true"),
-			),
-		}).ServeHTTP(res, req)
-
+		m.NewPartial(templates.ArticleFavoriteToggle(article,
+			element.WithHXSwapOOB("true"),
+		)).Render().ServeHTTP(res, req)
 		res.WriteHeader(http.StatusOK)
 	}
 }
@@ -635,9 +570,7 @@ func (m *Manager) HandleShareArticle() http.HandlerFunc {
 			return
 		}
 		// Render share modal.
-		RenderPartial(&Modal{
-			template: templates.ShareArticleModal(article),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.ShareArticleModal(article)).Render().ServeHTTP(res, req)
 	}
 }
 

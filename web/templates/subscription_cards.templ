@@ -29,6 +29,7 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 			"animation-delay-[calc(min(var(--i),15)*80ms)]",
 			"masonry-item"),
 		element.WithHXIndicator("this"),
+		element.WithHXNonce(templ.GetNonce(ctx)),
 	) {
 		// Show unread count in badge at top right if user wants stats shown.
 		<div class="absolute top-2 right-2">
@@ -157,6 +158,7 @@ templ subscriptionCardFooter(sub *models.Subscription) {
 						hx-swap="innerMorph show:top transition:true"
 						hx-trigger="click consume"
 						hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+						hx-push-url="true"
 						hx-nonce={ templ.GetNonce(ctx) }
 						class="btn btn-square btn-ghost btn-sm"
 					>
@@ -233,6 +235,7 @@ templ subscriptionCardMiscActionsMenu(sub *models.Subscription) {
 							hx-swap="innerMorph show:top transition:true"
 							hx-trigger="click consume"
 							hx-vals={ templ.JSONString(map[string]string{"subscriptions": sub.GetID()}) }
+							hx-push-url="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 						>
 							@tableroutline.Map2(templ.Attributes{"class": "size-5 stroke-base-content", "aria-hidden": "true"})

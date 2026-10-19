@@ -1,7 +1,45 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package components
+
+import (
+	"github.com/indaco/teseo/opengraph"
+	"github.com/indaco/teseo/schemaorg"
+	"net/url"
+)
+
+templ SiteJSONLD(baseURL *url.URL) {
+	@schemaorg.NewWebSite(baseURL.String(),
+		"Foragd",
+		"Foragd RSS and Atom Feed Reader",
+		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
+		nil,
+	).ToJsonLd()
+}
+
+templ SiteOG(baseURL *url.URL) {
+	@opengraph.NewWebSite(		"Foragd",
+		baseURL.String(),
+		"Foragd is a web-based RSS and Atom Feed Reader with a responsive design, no ads and no algorithm directing you.",
+		baseURL.Clone().JoinPath("/images/logo-vertical-light.webp").String(),
+	).ToMetaTags()
+}
+
+var sameAs = []string{
+	"https://github.com/immanent-tech",
+}
+
+var OrgJSONLD = schemaorg.NewOrganization(
+	"Immanent Tech",
+	"https://immanent.tech",
+	"https://immanent.tech/images/immanent-tech-icon-dark.svg",
+	nil,
+	sameAs,
+)
 
 templ AppMetadataJSONLD() {
 	<script id="application-metadata" type="application/ld+json" nonce={ templ.GetNonce(ctx) }>

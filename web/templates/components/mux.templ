@@ -12,10 +12,14 @@ type MuxVideo struct {
 	ThumbnailTime *int
 }
 
-templ MuxPlayer(video MuxVideo) {
+templ LoadMux() {
 	@muxScriptOnce.Once() {
 		<script src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer nonce={ templ.GetNonce(ctx) }></script>
 	}
+}
+
+templ MuxPlayer(video MuxVideo) {
+	@LoadMux()
 	<mux-player
 		crossorigin
 		playback-id={ video.ID }

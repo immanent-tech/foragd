@@ -308,6 +308,7 @@ templ articleActionsMenu(article *models.Article) {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerMorph transition:true"
 						hx-trigger="click consume"
+						hx-push-url="true"
 						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						@tableroutline.Search(templ.Attributes{"class": " size-4 stroke-base--content", "aria-hidden": "true"})
@@ -511,6 +512,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									hx-swap="innerMorph show:top transition:true"
 									hx-trigger="click consume"
 									hx-vals={ templ.JSONString(map[string]string{"subscriptions": response.Subscription.GetID()}) }
+									hx-push-url="true"
 									hx-nonce={ templ.GetNonce(ctx) }
 									class="btn btn-square btn-ghost btn-sm"
 								>

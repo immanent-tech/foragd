@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package handlers
 
@@ -8,7 +10,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -19,61 +20,20 @@ import (
 )
 
 type Viewer struct {
-	metadata pageMetadata
-	feed     *models.Feed
-	errMsg   *models.UserMessage
-	svc      pageServices
-}
-
-// FullResponse renders the full viewer page.
-func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			templates.Viewer(p.feed, p.errMsg),
-			templates.WithPageTitle(p.metadata.Title),
-			templates.WithPageDescription(p.metadata.Description),
-			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
-			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(p.metadata.baseURL),
-				p.metadata.JSONLD(),
-			),
-		),
-	).ServeHTTP(res, req)
-}
-
-type ViewerResponse struct {
-	feed *models.Feed
-}
-
-// PartialResponse returns no content for the viewer as partials are unsupported.
-func (p *ViewerResponse) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.ViewerResults(p.feed)).ServeHTTP(res, req)
-}
-
-// ViewerError holds an error when the viewer failed to parse a url.
-type ViewerError struct {
-	msg *models.UserMessage
-}
-
-// PartialResponse renders an error as the viewer response.
-func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.ViewerError(p.msg)).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleViewer handles powering the feed viewer page.
 func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
-	metadata := pageMetadata{
-		Title: templates.PageTitle{
-			Summary:     "Free RSS Feed Viewer",
-			Description: "Preview Any Website's Feed",
-		},
-		Description: "Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
-		Path:        "/viewer",
-		ImagePath:   "/images/logo-vertical-light.webp",
-		baseURL:     m.AppConfig.GetBaseURL(),
+	page := &Viewer{
+		Page: m.NewPage(
+			"/viewer",
+			WithSummary("Free RSS Feed Viewer"),
+			WithDescription("Preview Any Website's Feed"),
+			WithMetadataDescription(
+				"Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
+			),
+		),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch fetchErr := models.NewErrorMessage(
@@ -82,10 +42,8 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 		); req.Method {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
-				RenderExternalPage(&Viewer{
-					metadata: metadata,
-					svc:      m.NewPageServices(),
-				}).ServeHTTP(res, req)
+				page.template = templates.Viewer(nil, nil)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
 			rawURL, err := validation.SanitizeURLString(chi.URLParam(req, "*"))
@@ -93,11 +51,8 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
 				)
-				RenderExternalPage(&Viewer{
-					metadata: metadata,
-					errMsg:   fetchErr,
-					svc:      m.NewPageServices(),
-				}).ServeHTTP(res, req)
+				page.template = templates.Viewer(nil, fetchErr)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
 			feedURL, err := models.NormalizeFeedURL(rawURL)
@@ -105,11 +60,8 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
 				)
-				RenderExternalPage(&Viewer{
-					metadata: metadata,
-					errMsg:   fetchErr,
-					svc:      m.NewPageServices(),
-				}).ServeHTTP(res, req)
+				page.template = templates.Viewer(nil, fetchErr)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
 
@@ -119,20 +71,12 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
 				)
-				RenderExternalPage(&Viewer{
-					metadata: metadata,
-					errMsg:   fetchErr,
-					svc:      m.NewPageServices(),
-				}).ServeHTTP(res, req)
+				page.template = templates.Viewer(nil, fetchErr)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
-
-			RenderExternalPage(&Viewer{
-				metadata: metadata,
-				feed:     feed,
-				svc:      m.NewPageServices(),
-			}).ServeHTTP(res, req)
-
+			page.template = templates.Viewer(feed, nil)
+			page.Render().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Parse the URL and find feed content.
 			feedURL, err := models.NormalizeFeedURL(req.FormValue("url"))
@@ -140,9 +84,7 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
 				)
-				RenderPartial(&ViewerError{
-					msg: fetchErr,
-				}).ServeHTTP(res, req)
+				m.NewPartial(templates.ViewerError(fetchErr)).Render().ServeHTTP(res, req)
 				return
 			}
 
@@ -151,13 +93,11 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
 				)
-				RenderPartial(&ViewerError{
-					msg: fetchErr,
-				}).ServeHTTP(res, req)
+				m.NewPartial(templates.ViewerError(fetchErr)).Render().ServeHTTP(res, req)
 				return
 			}
 
-			RenderPartial(&ViewerResponse{feed: feed}).ServeHTTP(res, req)
+			m.NewPartial(templates.ViewerResults(feed)).Render().ServeHTTP(res, req)
 		}
 	}
 }

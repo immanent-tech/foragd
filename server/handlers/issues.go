@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -22,43 +21,21 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type PageIssue struct {
-	metadata pageMetadata
-	svc      pageServices
-	template templ.Component
-}
-
-// FullResponse renders a full page (headers, footers and content).
-func (p *PageIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			p.template,
-			templates.WithPageTitle(p.metadata.Title),
-			templates.WithPageDescription(p.metadata.Description),
-			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
-			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(p.metadata.baseURL),
-				p.metadata.JSONLD(),
-			),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
-func (p *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.metadata.Title)).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleReportIssue handles presenting a form for the user to submit issues about the app.
 func (m *Manager) HandleReportIssue() http.HandlerFunc {
+	page := &PageIssue{
+		Page: m.NewPage("/issue",
+			WithSummary("Report Issue"),
+			WithDescription("Report issues and problems with the site"),
+			WithMetadataDescription("Report issues and problems with Foragd"),
+		),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
@@ -71,24 +48,13 @@ func (m *Manager) HandleReportIssue() http.HandlerFunc {
 
 		objectID := req.FormValue("object_id")
 
+		page.template = templates.ReportIssue(
+			&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
+			m.Breadcrumbs,
+		)
+
 		// Display the report issue form.
-		RenderInternalPage(&PageIssue{
-			metadata: pageMetadata{
-				Title: templates.PageTitle{
-					Summary:     "Report Issue",
-					Description: "Report issues and problems with the site",
-				},
-				Description: "Report issues and problems with the site",
-				Path:        "/issue",
-				ImagePath:   "/images/logo-vertical-light.webp",
-				baseURL:     m.AppConfig.GetBaseURL(),
-			},
-			template: templates.ReportIssue(
-				&models.ReportIssueRequest{PageUrl: req.Referer(), UserEmail: user.GetEmail(), ObjectID: &objectID},
-				m.Breadcrumbs,
-			),
-			svc: m.NewPageServices(),
-		}).ServeHTTP(res, req)
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
@@ -170,12 +136,12 @@ func (m *Manager) HandleSubmitIssue(cache ImageCache, emailSender EmailSender) h
 		// res.Header().Add(htmx.HeaderRedirect, request.PageUrl)
 
 		// Show notification of issue reported.
-		RenderPartial(&Notification{
-			msg: models.NewInfoMessage(
+		m.HandleNotification(res, req,
+			models.NewInfoMessage(
 				"Thanks for reporting the issue!",
 				"We will look into it and implement fixes as appropriate.",
 			),
-		}).ServeHTTP(res, req)
+		)
 	}
 }
 

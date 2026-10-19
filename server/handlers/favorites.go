@@ -1,5 +1,7 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package handlers
 
@@ -9,47 +11,27 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
-	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/immanent-tech/go-base/pkg/htmx"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type Favorites struct {
-	title      templates.PageTitle
-	template   templ.Component
-	appCfg     AppConfig
-	sessionMgr SessionManager
-}
-
-// FullResponse renders a full page (headers, footers and list of subscriptions).
-func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			p.appCfg,
-			p.sessionMgr,
-			p.template,
-			templates.WithPageTitle(p.title),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
-// paginating, just the list of subscriptions.
-func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templates.NavFavorites, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templates.NavFavorites, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
 func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemService) http.HandlerFunc {
+	page := &Favorites{
+		Page: m.NewPage("/favorites",
+			WithSummary("Favorites"),
+			WithDescription("View your favorite subscriptions and articles"),
+			WithNavigation(templates.NavFavorites),
+		),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
 			articles              models.Articles
@@ -112,16 +94,7 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 			Subscriptions: favoriteSubscriptions,
 			Articles:      articles,
 		}
-		page := &Favorites{
-			title: templates.PageTitle{
-				Summary:     "Favorites",
-				Description: "All favorited Subscriptions and Articles",
-			},
-			template:   templates.ListFavorites(response),
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}
-
-		RenderInternalPage(page).ServeHTTP(res, req)
+		page.template = templates.ListFavorites(response)
+		page.Render().ServeHTTP(res, req)
 	}
 }

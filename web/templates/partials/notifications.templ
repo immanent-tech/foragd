@@ -1,5 +1,8 @@
-// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 
 package partials
 
@@ -12,15 +15,15 @@ import (
 
 // DefaultNotificationTimeout is the default duration which a notification is shown (unless overridden on a per
 // notification basis).
-const DefaultNotificationTimeout = 5 * time.Second
+const defaultNotificationTimeout = 5 * time.Second
 
 type notificationOpts struct {
 	timeout time.Duration
 }
 
-type notificationOption func(*notificationOpts)
+type NotificationOption func(*notificationOpts)
 
-func WithNotificationTimeout(duration time.Duration) notificationOption {
+func WithNotificationTimeout(duration time.Duration) NotificationOption {
 	return func(no *notificationOpts) {
 		if duration > 0 {
 			no.timeout = duration
@@ -30,10 +33,10 @@ func WithNotificationTimeout(duration time.Duration) notificationOption {
 
 // Notification renders a notification (or alert) in the UI. The notification will be coloured appropriately for the
 // status/severity of the UserMessage.
-templ Notification(msg *models.UserMessage, options ...notificationOption) {
+templ Notification(msg *models.UserMessage, options ...NotificationOption) {
 	{{
 		opts := &notificationOpts{
-			timeout: DefaultNotificationTimeout,
+			timeout: defaultNotificationTimeout,
 		}
 		for option := range slices.Values(options) {
 			option(opts)

@@ -4,11 +4,13 @@
 package templates
 
 import "github.com/immanent-tech/foragd/web/templates/partials"
+import "github.com/immanent-tech/foragd/web/templates/components"
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
 	@templ.Fragment(ContentFragment) {
+		@components.LoadMux()
 		@partials.BackToTopButton()
 		<article class="mx-auto prose-document mt-12 p-4">
 			@templ.Raw(string(data))

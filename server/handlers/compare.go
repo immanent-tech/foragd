@@ -9,7 +9,6 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/text/cases"
@@ -27,32 +26,11 @@ var getComparisons = sync.OnceValues(func() ([]*markdownx.File, error) {
 })
 
 type ComparisonPage struct {
-	text       *markdownx.File
-	metadata   pageMetadata
-	appCfg     AppConfig
-	sessionMgr SessionManager
-}
-
-func (p *ComparisonPage) FullResponse(res http.ResponseWriter, req *http.Request) {
-	// Render appropriate content.
-	templ.Handler(
-		templates.CreatePage(
-			p.appCfg,
-			p.sessionMgr,
-			templates.Comparison(p.text),
-			templates.WithPageTitle(p.metadata.Title),
-			templates.WithPageDescription(p.metadata.Description),
-			templates.WithCanonicalLink(p.metadata.CanonicalLink()),
-			templates.WithOpenGraphMetadata(p.metadata.OpengraphData()),
-			templates.WithJSONLDSchema(
-				generateSiteJSONLD(p.metadata.baseURL),
-				p.metadata.JSONLD(),
-			),
-		),
-	).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandleComparison() http.HandlerFunc {
+	caser := cases.Title(language.English)
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		comparisons, err := getComparisons()
@@ -78,27 +56,23 @@ func (m *Manager) HandleComparison() http.HandlerFunc {
 		res.Header().
 			Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=604800, stale-if-error=604800")
 
-		caser := cases.Title(language.English)
 		text := comparisons[idx]
 
-		RenderExternalPage(&ComparisonPage{
-			text: text,
-			// Generate a page title and description.
-			metadata: pageMetadata{
-				Title: templates.PageTitle{
-					Summary:     text.Frontmatter.Description,
-					Description: text.Frontmatter.Description,
-					Date:        text.Frontmatter.CreatedAt,
-				},
-				Description: "A detailed comparison of Foragd and " + caser.String(
-					text.Frontmatter.Slug,
-				) + " covering pricing, features, and which is best for different use cases.",
-				Path:      text.Frontmatter.Slug,
-				ImagePath: "/images/logo-vertical-light.webp",
-				baseURL:   m.AppConfig.GetBaseURL(),
-			},
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		page := &ComparisonPage{
+			Page: m.NewPage(
+				"/compare/"+text.Frontmatter.Slug,
+				WithSummary(text.Frontmatter.Description),
+				WithDescription(text.Frontmatter.Description),
+				WithDate(text.Frontmatter.CreatedAt),
+				WithMetadataDescription(
+					"A detailed comparison of Foragd and "+caser.String(
+						text.Frontmatter.Slug,
+					)+" covering pricing, features, and which is best for different use cases.",
+				),
+				WithTemplate(templates.Comparison(text)),
+			),
+		}
+
+		page.Render().ServeHTTP(res, req)
 	}
 }

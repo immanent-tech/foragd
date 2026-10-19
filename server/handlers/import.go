@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -24,24 +23,7 @@ import (
 
 // ImportSubscriptions contains the data for rendering a page for importing subscriptions.
 type ImportSubscriptions struct {
-	title    templates.PageTitle
-	template templ.Component
-	svc      pageServices
-}
-
-func (h *ImportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			h.svc.appCfg,
-			h.svc.sessionMgr,
-			h.template,
-			templates.WithPageTitle(h.title),
-		)).ServeHTTP(res, req)
-}
-
-func (h *ImportSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandleSetupImport(
@@ -49,6 +31,13 @@ func (m *Manager) HandleSetupImport(
 	userSvc UserService,
 	emailSender EmailSender,
 ) http.HandlerFunc {
+	page := &ImportSubscriptions{
+		Page: m.NewPage("/import",
+			WithSummary("Import"),
+			WithDescription("Select an OPML file to import your existing subscriptions"),
+			WithTemplate(templates.ImportSubscriptions()),
+		),
+	}
 	return m.ValidateSubscriptionLimits(userSvc, subSvc, emailSender)(
 		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			user := models.UserFromCtx(req.Context())
@@ -58,14 +47,7 @@ func (m *Manager) HandleSetupImport(
 				http.Redirect(res, req, "/login", http.StatusSeeOther)
 				return
 			}
-			RenderInternalPage(&ImportSubscriptions{
-				title: templates.PageTitle{
-					Summary:     "Import",
-					Description: "Choose source to import subscriptions",
-				},
-				template: templates.ImportSubscriptions(),
-				svc:      m.NewPageServices(),
-			}).ServeHTTP(res, req)
+			page.Render().ServeHTTP(res, req)
 		}),
 	).ServeHTTP
 }
@@ -96,12 +78,12 @@ func (m *Manager) HandleStartImport(importSvc Importer) http.HandlerFunc {
 		}
 
 		// Show a notification that the import started.
-		RenderPartial(&Notification{
-			msg: models.NewInfoMessage(
+		m.HandleNotification(res, req,
+			models.NewInfoMessage(
 				"Import started.",
 				"Watch the status page for updates.",
 			),
-		}).ServeHTTP(res, req)
+		)
 
 		// Redirect to the status page.
 		htmx.LocationResponse(
@@ -116,32 +98,15 @@ func (m *Manager) HandleStartImport(importSvc Importer) http.HandlerFunc {
 }
 
 type ImportStatus struct {
-	title    templates.PageTitle
-	template templ.Component
-	svc      pageServices
-}
-
-func (p *ImportStatus) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			p.template,
-			templates.WithPageTitle(p.title),
-		)).ServeHTTP(res, req)
-}
-
-func (p *ImportStatus) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsService) http.HandlerFunc {
 	page := &ImportSubscriptions{
-		title: templates.PageTitle{
-			Summary: "Import Status",
-		},
-		svc: m.NewPageServices(),
+		Page: m.NewPage("/import/status",
+			WithSummary("Import Status"),
+			WithDescription("View the status of any import(s)"),
+		),
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
@@ -157,6 +122,8 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 			// Invalidate the user subscription cache.
 			subSvc.Invalidate(user.GetID())
 
+			page.Path = "/import/status/" + jobID
+
 			status, results, err := importSvc.GetImportStatus(req.Context(), jobID)
 			if err != nil {
 				var msg *models.UserMessage
@@ -171,7 +138,7 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportStatus(nil, nil, msg)
-				RenderInternalPage(page).ServeHTTP(res, req)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
 			// If no job ID was given, replace the URL with a new one containing the retrieved job ID.
@@ -179,13 +146,13 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 				res.Header().Set(htmx.HeaderReplaceUrl, "/import/status"+status.GetID())
 			}
 			page.template = templates.ImportStatus(status, results, nil)
-			page.title.Description = string(status.Status)
+			page.Description = string(status.Status)
 			switch status.Status {
 			case "pending", "running", "done":
-				RenderInternalPage(page).ServeHTTP(res, req)
+				page.Render().ServeHTTP(res, req)
 			case "error":
 				slogctx.Error(req.Context(), "Import failed.", slog.Any("error", err))
-				RenderInternalPage(page).ServeHTTP(res, req)
+				page.Render().ServeHTTP(res, req)
 			}
 		} else {
 			imports, err := importSvc.GetAllImports(req.Context(), user.GetID())
@@ -202,11 +169,11 @@ func (m *Manager) HandleImportStatus(importSvc Importer, subSvc SubscriptionsSer
 					res.WriteHeader(http.StatusInternalServerError)
 				}
 				page.template = templates.ImportList(nil, msg)
-				RenderInternalPage(page).ServeHTTP(res, req)
+				page.Render().ServeHTTP(res, req)
 				return
 			}
 			page.template = templates.ImportList(imports, nil)
-			RenderInternalPage(page).ServeHTTP(res, req)
+			page.Render().ServeHTTP(res, req)
 		}
 	}
 }

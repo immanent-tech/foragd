@@ -7,50 +7,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-base/pkg/htmx"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type ChooseSubscription struct {
-	title      templates.PageTitle
-	user       *models.User
-	request    *models.CheckoutRequest
-	appCfg     AppConfig
-	sessionMgr SessionManager
-}
-
-func (t *ChooseSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slogctx.With(req.Context(), "client", models.ClientTypeFromCtx(req.Context()))
-	templ.Handler(
-		templates.CreatePage(
-			t.appCfg,
-			t.sessionMgr,
-			templates.LayoutInternal("",
-				&templates.InternalLayoutProps{User: t.user},
-				templates.Checkout(t.user, t.request),
-			),
-			templates.WithPageTitle(t.title),
-		)).ServeHTTP(res, req.WithContext(ctx))
-}
-
-func (t *ChooseSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(
-		templates.LayoutInternal(
-			"",
-			&templates.InternalLayoutProps{User: t.user},
-			templates.Checkout(t.user, t.request),
-		),
-		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
@@ -84,21 +50,19 @@ func (m *Manager) HandleChooseSubscription() http.HandlerFunc {
 }
 
 func (m *Manager) HandlePurchaseSubscription(userSvc UserService) http.HandlerFunc {
-	paddlePurchase := handlePaddlePurchase(m.AppConfig)
+	paddlePurchase := m.handlePaddlePurchase(m.AppConfig)
 	androidPurchase := m.HandleAndroidPurchase(userSvc)
 
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Pre-parse form data and fail early if there is no form submission.
 		if err := req.ParseForm(); err != nil {
 			res.WriteHeader(http.StatusBadRequest)
-			RenderPartial(
-				&Notification{
-					msg: models.NewWarningMessage(
-						"Invalid data",
-						"There was a problem processing the checkout. This might be temporary, please try again.",
-					),
-				},
-			).ServeHTTP(res, req)
+			m.HandleNotification(res, req,
+				models.NewWarningMessage(
+					"Invalid data",
+					"There was a problem processing the checkout. This might be temporary, please try again.",
+				),
+			)
 			return
 		}
 		// Handle different checkout options as appropriate.
@@ -111,57 +75,25 @@ func (m *Manager) HandlePurchaseSubscription(userSvc UserService) http.HandlerFu
 			androidPurchase.ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusBadRequest)
-			RenderPartial(
-				&Notification{
-					msg: models.NewWarningMessage(
-						"Invalid data",
-						"There was a problem processing the checkout. This might be temporary, please try again.",
-					),
-				},
-			).ServeHTTP(res, req)
+			m.HandleNotification(res, req,
+				models.NewWarningMessage(
+					"Invalid data",
+					"There was a problem processing the checkout. This might be temporary, please try again.",
+				),
+			)
 			return
 		}
 	}
 }
 
 type PurchaseSubscriptionSuccess struct {
-	title         templates.PageTitle
-	user          *models.User
-	transactionID string
-	appCfg        AppConfig
-	sessionMgr    SessionManager
-}
-
-func (t *PurchaseSubscriptionSuccess) FullResponse(res http.ResponseWriter, req *http.Request) {
-	ctx := slogctx.With(req.Context(), "client", models.ClientTypeFromCtx(req.Context()))
-	templ.Handler(
-		templates.CreatePage(
-			t.appCfg,
-			t.sessionMgr,
-			templates.LayoutInternal(
-				"",
-				&templates.InternalLayoutProps{User: t.user},
-				templates.PurchaseSubscriptionSuccess(t.transactionID),
-			),
-			templates.WithPageTitle(t.title),
-		)).ServeHTTP(res, req.WithContext(ctx))
-}
-
-func (t *PurchaseSubscriptionSuccess) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(
-		templates.LayoutInternal(
-			"",
-			&templates.InternalLayoutProps{User: t.user},
-			templates.PurchaseSubscriptionSuccess(t.transactionID),
-		),
-		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
+	*Page
 }
 
 func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
+	page := &PurchaseSubscriptionSuccess{
+		Page: m.NewPage("/checkout/success", WithSummary("Purchase subscription success")),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -172,14 +104,8 @@ func (m *Manager) HandlePurchaseSubscriptionSuccess() http.HandlerFunc {
 			return
 		}
 
-		txID := req.URL.Query().Get("_ptxn")
-		RenderInternalPage(&PurchaseSubscriptionSuccess{
-			title: templates.PageTitle{
-				Summary: "Purchase subscription success",
-			},
-			user: user, transactionID: txID,
-			appCfg:     m.AppConfig,
-			sessionMgr: m.SessionMgr,
-		}).ServeHTTP(res, req)
+		transactionID := validation.SanitizeInput(req.URL.Query().Get("_ptxn"))
+		page.template = templates.PurchaseSubscriptionSuccess(transactionID)
+		page.Render().ServeHTTP(res, req)
 	}
 }

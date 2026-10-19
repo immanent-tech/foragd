@@ -195,8 +195,11 @@ templ HeaderInternal(props *InternalLayoutProps) {
 							// Open favorites.
 							@partials.MenuItem() {
 								<a
+									href="/favorites"
 									hx-get="/favorites"
 									hx-target={ ContentID.Target() }
+									hx-swap="innerMorph transition:true show:top"
+									hx-push-url="true"
 									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
@@ -208,8 +211,10 @@ templ HeaderInternal(props *InternalLayoutProps) {
 							// Open settings menu.
 							@partials.MenuItem() {
 								<a
+									href="/settings"
 									hx-get="/settings"
 									hx-target={ ContentID.Target() }
+									hx-swap="innerMorph transition:true show:top"
 									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">
@@ -221,9 +226,10 @@ templ HeaderInternal(props *InternalLayoutProps) {
 							// Open Help/Documentation.
 							@partials.MenuItem() {
 								<a
+									href="/docs"
 									hx-get="/docs"
 									hx-target={ ContentID.Target() }
-									hx-swap="innerMorph transition:true"
+									hx-swap="innerMorph transition:true show:top"
 									hx-replace-url="true"
 									hx-nonce={ templ.GetNonce(ctx) }
 								>
@@ -246,9 +252,11 @@ templ HeaderInternal(props *InternalLayoutProps) {
 							// Report issue.
 							@partials.MenuItem() {
 								<a
+									href="/issue"
 									hx-get="/issue"
 									hx-target={ ContentID.Target() }
 									hx-replace-url="true"
+									hx-swap="innerMorph transition:true show:top"
 									hx-nonce={ templ.GetNonce(ctx) }
 								>
 									<div class="flex flex-1 items-center gap-x-2">

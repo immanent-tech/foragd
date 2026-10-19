@@ -31,7 +31,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/service"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 // CheckUserLimits checks that the user has not breached their account limits. If they have, this middleware will break
@@ -86,41 +85,20 @@ func (m *Manager) CustomisationCtx(next http.Handler) http.Handler {
 
 // UserSettings contains the data for rendering the user settings page.
 type UserSettings struct {
-	title templates.PageTitle
-	svc   pageServices
-}
-
-// FullResponse renders a full page (headers, footers and content).
-func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			t.svc.appCfg,
-			t.svc.sessionMgr,
-			templates.UserSettings(),
-			templates.WithPageTitle(t.title),
-		)).ServeHTTP(res, req)
-}
-
-// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
-func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(templates.UserSettings(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templates.NavSettings, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templates.NavSettings, element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
+	*Page
 }
 
 // ShowSettings handles retrieving and rendering the user settings page.
 func (m *Manager) ShowSettings() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		RenderInternalPage(&UserSettings{
-			title: templates.PageTitle{
-				Summary:     "Settings",
-				Description: "Configure the app",
-			},
-			svc: m.NewPageServices(),
-		}).ServeHTTP(res, req)
+	page := &UserSettings{
+		Page: m.NewPage("/settings",
+			WithSummary("Settings"),
+			WithDescription("Configure account, display and subscription settings"),
+			WithTemplate(templates.UserSettings()),
+			WithNavigation(templates.NavSettings),
+		),
 	}
+	return page.Render()
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
@@ -133,9 +111,7 @@ func (m *Manager) HandleShowDisplaySettings() http.HandlerFunc {
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.DisplaySettings(user, m.SessionMgr),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.DisplaySettings(user, m.SessionMgr)).Render().ServeHTTP(res, req)
 	}
 }
 
@@ -149,9 +125,7 @@ func (m *Manager) HandleShowAccountSettings() http.HandlerFunc {
 			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.AccountSettings(user),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.AccountSettings(user)).Render().ServeHTTP(res, req)
 	}
 }
 
@@ -170,12 +144,10 @@ func (m *Manager) HandleShowSubscriptionsSettings() http.HandlerFunc {
 		allSubscriptions := models.SubscriptionsFromCtx(req.Context())
 		allSubscriptions = allSubscriptions.Sort(models.SortNewestFirst)
 		// Render the subscription list.
-		RenderPartial(&PartialTemplate{
-			template: templates.SubscriptionSettings(&templates.SubscriptionSettingsData{
-				User:          user,
-				Subscriptions: allSubscriptions,
-			}),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.SubscriptionSettings(&templates.SubscriptionSettingsData{
+			User:          user,
+			Subscriptions: allSubscriptions,
+		})).Render().ServeHTTP(res, req)
 	}
 }
 
@@ -218,9 +190,7 @@ func (m *Manager) HandleSaveSubscriptionsSettings(users UserService) http.Handle
 			return
 		}
 		// Report success.
-		RenderPartial(&Notification{
-			msg: models.NewSuccessMessage("Account edits saved!", ""),
-		}).ServeHTTP(res, req)
+		m.HandleNotification(res, req, models.NewSuccessMessage("Account edits saved!", ""))
 	}
 }
 
@@ -252,9 +222,7 @@ func (m *Manager) HandleSaveDisplaySettings(users UserService) http.HandlerFunc 
 			return
 		}
 		// Report success.
-		RenderPartial(&Notification{
-			msg: models.NewSuccessMessage("Account edits saved!", ""),
-		}).ServeHTTP(res, req)
+		m.HandleNotification(res, req, models.NewSuccessMessage("Account edits saved!", ""))
 	}
 }
 
@@ -364,13 +332,9 @@ func (m *Manager) HandleSaveAccountSettings(
 			return
 		}
 		// Report success.
-		RenderPartial(&Notification{
-			msg: models.NewSuccessMessage("Account edits saved!", ""),
-		}).ServeHTTP(res, req)
+		m.HandleNotification(res, req, models.NewSuccessMessage("Account edits saved!", ""))
 		// Update the avatar (in case it changed).
-		RenderPartial(&PartialTemplate{
-			template: templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"})).Render().ServeHTTP(res, req)
 	}
 }
 
@@ -480,9 +444,11 @@ func (m *Manager) HandleChangePassword(authMgr AuthManager) http.HandlerFunc {
 			return
 		}
 		// Report success.
-		RenderPartial(&Notification{
-			msg: models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password."),
-		}).ServeHTTP(res, req)
+		m.HandleNotification(
+			res,
+			req,
+			models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password."),
+		)
 	}
 }
 
@@ -621,9 +587,7 @@ func (m *Manager) HandleDeactivateAccount(
 					timeLeft = userSubscription.CurrentPeriodEnd
 					res.Header().Set(htmx.HeaderReswap, "innerMorph transition:true")
 					res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-					RenderPartial(&PartialTemplate{
-						template: templates.DeactivateResult(user, timeLeft),
-					}).ServeHTTP(res, req)
+					m.NewPartial(templates.DeactivateResult(user, timeLeft)).Render().ServeHTTP(res, req)
 
 					slogctx.FromCtx(req.Context()).Info("Cancelled paid user subscription.")
 				case models.UserSubscriptionTypeAndroid:
@@ -632,9 +596,7 @@ func (m *Manager) HandleDeactivateAccount(
 			}
 
 		default:
-			RenderPartial(&Modal{
-				template: templates.DeactivateAccountModal(),
-			}).ServeHTTP(res, req)
+			m.NewPartial(templates.DeactivateAccountModal()).Render().ServeHTTP(res, req)
 		}
 	}
 }
@@ -757,11 +719,7 @@ func (m *Manager) HandleAddFeedset(
 
 		// Show notification.
 		for feedset := range slices.Values(request.Feedset) {
-			RenderPartial(&Notification{
-				msg: models.NewSuccessMessage(
-					"Added feedset "+feedset, "",
-				),
-			}).ServeHTTP(res, req)
+			m.HandleNotification(res, req, models.NewSuccessMessage("Added feedset "+feedset, ""))
 		}
 	}
 }
@@ -775,29 +733,22 @@ func HandleAccountSuccess() http.HandlerFunc {
 
 // AccountIssue contains data for rendering a page to present the user when there is an issue with their account.
 type AccountIssue struct {
-	svc pageServices
-}
-
-// FullResponse renders the page for the user to choose a subscription plan.
-func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(
-		templates.CreatePage(
-			t.svc.appCfg,
-			t.svc.sessionMgr,
-			templates.UserAccountIssue(),
-			templates.WithPageTitle(templates.PageTitle{
-				Summary:     "Account Issue",
-				Description: "There is a problem with your account",
-			}),
-		)).ServeHTTP(res, req)
+	*Page
 }
 
 // HandleAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
 // critical issue with their account blocking access to the service.
 func (m *Manager) HandleAccountIssue() http.HandlerFunc {
+	page := &AccountIssue{
+		Page: m.NewPage("/account-issue",
+			WithSummary("Account Issue"),
+			WithDescription("There is a critical problem with your Foragd account"),
+			WithTemplate(templates.UserAccountIssue()),
+		),
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
-		// stripeSessionID := req.FormValue("session_id")
-		RenderExternalPage(&AccountIssue{svc: m.NewPageServices()}).ServeHTTP(res, req)
+		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
+		page.Render().ServeHTTP(res, req)
 	}
 }
 
@@ -838,59 +789,22 @@ func (m *Manager) HandleGenerateSubscriptionEmail(users UserService) http.Handle
 				ServeHTTP(res, req)
 			return
 		}
-
-		RenderPartial(&PartialTemplate{
-			template: templates.ShowSubscriptionEmail(*settings.SubscriptionEmail),
-		}).ServeHTTP(res, req)
+		m.NewPartial(templates.ShowSubscriptionEmail(*settings.SubscriptionEmail)).Render().ServeHTTP(res, req)
 	}
 }
 
 // Unsubscribe represents an unsubscribe request.
 type Unsubscribe struct {
-	Token string
-	svc   pageServices
-}
-
-func (p *Unsubscribe) FullResponse(res http.ResponseWriter, req *http.Request) {
-	description := "Unsubscribe from promotional emails from Foragd."
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			templates.Unsubscribe(p.Token),
-			templates.WithPageTitle(templates.PageTitle{
-				Summary:     "Unsubscribe Options",
-				Description: "Unsubscribe from promotional emails",
-			}),
-			templates.WithPageDescription(description),
-		),
-	).ServeHTTP(res, req)
+	*Page
 }
 
 // UnsubscribeResult represents an unsubscribe result.
 type UnsubscribeResult struct {
-	Msg *models.UserMessage
-	svc pageServices
-}
-
-func (p *UnsubscribeResult) FullResponse(res http.ResponseWriter, req *http.Request) {
-	description := "Unsubscribe from promotional emails from Foragd."
-	templ.Handler(
-		templates.CreatePage(
-			p.svc.appCfg,
-			p.svc.sessionMgr,
-			templates.UnsubscribeResult(p.Msg),
-			templates.WithPageTitle(templates.PageTitle{
-				Summary: "Unsubscribe Results",
-			}),
-			templates.WithPageDescription(description),
-		),
-	).ServeHTTP(res, req)
+	*Page
 }
 
 func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.UnsubscribeResult(p.Msg), templ.WithFragments(templates.ContentFragment)).
-		ServeHTTP(res, req)
+	templ.Handler(p.GetTemplate(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 }
 
 // HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
@@ -912,10 +826,14 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 
 		switch req.Method {
 		case http.MethodGet:
-			RenderExternalPage(&Unsubscribe{
-				Token: token,
-				svc:   m.NewPageServices(),
-			}).ServeHTTP(res, req)
+			page := &Unsubscribe{
+				Page: m.NewPage("/unsubscribe/"+token,
+					WithSummary("Unsubscribe"),
+					WithDescription("Unsubscribe from promotional emails"),
+					WithTemplate(templates.Unsubscribe(token)),
+				),
+			}
+			page.Render().ServeHTTP(res, req)
 		case http.MethodPost:
 			// Closure used to display results.
 			displayResults := func(err error) {
@@ -936,15 +854,13 @@ func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
 					)
 				}
 				page := &UnsubscribeResult{
-					Msg: msg,
-					svc: m.NewPageServices(),
+					Page: m.NewPage("/unsubscribe/"+token,
+						WithSummary("Unsubscribe"),
+						WithDescription("Unsubscribe from promotional emails"),
+						WithTemplate(templates.UnsubscribeResult(msg)),
+					),
 				}
-				switch {
-				case htmx.IsHTMX(req):
-					RenderPartial(page).ServeHTTP(res, req)
-				default:
-					RenderExternalPage(page).ServeHTTP(res, req)
-				}
+				page.Render().ServeHTTP(res, req)
 			}
 
 			// Decode the user email address.

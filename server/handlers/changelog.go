@@ -14,74 +14,37 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/rss"
 
-	"github.com/immanent-tech/go-base/pkg/htmx"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/element"
 )
 
 type Changelog struct {
-	title       templates.PageTitle `toml:"-"`
+	*Page
+
 	description string              `toml:"-"`
 	Releases    []templates.Release `toml:"releases"`
 	link        string
-	appCfg      AppConfig
-	sessionMgr  SessionManager
-}
-
-func (p *Changelog) FullResponse(res http.ResponseWriter, req *http.Request) {
-	var template templ.Component
-
-	if user := models.UserFromCtx(req.Context()); user != nil {
-		template = templates.LayoutInternal(
-			"",
-			&templates.InternalLayoutProps{User: user},
-			templates.ChangelogPage(p.Releases),
-		)
-	} else {
-		template = templates.LayoutExternal(templates.ChangelogPage(p.Releases))
-	}
-
-	templ.Handler(
-		templates.CreatePage(p.appCfg, p.sessionMgr, template,
-			templates.WithPageTitle(p.title),
-			templates.WithPageDescription(p.description),
-			templates.WithCanonicalLink(p.link),
-		)).ServeHTTP(res, req)
-}
-
-func (p *Changelog) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(
-		templates.ChangelogPage(p.Releases),
-		templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
-	templ.Handler(templates.Dock("", element.WithHXSwapOOB("true"))).ServeHTTP(res, req)
 }
 
 func (m *Manager) HandleChangelog() http.HandlerFunc {
 	const docPrefix = "files/docs"
+	changelog := &Changelog{
+		Page: m.NewPage("/changelog",
+			WithSummary("Changelog"),
+			WithDescription("Latest release notes for Foragd"),
+			WithMetadataDescription("Latest release notes containing new features, updates and fixes for Foragd"),
+		),
+	}
+	changelog.link = m.AppConfig.GetBaseURL().JoinPath("changelog").String()
+
 	return func(res http.ResponseWriter, req *http.Request) {
-		changelog := &Changelog{
-			title: templates.PageTitle{
-				Summary:     "Changelog",
-				Description: "Latest release notes for Foragd",
-			},
-			description: "Latest release notes containing new features, updates and fixes for Foragd",
-			Releases:    make([]templates.Release, 0),
-			link:        m.AppConfig.GetBaseURL().JoinPath("changelog").String(),
-			appCfg:      m.AppConfig,
-			sessionMgr:  m.SessionMgr,
-		}
+		changelog.Releases = make([]templates.Release, 0)
 
 		if _, err := toml.DecodeFS(
 			web.Files,
@@ -95,24 +58,31 @@ func (m *Manager) HandleChangelog() http.HandlerFunc {
 		}
 
 		if user := models.UserFromCtx(req.Context()); user != nil {
-			RenderInternalPage(changelog).ServeHTTP(res, req.WithContext(req.Context()))
+			changelog.template = templates.LayoutInternal(
+				"",
+				&templates.InternalLayoutProps{User: user},
+				templates.ChangelogPage(changelog.Releases),
+			)
 		} else {
-			RenderExternalPage(changelog).ServeHTTP(res, req.WithContext(req.Context()))
+			changelog.template = templates.LayoutExternal(templates.ChangelogPage(changelog.Releases))
 		}
+
+		changelog.Render().ServeHTTP(res, req)
 	}
 }
 
 func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 	const docPrefix = "files/docs"
+	changelog := &Changelog{
+		Page: m.NewPage("/changelog/feed",
+			WithSummary("Changelog"),
+			WithDescription("Latest release notes for Foragd"),
+			WithMetadataDescription("Latest release notes containing new features, updates and fixes for Foragd"),
+		),
+	}
+
 	return func(res http.ResponseWriter, req *http.Request) {
-		changelog := &Changelog{
-			title: templates.PageTitle{
-				Summary:     "Changelog",
-				Description: "Latest release notes for Foragd",
-			},
-			description: "Latest release notes containing new features, updates and fixes for Foragd",
-			Releases:    make([]templates.Release, 0),
-		}
+		changelog.Releases = make([]templates.Release, 0)
 
 		if _, err := toml.DecodeFS(
 			web.Files,
@@ -127,8 +97,8 @@ func (m *Manager) HandleChangelogFeed() http.HandlerFunc {
 
 		// Generate RSS file.
 		rssFile := rss.NewRSS(
-			changelog.title.String(),
-			changelog.description,
+			changelog.GetTitle(),
+			changelog.GetDescription(),
 			m.AppConfig.GetBaseURL().String(),
 			rss.WithAtomLink(&atom.Link{
 				Rel:  new(atom.LinkRelSelf),
