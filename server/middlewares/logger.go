@@ -42,8 +42,8 @@ var configureLogging = sync.OnceValue(func() slogchi.Config {
 })
 
 func Logger(next http.Handler) http.Handler {
+	cfg := configureLogging()
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		cfg := configureLogging()
 
 		logger := slogctx.FromCtx(req.Context())
 		if htmx.IsHTMX(req) {
@@ -51,7 +51,6 @@ func Logger(next http.Handler) http.Handler {
 			logger = logger.With(
 				slog.Group("request",
 					slog.Group("htmx",
-						slog.Bool("is_htmx", htmx.IsHTMX(req)),
 						slog.Bool("is_history_restore_request", htmx.IsHistoryRestoreRequest(req)),
 						slog.String("target", req.Header.Get(htmx.HeaderTarget)),
 						slog.String("trigger", req.Header.Get(htmx.HeaderTrigger)),
