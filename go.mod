@@ -26,13 +26,12 @@ require (
 	github.com/auth0/go-auth0/v2 v2.14.0
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/coreos/go-oidc/v3 v3.21.0
-	github.com/dimmerz92/go-icons v0.70.0
+	github.com/dimmerz92/go-icons v0.71.0
 	github.com/elastic/elastic-transport-go/v8 v8.11.0
 	github.com/elastic/go-elasticsearch/v9 v9.5.2
 	github.com/fatih/color v1.19.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/go-resty/resty/v2 v2.17.2
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v75 v75.0.0
