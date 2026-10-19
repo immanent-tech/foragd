@@ -42,7 +42,7 @@ var OrgJSONLD = schemaorg.NewOrganization(
 )
 
 templ AppMetadataJSONLD() {
-	<script id="application-metadata" type="application/ld+json" nonce={ templ.GetNonce(ctx) } hx-preserve="true">
+	<script id="application-metadata" type="application/ld+json" hx-preserve="true">
 		{
 		  "@context": "https://schema.org",
 		  "@type": ["SoftwareApplication","WebApplication"],

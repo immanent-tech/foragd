@@ -101,7 +101,7 @@ var paddleScriptOnce = templ.NewOnceHandle()
 templ paddleScript() {
 	@paddleScriptOnce.Once() {
 		<script id="paddle-js" src="https://cdn.paddle.com/paddle/v2/paddle.js" defer crossorigin="anonymous" nonce={ templ.GetNonce(ctx) }></script>
-		<script nonce={ templ.GetNonce(ctx) }>
+		<script id="load-paddle" nonce={ templ.GetNonce(ctx) }>
 			// Resolves once cdn.paddle.com/paddle.js has actually executed.
 			window.__paddleReady = new Promise(function (resolve) {
 				document.getElementById('paddle-js').addEventListener('load', resolve)

@@ -67,7 +67,7 @@ templ LeafletMap(options ...element.PropertiesOption) {
 			}
 		</div>
 	</l-map>
-	<script nonce={ templ.GetNonce(ctx) }>
+	<script id="leaflet-listener" nonce={ templ.GetNonce(ctx) }>
 		document.getElementById('map').addEventListener('popupopen', (ev) => {
 			const popupEl = ev.detail.popup.getElement()
 			htmx.process(popupEl)
