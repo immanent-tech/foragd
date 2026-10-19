@@ -18,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -89,22 +88,6 @@ type ListSubscriptions struct {
 	*Page
 }
 
-// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
-// paginating, just the list of subscriptions.
-func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	switch req.URL.Path {
-	case "/subscriptions":
-		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req)
-		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templates.NavSubscriptions, element.WithHXSwapOOB("outerMorph transition:true"))).
-			ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templates.NavSubscriptions, element.WithHXSwapOOB("outerMorph transition:true"))).
-			ServeHTTP(res, req)
-	case "/subscriptions/paginate":
-		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
-	}
-}
-
 // HandleListSubscriptions handles displaying a list of subscriptions.
 func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -162,15 +145,16 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 				WithSummary("Subscriptions"),
 				WithDescription(string(response.Filters.GetView())+" | "+response.Filters.GetSort().String()),
 				WithTemplate(templates.ListSubscriptions(response)),
-				WithNavigation(templates.NavSubscriptions),
 			),
 		}
 
 		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {
 		case http.MethodGet:
+			page.nav = templates.NavSubscriptions
 			page.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
+			page.fragment = templates.PaginateFragment
 			// Render new subscription cards.
 			page.PartialResponse(res, req)
 			// Render new category filters.

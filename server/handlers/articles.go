@@ -12,7 +12,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -55,23 +54,6 @@ func (m *Manager) ArticleCtx(itemSvc ItemService) func(next http.Handler) http.H
 // ListArticles holds data for generating the articles list page.
 type ListArticles struct {
 	*Page
-}
-
-// PartialResponse will either render the list of articles, the controls and update the title/dock/sidebar or, when
-// paginating, just the list of articles.
-func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	switch req.URL.Path {
-	case "/articles":
-		templ.Handler(templates.UpdateHead(p)).ServeHTTP(res, req)
-		// templ.Handler(templates.Title(p.GetTitle())).ServeHTTP(res, req)
-		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-		templ.Handler(templates.SideBar(templates.NavArticles, element.WithHXSwapOOB("outerMorph transition:true"))).
-			ServeHTTP(res, req)
-		templ.Handler(templates.Dock(templates.NavArticles, element.WithHXSwapOOB("outerMorph transition:true"))).
-			ServeHTTP(res, req)
-	case "/articles/paginate":
-		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
-	}
 }
 
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
@@ -119,7 +101,6 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 				WithSummary(titleSummary),
 				WithDescription(string(response.Filters.GetView())+" | "+response.Filters.GetSort().String()),
 				WithTemplate(templates.ListArticles(response)),
-				WithNavigation(templates.NavArticles),
 			),
 		}
 
@@ -127,9 +108,11 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			// GET: render full page.
+			listArticles.nav = templates.NavArticles
 			listArticles.Handle().ServeHTTP(res, req)
 		case http.MethodPost:
 			// POST: render cards only.
+			listArticles.fragment = templates.PaginateFragment
 			listArticles.PartialResponse(res, req)
 			// Update category filters.
 			if len(response.Articles.GetCategoryCounts()) > 0 {

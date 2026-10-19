@@ -32,6 +32,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/go-resty/resty/v2 v2.17.2
+	github.com/goforj/godump v1.10.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v75 v75.0.0

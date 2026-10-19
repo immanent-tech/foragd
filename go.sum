@@ -239,6 +239,8 @@ github.com/goccy/go-json v0.10.5/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PU
 github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
 github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
+github.com/goforj/godump v1.10.0 h1:/lrEddsSJXLq5PIJlsCgp07hCk4c0e+wty0STxWoCOM=
+github.com/goforj/godump v1.10.0/go.mod h1:JsuL6AEZfKIU+iR5ewL6iQ2fIuhvLtPmJDH47M9Ptrc=
 github.com/gofri/go-github-ratelimit/v2 v2.0.2 h1:gS8wAS1jTmlWGdTjAM7KIpsLjwY1S0S/gKK5hthfSXM=
 github.com/gofri/go-github-ratelimit/v2 v2.0.2/go.mod h1:YBQt4gTbdcbMjJFT05YFEaECwH78P5b0IwrnbLiHGdE=
 github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f h1:3BSP1Tbs2djlpprl7wCLuiqMaUh5SJkkzI2gDs+FgLs=

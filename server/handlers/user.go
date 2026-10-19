@@ -803,10 +803,6 @@ type UnsubscribeResult struct {
 	*Page
 }
 
-func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.GetTemplate(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
-}
-
 // HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
 // (user manually goes to page) and non-interactive (as per RFC 8058).
 func (m *Manager) HandleUserUnsubscribe(users UserService) http.HandlerFunc {
