@@ -817,7 +817,7 @@ func (s *FeedService) SuggestFeeds(
 	suggestions := &models.SuggestFeedsResults{
 		Text:        request.Text,
 		Feeds:       make(models.Feeds, 0),
-		LatestItems: make(map[models.FeedID]models.Items),
+		LatestItems: make(map[models.FeedID]models.Items, 3),
 	}
 
 	// Try to find existing feeds that match the query.

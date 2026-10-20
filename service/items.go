@@ -322,7 +322,7 @@ func (s *ItemService) EnrichItem(
 		switch {
 		case opengraphData != nil && opengraphData.Description != "":
 			item.Description = &opengraphData.Description
-		case readabilityData.Excerpt() != "":
+		case readabilityData != nil && readabilityData.Excerpt() != "":
 			desc := readabilityData.Excerpt()
 			item.Description = &desc
 		}

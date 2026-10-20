@@ -358,6 +358,9 @@ func (s Subscription) GetItemState(itemID ItemID) *ArticleState {
 
 // SetItemState will set the state of the item to the given state.
 func (s *Subscription) SetItemState(itemID ItemID, state *ArticleState) {
+	if state == nil {
+		return
+	}
 	switch s.Type {
 	case SubscriptionTypeFeed:
 		if s.FeedData.ArticleStates == nil {

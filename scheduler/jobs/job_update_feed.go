@@ -36,6 +36,9 @@ func NewUpdateFeedJob(ctx context.Context, feedSvc FeedsAPI, id models.FeedID) (
 	if err != nil {
 		return nil, fmt.Errorf("get feed: %w", err)
 	}
+	if feed == nil {
+		return nil, errors.New("get feed: feed data is nil")
+	}
 
 	trigger := NewPollTrigger(feed.GetUpdateInterval(), DefaultPollJitter)
 
@@ -105,9 +108,11 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 		if err := services.Scheduler.DeleteJob(job.getJobKey()); err != nil {
 			slogctx.FromCtx(ctx).Error("Cannot remove job for missing feed", slog.Any("error", err))
 		} // adapt to your job type
-		return fmt.Errorf("cannot execute: %s: no feed found", data.FeedID)
+		fallthrough
 	case err != nil:
-		return fmt.Errorf("get feed doc: %s: %w", data.FeedID, err)
+		return fmt.Errorf("get feed: %s: %w", data.FeedID, err)
+	case details == nil:
+		return fmt.Errorf("get feed: %s: feed data is nil", data.FeedID)
 	}
 
 	// Add additional feed details to logs.
