@@ -58,7 +58,6 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
-							hx-push-url="true"
 							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"
@@ -86,7 +85,6 @@ templ SideBar(nav Navigation, options ...element.PropertiesOption) {
 							hx-target={ ContentID.Target() }
 							hx-swap="innerMorph show:top transition:true"
 							hx-sync="#page-sidebar:drop"
-							hx-push-url="true"
 							hx-browser-indicator="true"
 							hx-nonce={ templ.GetNonce(ctx) }
 							class="group flex shrink-0 cursor-pointer touch-manipulation flex-col items-center justify-center p-2"

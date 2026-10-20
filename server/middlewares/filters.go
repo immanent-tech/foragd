@@ -83,6 +83,9 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
 				handlers.ListFiltersToSession(ctx, session, path, filters)
 				handlers.ListCountToSession(ctx, session, path, filters.Count)
+				pushURL := req.URL.Clone()
+				pushURL.RawQuery = filters.Encode()
+				res.Header().Set(htmx.HeaderPushURL, pushURL.String())
 				next.ServeHTTP(res, req.WithContext(ctx))
 			case http.MethodPost:
 				filters, err := forms.DecodeForm[*models.ListFilters](req)

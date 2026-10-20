@@ -56,6 +56,8 @@ templ CreatePage(appCfg AppConfig, session SessionManager, page Page) {
 		}
 	>
 		<head>
+			<!-- Security: Robots and index control -->
+			<meta name="robots" content="index, follow" hx-preserve="true"/>
 			<meta charset="UTF-8" hx-preserve="true"/>
 			<meta name="description" content={ page.GetDescription() } hx-preserve="true"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>

@@ -36,7 +36,6 @@ templ ImportSubscriptions() {
 						hx-post="/import"
 						hx-target="#import-results"
 						hx-indicator="#import-button"
-						hx-push-url="false"
 						hx-nonce={ templ.GetNonce(ctx) }
 					>
 						<div

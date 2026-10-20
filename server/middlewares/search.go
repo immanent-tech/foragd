@@ -60,6 +60,9 @@ func CanonicalizeSearchParams(session handlers.SessionManager) func(next http.Ha
 				ctx := handlers.SearchParamsToCtx(req.Context(), search)
 				handlers.SearchParamsToSession(ctx, session, search)
 				handlers.SearchCountToSession(ctx, session, search.Count)
+				pushURL := req.URL.Clone()
+				pushURL.RawQuery = search.Encode()
+				res.Header().Set(htmx.HeaderPushURL, pushURL.String())
 				next.ServeHTTP(res, req.WithContext(ctx))
 			case http.MethodPost:
 				search, err := forms.DecodeForm[*models.SearchRequest](req)
