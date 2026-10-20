@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.251.4](https://github.com/immanent-tech/foragd/compare/v0.251.3...v0.251.4) (2026-10-20)
+
+
+### Bug Fixes
+
+* **handlers:** ♻️ logging and hx-head support ([0262027](https://github.com/immanent-tech/foragd/commit/0262027b8e5eda195b0a2ec03f9df9a7952c7287))
+* **handlers:** 🔧 check thumbnail size only if thumbnail uploaded ([be19c07](https://github.com/immanent-tech/foragd/commit/be19c07efe68c76bade6c2360b5a1add702e3cf9))
+
+
+### Performance Improvements
+
+* **service/feeds:** ⚡ improved feed service ([eb60351](https://github.com/immanent-tech/foragd/commit/eb60351d6b860561f2d293eecd6ef2a61169ebf2))
+* **service/items:** ⚡ improved item service ([1edf1d7](https://github.com/immanent-tech/foragd/commit/1edf1d7ab8af6d20e379ceeb7207382e59f8aca1))
+
 ## [0.251.3](https://github.com/immanent-tech/foragd/compare/v0.251.2...v0.251.3) (2026-10-19)
 
 
