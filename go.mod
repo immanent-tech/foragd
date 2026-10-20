@@ -227,11 +227,13 @@ require (
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/telemetry v0.0.0-20261010193011-f71dc92da45e // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/vuln v1.9.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
@@ -245,4 +247,5 @@ tool (
 	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 	github.com/vektra/mockery/v3
 	go.uber.org/nilaway/cmd/nilaway
+	golang.org/x/vuln/cmd/govulncheck
 )
