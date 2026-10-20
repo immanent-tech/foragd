@@ -1,8 +1,40 @@
+# changes types:
+# - new
+# - improved
+# - fixed
+# - removed
+# - security
+#
+# release type:
+# - major
+# - minor
+# - patch
+
+[[releases]]
+version = "v0.251"
+date = "Oct 20, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "security"
+description = """
+Foragd now has a much tighter Content Security Policy (CSP) applied, protecting you better against insecure and dangerous feed content.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Some preliminary support has been added to utilise browser tab indicators when loading content in Foragd.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Tweaks to caching and page loading should improve resposiveness even further.
+"""
+
 [[releases]]
 version = "v0.247"
 date = "Oct 13, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "improved"
 description = """
