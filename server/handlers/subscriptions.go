@@ -1272,12 +1272,12 @@ func processThumbnail(appCfg AppConfig, cache ImageCache, req *http.Request, obj
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("parse thumbnail data: %w", err)
 	}
-	if image.GetSize() > maxThumbnailSize {
-		return "", fmt.Errorf("parse thumbnail data: %w", forms.ErrFileTooLarge)
-	}
 
 	// If the user uploaded a new avatar, process it.
 	if image != nil {
+		if image.GetSize() > maxThumbnailSize {
+			return "", fmt.Errorf("parse thumbnail data: %w", forms.ErrFileTooLarge)
+		}
 		// Generate a unique ID for the avatar image in the cache using the user ID.
 		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(objectID+"thumbnail")), 10)
 		// Read the uploaded data and store in the cache.
