@@ -95,11 +95,11 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		switch details.FetchMethod {
 		case models.FeedFetchMethodZyteArticles:
-			feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, details)
+			feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, *details)
 		case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 			fallthrough
 		default:
-			feed, _, err = feedSvc.FetchFeedUpdates(ctx, details)
+			feed, _, err = feedSvc.FetchFeedUpdates(ctx, *details)
 		}
 	case c.FeedURL != nil:
 		var feedURL *url.URL
@@ -408,11 +408,11 @@ func classifyFeed(ctx context.Context, feedSvc *service.FeedService, details *mo
 	)
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
-		feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, details)
+		feed, _, err = feedSvc.FetchFeedUpdatesAsArticles(ctx, *details)
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		fallthrough
 	default:
-		feed, _, err = feedSvc.FetchFeedUpdates(ctx, details)
+		feed, _, err = feedSvc.FetchFeedUpdates(ctx, *details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed updates: %w", err)

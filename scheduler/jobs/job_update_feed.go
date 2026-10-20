@@ -122,13 +122,13 @@ func ExecuteUpdateFeed(ctx context.Context, job *SerializedJob) error {
 	switch details.FetchMethod {
 	case models.FeedFetchMethodZyteArticles:
 		// Zyte article list extraction.
-		feed, feedURL, err = services.Feeds.FetchFeedUpdatesAsArticles(ctx, details)
+		feed, feedURL, err = services.Feeds.FetchFeedUpdatesAsArticles(ctx, *details)
 	case models.FeedFetchMethodDirect, models.FeedFetchMethodProxied:
 		// Direct (or proxied) request.
 		fallthrough
 	default:
 		// Assume a regular web-based feed. Fetch feed data directly.
-		feed, feedURL, err = services.Feeds.FetchFeedUpdates(ctx, details)
+		feed, feedURL, err = services.Feeds.FetchFeedUpdates(ctx, *details)
 	}
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)

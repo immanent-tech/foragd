@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -70,9 +71,10 @@ func (ec *feedCacheExpiryCalculator) ExpireAfterCreate(entry otter.Entry[models.
 // ExpireAfterUpdate sets expiration time after updates.
 func (ec *feedCacheExpiryCalculator) ExpireAfterUpdate(
 	entry otter.Entry[models.FeedID, *models.Feed],
-	_ *models.Feed,
+	newVal *models.Feed,
 ) time.Duration {
-	return entry.Value.GetUpdateInterval()
+	// Use the new feed's update interval for the TTL.
+	return newVal.GetUpdateInterval()
 }
 
 // ExpireAfterRead returns remaining expiration time for reads.
@@ -86,6 +88,7 @@ type FeedService struct {
 
 	store      *ElasticService
 	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
+	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
 	httpClient *resty.Client
 }
 
@@ -95,6 +98,7 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
+	index := svc.GetIndexRW(FeedsIndex)
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
 			MaximumSize:      30_000,
@@ -103,12 +107,27 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 		store: svc,
 		loader: otter.LoaderFunc[models.FeedID, *models.Feed](
 			func(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-				index := ctx.Value("feeds_index").(string)
 				feed, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, index, id)
 				if err != nil {
 					return nil, fmt.Errorf("%w: %w", otter.ErrNotFound, err)
 				}
 				return feed, nil
+			},
+		),
+		bulkLoader: otter.BulkLoaderFunc[models.FeedID, *models.Feed](
+			func(ctx context.Context, keys []models.FeedID) (map[models.FeedID]*models.Feed, error) {
+				fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](
+					ctx,
+					index,
+					keys...)
+				if err != nil {
+					return nil, fmt.Errorf("get items: %w", err)
+				}
+				feeds := make(map[models.FeedID]*models.Feed, len(fetched))
+				for feed := range slices.Values(fetched) {
+					feeds[feed.GetID()] = feed
+				}
+				return feeds, nil
 			},
 		),
 		httpClient: newHTTPClient(),
@@ -131,29 +150,11 @@ func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Fe
 // GetFeeds retrieves the Feeds matching the given FeedIDs. It will fetch any cached versions before fetching from
 // Elasticsearch (and then caching those).
 func (s *FeedService) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	feeds := make(models.Feeds, 0, len(ids))
-	unCached := make([]models.FeedID, 0)
-
-	// Fetch feeds from cache.
-	for id := range slices.Values(ids) {
-		if feed, found := s.GetIfPresent(id); found {
-			feeds = append(feeds, feed)
-		} else {
-			unCached = append(unCached, id)
-		}
+	feeds, err := s.BulkGet(ctx, ids, s.bulkLoader)
+	if err != nil {
+		return nil, fmt.Errorf("get items: %w", err)
 	}
-	// If there are feeds missing from the cache, fetch and cache them.
-	if len(unCached) > 0 {
-		fetched, err := elastic.GetDocs[models.FeedID, *models.Feed](ctx, s.store.GetIndexRO(FeedsIndex), unCached...)
-		if err != nil {
-			return nil, fmt.Errorf("get items: %w", err)
-		}
-		for feed := range slices.Values(fetched) {
-			feeds = append(feeds, feed)
-			s.Set(feed.GetID(), feed)
-		}
-	}
-	return feeds, nil
+	return slices.Collect(maps.Values(feeds)), nil
 }
 
 // GetAllFeedsExcept retrieves a [models.Feeds] slice containing all feeds except those with the given [models.FeedID].
@@ -220,7 +221,7 @@ func (s *FeedService) GetNewFeedsSince(ctx context.Context, ts time.Time) (model
 	return feeds, nil
 }
 
-// GetFeedByURLs retrieves a [models.Feeds] slice containing all feeds that have a source matching one of the given URLs.
+// GetFeedsByURLs retrieves a [models.Feeds] slice containing all feeds that have a source matching one of the given URLs.
 func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models.Feeds, error) {
 	var terms []query.Option
 	for url := range slices.Values(urls) {
@@ -278,7 +279,7 @@ func (s *FeedService) UpdateFeed(ctx context.Context, feed *models.Feed) error {
 	); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
-	s.Invalidate(feed.GetID())
+	// Set replaces the entry; Set() respects TTL from ExpireAfterUpdate.
 	s.Set(feed.GetID(), feed)
 
 	return nil
@@ -1568,7 +1569,7 @@ func parseFeed(sourceURL *url.URL, data []byte) (*feeds.Feed, error) {
 // where there is a critical error fetching the feed details.
 func (s *FeedService) FetchFeedUpdates(
 	ctx context.Context,
-	details *models.Feed,
+	details models.Feed,
 ) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
@@ -1620,7 +1621,7 @@ func (s *FeedService) FetchFeedUpdates(
 // details.
 func (s *FeedService) FetchFeedUpdatesAsArticles(
 	ctx context.Context,
-	details *models.Feed,
+	details models.Feed,
 ) (*models.Feed, models.URL, error) {
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
