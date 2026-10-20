@@ -32,6 +32,9 @@ func (s *ItemService) GetArticles(
 	if err != nil {
 		return nil, fmt.Errorf("get items: %w", err)
 	}
+	if len(items) == 0 {
+		return nil, models.ErrNotFound
+	}
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
 		return nil, fmt.Errorf("generate articles: %w", err)

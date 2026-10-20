@@ -58,7 +58,7 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, er
 func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 	var warnings error
 
-	sources := make([]T, 0, len(docs))
+	sources := make([]T, 0)
 
 	for doc := range slices.Values(docs) {
 		switch obj := doc.(type) {

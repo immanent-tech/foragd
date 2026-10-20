@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -63,6 +64,7 @@ func (ec *itemCacheexpiryCalculator) ExpireAfterRead(entry otter.Entry[models.It
 type ItemService struct {
 	*otter.Cache[models.ItemID, *models.Item]
 
+	bulkLoader otter.BulkLoaderFunc[models.ItemID, *models.Item]
 	store      *ElasticService
 	dataCache  cache.ObjectCache
 	httpClient *resty.Client
@@ -80,11 +82,29 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 		return nil, fmt.Errorf("load items cache: %w", err)
 	}
 
+	index := svc.GetIndexRO(ItemsIndex)
+
 	return &ItemService{
 		Cache: otter.Must(&otter.Options[models.ItemID, *models.Item]{
 			MaximumSize:      10_000,
 			ExpiryCalculator: &itemCacheexpiryCalculator{},
 		}),
+		bulkLoader: otter.BulkLoaderFunc[models.ItemID, *models.Item](
+			func(ctx context.Context, keys []models.ItemID) (map[models.ItemID]*models.Item, error) {
+				fetched, err := elastic.GetDocs[models.ItemID, *models.Item](
+					ctx,
+					index,
+					keys...)
+				if err != nil {
+					return nil, fmt.Errorf("mget items: %w", err)
+				}
+				items := make(map[models.ItemID]*models.Item)
+				for item := range slices.Values(fetched) {
+					items[item.GetID()] = item
+				}
+				return items, nil
+			},
+		),
 		dataCache:  itemsCache,
 		store:      svc,
 		httpClient: newHTTPClient(),
@@ -93,34 +113,21 @@ var LoadItemService = sync.OnceValues(func() (*ItemService, error) {
 
 // GetItems returns a [models.Items] slice containing the items matching the given [models.ItemID].
 func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (models.Items, error) {
-	var (
-		items       models.Items
-		unCachedIDs []models.ItemID
-	)
-
-	// Fetch items from cache.
-	for id := range slices.Values(ids) {
-		if item, found := s.GetIfPresent(id); found {
-			items = append(items, item)
-		} else {
-			unCachedIDs = append(unCachedIDs, id)
+	items, err := s.BulkGet(ctx, ids, s.bulkLoader)
+	if err != nil {
+		return nil, fmt.Errorf("bulk get items: %w", err)
+	}
+	if len(items) > len(ids) {
+		slogctx.Warn(ctx, "Fetched items is less than requested items.")
+	}
+	// Otter's bulk loader can return values that are nil. Filter those out.
+	cleaned := make(map[models.ItemID]*models.Item, len(items))
+	for k, v := range items {
+		if v != nil {
+			cleaned[k] = v
 		}
 	}
-	// If there are items missing from the cache, fetch and cache them.
-	if len(unCachedIDs) > 0 {
-		unCachedItems, err := elastic.GetDocs[models.ItemID, *models.Item](
-			ctx,
-			s.store.GetIndexRO(ItemsIndex),
-			unCachedIDs...)
-		if err != nil {
-			return nil, fmt.Errorf("get items: %w", err)
-		}
-		for item := range slices.Values(unCachedItems) {
-			items = append(items, item)
-			s.Set(item.GetID(), item)
-		}
-	}
-	return items, nil
+	return slices.Collect(maps.Values(cleaned)), nil
 }
 
 // AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
@@ -138,7 +145,6 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 		}
 		// Update cache.
 		for item := range slices.Values(items) {
-			s.Invalidate(item.GetID())
 			s.Set(item.GetID(), item)
 		}
 		return map[string]models.Items{"updated": items}, nil

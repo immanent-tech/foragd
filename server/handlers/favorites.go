@@ -54,13 +54,7 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 			if len(user.ItemFavorites) > 0 {
 				var err error
 				articles, err = itemSvc.GetArticles(jobCtx, user.ItemFavorites...)
-				if err != nil {
-					if apiErr, ok := errors.AsType[*models.APIError](
-						err,
-					); ok &&
-						apiErr.StatusCode == http.StatusNotFound {
-						return nil
-					}
+				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					return fmt.Errorf("get articles: %w", err)
 				}
 			}

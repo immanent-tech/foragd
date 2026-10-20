@@ -98,7 +98,7 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
-	index := svc.GetIndexRW(FeedsIndex)
+	index := svc.GetIndexRO(FeedsIndex)
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
 			MaximumSize:      30_000,
@@ -121,7 +121,7 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 					index,
 					keys...)
 				if err != nil {
-					return nil, fmt.Errorf("get items: %w", err)
+					return nil, fmt.Errorf("mget feeds: %w", err)
 				}
 				feeds := make(map[models.FeedID]*models.Feed, len(fetched))
 				for feed := range slices.Values(fetched) {
@@ -152,9 +152,19 @@ func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Fe
 func (s *FeedService) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	feeds, err := s.BulkGet(ctx, ids, s.bulkLoader)
 	if err != nil {
-		return nil, fmt.Errorf("get items: %w", err)
+		return nil, fmt.Errorf("bulk get feeds: %w", err)
 	}
-	return slices.Collect(maps.Values(feeds)), nil
+	if len(feeds) > len(ids) {
+		slogctx.Warn(ctx, "Fetched feeds is less than requested feeds.")
+	}
+	// Otter's bulk loader can return values that are nil. Filter those out.
+	cleaned := make(map[models.FeedID]*models.Feed, len(feeds))
+	for k, v := range feeds {
+		if v != nil {
+			cleaned[k] = v
+		}
+	}
+	return slices.Collect(maps.Values(cleaned)), nil
 }
 
 // GetAllFeedsExcept retrieves a [models.Feeds] slice containing all feeds except those with the given [models.FeedID].

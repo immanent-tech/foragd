@@ -223,22 +223,22 @@ func extractYoutubeData(source *feeds.Item, item *Item) {
 }
 
 // GetID returns the item ID.
-func (i *Item) GetID() ItemID {
+func (i Item) GetID() ItemID {
 	return i.ItemID
 }
 
 // GetFeedID returns the ID of the feed the item belongs to.
-func (i *Item) GetFeedID() FeedID {
+func (i Item) GetFeedID() FeedID {
 	return i.FeedID
 }
 
 // GetLink returns the URL that should point to a page containing the full item content.
-func (i *Item) GetLink() URL {
+func (i Item) GetLink() URL {
 	return i.URL
 }
 
 // GetTitle returns the item's title.
-func (i *Item) GetTitle() string {
+func (i Item) GetTitle() string {
 	if i.Title == "" {
 		return "(no title)"
 	}
@@ -246,7 +246,7 @@ func (i *Item) GetTitle() string {
 }
 
 // GetDescription returns the summary of the item content, if any.
-func (i *Item) GetDescription() string {
+func (i Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
 		case htmlx.IsHTML(*i.Description):
@@ -267,28 +267,28 @@ func (i *Item) GetDescription() string {
 }
 
 // GetAuthors returns a slice of the item's authors, if any.
-func (i *Item) GetAuthors() []Author {
+func (i Item) GetAuthors() []Author {
 	return generateAuthors(i.Authors)
 }
 
 // GetContributors returns a slice of the item's contributors, if any.
-func (i *Item) GetContributors() []Author {
+func (i Item) GetContributors() []Author {
 	return generateAuthors(i.Contributors)
 }
 
 // GetCategories returns a slice of the item's categories, if any.
-func (i *Item) GetCategories() []string {
+func (i Item) GetCategories() []string {
 	// Just in case there are duplicate categories, avoids a validation error.
 	return slices.Compact(i.Categories)
 }
 
 // GetImage returns an image that can represent the item, if any.
-func (i *Item) GetImage() *RemoteImage {
+func (i Item) GetImage() *RemoteImage {
 	return i.Image
 }
 
 // GetLanguage returns the language of the item, if set.
-func (i *Item) GetLanguage() string {
+func (i Item) GetLanguage() string {
 	if i.Language != nil {
 		return *i.Language
 	}
@@ -296,7 +296,7 @@ func (i *Item) GetLanguage() string {
 }
 
 // GetRights returns the copyright associated with the item, if any.
-func (i *Item) GetRights() string {
+func (i Item) GetRights() string {
 	if i.Copyright != nil {
 		return *i.Copyright
 	}
@@ -304,7 +304,7 @@ func (i *Item) GetRights() string {
 }
 
 // GetContent returns the full item content, if set.
-func (i *Item) GetContent() string {
+func (i Item) GetContent() string {
 	if i.Content == nil {
 		return ""
 	}
@@ -325,14 +325,14 @@ func (i *Item) GetContent() string {
 }
 
 // HasContent returns a boolean indicating whether the item has full or partial content.
-func (i *Item) HasContent() bool {
+func (i Item) HasContent() bool {
 	return i.Content != nil && *i.Content != ""
 }
 
 // GetTimestamp returns a timestamp indicating when the item was last updated. This will be either, the published
 // timestamp, or, the updated timestamp, or the indexing timestamp, whichever is found and is a valid value, in that
 // order.
-func (i *Item) GetTimestamp() time.Time {
+func (i Item) GetTimestamp() time.Time {
 	if i.Updated != nil {
 		if valid, _ := ValidateDatetime(*i.Updated); valid {
 			return i.Updated.UTC()
@@ -345,7 +345,7 @@ func (i *Item) GetTimestamp() time.Time {
 }
 
 // WasUpdated returns a boolean indicating whether the item has been updated since being published.
-func (i *Item) WasUpdated() bool {
+func (i Item) WasUpdated() bool {
 	if i.Updated != nil {
 		upd := *i.Updated
 		return !upd.IsZero()
@@ -355,11 +355,11 @@ func (i *Item) WasUpdated() bool {
 
 // IsNewer returns a boolean indicating whether this item has been updated or
 // published after the given time and before now (to ignore potentially incorrect dates in the future).
-func (i *Item) IsNewer(since time.Time) bool {
+func (i Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
 }
 
-func (i *Item) GetCommentsURL() string {
+func (i Item) GetCommentsURL() string {
 	if i.CommentsURL != nil {
 		return *i.CommentsURL
 	}
