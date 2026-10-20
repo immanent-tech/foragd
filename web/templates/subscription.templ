@@ -1128,7 +1128,7 @@ templ editSubscriptionFormButtons(action string, breadcrumbs Breadcrumbs) {
 			if prev, found := breadcrumbs.Previous(ctx); !found {
 				hx-get="/home"
 			} else {
-				hx-get={ prev.Path + prev.Fragment }
+				hx-get={ prev.String() }
 			}
 			hx-target={ ContentID.Target() }
 			hx-swap="innerMorph transition:true"
