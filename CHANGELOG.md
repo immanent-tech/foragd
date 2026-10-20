@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.5](https://github.com/immanent-tech/foragd/compare/v0.251.4...v0.251.5) (2026-10-20)
+
+
+### Bug Fixes
+
+* 🔧 ensure URL gets updated correctly on list pages ([76994f4](https://github.com/immanent-tech/foragd/commit/76994f4964ca6505f98324d418ada3e5c51f89a3))
+
 ## [0.251.4](https://github.com/immanent-tech/foragd/compare/v0.251.3...v0.251.4) (2026-10-20)
 
 
