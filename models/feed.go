@@ -170,7 +170,7 @@ func (f Feed) Validate() error {
 		}
 	}
 	if err := validation.Validate.Struct(f); err != nil {
-		return fmt.Errorf("validate feed: %w", err)
+		return fmt.Errorf("validate feed: %w", validation.ParseStructValidationErrors(err))
 	}
 	return nil
 }

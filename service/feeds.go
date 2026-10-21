@@ -47,6 +47,7 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/textx"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/go-base/pkg/zyte"
 
@@ -416,7 +417,7 @@ func (s *FeedService) UpdateFeedItems(
 						if err := item.Validate(); err != nil {
 							slogctx.Warn(ctx, "Item is invalid!",
 								slog.String("item_id", item.GetID()),
-								slog.Any("error", err),
+								slog.Any("error", validation.ParseStructValidationErrors(err)),
 							)
 						}
 					}
