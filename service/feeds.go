@@ -330,7 +330,7 @@ func (r *diffReporter) Report(rs cmp.Result) {
 			continue
 		}
 		parentType := r.path[i-1].Type()
-		if parentType.Kind() == reflect.Ptr {
+		if parentType.Kind() == reflect.Pointer {
 			parentType = parentType.Elem()
 		}
 		field := parentType.Field(sf.Index())
@@ -499,15 +499,14 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	// Compare new/old feed data and update as appropriate.
 	var r diffReporter
 	if diff := cmp.Diff(
-		*newData,
 		*oldData,
+		*newData,
 		cmpopts.IgnoreFields(
 			models.Feed{},
 			"Updated",
 			"Published",
 			"LastFetched",
 			"CreatedAt",
-			"FetchOptions",
 			"SourceData",
 			"Items",
 			"UpdateInterval",
@@ -1503,18 +1502,19 @@ func (s *FeedService) FetchFeed(
 
 	// Create a new feed from the source.
 	feed := models.NewFeed(source.GetSourceURL(), opts.ExistingID, source)
-	// Warn if feed data is not valid.
-	if err := feed.Validate(); err != nil {
-		slogctx.Warn(ctx, "Feed data is not valid!",
-			slog.Any("error", err),
-		)
-	}
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
 		feed.FetchMethod = models.FeedFetchMethodProxied
 	} else {
 		feed.FetchMethod = models.FeedFetchMethodDirect
+	}
+
+	// Warn if feed data is not valid.
+	if err := feed.Validate(); err != nil {
+		slogctx.Warn(ctx, "Feed data is not valid!",
+			slog.Any("error", err),
+		)
 	}
 
 	return feed, nil
