@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.251.6](https://github.com/immanent-tech/foragd/compare/v0.251.5...v0.251.6) (2026-10-21)
+
+
+### Bug Fixes
+
+* **templates/favorites:** 🔧 fix loading favorites tabs ([addc3fa](https://github.com/immanent-tech/foragd/commit/addc3fae1e071efb3e7a0e3a3ab4b7dcd7ee7395))
+* **templates/settings:** 🔧 fix loading of settings tabs ([36eb4fd](https://github.com/immanent-tech/foragd/commit/36eb4fd6aa17c0f5215ba8aba08d672cad87882a))
+* **templates/subscriptions:** 🔧 fix back button route when editing a subscription ([f3afb91](https://github.com/immanent-tech/foragd/commit/f3afb912f087f2f9dd263e67e67070a155b71937))
+
 ## [0.251.5](https://github.com/immanent-tech/foragd/compare/v0.251.4...v0.251.5) (2026-10-20)
 
 
