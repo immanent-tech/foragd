@@ -16,7 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-syndication/sanitization"
+	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -459,7 +459,7 @@ func (s *ItemService) GetArticleRemoteContent(
 			}
 
 			// Set the article content to the extracted content.
-			article.Content = new(sanitization.SanitizeString(articleBuf.String()))
+			article.Content = new(validation.SanitizeString(articleBuf.String()))
 		}
 	}
 
