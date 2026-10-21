@@ -410,7 +410,14 @@ func (s *FeedService) UpdateFeedItems(
 						}
 						if err := itemSvc.EnrichItem(enrichCtx, oldData, item); err != nil {
 							slogctx.FromCtx(enrichCtx).Warn("Unable to enrich item",
+								slog.String("item_id", item.GetID()),
 								slog.Any("error", err))
+						}
+						if err := item.Validate(); err != nil {
+							slogctx.Warn(ctx, "Item is invalid!",
+								slog.String("item_id", item.GetID()),
+								slog.Any("error", err),
+							)
 						}
 					}
 				}
@@ -1496,6 +1503,12 @@ func (s *FeedService) FetchFeed(
 
 	// Create a new feed from the source.
 	feed := models.NewFeed(source.GetSourceURL(), opts.ExistingID, source)
+	// Warn if feed data is not valid.
+	if err := feed.Validate(); err != nil {
+		slogctx.Warn(ctx, "Feed data is not valid!",
+			slog.Any("error", err),
+		)
+	}
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {

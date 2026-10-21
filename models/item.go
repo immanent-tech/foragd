@@ -4,6 +4,7 @@
 package models
 
 import (
+	"fmt"
 	"html"
 	"maps"
 	"slices"
@@ -364,4 +365,11 @@ func (i Item) GetCommentsURL() string {
 		return *i.CommentsURL
 	}
 	return ""
+}
+
+func (i Item) Validate() error {
+	if err := validation.Validate.Struct(i); err != nil {
+		return fmt.Errorf("item is invalid: %w", err)
+	}
+	return nil
 }
