@@ -13,45 +13,19 @@ import (
 	"slices"
 )
 
-templ scriptFavoritesTabHandler() {
-	<script id="favorites-tab" type="module" nonce={ templ.GetNonce(ctx) }>
-		const tabGroup = document.getElementById('favorites-tabs')
-
-		// Map hash → tab index
-		const tabMap = {
-			'#subscriptions': 0,
-			'#articles': 1,
-		}
-
-		function activateTabFromHash() {
-			const index = tabMap[window.location.hash]
-			if (index !== undefined) {
-				tabGroup.setActiveTab(index)
-			}
-		}
-
-		// Activate on initial load
-		activateTabFromHash()
-
-		// Also handle back/forward navigation
-		window.addEventListener('hashchange', activateTabFromHash)
-	</script>
-}
-
 // ListFavorites renders subscription and article favorites in a grid layout.
 templ ListFavorites(response *models.ListFavoritesResponse) {
 	@LayoutInternal(NavFavorites, &InternalLayoutProps{User: models.UserFromCtx(ctx)}) {
 		@templ.Fragment(ContentFragment) {
-			@scriptFavoritesTabHandler()
 			@container(element.WithClasses("pt-4")) {
 				<el-tab-group
 					id="favorites-tabs"
 					_="
 					init
                        	set hash to window.location.hash.replace('#', '')
-						if hash is empty
-							set window.location.hash to '#subscriptions'
-						end
+						if hash is empty set window.location.hash to '#subscriptions' then call #favorites-tabs.setActiveTab(0) then send showSubscriptions	end
+                        if hash is 'subscriptions' then call #favorites-tabs.setActiveTab(0) then send showSubscriptions end
+                        if hash is 'articles' then call #favorites-tabs.setActiveTab(1) then send showArticles end
 					"
 				>
 					@pageHeading() {
@@ -79,6 +53,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                                 remove .btn-primary from #favorite-subscriptions-button
                               end
                             end
+							on click set window.location.hash to '#subscriptions' then call #favorites-tabs.setActiveTab(0) then send showSubscriptions
 							"
 								>Subscriptions</button>
 								<button
@@ -102,6 +77,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
                                 remove .btn-primary from #favorite-articles-button
                               end
                             end
+							on click set window.location.hash to '#articles' then call #favorites-tabs.setActiveTab(1) then send showArticles
 							"
 								>Articles</button>
 							</el-tab-list>
