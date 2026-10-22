@@ -54,10 +54,13 @@ func NewGetNewFeedsJob() (*SerializedJob, error) {
 // ExecuteGetNewFeeds runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
 func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
+	// Singleton runner flag
 	if wasRunning := getNewFeedsRunning.Swap(true); wasRunning {
 		return errors.New("job is running")
 	}
-	defer getNewFeedsRunning.Store(false)
+	defer func() {
+		getNewFeedsRunning.Store(false)
+	}()
 
 	services := ServicesFromCtx(ctx)
 	if services == nil {
@@ -90,15 +93,15 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	const maxConcurrentWorkers = 25
-	var (
-		added atomic.Int64
-		g     errgroup.Group
-	)
+	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(maxConcurrentWorkers)
+	var added atomic.Int64
 
+	// Fan-out: spawn workers
 	for feed := range slices.Values(newFeeds) {
+		// Early exit if context cancelled
 		if ctx.Err() != nil {
-			log.Info("Finished get new feeds job.",
+			log.Info("Cancelled get new feeds job.",
 				slog.Int64("added", added.Load()),
 				slog.Duration("took", time.Since(start)))
 			break
@@ -106,19 +109,23 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 		if _, ok := existing[feed.GetID()]; ok {
 			continue // Already scheduled, waiting on next fetch.
 		}
-		g.Go(func() error { // Blocks when maxConcurrentWorkers are in flight.
+		g.Go(func() error {
 			if err := addFeedWithTimeout(ctx, services, feed); err != nil {
 				log.Error("Unable to add feed job",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
-				return nil // One bad feed shouldn't stop the rest.
+				// Log error but don't return it — one bad feed shouldn't stop the rest
+				return nil
 			}
 			added.Add(1)
 			return nil
 		})
 	}
-	if err = g.Wait(); err != nil {
 
+	// Wait for all workers to complete
+	if err := g.Wait(); err != nil {
+		// Should not happen since workers return nil, but handle anyway
+		log.Error("Workers failed", slog.Any("error", err))
 	}
 
 	log.Info("Finished get new feeds job.",
