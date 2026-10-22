@@ -335,7 +335,7 @@ func (r *diffReporter) Report(rs cmp.Result) {
 			parentType = parentType.Elem()
 		}
 		field := parentType.Field(sf.Index())
-		tag = field.Tag.Get("json")
+		tag = r.key()
 		if tag == "" || tag == "-" {
 			tag = field.Name
 		}
@@ -356,16 +356,52 @@ func (r *diffReporter) Report(rs cmp.Result) {
 
 	change := Change{}
 	if vx.IsValid() {
-		change.Old = vx.Interface()
+		change.Old = derefValue(vx)
 	}
 	if vy.IsValid() {
-		change.New = vy.Interface()
+		change.New = derefValue(vy)
 	}
 	r.Changes[tag] = change
 }
 
 func (r *diffReporter) PopStep() {
 	r.path = r.path[:len(r.path)-1]
+}
+
+func (r *diffReporter) key() string {
+	var b strings.Builder
+	for i, step := range r.path {
+		switch s := step.(type) {
+		case cmp.StructField:
+			f := r.path[i-1].Type().Field(s.Index())
+			name, _, _ := strings.Cut(f.Tag.Get("json"), ",")
+			if name == "" || name == "-" {
+				name = f.Name
+			}
+			if b.Len() > 0 {
+				b.WriteByte('.')
+			}
+			b.WriteString(name)
+		case cmp.SliceIndex:
+			fmt.Fprintf(&b, "[%d]", s.Key())
+		case cmp.MapIndex:
+			fmt.Fprintf(&b, "[%v]", s.Key())
+		}
+	}
+	return b.String()
+}
+
+func derefValue(v reflect.Value) any {
+	for v.IsValid() && v.Kind() == reflect.Pointer {
+		if v.IsNil() {
+			return nil
+		}
+		v = v.Elem()
+	}
+	if !v.IsValid() || !v.CanInterface() {
+		return nil
+	}
+	return v.Interface()
 }
 
 // UpdateFeedItems determines if there are new items in the feed and then adds them to the database, performing item
@@ -377,7 +413,7 @@ func (s *FeedService) UpdateFeedItems(
 ) (time.Time, error) {
 	itemSvc, err := LoadItemService()
 	if err != nil {
-		return time.Time{}, fmt.Errorf("load item service: %w", err)
+		return oldData.LastFetched, fmt.Errorf("load item service: %w", err)
 	}
 
 	// Add any new items since the last feed update.
@@ -488,14 +524,16 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	if err != nil {
 		slogctx.Warn(ctx, "Unable to add new or update existing items.",
 			slog.Any("error", err))
+		lastFetched = oldData.LastFetched // don't advance on failure
 	}
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
 		if err := ClassifyFeed(ctx, newData); err != nil {
 			slogctx.Warn(ctx, "Could not classify feed",
 				slog.Any("error", err))
+		} else {
+			oldData.Categories = newData.Categories
 		}
-		oldData.Categories = newData.Categories
 	}
 	// Compare new/old feed data and update as appropriate.
 	var r diffReporter
@@ -516,7 +554,6 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 			"Categories",
 		),
 		cmpopts.EquateEmpty(),
-		cmpopts.IgnoreUnexported(),
 		cmp.Reporter(&r),
 	); diff != "" {
 		// Update feed data.
