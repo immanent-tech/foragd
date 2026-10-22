@@ -55,7 +55,7 @@ templ ScrollRestoreBehavior() {
 			  end
 
 			  -- Also handle after htmx swap completes
-			  on "htmx:after:swap" from document
+			  on "htmx:finally:swap" from document
 			    call doRestore()
 			  end
 
