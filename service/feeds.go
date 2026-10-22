@@ -16,7 +16,6 @@ import (
 	"maps"
 	"net/http"
 	"net/url"
-	"reflect"
 	"runtime"
 	"slices"
 	"strconv"
@@ -29,8 +28,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -300,109 +297,6 @@ type Change struct {
 	New any `json:"new"`
 }
 
-type diffReporter struct {
-	path    cmp.Path
-	Changes map[string]Change
-}
-
-func (r *diffReporter) PushStep(ps cmp.PathStep) {
-	r.path = append(r.path, ps)
-}
-
-func (r *diffReporter) Report(rs cmp.Result) {
-	if rs.Equal() {
-		return
-	}
-	if r.Changes == nil {
-		r.Changes = make(map[string]Change)
-	}
-
-	// Find the nearest StructField step to get the JSON tag.
-	var tag string
-	for i, v := range slices.Backward(r.path) {
-		sf, ok := v.(cmp.StructField)
-		if !ok {
-			continue
-		}
-		if i == 0 {
-			// No parent step to pull the type from; shouldn't normally
-			// happen, but don't panic if it does.
-			continue
-		}
-		parentType := r.path[i-1].Type()
-		if parentType.Kind() == reflect.Pointer {
-			parentType = parentType.Elem()
-		}
-		field := parentType.Field(sf.Index())
-		tag = r.key()
-		if tag == "" || tag == "-" {
-			tag = field.Name
-		}
-		break
-	}
-	if tag == "" {
-		// Not inside a struct field (e.g. diffing a bare slice/map at the top level). Fall back to the path string so
-		// the diff isn't silently dropped.
-		tag = r.path.String()
-		if tag == "" {
-			return
-		}
-	}
-
-	// Grab the actual differing values from the current (leaf) step.
-	last := r.path[len(r.path)-1]
-	vx, vy := last.Values()
-
-	change := Change{}
-	if vx.IsValid() {
-		change.Old = derefValue(vx)
-	}
-	if vy.IsValid() {
-		change.New = derefValue(vy)
-	}
-	r.Changes[tag] = change
-}
-
-func (r *diffReporter) PopStep() {
-	r.path = r.path[:len(r.path)-1]
-}
-
-func (r *diffReporter) key() string {
-	var b strings.Builder
-	for i, step := range r.path {
-		switch s := step.(type) {
-		case cmp.StructField:
-			f := r.path[i-1].Type().Field(s.Index())
-			name, _, _ := strings.Cut(f.Tag.Get("json"), ",")
-			if name == "" || name == "-" {
-				name = f.Name
-			}
-			if b.Len() > 0 {
-				b.WriteByte('.')
-			}
-			b.WriteString(name)
-		case cmp.SliceIndex:
-			fmt.Fprintf(&b, "[%d]", s.Key())
-		case cmp.MapIndex:
-			fmt.Fprintf(&b, "[%v]", s.Key())
-		}
-	}
-	return b.String()
-}
-
-func derefValue(v reflect.Value) any {
-	for v.IsValid() && v.Kind() == reflect.Pointer {
-		if v.IsNil() {
-			return nil
-		}
-		v = v.Elem()
-	}
-	if !v.IsValid() || !v.CanInterface() {
-		return nil
-	}
-	return v.Interface()
-}
-
 // UpdateFeedItems determines if there are new items in the feed and then adds them to the database, performing item
 // enrichment as needed. It returns a timestamp indicating a new lastFetched value for the feed, based off the latest
 // new item's timestamp.
@@ -525,46 +419,12 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 			slog.Any("error", err))
 		lastFetched = oldData.LastFetched // don't advance on failure
 	}
-	// If the feed does not have categories, use the classifier to generate some.
-	if len(oldData.GetCategories()) == 0 {
-		if err := ClassifyFeed(ctx, newData); err != nil {
-			slogctx.Warn(ctx, "Could not classify feed",
-				slog.Any("error", err))
-		} else {
-			oldData.Categories = newData.Categories
-		}
-	}
 	// Compare new/old feed data and update only changed fields.
-	var r diffReporter
-	if diff := cmp.Diff(
-		*oldData,
-		*newData,
-		cmpopts.IgnoreFields(
-			models.Feed{},
-			"Updated",
-			"Published",
-			"LastFetched",
-			"CreatedAt",
-			"SourceData",
-			"Items",
-			"UpdateInterval",
-			"Quirks",
-			"Customisation",
-			"Categories",
-		),
-		cmpopts.EquateEmpty(),
-		cmp.Reporter(&r),
-	); diff != "" {
-		// Update only the fields that changed in newData, then update timestamps.
-		updateFeedData(newData, r.Changes)
-		// Also update LastFetched and Updated
-		newData.LastFetched = lastFetched
-		newData.Updated = new(time.Now().UTC())
-		if err := s.UpdateFeed(ctx, newData); err != nil {
-			return fmt.Errorf("update feed: %w", err)
-		}
+	// Update only the fields that changed in newData, then update timestamps.
+	changes := updateFeedData(ctx, oldData, newData)
+	if len(changes) > 0 {
 		var slogAttrs []slog.Attr
-		for key, value := range r.Changes {
+		for key, value := range changes {
 			slogAttrs = append(slogAttrs,
 				slog.Group(key,
 					slog.Any("old", fmt.Sprintf("%+v", value.Old)),
@@ -573,66 +433,96 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 			)
 		}
 		slogctx.LogAttrs(ctx, slog.LevelInfo, "Feed data updated.", slogAttrs...)
-	} else {
-		// No changes. Just update last_fetched.
-		newData.LastFetched = lastFetched
-		newData.Updated = new(time.Now().UTC())
-		if err := s.UpdateFeed(ctx, newData); err != nil {
-			return fmt.Errorf("update feed: %w", err)
-		}
+	}
+	// Warn if feed data is not valid.
+	if err := newData.Validate(); err != nil {
+		slogctx.Warn(ctx, "Feed data is not valid!",
+			slog.Any("error", err),
+		)
+	}
+	// Also update LastFetched and Updated
+	newData.LastFetched = lastFetched
+	newData.Updated = new(time.Now().UTC())
+	if err := s.UpdateFeed(ctx, newData); err != nil {
+		return fmt.Errorf("update feed: %w", err)
 	}
 
 	return nil
 }
 
-func updateFeedData(feed *models.Feed, changes map[string]Change) {
-	for key, value := range changes {
-		switch key {
-		case "Title":
-			feed.Title = value.New.(string)
-		case "Description":
-			if newVal, ok := value.New.(*string); ok {
-				feed.Description = newVal
-			}
-		case "URL":
-			feed.URL = value.New.(string)
-		case "Domain":
-			feed.Domain = value.New.(string)
-		case "SourceType":
-			feed.SourceType = value.New.(models.SourceType)
-		case "FetchMethod":
-			feed.FetchMethod = value.New.(models.FeedFetchMethod)
-		case "SourceURLs":
-			newURLs := value.New.([]models.URL)
-			if len(newURLs) > 0 {
-				feed.SourceURLs = append(feed.SourceURLs, newURLs...)
-				slices.Sort(feed.SourceURLs)
-				feed.SourceURLs = slices.Compact(feed.SourceURLs)
-			}
-		case "Authors":
-			feed.Authors = value.New.([]string)
-		case "Contributors":
-			feed.Contributors = value.New.([]string)
-		case "Copyright":
-			if newVal, ok := value.New.(*string); ok {
-				feed.Copyright = newVal
-			}
-		case "Language":
-			if newVal, ok := value.New.(*string); ok {
-				feed.Language = newVal
-			}
-		case "Image":
-			if newVal, ok := value.New.(*models.RemoteImage); ok {
-				feed.Image = newVal
-			}
-		case "UpdateInterval":
-			feed.UpdateInterval = value.New.(int64)
-		case "FetchOptions":
-			if newVal, ok := value.New.(*models.Feed_FetchOptions); ok {
-				feed.FetchOptions = newVal
-			}
+func updateFeedData(ctx context.Context, oldData, newData *models.Feed) map[string]Change {
+	changes := make(map[string]Change)
+	// Accept any title change.
+	if oldData.GetTitle() != newData.GetTitle() {
+		changes["title"] = Change{Old: oldData.GetTitle(), New: newData.GetTitle()}
+	}
+	// Accept any description change.
+	if oldData.GetDescription() != newData.GetDescription() {
+		changes["description"] = Change{Old: oldData.GetDescription(), New: newData.GetDescription()}
+	}
+	// Accept any link change.
+	if oldData.GetLink() != newData.GetLink() {
+		changes["link"] = Change{Old: oldData.GetLink(), New: newData.GetLink()}
+	}
+	// Only change domain where new domain is not empty.
+	if newData.Domain != "" && oldData.Domain != newData.Domain {
+		changes["domain"] = Change{Old: oldData.Domain, New: newData.Domain}
+	}
+	// Accept any source type change.
+	if oldData.SourceType != newData.SourceType {
+		changes["source_type"] = Change{Old: oldData.SourceType, New: newData.SourceType}
+	}
+	// Accept any copyright change.
+	if oldData.Copyright != newData.Copyright {
+		changes["copyright"] = Change{Old: oldData.GetRights(), New: newData.GetRights()}
+	}
+	// Accept any language change.
+	if oldData.Language != newData.Language {
+		changes["language"] = Change{Old: oldData.GetLanguage(), New: newData.GetLanguage()}
+	}
+	// Accept any image change.
+	if oldData.Image != newData.Image {
+		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
+	}
+	// Accept any change to fetch method.
+	if newData.FetchMethod != "" && oldData.FetchMethod != newData.FetchMethod {
+		changes["fetch_method"] = Change{Old: oldData.FetchMethod, New: newData.FetchMethod}
+	}
+	// Accept any change to fetch options.
+	if oldData.FetchOptions != newData.FetchOptions {
+		changes["fetch_options"] = Change{Old: oldData.FetchOptions, New: newData.FetchOptions}
+	}
+	// Always append then compact any source URL changes.
+	if len(newData.GetSourceURLs()) != len(oldData.GetSourceURLs()) {
+		newData.SourceURLs = append(newData.SourceURLs, oldData.SourceURLs...)
+		slices.Sort(newData.SourceURLs)
+		newData.SourceURLs = slices.Compact(newData.SourceURLs)
+		changes["source_urls"] = Change{Old: oldData.GetSourceURLs(), New: newData.GetSourceURLs()}
+	}
+	// Always append then compact any author changes.
+	if len(newData.GetAuthors()) != len(oldData.GetAuthors()) {
+		newData.Authors = append(newData.GetAuthors(), oldData.GetAuthors()...)
+		slices.Sort(newData.Authors)
+		newData.Authors = slices.Compact(newData.Authors)
+		changes["authors"] = Change{Old: oldData.GetAuthors(), New: newData.GetAuthors()}
+	}
+	// Always append then compact any contributor changes.
+	if len(newData.GetContributors()) != len(oldData.GetContributors()) {
+		newData.Authors = append(newData.GetContributors(), oldData.GetContributors()...)
+		slices.Sort(newData.Contributors)
+		newData.Contributors = slices.Compact(newData.Contributors)
+		changes["contributors"] = Change{Old: oldData.GetContributors(), New: newData.GetContributors()}
+	}
+	// If the feed does not have categories, use the classifier to generate some.
+	if len(oldData.GetCategories()) == 0 {
+		if err := ClassifyFeed(ctx, newData); err != nil {
+			slogctx.Warn(ctx, "Could not classify feed",
+				slog.Any("error", err))
+		} else {
+			changes["categories"] = Change{Old: oldData.GetCategories(), New: newData.GetCategories()}
 		}
 	}
+	return changes
 }
 
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
@@ -1594,13 +1484,6 @@ func (s *FeedService) FetchFeed(
 		feed.FetchMethod = models.FeedFetchMethodProxied
 	} else {
 		feed.FetchMethod = models.FeedFetchMethodDirect
-	}
-
-	// Warn if feed data is not valid.
-	if err := feed.Validate(); err != nil {
-		slogctx.Warn(ctx, "Feed data is not valid!",
-			slog.Any("error", err),
-		)
 	}
 
 	return feed, nil
