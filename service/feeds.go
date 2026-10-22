@@ -16,7 +16,6 @@ import (
 	"maps"
 	"net/http"
 	"net/url"
-	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -43,7 +42,6 @@ import (
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/pkg/textx"
-	"github.com/immanent-tech/go-base/validation"
 
 	"github.com/immanent-tech/go-base/pkg/zyte"
 
@@ -320,53 +318,7 @@ func (s *FeedService) UpdateFeedItems(
 		return oldData.LastFetched, nil
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		maxConcurrentEnrichment := runtime.GOMAXPROCS(0) * 6
-		enrichJobCh := make(chan *models.Item, maxConcurrentEnrichment*100)
-		var wg sync.WaitGroup
-
-		for range maxConcurrentEnrichment {
-			var cancelWorker context.CancelFunc
-			enrichCtx, cancelWorker := context.WithCancel(ctx)
-			// Try to enrich item with additional data if possible.
-			wg.Go(func() {
-				defer cancelWorker()
-				for {
-					select {
-					case <-enrichCtx.Done():
-						return
-					case item, ok := <-enrichJobCh:
-						if !ok {
-							return
-						}
-						if err := itemSvc.EnrichItem(enrichCtx, oldData, item); err != nil {
-							slogctx.FromCtx(enrichCtx).Warn("Unable to enrich item",
-								slog.String("item_id", item.GetID()),
-								slog.Any("error", err))
-						}
-						if err := item.Validate(); err != nil {
-							slogctx.Warn(ctx, "Item is invalid!",
-								slog.String("item_id", item.GetID()),
-								slog.Any("error", validation.ParseStructValidationErrors(err)),
-							)
-						}
-					}
-				}
-			})
-		}
-		for item := range slices.Values(newItems) {
-			select {
-			case enrichJobCh <- item:
-			case <-ctx.Done():
-				close(enrichJobCh)
-				wg.Wait()
-				return oldData.LastFetched, ctx.Err()
-			}
-		}
-		close(enrichJobCh)
-		wg.Wait()
-
-		// Add new items.
-		results, err := itemSvc.AddItems(ctx, newItems)
+		results, err := itemSvc.EnrichItemBatch(ctx, newData, newItems)
 		if err != nil {
 			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
 		}

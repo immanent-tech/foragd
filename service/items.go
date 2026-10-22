@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"net/url"
+	"runtime"
 	"slices"
 	"strconv"
 	"sync"
@@ -26,6 +27,7 @@ import (
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-base/pkg/htmlx"
 	"github.com/immanent-tech/go-base/validation"
@@ -36,6 +38,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 	"github.com/immanent-tech/foragd/server/cache"
 )
 
@@ -201,6 +204,56 @@ func (s *ItemService) bulkAddItems(ctx context.Context, items ...*models.Item) e
 	return nil
 }
 
+func (s *ItemService) EnrichItemBatch(
+	ctx context.Context,
+	feed *models.Feed,
+	items models.Items,
+) (map[string]models.Items, error) {
+	// Determine bounded concurrency
+	maxWorkers := runtime.GOMAXPROCS(0) * 4
+	if maxWorkers > 100 { // cap to avoid oversubscription
+		maxWorkers = 100
+	}
+
+	g, enrichCtx := errgroup.WithContext(ctx)
+	g.SetLimit(maxWorkers)
+
+	results := make(chan *models.Item, len(items))
+	var failed int
+
+	// Fan-out: send items to workers
+	for item := range slices.Values(items) {
+		g.Go(func() error {
+			err := s.EnrichItem(enrichCtx, feed, item)
+			if err != nil {
+				failed++
+				return err
+			}
+			results <- item
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+	close(results)
+
+	// Fan-in: collect results
+	var enrichedItems models.Items
+	for item := range results {
+		enrichedItems = append(enrichedItems, item)
+	}
+
+	// Add/update items in bulk
+	addResults, err := s.AddItems(ctx, enrichedItems)
+	if err != nil {
+		return addResults, err
+	}
+
+	return addResults, nil
+}
+
 // EnrichItem checks the data of the given [models.Item]. If it is missing certain values, it tries to "enrich" the item
 // to fill missing data from the item source.
 func (s *ItemService) EnrichItem(
@@ -208,6 +261,21 @@ func (s *ItemService) EnrichItem(
 	feed *models.Feed,
 	item *models.Item,
 ) error {
+	defer func() {
+		if rvr := recover(); rvr != nil {
+			slogctx.Error(ctx, "Item enrichment failed!",
+				slog.String("item_id", item.GetID()),
+			)
+			// Log to GCP error console.
+			switch v := rvr.(type) {
+			case error:
+				gerror.ReportError(v)
+			default:
+				gerror.ReportError(fmt.Errorf("panic: %v", v))
+			}
+		}
+	}()
+
 	if err := ctx.Err(); err != nil {
 		slogctx.Warn(ctx, "context done",
 			slog.Any("cause", context.Cause(ctx)),
