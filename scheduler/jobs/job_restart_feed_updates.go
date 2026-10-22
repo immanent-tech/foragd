@@ -122,7 +122,6 @@ func ExecuteRestartFeedUpdates(ctx context.Context, job *SerializedJob) error {
 				slog.String("feed_id", feed.GetID()),
 			)
 		}
-
 	}
 
 	slogctx.FromCtx(ctx).Debug("Finished restarting feed updates.",

@@ -10,16 +10,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"runtime"
-	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
+	gerror "github.com/immanent-tech/foragd/providers/google/error"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 
 var runImportsRunning atomic.Bool
 
-// NewGetNewFeedsJob creates a job for checking for new feeds.
+// NewRunImportsJob creates a job for checking for new imports.
 func NewRunImportsJob() (*SerializedJob, error) {
 	job := &SerializedJob{
 		CreatedAt:      time.Now().UTC(),
@@ -48,9 +48,9 @@ func NewRunImportsJob() (*SerializedJob, error) {
 	return job, nil
 }
 
-// ExecuteGetNewFeeds runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
-// them.
+// ExecuteRunImportsJob runs a job that will look for newly imports and process them.
 func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
+	// Singleton runner flag
 	if wasRunning := runImportsRunning.Swap(true); wasRunning {
 		return errors.New("job is running")
 	}
@@ -68,45 +68,64 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 		return fmt.Errorf("get pending imports: %w", err)
 	}
 
-	maxConcurrentImports := runtime.GOMAXPROCS(0)
-	statusCh := make(chan models.ImportStatus, 2*maxConcurrentImports)
-	var wg sync.WaitGroup
+	// Bounded concurrency with errgroup
+	const maxWorkers = 5 // Cap to prevent oversubscription
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(maxWorkers)
 
-	for range maxConcurrentImports {
-		wg.Go(func() {
-			for status := range statusCh {
-				importCtx, importCancel := context.WithTimeoutCause(
-					ctx,
-					importTimeout,
-					errors.New("import job exceeded maximum timeout"),
-				)
-				defer importCancel()
-				if err := services.Imports.ProcessRequests(importCtx, &status); err != nil {
-					slogctx.Error(ctx, "Unable to process import.",
-						slog.String("job_id", status.GetID()),
-						slog.String("user_id", status.UserID),
-						slog.Any("error", err),
-					)
+	var (
+		failed    int
+		failedMut sync.Mutex
+	)
+
+	// Fan-out: send imports to workers
+	for _, status := range pendingImports {
+		g.Go(func() error {
+			importCtx, importCancel := context.WithTimeoutCause(
+				ctx,
+				importTimeout,
+				errors.New("import job exceeded maximum timeout"),
+			)
+			defer importCancel()
+
+			// Panic recovery at goroutine boundary
+			defer func() {
+				if rvr := recover(); rvr != nil {
+					failedMut.Lock()
+					failed++
+					failedMut.Unlock()
+					slogctx.FromCtx(ctx).Error("Worker panic", slog.Any("recover", rvr))
+					// Log to GCP error console.
+					switch v := rvr.(type) {
+					case error:
+						gerror.ReportError(v)
+					default:
+						gerror.ReportError(fmt.Errorf("panic: %v", v))
+					}
 				}
+			}()
+
+			// Process the import
+			if err := services.Imports.ProcessRequests(importCtx, status); err != nil {
+				slogctx.FromCtx(ctx).Error("Unable to process import.",
+					slog.String("job_id", status.GetID()),
+					slog.String("user_id", status.UserID),
+					slog.Any("error", err))
+				return err // Propagate error
 			}
+			return nil
 		})
 	}
 
-	for status := range slices.Values(pendingImports) {
-		select {
-		case statusCh <- *status:
-		case <-ctx.Done():
-			close(statusCh)
-			wg.Wait()
-			return ctx.Err()
-		}
+	// Wait for all workers
+	if err := g.Wait(); err != nil {
+		slogctx.FromCtx(ctx).Warn("Some imports failed", slog.Any("error", err))
 	}
-	close(statusCh)
-
-	wg.Wait()
 
 	slogctx.Debug(ctx, "Finished run imports job.",
-		slog.Duration("took", time.Since(start)))
+		slog.Duration("took", time.Since(start)),
+		slog.Int("failed", failed),
+	)
 
 	return nil
 }
