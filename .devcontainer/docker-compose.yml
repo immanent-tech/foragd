@@ -5,14 +5,19 @@ services:
     build:
       context: .
       dockerfile: ../base/.devcontainer/alpine.Dockerfile
+      args:
+        EXTRA_PKGS: ""
     volumes:
       - ..:/workspace
       - foragd-datahome:/datahome
-      - node_modules:/workspace/node_modules
-      - go-mod-cache:/home/vscode/go/pkg/mod
-      - go-build-cache:/home/vscode/.cache/go-build
-      - tmp-build:/workspace/tmp
-    command: -c 'sleep infinity'
+      - foragd-node_modules:/workspace/node_modules
+      - foragd-go-mod-cache:/go/pkg/mod
+      - foragd-go-build-cache:/home/vscode/.cache/go-build
+      - foragd-golangci-lint-cache:/home/vscode/.cache/golangci-lint
+      - foragd-npm-build-cache:/home/vscode/.cache/npm
+      - foragd-npm-global:/home/vscode/.npm-global
+      - foragd-tmp-build:/workspace/tmp
+    command: sleep infinity
     user: vscode
     init: true
     group_add:
@@ -62,7 +67,11 @@ services:
 
 volumes:
   foragd-datahome:
-  node_modules:
-  go-mod-cache:
-  go-build-cache:
-  tmp-build:
+  foragd-node_modules:
+  foragd-go-mod-cache:
+  foragd-go-build-cache:
+  foragd-golangci-lint-cache:
+  foragd-npm-build-cache:
+  foragd-npm-global:
+  foragd-tmp-build:
+
