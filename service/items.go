@@ -140,12 +140,8 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
 				slog.Any("error", err),
 			)
-		if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(ItemsIndex), items...); err != nil {
-			return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
-		}
-		// Update cache.
-		for item := range slices.Values(items) {
-			s.Set(item.GetID(), item)
+		if err := s.bulkAddItems(ctx, items...); err != nil {
+			return nil, fmt.Errorf("bulk add: %w", err)
 		}
 		return map[string]models.Items{"updated": items}, nil
 	}
@@ -181,34 +177,25 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 	results := make(map[string]models.Items)
 	results["updated"] = updatedItems
 	results["new"] = newItems
-	if err := bulk.IndexDocuments(
-		ctx,
-		s.store.GetIndexRW(ItemsIndex),
-		slices.Concat(updatedItems, newItems)...); err != nil {
-		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add/update items: %w", err))
+	if err := s.bulkAddItems(ctx, slices.Concat(updatedItems, newItems)...); err != nil {
+		return nil, fmt.Errorf("bulk add: %w", err)
 	}
 
-	var wg sync.WaitGroup
-	// Update cache.
-	wg.Go(func() {
-		for _, items := range results {
-			for item := range slices.Values(items) {
-				s.Invalidate(item.GetID())
-				s.Set(item.GetID(), item)
-			}
-		}
-	})
-	// Flush bulk indexer to apply updates.
-	wg.Go(func() {
-		if err := bulk.Flush(ctx); err != nil {
-			slogctx.Warn(ctx, "Flush bulk request failed.",
-				slog.Any("error", err))
-		}
-	})
-
-	wg.Wait()
-
 	return results, nil
+}
+
+func (s *ItemService) bulkAddItems(ctx context.Context, items ...*models.Item) error {
+	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(ItemsIndex), items...); err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
+	}
+	if err := bulk.Flush(ctx); err != nil {
+		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk flush: %w", err))
+	}
+	// Update cache.
+	for item := range slices.Values(items) {
+		s.Set(item.GetID(), item)
+	}
+	return nil
 }
 
 // EnrichItem checks the data of the given [models.Item]. If it is missing certain values, it tries to "enrich" the item
@@ -229,7 +216,7 @@ func (s *ItemService) EnrichItem(
 	itemCtx, cancel := context.WithTimeoutCause(ctx, 2*time.Minute, errors.New("enrich item timeout"))
 	defer cancel()
 
-	itemCtx = slogctx.With(ctx,
+	itemCtx = slogctx.With(itemCtx,
 		slog.String("feed_id", item.GetFeedID()),
 		slog.String("item_id", item.GetID()),
 		slog.String("url", item.GetLink()),
