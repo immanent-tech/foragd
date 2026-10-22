@@ -22,7 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
-const updateFeedJobTimeout = 15 * time.Minute
+const updateFeedJobTimeout = 25 * time.Minute
 
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
