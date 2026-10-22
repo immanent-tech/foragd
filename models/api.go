@@ -121,7 +121,7 @@ func (r *AddSubscriptionToGroupRequest) Sanitise() error {
 		r.ExistingSubscriptions[k] = validation.SanitizeInput(v)
 	}
 	for k, v := range r.Suggestions {
-		r.ExistingSubscriptions[k] = validation.SanitizeInput(v)
+		r.Suggestions[k] = validation.SanitizeInput(v)
 	}
 	return nil
 }
