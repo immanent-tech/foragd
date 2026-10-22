@@ -16,6 +16,7 @@ services:
       - foragd-golangci-lint-cache:/home/vscode/.cache/golangci-lint
       - foragd-npm-build-cache:/home/vscode/.cache/npm
       - foragd-npm-global:/home/vscode/.npm-global
+      - foragd-gcloud:/home/vscode/.config/gcloud
       - foragd-tmp-build:/workspace/tmp
     command: sleep infinity
     user: vscode
@@ -73,5 +74,6 @@ volumes:
   foragd-golangci-lint-cache:
   foragd-npm-build-cache:
   foragd-npm-global:
+  foragd-gcloud:
   foragd-tmp-build:
 
