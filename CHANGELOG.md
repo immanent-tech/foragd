@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.251.8](https://github.com/immanent-tech/foragd/compare/v0.251.7...v0.251.8) (2026-10-22)
+
+
+### Bug Fixes
+
+* **providers/elastic:** 🔧 set default flush interval to slightly less than 1 minute for ensuring consistency across most objects ([f7b5294](https://github.com/immanent-tech/foragd/commit/f7b52946f093aac8c33b677f489f893789dd51de))
+* **service/feeds:** ♻️ feed tweaks ([03edf5c](https://github.com/immanent-tech/foragd/commit/03edf5cd78330f9e8a67d819ba5efc11bb856746))
+* **service/feeds:** ♻️ feed updating improvements ([a6c16e3](https://github.com/immanent-tech/foragd/commit/a6c16e377af05b8b429b78b30f7ea519c32e3d41))
+* **service/feeds:** ♻️ improve feed update checking ([2d4f696](https://github.com/immanent-tech/foragd/commit/2d4f696aa1a48ad3f18d5c5a2109cfeb2aea1920))
+* **service/feeds:** 🔧 better feed diffs ([1c07c51](https://github.com/immanent-tech/foragd/commit/1c07c515addcea482bd9fd48e2d8a8d9c98d27a5))
+* **service/items:** 🔧 item add/enrichment fixes ([315bfd3](https://github.com/immanent-tech/foragd/commit/315bfd3269e1c613d7cba47ca2b7bf92e2a7c67c))
+* **templates/components:** 🔧 only restore scroll after swap is fully complete ([7028175](https://github.com/immanent-tech/foragd/commit/7028175882130d9961655868f2e692d4a3308bab))
+* **templates:** 🔧 use more unique keys for storing scroll state ([811ba0e](https://github.com/immanent-tech/foragd/commit/811ba0e0d0bed914bc937be6ff60da292a81b896))
+
+
+### Performance Improvements
+
+* **scheduler/jobs:** ⚡ increase update feed job timeout ([7eb0098](https://github.com/immanent-tech/foragd/commit/7eb0098e495c70aab5105ff91b5ae1ec83a90261))
+* **service/items:** ⚡ add items improvements ([5be4748](https://github.com/immanent-tech/foragd/commit/5be474888357d312c707d192526efecf1b59372e))
+
 ## [0.251.7](https://github.com/immanent-tech/foragd/compare/v0.251.6...v0.251.7) (2026-10-22)
 
 
