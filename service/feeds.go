@@ -556,52 +556,8 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 		cmp.Reporter(&r),
 	); diff != "" {
 		// Update only the fields that changed in newData, then update timestamps.
-		for key, value := range r.Changes {
-			switch key {
-			case "Title":
-				newData.Title = value.New.(string)
-			case "Description":
-				if newVal, ok := value.New.(*string); ok {
-					newData.Description = newVal
-				}
-			case "URL":
-				newData.URL = value.New.(string)
-			case "Domain":
-				newData.Domain = value.New.(string)
-			case "SourceType":
-				newData.SourceType = value.New.(models.SourceType)
-			case "FetchMethod":
-				newData.FetchMethod = value.New.(models.FeedFetchMethod)
-			case "SourceURLs":
-				newData.SourceURLs = value.New.([]models.URL)
-			case "Authors":
-				newData.Authors = value.New.([]string)
-			case "Contributors":
-				newData.Contributors = value.New.([]string)
-			case "Copyright":
-				if newVal, ok := value.New.(*string); ok {
-					newData.Copyright = newVal
-				}
-			case "Language":
-				if newVal, ok := value.New.(*string); ok {
-					newData.Language = newVal
-				}
-			case "Image":
-				if newVal, ok := value.New.(*models.RemoteImage); ok {
-					newData.Image = newVal
-				}
-			case "UpdateInterval":
-				newData.UpdateInterval = value.New.(int64)
-			case "FetchOptions":
-				if newVal, ok := value.New.(*models.Feed_FetchOptions); ok {
-					newData.FetchOptions = newVal
-				}
-			case "Customisation":
-				if newVal, ok := value.New.(*models.FeedCustomisation); ok {
-					newData.Customisation = newVal
-				}
-			}
-		}
+		updateFeedData(newData, r.Changes)
+		// Also update LastFetched and Updated
 		newData.LastFetched = lastFetched
 		newData.Updated = new(time.Now().UTC())
 		if err := s.UpdateFeed(ctx, newData); err != nil {
@@ -627,6 +583,56 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	}
 
 	return nil
+}
+
+func updateFeedData(feed *models.Feed, changes map[string]Change) {
+	for key, value := range changes {
+		switch key {
+		case "Title":
+			feed.Title = value.New.(string)
+		case "Description":
+			if newVal, ok := value.New.(*string); ok {
+				feed.Description = newVal
+			}
+		case "URL":
+			feed.URL = value.New.(string)
+		case "Domain":
+			feed.Domain = value.New.(string)
+		case "SourceType":
+			feed.SourceType = value.New.(models.SourceType)
+		case "FetchMethod":
+			feed.FetchMethod = value.New.(models.FeedFetchMethod)
+		case "SourceURLs":
+			newURLs := value.New.([]models.URL)
+			if len(newURLs) > 0 {
+				feed.SourceURLs = append(feed.SourceURLs, newURLs...)
+				slices.Sort(feed.SourceURLs)
+				feed.SourceURLs = slices.Compact(feed.SourceURLs)
+			}
+		case "Authors":
+			feed.Authors = value.New.([]string)
+		case "Contributors":
+			feed.Contributors = value.New.([]string)
+		case "Copyright":
+			if newVal, ok := value.New.(*string); ok {
+				feed.Copyright = newVal
+			}
+		case "Language":
+			if newVal, ok := value.New.(*string); ok {
+				feed.Language = newVal
+			}
+		case "Image":
+			if newVal, ok := value.New.(*models.RemoteImage); ok {
+				feed.Image = newVal
+			}
+		case "UpdateInterval":
+			feed.UpdateInterval = value.New.(int64)
+		case "FetchOptions":
+			if newVal, ok := value.New.(*models.Feed_FetchOptions); ok {
+				feed.FetchOptions = newVal
+			}
+		}
+	}
 }
 
 // SuggestYoutubeFeeds will return a list of youtube feeds that match the given text.
@@ -1692,7 +1698,13 @@ func (s *FeedService) FetchFeedUpdates(
 
 	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
 	var errs []error
-	for feedURL := range slices.Values(details.GetSourceURLs()) {
+	tryURLs := details.GetSourceURLs()
+	if len(tryURLs) == 0 {
+		// If there are no SourceURL values for some reason, add the feed link (which should be a webpage). FetchFeed
+		// will automatically try to find a feed URL in the page as needed.
+		tryURLs = append(tryURLs, details.GetLink())
+	}
+	for feedURL := range slices.Values(tryURLs) {
 		feed, err := s.FetchFeed(
 			ctx,
 			feedURL,
