@@ -145,15 +145,19 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 		}
 		return map[string]models.Items{"updated": items}, nil
 	}
+	existingItemsLookup := make(map[models.ItemID]*models.Item)
+	for item := range slices.Values(existingItems) {
+		existingItemsLookup[item.GetID()] = item
+	}
 
 	// Collect updated items. Ignore no-op updates like timestamp changes.
 	// TODO: add a custom comparer when ExtensionData contains information worth updating.
 	updatedItems := make(models.Items, 0, len(existingItems))
-	for existingItem := range slices.Values(existingItems) {
-		if updatedItem := items.FindByID(existingItem.GetID()); updatedItem != nil {
-			if diff := cmp.Diff(
+	for newItem := range slices.Values(items) {
+		if existingItem, found := existingItemsLookup[newItem.GetID()]; found {
+			if !cmp.Equal(
 				*existingItem,
-				*updatedItem,
+				*newItem,
 				cmpopts.IgnoreFields(
 					models.Item{},
 					"Updated",
@@ -163,9 +167,8 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 					"ExtensionType",
 				),
 				cmpopts.EquateEmpty(),
-				cmpopts.IgnoreUnexported(),
-			); diff != "" {
-				updatedItems = append(updatedItems, updatedItem)
+			) {
+				updatedItems = append(updatedItems, newItem)
 			}
 		}
 	}
