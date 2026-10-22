@@ -24,8 +24,10 @@ import (
 )
 
 const (
-	defaultRetryCount = 3
-	operationTimeout  = 1000 * time.Millisecond
+	defaultRetryCount    = 3
+	defaultFlushInterval = 50 * time.Second
+	defaultFlushJitter   = 5 * time.Second
+	operationTimeout     = 1000 * time.Millisecond
 )
 
 const (
@@ -108,8 +110,8 @@ func setupIndexer(ctx context.Context, api esapi.Transport, options ...IndexerOp
 
 		// If no flush interval specified, set a default.
 		if opts.FlushInterval == 0 {
-			opts.FlushInterval = time.Minute
-			opts.FlushJitter = 5 * time.Second
+			opts.FlushInterval = defaultFlushInterval
+			opts.FlushJitter = defaultFlushJitter
 		}
 
 		indexer, err := esutil.NewBulkIndexer(*opts)
