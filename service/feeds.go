@@ -24,7 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"dario.cat/mergo"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
@@ -535,7 +534,7 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 			oldData.Categories = newData.Categories
 		}
 	}
-	// Compare new/old feed data and update as appropriate.
+	// Compare new/old feed data and update only changed fields.
 	var r diffReporter
 	if diff := cmp.Diff(
 		*oldData,
@@ -556,13 +555,56 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 		cmpopts.EquateEmpty(),
 		cmp.Reporter(&r),
 	); diff != "" {
-		// Update feed data.
-		if err := mergo.Merge(oldData, newData); err != nil {
-			return fmt.Errorf("merge feed updates: %w", err)
+		// Update only the fields that changed in newData, then update timestamps.
+		for key, value := range r.Changes {
+			switch key {
+			case "Title":
+				newData.Title = value.New.(string)
+			case "Description":
+				if newVal, ok := value.New.(*string); ok {
+					newData.Description = newVal
+				}
+			case "URL":
+				newData.URL = value.New.(string)
+			case "Domain":
+				newData.Domain = value.New.(string)
+			case "SourceType":
+				newData.SourceType = value.New.(models.SourceType)
+			case "FetchMethod":
+				newData.FetchMethod = value.New.(models.FeedFetchMethod)
+			case "SourceURLs":
+				newData.SourceURLs = value.New.([]models.URL)
+			case "Authors":
+				newData.Authors = value.New.([]string)
+			case "Contributors":
+				newData.Contributors = value.New.([]string)
+			case "Copyright":
+				if newVal, ok := value.New.(*string); ok {
+					newData.Copyright = newVal
+				}
+			case "Language":
+				if newVal, ok := value.New.(*string); ok {
+					newData.Language = newVal
+				}
+			case "Image":
+				if newVal, ok := value.New.(*models.RemoteImage); ok {
+					newData.Image = newVal
+				}
+			case "UpdateInterval":
+				newData.UpdateInterval = value.New.(int64)
+			case "FetchOptions":
+				if newVal, ok := value.New.(*models.Feed_FetchOptions); ok {
+					newData.FetchOptions = newVal
+				}
+			case "Customisation":
+				if newVal, ok := value.New.(*models.FeedCustomisation); ok {
+					newData.Customisation = newVal
+				}
+			}
 		}
-		oldData.LastFetched = lastFetched
-		oldData.Updated = new(time.Now().UTC())
-		if err := s.UpdateFeed(ctx, oldData); err != nil {
+		newData.LastFetched = lastFetched
+		newData.Updated = new(time.Now().UTC())
+		if err := s.UpdateFeed(ctx, newData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		var slogAttrs []slog.Attr
@@ -577,9 +619,9 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 		slogctx.LogAttrs(ctx, slog.LevelInfo, "Feed data updated.", slogAttrs...)
 	} else {
 		// No changes. Just update last_fetched.
-		oldData.LastFetched = lastFetched
-		oldData.Updated = new(time.Now().UTC())
-		if err := s.UpdateFeed(ctx, oldData); err != nil {
+		newData.LastFetched = lastFetched
+		newData.Updated = new(time.Now().UTC())
+		if err := s.UpdateFeed(ctx, newData); err != nil {
 			return fmt.Errorf("update feed: %w", err)
 		}
 	}
