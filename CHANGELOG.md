@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.251.7](https://github.com/immanent-tech/foragd/compare/v0.251.6...v0.251.7) (2026-10-22)
+
+
+### Bug Fixes
+
+* 🔧 correctly update categories and languages on list scroll ([f2eba4b](https://github.com/immanent-tech/foragd/commit/f2eba4b8c2b4aa185aed0e2c512da4b313b9679b))
+* **oneshots:** ➕ add a oneshot to remove duplicate feed categories ([9075f7d](https://github.com/immanent-tech/foragd/commit/9075f7df1b2d248fadd971ef5e2c8696b1765568))
+* **service/feeds:** 🔧 fix placement of validation ([a74da0a](https://github.com/immanent-tech/foragd/commit/a74da0a4559b0094db96aa6c908aa392738c08ad))
+
 ## [0.251.6](https://github.com/immanent-tech/foragd/compare/v0.251.5...v0.251.6) (2026-10-21)
 
 
