@@ -31,6 +31,7 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 		element.WithHXIndicator("this"),
 		element.WithHXNonce(templ.GetNonce(ctx)),
 	) {
+		<input type="hidden" name="selected_subscriptions" value={ sub.GetID() }/>
 		// Show unread count in badge at top right if user wants stats shown.
 		<div class="absolute top-2 right-2">
 			if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {

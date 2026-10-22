@@ -114,22 +114,22 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			// POST: render cards only.
 			listArticles.fragment = templates.PaginateFragment
 			listArticles.PartialResponse(res, req)
-			// Update category filters.
-			if len(response.Articles.GetCategoryCounts()) > 0 {
-				m.NewPartial(templates.UpdateListCategoryFilters(
-					"/articles",
-					response.Filters,
-					response.Articles.GetCategoryCounts().GetCategories(),
-				)).Handle().ServeHTTP(res, req)
-			}
-			// Update language filters.
-			if len(response.Articles.GetLanguageCounts()) > 0 {
-				m.NewPartial(templates.UpdateListLanguageFilters(
-					"/articles",
-					response.Filters,
-					response.Articles.GetLanguageCounts(),
-				)).Handle().ServeHTTP(res, req)
-			}
+			// // Update category filters.
+			// if len(response.Articles.GetCategoryCounts()) > 0 {
+			// 	m.NewPartial(templates.UpdateListCategoryFilters(
+			// 		"/articles",
+			// 		response.Filters,
+			// 		response.Articles.GetCategoryCounts().GetCategories(),
+			// 	)).Handle().ServeHTTP(res, req)
+			// }
+			// // Update language filters.
+			// if len(response.Articles.GetLanguageCounts()) > 0 {
+			// 	m.NewPartial(templates.UpdateListLanguageFilters(
+			// 		"/articles",
+			// 		response.Filters,
+			// 		response.Articles.GetLanguageCounts(),
+			// 	)).Handle().ServeHTTP(res, req)
+			// }
 			// Update pagination control element.
 			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
 				m.NewPartial(templates.ListPaginationControl(

@@ -223,7 +223,8 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 			r.Get("/", handlerMgr.HandleListSubscriptions(services.subscriptions))
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
-				r.Get("/categories", handlerMgr.ListCategories(services.subscriptions, services.items))
+				r.Post("/categories", handlerMgr.ListCategories(services.subscriptions, services.items))
+				r.Post("/languages", handlerMgr.ListLanguages(services.subscriptions, services.items))
 				r.Post("/updates", handlerMgr.HandleListSubscriptionsUpdates(services.items))
 				r.Post("/paginate", handlerMgr.HandleListSubscriptions(services.subscriptions))
 				r.Post("/read", handlerMgr.HandleBulkMarkSubscriptions(services.subscriptions, models.MarkRead))
@@ -299,10 +300,10 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 			r.Use(middlewares.CanonicalizeListFilters(services.session))
 			r.Use(handlerMgr.AllSubscriptionsCtx(services.subscriptions))
 			r.Get("/", handlerMgr.HandleListArticles(services.items))
-			r.With(htmx.RequireHTMX).
-				Get("/categories", handlerMgr.ListCategories(services.subscriptions, services.items))
 			r.Group(func(r chi.Router) {
 				r.Use(htmx.RequireHTMX)
+				r.Post("/categories", handlerMgr.ListCategories(services.subscriptions, services.items))
+				r.Post("/languages", handlerMgr.ListLanguages(services.subscriptions, services.items))
 				r.Post("/updates", handlerMgr.HandleListArticlesUpdates(services.items))
 				r.Post("/paginate", handlerMgr.HandleListArticles(services.items))
 				r.Post("/read", handlerMgr.HandleBulkMarkArticles(services.subscriptions, models.MarkRead))

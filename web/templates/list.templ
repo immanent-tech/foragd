@@ -21,6 +21,22 @@ templ (c *ListControls) Template() {
 	}}
 	<div class="p-2">
 		@mobileFilterDialog(c, mobilePanelID, currentSort)
+		<div
+			hx-post={ c.Path + "/categories" }
+			hx-trigger="htmx:finally:swap from:#grid-objects"
+			hx-nonce={ templ.GetNonce(ctx) }
+			if c.Path == string(routeSubscriptions) {
+				hx-include="[name='selected_subscriptions']"
+			}
+		></div>
+		<div
+			hx-post={ c.Path + "/languages" }
+			hx-trigger="htmx:finally:swap from:#grid-objects"
+			hx-nonce={ templ.GetNonce(ctx) }
+			if c.Path == string(routeSubscriptions) {
+				hx-include="[name='selected_subscriptions']"
+			}
+		></div>
 		<div class="flex items-center justify-between">
 			<div class="sm:hidden">
 				@mobileFilterToggle(mobilePanelID)
@@ -330,10 +346,10 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 // UpdateListCategoryFilters can be be used to perform an OOB swap that will add additional category filters to the
 // mobile and desktop category filter lists.
 templ UpdateListCategoryFilters(path string, filters models.ListFilters, categories models.Categories) {
-	<div id="mobile-category-filters" hx-swap-oob="beforeend">
+	<div id="mobile-category-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListCategoryFilters(path, filters, categories)
 	</div>
-	<div id="desktop-category-filters" hx-swap-oob="beforeend">
+	<div id="desktop-category-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListCategoryFilters(path, filters, categories)
 	</div>
 }
@@ -402,10 +418,10 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 // UpdateListLanguageFilters can be be used to perform an OOB swap that will add additional category filters to the
 // mobile and desktop category filter lists.
 templ UpdateListLanguageFilters(path string, filters models.ListFilters, languages map[string]int64) {
-	<div id="mobile-language-filters" hx-swap-oob="beforeend">
+	<div id="mobile-language-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListLanguageFilters(path, filters, languages)
 	</div>
-	<div id="desktop-language-filters" hx-swap-oob="beforeend">
+	<div id="desktop-language-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListLanguageFilters(path, filters, languages)
 	</div>
 }
