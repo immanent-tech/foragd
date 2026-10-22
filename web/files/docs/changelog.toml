@@ -30,6 +30,21 @@ type = "improved"
 description = """
 Tweaks to caching and page loading should improve resposiveness even further.
 """
+[[releases.changes]]
+type = "fixed"
+description = """
+Many more feeds, which don't publish their own categories now have categories. If you notice any odd category choices, please report the feed!
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Fixed some back button navigation issues.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Fixed not being able to create a group subscription by selecting and adding feeds.
+"""
 
 [[releases]]
 version = "v0.247"
