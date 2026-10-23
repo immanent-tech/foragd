@@ -954,7 +954,7 @@ func NewItemsFromZyteArticles(
 		}
 
 		if article.GetContent() != "" {
-			item.Content = new(validation.SanitizeString(article.GetContent()))
+			item.Content = new(validation.SanitizeHTML(article.GetContent()))
 		}
 
 		if pubDate, err := article.GetPublishedDate(); err != nil {

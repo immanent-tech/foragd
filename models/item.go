@@ -126,7 +126,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
 		Title:        source.GetTitle(),
-		Description:  new(validation.SanitizeInput(source.GetDescription())),
+		Description:  new(source.GetDescription()),
 		SourceType:   feed.SourceType,
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
@@ -143,8 +143,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		item.Geo = geo
 	}
 	if content := source.GetContent(); content != nil {
-		safeContent := validation.SanitizeString(*content)
-		item.Content = &safeContent
+		item.Content = content
 	}
 	if pubDate := source.GetPublishedDate(); pubDate != nil {
 		item.Published = pubDate.UTC()

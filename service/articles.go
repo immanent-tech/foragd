@@ -459,7 +459,7 @@ func (s *ItemService) GetArticleRemoteContent(
 			}
 
 			// Set the article content to the extracted content.
-			article.Content = new(validation.SanitizeString(articleBuf.String()))
+			article.Content = new(validation.SanitizeHTML(articleBuf.String()))
 		}
 	}
 

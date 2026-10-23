@@ -30,7 +30,7 @@ func (i *ReportIssueRequest) Sanitise() error {
 		}
 	}
 	if i.Details != nil {
-		cleanDetails := validation.SanitizeString(*i.Details)
+		cleanDetails := validation.SanitizeHTML(*i.Details)
 		i.Details = &cleanDetails
 	}
 	return nil

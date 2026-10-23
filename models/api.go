@@ -135,7 +135,7 @@ func (r *ContactRequest) Validate() error {
 
 func (r *ContactRequest) Sanitise() error {
 	r.ContactEmail = validation.SanitizeInput(r.ContactEmail)
-	r.Details = validation.SanitizeString(r.Details)
+	r.Details = validation.SanitizeHTML(r.Details)
 	return nil
 }
 
@@ -148,7 +148,7 @@ func (r *DeactivationRequest) Validate() error {
 
 func (r *DeactivationRequest) Sanitise() error {
 	if r.Comments != nil {
-		r.Comments = new(validation.SanitizeString(*r.Comments))
+		r.Comments = new(validation.SanitizeHTML(*r.Comments))
 	}
 	return nil
 }
