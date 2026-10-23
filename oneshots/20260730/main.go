@@ -12,6 +12,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/service"
@@ -43,7 +44,17 @@ func main() {
 	feeds, err := elastic.SearchAll[*models.Feed](
 		ctx,
 		elasticSvc.GetIndexRO(service.FeedsIndex),
-		query.MatchAll(),
+		query.Bool(
+			query.WithBoolShouldMinimumMatch(1),
+			query.Should(
+				query.Term("categories.raw", "Uncategorized"),
+				query.Bool(
+					query.MustNot(
+						query.Exists("categories"),
+					),
+				),
+			),
+		),
 		5000,
 	)
 	if err != nil {
@@ -118,5 +129,7 @@ func main() {
 			slogctx.FromCtx(ctx).Warn("Update feed failed.",
 				slog.Any("error", err))
 		}
+
+		bulk.Flush(ctx)
 	}
 }

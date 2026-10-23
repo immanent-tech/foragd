@@ -303,6 +303,40 @@ func Term(field string, value any, options ...func(*TermQuery)) Option {
 	}
 }
 
+// Term adds a "Term" query on the given field with the given value.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+func TermWithEmpty(field string, value any, options ...func(*TermQuery)) Option {
+	return func(query *types.Query) {
+		switch v := value.(type) {
+		// Ignore nil [*string] and [*int] values
+		case *string:
+			if v == nil {
+				return
+			}
+		case *int:
+			if v == nil {
+				return
+			}
+		}
+		// Create term query clause.
+		termQueryClause := &TermQuery{
+			&types.TermQuery{
+				Value: value,
+			},
+		}
+		// Set options.
+		for option := range slices.Values(options) {
+			option(termQueryClause)
+		}
+		// Apply term query clause to query.
+		if query.Term == nil {
+			query.Term = make(map[string]types.TermQuery)
+		}
+		query.Term[field] = *termQueryClause.TermQuery
+	}
+}
+
 type TermsQuery struct {
 	*types.TermsQuery
 }
