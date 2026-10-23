@@ -5,7 +5,6 @@ package models
 
 import (
 	"fmt"
-	"html"
 	"maps"
 	"slices"
 	"strconv"
@@ -242,26 +241,13 @@ func (i Item) GetTitle() string {
 	if i.Title == "" {
 		return "(no title)"
 	}
-	return html.UnescapeString(i.Title)
+	return i.Title
 }
 
 // GetDescription returns the summary of the item content, if any.
 func (i Item) GetDescription() string {
 	if i.Description != nil {
-		switch {
-		case htmlx.IsHTML(*i.Description):
-			sanitizedDesc, err := htmlx.Sanitize(*i.Description)
-			if err != nil {
-				return ""
-			}
-			return sanitizedDesc
-		default:
-			formatted, err := markdownx.ToHTML([]byte(*i.Description))
-			if err != nil {
-				return *i.Description
-			}
-			return string(formatted)
-		}
+		return *i.Description
 	}
 	return ""
 }
@@ -310,11 +296,7 @@ func (i Item) GetContent() string {
 	}
 	switch {
 	case htmlx.IsHTML(*i.Content):
-		sanitizedDesc, err := htmlx.Sanitize(*i.Content)
-		if err != nil {
-			return ""
-		}
-		return sanitizedDesc
+		return *i.Content
 	default:
 		formatted, err := markdownx.ToHTML([]byte(*i.Content))
 		if err != nil {
