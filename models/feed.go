@@ -4,6 +4,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"net/url"
@@ -66,7 +67,9 @@ func (f Feeds) GetCategories() Categories {
 }
 
 // NewFeed converts a feed source from the go-syndication library into a models.Feed object.
-func NewFeed(sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
+// It uses worker goroutines to generate items in parallel, with proper cancellation support.
+// Context is checked at worker start and before each send to prevent goroutine leaks and lost items.
+func NewFeed(ctx context.Context, sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
 	var id FeedID
 	if existingID == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
@@ -80,7 +83,6 @@ func NewFeed(sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
 		Title:        source.GetTitle(),
 		Description:  new(source.GetDescription()),
 		SourceType:   SourceType(source.SourceType),
-		SourceURLs:   []string{source.GetSourceURL()},
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
 		Contributors: source.GetContributors(),
@@ -125,21 +127,34 @@ func NewFeed(sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
 	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
 	// calls to fetch additional information (e.g., images).
 	var wg sync.WaitGroup
-	itemCh := make(chan Item)
-	for i := range slices.Values(source.GetItems()) {
+	itemCh := make(chan Item, 1024)
+
+	// Start workers; each worker checks ctx.Done() before processing
+	for sourceItem := range slices.Values(source.GetItems()) {
 		wg.Go(func() {
-			item := NewFeedItem(&i, feed)
-			itemCh <- *item
+			// Respect cancellation before starting
+			select {
+			case <-ctx.Done():
+				return // cancelled before starting
+			default:
+			}
+
+			// Parse RSS item; parse error is caught by caller
+			item := NewFeedItem(&sourceItem, feed)
+
+			// Respect cancellation before sending; prevents items lost on channel close
+			select {
+			case <-ctx.Done():
+				return // cancelled mid-process
+			case itemCh <- *item:
+				// sent
+			}
 		})
 	}
-	go func() {
-		defer close(itemCh)
-		wg.Wait()
-	}()
-	for item := range itemCh {
-		feed.Items = append(feed.Items, &item)
-	}
 
+	if srcURL := source.GetSourceURL(); srcURL != "" {
+		feed.SourceURLs = append(feed.SourceURLs, srcURL)
+	}
 	// Add the url used to find the feed to the source URLs if needed.
 	if !slices.Contains(feed.SourceURLs, sourceURL) {
 		feed.SourceURLs = append(feed.SourceURLs, sourceURL)
@@ -150,6 +165,20 @@ func NewFeed(sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
 			URL:   sourceImg.GetURL(),
 			Title: new(sourceImg.GetTitle()),
 		}
+	}
+
+	// Start receiver; close channel after all workers complete
+	go func() {
+		wg.Wait()
+		close(itemCh)
+
+		// Drain remaining; already closed
+		for range itemCh {
+		}
+	}()
+
+	for item := range itemCh {
+		feed.Items = append(feed.Items, &item)
 	}
 
 	return feed

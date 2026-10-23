@@ -22,7 +22,6 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
-	"github.com/gohugoio/hashstructure"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -134,83 +133,35 @@ func (s *ItemService) GetItems(ctx context.Context, ids ...models.ItemID) (model
 
 // AddItems will add the given [models.Item] to the database. It returns a map divided into "updated" and "new" items,
 // to indicate items that existed and were updated vs. items that were added as new.
-func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
-	existingItems, err := s.GetItems(ctx, items.GetIDs()...)
-	if err != nil {
-		// Cannot determine if there are any existing items. Fallback to bulk update of all items for safety.
-		slogctx.FromCtx(ctx).
-			Warn("Could not fetch existing items for comparing updates, falling back to bulk update of all items.",
-				slog.Any("error", err),
-			)
-		if err := s.bulkAddItems(ctx, items...); err != nil {
-			return nil, fmt.Errorf("bulk add: %w", err)
-		}
-		return map[string]models.Items{"updated": items}, nil
-	}
-	existingItemsLookup := make(map[models.ItemID]*models.Item)
-	for item := range slices.Values(existingItems) {
-		existingItemsLookup[item.GetID()] = item
-	}
-
-	// Collect updated items. Ignore no-op updates like timestamp changes.
-	// TODO: add a custom comparer when ExtensionData contains information worth updating.
-	updatedItems := make(models.Items, 0, len(existingItems))
-	for newItem := range slices.Values(items) {
-		if existingItem, found := existingItemsLookup[newItem.GetID()]; found {
-			newHash, err := hashstructure.Hash(newItem, nil)
-			if err != nil {
-				slogctx.Debug(ctx, "Unable to hash new item data", slog.Any("error", err))
-				continue
-			}
-			oldHash, err := hashstructure.Hash(existingItem, nil)
-			if err != nil {
-				slogctx.Debug(ctx, "Unable to hash new item data", slog.Any("error", err))
-				continue
-			}
-			if newHash != oldHash {
-				updatedItems = append(updatedItems, newItem)
-			}
-		}
-	}
-
-	// Collect new items.
-	newItems := items.ExcludeIDs(existingItems.GetIDs()...)
-
-	// Index all items.
-	results := make(map[string]models.Items)
-	results["updated"] = updatedItems
-	results["new"] = newItems
-	if err := s.bulkAddItems(ctx, slices.Concat(updatedItems, newItems)...); err != nil {
-		return nil, fmt.Errorf("bulk add: %w", err)
-	}
-
-	return results, nil
-}
-
-func (s *ItemService) bulkAddItems(ctx context.Context, items ...*models.Item) error {
+func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, error) {
 	if err := bulk.IndexDocuments(ctx, s.store.GetIndexRW(ItemsIndex), items...); err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
+		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk add items: %w", err))
 	}
 	if err := bulk.Flush(ctx); err != nil {
-		return models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk flush: %w", err))
+		return 0, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("bulk flush: %w", err))
+	}
+	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
+		return 0, fmt.Errorf("add items cancelled: %w", err)
 	}
 	// Update cache.
 	for item := range slices.Values(items) {
 		s.Set(item.GetID(), item)
 	}
-	return nil
+
+	return len(items), nil
 }
 
 func (s *ItemService) EnrichItemBatch(
 	ctx context.Context,
 	feed *models.Feed,
 	items models.Items,
-) (map[string]models.Items, error) {
+) (int, error) {
 	// Determine bounded concurrency
-	maxWorkers := runtime.GOMAXPROCS(0) * 4
-	if maxWorkers > 100 { // cap to avoid oversubscription
-		maxWorkers = 100
-	}
+	maxWorkers := min(runtime.GOMAXPROCS(0)*4, 100)
 
 	g, enrichCtx := errgroup.WithContext(ctx)
 	g.SetLimit(maxWorkers)
@@ -232,8 +183,12 @@ func (s *ItemService) EnrichItemBatch(
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, err
+		return 0, err
 	}
+	if failed > 0 {
+		slogctx.Warn(ctx, "Some items failed to be enriched.", slog.Int("count", failed))
+	}
+
 	close(results)
 
 	// Fan-in: collect results
@@ -243,12 +198,7 @@ func (s *ItemService) EnrichItemBatch(
 	}
 
 	// Add/update items in bulk
-	addResults, err := s.AddItems(ctx, enrichedItems)
-	if err != nil {
-		return addResults, err
-	}
-
-	return addResults, nil
+	return s.AddItems(ctx, enrichedItems)
 }
 
 // EnrichItem checks the data of the given [models.Item]. If it is missing certain values, it tries to "enrich" the item
@@ -258,6 +208,14 @@ func (s *ItemService) EnrichItem(
 	feed *models.Feed,
 	item *models.Item,
 ) error {
+	if err := ctx.Err(); err != nil {
+		slogctx.Warn(ctx, "context done",
+			slog.Any("cause", context.Cause(ctx)),
+			slog.Any("error", err),
+		)
+		return fmt.Errorf("enrich item cancelled: %w", err)
+	}
+
 	defer func() {
 		if rvr := recover(); rvr != nil {
 			slogctx.Error(ctx, "Item enrichment failed!",

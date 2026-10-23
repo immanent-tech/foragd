@@ -318,29 +318,22 @@ func (s *FeedService) UpdateFeedItems(
 		return oldData.LastFetched, nil
 	}
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		results, err := itemSvc.EnrichItemBatch(ctx, newData, newItems)
+		count, err := itemSvc.EnrichItemBatch(ctx, newData, newItems)
 		if err != nil {
 			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
 		}
-		if len(results["new"]) > 0 || len(results["updated"]) > 0 {
-			slogctx.Info(ctx, "Added new/updated items.",
-				slog.Time("since", oldData.LastFetched),
-				slog.Int("new", len(results["new"])),
-				slog.Int("updated", len(results["updated"])),
-			)
-			allItems := make(models.Items, 0, len(results["new"])+len(results["updated"]))
-			for _, v := range results {
-				allItems = append(allItems, v...)
-			}
-			logMsg := newFeedStatusMsg(oldData.GetID())
-			logMsg.StatusCode = http.StatusOK
-			logMsg.Items = allItems.GetIDs()
-			if err := logMsg.log(ctx); err != nil {
-				slogctx.Error(ctx, "Unable to write feed status.",
-					slog.Any("error", err))
-			}
-			return allItems.SortByTimestamp()[0].GetTimestamp(), nil
+		slogctx.Info(ctx, "Indexed items.",
+			slog.Time("since", oldData.LastFetched),
+			slog.Int("count", count),
+		)
+		logMsg := newFeedStatusMsg(oldData.GetID())
+		logMsg.StatusCode = http.StatusOK
+		logMsg.Items = newItems.GetIDs()
+		if err := logMsg.log(ctx); err != nil {
+			slogctx.Error(ctx, "Unable to write feed status.",
+				slog.Any("error", err))
 		}
+		return newItems.SortByTimestamp()[0].GetTimestamp(), nil
 	}
 	logMsg := newFeedStatusMsg(oldData.GetID())
 	logMsg.StatusCode = http.StatusNoContent
@@ -1426,13 +1419,8 @@ func (s *FeedService) FetchFeed(
 		)
 	}
 
-	// If the source URL is not set, set it.
-	if source.GetSourceURL() == "" || source.GetSourceURL() != sourceURL.String() {
-		source.SetSourceURL(sourceURL.String())
-	}
-
 	// Create a new feed from the source.
-	feed := models.NewFeed(source.GetSourceURL(), opts.ExistingID, source)
+	feed := models.NewFeed(ctx, sourceURL.String(), opts.ExistingID, source)
 
 	// Set the method used to fetch the feed.
 	if opts.Proxy {
