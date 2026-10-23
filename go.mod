@@ -16,7 +16,6 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.7.0
 	cloud.google.com/go/storage v1.69.0
 	codeberg.org/readeck/go-readability/v2 v2.1.3
-	dario.cat/mergo v1.0.2
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PaddleHQ/paddle-go-sdk/v5 v5.2.0
 	github.com/PuerkitoBio/goquery v1.13.0
@@ -34,7 +33,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/goforj/godump v1.10.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/google/go-cmp v0.7.0
+	github.com/gohugoio/hashstructure v0.6.0
 	github.com/google/go-github/v75 v75.0.0
 	github.com/googleapis/gax-go/v2 v2.26.2
 	github.com/immanent-tech/go-base v0.0.0
@@ -78,6 +77,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.10.0 // indirect
 	cloud.google.com/go/iam v1.14.0 // indirect
 	cloud.google.com/go/monitoring v1.30.0 // indirect
+	dario.cat/mergo v1.0.2 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.35.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.57.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.57.0 // indirect
@@ -122,7 +122,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
-	github.com/gohugoio/hashstructure v0.6.0 // indirect
 	github.com/gohugoio/hugo v0.163.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect

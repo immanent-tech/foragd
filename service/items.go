@@ -22,8 +22,7 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-resty/resty/v2"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/gohugoio/hashstructure"
 	"github.com/maypok86/otter/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -158,19 +157,17 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (map[str
 	updatedItems := make(models.Items, 0, len(existingItems))
 	for newItem := range slices.Values(items) {
 		if existingItem, found := existingItemsLookup[newItem.GetID()]; found {
-			if !cmp.Equal(
-				*existingItem,
-				*newItem,
-				cmpopts.IgnoreFields(
-					models.Item{},
-					"Updated",
-					"Published",
-					"Timestamp",
-					"ExtensionData",
-					"ExtensionType",
-				),
-				cmpopts.EquateEmpty(),
-			) {
+			newHash, err := hashstructure.Hash(newItem, nil)
+			if err != nil {
+				slogctx.Debug(ctx, "Unable to hash new item data", slog.Any("error", err))
+				continue
+			}
+			oldHash, err := hashstructure.Hash(existingItem, nil)
+			if err != nil {
+				slogctx.Debug(ctx, "Unable to hash new item data", slog.Any("error", err))
+				continue
+			}
+			if newHash != oldHash {
 				updatedItems = append(updatedItems, newItem)
 			}
 		}
