@@ -63,6 +63,7 @@ var loadConfig = sync.OnceValues(func() (*Config, error) {
 
 type Client struct {
 	*resend.Client
+
 	Config *Config
 }
 

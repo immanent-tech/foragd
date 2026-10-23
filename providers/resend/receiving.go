@@ -40,15 +40,15 @@ func (e *ReceivedEmail) Timestamp() time.Time {
 }
 
 func (e *ReceivedEmail) GetSubject() string {
-	return validation.SanitizeInput(e.Subject)
+	return validation.SanitizeText(e.Subject, validation.DefaultMaxRunes)
 }
 
 func (e *ReceivedEmail) GetBody() string {
 	switch {
 	case e.Html != "":
-		return validation.SanitizeString(e.Html)
+		return validation.SanitizeHTML(e.Html)
 	case e.Text != "":
-		return validation.SanitizeString(e.Text)
+		return validation.SanitizeText(e.Text, 10000)
 	default:
 		return ""
 	}
@@ -72,7 +72,7 @@ func (e *ReceivedEmail) GetFrom() *mail.Address {
 	return from
 }
 
-// Valid returns a non-nil error when the ReceivedEmail contains invalid fields.
+// Validate returns a non-nil error when the ReceivedEmail contains invalid fields.
 func (e *ReceivedEmail) Validate() error {
 	if err := validation.Validate.Var(e.From, "required,email"); err != nil {
 		return fmt.Errorf("%w: from: %w", ErrInvalidEmail, err)
@@ -94,7 +94,6 @@ func (e *ReceivedEmail) ExtractAttachments(ctx context.Context) ([]*resend.Attac
 		return nil, fmt.Errorf("load client: %w", err)
 	}
 	for attachment := range slices.Values(e.Attachments) {
-
 		if a, err := client.Emails.GetAttachmentWithContext(ctx, e.Id, attachment.Id); err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not fetch attachment",
 				slog.String("email_id", e.Id),
@@ -150,7 +149,7 @@ func (e *ReceivedEmail) Forward(ctx context.Context, to ...string) error {
 type WebhookEmailReceieved struct {
 	Type      string        `json:"type,omitempty"`
 	CreatedAt string        `json:"created_at,omitempty"`
-	Data      EmailRecieved `json:"data,omitempty"`
+	Data      EmailRecieved `json:"data"`
 }
 
 type EmailRecieved struct {
