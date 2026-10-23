@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.10](https://github.com/immanent-tech/foragd/compare/v0.251.9...v0.251.10) (2026-10-23)
+
+
+### Bug Fixes
+
+* **providers/resend:** 🔧 small syntax fixes ([12747c0](https://github.com/immanent-tech/foragd/commit/12747c00a0995321c9f8c980504a4e5b82a956e4))
+
 ## [0.251.9](https://github.com/immanent-tech/foragd/compare/v0.251.8...v0.251.9) (2026-10-23)
 
 
