@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.251.9](https://github.com/immanent-tech/foragd/compare/v0.251.8...v0.251.9) (2026-10-23)
+
+
+### Bug Fixes
+
+* **models:** 🔧 fix sanitization of AddSubscriptionToGroupRequest ([deb771c](https://github.com/immanent-tech/foragd/commit/deb771ce21ae341c0901ced3edde3014f2282f7c))
+
+
+### Performance Improvements
+
+* **scheduler/jobs:** ⚡ tweak get new feeds concurrency ([782dd68](https://github.com/immanent-tech/foragd/commit/782dd6847aadacdd755815f11282fe966a1ed6db))
+* **scheduler/jobs:** ⚡ tweak run imports job ([86b901f](https://github.com/immanent-tech/foragd/commit/86b901f02ede26317cbc5766306f3673683aa0ad))
+* **service:** ⚡ improved update concurrency ([ce9f6da](https://github.com/immanent-tech/foragd/commit/ce9f6da0e3e550c2cc5de13e123efde9016a08da))
+
 ## [0.251.8](https://github.com/immanent-tech/foragd/compare/v0.251.7...v0.251.8) (2026-10-22)
 
 
