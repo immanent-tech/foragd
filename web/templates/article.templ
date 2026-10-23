@@ -110,6 +110,7 @@ templ articleMarkToggle(article *models.Article) {
     			  toggle @checked on next <input[type='checkbox']/> in me
 				end
 				"
+			hx-nonce={ templ.GetNonce(ctx) }
 			{ attrs... }
 		>
 			<input
@@ -534,6 +535,26 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Articles) > 0 {
 						@listArticlesGrid(response)
+						@ListPaginationControl(routeArticlesPaginate, &response.Filters)
+						@partials.LoadingIndicator("loading-items", "Loading content...", element.WithClasses("mt-4"))
+						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
+							// Mark all subscriptions action.
+							if response.Subscription == nil {
+								// Mark all articles action.
+								<li>
+									@ListMarkAllArticlesButton(NewMarkAction("/articles", "Mark shown", response.Filters.GetView()))
+								</li>
+							} else {
+								// Show mark read/unread action when not viewing all articles.
+								if response.Filters.GetView() != models.ViewAll {
+									<li>
+										@ListMarkSubscriptionButton(NewMarkAction("/subscriptions/"+response.Subscription.GetID(),
+											"Mark subscription",
+											response.Filters.GetView()))
+									</li>
+								}
+							}
+						</ul>
 					} else {
 						@partials.NoContent()
 					}
@@ -566,26 +587,6 @@ templ listArticlesGrid(response *models.ListArticlesResponse) {
 				}
 			}
 		}
-		@ListPaginationControl(routeArticlesPaginate, &response.Filters)
-		@partials.LoadingIndicator("loading-items", "Loading content...", element.WithClasses("mt-4"))
-		<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
-			// Mark all subscriptions action.
-			if response.Subscription == nil {
-				// Mark all articles action.
-				<li>
-					@ListMarkAllArticlesButton(NewMarkAction("/articles", "Mark shown", response.Filters.GetView()))
-				</li>
-			} else {
-				// Show mark read/unread action when not viewing all articles.
-				if response.Filters.GetView() != models.ViewAll {
-					<li>
-						@ListMarkSubscriptionButton(NewMarkAction("/subscriptions/"+response.Subscription.GetID(),
-							"Mark subscription",
-							response.Filters.GetView()))
-					</li>
-				}
-			}
-		</ul>
 	</div>
 }
 
