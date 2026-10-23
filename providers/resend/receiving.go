@@ -174,7 +174,7 @@ type SubscriptionsService interface {
 }
 
 type ItemService interface {
-	AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error)
+	AddItems(ctx context.Context, items models.Items) (int, error)
 }
 
 // SubscriptionFactory wraps service.NewEmailSubscription.

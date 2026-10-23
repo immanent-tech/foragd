@@ -129,7 +129,7 @@ type ArticleService interface {
 
 type ItemService interface {
 	ArticleService
-	AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error)
+	AddItems(ctx context.Context, items models.Items) (int, error)
 	RetrieveItems(ctx context.Context, request *models.SearchRequest) (models.Items, models.Pagination, error)
 	GetTopItemCategoriesForSearchResults(ctx context.Context, request *models.SearchRequest) (models.Categories, error)
 	CountSearchResults(ctx context.Context, request *models.SearchRequest) (int64, error)

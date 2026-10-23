@@ -21,6 +21,84 @@ import (
 	"github.com/immanent-tech/go-base/config"
 )
 
+// Ensure that MoqHomePageService does implement handlers.HomePageService.
+// If this is not the case, regenerate this file with mockery.
+var _ handlers.HomePageService = &MoqHomePageService{}
+
+// MoqHomePageService is a mock implementation of handlers.HomePageService.
+//
+//	func TestSomethingThatUsesHomePageService(t *testing.T) {
+//
+//		// make and configure a mocked handlers.HomePageService
+//		mockedHomePageService := &MoqHomePageService{
+//			AggregateSubscriptionsFunc: func(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
+//				panic("mock out the AggregateSubscriptions method")
+//			},
+//		}
+//
+//		// use mockedHomePageService in code that requires handlers.HomePageService
+//		// and then make assertions.
+//
+//	}
+type MoqHomePageService struct {
+	// AggregateSubscriptionsFunc mocks the AggregateSubscriptions method.
+	AggregateSubscriptionsFunc func(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// AggregateSubscriptions holds details about calls to the AggregateSubscriptions method.
+		AggregateSubscriptions []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// User is the user argument value.
+			User *models.User
+			// Subscriptions is the subscriptions argument value.
+			Subscriptions models.Subscriptions
+		}
+	}
+	lockAggregateSubscriptions sync.RWMutex
+}
+
+// AggregateSubscriptions calls AggregateSubscriptionsFunc.
+func (mock *MoqHomePageService) AggregateSubscriptions(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
+	if mock.AggregateSubscriptionsFunc == nil {
+		panic("MoqHomePageService.AggregateSubscriptionsFunc: method is nil but HomePageService.AggregateSubscriptions was just called")
+	}
+	callInfo := struct {
+		Ctx           context.Context
+		User          *models.User
+		Subscriptions models.Subscriptions
+	}{
+		Ctx:           ctx,
+		User:          user,
+		Subscriptions: subscriptions,
+	}
+	mock.lockAggregateSubscriptions.Lock()
+	mock.calls.AggregateSubscriptions = append(mock.calls.AggregateSubscriptions, callInfo)
+	mock.lockAggregateSubscriptions.Unlock()
+	return mock.AggregateSubscriptionsFunc(ctx, user, subscriptions)
+}
+
+// AggregateSubscriptionsCalls gets all the calls that were made to AggregateSubscriptions.
+// Check the length with:
+//
+//	len(mockedHomePageService.AggregateSubscriptionsCalls())
+func (mock *MoqHomePageService) AggregateSubscriptionsCalls() []struct {
+	Ctx           context.Context
+	User          *models.User
+	Subscriptions models.Subscriptions
+} {
+	var calls []struct {
+		Ctx           context.Context
+		User          *models.User
+		Subscriptions models.Subscriptions
+	}
+	mock.lockAggregateSubscriptions.RLock()
+	calls = mock.calls.AggregateSubscriptions
+	mock.lockAggregateSubscriptions.RUnlock()
+	return calls
+}
+
 // Ensure that MoqAppConfig does implement handlers.AppConfig.
 // If this is not the case, regenerate this file with mockery.
 var _ handlers.AppConfig = &MoqAppConfig{}
@@ -2555,7 +2633,7 @@ var _ handlers.ItemService = &MoqItemService{}
 //
 //		// make and configure a mocked handlers.ItemService
 //		mockedItemService := &MoqItemService{
-//			AddItemsFunc: func(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+//			AddItemsFunc: func(ctx context.Context, items models.Items) (int, error) {
 //				panic("mock out the AddItems method")
 //			},
 //			ArchiveArticleFunc: func(ctx context.Context, article *models.ArticleArchive) error {
@@ -2614,7 +2692,7 @@ var _ handlers.ItemService = &MoqItemService{}
 //	}
 type MoqItemService struct {
 	// AddItemsFunc mocks the AddItems method.
-	AddItemsFunc func(ctx context.Context, items models.Items) (map[string]models.Items, error)
+	AddItemsFunc func(ctx context.Context, items models.Items) (int, error)
 
 	// ArchiveArticleFunc mocks the ArchiveArticle method.
 	ArchiveArticleFunc func(ctx context.Context, article *models.ArticleArchive) error
@@ -2822,7 +2900,7 @@ type MoqItemService struct {
 }
 
 // AddItems calls AddItemsFunc.
-func (mock *MoqItemService) AddItems(ctx context.Context, items models.Items) (map[string]models.Items, error) {
+func (mock *MoqItemService) AddItems(ctx context.Context, items models.Items) (int, error) {
 	if mock.AddItemsFunc == nil {
 		panic("MoqItemService.AddItemsFunc: method is nil but ItemService.AddItems was just called")
 	}
@@ -5117,84 +5195,6 @@ func (mock *MoqEmailSender) SendCalls() []struct {
 	mock.lockSend.RLock()
 	calls = mock.calls.Send
 	mock.lockSend.RUnlock()
-	return calls
-}
-
-// Ensure that MoqHomePageService does implement handlers.HomePageService.
-// If this is not the case, regenerate this file with mockery.
-var _ handlers.HomePageService = &MoqHomePageService{}
-
-// MoqHomePageService is a mock implementation of handlers.HomePageService.
-//
-//	func TestSomethingThatUsesHomePageService(t *testing.T) {
-//
-//		// make and configure a mocked handlers.HomePageService
-//		mockedHomePageService := &MoqHomePageService{
-//			AggregateSubscriptionsFunc: func(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
-//				panic("mock out the AggregateSubscriptions method")
-//			},
-//		}
-//
-//		// use mockedHomePageService in code that requires handlers.HomePageService
-//		// and then make assertions.
-//
-//	}
-type MoqHomePageService struct {
-	// AggregateSubscriptionsFunc mocks the AggregateSubscriptions method.
-	AggregateSubscriptionsFunc func(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error)
-
-	// calls tracks calls to the methods.
-	calls struct {
-		// AggregateSubscriptions holds details about calls to the AggregateSubscriptions method.
-		AggregateSubscriptions []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// User is the user argument value.
-			User *models.User
-			// Subscriptions is the subscriptions argument value.
-			Subscriptions models.Subscriptions
-		}
-	}
-	lockAggregateSubscriptions sync.RWMutex
-}
-
-// AggregateSubscriptions calls AggregateSubscriptionsFunc.
-func (mock *MoqHomePageService) AggregateSubscriptions(ctx context.Context, user *models.User, subscriptions models.Subscriptions) (models.CategoryCounts, models.CategoryCounts, models.Articles, error) {
-	if mock.AggregateSubscriptionsFunc == nil {
-		panic("MoqHomePageService.AggregateSubscriptionsFunc: method is nil but HomePageService.AggregateSubscriptions was just called")
-	}
-	callInfo := struct {
-		Ctx           context.Context
-		User          *models.User
-		Subscriptions models.Subscriptions
-	}{
-		Ctx:           ctx,
-		User:          user,
-		Subscriptions: subscriptions,
-	}
-	mock.lockAggregateSubscriptions.Lock()
-	mock.calls.AggregateSubscriptions = append(mock.calls.AggregateSubscriptions, callInfo)
-	mock.lockAggregateSubscriptions.Unlock()
-	return mock.AggregateSubscriptionsFunc(ctx, user, subscriptions)
-}
-
-// AggregateSubscriptionsCalls gets all the calls that were made to AggregateSubscriptions.
-// Check the length with:
-//
-//	len(mockedHomePageService.AggregateSubscriptionsCalls())
-func (mock *MoqHomePageService) AggregateSubscriptionsCalls() []struct {
-	Ctx           context.Context
-	User          *models.User
-	Subscriptions models.Subscriptions
-} {
-	var calls []struct {
-		Ctx           context.Context
-		User          *models.User
-		Subscriptions models.Subscriptions
-	}
-	mock.lockAggregateSubscriptions.RLock()
-	calls = mock.calls.AggregateSubscriptions
-	mock.lockAggregateSubscriptions.RUnlock()
 	return calls
 }
 
