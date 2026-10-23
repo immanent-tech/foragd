@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.251.11](https://github.com/immanent-tech/foragd/compare/v0.251.10...v0.251.11) (2026-10-23)
+
+
+### Bug Fixes
+
+* 🔧 feed fetching improvements ([e974a9f](https://github.com/immanent-tech/foragd/commit/e974a9f400e3cfb8aceb630387c1919e78e48a7f))
+* 🔧 update interfaces ([5fad509](https://github.com/immanent-tech/foragd/commit/5fad509f0af8bdedde74c504c6e5e41c61e566c7))
+* **providers/ollama:** 🔧 fix http client options ([7e15051](https://github.com/immanent-tech/foragd/commit/7e15051a8caafb1f1043e634fe20ce0ae80051d3))
+
 ## [0.251.10](https://github.com/immanent-tech/foragd/compare/v0.251.9...v0.251.10) (2026-10-23)
 
 
