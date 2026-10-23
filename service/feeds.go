@@ -433,7 +433,10 @@ func updateFeedData(ctx context.Context, oldData, newData *models.Feed) map[stri
 		changes["language"] = Change{Old: oldData.GetLanguage(), New: newData.GetLanguage()}
 	}
 	// Accept any image change.
-	if oldData.Image != newData.Image {
+	switch {
+	case newData.Image != nil && oldData.Image == nil:
+		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
+	case newData.Image != nil && oldData.Image != nil && newData.Image.GetURL() != oldData.Image.GetURL():
 		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
 	}
 	// Accept any change to fetch method.
