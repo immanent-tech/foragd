@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.13](https://github.com/immanent-tech/foragd/compare/v0.251.12...v0.251.13) (2026-10-24)
+
+
+### Reverts
+
+* **models:** 🔧 revert back to sanitizing html in item description ([112decb](https://github.com/immanent-tech/foragd/commit/112decb2f0ff87190b445357121d7908f76737b7))
+
 ## [0.251.12](https://github.com/immanent-tech/foragd/compare/v0.251.11...v0.251.12) (2026-10-24)
 
 
