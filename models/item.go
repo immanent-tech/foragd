@@ -247,7 +247,20 @@ func (i Item) GetTitle() string {
 // GetDescription returns the summary of the item content, if any.
 func (i Item) GetDescription() string {
 	if i.Description != nil {
-		return *i.Description
+		switch {
+		case htmlx.IsHTML(*i.Description):
+			sanitizedDesc, err := htmlx.Sanitize(*i.Description)
+			if err != nil {
+				return ""
+			}
+			return sanitizedDesc
+		default:
+			formatted, err := markdownx.ToHTML([]byte(*i.Description))
+			if err != nil {
+				return *i.Description
+			}
+			return string(formatted)
+		}
 	}
 	return ""
 }
