@@ -16,6 +16,7 @@ import (
 	"github.com/immanent-tech/go-base/config"
 	"github.com/immanent-tech/go-base/validation"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/idtoken"
 )
 
 const ConfigEnvPrefix = "OLLAMA_"
@@ -74,24 +75,24 @@ func NewClient(opts ...Option) (*Client, error) {
 		return nil, fmt.Errorf("validate config: %w", err)
 	}
 
-	// appCfg, err := config.LoadAppConfig()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("load app config: %w", err)
-	// }
+	appCfg, err := config.LoadAppConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load app config: %w", err)
+	}
 
 	// Create background context for token refresh
 	ctx, cancel := context.WithCancel(context.Background())
 	c.ctx = ctx
 	c.cancel = cancel
 
-	// if appCfg.IsProduction() {
-	// 	var err error
-	// 	c.tokenSource, err = idtoken.NewTokenSource(ctx, c.URL)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("generate token source: %w", err)
-	// 	}
-	// 	c.tokenSource = oauth2.ReuseTokenSource(nil, c.tokenSource)
-	// }
+	if appCfg.IsProduction() {
+		var err error
+		c.tokenSource, err = idtoken.NewTokenSource(ctx, c.URL)
+		if err != nil {
+			return nil, fmt.Errorf("generate token source: %w", err)
+		}
+		c.tokenSource = oauth2.ReuseTokenSource(nil, c.tokenSource)
+	}
 
 	return c, nil
 }
