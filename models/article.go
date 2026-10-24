@@ -155,13 +155,13 @@ func (a Article) IsEmail() bool {
 func (a Article) GetContent() string {
 	switch {
 	case a.IsEmail():
-		return a.formatContent()
+		return a.formatContent(a.Item.GetContent())
 	case a.IsYoutubeVideo():
 		return ""
 	case a.ShowFullContent && a.Content != nil:
-		return *a.Content
+		return a.formatContent(*a.Content)
 	case a.Item.HasContent():
-		return a.formatContent()
+		return a.formatContent(a.Item.GetContent())
 	default:
 		return a.Item.GetDescription()
 	}
@@ -169,11 +169,11 @@ func (a Article) GetContent() string {
 
 // formatContent performs additional formatting of content from specific sources, such as cleaning up the HTML to make
 // it more presentable in the interface.
-func (a Article) formatContent() string {
-	switch content := a.Item.GetContent(); {
+func (a Article) formatContent(content string) string {
+	switch {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
 		sanitized, err := htmlx.Sanitize(
-			a.Item.GetContent(),
+			content,
 			htmlx.UnwrapLayoutTables,
 			htmlx.StripWhitespaceOnlyNodesOption,
 		)
