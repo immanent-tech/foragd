@@ -37,8 +37,6 @@ services:
         soft: 65535
         hard: 65535
       nproc: 65535
-    mem_limit: 2097152
-
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:$IMAGEPROXY_VERSION
@@ -52,7 +50,7 @@ services:
       IMGPROXY_AUTO_WEBP: "true"
       IMGPROXY_MAX_SRC_FILE_SIZE: 8000000
     cpu_count: 1
-    mem_limit: 524288
+    mem_limit: 512m
 
   ollama:
     env_file:
