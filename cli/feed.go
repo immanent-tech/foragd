@@ -418,7 +418,7 @@ func classifyFeed(ctx context.Context, feedSvc *service.FeedService, details *mo
 		return fmt.Errorf("fetch feed updates: %w", err)
 	}
 
-	if err := service.ClassifyFeed(ctx, feed); err != nil {
+	if err := feedSvc.ClassifyFeed(ctx, feed); err != nil {
 		return fmt.Errorf("classify feed failed: %w", err)
 	}
 	return nil

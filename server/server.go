@@ -123,7 +123,7 @@ func Start() error {
 	ln, err := net.Listen("tcp", svr.Addr)
 	if err != nil {
 		// Dependencies are already initialised, so release them on this path too.
-		return errors.Join(fmt.Errorf("listen on %s: %w", svr.Addr, err), shutdown(svr, logger))
+		return errors.Join(fmt.Errorf("listen on %s: %w", svr.Addr, err), shutdown(svr, services, logger))
 	}
 
 	// And we serve HTTP until the world ends.
@@ -174,13 +174,13 @@ func Start() error {
 	}
 
 	// Cleanup always runs, whether we got here from a signal or a serve failure.
-	return errors.Join(serveErr, shutdown(svr, logger))
+	return errors.Join(serveErr, shutdown(svr, services, logger))
 }
 
 // shutdown stops the server first (so no new requests arrive and in-flight ones finish), and only then
 // tears down dependencies, in the reverse order they are used. OpenTelemetry is flushed last by the
 // deferred call in Start.
-func shutdown(svr *http.Server, logger *slog.Logger) error {
+func shutdown(svr *http.Server, services *services, logger *slog.Logger) error {
 	// The shutdown context must not derive from the (already cancelled) signal context.
 	shutdownCtx, cancel := context.WithTimeoutCause(
 		context.Background(),
@@ -220,6 +220,12 @@ func shutdown(svr *http.Server, logger *slog.Logger) error {
 	}
 
 	// 5. TODO: close caches / session store if they expose a Close method.
+	if err := services.feeds.Close(); err != nil {
+		slogctx.Error(shutdownCtx, "Failed to stop feed service.",
+			slog.Any("error", err),
+		)
+		errs = append(errs, fmt.Errorf("feed service shutdown: %w", err))
+	}
 
 	// 6. Close error client.
 	gerror.CloseClient()

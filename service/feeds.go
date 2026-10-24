@@ -55,6 +55,16 @@ import (
 	"github.com/immanent-tech/foragd/providers/ollama"
 )
 
+type Classifier interface {
+	Classify(ctx context.Context,
+		content, contentURL string,
+		categories []ollama.CategoryEmbedding,
+		domainPriors *ollama.DomainCategoryPrior,
+		alpha float64,
+	) ([]ollama.Category, error)
+	Close() error
+}
+
 // feedCacheExpiryCalculator is a custom expiry calculator for the feed cache.
 type feedCacheExpiryCalculator struct{}
 
@@ -85,6 +95,7 @@ type FeedService struct {
 	loader     otter.LoaderFunc[models.FeedID, *models.Feed]
 	bulkLoader otter.BulkLoaderFunc[models.FeedID, *models.Feed]
 	httpClient *resty.Client
+	ollama     Classifier
 }
 
 // LoadFeedService loads a service that can manipulate feed objects in the backend store.
@@ -94,6 +105,12 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 		return nil, fmt.Errorf("load elastic service: %w", err)
 	}
 	index := svc.GetIndexRO(FeedsIndex)
+
+	ollamaSvc, err := ollama.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("load ollama client: %w", err)
+	}
+
 	return &FeedService{
 		Cache: otter.Must(&otter.Options[models.FeedID, *models.Feed]{
 			MaximumSize:      30_000,
@@ -126,8 +143,13 @@ var LoadFeedService = sync.OnceValues(func() (*FeedService, error) {
 			},
 		),
 		httpClient: newHTTPClient(),
+		ollama:     ollamaSvc,
 	}, nil
 })
+
+func (s *FeedService) Close() error {
+	return s.ollama.Close()
+}
 
 // GetFeed retrieves a feed with the given FeedID.
 func (s *FeedService) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
@@ -366,7 +388,7 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	}
 	// Compare new/old feed data and update only changed fields.
 	// Update only the fields that changed in newData, then update timestamps.
-	changes := updateFeedData(ctx, oldData, newData)
+	changes := s.updateFeedData(ctx, oldData, newData)
 	if len(changes) > 0 {
 		var slogAttrs []slog.Attr
 		for key, value := range changes {
@@ -395,7 +417,7 @@ func (s *FeedService) ApplyFeedUpdates(ctx context.Context,
 	return nil
 }
 
-func updateFeedData(ctx context.Context, oldData, newData *models.Feed) map[string]Change {
+func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *models.Feed) map[string]Change {
 	changes := make(map[string]Change)
 	// Accept any title change.
 	if oldData.GetTitle() != newData.GetTitle() {
@@ -463,7 +485,7 @@ func updateFeedData(ctx context.Context, oldData, newData *models.Feed) map[stri
 	}
 	// If the feed does not have categories, use the classifier to generate some.
 	if len(oldData.GetCategories()) == 0 {
-		if err := ClassifyFeed(ctx, newData); err != nil {
+		if err := s.ClassifyFeed(ctx, newData); err != nil {
 			slogctx.Warn(ctx, "Could not classify feed",
 				slog.Any("error", err))
 		} else {
@@ -892,7 +914,7 @@ func (s *FeedService) GenerateOPML(ctx context.Context, feedIDs ...models.FeedID
 }
 
 // ClassifyFeed will add appropriate categories to a feed by classifying the item content.
-func ClassifyFeed(ctx context.Context, feed *models.Feed) error {
+func (s *FeedService) ClassifyFeed(ctx context.Context, feed *models.Feed) error {
 	if len(feed.GetItems()) == 0 {
 		slogctx.Warn(ctx, "Cannot classify feed, no items.")
 		return nil
@@ -927,7 +949,7 @@ func ClassifyFeed(ctx context.Context, feed *models.Feed) error {
 		// Classify from IAB Tier 1 Categories.
 		slogctx.Info(ctx, "Assigning categories to feed based on current item content.")
 
-		categories, err := ollama.Classify(classificationText.String(), feed.GetLink(), nil, nil, 0.8)
+		categories, err := s.ollama.Classify(ctx, classificationText.String(), feed.GetLink(), nil, nil, 0.8)
 		if err != nil {
 			slogctx.Error(ctx, "Could not classify feed. Leaving uncategorized.",
 				slog.Any("error", err))

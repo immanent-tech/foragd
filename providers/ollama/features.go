@@ -1,5 +1,7 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package ollama
 
@@ -16,7 +18,7 @@ type URLSignals struct {
 	PathSegments []string // human-readable path tokens; numeric IDs/UUIDs dropped
 }
 
-func ExtractURLSignals(rawURL string) (URLSignals, error) {
+func extractURLSignals(rawURL string) (URLSignals, error) {
 	urlSignal, err := url.Parse(rawURL)
 	if err != nil {
 		return URLSignals{}, fmt.Errorf("parsing URL: %w", err)
@@ -51,16 +53,16 @@ func isNumericOrID(segment string) bool {
 // DomainCategoryPrior tracks a learned or curated category distribution per domain. Safe for concurrent use.
 type DomainCategoryPrior struct {
 	mu     sync.RWMutex
-	priors map[string]map[string]float32 // domain -> label -> weight (normalized to sum 1)
+	priors map[string]map[string]float64 // domain -> label -> weight (normalized to sum 1)
 }
 
-func NewDomainCategoryPrior() *DomainCategoryPrior {
-	return &DomainCategoryPrior{priors: make(map[string]map[string]float32)}
+func newDomainCategoryPrior() *DomainCategoryPrior {
+	return &DomainCategoryPrior{priors: make(map[string]map[string]float64)}
 }
 
 // Seed manually associates a domain with known category weights, e.g. {"Technology & Computing": 0.9, "Business and
 // Finance": 0.1} for a publisher you already know the beat of.
-func (p *DomainCategoryPrior) Seed(domain string, weights map[string]float32) {
+func (p *DomainCategoryPrior) Seed(domain string, weights map[string]float64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.priors[domain] = normalizeWeights(weights)
@@ -69,12 +71,12 @@ func (p *DomainCategoryPrior) Seed(domain string, weights map[string]float32) {
 // Observe updates a domain's prior via exponential moving average each time a document from it gets classified -- so
 // priors self-improve from your own pipeline's output without manual curation. Use a small alpha (0.05-0.15) so one
 // mis-classified outlier can't swing a domain's prior.
-func (p *DomainCategoryPrior) Observe(domain, label string, alpha float32) {
+func (p *DomainCategoryPrior) Observe(domain, label string, alpha float64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	dist, ok := p.priors[domain]
 	if !ok {
-		dist = make(map[string]float32)
+		dist = make(map[string]float64)
 	}
 	for k := range dist {
 		dist[k] *= (1 - alpha)
@@ -83,21 +85,21 @@ func (p *DomainCategoryPrior) Observe(domain, label string, alpha float32) {
 	p.priors[domain] = normalizeWeights(dist)
 }
 
-func (p *DomainCategoryPrior) Get(domain string) map[string]float32 {
+func (p *DomainCategoryPrior) Get(domain string) map[string]float64 {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.priors[domain] // nil for unseen domains -- treated as zero everywhere, harmless
 }
 
-func normalizeWeights(w map[string]float32) map[string]float32 {
-	var sum float32
+func normalizeWeights(w map[string]float64) map[string]float64 {
+	var sum float64
 	for _, v := range w {
 		sum += v
 	}
 	if sum == 0 {
 		return w
 	}
-	out := make(map[string]float32, len(w))
+	out := make(map[string]float64, len(w))
 	for k, v := range w {
 		out[k] = v / sum
 	}
@@ -105,8 +107,12 @@ func normalizeWeights(w map[string]float32) map[string]float32 {
 }
 
 func BuildPriors() *DomainCategoryPrior {
-	priors := NewDomainCategoryPrior()
-	priors.Seed("techcrunch.com", map[string]float32{"Technology & Computing": 1.0})
-	priors.Seed("github.com", map[string]float32{"Technology & Computing": 1.0})
+	priors := newDomainCategoryPrior()
+	priors.Seed("techcrunch.com", map[string]float64{"Technology & Computing": 1.0})
+	priors.Seed("github.com", map[string]float64{"Technology & Computing": 1.0})
 	return priors
 }
+
+var buildBasePriors = sync.OnceValues(func() (*DomainCategoryPrior, error) {
+	return BuildPriors(), nil
+})

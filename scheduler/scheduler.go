@@ -119,14 +119,14 @@ func (m *Manager) Run() error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-	m.Shutdown()
+	m.Shutdown(jobServices)
 
 	return nil
 }
 
 // Shutdown performs shutdown logic for the scheduler, including safe shutdown of background services used by the
 // scheduler and jobs.
-func (m *Manager) Shutdown() {
+func (m *Manager) Shutdown(services *jobs.Services) {
 	shutdownCtx, cancel := context.WithTimeoutCause(
 		context.Background(),
 		gracefulShutdownTimeout,
@@ -144,6 +144,10 @@ func (m *Manager) Shutdown() {
 
 	shutdownTasks.Go(func() error {
 		return elastic.Shutdown(shutdownCtx)
+	})
+
+	shutdownTasks.Go(func() error {
+		return services.Feeds.Close()
 	})
 
 	shutdownTasks.Go(func() error {

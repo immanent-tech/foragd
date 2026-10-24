@@ -1,12 +1,15 @@
-// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
-// SPDX-License-Identifier: 	AGPL-3.0-or-later
+/*
+ * Copyright (c) 2026 Immanent Tech
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package ollama
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"math"
+	"time"
 
 	"github.com/immanent-tech/foragd/providers/elastic/vector"
 )
@@ -18,23 +21,23 @@ type ollamaEmbedRequest struct {
 }
 
 type ollamaEmbedResponse struct {
-	Embeddings [][]float32 `json:"embeddings"`
+	Embeddings [][]float64 `json:"embeddings"`
 	Error      string      `json:"error,omitempty"`
 }
 
-// EmbedBatch embeds up to BatchSize texts in one request against a local Ollama server. Ollama returns L2-normalized
+// embedBatch embeds up to BatchSize texts in one request against a local Ollama server. Ollama returns L2-normalized
 // vectors already, so no further normalization is needed for cosine similarity.
-func EmbedBatch(texts ...string) ([][]float32, error) {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
+func (c *Client) embedBatch(ctx context.Context, texts ...string) ([][]float64, error) {
+	// Set timeout
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
 
 	// Create request body.
 	reqBody := ollamaEmbedRequest{
-		Model:     cfg.Model,
+		Model:     c.Model,
 		Input:     texts,
-		KeepAlive: cfg.KeepAlive.String(),
+		KeepAlive: c.KeepAlive.String(),
 	}
 	payload, err := json.Marshal(reqBody)
 	if err != nil {
@@ -42,13 +45,14 @@ func EmbedBatch(texts ...string) ([][]float32, error) {
 	}
 
 	var res ollamaEmbedResponse
-	resp, err := cfg.httpClient.R().
+	resp, err := c.httpClient.R().
+		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetBody(payload).
 		SetResult(&res).
 		SetError(&res).
 		// SetDebug(true).
-		Post(cfg.URL)
+		Post(c.URL)
 	if err != nil {
 		return nil, fmt.Errorf("ollama request: %w", err)
 	}
@@ -63,15 +67,10 @@ func EmbedBatch(texts ...string) ([][]float32, error) {
 	return res.Embeddings, nil
 }
 
-// EmbedChunks embeds all chunks, batching requests according to c.BatchSize.
-func EmbedChunks(chunks ...vector.Chunk) ([][]float32, error) {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-
-	all := make([][]float32, len(chunks))
-	batchSize := cfg.BatchSize
+// embedChunks embeds all chunks, batching requests according to c.BatchSize.
+func (c *Client) embedChunks(ctx context.Context, chunks ...vector.Chunk) ([][]float64, error) {
+	all := make([][]float64, len(chunks))
+	batchSize := c.BatchSize
 	if batchSize <= 0 {
 		batchSize = 50
 	}
@@ -84,7 +83,7 @@ func EmbedChunks(chunks ...vector.Chunk) ([][]float32, error) {
 			texts[i-start] = chunks[i].Text
 		}
 
-		vectors, err := EmbedBatch(texts...)
+		vectors, err := c.embedBatch(ctx, texts...)
 		if err != nil {
 			return nil, fmt.Errorf("embedding batch [%d:%d]: %w", start, end, err)
 		}
@@ -92,21 +91,4 @@ func EmbedChunks(chunks ...vector.Chunk) ([][]float32, error) {
 	}
 
 	return all, nil
-}
-
-func cosineSimilarity(a, b []float32) float32 {
-	var dot, normA, normB float32
-	for i := range a {
-		dot += a[i] * b[i]
-		normA += a[i] * a[i]
-		normB += b[i] * b[i]
-	}
-	if normA == 0 || normB == 0 {
-		return 0
-	}
-	return dot / (float32(mathSqrt(normA)) * float32(mathSqrt(normB)))
-}
-
-func mathSqrt(f float32) float64 {
-	return math.Sqrt(float64(f))
 }

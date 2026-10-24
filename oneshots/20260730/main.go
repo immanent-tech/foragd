@@ -7,14 +7,12 @@ import (
 	"strings"
 
 	"github.com/immanent-tech/go-base/logging"
-	"github.com/immanent-tech/go-base/pkg/textx"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/ollama"
 	"github.com/immanent-tech/foragd/service"
 )
 
@@ -77,49 +75,12 @@ func main() {
 				slog.Any("error", err))
 		}
 
-		var (
-			classificationText strings.Builder
-		)
+		feed.Items = items
 
-		// Append together all content for classification.
-		if feed.GetDescription() != "" {
-			classificationText.WriteString(feed.GetDescription())
-			classificationText.WriteRune('\n')
-		}
-		for item := range slices.Values(items) {
-			switch {
-			case item.GetContent() != "":
-				classificationText.WriteString(item.GetContent())
-				classificationText.WriteRune('\n')
-			case item.GetDescription() != "":
-				classificationText.WriteString(item.GetDescription())
-				classificationText.WriteRune('\n')
-			}
-		}
-
-		if textx.CountWords(classificationText.String()) < 20 {
-			// Ignore feed when there is too little content for good processing.
-			slogctx.FromCtx(ctx).Warn("Not enough content to classify feed. Assigning 'Uncategorized'.")
+		if err := feedSvc.ClassifyFeed(ctx, feed); err != nil {
+			slogctx.FromCtx(ctx).Error("Could not classify feed. Leaving uncategorized.",
+				slog.Any("error", err))
 			feed.Categories = []models.Category{"Uncategorized"}
-		} else {
-			// Classify from IAB Tier 1 Categories.
-			slogctx.FromCtx(ctx).Info("Assigning categories to feed based on current item content.")
-
-			categories, err := ollama.Classify(classificationText.String(), feed.GetLink(), nil, nil, 0.8)
-			if err != nil {
-				slogctx.FromCtx(ctx).Error("Could not classify feed. Leaving uncategorized.",
-					slog.Any("error", err))
-				feed.Categories = []models.Category{"Uncategorized"}
-			}
-			if len(categories) == 0 {
-				slogctx.FromCtx(ctx).Warn("No classified categories. Leaving uncategorized.")
-				feed.Categories = []models.Category{"Uncategorized"}
-			} else {
-				feed.Categories = make([]models.Category, 0, len(categories))
-				for category := range slices.Values(categories) {
-					feed.Categories = append(feed.Categories, category.Label)
-				}
-			}
 		}
 
 		slogctx.FromCtx(ctx).Info("Feed classified.",
