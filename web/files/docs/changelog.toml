@@ -11,10 +11,20 @@
 # - patch
 
 [[releases]]
+version = "v0.252"
+date = "Oct 24, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Some feeds stopped updating after a bug was introduced that removed their source links. This has been fixed!
+"""
+
+[[releases]]
 version = "v0.251"
 date = "Oct 20, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "security"
 description = """
