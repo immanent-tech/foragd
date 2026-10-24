@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.251.12](https://github.com/immanent-tech/foragd/compare/v0.251.11...v0.251.12) (2026-10-24)
+
+
+### Bug Fixes
+
+* **oneshots:** 🔧 add oneshot to fix feeds missing a source URL ([8d639ad](https://github.com/immanent-tech/foragd/commit/8d639add7dc991d295b966278d6bd8ef10db8aba))
+* **providers/ollama:** 🔧 fix client initialization in production ([8527be1](https://github.com/immanent-tech/foragd/commit/8527be108e1b33980297bbc207ffcf9c6f991c2f))
+
 ## [0.251.11](https://github.com/immanent-tech/foragd/compare/v0.251.10...v0.251.11) (2026-10-23)
 
 
