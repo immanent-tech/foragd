@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.15](https://github.com/immanent-tech/foragd/compare/v0.251.14...v0.251.15) (2026-10-25)
+
+
+### Reverts
+
+* **service/feeds:** 🔧 block automatic classification (not working) ([27d180d](https://github.com/immanent-tech/foragd/commit/27d180dd9e2e1326731564c2e848e6d44bf74700))
+
 ## [0.251.14](https://github.com/immanent-tech/foragd/compare/v0.251.13...v0.251.14) (2026-10-25)
 
 
