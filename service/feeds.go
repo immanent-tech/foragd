@@ -483,15 +483,15 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 		newData.Contributors = slices.Compact(newData.Contributors)
 		changes["contributors"] = Change{Old: oldData.GetContributors(), New: newData.GetContributors()}
 	}
-	// If the feed does not have categories, use the classifier to generate some.
-	if len(oldData.GetCategories()) == 0 {
-		if err := s.ClassifyFeed(ctx, newData); err != nil {
-			slogctx.Warn(ctx, "Could not classify feed",
-				slog.Any("error", err))
-		} else {
-			changes["categories"] = Change{Old: oldData.GetCategories(), New: newData.GetCategories()}
-		}
-	}
+	// // If the feed does not have categories, use the classifier to generate some.
+	// if len(oldData.GetCategories()) == 0 {
+	// 	if err := s.ClassifyFeed(ctx, newData); err != nil {
+	// 		slogctx.Warn(ctx, "Could not classify feed",
+	// 			slog.Any("error", err))
+	// 	} else {
+	// 		changes["categories"] = Change{Old: oldData.GetCategories(), New: newData.GetCategories()}
+	// 	}
+	// }
 	return changes
 }
 
