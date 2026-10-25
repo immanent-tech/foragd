@@ -28,8 +28,8 @@ func (m *Manager) HandleViewer(feedSvc FeedService) http.HandlerFunc {
 	page := &Viewer{
 		Page: m.NewPage(
 			"/viewer",
-			WithSummary("Free RSS Feed Viewer"),
-			WithDescription("Preview Any Website's Feed"),
+			WithSummary("Free RSS, Atom and JSONFeed Viewer"),
+			WithDescription("Preview any website's feed"),
 			WithMetadataDescription(
 				"Foragd's free feed viewer instantly shows RSS, Atom, and JSONFeed content for any website. Paste a URL and preview syndicated posts. No account required.",
 			),

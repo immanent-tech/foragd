@@ -28,10 +28,10 @@ func (m *Manager) HandleLinter(httpClient *resty.Client) http.HandlerFunc {
 	page := &Linter{
 		Page: m.NewPage(
 			"/linter",
-			WithSummary("Free RSS Feed Linter"),
-			WithDescription("Lint Any Website's Feed to check for validation errors and recommendations"),
+			WithSummary("Free RSS, Atom, and JSONFeed Linter"),
+			WithDescription("Check any RSS, Atom or JSONFeed URL for correctness and best practices"),
 			WithMetadataDescription(
-				"Foragd's free feed RSS linter instantly shows whether a site's feed passes validation and contains recommended values to ensure maximum compatibility",
+				"Foragd's free RSS, Atom and JSONFeed linter instantly shows whether a site's feed passes validation and follows best practices to ensure maximum compatibility with feed readers",
 			),
 			WithTemplate(templates.Linter()),
 		),
