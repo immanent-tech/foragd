@@ -1,6 +1,3 @@
-# Auto-generated .gitignore file.
-# See https://gowebly.org for more information.
-
 # macOS files.
 .DS_Store
 
@@ -13,8 +10,6 @@ go.work
 # Environment files.
 **/.env*
 
-# Don't include local server configuration.
-server.toml
 # Don't include generated files.
 web/files/dist
 web/files/meta.json
@@ -22,11 +17,7 @@ web/files/meta.json
 # Node modules.
 node_modules/
 
-# Vendor folders.
-vendor/
-
 # Temp folders.
-.parcel-cache/
 tmp/
 
 # Logs.
