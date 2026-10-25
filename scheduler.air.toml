@@ -60,7 +60,7 @@ exclude_dir = [
   "pkg/go-syndication/test",
 ]
 # Watch these directories if you specified.
-include_dir = ["scheduler", "pkg", "models"]
+include_dir = ["scheduler", "pkg", "models", "service"]
 # Watch these files.
 include_file = []
 # Exclude files.
