@@ -16,6 +16,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -167,14 +168,14 @@ func (s *ItemService) EnrichItemBatch(
 	g.SetLimit(maxWorkers)
 
 	results := make(chan *models.Item, len(items))
-	var failed int
+	var failed atomic.Int32
 
 	// Fan-out: send items to workers
 	for item := range slices.Values(items) {
 		g.Go(func() error {
 			err := s.EnrichItem(enrichCtx, feed, item)
 			if err != nil {
-				failed++
+				failed.Add(1)
 				return err
 			}
 			results <- item
@@ -185,8 +186,8 @@ func (s *ItemService) EnrichItemBatch(
 	if err := g.Wait(); err != nil {
 		return 0, err
 	}
-	if failed > 0 {
-		slogctx.Warn(ctx, "Some items failed to be enriched.", slog.Int("count", failed))
+	if failed.Load() > 0 {
+		slogctx.Warn(ctx, "Some items failed to be enriched.", slog.Int("count", int(failed.Load())))
 	}
 
 	close(results)
