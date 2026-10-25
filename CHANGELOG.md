@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.251.14](https://github.com/immanent-tech/foragd/compare/v0.251.13...v0.251.14) (2026-10-25)
+
+
+### Bug Fixes
+
+* **service/items:** 🔧 use atomic failed counter ([cdcfbc8](https://github.com/immanent-tech/foragd/commit/cdcfbc86d7694305e5083bf253315f5752ce4f02))
+
 ## [0.251.13](https://github.com/immanent-tech/foragd/compare/v0.251.12...v0.251.13) (2026-10-24)
 
 
