@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.252.1](https://github.com/immanent-tech/foragd/compare/v0.252.0...v0.252.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* 🔧 fix truncated item contents ([fa00160](https://github.com/immanent-tech/foragd/commit/fa00160a17d630e79eec3bef1874adc137b497b0))
+
 ## [0.252.0](https://github.com/immanent-tech/foragd/compare/v0.251.15...v0.252.0) (2026-10-26)
 
 
