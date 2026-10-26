@@ -486,6 +486,19 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 		newData.Contributors = slices.Compact(newData.Contributors)
 		changes["contributors"] = Change{Old: oldData.GetContributors(), New: newData.GetContributors()}
 	}
+	if len(newData.Categories) > 0 {
+		slices.Sort(newData.Categories)
+		if !slices.Equal(newData.Categories, oldData.Categories) {
+			newData.Categories = append(newData.Categories, oldData.Categories...)
+			newData.Categories = slices.Compact(newData.Categories)
+			changes["categories"] = Change{Old: oldData.GetCategories(), New: newData.GetCategories()}
+		}
+	} else {
+		newData.Categories = oldData.Categories
+	}
+	if len(newData.Categories) == 0 {
+		slogctx.Info(ctx, "Feed has no categories. Categorizing...")
+	}
 	// // If the feed does not have categories, use the classifier to generate some.
 	// if len(oldData.GetCategories()) == 0 {
 	// 	if err := s.ClassifyFeed(ctx, newData); err != nil {
