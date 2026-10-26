@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.252.0](https://github.com/immanent-tech/foragd/compare/v0.251.15...v0.252.0) (2026-10-26)
+
+
+### Features
+
+* **services:** ✨ improved detection of updated/new items for feeds ([409ff55](https://github.com/immanent-tech/foragd/commit/409ff55ffe05fc63e08da06a98c0641ece928a72))
+
+
+### Bug Fixes
+
+* **services/feeds:** 🔧 better merging of categories ([387128b](https://github.com/immanent-tech/foragd/commit/387128b523aa06b047010a9cd224083a0ee951e8))
+
 ## [0.251.15](https://github.com/immanent-tech/foragd/compare/v0.251.14...v0.251.15) (2026-10-25)
 
 
