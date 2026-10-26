@@ -19,6 +19,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"codeberg.org/readeck/go-readability/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
@@ -156,6 +157,44 @@ func (s *ItemService) AddItems(ctx context.Context, items models.Items) (int, er
 	return len(items), nil
 }
 
+type ItemChanges struct {
+	New     models.Items
+	Updated models.Items
+}
+
+// FilterUpdatedOrNewItems takes a [models.Items] slice and checks for significant changes for the existing items in the
+// slice. It returns an [ItemChanges] which contains slices of the new and/or updated items.
+func (s ItemService) FilterUpdatedOrNewItems(ctx context.Context, items models.Items) ItemChanges {
+	oldItems, err := s.GetItems(ctx, items.GetIDs()...)
+	if err != nil {
+		// If we can't fetch existing items, assume all items are new so enrichment takes place.
+		slogctx.Warn(ctx, "Could not fetch existing items for filtering.",
+			slog.Any("error", err))
+		return ItemChanges{
+			New: items,
+		}
+	}
+	oldItemsMap := oldItems.AsMap()
+	newItems := make(models.Items, 0)
+	updatedItems := make(models.Items, 0)
+	for item := range slices.Values(items) {
+		oldItem, found := oldItemsMap[item.GetID()]
+		if !found {
+			// Item is new.
+			newItems = append(newItems, item)
+		} else {
+			// If the title, description or content has changed, consider the item changed.
+			if oldItem.GetTitle() != item.GetTitle() || oldItem.GetDescription() != item.GetDescription() ||
+				oldItem.GetContent() != item.GetContent() {
+
+			}
+			updatedItems = append(updatedItems, item)
+		}
+	}
+	return ItemChanges{New: newItems, Updated: updatedItems}
+}
+
+// EnrichItemBatch performs item enrichment on the given slice of items for the given feed.
 func (s *ItemService) EnrichItemBatch(
 	ctx context.Context,
 	feed *models.Feed,
@@ -307,28 +346,7 @@ func (s *ItemService) EnrichItem(
 
 	// Add an image if needed.
 	if item.GetImage() == nil {
-		switch {
-		case opengraphData != nil && opengraphData.Image != "":
-			if imgURL, err := url.Parse(opengraphData.Image); err == nil {
-				if !imgURL.IsAbs() {
-					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
-				} else {
-					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
-				}
-			}
-		case readabilityData != nil && readabilityData.ImageURL() != "":
-			if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
-				if !imgURL.IsAbs() {
-					item.Image = models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), item.GetTitle())
-				} else {
-					item.Image = models.NewRemoteImage(imgURL.String(), item.GetTitle())
-				}
-			}
-		default:
-			if imgURL, imgAlt, _ := htmlx.ExtractImage(itemContentBuf.String(), item.GetLink()); imgURL != "" {
-				item.Image = models.NewRemoteImage(imgURL, imgAlt)
-			}
-		}
+		item.Image = enrichItemImage(item, itemURL, itemContentBuf, opengraphData, readabilityData)
 	}
 
 	// When item summaries needed to be fetched, check and add an item description if missing.
@@ -342,6 +360,38 @@ func (s *ItemService) EnrichItem(
 		}
 	}
 
+	return nil
+}
+
+func enrichItemImage(
+	item *models.Item,
+	itemURL *url.URL,
+	contentBuf *bytes.Buffer,
+	opengraphData *htmlx.OpenGraph,
+	readabilityData *readability.Article,
+) *models.RemoteImage {
+	switch {
+	case opengraphData != nil && opengraphData.Image != "":
+		if imgURL, err := url.Parse(opengraphData.Image); err == nil {
+			if !imgURL.IsAbs() {
+				return models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), opengraphData.Title)
+			} else {
+				return models.NewRemoteImage(imgURL.String(), opengraphData.Title)
+			}
+		}
+	case readabilityData != nil && readabilityData.ImageURL() != "":
+		if imgURL, err := url.Parse(readabilityData.ImageURL()); err == nil {
+			if !imgURL.IsAbs() {
+				return models.NewRemoteImage(itemURL.ResolveReference(imgURL).String(), readabilityData.Title())
+			} else {
+				return models.NewRemoteImage(imgURL.String(), readabilityData.Title())
+			}
+		}
+	default:
+		if imgURL, imgAlt, _ := htmlx.ExtractImage(contentBuf.String(), item.GetLink()); imgURL != "" {
+			return models.NewRemoteImage(imgURL, imgAlt)
+		}
+	}
 	return nil
 }
 

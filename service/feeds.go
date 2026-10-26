@@ -329,7 +329,7 @@ func (s *FeedService) UpdateFeedItems(
 		return oldData.LastFetched, fmt.Errorf("load item service: %w", err)
 	}
 
-	// Add any new items since the last feed update.
+	// If there are not items, just return.
 	if len(newData.GetItems()) == 0 {
 		logMsg := newFeedStatusMsg(oldData.GetID())
 		logMsg.StatusCode = http.StatusNoContent
@@ -339,14 +339,23 @@ func (s *FeedService) UpdateFeedItems(
 		}
 		return oldData.LastFetched, nil
 	}
+	// Add any new items since the last feed update.
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
-		count, err := itemSvc.EnrichItemBatch(ctx, newData, newItems)
-		if err != nil {
-			return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
+		// Filter to only items that are new or had significant changes.
+		itemStates := itemSvc.FilterUpdatedOrNewItems(ctx, newItems)
+
+		// Enrich new items.
+		if len(itemStates.New) > 0 {
+			_, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New)
+			if err != nil {
+				return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
+			}
 		}
-		slogctx.Info(ctx, "Indexed items.",
+		// Log item states.
+		slogctx.Info(ctx, "Updated feed items.",
 			slog.Time("since", oldData.LastFetched),
-			slog.Int("count", count),
+			slog.Int("new", len(itemStates.New)),
+			slog.Int("updated", len(itemStates.Updated)),
 		)
 		logMsg := newFeedStatusMsg(oldData.GetID())
 		logMsg.StatusCode = http.StatusOK
@@ -355,7 +364,9 @@ func (s *FeedService) UpdateFeedItems(
 			slogctx.Error(ctx, "Unable to write feed status.",
 				slog.Any("error", err))
 		}
-		return newItems.SortByTimestamp()[0].GetTimestamp(), nil
+		// Return timestamp of most recent item.
+		allItems := slices.Concat(itemStates.New, itemStates.Updated)
+		return allItems.SortByTimestamp()[0].GetTimestamp(), nil
 	}
 	logMsg := newFeedStatusMsg(oldData.GetID())
 	logMsg.StatusCode = http.StatusNoContent
@@ -440,11 +451,11 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 		changes["source_type"] = Change{Old: oldData.SourceType, New: newData.SourceType}
 	}
 	// Accept any copyright change.
-	if oldData.Copyright != newData.Copyright {
+	if oldData.GetRights() != newData.GetRights() {
 		changes["copyright"] = Change{Old: oldData.GetRights(), New: newData.GetRights()}
 	}
 	// Accept any language change.
-	if oldData.Language != newData.Language {
+	if oldData.GetLanguage() != newData.GetLanguage() {
 		changes["language"] = Change{Old: oldData.GetLanguage(), New: newData.GetLanguage()}
 	}
 	// Accept any image change.
@@ -453,14 +464,6 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
 	case newData.Image != nil && oldData.Image != nil && newData.Image.GetURL() != oldData.Image.GetURL():
 		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
-	}
-	// Accept any change to fetch method.
-	if newData.FetchMethod != "" && oldData.FetchMethod != newData.FetchMethod {
-		changes["fetch_method"] = Change{Old: oldData.FetchMethod, New: newData.FetchMethod}
-	}
-	// Accept any change to fetch options.
-	if oldData.FetchOptions != newData.FetchOptions {
-		changes["fetch_options"] = Change{Old: oldData.FetchOptions, New: newData.FetchOptions}
 	}
 	// Always append then compact any source URL changes.
 	if len(newData.GetSourceURLs()) != len(oldData.GetSourceURLs()) {

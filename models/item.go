@@ -111,6 +111,15 @@ func (i Items) SortByTimestamp() Items {
 	return i
 }
 
+// AsMap generates a map of [ItemID]->[Item] from the slice.
+func (i Items) AsMap() map[ItemID]*Item {
+	itemsMap := make(map[ItemID]*Item, len(i))
+	for item := range slices.Values(i) {
+		itemsMap[item.GetID()] = item
+	}
+	return itemsMap
+}
+
 // NewFeedItem generates an Item from the underlying feed data.
 func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
