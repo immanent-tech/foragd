@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.252.2](https://github.com/immanent-tech/foragd/compare/v0.252.1...v0.252.2) (2026-10-27)
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 also reindex updated items ([5b46037](https://github.com/immanent-tech/foragd/commit/5b460376b447fc0c131d773fefc84d9b25429783))
+
 ## [0.252.1](https://github.com/immanent-tech/foragd/compare/v0.252.0...v0.252.1) (2026-10-26)
 
 
