@@ -343,16 +343,11 @@ func (s *FeedService) UpdateFeedItems(
 	if newItems := newData.GetItems().FilterSince(oldData.LastFetched); len(newItems) > 0 {
 		// Filter to only items that are new or had significant changes.
 		itemStates := itemSvc.FilterUpdatedOrNewItems(ctx, newItems)
-
-		// Enrich new items.
-		if len(itemStates.New) > 0 {
+		allItems := slices.Concat(itemStates.New, itemStates.Updated)
+		// Enrich items.
+		if len(allItems) > 0 {
 			if _, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
 				return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
-			}
-		}
-		if len(itemStates.Updated) > 0 {
-			if _, err := itemSvc.AddItems(ctx, itemStates.Updated); err != nil {
-				return oldData.LastFetched, fmt.Errorf("index updated items: %w", err)
 			}
 		}
 		// Log item states.
@@ -369,7 +364,6 @@ func (s *FeedService) UpdateFeedItems(
 				slog.Any("error", err))
 		}
 		// Return timestamp of most recent item.
-		allItems := slices.Concat(itemStates.New, itemStates.Updated)
 		return allItems.SortByTimestamp()[0].GetTimestamp(), nil
 	}
 	logMsg := newFeedStatusMsg(oldData.GetID())
