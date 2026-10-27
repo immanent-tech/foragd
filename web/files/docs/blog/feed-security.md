@@ -1,6 +1,6 @@
 +++
-title = "Are Your Feeds Safe? Staying Secure and While Staying Updated"
-page_title = "Are Your Feeds Safe? Staying Secure and While Staying Updated"
+title = "Are Your Feeds Safe? Staying Secure While Staying Updated"
+page_title = "Are Your Feeds Safe? Staying Secure While Staying Updated"
 description = "Feeds are a great way to stay up to date. But like any content on the internet, it is naive to assume that content is safe"
 created_at = "2026-10-27"
 updated_at = "2026-10-27"
