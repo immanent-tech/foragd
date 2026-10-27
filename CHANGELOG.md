@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.253.0](https://github.com/immanent-tech/foragd/compare/v0.252.3...v0.253.0) (2026-10-27)
+
+
+### Features
+
+* **blog:** ➕ add blog article about feed security ([c2cbfcb](https://github.com/immanent-tech/foragd/commit/c2cbfcbef39265238c2ee2c1ef2ca5d8e579e12f))
+
+
+### Bug Fixes
+
+* **templates:** 🔧 attempt to fix loooonnnnggg titles going outside cards ([8f6237b](https://github.com/immanent-tech/foragd/commit/8f6237b57356fad006fbc5ab2d6ae3228048562d))
+
 ## [0.252.3](https://github.com/immanent-tech/foragd/compare/v0.252.2...v0.252.3) (2026-10-27)
 
 
