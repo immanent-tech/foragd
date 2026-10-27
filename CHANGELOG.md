@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.252.3](https://github.com/immanent-tech/foragd/compare/v0.252.2...v0.252.3) (2026-10-27)
+
+
+### Bug Fixes
+
+* **service/feeds:** 🔧 enrich all items ([6bb9497](https://github.com/immanent-tech/foragd/commit/6bb9497d00ab95cb79383c938acc994e12fdf665))
+
 ## [0.252.2](https://github.com/immanent-tech/foragd/compare/v0.252.1...v0.252.2) (2026-10-27)
 
 
