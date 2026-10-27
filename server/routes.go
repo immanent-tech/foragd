@@ -399,22 +399,27 @@ func buildRouter(services *services, appCfg *config.AppConfig) *chi.Mux {
 		})
 
 		// Moved routes.
-		r.Get("/list/favorites", redirect.To("/favorites", http.StatusMovedPermanently))
-		r.Get("/list/subscriptions", redirect.To("/subscriptions", http.StatusMovedPermanently))
-		r.Get("/list/articles", redirect.To("/articles", http.StatusMovedPermanently))
-		r.Get("/posts", redirect.To("/blog", http.StatusMovedPermanently))
-		r.Get("/posts/*", redirect.Param("*", "blog/%s", http.StatusMovedPermanently))
-		r.Get("/view/article/{item_id}", redirect.Param("item_id", "/articles/%s", http.StatusMovedPermanently))
-		r.Get("/user/import", redirect.To("/import", http.StatusMovedPermanently))
-		r.Get("/user/export", redirect.To("/export", http.StatusMovedPermanently))
-		r.Get("/user/settings", redirect.To("/settings", http.StatusMovedPermanently))
-		r.Get("/subscription/add", redirect.To("/subscriptions/add", http.StatusMovedPermanently))
-		r.Get("/feedly", redirect.To("/compare/feedly", http.StatusMovedPermanently))
-		r.Get("/inoreader", redirect.To("/compare/inoreader", http.StatusMovedPermanently))
-		r.Get("/innoreader", redirect.To("/compare/inoreader", http.StatusMovedPermanently))
-		r.Get("/newsblur", redirect.To("/compare/newsblur", http.StatusMovedPermanently))
-		r.Get("/freshrss", redirect.To("/compare/freshrss", http.StatusMovedPermanently))
+		addLegacyRoutes(r)
 	})
 
 	return router
+}
+
+func addLegacyRoutes(r chi.Router) {
+	r.Get("/list/favorites", redirect.To("/favorites", http.StatusMovedPermanently))
+	r.Get("/list/subscriptions", redirect.To("/subscriptions", http.StatusMovedPermanently))
+	r.Get("/list/articles", redirect.To("/articles", http.StatusMovedPermanently))
+	r.Get("/posts", redirect.To("/blog", http.StatusMovedPermanently))
+	r.Get("/posts/*", redirect.Param("*", "blog/%s", http.StatusMovedPermanently))
+	r.Get("/view/article/{item_id}", redirect.Param("item_id", "/articles/%s", http.StatusMovedPermanently))
+	r.Get("/user/import", redirect.To("/import", http.StatusMovedPermanently))
+	r.Get("/user/export", redirect.To("/export", http.StatusMovedPermanently))
+	r.Get("/user/settings", redirect.To("/settings", http.StatusMovedPermanently))
+	r.Get("/subscription/add", redirect.To("/subscriptions/add", http.StatusMovedPermanently))
+	r.Get("/feedly", redirect.To("/compare/feedly", http.StatusMovedPermanently))
+	r.Get("/inoreader", redirect.To("/compare/inoreader", http.StatusMovedPermanently))
+	r.Get("/innoreader", redirect.To("/compare/inoreader", http.StatusMovedPermanently))
+	r.Get("/newsblur", redirect.To("/compare/newsblur", http.StatusMovedPermanently))
+	r.Get("/freshrss", redirect.To("/compare/freshrss", http.StatusMovedPermanently))
+	r.Get("/security.txt", redirect.To("/.well-known/security.txt", http.StatusMovedPermanently))
 }
