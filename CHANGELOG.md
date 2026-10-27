@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.253.1](https://github.com/immanent-tech/foragd/compare/v0.253.0...v0.253.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **blog:** 🔧 fix title ([2bff45d](https://github.com/immanent-tech/foragd/commit/2bff45d354848c611214dee30ceab8694d195251))
+
 ## [0.253.0](https://github.com/immanent-tech/foragd/compare/v0.252.3...v0.253.0) (2026-10-27)
 
 
