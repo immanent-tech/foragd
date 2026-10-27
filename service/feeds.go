@@ -346,9 +346,13 @@ func (s *FeedService) UpdateFeedItems(
 
 		// Enrich new items.
 		if len(itemStates.New) > 0 {
-			_, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New)
-			if err != nil {
+			if _, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
 				return oldData.LastFetched, fmt.Errorf("add new items: %w", err)
+			}
+		}
+		if len(itemStates.Updated) > 0 {
+			if _, err := itemSvc.AddItems(ctx, itemStates.Updated); err != nil {
+				return oldData.LastFetched, fmt.Errorf("index updated items: %w", err)
 			}
 		}
 		// Log item states.
@@ -466,7 +470,7 @@ func (s *FeedService) updateFeedData(ctx context.Context, oldData, newData *mode
 		changes["image"] = Change{Old: oldData.Image, New: newData.Image}
 	}
 	// Always append then compact any source URL changes.
-	if len(newData.GetSourceURLs()) != len(oldData.GetSourceURLs()) {
+	if !slices.Equal(oldData.GetSourceURLs(), newData.GetSourceURLs()) {
 		newData.SourceURLs = append(newData.SourceURLs, oldData.SourceURLs...)
 		slices.Sort(newData.SourceURLs)
 		newData.SourceURLs = slices.Compact(newData.SourceURLs)
