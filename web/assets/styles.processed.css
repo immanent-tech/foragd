@@ -9112,6 +9112,9 @@
   .text-wrap {
     text-wrap: wrap;
   }
+  .break-all {
+    word-break: break-all;
+  }
   @layer daisyui.l1.l2 {
     .file-input-primary {
       --btn-color: var(--color-primary);

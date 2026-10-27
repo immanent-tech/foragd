@@ -276,6 +276,28 @@ templ desktopLanguageDropdown(path string, filters models.ListFilters, languages
 
 // desktopViewFilters renders the desktop view filters.
 templ desktopViewFilters(path string, filters models.ListFilters) {
+	// <div class="join">
+	// 	{{ active := filters.GetView() }}
+	// 	for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll,models.ViewFavorites}) {
+	// 		{{ filters.View = view }}
+	// 		<input
+	// 			class="join-item btn btn-outline btn-sm border-neutral/15"
+	// 			type="radio"
+	// 			name="options"
+	// 			aria-label={ string(view) }
+	// 			if active == view {
+	// 				checked
+	// 			}
+	// 			hx-get={ path }
+	// 			hx-target={ ContentID.Target() }
+	// 			hx-replace-url="true"
+	// 			hx-swap="innerMorph transition:true"
+	// 			hx-vals={ templ.JSONString(filters) }
+	// 			hx-headers={ templ.JSONString(map[string]string{models.ActionHeader: "update-filters"}) }
+	// 			hx-nonce={ templ.GetNonce(ctx) }
+	// 		/>
+	// 	}
+	// </div>
 	<ul id="desktop-view-filters" class="menu menu-horizontal text-sm">
 		@viewFilterOption(path, models.ViewUnread, filters)
 		@viewFilterOption(path, models.ViewRead, filters)
