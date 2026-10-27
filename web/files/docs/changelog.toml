@@ -11,10 +11,30 @@
 # - patch
 
 [[releases]]
+version = "v0.253"
+date = "Oct 28, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "fixed"
+description = """
+Kerfuffles around item enrichment have been fixed. Some items were not being enriched anymore, that's been fixed.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+Feed updates not applying have been fixed.
+"""
+[[releases.changes]]
+type = "fixed"
+description = """
+A backend crash was stopping some feeds from updating. More resources have been allocated and this issue is now resolved.
+"""
+
+[[releases]]
 version = "v0.252"
 date = "Oct 24, 2026"
 type = "minor"
-is_latest = true
 [[releases.changes]]
 type = "fixed"
 description = """
