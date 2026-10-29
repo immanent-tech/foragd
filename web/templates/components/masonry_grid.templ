@@ -194,20 +194,7 @@ templ MasonryGridBehavior() {
 
 			  -- Use htmx4's load event for initial load, not DOMContentLoaded
 			  on load[event.target is me] from me
-                log "load->running layout", event.type, event.target
-			    call scheduleLayout()
-			  end
-
-			  -- Only re-layout after successful htmx swaps, not every request
-			  on "htmx:after:swap" from #grid-objects
-			    -- Wait for the hyperscript to be ready before re-layout
-                log "htmx:after:swap->running layout"
-			    wait 5ms then call scheduleLayout()
-			  end
-
-			  -- Handle back-button navigations and non-HTMX loads
-			  on "htmx:after:load" from document
-                log "htmx:after:load->running layout"
+                log "load->running layout"
 			    call scheduleLayout()
 			  end
 
@@ -218,6 +205,7 @@ templ MasonryGridBehavior() {
 			    end
 			  end
 
+              -- Trigger on mutation of grid objects
 			  on mutation of childList from me
 			    -- Wait a tiny bit for the mutation to settle before re-layout
                 log "mutation->running layout"
