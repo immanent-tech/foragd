@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.253.3](https://github.com/immanent-tech/foragd/compare/v0.253.2...v0.253.3) (2026-10-29)
+
+
+### Reverts
+
+* **templates:** ♻️ revert title word-break changes ([f780099](https://github.com/immanent-tech/foragd/commit/f780099ad605152fd0e0f570124c013063bff322))
+
 ## [0.253.2](https://github.com/immanent-tech/foragd/compare/v0.253.1...v0.253.2) (2026-10-29)
 
 
