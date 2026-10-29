@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"log/slog"
 	"net/url"
 	"slices"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/go-base/validation"
 	feeds "github.com/immanent-tech/go-syndication"
+	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 )
 
@@ -69,7 +71,7 @@ func (f Feeds) GetCategories() Categories {
 // NewFeed converts a feed source from the go-syndication library into a models.Feed object.
 // It uses worker goroutines to generate items in parallel, with proper cancellation support.
 // Context is checked at worker start and before each send to prevent goroutine leaks and lost items.
-func NewFeed(ctx context.Context, sourceURL string, existingID FeedID, source *feeds.Feed) *Feed {
+func NewFeed(ctx context.Context, feedURLStr string, existingID FeedID, source *feeds.Feed) *Feed {
 	var id FeedID
 	if existingID == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
@@ -152,13 +154,32 @@ func NewFeed(ctx context.Context, sourceURL string, existingID FeedID, source *f
 		})
 	}
 
-	if srcURL := source.GetSourceURL(); srcURL != "" {
-		feed.SourceURLs = append(feed.SourceURLs, srcURL)
-	}
-	// Add the url used to find the feed to the source URLs if needed.
-	if !slices.Contains(feed.SourceURLs, sourceURL) {
+	// Add any source URL defined by the source data.
+	if sourceURL := source.GetSourceURL(); sourceURL != "" {
 		feed.SourceURLs = append(feed.SourceURLs, sourceURL)
 	}
+	// Add the URL used to find the feed to the source URLs if needed.
+	feedURL, err := url.Parse(feedURLStr)
+	if err != nil {
+		slogctx.Warn(ctx, "Could not parse feed URL used.",
+			slog.String("feed_url", feedURLStr),
+			slog.Any("error", err))
+	} else {
+		if !slices.ContainsFunc(feed.SourceURLs, func(e string) bool {
+			// Parse the current source URL element.
+			existingURL, err := url.Parse(e)
+			if err != nil {
+				slogctx.Warn(ctx, "Could not parse source URL for comparison.", slog.String("source_url", e))
+				return false
+			}
+			return existingURL.Scheme == feedURL.Scheme &&
+				existingURL.Host == feedURL.Host &&
+				existingURL.Path == feedURL.Path
+		}) {
+			feed.SourceURLs = append(feed.SourceURLs, feedURLStr)
+		}
+	}
+
 	// Add any image found.
 	if sourceImg := source.GetImage(); sourceImg != nil {
 		feed.Image = &RemoteImage{
