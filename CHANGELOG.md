@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.253.2](https://github.com/immanent-tech/foragd/compare/v0.253.1...v0.253.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* **models:** 🔧 unescape item titles ([754fad6](https://github.com/immanent-tech/foragd/commit/754fad662ce9cb39e9c0f02af8b01266a0437483))
+
+
+### Performance Improvements
+
+* **service/items:** ⚡ simplify suggestion clause ([c858990](https://github.com/immanent-tech/foragd/commit/c858990a4a7e5ca12bbe3e435f7ac23c0ca17b19))
+
 ## [0.253.1](https://github.com/immanent-tech/foragd/compare/v0.253.0...v0.253.1) (2026-10-27)
 
 
