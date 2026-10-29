@@ -156,6 +156,21 @@ templ MasonryGridBehavior() {
 			    call layout()
 			  end
 
+              def scheduleLayout()
+                if my._layoutQueued then return end
+                set my._layoutQueued to true
+                js(me)
+                  requestAnimationFrame(function () {
+                    me._layoutQueued = false
+                    me.dispatchEvent(new CustomEvent('masonry:run'))
+                  })
+                end
+               end
+
+              on masonry:run from me
+                call layout()
+              end
+
 			  -- Resize: debounce via setTimeout, fire a custom event to re-enter Hyperscript
 			  on resize from window
 			    js(me)
@@ -168,38 +183,45 @@ templ MasonryGridBehavior() {
 
 			  -- Reset layout on "masonry:update" from body.
 			  on masonry:update from body
+                log "masonry:update->resetting layout"
 			    call resetLayout()
 			  end
 
 			  on masonry:reset from me
+                log "masonry:reset->resetting layout"
 			    call resetLayout()
 			  end
 
 			  -- Use htmx4's load event for initial load, not DOMContentLoaded
-			  on load from me
-			    call layout()
+			  on load[event.target is me] from me
+                log "load->running layout", event.type, event.target
+			    call scheduleLayout()
 			  end
 
 			  -- Only re-layout after successful htmx swaps, not every request
-			  on "htmx:after:swap" from document
+			  on "htmx:after:swap" from #grid-objects
 			    -- Wait for the hyperscript to be ready before re-layout
-			    wait 5ms then call layout()
+                log "htmx:after:swap->running layout"
+			    wait 5ms then call scheduleLayout()
 			  end
 
 			  -- Handle back-button navigations and non-HTMX loads
 			  on "htmx:after:load" from document
-			    call layout()
+                log "htmx:after:load->running layout"
+			    call scheduleLayout()
 			  end
 
 			  on pageshow from window
 			    if event.persisted
+                    log "pageshow->resetting layout"
 			      call resetLayout()
 			    end
 			  end
 
 			  on mutation of childList from me
 			    -- Wait a tiny bit for the mutation to settle before re-layout
-			    wait 2ms then call layout()
+                log "mutation->running layout"
+			    wait 2ms then call scheduleLayout()
 			  end
 
 			end
