@@ -369,10 +369,10 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 // UpdateListCategoryFilters can be be used to perform an OOB swap that will add additional category filters to the
 // mobile and desktop category filter lists.
 templ UpdateListCategoryFilters(path string, filters models.ListFilters, categories models.Categories) {
-	<div id="mobile-category-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
+	<div id="mobile-category-filters" hx-swap-oob="true" hx-sync="this:drop" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListCategoryFilters(path, filters, categories)
 	</div>
-	<div id="desktop-category-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
+	<div id="desktop-category-filters" hx-swap-oob="true" hx-sync="this:drop" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListCategoryFilters(path, filters, categories)
 	</div>
 }
@@ -441,10 +441,10 @@ templ clearCategoryFilterOption(path string, filters models.ListFilters) {
 // UpdateListLanguageFilters can be be used to perform an OOB swap that will add additional category filters to the
 // mobile and desktop category filter lists.
 templ UpdateListLanguageFilters(path string, filters models.ListFilters, languages map[string]int64) {
-	<div id="mobile-language-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
+	<div id="mobile-language-filters" hx-swap-oob="true" hx-sync="this:drop" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListLanguageFilters(path, filters, languages)
 	</div>
-	<div id="desktop-language-filters" hx-swap-oob="true" hx-nonce={ templ.GetNonce(ctx) }>
+	<div id="desktop-language-filters" hx-swap-oob="true" hx-sync="this:drop" hx-nonce={ templ.GetNonce(ctx) }>
 		@ListLanguageFilters(path, filters, languages)
 	</div>
 }
