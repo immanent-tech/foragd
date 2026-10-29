@@ -114,11 +114,7 @@ func searchSuggestionsClause(search *models.SearchRequest) query.Option {
 					query.Term("title.exact", search.Text, query.WithQueryBoost[*query.TermQuery](10.0)),
 					query.SearchAsYouType(search.Text, "title"),
 					query.SearchAsYouType(search.Text, "description"),
-					query.SimpleQueryString(
-						query.WithSimpleQueryStringText(&search.Text),
-						query.WithSimpleQueryStringFields("content"),
-						query.WithSimpleQueryStringOperator(&operator.And),
-					),
+					query.MatchPhrase("content", search.Text),
 				),
 			),
 		),
