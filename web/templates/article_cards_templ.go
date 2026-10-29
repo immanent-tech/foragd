@@ -317,7 +317,7 @@ func articleCardBody(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><h3 class=\"m-0 card-title line-clamp-2 font-serif text-lg text-balance break-all w-full group-hover:underline\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><h3 class=\"m-0 card-title line-clamp-2 font-serif text-lg text-balance w-full group-hover:underline\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

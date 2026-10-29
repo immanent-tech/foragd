@@ -80,7 +80,7 @@ templ subscriptionCardTitle(sub *models.Subscription) {
 		</div>
 		<div>
 			// Title.
-			<h3 id={ "sub-title-" + sub.GetID() } class="m-0 card-title line-clamp-2 font-serif text-lg text-balance break-all w-full group-hover:underline">{ sub.GetTitle() }</h3>
+			<h3 id={ "sub-title-" + sub.GetID() } class="m-0 card-title line-clamp-2 font-serif text-lg text-balance w-full group-hover:underline">{ sub.GetTitle() }</h3>
 			// Description (if any).
 			if  feed := sub.Feed; feed != nil && feed.GetDescription() != "" {
 				<div class="tooltip tooltip-bottom tooltip-end" data-tip={ feed.GetDescription() }>
