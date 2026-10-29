@@ -17,6 +17,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
+	"go.opentelemetry.io/otel"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -33,6 +34,8 @@ var (
 	_ scs.IterableCtxStore = (*Store)(nil)
 	_ scs.CtxStore         = (*Store)(nil)
 )
+
+var tracer = otel.Tracer("github.com/immanent-tech/foragd/server/session/store")
 
 // UserSession tracks a user session.
 type UserSession struct {
@@ -84,7 +87,10 @@ func (s *Store) Delete(token string) error {
 // tokens should result in a found return value of false and a nil err value. The err return value should be used for
 // system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	session, err := elastic.GetDoc[string, UserSession](ctx, s.backend.GetIndexRO(service.SessionsIndex), token)
+	spanCtx, span := tracer.Start(ctx, "session-find")
+	defer span.End()
+
+	session, err := elastic.GetDoc[string, UserSession](spanCtx, s.backend.GetIndexRO(service.SessionsIndex), token)
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, false, nil
@@ -109,7 +115,10 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // CommitCtx should add the session token and data to the store, with the given expiry time. If the session token
 // already exists, then the data and expiry time should be overwritten.
 func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry time.Time) error {
-	if err := elastic.UpdateDoc(ctx, s.backend.GetIndexRW(service.SessionsIndex),
+	spanCtx, span := tracer.Start(ctx, "session-commit")
+	defer span.End()
+
+	if err := elastic.UpdateDoc(spanCtx, s.backend.GetIndexRW(service.SessionsIndex),
 		token,
 		map[string]any{
 			"token":      token,
