@@ -42,7 +42,7 @@ func ReadingProgress() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"reading-progress\" class=\"fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] duration-50 ease-linear\" _=\"\n\t\ton scroll from the window debounced at 20ms\n    \t\tset my.style.width to ((document.documentElement.scrollTop / (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'\n      \tend\n\t    on load\n        \ttrigger scroll on the window\n      \tend\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"reading-progress\" class=\"fixed top-0 left-0 z-9999 h-1 w-0 bg-accent transition-[width] ease-linear\" _=\"\n\t\ton scroll from the window throttled at 16ms\n    \t\tset my.style.width to ((document.documentElement.scrollTop / (document.documentElement.scrollHeight - document.documentElement.clientHeight)) * 100) + '%'\n      \tend\n\t    on load\n        \ttrigger scroll on the window\n      \tend\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
