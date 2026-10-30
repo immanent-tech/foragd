@@ -128,7 +128,7 @@ func TestListSubscriptions(t *testing.T) {
 				t.Errorf("cards: got %d, want %d", got, tc.wantCards)
 			}
 
-			hasGrid := doc.Find(".masonry-grid").Length() > 0
+			hasGrid := doc.Find("masonry-grid").Length() > 0
 			if hasGrid == tc.wantEmpty {
 				t.Errorf("grid present = %v, but wantEmpty = %v", hasGrid, tc.wantEmpty)
 			}

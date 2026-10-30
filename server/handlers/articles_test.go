@@ -456,7 +456,7 @@ func TestManager_HandleListArticlesUpdates(t *testing.T) {
 			want: http.StatusNoContent,
 			ctxSetup: func(ctx context.Context) context.Context {
 				ctx = models.UserToCtx(ctx, &models.User{})
-				ctx = handlers.ListFiltersToCtx(ctx, &models.ListFilters{View: models.ViewAll})
+				ctx = handlers.ListFiltersToCtx(ctx, models.ListFilters{View: models.ViewAll})
 				return ctx
 			},
 		},
