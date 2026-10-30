@@ -10,6 +10,23 @@
 # - minor
 # - patch
 
+
+[[releases]]
+version = "v0.254"
+date = "Oct 30, 2026"
+type = "minor"
+is_latest = true
+[[releases.changes]]
+type = "improved"
+description = """
+Reading progress indicator should be smoother and track progress more closely.
+"""
+[[releases.changes]]
+type = "improved"
+description = """
+Grid layout on desktop and larger screens should be smoother and faster.
+"""
+
 [[releases]]
 version = "v0.253"
 date = "Oct 28, 2026"
