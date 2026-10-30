@@ -36,7 +36,8 @@
                 "cossssmin.posthtml",
                 "csstools.postcss",
                 "Vue.volar",
-                "SimonSiefke.svg-preview"
+                "SimonSiefke.svg-preview",
+                "42Crunch.vscode-openapi"
             ]
         }
     }
