@@ -19,8 +19,6 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "fmt"
-
 var scrollRestoreOnce = templ.NewOnceHandle()
 
 func ScrollRestoreBehavior() templ.Component {
@@ -56,33 +54,20 @@ func ScrollRestoreBehavior() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script id=\"scroll-restore-setup\" nonce=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script id=\"scroll-restore-behavior\" type=\"text/hyperscript\" nonce=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/scroll_restore.templ`, Line: 14, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/scroll_restore.templ`, Line: 12, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-preserve=\"true\">\n\t\t\tif ('scrollRestoration' in history) {\n\t\t\t\thistory.scrollRestoration = 'manual'\n\t\t\t}\n\t\t</script> <script id=\"scroll-restore-behavior\" type=\"text/hyperscript\" nonce=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/scroll_restore.templ`, Line: 19, Col: 90}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-preserve=\"true\">\n\t\t\tbehavior ScrollRestore(gridSelector, cardSelector, storageKey)\n\t\t\t  def doRestore()\n\t\t\t    js(gridSelector, cardSelector, storageKey)\n\t\t\t      const y = sessionStorage.getItem(`${storageKey}-scroll`);\n\t\t\t      if (y) {\n\t\t\t        window.scrollTo(0, parseInt(y));\n\t\t\t      }\n\t\t\t    end\n\t\t\t  end\n\n\t\t\t  // normal load / reload: fresh document, but sessionStorage survives\n\t\t\t  // (sessionStorage is per-tab and persists across normal navigation/reload,\n\t\t\t  // it's only cleared when the tab closes)\n\t\t\t  on load from me\n\t\t\t    js\n\t\t\t      const missFlag = sessionStorage.getItem('foragd-history-miss');\n\t\t\t      sessionStorage.removeItem('foragd-history-miss');\n\t\t\t      const nav = performance.getEntriesByType('navigation')[0];\n\t\t\t      return !!missFlag || (nav && nav.type === 'back_forward');\n\t\t\t    end\n\t\t\t    if it\n\t\t\t      call doRestore()\n\t\t\t    end\n\t\t\t  end\n\n\t\t\t  // bfcache restore: browser reused the in-memory page, JS state intact\n\t\t\t  on pageshow from window\n\t\t\t    if event.persisted\n\t\t\t      call doRestore()\n\t\t\t    end\n\t\t\t  end\n\n\t\t\t  -- htmx4 history mode: page restored via htmx after back button\n\t\t\t  on \"htmx:after:load\" from document\n\t\t\t    call doRestore()\n\t\t\t  end\n\n\t\t\t  -- Also handle after htmx swap completes\n\t\t\t  on \"htmx:finally:swap\" from document\n\t\t\t    call doRestore()\n\t\t\t  end\n\n\n\t\t\t  // store scroll position peridorically\n\t\t\t  on scroll from window debounced at 200ms\n\t\t\t  \tjs(storageKey)\n\t\t\t      sessionStorage.setItem(`${storageKey}-scroll`, window.scrollY)\n\t\t\t    end\n\t\t\t  end\n\t\t\tend\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-preserve=\"true\">\n\t\t\tbehavior ScrollRestore\n                init\n                  set window.history.scrollRestoration to 'manual'\n                end\n\n                on scroll from window debounced at 100ms\n                  if not $restoring\n                    call sessionStorage.setItem('scroll:' + location.pathname + location.search, window.scrollY)\n                  end\n                end\n\n                on htmx:before:request from document\n                  if not $restoring\n                    call sessionStorage.setItem('scroll:' + location.pathname + location.search, window.scrollY)\n                  end\n                end\n\n                on htmx:before:history:restore from document\n                  set $restoring to true\n                end\n\n                on htmx:after:swap from document\n                  if $restoring\n                    log 'restoring scroll position'\n                    set y to parseInt(sessionStorage.getItem('scroll:' + location.pathname + location.search) or '0')\n                    set tries to 0\n                    repeat until Math.abs(window.scrollY - y) < 2 or tries > 20\n                      call window.scrollTo({ top: y, left: 0, behavior: 'instant' })\n                      wait 50ms\n                      increment tries\n                    end\n                    set $restoring to false\n                  end\n                end\n\n                on htmx:error from document\n                  set $restoring to false\n                end\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -94,10 +79,6 @@ func ScrollRestoreBehavior() templ.Component {
 		}
 		return nil
 	})
-}
-
-func ScrollRestoreScript(storageKey string) string {
-	return fmt.Sprintf("install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', storageKey: '%s')", storageKey)
 }
 
 var _ = templruntime.GeneratedTemplate
