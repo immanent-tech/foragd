@@ -23,15 +23,12 @@ import (
 func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Optimized: pre-compute path once, avoids repeated string checks in nested branches.
+			// Optimized: precompute path once, avoids repeated string checks in nested branches.
 			path := determinePath(req.URL.Path)
 
+			log := slogctx.FromCtx(req.Context())
+
 			if !isListPage(req.URL.Path) {
-				slogctx.Debug(
-					req.Context(),
-					"Non-list page, using filters from session.",
-					slog.String("path", req.URL.Path),
-				)
 				// Early return for non-list pages - avoids all filter processing.
 				filters := handlers.ListFiltersFromSession(req.Context(), session, path)
 				filters.From = nil
@@ -55,6 +52,12 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 			}
 
 			// Single context setup - all operations below.
+			log.Debug(
+				"Saving filters",
+				slog.String("filters", filters.Encode()),
+				slog.String("path", path),
+			)
+
 			ctx := handlers.ListFiltersToCtx(req.Context(), *filters)
 			handlers.ListFiltersToSession(ctx, session, path, *filters)
 			handlers.ListCountToSession(ctx, session, path, filters.Count)
@@ -70,14 +73,13 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 }
 
 // determinePath extracts the canonical path from URL for filter key suffixes.
-// Uses fast switch over known patterns instead of repeated HasPrefix/HasSuffix checks.
 func determinePath(urlPath string) string {
-	switch urlPath {
-	case "/subscriptions", "/subscriptions/":
+	switch {
+	case strings.HasPrefix(urlPath, "/subscriptions"):
 		return "/subscriptions"
-	case "/articles", "/articles/":
+	case strings.HasPrefix(urlPath, "/articles"):
 		return "/articles"
-	case "/map", "/map/":
+	case strings.HasPrefix(urlPath, "/map"):
 		return "/map"
 	default:
 		return ""
@@ -98,19 +100,26 @@ func isListPage(urlPath string) bool {
 	}
 }
 
-// prepareFilters extracts, sanitizes, and validates filters based on request type.
-// Returns filters pointer, whether to fetch from session, and whether to redirect.
+// prepareFilters extracts, sanitizes, and validates filters based on request type. Returns filters pointer, whether to
+// fetch from session, and whether to redirect.
 func prepareFilters(req *http.Request, path string, session handlers.SessionManager) (*models.ListFilters, bool, bool) {
 	if req.Method != http.MethodGet {
 		// POST: will be handled by caller (session decode logic below)
 		return nil, false, false
 	}
 
+	log := slogctx.FromCtx(req.Context())
+
 	// History restore or mark-subscription: fetch from session
 	if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
 		filters := handlers.ListFiltersFromSession(req.Context(), session, path)
+		log.Debug(
+			"Restored filters from session.",
+			slog.String("filters", filters.Encode()),
+			slog.String("path", path),
+		)
 		if filters.From != nil {
-			upto := *filters.From
+			upto := *filters.From + filters.Count
 			filters.UpTo = &upto
 			filters.From = nil
 		} else if filters.SearchAfter != nil {
@@ -123,7 +132,9 @@ func prepareFilters(req *http.Request, path string, session handlers.SessionMana
 
 	// Regular GET: parse from query string
 	filters := models.ParseListFilters(req.URL.Query())
-	filters.Sanitise()
+	if err := filters.Sanitise(); err != nil {
+		log.Warn("Filter sanitization failed.", slog.Any("error", err))
+	}
 
 	// Check canonicalization - redirect if query changes
 	canonical := filters.Encode()
@@ -137,11 +148,13 @@ func processFilters(
 	session handlers.SessionManager,
 	res http.ResponseWriter,
 ) *models.ListFilters {
+	log := slogctx.FromCtx(req.Context())
+
 	filters, err := forms.DecodeForm[*models.ListFilters](req)
 	if err != nil || filters == nil {
 		filters = handlers.ListFiltersFromSession(req.Context(), session, path)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to decode list filters. Using filters from session.",
+			log.Warn("Unable to decode list filters. Using filters from session.",
 				slog.Any("error", err),
 				slog.Any("filters", filters),
 			)

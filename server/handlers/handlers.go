@@ -107,6 +107,7 @@ func ListFiltersToSession(ctx context.Context, session SessionManager, path stri
 func ListFiltersFromSession(ctx context.Context, session SessionManager, path string) *models.ListFilters {
 	filters, ok := session.Get(ctx, string(listFiltersCtxKey)+path).(models.ListFilters)
 	if !ok {
+		slogctx.Warn(ctx, "Could not restore filters from session.")
 		return models.NewListFilters()
 	}
 	return &filters
