@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.254.0](https://github.com/immanent-tech/foragd/compare/v0.253.3...v0.254.0) (2026-10-30)
+
+
+### Features
+
+* **templates:** ✨ improved masonry grid ([df8ddb7](https://github.com/immanent-tech/foragd/commit/df8ddb79d1692e4a202fdf12a7e919fae60a905e))
+
+
+### Bug Fixes
+
+* **models:** 🔧 use more robust check for source URL equality ([33e186d](https://github.com/immanent-tech/foragd/commit/33e186dae8c4b83bf42efc957735bcde619f1785))
+* **templates/components:** ♻️ update scroll restore component for better htmx4 compatibility ([3e6a824](https://github.com/immanent-tech/foragd/commit/3e6a824b73ee4b0e75a3e9a0376a860efdf098ac))
+* **templates:** 🔧 fix pagination triggering twice ([4d41d52](https://github.com/immanent-tech/foragd/commit/4d41d5247246f92d6e5436e297dbc033d14c7728))
+* **templates:** 🔧 protect against excessive runs of masonry grid script ([56a7688](https://github.com/immanent-tech/foragd/commit/56a76887209c1bdf46f153acf8709327f41958ac))
+* **templates:** 🔧 remove more redundant triggers of masonry grid script ([9bc0806](https://github.com/immanent-tech/foragd/commit/9bc08063abc580482f235a4606a6fcd0878a36ff))
+* **templates:** 🔧 use hx-sync to ensure category/language menus aren't updated rapidly ([a1d5b6f](https://github.com/immanent-tech/foragd/commit/a1d5b6f048a0be27bf7c8e76c902ea49690ad985))
+
+
+### Performance Improvements
+
+* **middlewares:** ⚡ improved list filters middlewares ([432147d](https://github.com/immanent-tech/foragd/commit/432147d83afec9cef08e7a61c964969bb484a874))
+* **session:** ⚡ add tracing to session store operations ([9c125d4](https://github.com/immanent-tech/foragd/commit/9c125d42a3684b99e626391333bc8c60044ce19a))
+* **templates:** ⚡ smoother reading progresss indicator ([ac20e1a](https://github.com/immanent-tech/foragd/commit/ac20e1a797fb0ff79d2a796c1b79258247777d88))
+
 ## [0.253.3](https://github.com/immanent-tech/foragd/compare/v0.253.2...v0.253.3) (2026-10-29)
 
 
