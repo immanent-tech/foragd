@@ -35,8 +35,6 @@ templ ArticleCard(idx int, article *models.Article, options ...func(*articleCard
 			option(opts)
 		}
 	}}
-	// "animate-fadeinup",
-	// "animation-delay-[calc(min(var(--i),15)*80ms)]",
 	@partials.Card(element.WithAttribute("id", article.GetID()),
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-disinherit", "*"),
@@ -44,7 +42,8 @@ templ ArticleCard(idx int, article *models.Article, options ...func(*articleCard
 			"group",
 			"group-active:scale-[0.96]",
 			"transition-opacity",
-			"starting:opacity-0",
+			"animate-fadeinup",
+			"animation-delay-[calc(min(var(--i),15)*80ms)]",
 			"self-start",
 			"cursor-pointer",
 			"touch-manipulation",
