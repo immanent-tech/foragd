@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.254.1](https://github.com/immanent-tech/foragd/compare/v0.254.0...v0.254.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **middlewares:** 🔧 fix filter saving and restoration ([58ff655](https://github.com/immanent-tech/foragd/commit/58ff6558ee5d0a33f0416c59475c8c06a5716259))
+
 ## [0.254.0](https://github.com/immanent-tech/foragd/compare/v0.253.3...v0.254.0) (2026-10-30)
 
 
