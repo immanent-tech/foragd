@@ -117,7 +117,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Subscriptions) > 0 {
 						@listSubscriptionsGrid(response)
-						@ListPaginationControl(routeSubscriptionsPaginate, &response.Filters)
 						@partials.LoadingIndicator("loading-items", "Loading content...", element.WithClasses("mt-4"))
 						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 							<li>
@@ -150,6 +149,7 @@ templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
 						@SubscriptionLatestArticles(sub.Articles)
 					}
 				}
+				@ListPaginationControl(routeSubscriptionsPaginate, &response.Filters)
 			}
 		}
 	</div>

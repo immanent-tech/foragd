@@ -350,13 +350,14 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 		id="pagination-sentinel-wrapper"
 		hx-post={ path }
 		hx-vals={ templ.JSONString(filters) }
-		hx-trigger="revealed once delay:100ms"
+		hx-trigger="intersect once delay:100ms"
 		hx-sync="this:drop"
-		hx-target="#grid-objects"
-		hx-swap="append"
+		hx-swap="outerMorph"
 		hx-indicator="#loading-items"
 		hx-nonce={ templ.GetNonce(ctx) }
 		_="
+        on intersection(intersecting)
+            log 'pagination element intersecting'
 		on htmx:before:history:restore from body
 			toggle .hidden on me until gridLayoutComplete from body
 		on htmx:before:request from <[hx-push-url]/>

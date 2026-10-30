@@ -174,13 +174,13 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			// 	)).Handle().ServeHTTP(res, req)
 			// }
 			// Update pagination control element.
-			if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
-				m.NewPartial(templates.ListPaginationControl(
-					"/subscriptions/paginate",
-					&response.Filters,
-					element.WithHXSwapOOB("true"),
-				)).Handle().ServeHTTP(res, req)
-			}
+			// if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
+			// 	m.NewPartial(templates.ListPaginationControl(
+			// 		"/subscriptions/paginate",
+			// 		&response.Filters,
+			// 		element.WithHXSwapOOB("true"),
+			// 	)).Handle().ServeHTTP(res, req)
+			// }
 		}
 	}
 }

@@ -131,13 +131,13 @@ func (m *Manager) HandleListArticles(itemSvc ItemService) http.HandlerFunc {
 			// 	)).Handle().ServeHTTP(res, req)
 			// }
 			// Update pagination control element.
-			if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
-				m.NewPartial(templates.ListPaginationControl(
-					"/articles/paginate",
-					&response.Filters,
-					element.WithHXSwapOOB("true"),
-				)).Handle().ServeHTTP(res, req)
-			}
+			// if response.Filters.SearchAfter != nil && len(response.Articles) == response.Filters.GetCount() {
+			// 	m.NewPartial(templates.ListPaginationControl(
+			// 		"/articles/paginate",
+			// 		&response.Filters,
+			// 		element.WithHXSwapOOB("true"),
+			// 	)).Handle().ServeHTTP(res, req)
+			// }
 		}
 	}
 }

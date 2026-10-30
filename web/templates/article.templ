@@ -535,7 +535,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					@partials.LoadingIndicator("refreshing", "Refreshing...", element.WithClasses("py-4"))
 					if len(response.Articles) > 0 {
 						@listArticlesGrid(response)
-						@ListPaginationControl(routeArticlesPaginate, &response.Filters)
 						@partials.LoadingIndicator("loading-items", "Loading content...", element.WithClasses("mt-4"))
 						<ul class="menu menu-vertical mt-8 w-full items-center justify-center gap-2 sm:menu-horizontal">
 							// Mark all subscriptions action.
@@ -585,6 +584,7 @@ templ listArticlesGrid(response *models.ListArticlesResponse) {
 				for idx, article := range response.Articles {
 					@ArticleCard(idx, article, ShowSubscriptionDetail(showSubscription))
 				}
+				@ListPaginationControl(routeArticlesPaginate, &response.Filters)
 			}
 		}
 	</div>
