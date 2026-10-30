@@ -386,7 +386,7 @@ templ SearchResults(results *models.SearchResults) {
 								<p class="text-lg/loose font-semibold">Refreshing...</p>
 							</div>
 						</div>
-						<div _="install ScrollRestore(gridSelector: '#grid-objects', cardSelector: '.card', endpoint: '/search', storageKey: 'search')">
+						<div>
 							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 								element.WithAttribute("_", "install MasonryGrid"),
 								element.WithHXMethod(http.MethodGet, "/search"),

@@ -135,7 +135,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 }
 
 templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
-	<div _="install ScrollRestore">
+	<div>
 		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
 			element.WithAttribute("_", "install MasonryGrid"),
 			element.WithHXMethod(http.MethodGet, string(routeSubscriptions)),

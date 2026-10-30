@@ -18,6 +18,8 @@ import (
 // grid/list (and is used for CSS-based animations).
 templ SubscriptionCard(idx int, sub *models.Subscription) {
 	{{ styleAttr := fmt.Sprintf("--i: %d; --hue: %ddeg", idx, hueFromText(sub.GetTitle()+sub.GetLink())) }}
+	// "animate-fadeinup",
+	// "animation-delay-[calc(min(var(--i),15)*80ms)]",
 	@partials.Card(element.WithAttribute("id", sub.GetID()),
 		element.WithAttribute("style", styleAttr),
 		element.WithClasses(
@@ -25,8 +27,7 @@ templ SubscriptionCard(idx int, sub *models.Subscription) {
 			"group-active:scale-[0.96]",
 			"relative",
 			"transition-opacity",
-			"animate-fadeinup",
-			"animation-delay-[calc(min(var(--i),15)*80ms)]",
+			"starting:opacity-0",
 			"masonry-item"),
 		element.WithHXIndicator("this"),
 		element.WithHXNonce(templ.GetNonce(ctx)),

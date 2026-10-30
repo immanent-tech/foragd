@@ -10560,6 +10560,11 @@
       }
     }
   }
+  @starting-style {
+    .starting\:opacity-0 {
+      opacity: 0%;
+    }
+  }
   @media (forced-colors: active) {
     .forced-colors\:group-aria-selected\:text-\[Highlight\]:is(:where(.group)[aria-selected="true"] *) {
       color: Highlight;

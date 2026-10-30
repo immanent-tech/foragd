@@ -355,14 +355,8 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 		hx-swap="outerMorph"
 		hx-indicator="#loading-items"
 		hx-nonce={ templ.GetNonce(ctx) }
-		_="
-        on intersection(intersecting)
-            log 'pagination element intersecting'
-		on htmx:before:history:restore from body
-			toggle .hidden on me until gridLayoutComplete from body
-		on htmx:before:request from <[hx-push-url]/>
-			toggle .hidden on me until gridLayoutComplete from body
-		"
+		class="hidden"
+		_="on gridLayoutComplete from body remove .hidden from me"
 		{ props.GetAllAttributes()... }
 	></div>
 }
