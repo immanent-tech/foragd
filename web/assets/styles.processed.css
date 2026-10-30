@@ -3146,6 +3146,9 @@
   .right-5 {
     right: calc(var(--spacing) * 5);
   }
+  .bottom-0 {
+    bottom: 0px;
+  }
   .bottom-1\.5 {
     bottom: calc(var(--spacing) * 1.5);
   }
@@ -7191,6 +7194,9 @@
   }
   .h-96 {
     height: calc(var(--spacing) * 96);
+  }
+  .h-150 {
+    height: calc(var(--spacing) * 150);
   }
   .h-\[calc\(100vh-256px\)\] {
     height: calc(100vh - 256px);

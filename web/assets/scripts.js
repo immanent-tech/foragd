@@ -15,6 +15,8 @@ import './embed-youtube'
 import 'leaflet-html'
 // import './leaflet'
 import './android-billing'
+// Custom masonry grid.
+import './hx-masonry'
 
 // Make sure back button after logout does not show cached data.
 //

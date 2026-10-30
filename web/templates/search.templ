@@ -387,9 +387,7 @@ templ SearchResults(results *models.SearchResults) {
 							</div>
 						</div>
 						<div>
-							@partials.Grid(element.WithClasses("masonry-grid", "relative"),
-								element.WithAttribute("_", "install MasonryGrid"),
-								element.WithHXMethod(http.MethodGet, "/search"),
+							@partials.Grid(element.WithHXMethod(http.MethodGet, "/search"),
 								element.WithHXTarget(ContentID.Target()),
 								element.WithHXTrigger("refresh"),
 								element.WithHXIndicator("#refreshing"),

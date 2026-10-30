@@ -567,9 +567,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 
 templ listArticlesGrid(response *models.ListArticlesResponse) {
 	<div>
-		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
-			element.WithAttribute("_", "install MasonryGrid"),
-			element.WithHXMethod(http.MethodGet, string(routeArticles)),
+		@partials.Grid(element.WithHXMethod(http.MethodGet, string(routeArticles)),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXTrigger("refresh"),
 			element.WithHXIndicator("#refreshing"),

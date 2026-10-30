@@ -136,9 +136,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 
 templ listSubscriptionsGrid(response *models.ListSubscriptionsResponse) {
 	<div>
-		@partials.Grid(element.WithClasses("masonry-grid", "relative"),
-			element.WithAttribute("_", "install MasonryGrid"),
-			element.WithHXMethod(http.MethodGet, string(routeSubscriptions)),
+		@partials.Grid(element.WithHXMethod(http.MethodGet, string(routeSubscriptions)),
 			element.WithHXTarget(ContentID.Target()),
 			element.WithHXTrigger("refresh"),
 			element.WithHXIndicator("#refreshing"),

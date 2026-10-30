@@ -90,9 +90,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Subscriptions")
 							}
 							if len(response.Subscriptions) > 0 {
-								@partials.Grid(element.WithClasses("relative", "mt-4", "masonry-grid"),
-									element.WithAttribute("_", "install MasonryGrid"),
-								) {
+								@partials.Grid(element.WithClasses("mt-4")) {
 									for idx, subscription := range response.Subscriptions {
 										@SubscriptionCard(idx, subscription) {
 											if len(subscription.Articles) > 0 {
@@ -146,9 +144,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 								@sectionTitle("Articles")
 							}
 							if len(response.Articles) > 0 {
-								@partials.Grid(element.WithClasses("relative", "mt-4", "masonry-grid"),
-									element.WithAttribute("_", "install MasonryGrid"),
-								) {
+								@partials.Grid(element.WithClasses("mt-4")) {
 									for idx, article := range response.Articles {
 										@ArticleCard(idx, article)
 									}

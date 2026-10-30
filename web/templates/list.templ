@@ -355,8 +355,7 @@ templ ListPaginationControl(path Route, filters *models.ListFilters, options ...
 		hx-swap="outerMorph"
 		hx-indicator="#loading-items"
 		hx-nonce={ templ.GetNonce(ctx) }
-		class="hidden"
-		_="on gridLayoutComplete from body remove .hidden from me"
+		class="pointer-events-none absolute inset-x-0 bottom-0 h-150"
 		{ props.GetAllAttributes()... }
 	></div>
 }
