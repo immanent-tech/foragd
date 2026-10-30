@@ -98,8 +98,8 @@ type contextKey string
 
 // ListFiltersToSession stores the given list filters in the session. The path is used as a suffix so that filters are
 // stored per-route.
-func ListFiltersToSession(ctx context.Context, session SessionManager, path string, filters *models.ListFilters) {
-	session.Put(ctx, string(listFiltersCtxKey)+path, *filters)
+func ListFiltersToSession(ctx context.Context, session SessionManager, path string, filters models.ListFilters) {
+	session.Put(ctx, string(listFiltersCtxKey)+path, filters)
 }
 
 // ListFiltersFromSession retrieves the given list filters in the session. The path is used as a suffix so that filters
@@ -107,15 +107,14 @@ func ListFiltersToSession(ctx context.Context, session SessionManager, path stri
 func ListFiltersFromSession(ctx context.Context, session SessionManager, path string) *models.ListFilters {
 	filters, ok := session.Get(ctx, string(listFiltersCtxKey)+path).(models.ListFilters)
 	if !ok {
-		slogctx.Warn(ctx, "Unable to restore filters from session. Using defaults.")
 		return models.NewListFilters()
 	}
 	return &filters
 }
 
 // ListFiltersToCtx stores the given list filters in the context.
-func ListFiltersToCtx(ctx context.Context, filters *models.ListFilters) context.Context {
-	return context.WithValue(ctx, listFiltersCtxKey, *filters)
+func ListFiltersToCtx(ctx context.Context, filters models.ListFilters) context.Context {
+	return context.WithValue(ctx, listFiltersCtxKey, filters)
 }
 
 // ListFiltersFromCtx retrieves the given list filters in the context.
@@ -123,7 +122,6 @@ func ListFiltersFromCtx(ctx context.Context) *models.ListFilters {
 	if filters, ok := ctx.Value(listFiltersCtxKey).(models.ListFilters); ok {
 		return &filters
 	}
-	slogctx.Warn(ctx, "No filters in context. Returning new filters.")
 	return models.NewListFilters()
 }
 
@@ -138,7 +136,6 @@ func ListCountToSession(ctx context.Context, session SessionManager, path string
 func ListCountFromSession(ctx context.Context, session SessionManager, path string) int {
 	count, ok := session.Get(ctx, string(listCountCtxKey)+path).(int)
 	if !ok {
-		slogctx.Warn(ctx, "Unable to restore list count from session. Using default.")
 		return 9
 	}
 	return count

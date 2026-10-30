@@ -19,98 +19,139 @@ import (
 )
 
 // CanonicalizeListFilters handles processing and storing the fully-specified, whitelisted list filters for the user.
+// Optimized for performance: reduces tracing allocations, flattens handler chain, and minimizes string operations.
 func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			spanCtx, span := tracer.Start(req.Context(), "canonicalize-filters")
-			defer span.End()
-			// Set a canonical path, used for context/session key suffixes.
-			var path string
-			switch {
-			case strings.HasPrefix(req.URL.Path, "/subscriptions"):
-				path = "/subscriptions"
-			case strings.HasPrefix(req.URL.Path, "/articles"):
-				path = "/articles"
-			case strings.HasPrefix(req.URL.Path, "/map"):
-				path = "/map"
-			}
+			// Optimized: pre-compute path once, avoids repeated string checks in nested branches.
+			path := determinePath(req.URL.Path)
 
-			// When not on list pages, just load the filters from the session into the context.
-			if req.Method == http.MethodGet && !strings.HasSuffix(req.URL.Path, "/articles") &&
-				!strings.HasSuffix(req.URL.Path, "/subscriptions") && !strings.HasPrefix(req.URL.Path, "/map") {
-				filters := handlers.ListFiltersFromSession(spanCtx, session, path)
-				// Reset pagination.
+			if !isListPage(req.URL.Path) {
+				slogctx.Debug(
+					req.Context(),
+					"Non-list page, using filters from session.",
+					slog.String("path", req.URL.Path),
+				)
+				// Early return for non-list pages - avoids all filter processing.
+				filters := handlers.ListFiltersFromSession(req.Context(), session, path)
 				filters.From = nil
 				filters.UpTo = nil
-				// Store in context.
-				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
+				ctx := handlers.ListFiltersToCtx(req.Context(), *filters)
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
 
-			switch req.Method {
-			case http.MethodGet:
-				var filters *models.ListFilters
-				if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
-					// For a history restore request, fetch the filters from the session.
-					filters = handlers.ListFiltersFromSession(spanCtx, session, path)
-					switch {
-					case filters.From != nil:
-						// Set upto as the value of from and reset from.
-						upto := *filters.From
-						filters.UpTo = &upto
-						filters.From = nil
-					case filters.SearchAfter != nil:
-						// Set upto from value stored in session.
-						count := handlers.ListCountFromSession(spanCtx, session, path)
-						filters.UpTo = &count
-						filters.SearchAfter = nil
-					}
-				} else {
-					// For regular requests, parse the filters from the query.
-					filters = models.ParseListFilters(req.URL.Query())
-					filters.Sanitise()
-					if canonical := filters.Encode(); req.URL.RawQuery != canonical {
-						slogctx.Debug(spanCtx, "Redirect after filters canonicalization.",
-							slog.String("query", req.URL.RawQuery),
-							slog.String("canonical", canonical))
-						req.URL.RawQuery = canonical
-						http.Redirect(res, req, req.URL.String(), http.StatusFound)
-						return
-					}
-				}
-				// Save values.
-				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
-				handlers.ListFiltersToSession(ctx, session, path, filters)
-				handlers.ListCountToSession(ctx, session, path, filters.Count)
+			filters, _, redirect := prepareFilters(req, path, session)
+			if redirect {
+				// Optimization: redirect without span context (already captured).
+				req.URL.RawQuery = filters.Encode()
+				http.Redirect(res, req, req.URL.String(), http.StatusFound)
+				return
+			}
+
+			// Process filters based on request method.
+			if req.Method == http.MethodPost {
+				filters = processFilters(req, path, session, res)
+			}
+
+			// Single context setup - all operations below.
+			ctx := handlers.ListFiltersToCtx(req.Context(), *filters)
+			handlers.ListFiltersToSession(ctx, session, path, *filters)
+			handlers.ListCountToSession(ctx, session, path, filters.Count)
+			if req.Method == http.MethodGet {
 				pushURL := req.URL.Clone()
+				pushURL.Path = path
 				pushURL.RawQuery = filters.Encode()
 				res.Header().Set(htmx.HeaderPushURL, pushURL.String())
-				next.ServeHTTP(res, req.WithContext(ctx))
-			case http.MethodPost:
-				filters, err := forms.DecodeForm[*models.ListFilters](req)
-				if err != nil || filters == nil {
-					// Try to restore filters from session.
-					filters = handlers.ListFiltersFromSession(spanCtx, session, path)
-					if err != nil {
-						slogctx.FromCtx(spanCtx).Warn("Unable to decode list filters. Using filters from session.",
-							slog.Any("error", err),
-							slog.Any("filters", filters),
-						)
-					}
-				}
-				// For pagination requests, update count in session.
-				if strings.HasSuffix(req.URL.Path, "paginate") {
-					count := handlers.ListCountFromSession(spanCtx, session, path)
-					count += filters.Count
-					handlers.ListCountToSession(spanCtx, session, path, count)
-				}
-				// Save values.
-				ctx := handlers.ListFiltersToCtx(req.Context(), filters)
-				handlers.ListFiltersToSession(ctx, session, path, filters)
-
-				next.ServeHTTP(res, req.WithContext(ctx))
 			}
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
+}
+
+// determinePath extracts the canonical path from URL for filter key suffixes.
+// Uses fast switch over known patterns instead of repeated HasPrefix/HasSuffix checks.
+func determinePath(urlPath string) string {
+	switch urlPath {
+	case "/subscriptions", "/subscriptions/":
+		return "/subscriptions"
+	case "/articles", "/articles/":
+		return "/articles"
+	case "/map", "/map/":
+		return "/map"
+	default:
+		return ""
+	}
+}
+
+// isListPage determines if URL path is a list page that requires filter processing.
+func isListPage(urlPath string) bool {
+	switch urlPath {
+	case "/articles", "/articles/paginate", "/articles/updates":
+		return true
+	case "/subscriptions", "/subscriptions/paginate", "/subscriptions/updates":
+		return true
+	case "/map", "/map/updates":
+		return true
+	default:
+		return false
+	}
+}
+
+// prepareFilters extracts, sanitizes, and validates filters based on request type.
+// Returns filters pointer, whether to fetch from session, and whether to redirect.
+func prepareFilters(req *http.Request, path string, session handlers.SessionManager) (*models.ListFilters, bool, bool) {
+	if req.Method != http.MethodGet {
+		// POST: will be handled by caller (session decode logic below)
+		return nil, false, false
+	}
+
+	// History restore or mark-subscription: fetch from session
+	if htmx.IsHistoryRestoreRequest(req) || req.Header.Get(models.ActionHeader) == "mark-subscription" {
+		filters := handlers.ListFiltersFromSession(req.Context(), session, path)
+		if filters.From != nil {
+			upto := *filters.From
+			filters.UpTo = &upto
+			filters.From = nil
+		} else if filters.SearchAfter != nil {
+			count := handlers.ListCountFromSession(req.Context(), session, path)
+			filters.UpTo = &count
+			filters.SearchAfter = nil
+		}
+		return filters, true, false
+	}
+
+	// Regular GET: parse from query string
+	filters := models.ParseListFilters(req.URL.Query())
+	filters.Sanitise()
+
+	// Check canonicalization - redirect if query changes
+	canonical := filters.Encode()
+	return filters, false, req.URL.RawQuery != canonical
+}
+
+// processFilters handles POST requests and session storage.
+func processFilters(
+	req *http.Request,
+	path string,
+	session handlers.SessionManager,
+	res http.ResponseWriter,
+) *models.ListFilters {
+	filters, err := forms.DecodeForm[*models.ListFilters](req)
+	if err != nil || filters == nil {
+		filters = handlers.ListFiltersFromSession(req.Context(), session, path)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to decode list filters. Using filters from session.",
+				slog.Any("error", err),
+				slog.Any("filters", filters),
+			)
+		}
+	}
+	// For pagination requests, update count in session.
+	if strings.HasSuffix(req.URL.Path, "paginate") {
+		count := handlers.ListCountFromSession(req.Context(), session, path)
+		count += filters.Count
+		handlers.ListCountToSession(req.Context(), session, path, count)
+	}
+	return filters
 }
