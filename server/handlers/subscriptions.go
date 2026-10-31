@@ -129,7 +129,7 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			subSvc.GetLatestArticles(req.Context(), filters.GetView(), subscriptions)
 		}
 
-		// Create response object
+		// Create a response object
 		response := &models.ListSubscriptionsResponse{
 			Filters:       *filters,
 			Subscriptions: subscriptions,
@@ -157,30 +157,6 @@ func (m *Manager) HandleListSubscriptions(subSvc SubscriptionsService) http.Hand
 			page.fragment = templates.PaginateFragment
 			// Render new subscription cards.
 			page.PartialResponse(res, req)
-			// // Render new category filters.
-			// if len(response.Subscriptions.GetCategories()) > 0 {
-			// 	m.NewPartial(templates.UpdateListCategoryFilters(
-			// 		"/subscriptions",
-			// 		response.Filters,
-			// 		response.Subscriptions.GetCategories(),
-			// 	)).Handle().ServeHTTP(res, req)
-			// }
-			// // Render new language filters.
-			// if len(response.Subscriptions.GetLanguageCounts()) > 0 {
-			// 	m.NewPartial(templates.UpdateListLanguageFilters(
-			// 		"/subscriptions",
-			// 		response.Filters,
-			// 		response.Subscriptions.GetLanguageCounts(),
-			// 	)).Handle().ServeHTTP(res, req)
-			// }
-			// Update pagination control element.
-			// if response.Filters.From != nil && len(response.Subscriptions) == response.Filters.GetCount() {
-			// 	m.NewPartial(templates.ListPaginationControl(
-			// 		"/subscriptions/paginate",
-			// 		&response.Filters,
-			// 		element.WithHXSwapOOB("true"),
-			// 	)).Handle().ServeHTTP(res, req)
-			// }
 		}
 	}
 }
