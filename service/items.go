@@ -279,7 +279,7 @@ func (s *ItemService) EnrichItem(
 		return fmt.Errorf("cannot enrich item: %w", err)
 	}
 
-	itemCtx, cancel := context.WithTimeoutCause(ctx, 2*time.Minute, errors.New("enrich item timeout"))
+	itemCtx, cancel := context.WithTimeoutCause(ctx, 5*time.Minute, errors.New("enrich item timeout"))
 	defer cancel()
 
 	itemCtx = slogctx.With(itemCtx,
