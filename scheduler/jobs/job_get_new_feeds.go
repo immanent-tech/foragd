@@ -93,9 +93,12 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	const maxConcurrentWorkers = 25
-	g, ctx := errgroup.WithContext(ctx)
+	var (
+		g      errgroup.Group
+		added  atomic.Int64
+		failed atomic.Int64
+	)
 	g.SetLimit(maxConcurrentWorkers)
-	var added atomic.Int64
 
 	// Fan-out: spawn workers
 	for feed := range slices.Values(newFeeds) {
@@ -115,6 +118,7 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
 				// Log error but don't return it — one bad feed shouldn't stop the rest
+				failed.Add(1)
 				return nil
 			}
 			added.Add(1)
@@ -123,13 +127,11 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	}
 
 	// Wait for all workers to complete
-	if err := g.Wait(); err != nil {
-		// Should not happen since workers return nil, but handle anyway
-		log.Error("Workers failed", slog.Any("error", err))
-	}
+	_ = g.Wait()
 
 	log.Info("Finished get new feeds job.",
 		slog.Int64("added", added.Load()),
+		slog.Int64("failed", failed.Load()),
 		slog.Duration("took", time.Since(start)))
 
 	return nil

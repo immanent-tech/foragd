@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -70,16 +71,16 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 
 	// Bounded concurrency with errgroup
 	const maxWorkers = 5 // Cap to prevent oversubscription
-	g, ctx := errgroup.WithContext(ctx)
+	var g errgroup.Group
 	g.SetLimit(maxWorkers)
 
 	var (
-		failed    int
 		failedMut sync.Mutex
 	)
+	errs := make([]error, 0)
 
 	// Fan-out: send imports to workers
-	for _, status := range pendingImports {
+	for status := range slices.Values(pendingImports) {
 		g.Go(func() error {
 			importCtx, importCancel := context.WithTimeoutCause(
 				ctx,
@@ -92,7 +93,7 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 			defer func() {
 				if rvr := recover(); rvr != nil {
 					failedMut.Lock()
-					failed++
+					errs = append(errs, err)
 					failedMut.Unlock()
 					slogctx.FromCtx(ctx).Error("Worker panic", slog.Any("recover", rvr))
 					// Log to GCP error console.
@@ -118,13 +119,15 @@ func ExecuteRunImportsJob(ctx context.Context, job *SerializedJob) error {
 	}
 
 	// Wait for all workers
-	if err := g.Wait(); err != nil {
-		slogctx.FromCtx(ctx).Warn("Some imports failed", slog.Any("error", err))
+	_ = g.Wait()
+	if len(errs) > 0 {
+		slogctx.Warn(ctx, "Some imports failed",
+			slog.Int("count", len(errs)),
+			slog.Any("error", errors.Join(errs...)))
 	}
 
 	slogctx.Debug(ctx, "Finished run imports job.",
 		slog.Duration("took", time.Since(start)),
-		slog.Int("failed", failed),
 	)
 
 	return nil
