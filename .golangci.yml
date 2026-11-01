@@ -227,7 +227,7 @@ linters:
       # Default: [ switch ]
       check:
         - switch
-        - map
+        - mapliteral
 
     exhaustruct:
       # List of regular expressions to match type names that should be excluded from processing.
@@ -504,8 +504,10 @@ linters:
           - errcheck
           - funlen
           - goconst
+          - gocognit
           - gosec
           - noctx
           - wrapcheck
+          - nestif
       - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
         linters: [govet]

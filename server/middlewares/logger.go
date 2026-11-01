@@ -44,7 +44,6 @@ var configureLogging = sync.OnceValue(func() slogchi.Config {
 func Logger(next http.Handler) http.Handler {
 	cfg := configureLogging()
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-
 		logger := slogctx.FromCtx(req.Context())
 		if htmx.IsHTMX(req) {
 			// Decorate logger with HTMX specific attributes.

@@ -117,7 +117,7 @@ func BenchmarkParseListFilters_Empty(b *testing.B) {
 	}
 }
 
-// Benchmark for the hot path: ParseListFilters + Sanitise
+// Benchmark for the hot path: ParseListFilters + Sanitise.
 func BenchmarkParseListFilters_Sanitise(b *testing.B) {
 	query := url.Values{}
 	query.Set("sort", "newest_first")
