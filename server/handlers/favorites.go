@@ -54,6 +54,7 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 			if len(user.ItemFavorites) > 0 {
 				var err error
 				articles, err = itemSvc.GetArticles(jobCtx, user.ItemFavorites...)
+				articles = articles.SortByTimestamp()
 				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					return fmt.Errorf("get articles: %w", err)
 				}
@@ -68,7 +69,7 @@ func (m *Manager) HandleListFavorites(subSvc SubscriptionsService, itemSvc ItemS
 			if allSubscriptions == nil {
 				return fmt.Errorf("get all subscriptions: %w", err)
 			}
-			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites)
+			favoriteSubscriptions = allSubscriptions.FilterByView(models.ViewFavorites).Sort(models.SortNewestFirst)
 			if len(favoriteSubscriptions) > 0 {
 				subSvc.GetLatestArticles(req.Context(), models.ViewAll, favoriteSubscriptions)
 			}

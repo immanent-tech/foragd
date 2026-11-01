@@ -94,6 +94,15 @@ func (a Articles) FilterByView(view View) Articles {
 	}
 }
 
+// SortByTimestamp sorts the items by their timestamps, in descending order.
+func (a Articles) SortByTimestamp() Articles {
+	slices.SortFunc(a, func(a, b *Article) int {
+		return a.Item.GetTimestamp().Compare(b.Item.GetTimestamp())
+	})
+	slices.Reverse(a)
+	return a
+}
+
 // Validate returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (a Article) Validate() error {
