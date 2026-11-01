@@ -172,7 +172,7 @@ func (a Article) GetContent() string {
 func (a Article) formatContent(content string) string {
 	switch {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
-		sanitized, err := htmlx.Sanitize(
+		sanitized, err := htmlx.Lint(
 			content,
 			htmlx.UnwrapLayoutTables,
 			htmlx.StripWhitespaceOnlyNodesOption,
@@ -182,7 +182,7 @@ func (a Article) formatContent(content string) string {
 		}
 		return sanitized
 	case a.Item.SourceType == SourceTypeEmail:
-		sanitized, err := htmlx.Sanitize(
+		sanitized, err := htmlx.Lint(
 			content,
 			htmlx.UnwrapLayoutTables,
 			htmlx.StripAttributesOption,

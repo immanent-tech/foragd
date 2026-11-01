@@ -147,7 +147,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/providers/posflag v1.0.1 // indirect
 	github.com/knadh/koanf/providers/structs v1.0.0 // indirect
-	github.com/knadh/koanf/v2 v2.3.8 // indirect
+	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/kojah/gohawk v0.7.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
@@ -190,7 +190,6 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
-	github.com/tdewolff/test v1.0.12 // indirect
 	github.com/vektra/mockery/v3 v3.8.0 // indirect
 	github.com/veqryn/slog-context/otel v0.9.0 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect

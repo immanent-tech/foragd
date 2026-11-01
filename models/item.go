@@ -259,7 +259,7 @@ func (i Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
 		case htmlx.IsHTML(*i.Description):
-			sanitizedDesc, err := htmlx.Sanitize(*i.Description)
+			sanitizedDesc, err := htmlx.Lint(*i.Description)
 			if err != nil {
 				return ""
 			}
