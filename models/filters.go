@@ -141,7 +141,7 @@ func (f ListFilters) GetSubscriptions() []SubscriptionID {
 	return f.Subscriptions
 }
 
-// Sanitise performs sanitisation of the filter values to ensure correctness.
+// Sanitize performs sanitisation of the filter values to ensure correctness.
 func (f *ListFilters) Sanitise() error {
 	if f == nil {
 		f = NewListFilters()

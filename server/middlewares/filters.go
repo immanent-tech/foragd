@@ -28,11 +28,9 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 
 			log := slogctx.FromCtx(req.Context())
 
-			if !isListPage(req.URL.Path) {
+			if !IsListPage(req.URL.Path) {
 				// Early return for non-list pages - avoids all filter processing.
-				filters := handlers.ListFiltersFromSession(req.Context(), session, path)
-				filters.From = nil
-				filters.UpTo = nil
+				filters := models.NewListFilters()
 				ctx := handlers.ListFiltersToCtx(req.Context(), *filters)
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
@@ -48,7 +46,7 @@ func CanonicalizeListFilters(session handlers.SessionManager) func(next http.Han
 
 			// Process filters based on request method.
 			if req.Method == http.MethodPost {
-				filters = processFilters(req, path, session, res)
+				filters = processFilters(req, path, session)
 			}
 
 			// Single context setup - all operations below.
@@ -86,8 +84,8 @@ func determinePath(urlPath string) string {
 	}
 }
 
-// isListPage determines if URL path is a list page that requires filter processing.
-func isListPage(urlPath string) bool {
+// IsListPage determines if URL path is a list page that requires filter processing.
+func IsListPage(urlPath string) bool {
 	switch urlPath {
 	case "/articles", "/articles/paginate", "/articles/updates":
 		return true
@@ -146,7 +144,6 @@ func processFilters(
 	req *http.Request,
 	path string,
 	session handlers.SessionManager,
-	res http.ResponseWriter,
 ) *models.ListFilters {
 	log := slogctx.FromCtx(req.Context())
 
