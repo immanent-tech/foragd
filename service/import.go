@@ -11,16 +11,17 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -118,7 +119,7 @@ func (i *ImportService) StartImport(
 	return status.GetID(), nil
 }
 
-// bulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
+// ProcessRequests handles processing an [models.ImportStatus] to generate subscriptions for a user.
 func (i *ImportService) ProcessRequests(
 	ctx context.Context,
 	status *models.ImportStatus,
@@ -129,6 +130,15 @@ func (i *ImportService) ProcessRequests(
 	)
 
 	slogctx.Info(ctx, "Processing user import")
+
+	// Sort requests.
+	slices.SortFunc(status.Requests, func(a, b models.ImportRequest) int {
+		return strings.Compare(a.URL, b.URL)
+	})
+	// Remove duplicates.
+	status.Requests = slices.CompactFunc(status.Requests, func(a, b models.ImportRequest) bool {
+		return a.URL == b.URL
+	})
 
 	feedSvc, err := LoadFeedService()
 	if err != nil {
@@ -163,14 +173,6 @@ func (i *ImportService) ProcessRequests(
 	}
 	ctx = models.UserToCtx(ctx, user)
 
-	allSubscriptions, err := subSvc.GetAllSubscriptions(ctx)
-	if err != nil {
-		if err := i.updateStatus(ctx, status, models.ImportStatusStatusFailed, nil); err != nil {
-			slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
-		}
-		return fmt.Errorf("get user subscriptions: %w", err)
-	}
-
 	if err := i.updateStatus(ctx, status, models.ImportStatusStatusRunning, nil); err != nil {
 		slogctx.Error(ctx, "Could not update status", slog.Any("error", err))
 		return fmt.Errorf("update status to running: %w", err)
@@ -180,153 +182,92 @@ func (i *ImportService) ProcessRequests(
 	type result struct {
 		Details      *models.ImportResult
 		Subscription *models.Subscription
+		AddFeed      bool
 		Feed         *models.Feed
 	}
-	maxConcurrentWorkers := 20
-	maxConcurrentRequests := 50
-	resultsCh := make(chan result)
-	requestCh := make(chan models.ImportRequest, maxConcurrentRequests)
-	var wg sync.WaitGroup
 
+	// Set up parallel processing of requests.
+	maxWorkers := min(runtime.GOMAXPROCS(0)*4, 100)
+	resultsCh := make(chan result, len(status.Requests))
+	var g errgroup.Group
+	g.SetLimit(maxWorkers)
 	start := time.Now()
 
-	for range maxConcurrentWorkers {
-		wg.Go(func() {
-			for request := range requestCh {
-				requestCtx := slogctx.With(ctx, slog.String("source_url", request.URL))
+	// Start parallel processing of requests.
+	for request := range slices.Values(status.Requests) {
+		g.Go(func() error {
+			requestCtx := slogctx.With(ctx, slog.String("source_url", request.URL))
 
-				slogctx.Info(requestCtx, "Processing subscription request")
-				start := time.Now()
+			slogctx.Info(requestCtx, "Processing subscription request")
+			start := time.Now()
 
-				// Create result object.
-				result := result{
-					Details: &models.ImportResult{
-						Categories: request.Categories,
-						URL:        request.URL,
-						JobID:      status.GetID(),
-						DocType:    "import_result",
-					},
-				}
+			// Create result object.
+			result := result{
+				Details: &models.ImportResult{
+					Categories: request.Categories,
+					URL:        request.URL,
+					JobID:      status.GetID(),
+					DocType:    "import_result",
+				},
+			}
 
-				// Fetch feed details from remote URL.
-				feed, err := feedSvc.FetchFeed(requestCtx, request.URL)
-				if err != nil {
-					slogctx.Error(requestCtx, "Unable to fetch feed.",
-						slog.Any("error", err))
-					if apiErr, ok := errors.AsType[*models.APIError](err); ok {
-						result.Details.Error = apiErr.GetUserMessage()
-					} else {
-						result.Details.Error = models.NewErrorMessage(
-							"Could not fetch feed data from url",
-							request.URL,
-						)
-					}
-					resultsCh <- result
-					continue
-				}
-
-				// Check if there is an existing feed.
-				existingFeeds, err := feedSvc.GetFeedsByURLs(requestCtx, feed.GetSourceURLs()...)
-				if err != nil {
-					slogctx.Error(requestCtx, "Unable to check for existing feeds with URL(s).",
-						slog.Any("error", err))
+			// Check and create a feed as needed.
+			feed, addFeed, err := i.checkFeeds(ctx, feedSvc, request.URL)
+			if err != nil {
+				slogctx.Error(ctx, "Unable check feeds.", slog.Any("error", err))
+				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+					result.Details.Error = apiErr.GetUserMessage()
+				} else {
 					result.Details.Error = models.NewErrorMessage(
-						"Failed check existing feeds",
-						"Could not determine if there is an existing feed for the url: "+request.URL,
-					)
-					resultsCh <- result
-					continue
-				}
-				switch {
-				case len(existingFeeds) > 1:
-					// Multiple feeds match new feed URLs! This should not happen.
-					slogctx.Error(requestCtx, "Multiple feeds match given URL(s).",
-						slog.String("feed_ids", strings.Join(existingFeeds.GetIDs(), ",")))
-					result.Details.Error = models.NewErrorMessage(
-						"Ambiguous feed match",
-						"Could not determine which existing feed this URL is for: "+request.URL,
-					)
-					resultsCh <- result
-					continue
-				case len(existingFeeds) == 1:
-					// There is an existing feed. Record its ID.
-					feed = existingFeeds[0]
-					result.Details.FeedID = new(existingFeeds[0].GetID())
-				default:
-					// New feed required. Add it.
-					result.Details.FeedID = new(feed.GetID())
-					result.Feed = feed
-				}
-
-				// Check for an existing subscription to this feed.
-				existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
-				if len(existingSubscriptions) > 0 {
-					result.Details.Error = models.NewWarningMessage(
-						fmt.Sprintf("Already subscribed to feed (%s)", existingSubscriptions[0].GetTitle()),
+						"Could not fetch feed data from url",
 						request.URL,
 					)
-					resultsCh <- result
-					continue
 				}
-
-				// Create new subscription.
-				newSubscription, err := NewFeedSubscription(requestCtx, feed, nil)
-				if err != nil {
-					slogctx.Error(requestCtx, "Create subscription failed.",
-						slog.Any("error", err),
-					)
-					result.Details.Error = models.NewErrorMessage(
-						"Unable to add subscription",
-						"Failed to add subscription for URL: "+request.URL,
-					)
-					resultsCh <- result
-					continue
-				}
-				// Add any categories from the OPML to the subscription.
-				if len(request.Categories) > 0 {
-					newSubscription.Customisation.Categories = request.Categories
-				}
-
-				result.Details.SubscriptionID = new(newSubscription.GetID())
-				result.Subscription = newSubscription
-
-				slogctx.Info(requestCtx, "Subscription request processed",
-					slog.Duration("took", time.Since(start)),
-				)
-
 				resultsCh <- result
+				return nil
 			}
+			result.Feed = feed
+			result.AddFeed = addFeed
+
+			// Check and create subscription as needed.
+			subscription, err := i.checkSubscriptions(ctx, subSvc, result.Feed, request.URL)
+			if err != nil {
+				slogctx.Error(ctx, "Unable check subscriptions.", slog.Any("error", err))
+				if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+					result.Details.Error = apiErr.GetUserMessage()
+				} else {
+					result.Details.Error = models.NewErrorMessage(
+						"Could not check existing subscriptions for feed",
+						request.URL,
+					)
+				}
+				resultsCh <- result
+				return nil
+			}
+			// Add any categories from the OPML to the subscription.
+			if len(request.Categories) > 0 {
+				subscription.Customisation.Categories = request.Categories
+			}
+			result.Details.SubscriptionID = new(subscription.GetID())
+			result.Subscription = subscription
+
+			slogctx.Info(requestCtx, "Subscription request processed",
+				slog.Duration("took", time.Since(start)),
+			)
+
+			resultsCh <- result
+			return nil
 		})
 	}
 
-	// Process all requests.
-	go func() {
-		// Sort requests.
-		slices.SortFunc(status.Requests, func(a, b models.ImportRequest) int {
-			return strings.Compare(a.URL, b.URL)
-		})
-		// Remove duplicates.
-		status.Requests = slices.CompactFunc(status.Requests, func(a, b models.ImportRequest) bool {
-			return a.URL == b.URL
-		})
-		// Process requests.
-		for request := range slices.Values(status.Requests) {
-			requestCh <- request
-		}
-		close(requestCh)
-	}()
+	_ = g.Wait()
+	close(resultsCh)
 
-	// Wait for all request processing to complete.
-	go func() {
-		defer close(resultsCh)
-		wg.Wait()
-	}()
-
-	// Gather results.
+	// Process results.
 	var errs error
 	for result := range resultsCh {
 		// Add new feed as needed.
-		if result.Feed != nil {
+		if result.AddFeed {
 			if err := bulk.AddAction(ctx,
 				bulk.NewAction(
 					result.Feed,
@@ -388,6 +329,78 @@ func (i *ImportService) ProcessRequests(
 	)
 
 	return errs
+}
+
+func (i *ImportService) checkFeeds(
+	ctx context.Context,
+	feedSvc *FeedService,
+	requestURL string,
+) (*models.Feed, bool, error) {
+	// Fetch feed details from remote URL.
+	feed, err := feedSvc.FetchFeed(ctx, requestURL)
+	if err != nil {
+		return nil, false, fmt.Errorf("fetch feed: %w", err)
+	}
+
+	existingFeeds, err := feedSvc.GetFeedsByURLs(ctx, feed.GetSourceURLs()...)
+	if err != nil {
+		return nil, false, fmt.Errorf("match existing feeds: %w", err)
+	}
+	switch {
+	case len(existingFeeds) > 1:
+		// Multiple feeds match new feed URLs! This should not happen.
+		return nil, false, models.NewAPIError(
+			http.StatusConflict,
+			fmt.Errorf("%q: multiple matches", requestURL),
+			models.WithUserMessage(models.NewErrorMessage(
+				"Ambiguous feed match",
+				"Could not determine which existing feed this URL is for: "+requestURL,
+			)),
+		)
+	case len(existingFeeds) == 1:
+		// There is an existing feed. Return its details but do not set create flag.
+		return feed, false, nil
+	default:
+		return feed, true, nil
+	}
+}
+
+func (i *ImportService) checkSubscriptions(
+	ctx context.Context,
+	subSvc *SubscriptionService,
+	feed *models.Feed,
+	requestURL string,
+) (*models.Subscription, error) {
+	// Check for an existing subscription to this feed.
+	allSubscriptions, err := subSvc.GetAllSubscriptions(ctx)
+	if err != nil {
+		return nil, models.NewAPIError(http.StatusInternalServerError, fmt.Errorf("get user subscriptions: %w", err))
+	}
+	existingSubscriptions := allSubscriptions.FilterByFeedIDs(feed.GetID())
+	if len(existingSubscriptions) > 0 {
+		return nil, models.NewAPIError(
+			http.StatusConflict,
+			fmt.Errorf("%s: already subscribed", feed.GetID()),
+			models.WithUserMessage(models.NewWarningMessage(
+				fmt.Sprintf("Already subscribed to feed (%s)", existingSubscriptions[0].GetTitle()),
+				requestURL,
+			)),
+		)
+	}
+
+	// Create new subscription.
+	newSubscription, err := NewFeedSubscription(ctx, feed, nil)
+	if err != nil {
+		return nil, models.NewAPIError(
+			http.StatusInternalServerError,
+			fmt.Errorf("create subscription: %w", err),
+			models.WithUserMessage(models.NewErrorMessage(
+				"Unable to add subscription",
+				"Failed to add subscription for URL: "+requestURL,
+			)),
+		)
+	}
+	return newSubscription, nil
 }
 
 func (i *ImportService) GetImportStatus(
