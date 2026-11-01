@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.254.2](https://github.com/immanent-tech/foragd/compare/v0.254.1...v0.254.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **service/items:** ⚡ increase enrich item timeout ([473ac12](https://github.com/immanent-tech/foragd/commit/473ac122be9c08f6da43928d07f8c0c9b5604d9d))
+
 ## [0.254.1](https://github.com/immanent-tech/foragd/compare/v0.254.0...v0.254.1) (2026-10-30)
 
 
