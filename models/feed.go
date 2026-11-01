@@ -74,7 +74,7 @@ func (f Feeds) GetCategories() Categories {
 func NewFeed(ctx context.Context, feedURLStr string, existingID FeedID, source *feeds.Feed) *Feed {
 	var id FeedID
 	if existingID == "" {
-		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetSourceURL())), 10)
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(feedURLStr)), 10)
 	} else {
 		id = existingID
 	}
