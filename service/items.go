@@ -188,9 +188,10 @@ func (s ItemService) SortItemsByState(ctx context.Context, items models.Items) I
 			if oldItem.GetTitle() != item.GetTitle() || oldItem.GetDescription() != item.GetDescription() ||
 				oldItem.GetContent() != item.GetContent() {
 				updatedItems = append(updatedItems, item)
+			} else {
+				// Items that are not new and don't have significant content changes are discarded.
+				unchangedItems = append(unchangedItems, item)
 			}
-			// Items that are not new and don't have significant content changes are discarded.
-			unchangedItems = append(unchangedItems, item)
 		}
 	}
 	return ItemChanges{New: newItems, Updated: updatedItems, Unchanged: unchangedItems}
