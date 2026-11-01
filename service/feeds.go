@@ -272,7 +272,7 @@ func (s FeedService) GetFeedsByURLs(ctx context.Context, urls ...string) (models
 		5000,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("search all feeds: %w", err)
+		return nil, models.NewAPIError(http.StatusInternalServerError, err)
 	}
 	return feeds, nil
 }
@@ -343,29 +343,30 @@ func (s *FeedService) UpdateFeedItems(
 		// Filter to only items that are new or had significant changes.
 		itemStates := itemSvc.SortItemsByState(ctx, newItems)
 		updates := slices.Concat(itemStates.New, itemStates.Updated)
-		// Enrich items.
 		if len(updates) > 0 {
+			// Enrich new items.
 			if _, err := itemSvc.EnrichItemBatch(ctx, newData, itemStates.New); err != nil {
 				return oldData.LastFetched, fmt.Errorf("enrich items: %w", err)
 			}
+
+			// Log item states.
+			slogctx.Info(ctx, "Updated feed items.",
+				slog.Time("since", oldData.LastFetched),
+				slog.Int("new", len(itemStates.New)),
+				slog.Int("updated", len(itemStates.Updated)),
+				slog.Int("unchanged", len(itemStates.Unchanged)),
+			)
+			if err := newFeedStatusMsg(
+				oldData.GetID(),
+				logWithStatusCode(http.StatusOK),
+				logWithItemIDs(updates.GetIDs()...),
+			).log(ctx); err != nil {
+				slogctx.Error(ctx, "Unable to write feed status.",
+					slog.Any("error", err))
+			}
+			// Return timestamp of most recent item.
+			return updates.SortByTimestamp()[0].GetTimestamp(), nil
 		}
-		// Log item states.
-		slogctx.Info(ctx, "Updated feed items.",
-			slog.Time("since", oldData.LastFetched),
-			slog.Int("new", len(itemStates.New)),
-			slog.Int("updated", len(itemStates.Updated)),
-			slog.Int("unchanged", len(itemStates.Unchanged)),
-		)
-		if err := newFeedStatusMsg(
-			oldData.GetID(),
-			logWithStatusCode(http.StatusOK),
-			logWithItemIDs(updates.GetIDs()...),
-		).log(ctx); err != nil {
-			slogctx.Error(ctx, "Unable to write feed status.",
-				slog.Any("error", err))
-		}
-		// Return timestamp of most recent item.
-		return updates.SortByTimestamp()[0].GetTimestamp(), nil
 	}
 	if err := newFeedStatusMsg(oldData.GetID(), logWithStatusCode(http.StatusNoContent)).log(ctx); err != nil {
 		slogctx.Error(ctx, "Unable to write feed status.",
