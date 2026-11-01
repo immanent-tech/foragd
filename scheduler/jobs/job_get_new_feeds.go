@@ -104,18 +104,19 @@ func ExecuteGetNewFeeds(ctx context.Context, job *SerializedJob) error {
 	for feed := range slices.Values(newFeeds) {
 		// Early exit if context cancelled
 		if ctx.Err() != nil {
-			log.Info("Cancelled get new feeds job.",
+			log.Warn("Cancelled get new feeds job.",
 				slog.Int64("added", added.Load()),
 				slog.Duration("took", time.Since(start)))
 			break
 		}
+		log := log.With(slog.String("feed_id", feed.GetID()))
 		if _, ok := existing[feed.GetID()]; ok {
+			log.Debug("Job already scheduled for feed (likely waiting for first run).")
 			continue // Already scheduled, waiting on next fetch.
 		}
 		g.Go(func() error {
 			if err := addFeedWithTimeout(ctx, services, feed); err != nil {
 				log.Error("Unable to add feed job",
-					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
 				// Log error but don't return it — one bad feed shouldn't stop the rest
 				failed.Add(1)
