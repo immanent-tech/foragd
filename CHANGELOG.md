@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.254.3](https://github.com/immanent-tech/foragd/compare/v0.254.2...v0.254.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* 🔧 sort favorites by newest first ([ac735f5](https://github.com/immanent-tech/foragd/commit/ac735f52a9fa25fb0fadb32380c4b8f4a072b097))
+* **models/feed:** 🔧 handle no updates needed after filtering item states ([14fee45](https://github.com/immanent-tech/foragd/commit/14fee45c7df6816c7ede5f970dbb12ea451ed1d2))
+* **models/feed:** 🔧 use URL that was used to fetch the feed source to generated a new feed ID ([df3aa5b](https://github.com/immanent-tech/foragd/commit/df3aa5b16d31bfd262460686806f07794efa48ef))
+* **scheduler/jobs:** 🔧 fix job parallelization ([f15463d](https://github.com/immanent-tech/foragd/commit/f15463d9ef636f47d277c3f13dbdcb6dae65b791))
+* **service/feeds,service/items:** 🔧 update fixes ([239a2e4](https://github.com/immanent-tech/foragd/commit/239a2e4409cb6abf8a1ec665a6ba254b219f8c3f))
+* **service/items:** 🔧 fix  tracking unchanged items ([627952b](https://github.com/immanent-tech/foragd/commit/627952bc2b3237fa09856b691640715cbd7d5351))
+
 ## [0.254.2](https://github.com/immanent-tech/foragd/compare/v0.254.1...v0.254.2) (2026-11-01)
 
 
